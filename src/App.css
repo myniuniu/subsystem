@@ -1,0 +1,61 @@
+:root {
+  /* 默认主题变量 */
+  --theme-primary: #1890ff;
+  --theme-background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --theme-cardBackground: rgba(255, 255, 255, 0.95);
+  --theme-textPrimary: #ffffff;
+  --theme-textSecondary: #e6f7ff;
+  --theme-textLight: #bae7ff;
+  --theme-border: #91d5ff;
+  --theme-headerBackground: rgba(255, 255, 255, 0.95);
+  --theme-headerText: #ffffff;
+}
+
+.app {
+  background: var(--theme-background);
+  height: 100vh;
+  overflow: hidden;
+  transition: background 0.3s ease;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  backdrop-filter: blur(2px);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .main-container {
+    margin: 3px;
+    border-radius: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-container {
+    margin: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* 动画效果 */
+.main-container {
+  animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

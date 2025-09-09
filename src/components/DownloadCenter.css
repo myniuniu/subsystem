@@ -1,0 +1,17 @@
+.download-center {
+  padding: 24px;
+  height: 100%;
+  overflow-y: auto;
+  background: #f5f5f5;
+}
+
+.download-header-card {
+  margin-bottom: 16px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .download-center {
+    padding: 16px;
+  }
+}

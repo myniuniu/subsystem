@@ -1,0 +1,597 @@
+/* 分享模态框样式 - 现代简洁设计 */
+.share-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  width: 95%;
+  max-width: 680px;
+  min-height: 400px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.12);
+  animation: modalSlideIn 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 顶部标题栏 */
+.share-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 24px 0 24px;
+  background: white;
+}
+
+.share-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.help-icon {
+  width: 20px;
+  height: 20px;
+  background: #f0f0f0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #666;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.help-icon:hover {
+  background: #e0e0e0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.permission-settings-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  color: #495057;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.permission-settings-btn:hover {
+  background: #e9ecef;
+  border-color: #dee2e6;
+}
+
+.share-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  color: #6c757d;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.share-modal-close:hover {
+  background: #f8f9fa;
+  color: #495057;
+}
+
+.share-modal-content {
+  padding: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* 邀请协作者区域 */
+.invite-section {
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #24292f;
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.invite-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border: 1px solid #e1e4e8;
+  border-radius: 8px;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.invite-input-container:focus-within {
+  border-color: #0969da;
+  box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.12);
+}
+
+.invite-input {
+  flex: 1;
+  padding: 0;
+  border: none;
+  font-size: 14px;
+  color: #1a1a1a;
+  background: transparent;
+  font-weight: 400;
+}
+
+.invite-input::placeholder {
+  color: #9aa0a6;
+  font-weight: 400;
+}
+
+.invite-input:focus {
+  outline: none;
+}
+
+.selected-collaborators-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.collaborator-avatar-small {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px #d1d9e0;
+}
+
+.collaborator-avatar-small img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.more-collaborators {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #0969da;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.add-btn {
+  width: 32px;
+  height: 32px;
+  background: #0969da;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.add-btn:hover {
+  background: #0860ca;
+  transform: scale(1.05);
+}
+
+.add-btn:disabled {
+  background: #f6f8fa;
+  color: #656d76;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 搜索建议列表 */
+.search-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e8eaed;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 1000;
+  margin-top: 4px;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover,
+.suggestion-item.selected {
+  background-color: #f8f9fa;
+}
+
+.suggestion-avatar {
+  margin-right: 12px;
+}
+
+.user-avatar,
+.group-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  margin-right: 12px;
+}
+
+.user-avatar {
+  background: #1890ff;
+}
+
+.group-avatar {
+  background: #52c41a;
+}
+
+.suggestion-info {
+  flex: 1;
+}
+
+.suggestion-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin-bottom: 2px;
+}
+
+.suggestion-detail {
+  font-size: 12px;
+  color: #5f6368;
+}
+
+.suggestion-badge {
+  background: #ff9500;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 8px;
+  font-weight: 500;
+}
+
+.highlight-text {
+  background-color: #fff3cd;
+  color: #856404;
+  font-weight: 600;
+  padding: 1px 2px;
+  border-radius: 2px;
+}
+
+/* 链接分享区域 */
+.link-share-section {
+  margin-bottom: 24px;
+}
+
+.organization-share {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.org-avatar {
+  width: 40px;
+  height: 40px;
+  background: #0969da;
+  color: white;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.org-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  height: 120px;
+  justify-content: center;
+  align-items: center;
+}
+
+.org-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  letter-spacing: 2px;
+  line-height: 1.8;
+}
+
+.org-description {
+  font-size: 12px;
+  color: #5f6368;
+  margin-top: 8px;
+  letter-spacing: 1px;
+  line-height: 1.6;
+}
+
+.permission-dropdown {
+  flex-shrink: 0;
+  align-self: flex-end;
+  margin-bottom: 20px;
+}
+
+.permission-select {
+  padding: 10px 14px;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+  color: #1a1a1a;
+  cursor: pointer;
+  min-width: 120px;
+  appearance: none;
+  background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23666" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px;
+  padding-right: 36px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.permission-select:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.share-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.share-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: white;
+  border: 1px solid #d1d9e0;
+  border-radius: 50%;
+  color: #656d76;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.share-action-btn:hover {
+  background: #f6f8fa;
+  border-color: #0969da;
+  color: #0969da;
+}
+
+.copy-link {
+  background: #0969da;
+  color: white;
+  border-color: #0969da;
+  padding: 0 16px;
+  width: auto;
+  font-size: 14px;
+  font-weight: 500;
+  gap: 8px;
+  border-radius: 6px;
+}
+
+.copy-link:hover {
+  background: #0860ca;
+  border-color: #0860ca;
+  color: white;
+}
+
+.collaborators-list {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.collaborator-avatar {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #e8eaed;
+  transition: border-color 0.2s ease;
+  cursor: pointer;
+}
+
+.collaborator-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.collaborator-avatar .avatar-content {
+  width: 100%;
+  height: 100%;
+  background: #1890ff;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.collaborator-avatar:hover {
+  border-color: #1890ff;
+}
+
+.collaborator-avatar .remove-collaborator {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  background: #ea4335;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 10px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.collaborator-avatar:hover .remove-collaborator {
+  display: flex;
+}
+
+.added-collaborator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #e8f0fe;
+  border: 1px solid #d2e3fc;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.added-collaborator .user-avatar,
+.added-collaborator .group-avatar {
+  width: 24px;
+  height: 24px;
+  font-size: 10px;
+  margin-right: 0;
+}
+
+.collaborator-name {
+  flex: 1;
+  font-size: 14px;
+  color: #1a1a1a;
+  font-weight: 500;
+}
+
+.remove-collaborator {
+  background: none;
+  border: none;
+  color: #5f6368;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 2px;
+  transition: color 0.2s ease;
+}
+
+.remove-collaborator:hover {
+  color: #ea4335;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .share-modal {
+    width: 95%;
+    max-width: none;
+    margin: 20px;
+  }
+  
+  .share-modal-content {
+    padding: 16px;
+  }
+  
+  .invite-input-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .add-btn {
+    margin-top: 8px;
+  }
+  
+  .share-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

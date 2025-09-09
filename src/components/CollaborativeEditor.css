@@ -1,0 +1,509 @@
+/* 协同编辑器主容器 */
+.collaborative-editor {
+  height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  background: #f5f5f5;
+}
+
+.collaborative-editor.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  height: 100vh;
+  background: white;
+}
+
+/* 工具栏样式 */
+.editor-toolbar {
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.editor-toolbar .ant-card-body {
+  padding: 12px 24px;
+}
+
+/* 编辑器内容区域 */
+.editor-content {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* 文档侧边栏 */
+.document-sidebar {
+  height: 100%;
+}
+
+.document-sidebar .ant-card {
+  height: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.document-sidebar .ant-card-body {
+  padding: 16px;
+  height: calc(100% - 57px);
+  overflow-y: auto;
+}
+
+.document-item {
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.document-item:hover {
+  background: #f0f0f0;
+  border-color: #d9d9d9;
+}
+
+.document-item.active {
+  background: #e6f7ff;
+  border-color: #1890ff;
+}
+
+.document-item .ant-list-item-meta-title {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.document-item .ant-list-item-meta-description {
+  font-size: 11px;
+}
+
+/* 主编辑区域 */
+.editor-main {
+  height: 100%;
+}
+
+.editor-main .ant-card {
+  height: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.editor-main .ant-card-body {
+  padding: 0;
+  height: calc(100% - 57px);
+}
+
+.editor-main .ant-tabs {
+  height: 100%;
+}
+
+.editor-main .ant-tabs-content-holder {
+  height: calc(100% - 46px);
+}
+
+.editor-main .ant-tabs-tabpane {
+  height: 100%;
+  padding: 16px;
+}
+
+/* 编辑器容器 */
+.editor-container {
+  position: relative;
+  height: 100%;
+}
+
+.main-editor {
+  border: none !important;
+  box-shadow: none !important;
+  resize: none;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  background: #fafafa;
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.main-editor:focus {
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+  border-color: #1890ff !important;
+}
+
+/* 光标指示器 */
+.cursor-indicator {
+  position: absolute;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.cursor-line {
+  width: 2px;
+  height: 20px;
+  background: currentColor;
+  animation: cursor-blink 1s infinite;
+}
+
+@keyframes cursor-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* 预览容器 */
+.preview-container {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.markdown-preview {
+  padding: 20px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e8e8e8;
+  min-height: 100%;
+}
+
+.markdown-preview h1 {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  color: #262626;
+  border-bottom: 2px solid #e8e8e8;
+  padding-bottom: 8px;
+}
+
+.markdown-preview h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 24px 0 12px 0;
+  color: #262626;
+}
+
+.markdown-preview h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 20px 0 8px 0;
+  color: #262626;
+}
+
+.markdown-preview p {
+  line-height: 1.6;
+  margin: 8px 0;
+  color: #595959;
+}
+
+/* 评论侧边栏 */
+.comments-sidebar {
+  height: 100%;
+}
+
+.comments-sidebar .ant-card {
+  height: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.comments-sidebar .ant-card-body {
+  padding: 16px;
+  height: calc(100% - 57px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.comments-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.add-comment {
+  flex-shrink: 0;
+}
+
+.add-comment .ant-form-item {
+  margin-bottom: 8px;
+}
+
+.comments-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.comment-item {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 3px solid #1890ff;
+}
+
+.comment-wrapper {
+  width: 100%;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.comment-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.comment-author {
+  font-weight: 500;
+  font-size: 14px;
+  color: #262626;
+}
+
+.comment-time {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+.comment-content {
+  margin-bottom: 12px;
+  line-height: 1.5;
+  color: #595959;
+}
+
+.comment-reply {
+  margin-left: 32px;
+  margin-top: 12px;
+  padding: 8px;
+  background: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #f0f0f0;
+}
+
+.comment-item .ant-comment {
+  padding: 0;
+}
+
+.comment-item .ant-comment-inner {
+  padding: 0;
+}
+
+.comment-item .ant-comment-content-author {
+  margin-bottom: 4px;
+}
+
+.comment-item .ant-comment-content-author-name {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.comment-item .ant-comment-content-author-time {
+  font-size: 11px;
+  color: #8c8c8c;
+}
+
+.comment-item .ant-comment-content-detail {
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.comment-item .ant-comment-nested {
+  margin-left: 0;
+  padding-left: 16px;
+  border-left: 1px solid #e8e8e8;
+}
+
+/* 状态栏 */
+.editor-status-bar {
+  background: white;
+  border-top: 1px solid #e8e8e8;
+  padding: 8px 24px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.editor-status-bar .ant-typography {
+  font-size: 12px;
+}
+
+/* 在线用户头像组 */
+.ant-avatar-group .ant-avatar {
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ant-badge .ant-badge-dot {
+  box-shadow: 0 0 0 1px white;
+}
+
+/* 连接状态指示器 */
+.ant-badge-status-success {
+  background-color: #52c41a;
+}
+
+.ant-badge-status-error {
+  background-color: #ff4d4f;
+}
+
+/* 标签样式 */
+.ant-tag {
+  border-radius: 4px;
+  font-size: 11px;
+  padding: 2px 6px;
+  margin: 0;
+}
+
+/* 按钮样式优化 */
+.ant-btn-sm {
+  font-size: 12px;
+  padding: 2px 8px;
+  height: auto;
+}
+
+/* 表单样式优化 */
+.ant-form-item {
+  margin-bottom: 12px;
+}
+
+.ant-input, .ant-input:focus {
+  border-radius: 4px;
+}
+
+.ant-btn {
+  border-radius: 4px;
+}
+
+/* 滚动条样式 */
+.comments-list::-webkit-scrollbar,
+.document-sidebar .ant-card-body::-webkit-scrollbar,
+.preview-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.comments-list::-webkit-scrollbar-track,
+.document-sidebar .ant-card-body::-webkit-scrollbar-track,
+.preview-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.comments-list::-webkit-scrollbar-thumb,
+.document-sidebar .ant-card-body::-webkit-scrollbar-thumb,
+.preview-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.comments-list::-webkit-scrollbar-thumb:hover,
+.document-sidebar .ant-card-body::-webkit-scrollbar-thumb:hover,
+.preview-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .document-sidebar {
+    display: none;
+  }
+  
+  .editor-main {
+    span: 18;
+  }
+  
+  .comments-sidebar {
+    span: 6;
+  }
+}
+
+@media (max-width: 768px) {
+  .collaborative-editor {
+    height: calc(100vh - 48px);
+  }
+  
+  .editor-toolbar .ant-card-body {
+    padding: 8px 16px;
+  }
+  
+  .editor-content .ant-row {
+    flex-direction: column;
+  }
+  
+  .editor-main,
+  .comments-sidebar {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: none;
+  }
+  
+  .comments-sidebar {
+    height: 300px;
+    margin-top: 16px;
+  }
+  
+  .main-editor {
+    height: 300px !important;
+  }
+}
+
+/* 全屏模式样式 */
+.collaborative-editor.fullscreen .editor-toolbar {
+  margin: 0;
+  border-radius: 0;
+}
+
+.collaborative-editor.fullscreen .editor-content {
+  padding: 16px;
+}
+
+.collaborative-editor.fullscreen .main-editor {
+  height: calc(100vh - 300px) !important;
+}
+
+/* 动画效果 */
+.document-item,
+.comment-item,
+.ant-btn,
+.ant-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ant-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 加载状态 */
+.ant-spin-container {
+  position: relative;
+}
+
+.ant-spin-blur {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* 工具提示样式 */
+.ant-tooltip-inner {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+/* 模态框样式 */
+.ant-modal-header {
+  border-radius: 8px 8px 0 0;
+}
+
+.ant-modal-content {
+  border-radius: 8px;
+}
+
+/* 进度条样式 */
+.ant-progress-line {
+  margin-bottom: 8px;
+}
+
+.ant-progress-text {
+  font-size: 12px;
+}

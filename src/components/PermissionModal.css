@@ -1,0 +1,250 @@
+/* 权限设置模态框样式 */
+.permission-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.permission-modal {
+  background: white;
+  border-radius: 12px;
+  width: 480px;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.permission-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.permission-modal-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.permission-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.permission-modal-close:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.permission-modal-content {
+  padding: 0;
+  max-height: calc(80vh - 80px);
+  overflow-y: auto;
+}
+
+.permission-section {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.permission-section:last-child {
+  border-bottom: none;
+}
+
+.permission-section-title {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.permission-subsection-title {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #555;
+}
+
+.permission-option {
+  margin-bottom: 12px;
+}
+
+.permission-option:last-child {
+  margin-bottom: 0;
+}
+
+.permission-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 13px;
+  color: #333;
+  position: relative;
+}
+
+.permission-checkbox input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.checkmark {
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid #d9d9d9;
+  border-radius: 3px;
+  margin-right: 8px;
+  position: relative;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.permission-checkbox input[type="checkbox"]:checked + .checkmark {
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+.permission-checkbox input[type="checkbox"]:checked + .checkmark::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.permission-label {
+  line-height: 1.4;
+}
+
+.permission-dropdown-container {
+  margin-bottom: 12px;
+}
+
+.permission-dropdown {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #333;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.permission-dropdown:hover {
+  border-color: #40a9ff;
+}
+
+.permission-dropdown:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.advanced-settings-toggle {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  color: #1890ff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.advanced-settings-toggle:hover {
+  color: #40a9ff;
+}
+
+.toggle-arrow {
+  margin-right: 6px;
+  transition: transform 0.2s ease;
+  font-size: 10px;
+}
+
+.toggle-arrow.expanded {
+  transform: rotate(180deg);
+}
+
+.advanced-settings-content {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.permission-subsection {
+  margin-bottom: 20px;
+}
+
+.permission-subsection:last-child {
+  margin-bottom: 0;
+}
+
+/* 响应式设计 - 权限设置弹窗 */
+@media (max-width: 768px) {
+  .permission-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .permission-modal-header {
+    padding: 16px 20px;
+  }
+  
+  .permission-section {
+    padding: 16px 20px;
+  }
+  
+  .permission-modal-title {
+    font-size: 15px;
+  }
+  
+  .permission-section-title {
+    font-size: 13px;
+  }
+  
+  .permission-checkbox {
+    font-size: 12px;
+  }
+  
+  .permission-dropdown {
+    font-size: 12px;
+  }
+}

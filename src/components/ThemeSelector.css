@@ -1,0 +1,80 @@
+.theme-selector-button {
+  color: #fff !important;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.theme-selector-button:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+}
+
+.theme-selector-dropdown .ant-dropdown-menu {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px;
+  min-width: 200px;
+}
+
+.theme-selector-dropdown .ant-dropdown-menu-item {
+  padding: 0;
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+
+.theme-selector-dropdown .ant-dropdown-menu-item:last-child {
+  margin-bottom: 0;
+}
+
+.theme-option {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.theme-option:hover {
+  background: rgba(24, 144, 255, 0.1);
+}
+
+.theme-preview {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.theme-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.theme-name {
+  font-size: 14px;
+  color: #262626;
+  font-weight: 500;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .theme-selector-dropdown .ant-dropdown-menu {
+    min-width: 180px;
+  }
+  
+  .theme-option {
+    padding: 10px 12px;
+  }
+  
+  .theme-name {
+    font-size: 13px;
+  }
+}
