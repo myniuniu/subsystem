@@ -2,7 +2,7 @@
   height: 100%;
   padding: 16px 0;
   background: var(--theme-cardBackground);
-  width: 240px;
+  width: 280px;
   transition: width 0.3s ease;
   overflow: hidden;
 }
@@ -60,17 +60,39 @@
 .menu-list {
   margin-top: 16px;
   padding: 0 8px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+.menu-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.menu-list::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.menu-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.menu-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .sidebar.collapsed .menu-list {
   padding: 0 4px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
 }
 
 .menu-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 8px 12px;
   margin: 4px 0;
   border-radius: 12px;
   cursor: pointer;
@@ -80,7 +102,150 @@
   user-select: none;
   position: relative;
   overflow: hidden;
+  flex-wrap: nowrap;
 }
+
+.drag-area {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 30px;
+  height: 100%;
+  z-index: 1;
+  cursor: grab;
+  pointer-events: auto;
+  transition: all 0.2s ease;
+}
+
+.drag-area::before {
+  content: '⋮⋮';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.3);
+  letter-spacing: -2px;
+}
+
+.drag-area:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.drag-area:hover::before {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.drag-area:active {
+  cursor: grabbing;
+}
+
+.menu-group {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.menu-group .menu-item-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.menu-item.has-children .expand-icon {
+  margin-left: auto;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.menu-item.expanded .expand-icon {
+  transform: rotate(90deg);
+}
+
+.submenu {
+  margin-left: 20px;
+  border-left: 2px solid var(--theme-border);
+  padding-left: 12px;
+  margin-top: 4px;
+}
+
+.submenu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  margin: 2px 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+  position: relative;
+  font-size: 13px;
+}
+
+.submenu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.submenu-item.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  transform: translateX(2px);
+}
+
+/* 调整子菜单项内容布局 */
+.submenu-item-content {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.submenu-item-icon {
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.submenu-item-icon .icon-wrapper {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.submenu-item-label {
+  font-size: 13px;
+  font-weight: 400;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.submenu-item.active .submenu-item-label {
+  font-weight: 600;
+  color: white;
+}
+
+.sidebar.collapsed .submenu {
+  display: none;
+}
+
+.expand-icon {
+  margin-left: auto;
+  transition: transform 0.3s ease;
+}
+
+.expand-icon.expanded {
+  transform: rotate(180deg);
+}
+
+
 
 .menu-item::before {
   content: '';
@@ -140,19 +305,21 @@
   display: flex;
   align-items: center;
   flex: 1;
+  min-width: 0;
+  width: 100%;
 }
 
 .menu-item-icon {
-  margin-right: 12px;
+  margin-right: 8px;
 }
 
 .icon-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   z-index: 1;
@@ -169,6 +336,11 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   z-index: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
 }
 
 .menu-item.active .menu-item-label {
@@ -209,80 +381,7 @@
   position: relative;
 }
 
-.drag-handle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  cursor: grab;
-  position: relative;
-  z-index: 10;
-}
 
-.menu-item:hover .drag-handle {
-  opacity: 1;
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 4px;
-}
-
-.menu-item.active:hover .drag-handle {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-/* 收缩状态下的拖拽手柄 */
-.drag-handle-collapsed {
-  position: absolute;
-  top: 50%;
-  right: 4px;
-  transform: translateY(-50%);
-  width: 12px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  cursor: grab;
-  z-index: 10;
-}
-
-.drag-indicator {
-  width: 3px;
-  height: 12px;
-  background: repeating-linear-gradient(
-    to bottom,
-    #ccc 0px,
-    #ccc 2px,
-    transparent 2px,
-    transparent 4px
-  );
-  border-radius: 1px;
-}
-
-.menu-item:hover .drag-handle-collapsed {
-  opacity: 1;
-}
-
-.menu-item.active:hover .drag-handle-collapsed .drag-indicator {
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.8) 0px,
-    rgba(255, 255, 255, 0.8) 2px,
-    transparent 2px,
-    transparent 4px
-  );
-}
-
-.drag-handle-collapsed:active {
-  cursor: grabbing;
-}
-
-.drag-handle:active {
-  cursor: grabbing;
-}
 
 /* 拖拽时的样式 */
 .menu-item[data-dragging="true"] {
@@ -322,20 +421,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border: none;
   background: rgba(255, 77, 79, 0.1);
   color: #ff4d4f;
   border-radius: 50%;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
   line-height: 1;
   transition: all 0.2s ease;
   opacity: 0;
   transform: scale(0.8);
-  margin-left: 8px;
+  margin-left: 4px;
+  flex-shrink: 0;
 }
 
 .menu-item:hover .remove-button {

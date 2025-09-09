@@ -14,6 +14,9 @@ import CalendarCenter from './components/CalendarCenter'
 import AppCenter from './components/AppCenter'
 import LearningAnalytics from './components/LearningAnalytics'
 import HomeworkCenter from './components/HomeworkCenter'
+import CourseManagement from './components/CourseManagement'
+import ClassManagement from './components/ClassManagement'
+import StudentManagement from './components/StudentManagement'
 
 import LearningAnalyticsCenter from './components/LearningAnalyticsCenter'
 import './App.css'
@@ -246,6 +249,12 @@ function App() {
               <HomeworkCenter />
             ) : currentView === 'learning-analytics-center' ? (
               <LearningAnalyticsCenter />
+            ) : currentView === 'course-management' ? (
+              <CourseManagement />
+            ) : currentView === 'class-management' ? (
+              <ClassManagement />
+            ) : currentView === 'student-management' ? (
+              <StudentManagement />
             ) : (
               <MainContent 
                 currentView={currentView}

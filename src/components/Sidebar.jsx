@@ -28,17 +28,89 @@ import {
   Video,
   MessageSquare,
   Calendar,
-  GripVertical,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Grid,
   Users,
-  BarChart3
+  BarChart3,
+  BookOpen,
+  School,
+  UserCheck
 } from 'lucide-react'
 import './Sidebar.css'
 
 // 可拖拽的菜单项组件
-const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onClick, isCollapsed, onRemove, isDynamic }) => {
+// 可拖拽的子菜单项组件
+const SortableSubMenuItem = ({ child, isActive, unreadCount, downloadingCount, onClick, parentId, onReorderChildren }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: `${parentId}-${child.id}` })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  const ChildIcon = child.icon
+  const isChildActive = isActive === child.id
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <div
+        className={`submenu-item ${isChildActive ? 'active' : ''}`}
+        onClick={() => onClick(child.id)}
+      >
+        <div 
+          className="drag-area"
+          {...attributes}
+          {...listeners}
+          style={{ 
+            cursor: isDragging ? 'grabbing' : 'grab'
+          }}
+        />
+        <div className="submenu-item-content">
+          <div className="submenu-item-icon">
+            <div
+              className="icon-wrapper"
+              style={{
+                backgroundColor: isChildActive ? 'transparent' : 'rgba(0, 0, 0, 0.06)',
+              }}
+            >
+              {ChildIcon && React.createElement(ChildIcon, {
+                size: 16,
+                color: isChildActive ? '#fff' : child.color
+              })}
+            </div>
+          </div>
+          <span
+            className="submenu-item-label"
+            style={{
+              fontWeight: isChildActive ? 600 : 400,
+              color: isChildActive ? 'white' : 'var(--theme-textSecondary)',
+            }}
+          >
+            {child.label}
+          </span>
+          {child.id === 'message-center' && unreadCount > 0 && (
+            <span className="unread-badge">{unreadCount}</span>
+          )}
+          {child.id === 'download-center' && downloadingCount > 0 && (
+            <span className="unread-badge">{downloadingCount}</span>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onClick, isCollapsed, onRemove, isDynamic, onToggleExpand, onReorderChildren }) => {
   const {
     attributes,
     listeners,
@@ -47,6 +119,14 @@ const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onCli
     transition,
     isDragging,
   } = useSortable({ id: item.id })
+
+  // 为子菜单拖拽准备sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -72,69 +152,128 @@ const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onCli
     }
   }
 
+  const handleClick = (e) => {
+    if (item.type === 'group') {
+      e.stopPropagation()
+      onToggleExpand(item.id)
+    } else {
+      onClick(item.id)
+    }
+  }
+
+  const handleChildClick = (childId) => {
+    onClick(childId)
+  }
+
+  // 检查子菜单中是否有激活项
+  const hasActiveChild = item.children && item.children.some(child => isActive === child.id)
+  const isGroupActive = item.type === 'single' ? isActive === item.id : hasActiveChild
+
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`menu-item ${isActive ? 'active' : ''}`}
-      onClick={() => onClick(item.id)}
-    >
-      <div className="menu-item-content">
-        <div className="menu-item-icon">
-          <div
-            className="icon-wrapper"
-            style={{
-              backgroundColor: isActive ? 'transparent' : 'rgba(0, 0, 0, 0.06)',
-            }}
-          >
-            {Icon && React.createElement(Icon, {
-              size: 18,
-              color: isActive ? '#fff' : item.color
-            })}
-          </div>
-          {isCollapsed && item.id === 'message-center' && unreadCount > 0 && (
-            <span className="unread-badge">{unreadCount}</span>
-          )}
-          {isCollapsed && item.id === 'download-center' && downloadingCount > 0 && (
-            <span className="unread-badge">{downloadingCount}</span>
-          )}
-        </div>
-        {!isCollapsed && (
-          <>
-            <span
-              className="menu-item-label"
+    <div ref={setNodeRef} style={style}>
+      <div
+        className={`menu-item ${item.type === 'group' ? 'menu-group' : ''} ${isGroupActive ? 'active' : ''}`}
+        onClick={handleClick}
+      >
+        <div 
+           className="drag-area"
+           {...attributes}
+           {...listeners}
+           style={{ 
+             cursor: isDragging ? 'grabbing' : 'grab'
+           }}
+         />
+        <div className="menu-item-content">
+          <div className="menu-item-icon">
+            <div
+              className="icon-wrapper"
               style={{
-                fontWeight: isActive ? 600 : 400,
-                color: isActive ? 'white' : 'var(--theme-textSecondary)',
+                backgroundColor: isGroupActive ? 'transparent' : 'rgba(0, 0, 0, 0.06)',
               }}
             >
-              {item.label}
-            </span>
-            {item.id === 'message-center' && unreadCount > 0 && (
+              {Icon && React.createElement(Icon, {
+                size: 18,
+                color: isGroupActive ? '#fff' : item.color
+              })}
+            </div>
+            {isCollapsed && item.id === 'message-center' && unreadCount > 0 && (
               <span className="unread-badge">{unreadCount}</span>
             )}
-            {item.id === 'download-center' && downloadingCount > 0 && (
+            {isCollapsed && item.id === 'download-center' && downloadingCount > 0 && (
               <span className="unread-badge">{downloadingCount}</span>
             )}
-            {isDynamic && (
-              <button 
-                className="remove-button"
-                onClick={handleRemove}
-                title="移除应用"
+          </div>
+          {!isCollapsed && (
+            <>
+              <span
+                className="menu-item-label"
+                style={{
+                  fontWeight: isGroupActive ? 600 : 400,
+                  color: isGroupActive ? 'white' : 'var(--theme-textSecondary)',
+                }}
               >
-                ×
-              </button>
-            )}
-          </>
-        )}
-      </div>
-      {!isCollapsed ? (
-        <div className="drag-handle" {...attributes} {...listeners}>
-          <GripVertical size={16} color="#ccc" />
+                {item.label}
+              </span>
+              {item.id === 'message-center' && unreadCount > 0 && (
+                <span className="unread-badge">{unreadCount}</span>
+              )}
+              {item.id === 'download-center' && downloadingCount > 0 && (
+                <span className="unread-badge">{downloadingCount}</span>
+              )}
+              {item.type === 'group' && (
+                <ChevronDown 
+                  size={16} 
+                  className={`expand-icon ${item.expanded ? 'expanded' : ''}`}
+                  style={{ color: isGroupActive ? 'white' : 'var(--theme-textSecondary)' }}
+                />
+              )}
+              {isDynamic && (
+                <button 
+                  className="remove-button"
+                  onClick={handleRemove}
+                  title="移除应用"
+                >
+                  ×
+                </button>
+              )}
+            </>
+          )}
         </div>
-      ) : (
-        <div className="drag-handle-collapsed" {...attributes} {...listeners}>
-          <div className="drag-indicator"></div>
+      </div>
+      
+      {/* 子菜单 */}
+      {item.type === 'group' && item.expanded && !isCollapsed && item.children && (
+        <div className="submenu">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={(event) => {
+              const { active, over } = event
+              if (over && active.id !== over.id) {
+                const activeId = active.id.replace(`${item.id}-`, '')
+                const overId = over.id.replace(`${item.id}-`, '')
+                onReorderChildren(item.id, activeId, overId)
+              }
+            }}
+          >
+            <SortableContext 
+              items={item.children.map(child => `${item.id}-${child.id}`)} 
+              strategy={verticalListSortingStrategy}
+            >
+              {item.children.map((child) => (
+                <SortableSubMenuItem
+                  key={child.id}
+                  child={child}
+                  isActive={isActive}
+                  unreadCount={unreadCount}
+                  downloadingCount={downloadingCount}
+                  onClick={handleChildClick}
+                  parentId={item.id}
+                  onReorderChildren={onReorderChildren}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
         </div>
       )}
     </div>
@@ -165,19 +304,97 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
     return []
   })
 
+  // 2级菜单数据结构
   const defaultMenuItems = [
-    { id: 'home', icon: Home, label: '个人工作台', color: '#667eea' },
-    { id: 'ai-assistant', icon: Bot, label: 'AI智能中心', color: '#667eea' },
-    { id: 'homework-center', icon: BookMarked, label: '作业管理中心', color: '#13c2c2' },
-    { id: 'learning-analytics-center', icon: BarChart3, label: '学情分析中心', color: '#52c41a' },
-    { id: 'assessment-center', icon: BarChart3, label: '能力测评中心', color: '#722ed1' },
-    { id: 'message-center', icon: MessageSquare, label: '消息中心', color: '#f39c12' },
-    { id: 'calendar-center', icon: Calendar, label: '日历中心', color: '#52c41a' },
-    { id: 'docs-center', icon: FileText, label: '文档中心', color: '#a18cd1' },
-    { id: 'lesson-observation', icon: Eye, label: '听课评课', color: '#e74c3c' },
-    { id: 'meeting-center', icon: Video, label: '会议中心', color: '#e74c3c' },
-    { id: 'download-center', icon: Download, label: '下载中心', color: '#ff9a9e' },
-    { id: 'app-center', icon: Grid, label: '应用中心', color: '#1890ff' }
+    { 
+      id: 'home', 
+      icon: Home, 
+      label: '个人工作台', 
+      color: '#667eea',
+      type: 'single' // 单级菜单
+    },
+    {
+      id: 'teaching-management',
+      icon: BookOpen,
+      label: '教学管理',
+      color: '#1890ff',
+      type: 'group', // 分组菜单
+      expanded: false, // 是否展开
+      children: [
+        { id: 'course-management', icon: BookOpen, label: '课程管理', color: '#1890ff' },
+        { id: 'class-management', icon: School, label: '班级管理', color: '#52c41a' },
+        { id: 'student-management', icon: UserCheck, label: '学生管理', color: '#722ed1' },
+        { id: 'homework-center', icon: BookMarked, label: '作业管理中心', color: '#13c2c2' }
+      ]
+    },
+    {
+      id: 'analytics-assessment',
+      icon: BarChart3,
+      label: '分析评测',
+      color: '#52c41a',
+      type: 'group',
+      expanded: false,
+      children: [
+        { id: 'learning-analytics-center', icon: BarChart3, label: '学情分析中心', color: '#52c41a' },
+        { id: 'assessment-center', icon: BarChart3, label: '能力测评中心', color: '#722ed1' }
+      ]
+    },
+    { 
+      id: 'message-center', 
+      icon: MessageSquare, 
+      label: '消息中心', 
+      color: '#f39c12',
+      type: 'single'
+    },
+    { 
+      id: 'meeting-center', 
+      icon: Video, 
+      label: '会议中心', 
+      color: '#e74c3c',
+      type: 'single'
+    },
+    { 
+      id: 'lesson-observation', 
+      icon: Eye, 
+      label: '听课评课', 
+      color: '#e74c3c',
+      type: 'single'
+    },
+    { 
+      id: 'docs-center', 
+      icon: FileText, 
+      label: '文档中心', 
+      color: '#a18cd1',
+      type: 'single'
+    },
+    { 
+      id: 'download-center', 
+      icon: Download, 
+      label: '下载中心', 
+      color: '#ff9a9e',
+      type: 'single'
+    },
+    { 
+      id: 'ai-assistant', 
+      icon: Bot, 
+      label: 'AI智能中心', 
+      color: '#667eea',
+      type: 'single'
+    },
+    { 
+      id: 'calendar-center', 
+      icon: Calendar, 
+      label: '日历中心', 
+      color: '#52c41a',
+      type: 'single'
+    },
+    { 
+      id: 'app-center', 
+      icon: Grid, 
+      label: '应用中心', 
+      color: '#1890ff',
+      type: 'single'
+    }
   ]
 
   // 添加动态应用到菜单
@@ -219,31 +436,121 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
     window.dispatchEvent(new Event('menuAppsChanged'))
   }
 
+  // 菜单展开状态管理
+  const [menuExpandState, setMenuExpandState] = useState(() => {
+    const saved = localStorage.getItem('menu-expand-state')
+    if (saved) {
+      try {
+        return JSON.parse(saved)
+      } catch (e) {
+        return {}
+      }
+    }
+    return {}
+  })
+
+  // 合并默认菜单项和动态应用，并应用展开状态和子菜单排序
   const [menuItems, setMenuItems] = useState(() => {
-    // 合并默认菜单和动态应用
-    const allMenuItems = [...defaultMenuItems, ...dynamicApps]
+    const itemsWithState = defaultMenuItems.map(item => ({
+      ...item,
+      expanded: item.type === 'group' ? (menuExpandState[item.id] || false) : undefined
+    }))
+    const allMenuItems = [...itemsWithState, ...dynamicApps]
+    
+    // 应用保存的子菜单排序
+    const savedChildrenOrder = localStorage.getItem('submenu-order')
+    let itemsWithChildrenOrder = allMenuItems
+    if (savedChildrenOrder) {
+      try {
+        const childrenOrder = JSON.parse(savedChildrenOrder)
+        itemsWithChildrenOrder = allMenuItems.map(item => {
+          if (item.children && childrenOrder[item.id]) {
+            const orderedChildren = childrenOrder[item.id].map(childId => 
+              item.children.find(child => child.id === childId)
+            ).filter(Boolean)
+            // 添加任何新的子菜单项（不在保存的顺序中的）
+            const newChildren = item.children.filter(child => 
+              !childrenOrder[item.id].includes(child.id)
+            )
+            return { ...item, children: [...orderedChildren, ...newChildren] }
+          }
+          return item
+        })
+      } catch (e) {
+        itemsWithChildrenOrder = allMenuItems
+      }
+    }
     
     const saved = localStorage.getItem('sidebar-menu-order')
     if (saved) {
       try {
         const savedOrder = JSON.parse(saved)
         const orderedItems = savedOrder.map(id => {
-          const item = allMenuItems.find(item => item.id === id)
+          const item = itemsWithChildrenOrder.find(item => item.id === id)
           return item
         }).filter(Boolean)
         return orderedItems
       } catch (e) {
-        return allMenuItems
+        return itemsWithChildrenOrder
       }
     }
-    return allMenuItems
+    return itemsWithChildrenOrder
   })
+
+  // 切换菜单组展开/收缩状态
+  const toggleMenuExpand = (groupId) => {
+    const newExpandState = {
+      ...menuExpandState,
+      [groupId]: !menuExpandState[groupId]
+    }
+    setMenuExpandState(newExpandState)
+    localStorage.setItem('menu-expand-state', JSON.stringify(newExpandState))
+    
+    // 更新菜单项的展开状态
+    setMenuItems(prevItems => 
+      prevItems.map(item => 
+        item.id === groupId 
+          ? { ...item, expanded: newExpandState[groupId] }
+          : item
+      )
+    )
+  }
+
+  // 子菜单重排序处理函数
+  const handleReorderChildren = (parentId, activeChildId, overChildId) => {
+    setMenuItems(prevItems => {
+      const newItems = prevItems.map(item => {
+        if (item.id === parentId && item.children) {
+          const oldIndex = item.children.findIndex(child => child.id === activeChildId)
+          const newIndex = item.children.findIndex(child => child.id === overChildId)
+          const newChildren = arrayMove(item.children, oldIndex, newIndex)
+          return { ...item, children: newChildren }
+        }
+        return item
+      })
+      
+      // 保存子菜单排序到本地存储
+      const childrenOrder = {}
+      newItems.forEach(item => {
+        if (item.children) {
+          childrenOrder[item.id] = item.children.map(child => child.id)
+        }
+      })
+      localStorage.setItem('submenu-order', JSON.stringify(childrenOrder))
+      
+      return newItems
+    })
+  }
 
   // 当动态应用变化时更新菜单项
   React.useEffect(() => {
-    const allMenuItems = [...defaultMenuItems, ...dynamicApps]
+    const itemsWithState = defaultMenuItems.map(item => ({
+      ...item,
+      expanded: item.type === 'group' ? (menuExpandState[item.id] || false) : undefined
+    }))
+    const allMenuItems = [...itemsWithState, ...dynamicApps]
     setMenuItems(allMenuItems)
-  }, [dynamicApps])
+  }, [dynamicApps, menuExpandState])
 
   // 暴露添加和移除应用的方法给父组件
   React.useEffect(() => {
@@ -265,7 +572,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
   const handleDragEnd = (event) => {
     const { active, over } = event
 
-    if (active.id !== over?.id) {
+    if (over && active.id !== over.id) {
       setMenuItems((items) => {
         const oldIndex = items.findIndex(item => item.id === active.id)
         const newIndex = items.findIndex(item => item.id === over.id)
@@ -318,6 +625,8 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
                   isCollapsed={isCollapsed}
                   onRemove={removeDynamicApp}
                   isDynamic={isDynamic}
+                  onToggleExpand={toggleMenuExpand}
+                  onReorderChildren={handleReorderChildren}
                 />
               )
             })}
