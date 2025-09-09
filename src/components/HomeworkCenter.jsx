@@ -228,6 +228,17 @@ const HomeworkCenter = () => {
   const [form] = Form.useForm()
   const [activeTab, setActiveTab] = useState('list')
   const [selectedRowKeys, setSelectedRowKeys] = useState([])
+  const [isDetailModalVisible, setIsDetailModalVisible] = useState(false)
+  const [selectedHomework, setSelectedHomework] = useState(null)
+  const [studentSubmissions, setStudentSubmissions] = useState([])
+
+  const [isAIGradingModalVisible, setIsAIGradingModalVisible] = useState(false)
+  const [aiGradingProgress, setAiGradingProgress] = useState(0)
+  const [isAIGrading, setIsAIGrading] = useState(false)
+  const [isUploadHomeworkModalVisible, setIsUploadHomeworkModalVisible] = useState(false)
+  const [uploadHomeworkForm] = Form.useForm()
+  const [currentUploadHomework, setCurrentUploadHomework] = useState(null)
+  const [homeworkFiles, setHomeworkFiles] = useState([])
 
   // 统计数据
   const stats = {
@@ -298,6 +309,153 @@ const HomeworkCenter = () => {
   const handleModalCancel = () => {
     setIsModalVisible(false)
     form.resetFields()
+  }
+
+  // 查看作业详情
+  const handleViewHomeworkDetail = (homework) => {
+    setSelectedHomework(homework)
+    // 模拟学生提交数据
+    const mockSubmissions = [
+      {
+        id: 1,
+        studentId: 'S001',
+        studentName: '张三',
+        submitTime: '2024-01-19 14:30',
+        status: 'submitted',
+        score: 85,
+        content: '这是学生张三提交的作业内容...',
+        attachments: [{ name: '作业答案.pdf', size: '2.3MB' }],
+        feedback: '作业完成质量较好，但第3题解答过程需要更详细。'
+      },
+      {
+        id: 2,
+        studentId: 'S002',
+        studentName: '李四',
+        submitTime: '2024-01-19 16:45',
+        status: 'submitted',
+        score: 92,
+        content: '这是学生李四提交的作业内容...',
+        attachments: [{ name: '数学作业.docx', size: '1.8MB' }],
+        feedback: '作业完成得很好，解题思路清晰，步骤完整。'
+      },
+      {
+        id: 3,
+        studentId: 'S003',
+        studentName: '王五',
+        submitTime: null,
+        status: 'pending',
+        score: null,
+        content: null,
+        attachments: [],
+        feedback: null
+      },
+      {
+        id: 4,
+        studentId: 'S004',
+        studentName: '赵六',
+        submitTime: '2024-01-20 09:15',
+        status: 'late',
+        score: 78,
+        content: '这是学生赵六提交的作业内容（逾期提交）...',
+        attachments: [{ name: '作业.txt', size: '0.5MB' }],
+        feedback: '虽然逾期提交，但作业质量尚可。'
+      }
+    ]
+    setStudentSubmissions(mockSubmissions)
+    setIsDetailModalVisible(true)
+  }
+
+  // 上传作业处理函数
+  const handleUploadHomework = (homework) => {
+    setCurrentUploadHomework(homework)
+    setIsUploadHomeworkModalVisible(true)
+    uploadHomeworkForm.resetFields()
+    setHomeworkFiles([])
+  }
+
+  const handleUploadHomeworkSubmit = async () => {
+    try {
+      const values = await uploadHomeworkForm.validateFields()
+      
+      if (homeworkFiles.length === 0) {
+        message.error('请至少上传一个文件')
+        return
+      }
+
+      // 模拟上传处理
+      message.loading('正在上传附件...', 2)
+      
+      setTimeout(() => {
+        // 更新作业的附件信息
+        const updatedAttachments = homeworkFiles.map(file => ({
+          name: file.name,
+          url: `/files/${file.name}`,
+          size: `${(file.size / 1024 / 1024).toFixed(1)}MB`
+        }))
+        
+        setHomeworks(prev => prev.map(hw => 
+          hw.id === currentUploadHomework.id ? {
+            ...hw,
+            attachments: [...(hw.attachments || []), ...updatedAttachments],
+            type: hw.type === 'text' ? 'file' : hw.type, // 如果原来是文本作业，改为文件作业
+            allowedFileTypes: ['doc', 'docx', 'pdf', 'jpg', 'png'],
+            maxFileSize: 10,
+            updatedAt: dayjs().format('YYYY-MM-DD HH:mm')
+          } : hw
+        ))
+        
+        setIsUploadHomeworkModalVisible(false)
+        message.success(`成功为作业"${currentUploadHomework.title}"上传 ${homeworkFiles.length} 个附件`)
+      }, 2000)
+    } catch (error) {
+      console.error('上传失败:', error)
+    }
+  }
+
+
+
+  // AI批改处理函数
+  const handleAIGrading = () => {
+    if (selectedRowKeys.length === 0) {
+      message.warning('请先选择要进行AI批改的作业')
+      return
+    }
+    setIsAIGradingModalVisible(true)
+  }
+
+  const startAIGrading = async () => {
+    setIsAIGrading(true)
+    setAiGradingProgress(0)
+    setIsAIGradingModalVisible(false)
+    
+    // 模拟AI批改进度
+    const interval = setInterval(() => {
+      setAiGradingProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval)
+          setIsAIGrading(false)
+          
+          // 更新作业状态
+          setHomeworks(prevHomeworks => 
+            prevHomeworks.map(homework => {
+              if (selectedRowKeys.includes(homework.id)) {
+                return {
+                  ...homework,
+                  graded: homework.submitted,
+                  avgScore: Math.floor(Math.random() * 30) + 70 // 模拟70-100分的随机分数
+                }
+              }
+              return homework
+            })
+          )
+          
+          message.success(`AI批改完成！已批改 ${selectedRowKeys.length} 个作业`)
+          setSelectedRowKeys([])
+          return 100
+        }
+        return prev + Math.random() * 15 + 5
+      })
+    }, 500)
   }
 
   const getStatusTag = (status) => {
@@ -459,11 +617,16 @@ const HomeworkCenter = () => {
     {
       title: '操作',
       key: 'actions',
-      width: 150,
+      width: 200,
       render: (_, record) => (
         <Space size="small">
           <Tooltip title="查看详情">
-            <Button type="text" icon={<EyeOutlined />} size="small" />
+            <Button 
+              type="text" 
+              icon={<EyeOutlined />} 
+              size="small"
+              onClick={() => handleViewHomeworkDetail(record)}
+            />
           </Tooltip>
           <Tooltip title="编辑">
             <Button 
@@ -471,6 +634,14 @@ const HomeworkCenter = () => {
               icon={<EditOutlined />} 
               size="small"
               onClick={() => handleEditHomework(record)}
+            />
+          </Tooltip>
+          <Tooltip title="上传作业">
+            <Button 
+              type="text" 
+              icon={<UploadOutlined />} 
+              size="small"
+              onClick={() => handleUploadHomework(record)}
             />
           </Tooltip>
           <Tooltip title="删除">
@@ -520,53 +691,12 @@ const HomeworkCenter = () => {
             label: '作业列表',
             children: (
               <>
-                {/* 统计卡片 */}
-                <Row gutter={16} style={{ marginBottom: 16 }}>
-                  <Col span={6}>
-                    <Card>
-                      <Statistic
-                        title="总作业数"
-                        value={stats.total}
-                        prefix={<FileTextOutlined />}
-                      />
-                    </Card>
-                  </Col>
-                  <Col span={6}>
-                    <Card>
-                      <Statistic
-                        title="已发布"
-                        value={stats.published}
-                        valueStyle={{ color: '#3f8600' }}
-                        prefix={<CheckCircleOutlined />}
-                      />
-                    </Card>
-                  </Col>
-                  <Col span={6}>
-                    <Card>
-                      <Statistic
-                        title="总提交数"
-                        value={stats.totalSubmissions}
-                        prefix={<CloudUploadOutlined />}
-                      />
-                    </Card>
-                  </Col>
-                  <Col span={6}>
-                    <Card>
-                      <Statistic
-                        title="批改进度"
-                        value={stats.avgGradingProgress}
-                        precision={1}
-                        suffix="%"
-                        prefix={<ClockCircleOutlined />}
-                      />
-                    </Card>
-                  </Col>
-                </Row>
+
 
                 {/* 作业表格 */}
                 <Card>
                   <div style={{ marginBottom: 16 }}>
-                    <Space>
+                    <Space wrap>
                       <Button 
                         disabled={selectedRowKeys.length === 0}
                         onClick={() => {
@@ -583,6 +713,27 @@ const HomeworkCenter = () => {
                       >
                         批量删除
                       </Button>
+
+                      <Button 
+                        type="primary"
+                        ghost
+                        icon={<CheckCircleOutlined />}
+                        disabled={selectedRowKeys.length === 0}
+                        onClick={handleAIGrading}
+                        loading={isAIGrading}
+                      >
+                        AI批改 ({selectedRowKeys.length})
+                      </Button>
+                      {isAIGrading && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <Progress 
+                            type="circle" 
+                            size="small" 
+                            percent={Math.round(aiGradingProgress)} 
+                          />
+                          <span>AI批改中...</span>
+                        </div>
+                      )}
                       <Divider type="vertical" />
                       <Select defaultValue="all" style={{ width: 120 }}>
                         <Option value="all">全部状态</Option>
@@ -904,6 +1055,245 @@ const HomeworkCenter = () => {
           >
             <InputNumber min={1} max={100} style={{ width: '100%' }} placeholder="请输入班级总人数" />
           </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 学生作业详情模态框 */}
+      <Modal
+        title={`作业详情 - ${selectedHomework?.title}`}
+        open={isDetailModalVisible}
+        onCancel={() => setIsDetailModalVisible(false)}
+        width={1000}
+        footer={[
+          <Button key="close" onClick={() => setIsDetailModalVisible(false)}>
+            关闭
+          </Button>
+        ]}
+      >
+        {selectedHomework && (
+          <div>
+            <Card size="small" style={{ marginBottom: 16 }}>
+              <Row gutter={16}>
+                <Col span={6}>
+                  <Statistic title="总人数" value={selectedHomework.totalStudents} />
+                </Col>
+                <Col span={6}>
+                  <Statistic title="已提交" value={selectedHomework.submitted} />
+                </Col>
+                <Col span={6}>
+                  <Statistic title="已批改" value={selectedHomework.graded} />
+                </Col>
+                <Col span={6}>
+                  <Statistic 
+                    title="平均分" 
+                    value={selectedHomework.avgScore} 
+                    precision={1}
+                    suffix="分"
+                  />
+                </Col>
+              </Row>
+            </Card>
+
+            <Table
+              dataSource={studentSubmissions}
+              rowKey="id"
+              pagination={false}
+              columns={[
+                {
+                  title: '学号',
+                  dataIndex: 'studentId',
+                  width: 80
+                },
+                {
+                  title: '姓名',
+                  dataIndex: 'studentName',
+                  width: 100
+                },
+                {
+                  title: '提交时间',
+                  dataIndex: 'submitTime',
+                  width: 150,
+                  render: (time) => time || '-'
+                },
+                {
+                  title: '状态',
+                  dataIndex: 'status',
+                  width: 100,
+                  render: (status) => {
+                    const statusMap = {
+                      submitted: { color: 'green', text: '已提交' },
+                      pending: { color: 'orange', text: '未提交' },
+                      late: { color: 'red', text: '逾期提交' },
+                      graded: { color: 'blue', text: '已批改' }
+                    }
+                    const config = statusMap[status] || { color: 'default', text: status }
+                    return <Tag color={config.color}>{config.text}</Tag>
+                  }
+                },
+                {
+                  title: '分数',
+                  dataIndex: 'score',
+                  width: 80,
+                  render: (score) => score ? `${score}分` : '-'
+                },
+                {
+                  title: '附件',
+                  dataIndex: 'attachments',
+                  width: 120,
+                  render: (attachments) => (
+                    <div>
+                      {attachments.map((file, index) => (
+                        <div key={index} style={{ fontSize: '12px' }}>
+                          <FileOutlined /> {file.name}
+                        </div>
+                      ))}
+                      {attachments.length === 0 && '-'}
+                    </div>
+                  )
+                },
+                {
+                  title: '操作',
+                  width: 120,
+                  render: (_, record) => (
+                    <Space size="small">
+                      {record.status !== 'pending' && (
+                        <Button size="small" type="link">
+                          查看内容
+                        </Button>
+                      )}
+                      {record.status === 'submitted' && (
+                        <Button size="small" type="link">
+                          批改
+                        </Button>
+                      )}
+                    </Space>
+                  )
+                }
+              ]}
+            />
+          </div>
+        )}
+      </Modal>
+
+
+
+      {/* AI批改确认模态框 */}
+      <Modal
+        title="AI批改确认"
+        open={isAIGradingModalVisible}
+        onOk={startAIGrading}
+        onCancel={() => setIsAIGradingModalVisible(false)}
+        okText="开始AI批改"
+        cancelText="取消"
+      >
+        <div>
+          <p>您即将对以下 <strong>{selectedRowKeys.length}</strong> 个作业进行AI批改：</p>
+          <ul style={{ maxHeight: 200, overflowY: 'auto', marginBottom: 16 }}>
+            {homeworks
+              .filter(hw => selectedRowKeys.includes(hw.id))
+              .map(hw => (
+                <li key={hw.id}>
+                  <strong>{hw.title}</strong> - {hw.class} ({hw.submitted} 份提交)
+                </li>
+              ))
+            }
+          </ul>
+          <div style={{ background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 6, padding: 12 }}>
+            <h4 style={{ margin: 0, color: '#52c41a' }}>AI批改说明：</h4>
+            <ul style={{ margin: '8px 0 0 0', paddingLeft: 20 }}>
+              <li>AI将自动分析学生提交的作业内容</li>
+              <li>根据作业要求和评分标准进行智能评分</li>
+              <li>生成详细的批改意见和建议</li>
+              <li>批改完成后您可以进一步调整分数和评语</li>
+            </ul>
+          </div>
+        </div>
+      </Modal>
+
+      {/* 上传作业模态框 */}
+      <Modal
+        title={`为作业"${currentUploadHomework?.title}"上传附件`}
+        open={isUploadHomeworkModalVisible}
+        onOk={handleUploadHomeworkSubmit}
+        onCancel={() => setIsUploadHomeworkModalVisible(false)}
+        width={600}
+        okText="确定上传"
+        cancelText="取消"
+      >
+        <Form
+          form={uploadHomeworkForm}
+          layout="vertical"
+        >
+          <div style={{ marginBottom: 16, padding: 12, background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 6 }}>
+            <h4 style={{ margin: 0, color: '#52c41a' }}>作业信息：</h4>
+            <p style={{ margin: '8px 0 0 0' }}>
+              <strong>标题：</strong>{currentUploadHomework?.title}<br/>
+              <strong>科目：</strong>{currentUploadHomework?.subject}<br/>
+              <strong>类型：</strong>{currentUploadHomework?.type === 'text' ? '文本作业' : '文件作业'}<br/>
+              <strong>截止时间：</strong>{currentUploadHomework?.dueDate}
+            </p>
+          </div>
+
+          <Form.Item
+            name="description"
+            label="上传说明"
+          >
+            <TextArea 
+              rows={3} 
+              placeholder="请输入上传附件的说明（可选）"
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="上传附件"
+            required
+          >
+            <Upload.Dragger
+              multiple
+              beforeUpload={(file) => {
+                setHomeworkFiles(prev => [...prev, file])
+                return false
+              }}
+              onRemove={(file) => {
+                setHomeworkFiles(prev => prev.filter(f => f.uid !== file.uid))
+              }}
+              fileList={homeworkFiles}
+              accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.gif"
+            >
+              <p className="ant-upload-drag-icon">
+                <UploadOutlined />
+              </p>
+              <p className="ant-upload-text">点击或拖拽文件到此区域上传</p>
+              <p className="ant-upload-hint">
+                支持 PDF、Word、PPT、Excel、图片等格式，上传后可进行AI批改
+              </p>
+            </Upload.Dragger>
+          </Form.Item>
+
+          {homeworkFiles.length > 0 && (
+            <div style={{ marginTop: 16 }}>
+              <p><strong>已选择 {homeworkFiles.length} 个文件：</strong></p>
+              <ul style={{ maxHeight: 150, overflowY: 'auto' }}>
+                {homeworkFiles.map((file, index) => (
+                  <li key={index} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>{file.name}</span>
+                    <span style={{ color: '#999', fontSize: '12px' }}>
+                      {(file.size / 1024 / 1024).toFixed(1)}MB
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div style={{ marginTop: 16, padding: 12, background: '#fff7e6', border: '1px solid #ffd591', borderRadius: 6 }}>
+            <h4 style={{ margin: 0, color: '#fa8c16' }}>温馨提示：</h4>
+            <ul style={{ margin: '8px 0 0 0', paddingLeft: 20, fontSize: '12px' }}>
+              <li>上传附件后，作业类型将自动调整为文件作业</li>
+              <li>学生可以基于这些附件进行作业提交</li>
+              <li>上传完成后可以使用AI批改功能对学生提交进行自动评分</li>
+            </ul>
+          </div>
         </Form>
       </Modal>
     </div>

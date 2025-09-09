@@ -169,7 +169,6 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
     { id: 'home', icon: Home, label: '个人工作台', color: '#667eea' },
     { id: 'ai-assistant', icon: Bot, label: 'AI智能中心', color: '#667eea' },
     { id: 'homework-center', icon: BookMarked, label: '作业管理中心', color: '#13c2c2' },
-    { id: 'ai-grading-center', icon: Bot, label: '智能批改中心', color: '#722ed1' },
     { id: 'learning-analytics-center', icon: BarChart3, label: '学情分析中心', color: '#52c41a' },
     { id: 'assessment-center', icon: BarChart3, label: '能力测评中心', color: '#722ed1' },
     { id: 'message-center', icon: MessageSquare, label: '消息中心', color: '#f39c12' },

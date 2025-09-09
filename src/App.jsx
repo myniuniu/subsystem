@@ -14,7 +14,7 @@ import CalendarCenter from './components/CalendarCenter'
 import AppCenter from './components/AppCenter'
 import LearningAnalytics from './components/LearningAnalytics'
 import HomeworkCenter from './components/HomeworkCenter'
-import AIGradingCenter from './components/AIGradingCenter'
+
 import LearningAnalyticsCenter from './components/LearningAnalyticsCenter'
 import './App.css'
 
@@ -244,8 +244,6 @@ function App() {
               <LearningAnalytics />
             ) : currentView === 'homework-center' ? (
               <HomeworkCenter />
-            ) : currentView === 'ai-grading-center' ? (
-              <AIGradingCenter />
             ) : currentView === 'learning-analytics-center' ? (
               <LearningAnalyticsCenter />
             ) : (
