@@ -40,7 +40,6 @@ import {
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
-const { TabPane } = Tabs;
 const { TextArea } = Input;
 
 const DataCollection = () => {
@@ -418,41 +417,50 @@ const DataCollection = () => {
         </Col>
       </Row>
 
-      <Tabs activeKey={activeTab} onChange={setActiveTab}>
-        <TabPane tab="数据源管理" key="sources">
-          <Card 
-            title="数据源列表"
-            extra={
-              <Button 
-                type="primary" 
-                icon={<PlusOutlined />}
-                onClick={() => {
-                  setEditingSource(null);
-                  form.resetFields();
-                  setModalVisible(true);
-                }}
+      <Tabs 
+        activeKey={activeTab} 
+        onChange={setActiveTab}
+        items={[
+          {
+            key: 'sources',
+            label: '数据源管理',
+            children: (
+              <Card 
+                title="数据源列表"
+                extra={
+                  <Button 
+                    type="primary" 
+                    icon={<PlusOutlined />}
+                    onClick={() => {
+                      setEditingSource(null);
+                      form.resetFields();
+                      setModalVisible(true);
+                    }}
+                  >
+                    添加数据源
+                  </Button>
+                }
               >
-                添加数据源
-              </Button>
-            }
-          >
-            <Table
-              columns={columns}
-              dataSource={dataSources}
-              rowKey="id"
-              pagination={{
-                pageSize: 10,
-                showSizeChanger: true,
-                showQuickJumper: true
-              }}
-            />
-          </Card>
-        </TabPane>
-        
-        <TabPane tab="数据处理" key="processing">
-          {renderDataProcessing()}
-        </TabPane>
-      </Tabs>
+                <Table
+                  columns={columns}
+                  dataSource={dataSources}
+                  rowKey="id"
+                  pagination={{
+                    pageSize: 10,
+                    showSizeChanger: true,
+                    showQuickJumper: true
+                  }}
+                />
+              </Card>
+            )
+          },
+          {
+            key: 'processing',
+            label: '数据处理',
+            children: renderDataProcessing()
+          }
+        ]}
+      />
 
       {/* 添加/编辑数据源模态框 */}
       <Modal

@@ -39,7 +39,6 @@ import {
 import './ClassManagement.css';
 
 const { Option } = Select;
-const { TabPane } = Tabs;
 
 const ClassManagement = () => {
   const [classes, setClasses] = useState([
@@ -696,40 +695,48 @@ const ClassManagement = () => {
         ]}
       >
         {selectedClass && (
-          <Tabs defaultActiveKey="1">
-            <TabPane tab="基本信息" key="1">
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Card title="班级信息" size="small">
-                    <p><strong>班级名称：</strong>{selectedClass.name}</p>
-                    <p><strong>关联课程：</strong>{selectedClass.course}</p>
-                    <p><strong>授课教师：</strong>{selectedClass.teacher}</p>
-                    <p><strong>学生人数：</strong>{selectedClass.studentCount} / {selectedClass.maxStudents}</p>
-                    <p><strong>创建时间：</strong>{selectedClass.createTime}</p>
-                    <p><strong>状态：</strong>
-                      <Tag color={selectedClass.status === 'active' ? 'success' : 'default'}>
-                        {selectedClass.status === 'active' ? '进行中' : '已结束'}
-                      </Tag>
-                    </p>
-                  </Card>
-                </Col>
-                <Col span={12}>
-                  <Card title="班级描述" size="small">
-                    <p>{selectedClass.description || '暂无描述'}</p>
-                  </Card>
-                </Col>
-              </Row>
-            </TabPane>
-            <TabPane tab="学生列表" key="2">
-              <Table
-                columns={studentColumns}
-                dataSource={selectedClass.students}
-                rowKey="id"
-                size="small"
-                pagination={false}
-              />
-            </TabPane>
-          </Tabs>
+          <Tabs 
+            defaultActiveKey="1"
+            items={[
+              {
+                key: '1',
+                label: '基本信息',
+                children: (
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Card title="班级信息" size="small">
+                        <p><strong>班级名称：</strong>{selectedClass.name}</p>
+                        <p><strong>关联课程：</strong>{selectedClass.course}</p>
+                        <p><strong>授课教师：</strong>{selectedClass.teacher}</p>
+                        <p><strong>最大学生数：</strong>{selectedClass.maxStudents}</p>
+                        <p><strong>当前学生数：</strong>{selectedClass.studentCount}</p>
+                        <p><strong>创建时间：</strong>{selectedClass.createTime}</p>
+                        <p><strong>状态：</strong>
+                          <Tag color={selectedClass.status === 'active' ? 'success' : 'default'}>
+                            {selectedClass.status === 'active' ? '进行中' : '已结束'}
+                          </Tag>
+                        </p>
+                        <p><strong>班级描述：</strong>{selectedClass.description}</p>
+                      </Card>
+                    </Col>
+                  </Row>
+                )
+              },
+              {
+                key: '2',
+                label: '学生列表',
+                children: (
+                  <Table
+                    columns={studentColumns}
+                    dataSource={selectedClass.students}
+                    rowKey="id"
+                    pagination={false}
+                    size="small"
+                  />
+                )
+              }
+            ]}
+          />
         )}
       </Modal>
     </div>

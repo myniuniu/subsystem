@@ -45,7 +45,6 @@ import { Line, Bar, Radar, Heatmap } from '@ant-design/charts';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
-const { TabPane } = Tabs;
 const { RangePicker } = DatePicker;
 
 const EffectEvaluation = () => {
@@ -487,115 +486,132 @@ const EffectEvaluation = () => {
         </Col>
       </Row>
 
-      <Tabs activeKey={activeTab} onChange={setActiveTab}>
-        <TabPane tab="知识掌握度" key="knowledge">
-          <Row gutter={[24, 24]}>
-            <Col xs={24} lg={16}>
-              <Card title="知识点掌握情况" className="chart-card">
-                <Bar {...knowledgeConfig} height={300} />
-              </Card>
-            </Col>
-            <Col xs={24} lg={8}>
-              <Card title="知识点详情" className="knowledge-detail">
-                <List
-                  dataSource={evaluationData.knowledgePoints || []}
-                  renderItem={(item) => (
-                    <List.Item>
-                      <List.Item.Meta
-                        avatar={
-                          <Avatar 
-                            icon={<BookOutlined />} 
-                            style={{ backgroundColor: item.mastery >= 80 ? '#52c41a' : '#fa8c16' }}
+      <Tabs 
+        activeKey={activeTab} 
+        onChange={setActiveTab}
+        items={[
+          {
+            key: 'knowledge',
+            label: '知识掌握度',
+            children: (
+              <Row gutter={[24, 24]}>
+                <Col xs={24} lg={16}>
+                  <Card title="知识点掌握情况" className="chart-card">
+                    <Bar {...knowledgeConfig} height={300} />
+                  </Card>
+                </Col>
+                <Col xs={24} lg={8}>
+                  <Card title="知识点详情" className="knowledge-detail">
+                    <List
+                      dataSource={evaluationData.knowledgePoints || []}
+                      renderItem={(item) => (
+                        <List.Item>
+                          <List.Item.Meta
+                            avatar={
+                              <Avatar 
+                                icon={<BookOutlined />} 
+                                style={{ backgroundColor: item.mastery >= 80 ? '#52c41a' : '#fa8c16' }}
+                              />
+                            }
+                            title={
+                              <Space>
+                                <Text strong>{item.name}</Text>
+                                <Tag color={getDifficultyColor(item.difficulty)}>
+                                  {getDifficultyText(item.difficulty)}
+                                </Tag>
+                              </Space>
+                            }
+                            description={
+                              <div>
+                                <Progress 
+                                  percent={item.mastery} 
+                                  size="small" 
+                                  strokeColor={item.mastery >= 80 ? '#52c41a' : '#fa8c16'}
+                                />
+                                <Text type="secondary">{item.students}人参与</Text>
+                              </div>
+                            }
                           />
-                        }
-                        title={
-                          <Space>
-                            <Text strong>{item.name}</Text>
-                            <Tag color={getDifficultyColor(item.difficulty)}>
-                              {getDifficultyText(item.difficulty)}
-                            </Tag>
-                          </Space>
-                        }
-                        description={
-                          <div>
-                            <Progress 
-                              percent={item.mastery} 
-                              size="small" 
-                              strokeColor={item.mastery >= 80 ? '#52c41a' : '#fa8c16'}
-                            />
-                            <Text type="secondary">{item.students}人参与</Text>
-                          </div>
-                        }
-                      />
-                    </List.Item>
-                  )}
-                />
-              </Card>
-            </Col>
-          </Row>
-        </TabPane>
-        
-        <TabPane tab="能力维度" key="ability">
-          <Row gutter={[24, 24]}>
-            <Col xs={24} lg={12}>
-              <Card title="数智素养能力雷达图" className="chart-card">
-                <Radar {...abilityConfig} height={400} />
-              </Card>
-            </Col>
-            <Col xs={24} lg={12}>
-              <Card title="能力维度详情" className="ability-detail">
-                <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                  {(evaluationData.abilityDimensions || []).map((item, index) => (
-                    <div key={index}>
-                      <Row justify="space-between" align="middle">
-                        <Col>
-                          <Text strong>{item.dimension}</Text>
-                        </Col>
-                        <Col>
-                          <Text>{item.score}/{item.maxScore}</Text>
-                        </Col>
-                      </Row>
-                      <Progress 
-                        percent={(item.score / item.maxScore) * 100} 
-                        strokeColor={{
-                          '0%': '#108ee9',
-                          '100%': '#87d068',
-                        }}
-                      />
-                    </div>
-                  ))}
-                </Space>
-              </Card>
-            </Col>
-          </Row>
-        </TabPane>
-        
-        <TabPane tab="进步趋势" key="progress">
-          <Row gutter={[24, 24]}>
-            <Col xs={24} lg={16}>
-              <Card title="学习效果进步趋势" className="chart-card">
-                <Line {...progressConfig} height={300} />
-              </Card>
-            </Col>
-            <Col xs={24} lg={8}>
-              {renderStudentRanking()}
-            </Col>
-          </Row>
-        </TabPane>
-        
-        <TabPane tab="薄弱环节" key="weakness">
-          <Row gutter={[24, 24]}>
-            <Col xs={24} lg={16}>
-              <Card title="知识掌握热力图" className="chart-card">
-                <Heatmap {...heatmapConfig} height={300} />
-              </Card>
-            </Col>
-            <Col xs={24} lg={8}>
-              {renderWeaknessAnalysis()}
-            </Col>
-          </Row>
-        </TabPane>
-      </Tabs>
+                        </List.Item>
+                      )}
+                    />
+                  </Card>
+                </Col>
+              </Row>
+            )
+          },
+          {
+            key: 'ability',
+            label: '能力维度',
+            children: (
+              <Row gutter={[24, 24]}>
+                <Col xs={24} lg={12}>
+                  <Card title="数智素养能力雷达图" className="chart-card">
+                    <Radar {...abilityConfig} height={400} />
+                  </Card>
+                </Col>
+                <Col xs={24} lg={12}>
+                  <Card title="能力维度详情" className="ability-detail">
+                    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                      {(evaluationData.abilityDimensions || []).map((item, index) => (
+                        <div key={index}>
+                          <Row justify="space-between" align="middle">
+                            <Col>
+                              <Text strong>{item.dimension}</Text>
+                            </Col>
+                            <Col>
+                              <Text>{item.score}/{item.maxScore}</Text>
+                            </Col>
+                          </Row>
+                          <Progress 
+                            percent={(item.score / item.maxScore) * 100} 
+                            strokeColor={{
+                              '0%': '#108ee9',
+                              '100%': '#87d068',
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </Space>
+                  </Card>
+                </Col>
+              </Row>
+            )
+          },
+          {
+            key: 'progress',
+            label: '进步趋势',
+            children: (
+              <Row gutter={[24, 24]}>
+                <Col xs={24} lg={16}>
+                  <Card title="学习效果进步趋势" className="chart-card">
+                    <Line {...progressConfig} height={300} />
+                  </Card>
+                </Col>
+                <Col xs={24} lg={8}>
+                  {renderStudentRanking()}
+                </Col>
+              </Row>
+            )
+          },
+          {
+            key: 'weakness',
+            label: '薄弱环节',
+            children: (
+              <Row gutter={[24, 24]}>
+                <Col xs={24} lg={16}>
+                  <Card title="知识掌握热力图" className="chart-card">
+                    <Heatmap {...heatmapConfig} height={300} />
+                  </Card>
+                </Col>
+                <Col xs={24} lg={8}>
+                  {renderWeaknessAnalysis()}
+                </Col>
+              </Row>
+            )
+          }
+        ]}
+      />
 
       {/* 学生详情模态框 */}
       <Modal

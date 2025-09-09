@@ -324,6 +324,13 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       color: '#667eea',
       type: 'single' // 单级菜单
     },
+    { 
+      id: 'ai-assistant', 
+      icon: Bot, 
+      label: 'AI智能中心', 
+      color: '#667eea',
+      type: 'single'
+    },
     {
       id: 'teaching-management',
       icon: BookOpen,
@@ -383,13 +390,6 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       icon: Download, 
       label: '下载中心', 
       color: '#ff9a9e',
-      type: 'single'
-    },
-    { 
-      id: 'ai-assistant', 
-      icon: Bot, 
-      label: 'AI智能中心', 
-      color: '#667eea',
       type: 'single'
     },
     { 

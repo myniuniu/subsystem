@@ -47,7 +47,6 @@ import {
 import './StudentManagement.css';
 
 const { Option } = Select;
-const { TabPane } = Tabs;
 const { RangePicker } = DatePicker;
 
 const StudentManagement = () => {
@@ -737,167 +736,183 @@ const StudentManagement = () => {
         ]}
       >
         {selectedStudent && (
-          <Tabs defaultActiveKey="1">
-            <TabPane tab="基本信息" key="1">
-              <Row gutter={24}>
-                <Col span={8}>
-                  <Card title="个人信息" size="small">
-                    <div style={{ textAlign: 'center', marginBottom: 16 }}>
-                      <Avatar size={80} src={selectedStudent.avatar} style={{ backgroundColor: '#1890ff' }}>
-                        {selectedStudent.name.charAt(0)}
-                      </Avatar>
-                    </div>
-                    <Descriptions column={1} size="small">
-                      <Descriptions.Item label="姓名">{selectedStudent.name}</Descriptions.Item>
-                      <Descriptions.Item label="学号">{selectedStudent.studentId}</Descriptions.Item>
-                      <Descriptions.Item label="年级">{selectedStudent.grade}</Descriptions.Item>
-                      <Descriptions.Item label="班级">{selectedStudent.class}</Descriptions.Item>
-                      <Descriptions.Item label="性别">{selectedStudent.gender}</Descriptions.Item>
-                      <Descriptions.Item label="年龄">{selectedStudent.age}岁</Descriptions.Item>
-                      <Descriptions.Item label="状态">
-                        <Tag color={selectedStudent.status === 'active' ? 'success' : 'default'}>
-                          {selectedStudent.status === 'active' ? '在读' : '休学'}
-                        </Tag>
-                      </Descriptions.Item>
-                    </Descriptions>
-                  </Card>
-                </Col>
-                <Col span={8}>
-                  <Card title="联系信息" size="small">
-                    <Descriptions column={1} size="small">
-                      <Descriptions.Item label="联系电话">{selectedStudent.phone}</Descriptions.Item>
-                      <Descriptions.Item label="邮箱">{selectedStudent.email}</Descriptions.Item>
-                      <Descriptions.Item label="家庭住址">{selectedStudent.address}</Descriptions.Item>
-                      <Descriptions.Item label="入学时间">{selectedStudent.enrollDate}</Descriptions.Item>
-                    </Descriptions>
-                  </Card>
-                </Col>
-                <Col span={8}>
-                  <Card title="学习概况" size="small">
-                    <div style={{ marginBottom: 16 }}>
-                      <div style={{ marginBottom: 8 }}>综合成绩</div>
-                      <Progress 
-                        percent={selectedStudent.totalScore} 
-                        strokeColor={getScoreColor(selectedStudent.totalScore)}
-                        format={percent => `${percent}分`}
-                      />
-                    </div>
-                    <div style={{ marginBottom: 16 }}>
-                      <div style={{ marginBottom: 8 }}>出勤率</div>
-                      <Progress 
-                        percent={selectedStudent.attendance} 
-                        status={selectedStudent.attendance >= 95 ? 'success' : selectedStudent.attendance >= 85 ? 'active' : 'exception'}
-                        format={percent => `${percent}%`}
-                      />
-                    </div>
-                    <div>
-                      <div style={{ marginBottom: 8 }}>作业完成率</div>
-                      <Progress 
-                        percent={selectedStudent.homeworkCompletion} 
-                        status={selectedStudent.homeworkCompletion >= 95 ? 'success' : selectedStudent.homeworkCompletion >= 85 ? 'active' : 'exception'}
-                        format={percent => `${percent}%`}
-                      />
-                    </div>
-                  </Card>
-                </Col>
-              </Row>
-            </TabPane>
-            
-            <TabPane tab="学科成绩" key="2">
-              <Row gutter={16}>
-                {selectedStudent.subjects.map((subject, index) => (
-                  <Col span={8} key={index}>
-                    <Card title={subject.name} size="small" style={{ marginBottom: 16 }}>
-                      <div style={{ textAlign: 'center', marginBottom: 16 }}>
-                        <div style={{ 
-                          fontSize: '24px', 
-                          fontWeight: 'bold', 
-                          color: getScoreColor(subject.score),
-                          marginBottom: 8 
-                        }}>
-                          {subject.score}分
+          <Tabs 
+            defaultActiveKey="1"
+            items={[
+              {
+                key: '1',
+                label: '基本信息',
+                children: (
+                  <Row gutter={24}>
+                    <Col span={8}>
+                      <Card title="个人信息" size="small">
+                        <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                          <Avatar size={80} src={selectedStudent.avatar} style={{ backgroundColor: '#1890ff' }}>
+                            {selectedStudent.name.charAt(0)}
+                          </Avatar>
                         </div>
-                        <div style={{ color: '#666' }}>班级排名: 第{subject.rank}名</div>
-                      </div>
-                      <div style={{ marginBottom: 8 }}>学习进度</div>
-                      <Progress 
-                        percent={subject.progress} 
-                        size="small"
-                        strokeColor={getScoreColor(subject.progress)}
-                      />
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
-            </TabPane>
-            
-            <TabPane tab="作业情况" key="3">
-              <List
-                dataSource={selectedStudent.homeworks}
-                renderItem={(homework) => {
-                  const status = getHomeworkStatus(homework.status);
-                  return (
-                    <List.Item>
-                      <List.Item.Meta
-                        avatar={<Avatar icon={<FileTextOutlined />} style={{ backgroundColor: '#1890ff' }} />}
-                        title={
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span>{homework.title}</span>
-                            <Tag color={status.color}>{status.text}</Tag>
-                          </div>
-                        }
-                        description={
-                          <div>
-                            <div style={{ marginBottom: 4 }}>
-                              <Tag color="blue">{homework.subject}</Tag>
-                              {homework.score && (
-                                <span style={{ marginLeft: 8, color: getScoreColor(homework.score), fontWeight: 'bold' }}>
-                                  得分: {homework.score}分
-                                </span>
-                              )}
+                        <Descriptions column={1} size="small">
+                          <Descriptions.Item label="姓名">{selectedStudent.name}</Descriptions.Item>
+                          <Descriptions.Item label="学号">{selectedStudent.studentId}</Descriptions.Item>
+                          <Descriptions.Item label="年级">{selectedStudent.grade}</Descriptions.Item>
+                          <Descriptions.Item label="班级">{selectedStudent.class}</Descriptions.Item>
+                          <Descriptions.Item label="性别">{selectedStudent.gender}</Descriptions.Item>
+                          <Descriptions.Item label="年龄">{selectedStudent.age}岁</Descriptions.Item>
+                          <Descriptions.Item label="状态">
+                            <Tag color={selectedStudent.status === 'active' ? 'success' : 'default'}>
+                              {selectedStudent.status === 'active' ? '在读' : '休学'}
+                            </Tag>
+                          </Descriptions.Item>
+                        </Descriptions>
+                      </Card>
+                    </Col>
+                    <Col span={8}>
+                      <Card title="联系信息" size="small">
+                        <Descriptions column={1} size="small">
+                          <Descriptions.Item label="联系电话">{selectedStudent.phone}</Descriptions.Item>
+                          <Descriptions.Item label="邮箱">{selectedStudent.email}</Descriptions.Item>
+                          <Descriptions.Item label="家庭住址">{selectedStudent.address}</Descriptions.Item>
+                          <Descriptions.Item label="入学时间">{selectedStudent.enrollDate}</Descriptions.Item>
+                        </Descriptions>
+                      </Card>
+                    </Col>
+                    <Col span={8}>
+                      <Card title="学习概况" size="small">
+                        <div style={{ marginBottom: 16 }}>
+                          <div style={{ marginBottom: 8 }}>综合成绩</div>
+                          <Progress 
+                            percent={selectedStudent.totalScore} 
+                            strokeColor={getScoreColor(selectedStudent.totalScore)}
+                            format={percent => `${percent}分`}
+                          />
+                        </div>
+                        <div style={{ marginBottom: 16 }}>
+                          <div style={{ marginBottom: 8 }}>出勤率</div>
+                          <Progress 
+                            percent={selectedStudent.attendance} 
+                            status={selectedStudent.attendance >= 95 ? 'success' : selectedStudent.attendance >= 85 ? 'active' : 'exception'}
+                            format={percent => `${percent}%`}
+                          />
+                        </div>
+                        <div>
+                          <div style={{ marginBottom: 8 }}>作业完成率</div>
+                          <Progress 
+                            percent={selectedStudent.homeworkCompletion} 
+                            status={selectedStudent.homeworkCompletion >= 95 ? 'success' : selectedStudent.homeworkCompletion >= 85 ? 'active' : 'exception'}
+                            format={percent => `${percent}%`}
+                          />
+                        </div>
+                      </Card>
+                    </Col>
+                  </Row>
+                )
+              },
+              {
+                key: '2',
+                label: '学科成绩',
+                children: (
+                  <Row gutter={16}>
+                    {selectedStudent.subjects.map((subject, index) => (
+                      <Col span={8} key={index}>
+                        <Card title={subject.name} size="small" style={{ marginBottom: 16 }}>
+                          <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                            <div style={{ 
+                              fontSize: '24px', 
+                              fontWeight: 'bold', 
+                              color: getScoreColor(subject.score),
+                              marginBottom: 8 
+                            }}>
+                              {subject.score}分
                             </div>
-                            <div style={{ fontSize: '12px', color: '#666' }}>
-                              截止时间: {homework.deadline}
-                              {homework.submitTime && (
-                                <span style={{ marginLeft: 16 }}>提交时间: {homework.submitTime}</span>
-                              )}
-                            </div>
+                            <div style={{ color: '#666' }}>班级排名: 第{subject.rank}名</div>
                           </div>
-                        }
-                      />
-                    </List.Item>
-                  );
-                }}
-              />
-            </TabPane>
-            
-            <TabPane tab="学习轨迹" key="4">
-              <Timeline>
-                {selectedStudent.learningProgress.map((progress, index) => {
-                  const iconMap = {
-                    info: <ClockCircleOutlined />,
-                    success: <CheckCircleOutlined />,
-                    warning: <ExclamationCircleOutlined />
-                  };
-                  const colorMap = {
-                    info: 'blue',
-                    success: 'green',
-                    warning: 'orange'
-                  };
-                  return (
-                    <Timeline.Item 
-                      key={index}
-                      dot={iconMap[progress.type]}
-                      color={colorMap[progress.type]}
-                    >
-                      <div style={{ marginBottom: 4, fontWeight: 'bold' }}>{progress.date}</div>
-                      <div>{progress.activity}</div>
-                    </Timeline.Item>
-                  );
-                })}
-              </Timeline>
-            </TabPane>
-          </Tabs>
+                          <div style={{ marginBottom: 8 }}>学习进度</div>
+                          <Progress 
+                            percent={subject.progress} 
+                            size="small"
+                            strokeColor={getScoreColor(subject.progress)}
+                          />
+                        </Card>
+                      </Col>
+                    ))}
+                  </Row>
+                )
+              },
+              {
+                key: '3',
+                label: '作业情况',
+                children: (
+                  <List
+                    dataSource={selectedStudent.homeworks}
+                    renderItem={(homework) => {
+                      const status = getHomeworkStatus(homework.status);
+                      return (
+                        <List.Item>
+                          <List.Item.Meta
+                            avatar={<Avatar icon={<FileTextOutlined />} style={{ backgroundColor: '#1890ff' }} />}
+                            title={
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span>{homework.title}</span>
+                                <Tag color={status.color}>{status.text}</Tag>
+                              </div>
+                            }
+                            description={
+                              <div>
+                                <div style={{ marginBottom: 4 }}>
+                                  <Tag color="blue">{homework.subject}</Tag>
+                                  {homework.score && (
+                                    <span style={{ marginLeft: 8, color: getScoreColor(homework.score), fontWeight: 'bold' }}>
+                                      得分: {homework.score}分
+                                    </span>
+                                  )}
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#666' }}>
+                                  截止时间: {homework.deadline}
+                                  {homework.submitTime && (
+                                    <span style={{ marginLeft: 16 }}>提交时间: {homework.submitTime}</span>
+                                  )}
+                                </div>
+                              </div>
+                            }
+                          />
+                        </List.Item>
+                      );
+                    }}
+                  />
+                )
+              },
+              {
+                key: '4',
+                label: '学习轨迹',
+                children: (
+                  <Timeline>
+                    {selectedStudent.learningProgress.map((progress, index) => {
+                      const iconMap = {
+                        info: <ClockCircleOutlined />,
+                        success: <CheckCircleOutlined />,
+                        warning: <ExclamationCircleOutlined />
+                      };
+                      const colorMap = {
+                        info: 'blue',
+                        success: 'green',
+                        warning: 'orange'
+                      };
+                      return (
+                        <Timeline.Item 
+                          key={index}
+                          dot={iconMap[progress.type]}
+                          color={colorMap[progress.type]}
+                        >
+                          <div style={{ marginBottom: 4, fontWeight: 'bold' }}>{progress.date}</div>
+                          <div>{progress.activity}</div>
+                        </Timeline.Item>
+                      );
+                    })}
+                  </Timeline>
+                )
+              }
+            ]}
+          />
         )}
       </Modal>
     </div>

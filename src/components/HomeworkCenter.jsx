@@ -636,10 +636,10 @@ const HomeworkCenter = () => {
               onClick={() => handleEditHomework(record)}
             />
           </Tooltip>
-          <Tooltip title="上传作业">
+          <Tooltip title="批阅作业">
             <Button 
               type="text" 
-              icon={<UploadOutlined />} 
+              icon={<CheckCircleOutlined />} 
               size="small"
               onClick={() => handleUploadHomework(record)}
             />
@@ -1217,7 +1217,7 @@ const HomeworkCenter = () => {
         onOk={handleUploadHomeworkSubmit}
         onCancel={() => setIsUploadHomeworkModalVisible(false)}
         width={600}
-        okText="确定上传"
+        okText="开始批阅"
         cancelText="取消"
       >
         <Form

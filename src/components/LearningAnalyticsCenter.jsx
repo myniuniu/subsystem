@@ -50,7 +50,6 @@ import dayjs from 'dayjs'
 import './LearningAnalyticsCenter.css'
 
 const { Option } = Select
-const { TabPane } = Tabs
 const { RangePicker } = DatePicker
 const { TextArea } = Input
 
@@ -464,10 +463,18 @@ const LearningAnalyticsCenter = () => {
         </Space>
       </div>
 
-      <Tabs activeKey={activeTab} onChange={setActiveTab} className="analytics-tabs">
-        <TabPane tab="数据概览" key="overview">
-          {/* 统计卡片 */}
-          <Row gutter={16} style={{ marginBottom: 16 }}>
+      <Tabs 
+        activeKey={activeTab} 
+        onChange={setActiveTab} 
+        className="analytics-tabs"
+        items={[
+          {
+            key: 'overview',
+            label: '数据概览',
+            children: (
+              <div>
+                {/* 统计卡片 */}
+                <Row gutter={16} style={{ marginBottom: 16 }}>
             <Col span={6}>
               <Card>
                 <Statistic
@@ -548,11 +555,15 @@ const LearningAnalyticsCenter = () => {
                 </div>
               </Card>
             </Col>
-          </Row>
-        </TabPane>
-
-        <TabPane tab="学生分析" key="students">
-          <Card>
+                </Row>
+              </div>
+            )
+          },
+          {
+            key: 'students',
+            label: '学生分析',
+            children: (
+              <Card>
             <div style={{ marginBottom: 16 }}>
               <Space>
                 <Select defaultValue="all" style={{ width: 120 }}>
@@ -624,11 +635,14 @@ const LearningAnalyticsCenter = () => {
                 showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`
               }}
             />
-          </Card>
-        </TabPane>
-
-        <TabPane tab="知识点分析" key="knowledge">
-          <Card>
+                  </Card>
+            )
+          },
+          {
+            key: 'knowledge',
+            label: '知识点分析',
+            children: (
+              <Card>
             <div style={{ marginBottom: 16 }}>
               <Alert
                 message="知识点掌握情况分析"
@@ -683,10 +697,13 @@ const LearningAnalyticsCenter = () => {
               }}
             />
           </Card>
-        </TabPane>
-
-        <TabPane tab="个性化建议" key="recommendations">
-          <Row gutter={16}>
+            )
+          },
+          {
+            key: 'recommendations',
+            label: '个性化建议',
+            children: (
+              <Row gutter={16}>
             {recommendations.map((rec) => (
               <Col span={8} key={rec.id} style={{ marginBottom: 16 }}>
                 <Card
@@ -725,9 +742,11 @@ const LearningAnalyticsCenter = () => {
                 </Card>
               </Col>
             ))}
-          </Row>
-        </TabPane>
-      </Tabs>
+              </Row>
+            )
+          }
+        ]}
+      />
     </div>
   )
 }

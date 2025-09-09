@@ -42,7 +42,6 @@ import {
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { Search } = Input;
-const { TabPane } = Tabs;
 
 const UserPermissionManager = ({ 
   visible, 
@@ -441,175 +440,188 @@ const UserPermissionManager = ({
       ]}
       style={{ top: 20 }}
     >
-      <Tabs activeKey={activeTab} onChange={setActiveTab}>
-        {/* 成员管理 */}
-        <TabPane tab={`成员管理 (${members.length})`} key="members">
-          <div style={{ marginBottom: '16px' }}>
-            <Row justify="space-between" align="middle">
-              <Col>
-                <Search
-                  placeholder="搜索成员..."
-                  value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                  style={{ width: 300 }}
-                  allowClear
+      <Tabs 
+        activeKey={activeTab} 
+        onChange={setActiveTab}
+        items={[
+          {
+            key: 'members',
+            label: `成员管理 (${members.length})`,
+            children: (
+              <>
+                <div style={{ marginBottom: '16px' }}>
+                  <Row justify="space-between" align="middle">
+                    <Col>
+                      <Search
+                        placeholder="搜索成员..."
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        style={{ width: 300 }}
+                        allowClear
+                      />
+                    </Col>
+                    
+                    <Col>
+                      <Button 
+                        type="primary" 
+                        icon={<UserAddOutlined />}
+                        onClick={() => setIsAddUserModalVisible(true)}
+                      >
+                        添加成员
+                      </Button>
+                    </Col>
+                  </Row>
+                </div>
+                
+                <Table
+                  columns={memberColumns}
+                  dataSource={filteredMembers}
+                  rowKey="id"
+                  pagination={{
+                    pageSize: 10,
+                    showSizeChanger: true,
+                    showQuickJumper: true,
+                    showTotal: (total) => `共 ${total} 名成员`
+                  }}
+                  scroll={{ x: 1000 }}
                 />
-              </Col>
-              
-              <Col>
-                <Button 
-                  type="primary" 
-                  icon={<UserAddOutlined />}
-                  onClick={() => setIsAddUserModalVisible(true)}
-                >
-                  添加成员
-                </Button>
-              </Col>
-            </Row>
-          </div>
-          
-          <Table
-            columns={memberColumns}
-            dataSource={filteredMembers}
-            rowKey="id"
-            pagination={{
-              pageSize: 10,
-              showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total) => `共 ${total} 名成员`
-            }}
-            scroll={{ x: 1000 }}
-          />
-        </TabPane>
-        
-        {/* 权限说明 */}
-        <TabPane tab="权限说明" key="permissions">
-          <Row gutter={[16, 16]}>
-            {Object.entries(permissionLevels).map(([key, permission]) => (
-              <Col span={12} key={key}>
-                <Card size="small">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <Tag color={permission.color} icon={permission.icon}>
-                      {permission.label}
-                    </Tag>
-                  </div>
-                  <Text type="secondary">{permission.description}</Text>
-                  
-                  <Divider style={{ margin: '12px 0' }} />
-                  
-                  <div style={{ fontSize: '12px' }}>
-                    <Title level={5} style={{ fontSize: '13px', margin: '0 0 8px 0' }}>具体权限：</Title>
-                    {key === 'owner' && (
-                      <ul style={{ margin: 0, paddingLeft: '16px' }}>
-                        <li>删除和归档项目</li>
-                        <li>管理所有成员和权限</li>
-                        <li>编辑所有文档内容</li>
-                        <li>查看所有统计数据</li>
-                      </ul>
-                    )}
-                    {key === 'admin' && (
-                      <ul style={{ margin: 0, paddingLeft: '16px' }}>
-                        <li>添加和移除成员</li>
-                        <li>修改成员权限</li>
-                        <li>编辑所有文档内容</li>
-                        <li>管理项目设置</li>
-                      </ul>
-                    )}
-                    {key === 'editor' && (
-                      <ul style={{ margin: 0, paddingLeft: '16px' }}>
-                        <li>编辑文档内容</li>
-                        <li>添加和回复评论</li>
-                        <li>查看项目历史</li>
-                        <li>导出文档</li>
-                      </ul>
-                    )}
-                    {key === 'viewer' && (
-                      <ul style={{ margin: 0, paddingLeft: '16px' }}>
-                        <li>查看文档内容</li>
-                        <li>添加评论</li>
-                        <li>下载文档</li>
-                        <li>查看基本统计</li>
-                      </ul>
-                    )}
-                  </div>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        </TabPane>
-        
-        {/* 活动日志 */}
-        <TabPane tab="活动日志" key="activity">
-          <List
-            dataSource={[
-              {
-                id: 1,
-                user: '张老师',
-                action: '创建了项目',
-                time: '2024-01-10 09:00',
-                type: 'create'
-              },
-              {
-                id: 2,
-                user: '张老师',
-                action: '邀请李老师加入项目',
-                time: '2024-01-12 10:30',
-                type: 'invite'
-              },
-              {
-                id: 3,
-                user: '李老师',
-                action: '接受邀请并加入项目',
-                time: '2024-01-12 11:00',
-                type: 'join'
-              },
-              {
-                id: 4,
-                user: '张老师',
-                action: '将李老师权限提升为管理员',
-                time: '2024-01-13 14:20',
-                type: 'permission'
-              },
-              {
-                id: 5,
-                user: '李老师',
-                action: '邀请王老师加入项目',
-                time: '2024-01-13 15:10',
-                type: 'invite'
-              }
-            ]}
-            renderItem={item => (
-              <List.Item>
-                <List.Item.Meta
-                  avatar={
-                    <Avatar 
-                      style={{ 
-                        backgroundColor: 
-                          item.type === 'create' ? '#52c41a' :
-                          item.type === 'invite' ? '#1890ff' :
-                          item.type === 'join' ? '#722ed1' :
-                          item.type === 'permission' ? '#faad14' : '#8c8c8c'
-                      }}
-                    >
-                      {item.type === 'create' ? <CheckCircleOutlined /> :
-                       item.type === 'invite' ? <MailOutlined /> :
-                       item.type === 'join' ? <UserAddOutlined /> :
-                       item.type === 'permission' ? <SettingOutlined /> : <UserOutlined />}
-                    </Avatar>
+              </>
+            )
+          },
+          {
+            key: 'permissions',
+            label: '权限说明',
+            children: (
+              <Row gutter={[16, 16]}>
+                {Object.entries(permissionLevels).map(([key, permission]) => (
+                  <Col span={12} key={key}>
+                    <Card size="small">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                        <Tag color={permission.color} icon={permission.icon}>
+                          {permission.label}
+                        </Tag>
+                      </div>
+                      <Text type="secondary">{permission.description}</Text>
+                      
+                      <Divider style={{ margin: '12px 0' }} />
+                      
+                      <div style={{ fontSize: '12px' }}>
+                        <Title level={5} style={{ fontSize: '13px', margin: '0 0 8px 0' }}>具体权限：</Title>
+                        {key === 'owner' && (
+                          <ul style={{ margin: 0, paddingLeft: '16px' }}>
+                            <li>删除和归档项目</li>
+                            <li>管理所有成员和权限</li>
+                            <li>编辑所有文档内容</li>
+                            <li>查看所有统计数据</li>
+                          </ul>
+                        )}
+                        {key === 'admin' && (
+                          <ul style={{ margin: 0, paddingLeft: '16px' }}>
+                            <li>添加和移除成员</li>
+                            <li>修改成员权限</li>
+                            <li>编辑所有文档内容</li>
+                            <li>管理项目设置</li>
+                          </ul>
+                        )}
+                        {key === 'editor' && (
+                          <ul style={{ margin: 0, paddingLeft: '16px' }}>
+                            <li>编辑文档内容</li>
+                            <li>添加和回复评论</li>
+                            <li>查看项目历史</li>
+                            <li>导出文档</li>
+                          </ul>
+                        )}
+                        {key === 'viewer' && (
+                          <ul style={{ margin: 0, paddingLeft: '16px' }}>
+                            <li>查看文档内容</li>
+                            <li>添加评论</li>
+                            <li>下载文档</li>
+                            <li>查看基本统计</li>
+                          </ul>
+                        )}
+                      </div>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            )
+          },
+          {
+            key: 'activity',
+            label: '活动日志',
+            children: (
+              <List
+                dataSource={[
+                  {
+                    id: 1,
+                    user: '张老师',
+                    action: '创建了项目',
+                    time: '2024-01-10 09:00',
+                    type: 'create'
+                  },
+                  {
+                    id: 2,
+                    user: '张老师',
+                    action: '邀请李老师加入项目',
+                    time: '2024-01-12 10:30',
+                    type: 'invite'
+                  },
+                  {
+                    id: 3,
+                    user: '李老师',
+                    action: '接受邀请并加入项目',
+                    time: '2024-01-12 11:00',
+                    type: 'join'
+                  },
+                  {
+                    id: 4,
+                    user: '张老师',
+                    action: '将李老师权限提升为管理员',
+                    time: '2024-01-13 14:20',
+                    type: 'permission'
+                  },
+                  {
+                    id: 5,
+                    user: '李老师',
+                    action: '邀请王老师加入项目',
+                    time: '2024-01-13 15:10',
+                    type: 'invite'
                   }
-                  title={`${item.user} ${item.action}`}
-                  description={
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <CalendarOutlined style={{ fontSize: '12px' }} />
-                      <span style={{ fontSize: '12px', color: '#8c8c8c' }}>{item.time}</span>
-                    </div>
-                  }
-                />
-              </List.Item>
-            )}
-          />
-        </TabPane>
-      </Tabs>
+                ]}
+                renderItem={item => (
+                  <List.Item>
+                    <List.Item.Meta
+                      avatar={
+                        <Avatar 
+                          style={{ 
+                            backgroundColor: 
+                              item.type === 'create' ? '#52c41a' :
+                              item.type === 'invite' ? '#1890ff' :
+                              item.type === 'join' ? '#722ed1' :
+                              item.type === 'permission' ? '#faad14' : '#8c8c8c'
+                          }}
+                        >
+                          {item.type === 'create' ? <CheckCircleOutlined /> :
+                           item.type === 'invite' ? <MailOutlined /> :
+                           item.type === 'join' ? <UserAddOutlined /> :
+                           item.type === 'permission' ? <SettingOutlined /> : <UserOutlined />}
+                        </Avatar>
+                      }
+                      title={`${item.user} ${item.action}`}
+                      description={
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <CalendarOutlined style={{ fontSize: '12px' }} />
+                          <span style={{ fontSize: '12px', color: '#8c8c8c' }}>{item.time}</span>
+                        </div>
+                      }
+                    />
+                  </List.Item>
+                )}
+              />
+            )
+          }
+        ]}
+      />
       
       {/* 添加成员模态框 */}
       <Modal

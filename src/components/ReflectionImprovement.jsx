@@ -79,7 +79,6 @@ import {
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
-const { TabPane } = Tabs;
 const { TextArea } = Input;
 const { RangePicker } = DatePicker;
 
@@ -653,9 +652,11 @@ const ReflectionImprovement = () => {
   const renderImprovementPlans = () => {
     const { improvementPlans, bestPractices, successStories } = improvementData;
     
-    return (
-      <Tabs defaultActiveKey="plans" type="card">
-        <TabPane tab="改进计划" key="plans">
+    const improvementTabItems = [
+      {
+        key: 'plans',
+        label: '改进计划',
+        children: (
           <Card 
             title="教学改进计划"
             extra={
@@ -744,9 +745,12 @@ const ReflectionImprovement = () => {
               )}
             />
           </Card>
-        </TabPane>
-        
-        <TabPane tab="最佳实践" key="practices">
+        )
+      },
+      {
+        key: 'practices',
+        label: '最佳实践',
+        children: (
           <Row gutter={[16, 16]}>
             {bestPractices?.map((practice) => (
               <Col xs={24} lg={12} key={practice.id}>
@@ -791,9 +795,12 @@ const ReflectionImprovement = () => {
               </Col>
             ))}
           </Row>
-        </TabPane>
-        
-        <TabPane tab="成功案例" key="stories">
+        )
+      },
+      {
+        key: 'stories',
+        label: '成功案例',
+        children: (
           <List
             dataSource={successStories}
             renderItem={(story) => (
@@ -842,8 +849,12 @@ const ReflectionImprovement = () => {
               </List.Item>
             )}
           />
-        </TabPane>
-      </Tabs>
+        )
+      }
+    ];
+
+    return (
+      <Tabs defaultActiveKey="plans" type="card" items={improvementTabItems} />
     );
   };
 
@@ -917,21 +928,27 @@ const ReflectionImprovement = () => {
     return icons[status] || <ClockCircleOutlined />;
   };
 
+  const tabItems = [
+    {
+      key: 'analysis',
+      label: '教学效果分析',
+      children: renderEffectAnalysis()
+    },
+    {
+      key: 'reflection',
+      label: '教学活动复盘',
+      children: renderActivityReview()
+    },
+    {
+      key: 'improvement',
+      label: '改进方案',
+      children: renderImprovementPlans()
+    }
+  ];
+
   return (
     <div className="reflection-improvement">
-      <Tabs activeKey={activeTab} onChange={setActiveTab}>
-        <TabPane tab="教学效果分析" key="analysis">
-          {renderEffectAnalysis()}
-        </TabPane>
-        
-        <TabPane tab="教学活动复盘" key="reflection">
-          {renderActivityReview()}
-        </TabPane>
-        
-        <TabPane tab="改进方案" key="improvement">
-          {renderImprovementPlans()}
-        </TabPane>
-      </Tabs>
+      <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
 
       {/* 通用模态框 */}
       <Modal

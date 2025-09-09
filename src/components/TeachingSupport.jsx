@@ -53,7 +53,6 @@ import {
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
-const { TabPane } = Tabs;
 const { TextArea } = Input;
 
 const TeachingSupport = () => {
@@ -619,134 +618,173 @@ const TeachingSupport = () => {
 
   return (
     <div className="teaching-support">
-      <Tabs activeKey={activeTab} onChange={setActiveTab}>
-        <TabPane tab="教学建议" key="recommendations">
-          <Tabs defaultActiveKey="paths" type="card">
-            <TabPane tab="个性化学习路径" key="paths">
-              <Card 
-                title="学习路径推荐"
-                extra={
-                  <Button type="primary" icon={<PlusOutlined />}>
-                    自定义路径
-                  </Button>
-                }
-              >
-                {renderPersonalizedPaths()}
-              </Card>
-            </TabPane>
-            
-            <TabPane tab="教学策略" key="strategies">
-              <Card title="教学策略优化建议">
-                {renderTeachingStrategies()}
-              </Card>
-            </TabPane>
-            
-            <TabPane tab="资源推荐" key="resources">
-              <Card 
-                title="教学资源推荐"
-                extra={
-                  <Button type="primary" icon={<PlusOutlined />}>
-                    上传资源
-                  </Button>
-                }
-              >
-                {renderResourceRecommendations()}
-              </Card>
-            </TabPane>
-          </Tabs>
-        </TabPane>
-        
-        <TabPane tab="干预支持" key="intervention">
-          <Tabs defaultActiveKey="risk" type="card">
-            <TabPane tab="风险学生" key="risk">
-              <Card 
-                title="需要关注的学生"
-                extra={
-                  <Space>
-                    <Badge count={interventionData.riskStudents?.length || 0} style={{ backgroundColor: '#ff4d4f' }}>
-                      <Text>风险学生</Text>
-                    </Badge>
-                  </Space>
-                }
-              >
-                {renderRiskStudents()}
-              </Card>
-            </TabPane>
-            
-            <TabPane tab="干预计划" key="plans">
-              <Card 
-                title="干预计划管理"
-                extra={
-                  <Button type="primary" icon={<PlusOutlined />}>
-                    新建计划
-                  </Button>
-                }
-              >
-                {renderInterventionPlans()}
-              </Card>
-            </TabPane>
-          </Tabs>
-        </TabPane>
-        
-        <TabPane tab="沟通渠道" key="communication">
-          <Row gutter={[24, 24]}>
-            <Col xs={24} lg={16}>
-              <Card 
-                title="沟通记录"
-                extra={
-                  <Button 
-                    type="primary" 
-                    icon={<MessageOutlined />}
-                    onClick={() => {
-                      setModalType('message');
-                      setModalVisible(true);
-                    }}
-                  >
-                    发送消息
-                  </Button>
-                }
-              >
-                {renderCommunicationHistory()}
-              </Card>
-            </Col>
-            <Col xs={24} lg={8}>
-              <Card title="消息模板">
-                <List
-                  dataSource={communicationData.templates || []}
-                  renderItem={(template) => (
-                    <List.Item
-                      actions={[
-                        <Button 
-                          size="small" 
-                          onClick={() => {
-                            form.setFieldsValue({ content: template.content });
-                            setModalType('message');
-                            setModalVisible(true);
-                          }}
-                        >
-                          使用
-                        </Button>
-                      ]}
-                    >
-                      <List.Item.Meta
-                        title={template.name}
-                        description={
-                          <div>
-                            <Tag color={template.type === 'student' ? 'blue' : 'green'}>
-                              {template.type === 'student' ? '学生' : '家长'}
-                            </Tag>
-                            <Paragraph ellipsis={{ rows: 2 }}>{template.content}</Paragraph>
-                          </div>
+      <Tabs 
+        activeKey={activeTab} 
+        onChange={setActiveTab}
+        items={[
+          {
+            key: 'recommendations',
+            label: '教学建议',
+            children: (
+              <Tabs 
+                defaultActiveKey="paths" 
+                type="card"
+                items={[
+                  {
+                    key: 'paths',
+                    label: '个性化学习路径',
+                    children: (
+                      <Card 
+                        title="学习路径推荐"
+                        extra={
+                          <Button type="primary" icon={<PlusOutlined />}>
+                            自定义路径
+                          </Button>
                         }
-                      />
-                    </List.Item>
-                  )}
-                />
-              </Card>
-            </Col>
-          </Row>
-        </TabPane>
-      </Tabs>
+                      >
+                        {renderPersonalizedPaths()}
+                      </Card>
+                    )
+                  },
+                  {
+                    key: 'strategies',
+                    label: '教学策略',
+                    children: (
+                      <Card title="教学策略优化建议">
+                        {renderTeachingStrategies()}
+                      </Card>
+                    )
+                  },
+                  {
+                    key: 'resources',
+                    label: '资源推荐',
+                    children: (
+                      <Card 
+                        title="教学资源推荐"
+                        extra={
+                          <Button type="primary" icon={<PlusOutlined />}>
+                            上传资源
+                          </Button>
+                        }
+                      >
+                        {renderResourceRecommendations()}
+                      </Card>
+                    )
+                  }
+                ]}
+              />
+            )
+          },
+          {
+            key: 'intervention',
+            label: '干预支持',
+            children: (
+              <Tabs 
+                defaultActiveKey="risk" 
+                type="card"
+                items={[
+                  {
+                    key: 'risk',
+                    label: '风险学生',
+                    children: (
+                      <Card 
+                        title="需要关注的学生"
+                        extra={
+                          <Space>
+                            <Badge count={interventionData.riskStudents?.length || 0} style={{ backgroundColor: '#ff4d4f' }}>
+                              <Text>风险学生</Text>
+                            </Badge>
+                          </Space>
+                        }
+                      >
+                        {renderRiskStudents()}
+                      </Card>
+                    )
+                  },
+                  {
+                    key: 'plans',
+                    label: '干预计划',
+                    children: (
+                      <Card 
+                        title="干预计划管理"
+                        extra={
+                          <Button type="primary" icon={<PlusOutlined />}>
+                            新建计划
+                          </Button>
+                        }
+                      >
+                        {renderInterventionPlans()}
+                      </Card>
+                    )
+                  }
+                ]}
+              />
+            )
+          },
+          {
+            key: 'communication',
+            label: '沟通渠道',
+            children: (
+              <Row gutter={[24, 24]}>
+                <Col xs={24} lg={16}>
+                  <Card 
+                    title="沟通记录"
+                    extra={
+                      <Button 
+                        type="primary" 
+                        icon={<MessageOutlined />}
+                        onClick={() => {
+                          setModalType('message');
+                          setModalVisible(true);
+                        }}
+                      >
+                        发送消息
+                      </Button>
+                    }
+                  >
+                    {renderCommunicationHistory()}
+                  </Card>
+                </Col>
+                <Col xs={24} lg={8}>
+                  <Card title="消息模板">
+                    <List
+                      dataSource={communicationData.templates || []}
+                      renderItem={(template) => (
+                        <List.Item
+                          actions={[
+                            <Button 
+                              size="small" 
+                              onClick={() => {
+                                form.setFieldsValue({ content: template.content });
+                                setModalType('message');
+                                setModalVisible(true);
+                              }}
+                            >
+                              使用
+                            </Button>
+                          ]}
+                        >
+                          <List.Item.Meta
+                            title={template.name}
+                            description={
+                              <div>
+                                <Tag color={template.type === 'student' ? 'blue' : 'green'}>
+                                  {template.type === 'student' ? '学生' : '家长'}
+                                </Tag>
+                                <Paragraph ellipsis={{ rows: 2 }}>{template.content}</Paragraph>
+                              </div>
+                            }
+                          />
+                        </List.Item>
+                      )}
+                    />
+                  </Card>
+                </Col>
+              </Row>
+            )
+          }
+        ]}
+      />
 
       {/* 通用模态框 */}
       <Modal

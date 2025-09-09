@@ -49,7 +49,6 @@ import './CollaborativeEditor.css';
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
-const { TabPane } = Tabs;
 
 const CollaborativeEditor = ({ projectId, projectTitle, onBack }) => {
   // 编辑器状态
@@ -401,85 +400,99 @@ const CollaborativeEditor = ({ projectId, projectTitle, onBack }) => {
           {/* 中间编辑区域 */}
           <Col span={showComments ? 14 : 20} className="editor-main">
             <Card style={{ height: '100%' }}>
-              <Tabs activeKey={activeTab} onChange={setActiveTab}>
-                <TabPane tab="编辑器" key="editor">
-                  <div className="editor-container">
-                    <TextArea
-                      value={content}
-                      onChange={handleContentChange}
-                      onSelect={handleTextSelect}
-                      placeholder="开始编写文档内容..."
-                      className="main-editor"
-                      style={{ 
-                        height: isFullscreen ? 'calc(100vh - 200px)' : '500px',
-                        fontSize: '14px',
-                        lineHeight: '1.6'
-                      }}
-                    />
-                    
-                    {/* 光标位置指示器 */}
-                    {activeUsers.map(user => (
-                      user.cursor > 0 && (
-                        <div
-                          key={user.id}
-                          className="cursor-indicator"
-                          style={{
-                            position: 'absolute',
-                            top: Math.floor(user.cursor / 50) * 22 + 'px',
-                            left: (user.cursor % 50) * 8 + 'px'
+              <Tabs 
+                activeKey={activeTab} 
+                onChange={setActiveTab}
+                items={[
+                  {
+                    key: 'editor',
+                    label: '编辑器',
+                    children: (
+                      <div className="editor-container">
+                        <TextArea
+                          value={content}
+                          onChange={handleContentChange}
+                          onSelect={handleTextSelect}
+                          placeholder="开始编写文档内容..."
+                          className="main-editor"
+                          style={{ 
+                            height: isFullscreen ? 'calc(100vh - 200px)' : '500px',
+                            fontSize: '14px',
+                            lineHeight: '1.6'
                           }}
-                        >
-                          <Tooltip title={user.name}>
-                            <div className="cursor-line" style={{ borderColor: user.id === 'user1' ? '#1890ff' : '#52c41a' }} />
-                          </Tooltip>
-                        </div>
-                      )
-                    ))}
-                  </div>
-                </TabPane>
-                
-                <TabPane tab="预览" key="preview">
-                  <div className="preview-container">
-                    <div className="markdown-preview">
-                      {content.split('\n').map((line, index) => {
-                        if (line.startsWith('# ')) {
-                          return <h1 key={index}>{line.substring(2)}</h1>;
-                        } else if (line.startsWith('## ')) {
-                          return <h2 key={index}>{line.substring(3)}</h2>;
-                        } else if (line.startsWith('### ')) {
-                          return <h3 key={index}>{line.substring(4)}</h3>;
-                        } else if (line.trim() === '') {
-                          return <br key={index} />;
-                        } else {
-                          return <p key={index}>{line}</p>;
-                        }
-                      })}
-                    </div>
-                  </div>
-                </TabPane>
-                
-                <TabPane tab="历史" key="history">
-                  <List
-                    dataSource={documentHistory}
-                    renderItem={item => (
-                      <List.Item>
-                        <List.Item.Meta
-                          avatar={<HistoryOutlined />}
-                          title={`${item.user} ${item.action}`}
-                          description={
-                            <div>
-                              <div>{item.changes}</div>
-                              <Text type="secondary" style={{ fontSize: '12px' }}>
-                                {item.time}
-                              </Text>
-                            </div>
-                          }
                         />
-                      </List.Item>
-                    )}
-                  />
-                </TabPane>
-              </Tabs>
+                        
+                        {/* 光标位置指示器 */}
+                        {activeUsers.map(user => (
+                          user.cursor > 0 && (
+                            <div
+                              key={user.id}
+                              className="cursor-indicator"
+                              style={{
+                                position: 'absolute',
+                                top: Math.floor(user.cursor / 50) * 22 + 'px',
+                                left: (user.cursor % 50) * 8 + 'px'
+                              }}
+                            >
+                              <Tooltip title={user.name}>
+                                <div className="cursor-line" style={{ borderColor: user.id === 'user1' ? '#1890ff' : '#52c41a' }} />
+                              </Tooltip>
+                            </div>
+                          )
+                        ))}
+                      </div>
+                    )
+                  },
+                  {
+                    key: 'preview',
+                    label: '预览',
+                    children: (
+                      <div className="preview-container">
+                        <div className="markdown-preview">
+                          {content.split('\n').map((line, index) => {
+                            if (line.startsWith('# ')) {
+                              return <h1 key={index}>{line.substring(2)}</h1>;
+                            } else if (line.startsWith('## ')) {
+                              return <h2 key={index}>{line.substring(3)}</h2>;
+                            } else if (line.startsWith('### ')) {
+                              return <h3 key={index}>{line.substring(4)}</h3>;
+                            } else if (line.trim() === '') {
+                              return <br key={index} />;
+                            } else {
+                              return <p key={index}>{line}</p>;
+                            }
+                          })}
+                        </div>
+                      </div>
+                    )
+                  },
+                  {
+                    key: 'history',
+                    label: '历史',
+                    children: (
+                      <List
+                        dataSource={documentHistory}
+                        renderItem={item => (
+                          <List.Item>
+                            <List.Item.Meta
+                              avatar={<HistoryOutlined />}
+                              title={`${item.user} ${item.action}`}
+                              description={
+                                <div>
+                                  <div>{item.changes}</div>
+                                  <Text type="secondary" style={{ fontSize: '12px' }}>
+                                    {item.time}
+                                  </Text>
+                                </div>
+                              }
+                            />
+                          </List.Item>
+                        )}
+                      />
+                    )
+                  }
+                ]}
+              />
             </Card>
           </Col>
           

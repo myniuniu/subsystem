@@ -105,6 +105,16 @@ const UnifiedAICenter = () => {
   const [activeTab, setActiveTab] = useState('chat');
   const [selectedImageCategory, setSelectedImageCategory] = useState('featured');
   
+  // 附件上传状态
+  const [showAttachmentPopover, setShowAttachmentPopover] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
+  
+  // 文档中心选择弹窗状态
+  const [showDocumentCenter, setShowDocumentCenter] = useState(false);
+  const [selectedCloudFiles, setSelectedCloudFiles] = useState([]);
+  
   // 编辑器状态
   const [editorContent, setEditorContent] = useState('');
   const [editorMode, setEditorMode] = useState('markdown');
@@ -118,6 +128,117 @@ const UnifiedAICenter = () => {
   // 滚动到底部
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // 文件上传处理函数
+  const handleFileSelect = (event) => {
+    const files = Array.from(event.target.files);
+    handleFilesUpload(files);
+  };
+
+  const handleFilesUpload = async (files) => {
+    if (files.length === 0) return;
+
+    setIsUploading(true);
+    const newFiles = [];
+
+    for (const file of files) {
+      // 文件验证
+      if (!validateFile(file)) {
+        continue;
+      }
+
+      const fileData = {
+        id: Date.now() + Math.random(),
+        file: file,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        preview: null,
+        uploadProgress: 0
+      };
+
+      // 如果是图片，生成预览
+      if (file.type.startsWith('image/')) {
+        try {
+          const preview = await generateImagePreview(file);
+          fileData.preview = preview;
+        } catch (error) {
+          console.error('生成图片预览失败:', error);
+        }
+      }
+
+      newFiles.push(fileData);
+    }
+
+    setUploadedFiles(prev => [...prev, ...newFiles]);
+    setIsUploading(false);
+    
+    // 清空文件输入
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // 文件验证
+  const validateFile = (file) => {
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = [
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'application/pdf', 'text/plain', 'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+    ];
+
+    if (file.size > maxSize) {
+      antdMessage.error(`文件 "${file.name}" 大小超过10MB限制`);
+      return false;
+    }
+
+    if (!allowedTypes.includes(file.type)) {
+      antdMessage.error(`不支持的文件类型: ${file.type}`);
+      return false;
+    }
+
+    return true;
+  };
+
+  // 生成图片预览
+  const generateImagePreview = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // 删除上传的文件
+  const removeUploadedFile = (fileId) => {
+    setUploadedFiles(prev => prev.filter(file => file.id !== fileId));
+  };
+
+  // 格式化文件大小
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // 获取文件图标
+  const getFileIcon = (fileType) => {
+    if (fileType.startsWith('image/')) return '🖼️';
+    if (fileType === 'application/pdf') return '📕';
+    if (fileType.includes('word')) return '📄';
+    if (fileType.includes('excel') || fileType.includes('sheet')) return '📊';
+    if (fileType.includes('powerpoint') || fileType.includes('presentation')) return '📊';
+    if (fileType === 'text/plain') return '📝';
+    return '📎';
   };
   
   // 获取图像模版数据
@@ -227,6 +348,20 @@ const UnifiedAICenter = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+  
+  // 点击外部区域关闭附件弹窗
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showAttachmentPopover && !event.target.closest('.attachment-popover-container')) {
+        setShowAttachmentPopover(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showAttachmentPopover]);
   
   // 设置状态
   const [aiSettings, setAiSettings] = useState({
@@ -527,18 +662,26 @@ const UnifiedAICenter = () => {
 
   // 发送消息
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isLoading || !selectedTool) return;
+    if ((!inputMessage.trim() && uploadedFiles.length === 0) || isLoading || !selectedTool) return;
     
     const userMessage = {
       id: Date.now().toString(),
       type: 'user',
       content: inputMessage,
       timestamp: new Date(),
-      tool: currentTool
+      tool: currentTool,
+      files: uploadedFiles.length > 0 ? uploadedFiles.map(file => ({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        url: file.preview || (file.source === 'cloud' ? file.url : URL.createObjectURL(file)),
+        source: file.source || 'upload'
+      })) : undefined
     };
     
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
+    setUploadedFiles([]); // 清空已上传的文件
     setIsLoading(true);
     
     // 根据选择的工具生成不同的AI回复
@@ -1204,7 +1347,54 @@ const UnifiedAICenter = () => {
                               }
                             }}
                           >
-                            <Text style={{ color: 'white' }}>{message.content}</Text>
+                            {message.content && (
+                              <Text style={{ color: 'white', marginBottom: message.files ? '8px' : '0' }}>
+                                {message.content}
+                              </Text>
+                            )}
+                            {message.files && message.files.length > 0 && (
+                              <div style={{ marginTop: message.content ? '8px' : '0' }}>
+                                {message.files.map((file, fileIndex) => (
+                                  <div key={fileIndex} style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    padding: '6px 8px',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                                    borderRadius: '6px',
+                                    marginBottom: fileIndex < message.files.length - 1 ? '4px' : '0',
+                                    fontSize: '12px'
+                                  }}>
+                                    {(file.type && file.type.startsWith('image/')) || 
+                                     (file.source === 'cloud' && ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'svg', 'image'].includes(file.type)) ? (
+                                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <Image size={14} style={{ marginRight: '6px', color: 'white' }} />
+                                        {file.url && (
+                                          <img 
+                                            src={file.url} 
+                                            alt={file.name}
+                                            style={{
+                                              width: '40px',
+                                              height: '40px',
+                                              objectFit: 'cover',
+                                              borderRadius: '4px',
+                                              marginRight: '8px'
+                                            }}
+                                          />
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <FileText size={14} style={{ marginRight: '6px', color: 'white' }} />
+                                    )}
+                                    <div style={{ flex: 1, color: 'white' }}>
+                                      <div style={{ fontWeight: 500 }}>{file.name}</div>
+                                      <div style={{ fontSize: '10px', opacity: 0.8 }}>
+                                        {(file.size / 1024 / 1024).toFixed(1)}MB
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </Card>
                         ) : (
                           <div style={{ maxWidth: '90%', width: '100%' }}>
@@ -1315,6 +1505,73 @@ const UnifiedAICenter = () => {
           backgroundColor: '#f8f9fa',
           borderTop: '1px solid #e8e9ea'
         }}>
+          {/* 已上传文件预览区域 */}
+          {uploadedFiles.length > 0 && (
+            <div style={{
+              marginBottom: '12px',
+              padding: '12px',
+              backgroundColor: 'white',
+              borderRadius: '8px',
+              border: '1px solid #e1e5e9'
+            }}>
+              <div style={{ 
+                fontSize: '12px', 
+                color: '#666', 
+                marginBottom: '8px',
+                fontWeight: 500
+              }}>
+                已上传文件 ({uploadedFiles.length})
+              </div>
+              <div style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '8px'
+              }}>
+                {uploadedFiles.map((file, index) => (
+                  <div key={index} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '6px 10px',
+                    backgroundColor: '#f5f5f5',
+                    borderRadius: '6px',
+                    border: '1px solid #d9d9d9',
+                    fontSize: '12px',
+                    maxWidth: '200px'
+                  }}>
+                    {(file.type && file.type.startsWith('image/')) || 
+                     (file.source === 'cloud' && ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'svg'].includes(file.type)) ? (
+                      <Image size={14} style={{ marginRight: '6px', color: '#52c41a' }} />
+                    ) : (
+                      <FileText size={14} style={{ marginRight: '6px', color: '#1890ff' }} />
+                    )}
+                    <span style={{
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      flex: 1
+                    }}>
+                      {file.name}
+                    </span>
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<X size={12} />}
+                      onClick={() => removeFile(index)}
+                      style={{
+                        marginLeft: '4px',
+                        padding: '0',
+                        width: '16px',
+                        height: '16px',
+                        minWidth: '16px',
+                        color: '#999'
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
           <div className="chat-input-container" style={{
             display: 'flex',
             alignItems: 'center',
@@ -1391,6 +1648,190 @@ const UnifiedAICenter = () => {
                     "选择图像风格模板"
                   }
                 />
+              )}
+              {/* 附件按钮 - 仅在新对话工具中显示 */}
+              {currentTool === 'new-chat' && (
+                <div className="attachment-popover-container" style={{ position: 'relative' }}>
+                  <Button
+                    type="text"
+                    icon={<Paperclip size={18} />}
+                    onClick={() => setShowAttachmentPopover(!showAttachmentPopover)}
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      padding: 0,
+                      color: '#6b7280',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '50%'
+                    }}
+                    title="添加附件"
+                  />
+                  {/* 附件弹出浮窗 */}
+                  {showAttachmentPopover && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '45px',
+                      right: '0',
+                      width: '280px',
+                      backgroundColor: 'white',
+                      borderRadius: '12px',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+                      border: '1px solid #e8e9ea',
+                      padding: '16px',
+                      zIndex: 1000
+                    }}>
+                      <div style={{ marginBottom: '12px' }}>
+                        <Text style={{ fontSize: '14px', fontWeight: 500, color: '#333' }}>从云盘添加</Text>
+                      </div>
+                      <div style={{ marginBottom: '16px' }}>
+                        {[
+                          { icon: '🌐', name: 'triangle-altitude.html', type: 'html' },
+                          { icon: '📄', name: '清晰版-中国教育干部网络学院人工智能...', type: 'doc' },
+                          { icon: '📊', name: '各分公司销售额_示例数据.xlsx', type: 'excel' },
+                          { icon: '📕', name: 'difv介绍.pdf', type: 'pdf' },
+                          { icon: '📊', name: '德育骨干-工作案例150.xlsx', type: 'excel' }
+                        ].map((file, index) => (
+                          <div key={index} style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '8px 0',
+                            cursor: 'pointer',
+                            borderRadius: '6px',
+                            transition: 'background-color 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>
+                            <span style={{ fontSize: '16px', marginRight: '8px' }}>{file.icon}</span>
+                            <Text style={{ fontSize: '13px', color: '#333', flex: 1 }} ellipsis>{file.name}</Text>
+                          </div>
+                        ))}
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '8px 0',
+                          cursor: 'pointer',
+                          borderRadius: '6px',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onClick={() => {
+                          setShowDocumentCenter(true);
+                          setShowAttachmentPopover(false);
+                        }}
+                        onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                        onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>
+                          <span style={{ fontSize: '16px', marginRight: '8px' }}>⋯</span>
+                          <Text style={{ fontSize: '13px', color: '#666' }}>选择云盘文件</Text>
+                        </div>
+                      </div>
+                      <Divider style={{ margin: '12px 0' }} />
+                      <div>
+                        <Text style={{ fontSize: '14px', fontWeight: 500, color: '#333', marginBottom: '8px', display: 'block' }}>从本地添加</Text>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          multiple
+                          accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
+                          onChange={handleFileSelect}
+                          style={{ display: 'none' }}
+                        />
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '12px 0',
+                          cursor: 'pointer',
+                          borderRadius: '6px',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onClick={() => fileInputRef.current?.click()}
+                        onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                        onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>
+                          <Upload size={16} style={{ marginRight: '8px', color: '#666' }} />
+                          <Text style={{ fontSize: '13px', color: '#333' }}>上传文件或图片</Text>
+                          {isUploading && <Spin size="small" style={{ marginLeft: '8px' }} />}
+                        </div>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '12px 0',
+                          cursor: 'pointer',
+                          borderRadius: '6px',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                        onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>
+                          <Code size={16} style={{ marginRight: '8px', color: '#666' }} />
+                          <div>
+                            <Text style={{ fontSize: '13px', color: '#333', display: 'block' }}>上传代码</Text>
+                            <ArrowRight size={12} style={{ color: '#999', float: 'right', marginTop: '-16px' }} />
+                          </div>
+                        </div>
+                        
+                        {/* 已上传文件列表 */}
+                        {uploadedFiles.length > 0 && (
+                          <>
+                            <Divider style={{ margin: '12px 0' }} />
+                            <div style={{ marginBottom: '8px' }}>
+                              <Text style={{ fontSize: '14px', fontWeight: 500, color: '#333' }}>已上传文件</Text>
+                            </div>
+                            <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                              {uploadedFiles.map((file) => (
+                                <div key={file.id} style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  padding: '8px',
+                                  marginBottom: '4px',
+                                  backgroundColor: '#f8f9fa',
+                                  borderRadius: '6px',
+                                  border: '1px solid #e9ecef'
+                                }}>
+                                  {file.preview ? (
+                                    <img 
+                                      src={file.preview} 
+                                      alt={file.name}
+                                      style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        objectFit: 'cover',
+                                        borderRadius: '4px',
+                                        marginRight: '8px'
+                                      }}
+                                    />
+                                  ) : (
+                                    <span style={{ fontSize: '16px', marginRight: '8px' }}>
+                                      {getFileIcon(file.type)}
+                                    </span>
+                                  )}
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <Text style={{ fontSize: '12px', color: '#333' }} ellipsis>
+                                      {file.name}
+                                    </Text>
+                                    <div style={{ fontSize: '11px', color: '#666' }}>
+                                      {formatFileSize(file.size)}
+                                    </div>
+                                  </div>
+                                  <Button
+                                    type="text"
+                                    size="small"
+                                    icon={<X size={14} />}
+                                    onClick={() => removeUploadedFile(file.id)}
+                                    style={{
+                                      color: '#999',
+                                      padding: '2px',
+                                      minWidth: 'auto',
+                                      height: 'auto'
+                                    }}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
               <Button
                 type="text"
@@ -1754,6 +2195,109 @@ const UnifiedAICenter = () => {
               </div>
             ))}
           </div>
+        </div>
+      </Modal>
+
+      {/* 文档中心选择弹窗 */}
+      <Modal
+        title="从文档中心选择文件"
+        open={showDocumentCenter}
+        onCancel={() => setShowDocumentCenter(false)}
+        width={800}
+        footer={[
+          <Button key="cancel" onClick={() => setShowDocumentCenter(false)}>
+            取消
+          </Button>,
+          <Button 
+            key="confirm" 
+            type="primary" 
+            onClick={() => {
+              // 将选中的云盘文件添加到上传文件列表
+              const newFiles = selectedCloudFiles.map(file => ({
+                ...file,
+                id: Date.now() + Math.random(),
+                source: 'cloud'
+              }));
+              setUploadedFiles(prev => [...prev, ...newFiles]);
+              setSelectedCloudFiles([]);
+              setShowDocumentCenter(false);
+              antdMessage.success(`已添加 ${newFiles.length} 个文件`);
+            }}
+            disabled={selectedCloudFiles.length === 0}
+          >
+            确定添加 ({selectedCloudFiles.length})
+          </Button>
+        ]}
+      >
+        <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+          {/* 文档分类标签 */}
+          <div style={{ marginBottom: '16px' }}>
+            <Space wrap>
+              {['全部', '教学文档', '课件资料', '图片素材', '视频资源', '表格数据'].map(category => (
+                <Tag 
+                  key={category}
+                  color={category === '全部' ? 'blue' : 'default'}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {category}
+                </Tag>
+              ))}
+            </Space>
+          </div>
+          
+          {/* 文档列表 */}
+          <List
+            dataSource={[
+              { id: 1, name: 'triangle-altitude.html', type: 'html', size: '2.3KB', icon: '🌐', updateTime: '2024-01-15' },
+              { id: 2, name: '清晰版-中国教育干部网络学院人工智能课程.pdf', type: 'pdf', size: '15.2MB', icon: '📕', updateTime: '2024-01-14' },
+              { id: 3, name: '各分公司销售额_示例数据.xlsx', type: 'excel', size: '856KB', icon: '📊', updateTime: '2024-01-13' },
+              { id: 4, name: 'difv介绍.pdf', type: 'pdf', size: '3.7MB', icon: '📕', updateTime: '2024-01-12' },
+              { id: 5, name: '德育骨干-工作案例150.xlsx', type: 'excel', size: '1.2MB', icon: '📊', updateTime: '2024-01-11' },
+              { id: 6, name: '数学教学课件-函数图像.pptx', type: 'ppt', size: '8.9MB', icon: '📊', updateTime: '2024-01-10' },
+              { id: 7, name: '语文阅读理解训练.docx', type: 'doc', size: '456KB', icon: '📄', updateTime: '2024-01-09' },
+              { id: 8, name: '物理实验视频-光的折射.mp4', type: 'video', size: '125MB', icon: '🎬', updateTime: '2024-01-08' },
+              { id: 9, name: '化学元素周期表.png', type: 'image', size: '2.1MB', icon: '🖼️', updateTime: '2024-01-07' },
+              { id: 10, name: '历史时间轴模板.xlsx', type: 'excel', size: '678KB', icon: '📊', updateTime: '2024-01-06' }
+            ]}
+            renderItem={(file) => (
+              <List.Item
+                style={{
+                  padding: '12px 16px',
+                  cursor: 'pointer',
+                  backgroundColor: selectedCloudFiles.find(f => f.id === file.id) ? '#e6f7ff' : 'transparent',
+                  borderRadius: '8px',
+                  margin: '4px 0',
+                  border: selectedCloudFiles.find(f => f.id === file.id) ? '1px solid #1890ff' : '1px solid transparent'
+                }}
+                onClick={() => {
+                  const isSelected = selectedCloudFiles.find(f => f.id === file.id);
+                  if (isSelected) {
+                    setSelectedCloudFiles(prev => prev.filter(f => f.id !== file.id));
+                  } else {
+                    setSelectedCloudFiles(prev => [...prev, file]);
+                  }
+                }}
+              >
+                <List.Item.Meta
+                  avatar={<span style={{ fontSize: '20px' }}>{file.icon}</span>}
+                  title={
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Text strong style={{ fontSize: '14px' }}>{file.name}</Text>
+                      {selectedCloudFiles.find(f => f.id === file.id) && (
+                        <Check size={16} color="#1890ff" />
+                      )}
+                    </div>
+                  }
+                  description={
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#666' }}>
+                      <span>{file.size}</span>
+                      <span>{file.updateTime}</span>
+                    </div>
+                  }
+                />
+              </List.Item>
+            )}
+          />
         </div>
       </Modal>
     </div>
