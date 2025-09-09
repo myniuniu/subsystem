@@ -36,7 +36,8 @@ import {
   BarChart3,
   BookOpen,
   School,
-  UserCheck
+  UserCheck,
+  ExternalLink
 } from 'lucide-react'
 import './Sidebar.css'
 
@@ -162,12 +163,22 @@ const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onCli
   }
 
   const handleChildClick = (childId) => {
+    // 查找子菜单项
+    const childItem = item.children && item.children.find(child => child.id === childId)
+    
+    // 如果是外部链接类型，在新窗口打开
+    if (childItem && childItem.type === 'external' && childItem.url) {
+      window.open(childItem.url, '_blank')
+      return
+    }
+    
+    // 否则正常处理
     onClick(childId)
   }
 
   // 检查子菜单中是否有激活项
   const hasActiveChild = item.children && item.children.some(child => isActive === child.id)
-  const isGroupActive = item.type === 'single' ? isActive === item.id : hasActiveChild
+  const isGroupActive = item.type === 'single' ? isActive === item.id : (isActive === item.id || hasActiveChild)
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -587,6 +598,16 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
   }
 
   const handleItemClick = (itemId) => {
+    // 查找菜单项
+    const menuItem = menuItems.find(item => item.id === itemId)
+    
+    // 如果是外部链接类型，在新窗口打开
+    if (menuItem && menuItem.type === 'external' && menuItem.url) {
+      window.open(menuItem.url, '_blank')
+      return
+    }
+    
+    // 否则正常处理视图切换
     onViewChange(itemId)
   }
 
@@ -618,7 +639,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
                 <SortableMenuItem
                   key={item.id}
                   item={item}
-                  isActive={currentView === item.id}
+                  isActive={currentView}
                   unreadCount={item.id === 'message-center' ? unreadMessageCount : 0}
                   downloadingCount={item.id === 'download-center' ? downloadingCount : 0}
                   onClick={handleItemClick}

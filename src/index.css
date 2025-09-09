@@ -97,7 +97,7 @@ body {
 
 .ant-input-search .ant-input-group .ant-input-group-addon {
   border-radius: 0 8px 8px 0 !important;
-  border-left: 0 !important;
+  border: none !important;
 }
 
 /* 禁用状态样式 */

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { Avatar, Typography, Space } from 'antd'
-import { MessageCircle, Sparkles, User } from 'lucide-react'
+import { Avatar, Typography, Space, Button } from 'antd'
+import { MessageCircle, Sparkles, User, ExternalLink } from 'lucide-react'
 import ThemeSelector from './ThemeSelector'
 import { initTheme } from '../utils/themeManager'
 import './Header.css'
@@ -59,6 +59,33 @@ const Header = ({ onMenuClick, currentView }) => {
       
       <div className="header-right">
         <Space align="center" size="large">
+          <Button
+            type="text"
+            icon={<ExternalLink size={16} />}
+            onClick={() => window.open('https://training.edu.cn', '_blank')}
+            style={{
+              color: 'rgba(255, 255, 255, 0.9)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              borderRadius: '8px',
+              padding: '4px 12px',
+              height: 'auto',
+              fontSize: '14px',
+              fontWeight: 500,
+              backdropFilter: 'blur(10px)',
+              background: 'rgba(255, 255, 255, 0.1)',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.background = 'rgba(255, 255, 255, 0.2)'
+              e.target.style.borderColor = 'rgba(255, 255, 255, 0.5)'
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = 'rgba(255, 255, 255, 0.1)'
+              e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)'
+            }}
+          >
+            研修平台
+          </Button>
           <div style={{ textAlign: 'right', minWidth: '120px', whiteSpace: 'nowrap' }}>
             <div style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '14px', lineHeight: '1.4' }}>
               晚上好

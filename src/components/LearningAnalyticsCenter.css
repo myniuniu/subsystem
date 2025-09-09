@@ -1,7 +1,7 @@
 /* 学情分析中心样式 */
 .learning-analytics-center {
   padding: 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: 100vh;
   position: relative;
 }
@@ -30,24 +30,25 @@
   align-items: flex-start;
   margin-bottom: 24px;
   padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 12px;
-  color: white;
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+  color: #333;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
 }
 
 .header-title h2 {
   margin: 0 0 8px 0;
   font-size: 28px;
   font-weight: 600;
-  color: white;
+  color: #333;
 }
 
 .header-title p {
   margin: 0;
   font-size: 16px;
-  opacity: 0.9;
-  color: white;
+  opacity: 0.7;
+  color: #666;
 }
 
 /* 标签页样式 */

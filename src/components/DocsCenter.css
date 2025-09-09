@@ -85,6 +85,7 @@
 
 .search-box .ant-input-search .ant-input-search-button {
   border-radius: 0 8px 8px 0;
+  border: none !important;
 }
 
 .search-box input {
