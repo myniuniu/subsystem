@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { Modal } from 'antd'
 import {
   DndContext,
   closestCenter,
@@ -31,7 +32,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Grid,
-  Users
+  Users,
+  BarChart3
 } from 'lucide-react'
 import './Sidebar.css'
 
@@ -57,7 +59,16 @@ const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onCli
   const handleRemove = (e) => {
     e.stopPropagation()
     if (onRemove && isDynamic) {
-      onRemove(item.id)
+      Modal.confirm({
+        title: '确认移除应用',
+        content: `确定要从菜单中移除「${item.label}」吗？`,
+        okText: '确认移除',
+        cancelText: '取消',
+        okType: 'danger',
+        onOk: () => {
+          onRemove(item.id)
+        },
+      })
     }
   }
 
@@ -157,11 +168,14 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
   const defaultMenuItems = [
     { id: 'home', icon: Home, label: '个人工作台', color: '#667eea' },
     { id: 'ai-assistant', icon: Bot, label: 'AI智能中心', color: '#667eea' },
+    { id: 'homework-center', icon: BookMarked, label: '作业管理中心', color: '#13c2c2' },
+    { id: 'ai-grading-center', icon: Bot, label: '智能批改中心', color: '#722ed1' },
+    { id: 'learning-analytics-center', icon: BarChart3, label: '学情分析中心', color: '#52c41a' },
+    { id: 'assessment-center', icon: BarChart3, label: '能力测评中心', color: '#722ed1' },
     { id: 'message-center', icon: MessageSquare, label: '消息中心', color: '#f39c12' },
     { id: 'calendar-center', icon: Calendar, label: '日历中心', color: '#52c41a' },
     { id: 'docs-center', icon: FileText, label: '文档中心', color: '#a18cd1' },
     { id: 'lesson-observation', icon: Eye, label: '听课评课', color: '#e74c3c' },
-
     { id: 'meeting-center', icon: Video, label: '会议中心', color: '#e74c3c' },
     { id: 'download-center', icon: Download, label: '下载中心', color: '#ff9a9e' },
     { id: 'app-center', icon: Grid, label: '应用中心', color: '#1890ff' }
@@ -196,6 +210,14 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
     const allItems = [...defaultMenuItems, ...newDynamicApps]
     setMenuItems(allItems)
     localStorage.setItem('sidebar-menu-order', JSON.stringify(allItems.map(item => item.id)))
+    
+    // 同步更新AppCenter的状态
+    const currentAddedApps = JSON.parse(localStorage.getItem('added-apps') || '[]')
+    const updatedAddedApps = currentAddedApps.filter(id => id !== appId)
+    localStorage.setItem('added-apps', JSON.stringify(updatedAddedApps))
+    
+    // 触发自定义事件通知AppCenter更新
+    window.dispatchEvent(new Event('menuAppsChanged'))
   }
 
   const [menuItems, setMenuItems] = useState(() => {

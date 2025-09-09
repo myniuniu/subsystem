@@ -1,0 +1,182 @@
+.assessment-center {
+  padding: 24px;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+.assessment-header {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.assessment-header .header-icon {
+  color: #1890ff;
+  margin-right: 12px;
+}
+
+.assessment-content {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.assessment-overview {
+  padding: 24px;
+}
+
+.stats-row {
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  text-align: center;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.feature-cards {
+  margin-top: 24px;
+}
+
+.feature-card {
+  height: 100%;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+  background: #f0f0f0;
+  transform: translateX(4px);
+}
+
+.feature-icon {
+  font-size: 20px;
+  color: #1890ff;
+  margin-top: 2px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .assessment-center {
+    padding: 16px;
+  }
+  
+  .assessment-overview {
+    padding: 16px;
+  }
+  
+  .stats-row {
+    margin-bottom: 24px;
+  }
+  
+  .feature-item {
+    padding: 8px;
+  }
+  
+  .feature-icon {
+    font-size: 18px;
+  }
+}
+
+/* Tab样式优化 */
+.ant-tabs-card > .ant-tabs-content {
+  margin-top: 0;
+}
+
+.ant-tabs-card > .ant-tabs-content > .ant-tabs-tabpane {
+  background: white;
+  padding: 0;
+}
+
+.ant-tabs-card .ant-tabs-tab {
+  border-radius: 8px 8px 0 0;
+  transition: all 0.3s ease;
+}
+
+.ant-tabs-card .ant-tabs-tab:hover {
+  color: #1890ff;
+}
+
+.ant-tabs-card .ant-tabs-tab-active {
+  background: white;
+  border-bottom-color: white;
+}
+
+/* 统计卡片动画 */
+.ant-statistic-content {
+  font-weight: 600;
+}
+
+.ant-statistic-title {
+  font-weight: 500;
+  color: #666;
+}
+
+/* 按钮样式 */
+.ant-btn-lg {
+  height: 48px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  border: none;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+}
+
+.ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
+}
+
+/* 加载动画 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.assessment-overview > * {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.stats-row .ant-col:nth-child(1) { animation-delay: 0.1s; }
+.stats-row .ant-col:nth-child(2) { animation-delay: 0.2s; }
+.stats-row .ant-col:nth-child(3) { animation-delay: 0.3s; }
+.stats-row .ant-col:nth-child(4) { animation-delay: 0.4s; }
+
+.feature-cards .ant-col:nth-child(1) { animation-delay: 0.5s; }
+.feature-cards .ant-col:nth-child(2) { animation-delay: 0.6s; }

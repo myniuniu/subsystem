@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Card,
   Input,
@@ -27,7 +27,8 @@ import {
   TeamOutlined,
   BarChartOutlined,
   VideoCameraOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
+  DashboardOutlined
 } from '@ant-design/icons'
 import './AppCenter.css'
 
@@ -43,6 +44,30 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
     const saved = localStorage.getItem('added-apps')
     return saved ? JSON.parse(saved) : []
   })
+
+  // 监听localStorage变化，同步菜单应用状态
+  useEffect(() => {
+    const handleStorageChange = () => {
+      try {
+        const saved = localStorage.getItem('added-apps')
+        const newMenuApps = saved ? JSON.parse(saved) : []
+        setMenuApps(newMenuApps)
+      } catch {
+        setMenuApps([])
+      }
+    }
+
+    // 监听storage事件（跨标签页）
+    window.addEventListener('storage', handleStorageChange)
+    
+    // 监听自定义事件（同一页面内）
+    window.addEventListener('menuAppsChanged', handleStorageChange)
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('menuAppsChanged', handleStorageChange)
+    }
+  }, [])
 
   // 教学平台相关应用数据
   const apps = [
@@ -190,6 +215,24 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
       menuColor: '#faad14'
     },
     {
+      id: 'learning-analytics',
+      name: '学情分析平台',
+      description: '通过数据采集与分析，为教师提供全面精准的学生学习情况洞察，支持个性化教学和精准干预',
+      icon: 'DashboardOutlined',
+      category: 'analytics',
+      tags: ['学情分析', '数据驱动', '个性化教学'],
+      grade: ['小学', '初中', '高中'],
+      subject: ['语文', '数学', '英语', '物理', '化学', '生物'],
+      rating: 4.9,
+      downloads: 6800,
+      version: 'v1.0.0',
+      developer: '数智教育研发组',
+      featured: true,
+      menuId: 'learning-analytics',
+      menuLabel: '学情分析',
+      menuColor: '#1890ff'
+    },
+    {
       id: 'video-conference',
       name: '视频会议系统',
       description: '高清视频会议，支持屏幕共享和在线白板功能',
@@ -276,7 +319,8 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
     TeamOutlined: <TeamOutlined />,
     BarChartOutlined: <BarChartOutlined />,
     VideoCameraOutlined: <VideoCameraOutlined />,
-    AppstoreOutlined: <AppstoreOutlined />
+    AppstoreOutlined: <AppstoreOutlined />,
+    DashboardOutlined: <DashboardOutlined />
   }
 
   // 筛选应用

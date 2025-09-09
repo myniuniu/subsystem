@@ -4,7 +4,7 @@ import Header from './components/Header'
 import Sidebar from './components/Sidebar'
 import MainContent from './components/MainContent'
 import UnifiedAICenter from './components/UnifiedAICenter'
-
+import AssessmentCenter from './components/AssessmentCenter'
 import DownloadCenter from './components/DownloadCenter'
 import DocsCenter from './components/DocsCenter'
 import LessonObservation from './components/LessonObservation'
@@ -12,6 +12,10 @@ import MeetingCenter from './components/MeetingCenter'
 import MessageCenter from './components/MessageCenter'
 import CalendarCenter from './components/CalendarCenter'
 import AppCenter from './components/AppCenter'
+import LearningAnalytics from './components/LearningAnalytics'
+import HomeworkCenter from './components/HomeworkCenter'
+import AIGradingCenter from './components/AIGradingCenter'
+import LearningAnalyticsCenter from './components/LearningAnalyticsCenter'
 import './App.css'
 
 const { Header: AntHeader, Sider, Content } = Layout
@@ -217,6 +221,8 @@ function App() {
           >
             {(currentView === 'chat' || currentView === 'ai-assistant') ? (
               <UnifiedAICenter />
+            ) : currentView === 'assessment-center' ? (
+              <AssessmentCenter />
             ) : currentView === 'message-center' ? (
               <MessageCenter contacts={contacts} />
             ) : currentView === 'calendar-center' ? (
@@ -234,6 +240,14 @@ function App() {
                 onAddToMenu={handleAddAppToMenu}
                 onRemoveFromMenu={handleRemoveAppFromMenu}
               />
+            ) : currentView === 'learning-analytics' ? (
+              <LearningAnalytics />
+            ) : currentView === 'homework-center' ? (
+              <HomeworkCenter />
+            ) : currentView === 'ai-grading-center' ? (
+              <AIGradingCenter />
+            ) : currentView === 'learning-analytics-center' ? (
+              <LearningAnalyticsCenter />
             ) : (
               <MainContent 
                 currentView={currentView}
