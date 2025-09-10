@@ -108,7 +108,6 @@ const UnifiedAICenter = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
-  const [showImageTemplates, setShowImageTemplates] = useState(false);
   const [templateSearchText, setTemplateSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [activeTab, setActiveTab] = useState('chat');
@@ -132,6 +131,10 @@ const UnifiedAICenter = () => {
   // 预览区域状态
   const [showPreview, setShowPreview] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
+  
+  // 图片预览状态
+  const [showImagePreview, setShowImagePreview] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
   
   // 代码查看状态
   const [sourceCode, setSourceCode] = useState('');
@@ -873,112 +876,6 @@ const UnifiedAICenter = () => {
     setShowTemplates(false);
     setTemplateSearchText('');
     setSelectedCategory('all');
-    
-    // 自动发送消息
-    setTimeout(() => {
-      if (selectedTool && template.content.trim()) {
-        // 模拟点击发送按钮
-        const userMessage = {
-          id: Date.now().toString(),
-          type: 'user',
-          content: template.content,
-          timestamp: new Date(),
-          tool: currentTool,
-          files: uploadedFiles.length > 0 ? uploadedFiles.map(file => ({
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            url: file.preview || (file.source === 'cloud' ? file.url : URL.createObjectURL(file)),
-            source: file.source || 'upload'
-          })) : undefined
-        };
-        
-        setMessages(prev => [...prev, userMessage]);
-        setInputMessage('');
-        setUploadedFiles([]);
-        setIsLoading(true);
-        
-        // 生成AI回复
-        setTimeout(() => {
-          let aiResponse = '';
-          
-          // 检查用户消息是否包含演示相关内容，添加对应的预览链接
-          const addDemoLinks = (response) => {
-            // 优先使用模板中的url字段
-            if (template.url) {
-              const demoName = getDemoName(template.url);
-              const demoIcon = getDemoIcon(template.url);
-              response += `\n\n${demoIcon} ${demoName}：http://localhost:3000${template.url}`;
-              return response;
-            }
-            
-            const content = template.content.toLowerCase();
-            // 透镜成像演示已在主要演示链接中提供，此处不再重复添加
-            if (content.includes('弹簧') || content.includes('振动')) {
-              response += '\n\n🌊 弹簧振动模拟器演示：http://localhost:5173/demos/spring-oscillation.html';
-            }
-            if (content.includes('电路') || content.includes('欧姆定律')) {
-              response += '\n\n⚡ 欧姆定律电路演示：http://localhost:5173/demos/ohms-law.html';
-            }
-            if (content.includes('抛物') || content.includes('运动')) {
-              response += '\n\n🎯 抛物运动模拟器演示：http://localhost:5173/demos/projectile-motion.html';
-            }
-            if (content.includes('化学') || content.includes('分子')) {
-              response += '\n\n🧪 分子结构3D查看器演示：http://localhost:5173/demos/molecular-viewer.html';
-            }
-            if (content.includes('数学') || content.includes('函数')) {
-              response += '\n\n📊 数学函数图形计算器演示：http://localhost:5173/demos/function-grapher.html';
-            }
-            return response;
-          };
-          
-          switch(selectedTool.key) {
-            case 'chat':
-              aiResponse = `你好！我是智能聊天助手。关于"${template.content}"，我很乐意为您提供帮助。请告诉我更多详细信息，我会尽力为您解答。`;
-              break;
-            case 'code':
-              aiResponse = `作为编程助手，我理解您想要了解"${template.content}"。我可以帮您：\n\n• 编写代码示例\n• 解释技术概念\n• 调试程序问题\n• 优化代码性能\n\n请提供更多技术细节，我会给出具体的解决方案。`;
-              break;
-            case 'translate':
-              aiResponse = `我是翻译助手。关于"${template.content}"，请告诉我：\n\n1. 需要翻译的源语言\n2. 目标语言\n3. 翻译场景（商务、学术、日常等）\n\n这样我可以为您提供更准确的翻译服务。`;
-              break;
-            case 'math':
-              aiResponse = `作为数学计算助手，我正在分析"${template.content}"。我可以帮您：\n\n📊 数学公式求解\n📈 统计分析\n🔍 几何计算\n📋 数据处理\n\n请提供具体的数学问题，我会为您详细解答。`;
-              break;
-            case 'creative':
-              aiResponse = `我是创意写作助手，关于"${template.content}"的创作需求，我可以协助您：\n\n🎨 创意构思\n📝 内容创作\n🌈 风格优化\n✨ 文案润色\n\n请描述您的创作目标和风格偏好，我会提供专业建议。`;
-              break;
-            case 'analysis':
-              aiResponse = `作为数据分析助手，我正在分析"${template.content}"。我可以帮您：\n\n📊 数据可视化\n📈 趋势分析\n🔍 深度洞察\n📋 报告生成\n\n请提供具体的数据或分析需求，我会为您制定分析方案。`;
-              break;
-            case 'image':
-              aiResponse = `我是图像处理助手，关于"${template.content}"的图像需求，我可以协助您：\n\n🖼️ 图像生成\n🎨 图像编辑\n🔍 图像分析\n✨ 效果优化\n\n请描述您的图像处理需求，我会提供专业方案。`;
-              break;
-            case 'music':
-              aiResponse = `我是音乐创作助手，关于"${template.content}"的音乐创作，我可以帮您：\n\n🎵 旋律创作\n🎼 和声编配\n🎹 编曲建议\n🎤 歌词创作\n\n请告诉我您的音乐风格和创作需求。`;
-              break;
-            case 'writing':
-              aiResponse = `我是专业写作助手，正在为您分析"${template.content}"的写作需求。我可以帮您：\n\n📝 文章结构规划\n✍️ 内容创作与润色\n📚 素材收集与整理\n🎯 风格调整与优化\n\n基于您的主题，我建议从以下几个方面展开：\n\n1. 明确写作目标和受众\n2. 构建清晰的文章框架\n3. 收集相关素材和论据\n4. 进行创作和反复修改\n\n请告诉我您希望的文章类型、字数要求和具体风格偏好，我会为您提供更详细的写作指导。`;
-              break;
-            default:
-              aiResponse = `感谢您使用${selectedTool.label}！关于"${template.content}"，我正在为您处理。请稍等片刻，我会为您提供详细的回复。`;
-          }
-          
-          // 为所有回复添加演示链接检查
-          aiResponse = addDemoLinks(aiResponse);
-          
-          const aiMessage = {
-            id: (Date.now() + 1).toString(),
-            type: 'ai',
-            content: aiResponse,
-            timestamp: new Date(),
-            tool: currentTool
-          };
-          setMessages(prev => [...prev, aiMessage]);
-          setIsLoading(false);
-        }, 1500);
-      }
-    }, 100);
   };
 
   // 根据当前工具获取模版数据
@@ -1083,6 +980,27 @@ const UnifiedAICenter = () => {
         case 'writing':
           aiResponse = `我是专业写作助手，正在为您分析"${userMessage.content}"的写作需求。我可以帮您：\n\n📝 文章结构规划\n✍️ 内容创作与润色\n📚 素材收集与整理\n🎯 风格调整与优化\n\n基于您的主题，我建议从以下几个方面展开：\n\n1. 明确写作目标和受众\n2. 构建清晰的文章框架\n3. 收集相关素材和论据\n4. 进行创作和反复修改\n\n请告诉我您希望的文章类型、字数要求和具体风格偏好，我会为您提供更详细的写作指导。`;
           break;
+        case 'new-chat':
+          // 检查特殊关键词并返回对应图片
+          const content = userMessage.content.toLowerCase();
+          if (content.includes('狗')) {
+            aiResponse = `这是一张可爱的狗狗图片：\n\n<img src="https://picsum.photos/800/600?random=1" alt="狗狗图片" style="max-width: 100%; border-radius: 8px; margin: 10px 0;" />`;
+          } else if (content.includes('微缩')) {
+            // 创建包含文字块和图片块的单个消息
+            aiResponse = `
+              <div style="margin-bottom: 1px; padding: 2px 4px; background: #f8f9fa; border-radius: 4px; border-left: 2px solid #1890ff;">
+                <p style="margin: 0; line-height: 1.2; color: #333; font-size: 12px;">画面风格是移轴摄影风格，呈现强烈移轴模糊效果与浅景深，具有微缩模型质感，以倾斜视角展示热闹的火车站台。</p>
+                <p style="margin: 0; line-height: 1.2; color: #333; font-size: 12px;">站台上人们背着行李来来往往，火车停靠在轨道旁，车厢门打开，乘客们肩膀上下车，周围有卖小吃和纪念品的摊位，采用暖黄色调，阳光照亮站台。</p>
+                <p style="margin: 0; line-height: 1.2; color: #333; font-size: 12px;">我将按照你的需求生成一张移轴摄影风格的热闹火车站台俯视角图片。</p>
+              </div>
+              <div style="text-align: center; padding: 1px; background: transparent; border-radius: 4px; margin-top: 1px;">
+                <img src="/微缩.png" alt="移轴摄影风格的热闹火车站台" style="width: 180px; height: 135px; object-fit: cover; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); background: transparent;" />
+              </div>
+            `;
+          } else {
+            aiResponse = `您好！我是新对话助手。关于"${userMessage.content}"，我很乐意为您提供帮助。请告诉我更多详细信息，我会尽力为您解答。`;
+          }
+          break;
         default:
           aiResponse = `感谢您使用${selectedTool.label}！关于"${userMessage.content}"，我正在为您处理。请稍等片刻，我会为您提供详细的回复。`;
       }
@@ -1105,8 +1023,29 @@ const UnifiedAICenter = () => {
   // 渲染消息
   const renderMessage = (msg) => {
     const isUser = msg.type === 'user';
+    
     return (
-      <div key={msg.id} className={`message-item ${isUser ? 'user' : 'ai'}`}>
+      <div 
+        key={msg.id} 
+        className={`message-item ${isUser ? 'user' : 'ai'}`}
+        ref={(el) => {
+          if (el) {
+            // 为图片添加点击事件
+            const images = el.querySelectorAll('img');
+            console.log('找到图片数量:', images.length);
+            images.forEach((img, index) => {
+              console.log(`图片${index + 1}:`, img.src);
+              img.style.cursor = 'pointer';
+              img.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('图片被点击:', img.src);
+                handleImageClick(img.src, img.alt);
+              };
+            });
+          }
+        }}
+      >
         <Avatar 
           size={32} 
           icon={isUser ? <User size={16} /> : <Bot size={16} />}
@@ -1116,8 +1055,7 @@ const UnifiedAICenter = () => {
           }}
         />
         <div className="message-content">
-          <div className="message-text">
-            {msg.content}
+          <div className="message-text" dangerouslySetInnerHTML={{ __html: msg.content }}>
           </div>
           <div className="message-time">
             {msg.timestamp.toLocaleTimeString()}
@@ -1166,6 +1104,12 @@ const UnifiedAICenter = () => {
     setLinkCopied(true);
     message.success('链接已复制到剪贴板');
     setTimeout(() => setLinkCopied(false), 2000);
+  };
+
+  // 图片点击处理函数
+  const handleImageClick = (imageSrc, imageAlt) => {
+    setSelectedImage(imageSrc);
+    setShowImagePreview(true);
   };
 
   // 滚动到底部
@@ -1319,14 +1263,14 @@ const UnifiedAICenter = () => {
       
       {/* 中间对话区域 */}
       <div style={{ 
-        width: showEditor ? '600px' : (showPreview ? '30%' : '100%'), 
+        width: showEditor ? '600px' : (showPreview ? '40%' : (showImagePreview ? '40%' : '100%')), 
         display: 'flex', 
         flexDirection: 'column',
-        borderRight: (showEditor || showPreview) ? '1px solid #f0f0f0' : 'none',
+        borderRight: (showEditor || showPreview || showImagePreview) ? '1px solid #f0f0f0' : 'none',
         background: '#fff',
         borderRadius: '8px',
         margin: '16px 0',
-        marginRight: (showEditor || showPreview) ? '0' : '16px'
+        marginRight: (showEditor || showPreview || showImagePreview) ? '0' : '16px'
       }}>
         {/* 对话记录区 */}
         <div style={{
@@ -1828,28 +1772,46 @@ const UnifiedAICenter = () => {
                             <Card
                               size="small"
                               style={{
-                                borderRadius: '16px',
+                                borderRadius: '8px',
                                 border: '1px solid #e5e7eb',
-                                marginBottom: '8px',
+                                marginBottom: '4px',
                                 background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)'
+                                boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04)',
+                                width: 'fit-content',
+                                maxWidth: '80%'
                               }}
                               styles={{
                                 body: {
-                                  padding: '20px'
+                                  padding: '8px 12px'
+                                }
+                              }}
+                              ref={(el) => {
+                                if (el) {
+                                  // 为图片添加点击事件
+                                  const images = el.querySelectorAll('img');
+                                  console.log('找到图片数量:', images.length);
+                                  images.forEach((img, index) => {
+                                    console.log(`图片${index + 1}:`, img.src);
+                                    img.style.cursor = 'pointer';
+                                    img.onclick = (e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      console.log('图片被点击:', img.src);
+                                      handleImageClick(img.src, img.alt);
+                                    };
+                                  });
                                 }
                               }}
                             >
                               {/* AI回复内容 */}
-                              <div style={{ marginBottom: '16px' }}>
-                                <Text style={{ 
+                              <div style={{ marginBottom: '4px' }}>
+                                <div style={{ 
                                   color: '#374151', 
-                                  lineHeight: '1.7', 
+                                  lineHeight: '1.4', 
                                   whiteSpace: 'pre-wrap',
-                                  fontSize: '14px'
-                                }}>
-                                  {renderMessageContent(message.content)}
-                                </Text>
+                                  fontSize: '13px'
+                                }} dangerouslySetInnerHTML={{ __html: message.content }}>
+                                </div>
                               </div>
                               
                               {/* 操作按钮 */}
@@ -1857,7 +1819,7 @@ const UnifiedAICenter = () => {
                                 display: 'flex', 
                                 justifyContent: 'space-between', 
                                 alignItems: 'center',
-                                paddingTop: '12px',
+                                paddingTop: '4px',
                                 borderTop: '1px solid #f3f4f6'
                               }}>
                                 <Space size={4}>
@@ -2234,24 +2196,20 @@ const UnifiedAICenter = () => {
                                         {template.content.length > 50 ? template.content.substring(0, 50) + '...' : template.content}
                                       </Text>
                                     </div>
-                                    <div style={{ 
-                                      color: template.type === 'link' ? '#52c41a' : '#1890ff', 
-                                      fontSize: '11px',
-                                      fontWeight: 500,
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '4px',
-                                      marginTop: '8px'
-                                    }}>
-                                      {template.type === 'link' ? (
-                                        <>
-                                          <ArrowRight size={10} />
-                                          打开演示
-                                        </>
-                                      ) : (
-                                        '点击使用'
-                                      )}
-                                    </div>
+                                    {template.type === 'link' && (
+                                      <div style={{ 
+                                        color: '#52c41a', 
+                                        fontSize: '11px',
+                                        fontWeight: 500,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        marginTop: '8px'
+                                      }}>
+                                        <ArrowRight size={10} />
+                                        打开演示
+                                      </div>
+                                    )}
                                   </Card>
                                 </Col>
                               ))}
@@ -2297,22 +2255,124 @@ const UnifiedAICenter = () => {
               )}
               {/* 图像生成工具的模版按钮 */}
               {currentTool === 'image-gen' && (
-                <Button
-                  type="text"
-                  icon={<Image size={18} />}
-                  onClick={() => setShowImageTemplates(true)}
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    padding: 0,
-                    color: '#6b7280',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: '50%'
-                  }}
-                  title="选择图像风格模板"
-                />
+                <Popover
+                  content={
+                    <div style={{ width: '800px', maxHeight: '600px', overflow: 'auto' }}>
+                      <div style={{ marginBottom: '16px' }}>
+                        <Text type="secondary" style={{ fontSize: '14px', marginBottom: '16px', display: 'block' }}>
+                          选择一个图像风格模版快速开始创作，或者作为创意参考
+                        </Text>
+                        
+                        {/* 分类标签 */}
+                        <div style={{ 
+                          display: 'flex', 
+                          gap: '8px',
+                          marginBottom: '16px',
+                          flexWrap: 'wrap'
+                        }}>
+                          {[
+                            { key: 'featured', label: '精选' },
+                            { key: 'courseware', label: '课件制作' },
+                            { key: 'art', label: '教学插图' },
+                            { key: 'chinese-style', label: '传统文化' },
+                            { key: 'anime', label: '卡通动画' },
+                            { key: '3d-render', label: '3D教学' },
+                            { key: 'product', label: '实物展示' },
+                            { key: 'landscape', label: '自然科学' }
+                          ].map((category) => (
+                            <Tag.CheckableTag
+                              key={category.key}
+                              checked={selectedImageCategory === category.key}
+                              onChange={() => setSelectedImageCategory(category.key)}
+                              style={{
+                                padding: '4px 12px',
+                                borderRadius: '16px',
+                                fontSize: '13px'
+                              }}
+                            >
+                              {category.label}
+                            </Tag.CheckableTag>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* 图像模版网格 */}
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(4, 1fr)',
+                        gap: '16px',
+                        gridAutoRows: 'minmax(120px, auto)'
+                      }}>
+                        {getImageTemplatesByCategory(selectedImageCategory).map((template, index) => (
+                          <Card
+                            key={template.id}
+                            hoverable
+                            onClick={() => {
+                              setInputMessage(template.prompt);
+                            }}
+                            style={{
+                              background: template.gradient,
+                              border: 'none',
+                              borderRadius: '12px',
+                              cursor: 'pointer',
+                              gridArea: template.gridArea,
+                              minHeight: '120px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                            styles={{
+                              body: {
+                                padding: '16px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                height: '100%',
+                                textAlign: 'center'
+                              }
+                            }}
+                          >
+                            <Title level={5} style={{
+                              color: template.textColor,
+                              margin: 0,
+                              fontSize: '14px',
+                              fontWeight: 600
+                            }}>
+                              {template.title}
+                            </Title>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  }
+                  title={
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Image size={16} color="#1890ff" />
+                      <span>选择图像风格模版</span>
+                    </div>
+                  }
+                  trigger="click"
+                  placement="bottomLeft"
+
+                  overlayStyle={{ maxWidth: '850px' }}
+                >
+                  <Button
+                    type="text"
+                    icon={<Image size={18} />}
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      padding: 0,
+                      color: '#6b7280',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '50%'
+                    }}
+                    title="选择图像风格模板"
+                  />
+                </Popover>
               )}
               {/* 附件按钮 - 仅在新对话工具中显示 */}
               {currentTool === 'new-chat' && (
@@ -2774,111 +2834,72 @@ const UnifiedAICenter = () => {
         </div>
       )}
       
-      {/* 图像模版选择弹窗 */}
-      <Modal
-        title={null}
-        open={showImageTemplates}
-        onCancel={() => setShowImageTemplates(false)}
-        footer={null}
-        width={900}
-        className="template-modal"
-        styles={{
-          body: { padding: '0' }
-        }}
-      >
+      {/* 右侧图片预览区域 */}
+      {showImagePreview && selectedImage && (
         <div style={{ 
-          backgroundColor: '#f8f9fa',
-          borderRadius: '8px 8px 0 0',
-          padding: '20px 24px 16px'
-        }}>
-          {/* 分类标签 */}
-          <div style={{ 
-            display: 'flex', 
-            gap: '8px',
-            marginBottom: '0'
-          }}>
-            {[
-              { key: 'featured', label: '精选' },
-              { key: 'courseware', label: '课件制作' },
-              { key: 'art', label: '教学插图' },
-              { key: 'chinese-style', label: '传统文化' },
-              { key: 'anime', label: '卡通动画' },
-              { key: '3d-render', label: '3D教学' },
-              { key: 'product', label: '实物展示' },
-              { key: 'landscape', label: '自然科学' }
-            ].map((category) => (
-              <Button
-                key={category.key}
-                type={selectedImageCategory === category.key ? "primary" : "default"}
-                size="small"
-                onClick={() => setSelectedImageCategory(category.key)}
-                style={{
-                  borderRadius: '16px',
-                  fontSize: '13px',
-                  height: '32px',
-                  paddingLeft: '16px',
-                  paddingRight: '16px',
-                  backgroundColor: selectedImageCategory === category.key ? '#1a1a1a' : '#ffffff',
-                  borderColor: selectedImageCategory === category.key ? '#1a1a1a' : '#d9d9d9',
-                  color: selectedImageCategory === category.key ? '#ffffff' : '#666666'
-                }}
-              >
-                {category.label}
-              </Button>
-            ))}
-          </div>
-        </div>
-        
-        {/* 图片网格区域 */}
-        <div style={{ 
-          padding: '24px',
-          backgroundColor: '#ffffff'
+          width: '60%', 
+          display: 'flex', 
+          flexDirection: 'column',
+          background: '#fff',
+          borderRadius: '8px',
+          margin: '16px 16px 16px 0'
         }}>
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '12px',
-            height: '400px'
+            padding: '16px',
+            borderBottom: '1px solid #f0f0f0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
           }}>
-            {getImageTemplatesByCategory(selectedImageCategory).map((template) => (
-              <div
-                key={template.id}
-                style={{
-                  gridArea: template.gridArea,
-                  backgroundImage: template.gradient,
-                  borderRadius: '12px',
-                  position: 'relative',
-                  cursor: 'pointer',
-                  overflow: 'hidden',
-                  transition: 'transform 0.2s ease',
-                }}
+            <Title level={4} style={{ margin: 0 }}>图片预览</Title>
+            <Space>
+              <Button 
+                size="small" 
+                icon={<Download size={14} />}
                 onClick={() => {
-                  setInputMessage(template.prompt);
-                  setShowImageTemplates(false);
+                  const link = document.createElement('a');
+                  link.href = selectedImage;
+                  link.download = `image_${Date.now()}.png`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  antdMessage.success('图片下载成功');
                 }}
-                onMouseEnter={(e) => {
-                  e.target.style.transform = 'scale(1.02)';
+                title="下载原图"
+              />
+              <Button 
+                size="small" 
+                icon={<X size={14} />}
+                onClick={() => {
+                  setShowImagePreview(false);
+                  setSelectedImage(null);
                 }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = 'scale(1)';
-                }}
-              >
-                <div style={{
-                  position: 'absolute',
-                  bottom: '8px',
-                  left: '8px',
-                  right: '8px',
-                  color: template.textColor,
-                  fontSize: '11px',
-                  fontWeight: '500'
-                }}>
-                  {template.title}
-                </div>
-              </div>
-            ))}
+                title="关闭预览"
+              />
+            </Space>
+          </div>
+          <div style={{ 
+            flex: 1, 
+            padding: '16px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            overflow: 'auto'
+          }}>
+            <img 
+              src={selectedImage} 
+              alt="预览图片"
+              style={{
+                maxWidth: '100%',
+                maxHeight: '100%',
+                objectFit: 'contain',
+                borderRadius: '4px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+              }}
+            />
           </div>
         </div>
-      </Modal>
+      )}
 
       {/* 文档中心选择弹窗 */}
       <Modal
