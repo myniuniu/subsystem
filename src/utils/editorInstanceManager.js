@@ -281,6 +281,7 @@ class EditorInstanceManager {
     } catch (error) {
       // 初始化失败，清理状态
       this.markInitialized(editorContainer);
+      console.error('编辑器初始化失败:', error);
       throw error;
     }
   }
@@ -288,6 +289,11 @@ class EditorInstanceManager {
   // 销毁编辑器的便捷方法
   async destroyEditor(instanceId) {
     await this.destroyInstance(instanceId);
+  }
+
+  // 手动清理初始化状态的公共方法
+  clearInitializingState(editorElement) {
+    this.markInitialized(editorElement);
   }
 
   // 获取实例统计信息

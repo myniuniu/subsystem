@@ -74,6 +74,23 @@ const DocumentEditor = ({ document, onSave, onClose, isNew = false }) => {
   // 初始化wangEditor
   useEffect(() => {
     const initEditorAsync = async () => {
+      // 检查DOM元素是否存在
+      if (!editorRef.current || !toolbarRef.current) {
+        console.warn('编辑器DOM元素未准备就绪')
+        return
+      }
+
+      // 如果已经有实例在初始化或已初始化，先清理
+      if (instanceIdRef.current) {
+        try {
+          await editorInstanceManager.destroyEditor(instanceIdRef.current)
+        } catch (e) {
+          console.warn('清理旧实例失败:', e)
+        }
+        editorInstanceRef.current = null
+        instanceIdRef.current = null
+      }
+
       try {
         // 生成唯一实例ID
         const instanceId = `editor_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
@@ -98,18 +115,24 @@ const DocumentEditor = ({ document, onSave, onClose, isNew = false }) => {
       } catch (error) {
         console.error('wangEditor 初始化失败:', error)
         setEditorLoaded(false)
+        // 确保清理初始化状态
+        if (editorRef.current) {
+          editorInstanceManager.clearInitializingState(editorRef.current)
+        }
       }
     }
 
-    initEditorAsync()
-
-    return () => {
-      if (instanceIdRef.current) {
-        editorInstanceManager.destroyEditor(instanceIdRef.current)
-        editorInstanceRef.current = null
-        instanceIdRef.current = null
-      }
-    }
+    // 添加延迟确保DOM完全准备
+     const timer = setTimeout(initEditorAsync, 100)
+     
+     return () => {
+       clearTimeout(timer)
+       if (instanceIdRef.current) {
+         editorInstanceManager.destroyEditor(instanceIdRef.current)
+         editorInstanceRef.current = null
+         instanceIdRef.current = null
+       }
+     }
   }, [])
 
   const handleSave = () => {
