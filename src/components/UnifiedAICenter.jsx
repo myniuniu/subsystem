@@ -79,7 +79,8 @@ import {
   Menu,
   Empty,
   Spin,
-  Popover
+  Popover,
+  Table
 } from 'antd';
 import './UnifiedAICenter.css';
 
@@ -136,10 +137,20 @@ const UnifiedAICenter = () => {
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   
+  // 柱状图预览状态
+  const [showChartPreview, setShowChartPreview] = useState(false);
+  const [chartType, setChartType] = useState('bar'); // 'bar', 'line', 'pie'
+  const [chartDimension, setChartDimension] = useState('monthly'); // 'monthly', 'quarterly', 'yearly'
+  
   // 代码查看状态
   const [sourceCode, setSourceCode] = useState('');
   const [codeFileName, setCodeFileName] = useState('');
   const [codeLoading, setCodeLoading] = useState(false);
+  
+  // 图表悬停状态
+  const [hoveredItem, setHoveredItem] = useState(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [showTooltip, setShowTooltip] = useState(false);
 
   // 工具函数
   const getDemoName = (url) => {
@@ -150,6 +161,619 @@ const UnifiedAICenter = () => {
     if (url.includes('molecular')) return '分子结构3D查看器';
     if (url.includes('function')) return '数学函数图形计算器';
     return '演示程序';
+  };
+
+  // 根据统计维度生成图表数据
+  const getChartData = () => {
+    const dataMap = {
+      monthly: {
+        title: '月度销售数据',
+        data: [
+          { label: '1月', value: 120, name: '1月' },
+          { label: '2月', value: 200, name: '2月' },
+          { label: '3月', value: 150, name: '3月' },
+          { label: '4月', value: 180, name: '4月' },
+          { label: '5月', value: 220, name: '5月' },
+          { label: '6月', value: 170, name: '6月' }
+        ]
+      },
+      quarterly: {
+        title: '季度销售数据',
+        data: [
+          { label: 'Q1', value: 470, name: 'Q1' },
+          { label: 'Q2', value: 570, name: 'Q2' },
+          { label: 'Q3', value: 520, name: 'Q3' },
+          { label: 'Q4', value: 630, name: 'Q4' }
+        ]
+      },
+      yearly: {
+        title: '年度销售数据',
+        data: [
+          { label: '2020', value: 1800, name: '2020' },
+          { label: '2021', value: 2200, name: '2021' },
+          { label: '2022', value: 2600, name: '2022' },
+          { label: '2023', value: 2900, name: '2023' }
+        ]
+      }
+    };
+    return dataMap[chartDimension] || dataMap.monthly;
+  };
+
+  // 渲染图表内容
+  const renderChart = () => {
+    const chartData = getChartData();
+    const maxValue = Math.max(...chartData.data.map(item => item.value));
+
+    if (chartType === 'bar') {
+      return (
+        <div className="chart-container" style={{
+          width: '100%',
+          height: '400px',
+          background: 'white',
+          border: '1px solid #e8e8e8',
+          borderRadius: '12px',
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          position: 'relative',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+        }}>
+          <div style={{
+            color: '#333',
+            fontSize: '18px',
+            fontWeight: 'bold',
+            textAlign: 'center',
+            marginBottom: '20px'
+          }}>{chartData.title}</div>
+          
+          <div style={{
+            display: 'flex',
+            alignItems: 'end',
+            justifyContent: 'space-around',
+            height: '280px',
+            paddingBottom: '20px'
+          }}>
+            {chartData.data.map((item, index) => {
+              const height = (item.value / maxValue) * 100;
+              return (
+                <div key={index} style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  height: '100%'
+                }}>
+                  <div style={{
+                    color: '#333',
+                    fontSize: '12px',
+                    marginBottom: '8px',
+                    fontWeight: 'bold'
+                  }}>{item.value}</div>
+                  <div 
+                    style={{
+                      width: '40px',
+                      height: `${height}%`,
+                      background: hoveredItem === `bar-${index}` 
+                        ? `linear-gradient(to top, #096dd9, #1890ff)` 
+                        : `linear-gradient(to top, #1890ff, #40a9ff)`,
+                      borderRadius: '4px 4px 0 0',
+                      marginBottom: '8px',
+                      transition: 'all 0.3s ease',
+                      cursor: 'pointer',
+                      transform: hoveredItem === `bar-${index}` ? 'scale(1.05)' : 'scale(1)'
+                    }}
+                    onMouseEnter={(e) => {
+                      setHoveredItem(`bar-${index}`);
+                      const rect = e.target.getBoundingClientRect();
+                      const containerRect = e.target.closest('.chart-container')?.getBoundingClientRect() || rect;
+                      setTooltipPosition({ 
+                        x: rect.left + rect.width / 2 - containerRect.left, 
+                        y: rect.top - containerRect.top 
+                      });
+                      setShowTooltip(true);
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredItem(null);
+                      setShowTooltip(false);
+                    }}
+                  ></div>
+                  <div style={{
+                    color: '#333',
+                    fontSize: '12px',
+                    fontWeight: 'bold'
+                  }}>{item.label}</div>
+                </div>
+              );
+            })}
+          </div>
+          
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            color: '#666',
+            fontSize: '12px',
+            paddingTop: '10px',
+            borderTop: '1px solid #f0f0f0'
+          }}>
+            <span>Y轴: 销售额(万元)</span>
+            <span>X轴: {chartDimension === 'monthly' ? '月份' : chartDimension === 'quarterly' ? '季度' : '年份'}</span>
+          </div>
+        </div>
+      );
+    }
+
+    if (chartType === 'line') {
+      return (
+        <div className="chart-container" style={{
+          width: '100%',
+          height: '400px',
+          background: 'white',
+          border: '1px solid #e8e8e8',
+          borderRadius: '12px',
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'relative',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+        }}>
+          <div style={{
+            color: '#333',
+            fontSize: '18px',
+            fontWeight: 'bold',
+            textAlign: 'center',
+            marginBottom: '20px'
+          }}>{chartData.title}</div>
+          
+          <svg width="500" height="300" style={{ overflow: 'visible', width: '100%' }}>
+            <defs>
+              <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#1890ff" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#1890ff" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            
+            {/* 背景网格 */}
+            {[0, 1, 2, 3, 4].map(i => (
+              <line
+                key={i}
+                x1="50"
+                y1={50 + i * 50}
+                x2="480"
+                y2={50 + i * 50}
+                stroke="#f0f0f0"
+                strokeWidth="1"
+              />
+            ))}
+            
+            {/* 数据点和连线 */}
+            {chartData.data.map((item, index) => {
+              const svgWidth = 500; // 假设SVG实际宽度
+              const chartWidth = svgWidth - 100; // 减去左右边距
+              const x = 80 + (index * chartWidth) / (chartData.data.length - 1);
+              const y = 250 - (item.value / maxValue) * 200;
+              const nextItem = chartData.data[index + 1];
+              
+              return (
+                <g key={index}>
+                  {/* 连线 */}
+                  {nextItem && (
+                    <line
+                      x1={x}
+                      y1={y}
+                      x2={80 + ((index + 1) * chartWidth) / (chartData.data.length - 1)}
+                      y2={250 - (nextItem.value / maxValue) * 200}
+                      stroke="#1890ff"
+                      strokeWidth="3"
+                    />
+                  )}
+                  
+                  {/* 数据点 */}
+                  <circle
+                    cx={x}
+                    cy={y}
+                    r={hoveredItem === `line-${index}` ? "8" : "6"}
+                    fill={hoveredItem === `line-${index}` ? "#096dd9" : "#1890ff"}
+                    stroke="white"
+                    strokeWidth="2"
+                    style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
+                    onMouseEnter={(e) => {
+                      setHoveredItem(`line-${index}`);
+                      const rect = e.target.getBoundingClientRect();
+                      const containerRect = e.target.closest('.chart-container')?.getBoundingClientRect() || rect;
+                      setTooltipPosition({ 
+                        x: rect.left + rect.width / 2 - containerRect.left, 
+                        y: rect.top - containerRect.top 
+                      });
+                      setShowTooltip(true);
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredItem(null);
+                      setShowTooltip(false);
+                    }}
+                  />
+                  
+                  {/* 数值标签 */}
+                  <text
+                    x={x}
+                    y={y - 15}
+                    textAnchor="middle"
+                    fill="#333"
+                    fontSize="12"
+                    fontWeight="bold"
+                  >
+                    {item.value}
+                  </text>
+                  
+                  {/* X轴标签 */}
+                  <text
+                    x={x}
+                    y="280"
+                    textAnchor="middle"
+                    fill="#333"
+                    fontSize="12"
+                    fontWeight="bold"
+                  >
+                    {item.label}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+          
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            color: '#666',
+            fontSize: '12px',
+            paddingTop: '10px',
+            borderTop: '1px solid #f0f0f0'
+          }}>
+            <span>数据来源: 折线图</span>
+            <span>统计维度: {chartDimension === 'monthly' ? '月度' : chartDimension === 'quarterly' ? '季度' : '年度'}</span>
+          </div>
+        </div>
+      );
+    }
+
+    if (chartType === 'table') {
+      const columns = [
+        {
+          title: chartDimension === 'monthly' ? '月份' : chartDimension === 'quarterly' ? '季度' : '年份',
+          dataIndex: 'label',
+          key: 'label',
+          align: 'center',
+          render: (text) => <strong>{text}</strong>
+        },
+        {
+          title: '销售额(万元)',
+          dataIndex: 'value',
+          key: 'value',
+          align: 'center',
+          render: (value) => (
+            <span style={{ color: '#1890ff', fontWeight: 'bold' }}>
+              {value.toLocaleString()}
+            </span>
+          ),
+          sorter: (a, b) => a.value - b.value
+        },
+        {
+          title: '占比',
+          key: 'percentage',
+          align: 'center',
+          render: (_, record) => {
+            const total = chartData.data.reduce((sum, item) => sum + item.value, 0);
+            const percentage = ((record.value / total) * 100).toFixed(1);
+            return (
+              <span style={{ color: '#52c41a', fontWeight: 'bold' }}>
+                {percentage}%
+              </span>
+            );
+          }
+        },
+        {
+          title: '趋势',
+          key: 'trend',
+          align: 'center',
+          render: (_, record, index) => {
+            if (index === 0) return <span style={{ color: '#999' }}>-</span>;
+            const prevValue = chartData.data[index - 1].value;
+            const change = ((record.value - prevValue) / prevValue * 100).toFixed(1);
+            const isPositive = change > 0;
+            return (
+              <span style={{ 
+                color: isPositive ? '#52c41a' : '#f5222d',
+                fontWeight: 'bold'
+              }}>
+                {isPositive ? '+' : ''}{change}%
+              </span>
+            );
+          }
+        }
+      ];
+
+      const dataSource = chartData.data.map((item, index) => ({
+        key: index,
+        label: item.label,
+        value: item.value
+      }));
+
+      const total = chartData.data.reduce((sum, item) => sum + item.value, 0);
+      const average = (total / chartData.data.length).toFixed(1);
+
+      return (
+        <div className="chart-container" style={{
+          width: '100%',
+          background: 'white',
+          border: '1px solid #e8e8e8',
+          borderRadius: '12px',
+          padding: '20px',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+        }}>
+          <div style={{
+            color: '#333',
+            fontSize: '18px',
+            fontWeight: 'bold',
+            textAlign: 'center',
+            marginBottom: '20px'
+          }}>{chartData.title}</div>
+          
+          <Table 
+            columns={columns}
+            dataSource={dataSource}
+            pagination={false}
+            size="middle"
+            bordered
+            summary={() => (
+              <Table.Summary>
+                <Table.Summary.Row style={{ backgroundColor: '#fafafa' }}>
+                  <Table.Summary.Cell index={0} align="center">
+                    <strong>总计</strong>
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={1} align="center">
+                    <strong style={{ color: '#1890ff' }}>
+                      {total.toLocaleString()}
+                    </strong>
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={2} align="center">
+                    <strong style={{ color: '#52c41a' }}>100%</strong>
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={3} align="center">
+                    <span style={{ color: '#999' }}>平均: {average}</span>
+                  </Table.Summary.Cell>
+                </Table.Summary.Row>
+              </Table.Summary>
+            )}
+          />
+          
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            color: '#666',
+            fontSize: '12px',
+            paddingTop: '15px',
+            borderTop: '1px solid #f0f0f0',
+            marginTop: '15px'
+          }}>
+            <span>数据来源: 销售统计表</span>
+            <span>统计维度: {chartDimension === 'monthly' ? '月度' : chartDimension === 'quarterly' ? '季度' : '年度'}</span>
+          </div>
+        </div>
+      );
+    }
+
+    if (chartType === 'pie') {
+      const total = chartData.data.reduce((sum, item) => sum + item.value, 0);
+      let currentAngle = 0;
+      const colors = ['#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2'];
+      
+      return (
+        <div className="chart-container" style={{
+          width: '100%',
+          height: '400px',
+          background: 'white',
+          border: '1px solid #e8e8e8',
+          borderRadius: '12px',
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'relative',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+        }}>
+          <div style={{
+            color: '#333',
+            fontSize: '18px',
+            fontWeight: 'bold',
+            textAlign: 'center',
+            marginBottom: '20px'
+          }}>{chartData.title}</div>
+          
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            height: '300px'
+          }}>
+            {/* 饼图 */}
+            <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+              <svg width="200" height="200">
+                {chartData.data.map((item, index) => {
+                  const percentage = (item.value / total) * 100;
+                  const angle = (item.value / total) * 360;
+                  const startAngle = currentAngle;
+                  const endAngle = currentAngle + angle;
+                  currentAngle += angle;
+                  
+                  const startAngleRad = (startAngle * Math.PI) / 180;
+                  const endAngleRad = (endAngle * Math.PI) / 180;
+                  
+                  const x1 = 100 + 80 * Math.cos(startAngleRad);
+                  const y1 = 100 + 80 * Math.sin(startAngleRad);
+                  const x2 = 100 + 80 * Math.cos(endAngleRad);
+                  const y2 = 100 + 80 * Math.sin(endAngleRad);
+                  
+                  const largeArcFlag = angle > 180 ? 1 : 0;
+                  
+                  const pathData = [
+                    `M 100 100`,
+                    `L ${x1} ${y1}`,
+                    `A 80 80 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+                    'Z'
+                  ].join(' ');
+                  
+                  return (
+                    <path
+                      key={index}
+                      d={pathData}
+                      fill={hoveredItem === `pie-${index}` 
+                        ? colors[index % colors.length] + 'CC' 
+                        : colors[index % colors.length]}
+                      stroke="white"
+                      strokeWidth="2"
+                      style={{ 
+                        cursor: 'pointer', 
+                        transition: 'all 0.3s ease',
+                        filter: hoveredItem === `pie-${index}` ? 'brightness(1.1)' : 'none'
+                      }}
+                      onMouseEnter={(e) => {
+                        setHoveredItem(`pie-${index}`);
+                        const rect = e.target.getBoundingClientRect();
+                        const containerRect = e.target.closest('.chart-container')?.getBoundingClientRect() || rect;
+                        setTooltipPosition({ 
+                          x: rect.left + rect.width / 2 - containerRect.left, 
+                          y: rect.top + rect.height / 2 - containerRect.top 
+                        });
+                        setShowTooltip(true);
+                      }}
+                      onMouseLeave={() => {
+                        setHoveredItem(null);
+                        setShowTooltip(false);
+                      }}
+                    />
+                  );
+                })}
+              </svg>
+            </div>
+            
+            {/* 图例 */}
+            <div style={{ flex: 1, paddingLeft: '20px' }}>
+              {chartData.data.map((item, index) => {
+                const percentage = ((item.value / total) * 100).toFixed(1);
+                return (
+                  <div key={index} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    marginBottom: '12px'
+                  }}>
+                    <div style={{
+                      width: '16px',
+                      height: '16px',
+                      backgroundColor: colors[index % colors.length],
+                      borderRadius: '2px',
+                      marginRight: '8px'
+                    }}></div>
+                    <span style={{
+                      color: '#333',
+                      fontSize: '14px',
+                      fontWeight: 'bold'
+                    }}>
+                      {item.name}: {item.value} ({percentage}%)
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            color: '#666',
+            fontSize: '12px',
+            paddingTop: '10px',
+            borderTop: '1px solid #f0f0f0'
+          }}>
+            <span>总计: {total} 万元 | 统计维度: {chartDimension === 'monthly' ? '月度' : chartDimension === 'quarterly' ? '季度' : '年度'}</span>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  // 获取悬停提示框内容
+  const getTooltipContent = () => {
+    if (!hoveredItem) return null;
+    
+    const chartData = getChartData();
+    const [type, indexStr] = hoveredItem.split('-');
+    const index = parseInt(indexStr);
+    const item = chartData.data[index];
+    
+    if (!item) return null;
+    
+    if (type === 'bar') {
+      return (
+        <div style={{
+          background: 'rgba(0, 0, 0, 0.8)',
+          color: 'white',
+          padding: '8px 12px',
+          borderRadius: '6px',
+          fontSize: '12px',
+          whiteSpace: 'nowrap',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{item.label}</div>
+          <div>销售额: {item.value} 万元</div>
+          <div>占比: {((item.value / chartData.data.reduce((sum, d) => sum + d.value, 0)) * 100).toFixed(1)}%</div>
+        </div>
+      );
+    }
+    
+    if (type === 'line') {
+      return (
+        <div style={{
+          background: 'rgba(0, 0, 0, 0.8)',
+          color: 'white',
+          padding: '8px 12px',
+          borderRadius: '6px',
+          fontSize: '12px',
+          whiteSpace: 'nowrap',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{item.label}</div>
+          <div>数值: {item.value}</div>
+          {index > 0 && (
+            <div>环比: {item.value > chartData.data[index - 1].value ? '+' : ''}
+              {((item.value - chartData.data[index - 1].value) / chartData.data[index - 1].value * 100).toFixed(1)}%
+            </div>
+          )}
+        </div>
+      );
+    }
+    
+    if (type === 'pie') {
+      const total = chartData.data.reduce((sum, d) => sum + d.value, 0);
+      const percentage = ((item.value / total) * 100).toFixed(1);
+      return (
+        <div style={{
+          background: 'rgba(0, 0, 0, 0.8)',
+          color: 'white',
+          padding: '8px 12px',
+          borderRadius: '6px',
+          fontSize: '12px',
+          whiteSpace: 'nowrap',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{item.name}</div>
+          <div>数值: {item.value} 万元</div>
+          <div>占比: {percentage}%</div>
+          <div>总计: {total} 万元</div>
+        </div>
+      );
+    }
+    
+    return null;
   };
 
   const getDemoIcon = (url) => {
@@ -981,7 +1605,7 @@ const UnifiedAICenter = () => {
           aiResponse = `我是专业写作助手，正在为您分析"${userMessage.content}"的写作需求。我可以帮您：\n\n📝 文章结构规划\n✍️ 内容创作与润色\n📚 素材收集与整理\n🎯 风格调整与优化\n\n基于您的主题，我建议从以下几个方面展开：\n\n1. 明确写作目标和受众\n2. 构建清晰的文章框架\n3. 收集相关素材和论据\n4. 进行创作和反复修改\n\n请告诉我您希望的文章类型、字数要求和具体风格偏好，我会为您提供更详细的写作指导。`;
           break;
         case 'new-chat':
-          // 检查特殊关键词并返回对应图片
+          // 检查特殊关键词并返回对应内容
           const content = userMessage.content.toLowerCase();
           if (content.includes('狗')) {
             aiResponse = `这是一张可爱的狗狗图片：\n\n<img src="https://picsum.photos/800/600?random=1" alt="狗狗图片" style="max-width: 100%; border-radius: 8px; margin: 10px 0;" />`;
@@ -995,6 +1619,133 @@ const UnifiedAICenter = () => {
               </div>
               <div style="text-align: center; padding: 1px; background: transparent; border-radius: 4px; margin-top: 1px;">
                 <img src="/微缩.png" alt="移轴摄影风格的热闹火车站台" style="width: 180px; height: 135px; object-fit: cover; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); background: transparent;" />
+              </div>
+            `;
+          } else if (content.includes('表格') && content.includes('销售数据')) {
+            // 生成Ant Design表格展示销售数据
+            aiResponse = `
+              <div style="margin-bottom: 8px; padding: 8px 12px; background: #f8f9fa; border-radius: 6px; border-left: 3px solid #1890ff;">
+                <p style="margin: 0; line-height: 1.4; color: #333; font-size: 14px; font-weight: 500;">📊 为您生成销售数据表格</p>
+                <p style="margin: 4px 0 0 0; line-height: 1.3; color: #666; font-size: 12px;">以下是最近6个月的销售业绩统计数据：</p>
+              </div>
+              <div id="sales-table-container" style="margin: 12px 0; padding: 16px; background: #fff; border: 1px solid #e8e8e8; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                <div style="text-align: center; margin-bottom: 16px; font-size: 16px; font-weight: 600; color: #262626;">销售数据统计表</div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                  <thead>
+                    <tr style="background: #fafafa; border-bottom: 2px solid #e8e8e8;">
+                      <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #262626; border-right: 1px solid #f0f0f0;">月份</th>
+                      <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #262626; border-right: 1px solid #f0f0f0;">销售额(万元)</th>
+                      <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #262626; border-right: 1px solid #f0f0f0;">订单数量</th>
+                      <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #262626; border-right: 1px solid #f0f0f0;">客户数量</th>
+                      <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #262626;">增长率</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style="border-bottom: 1px solid #f0f0f0; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f5f5f5'" onmouseout="this.style.backgroundColor='transparent'">
+                      <td style="padding: 12px 16px; color: #262626; border-right: 1px solid #f0f0f0;">2024年1月</td>
+                      <td style="padding: 12px 16px; text-align: right; color: #262626; border-right: 1px solid #f0f0f0; font-weight: 500;">120.5</td>
+                      <td style="padding: 12px 16px; text-align: right; color: #262626; border-right: 1px solid #f0f0f0;">1,245</td>
+                      <td style="padding: 12px 16px; text-align: right; color: #262626; border-right: 1px solid #f0f0f0;">856</td>
+                      <td style="padding: 12px 16px; text-align: center; color: #52c41a; font-weight: 500;">+8.2%</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f0f0f0; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f5f5f5'" onmouseout="this.style.backgroundColor='transparent'">
+                      <td style="padding: 12px 16px; color: #262626; border-right: 1px solid #f0f0f0;">2024年2月</td>
+                      <td style="padding: 12px 16px; text-align: right; color: #262626; border-right: 1px solid #f0f0f0; font-weight: 500;">198.3</td>
+                      <td style="padding: 12px 16px; text-align: right; color: #262626; border-right: 1px solid #f0f0f0;">2,156</td>
+                      <td style="padding: 12px 16px; text-align: right; color: #262626; border-right: 1px solid #f0f0f0;">1,423</td>
+                      <td style="padding: 12px 16px; text-align: center; color: #52c41a; font-weight: 500;">+64.6%</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f0f0f0; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f5f5f5'" onmouseout="this.style.backgroundColor='transparent'">
+                      <td style="padding: 12px 16px; color: #262626; border-right: 1px solid #f0f0f0;">2024年3月</td>
+                      <td style="padding: 12px 16px; text-align: right; color: #262626; border-right: 1px solid #f0f0f0; font-weight: 500;">156.7</td>
+                      <td style="padding: 12px 16px; text-align: right; color: #262626; border-right: 1px solid #f0f0f0;">1,789</td>
+                      <td style="padding: 12px 16px; text-align: right; color: #262626; border-right: 1px solid #f0f0f0;">1,234</td>
+                      <td style="padding: 12px 16px; text-align: center; color: #ff4d4f; font-weight: 500;">-21.0%</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f0f0f0; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f5f5f5'" onmouseout="this.style.backgroundColor='transparent'">
+                      <td style="padding: 12px 16px; color: #262626; border-right: 1px solid #f0f0f0;">2024年4月</td>
+                      <td style="padding: 12px 16px; text-align: right; color: #262626; border-right: 1px solid #f0f0f0; font-weight: 500;">89.2</td>
+                      <td style="padding: 12px 16px; text-align: right; color: #262626; border-right: 1px solid #f0f0f0;">1,023</td>
+                      <td style="padding: 12px 16px; text-align: right; color: #262626; border-right: 1px solid #f0f0f0;">789</td>
+                      <td style="padding: 12px 16px; text-align: center; color: #ff4d4f; font-weight: 500;">-43.1%</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f0f0f0; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f5f5f5'" onmouseout="this.style.backgroundColor='transparent'">
+                      <td style="padding: 12px 16px; color: #262626; border-right: 1px solid #f0f0f0;">2024年5月</td>
+                      <td style="padding: 12px 16px; text-align: right; color: #262626; border-right: 1px solid #f0f0f0; font-weight: 500;">134.8</td>
+                      <td style="padding: 12px 16px; text-align: right; color: #262626; border-right: 1px solid #f0f0f0;">1,567</td>
+                      <td style="padding: 12px 16px; text-align: right; color: #262626; border-right: 1px solid #f0f0f0;">1,098</td>
+                      <td style="padding: 12px 16px; text-align: center; color: #52c41a; font-weight: 500;">+51.1%</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f0f0f0; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f5f5f5'" onmouseout="this.style.backgroundColor='transparent'">
+                      <td style="padding: 12px 16px; color: #262626; border-right: 1px solid #f0f0f0;">2024年6月</td>
+                      <td style="padding: 12px 16px; text-align: right; color: #262626; border-right: 1px solid #f0f0f0; font-weight: 500;">176.4</td>
+                      <td style="padding: 12px 16px; text-align: right; color: #262626; border-right: 1px solid #f0f0f0;">1,934</td>
+                      <td style="padding: 12px 16px; text-align: right; color: #262626; border-right: 1px solid #f0f0f0;">1,345</td>
+                      <td style="padding: 12px 16px; text-align: center; color: #52c41a; font-weight: 500;">+30.8%</td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr style="background: #f0f2f5; border-top: 2px solid #d9d9d9; font-weight: 600;">
+                      <td style="padding: 12px 16px; color: #262626; border-right: 1px solid #d9d9d9;">总计</td>
+                      <td style="padding: 12px 16px; text-align: right; color: #262626; border-right: 1px solid #d9d9d9;">875.9</td>
+                      <td style="padding: 12px 16px; text-align: right; color: #262626; border-right: 1px solid #d9d9d9;">9,714</td>
+                      <td style="padding: 12px 16px; text-align: right; color: #262626; border-right: 1px solid #d9d9d9;">6,745</td>
+                      <td style="padding: 12px 16px; text-align: center; color: #1890ff;">平均+15.0%</td>
+                    </tr>
+                  </tfoot>
+                </table>
+                <div style="margin-top: 12px; padding: 8px 12px; background: #f6ffed; border: 1px solid #b7eb8f; border-radius: 4px; font-size: 12px; color: #389e0d;">
+                  💡 数据分析：2月份销售表现最佳，4月份有所下滑，5-6月份呈现回升趋势。建议重点关注4月份下滑原因并制定针对性改进措施。
+                </div>
+              </div>
+            `;
+          } else if (content.includes('柱状图')) {
+            // 生成简单的CSS柱状图
+            aiResponse = `
+              <div style="margin-bottom: 2px; padding: 4px 6px; background: #f8f9fa; border-radius: 4px; border-left: 2px solid #1890ff;">
+                <p style="margin: 0; line-height: 1.2; color: #333; font-size: 12px;">为您生成一个示例柱状图，展示销售数据对比：</p>
+              </div>
+              <div onclick="handleChartClick()" style="width: 100%; padding: 20px; background: #fff; border: 1px solid #e8e8e8; border-radius: 6px; margin: 8px 0; cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='none'">
+                <div style="text-align: center; margin-bottom: 20px; font-size: 16px; font-weight: bold; color: #333;">月度销售数据</div>
+                <div style="display: flex; align-items: end; justify-content: space-around; height: 300px; padding: 0 20px; border-bottom: 2px solid #ddd; position: relative;">
+                  <div style="display: flex; flex-direction: column; align-items: center;">
+                    <div style="width: 40px; background: linear-gradient(to top, #188df0, #83bff6); border-radius: 4px 4px 0 0; margin-bottom: 8px; height: 120px; position: relative; transition: all 0.3s ease;" title="1月: 120万元"></div>
+                    <span style="font-size: 12px; color: #666;">1月</span>
+                    <span style="font-size: 10px; color: #999;">120万</span>
+                  </div>
+                  <div style="display: flex; flex-direction: column; align-items: center;">
+                    <div style="width: 40px; background: linear-gradient(to top, #188df0, #83bff6); border-radius: 4px 4px 0 0; margin-bottom: 8px; height: 200px; position: relative; transition: all 0.3s ease;" title="2月: 200万元"></div>
+                    <span style="font-size: 12px; color: #666;">2月</span>
+                    <span style="font-size: 10px; color: #999;">200万</span>
+                  </div>
+                  <div style="display: flex; flex-direction: column; align-items: center;">
+                    <div style="width: 40px; background: linear-gradient(to top, #188df0, #83bff6); border-radius: 4px 4px 0 0; margin-bottom: 8px; height: 150px; position: relative; transition: all 0.3s ease;" title="3月: 150万元"></div>
+                    <span style="font-size: 12px; color: #666;">3月</span>
+                    <span style="font-size: 10px; color: #999;">150万</span>
+                  </div>
+                  <div style="display: flex; flex-direction: column; align-items: center;">
+                    <div style="width: 40px; background: linear-gradient(to top, #188df0, #83bff6); border-radius: 4px 4px 0 0; margin-bottom: 8px; height: 80px; position: relative; transition: all 0.3s ease;" title="4月: 80万元"></div>
+                    <span style="font-size: 12px; color: #666;">4月</span>
+                    <span style="font-size: 10px; color: #999;">80万</span>
+                  </div>
+                  <div style="display: flex; flex-direction: column; align-items: center;">
+                    <div style="width: 40px; background: linear-gradient(to top, #188df0, #83bff6); border-radius: 4px 4px 0 0; margin-bottom: 8px; height: 70px; position: relative; transition: all 0.3s ease;" title="5月: 70万元"></div>
+                    <span style="font-size: 12px; color: #666;">5月</span>
+                    <span style="font-size: 10px; color: #999;">70万</span>
+                  </div>
+                  <div style="display: flex; flex-direction: column; align-items: center;">
+                    <div style="width: 40px; background: linear-gradient(to top, #188df0, #83bff6); border-radius: 4px 4px 0 0; margin-bottom: 8px; height: 110px; position: relative; transition: all 0.3s ease;" title="6月: 110万元"></div>
+                    <span style="font-size: 12px; color: #666;">6月</span>
+                    <span style="font-size: 10px; color: #999;">110万</span>
+                  </div>
+                  <div style="position: absolute; left: -10px; top: 0; bottom: 0; width: 1px; background: #ddd;"></div>
+                  <div style="position: absolute; left: -30px; top: 0; font-size: 10px; color: #999;">250万</div>
+                  <div style="position: absolute; left: -30px; top: 25%; font-size: 10px; color: #999;">200万</div>
+                  <div style="position: absolute; left: -30px; top: 50%; font-size: 10px; color: #999;">150万</div>
+                  <div style="position: absolute; left: -30px; top: 75%; font-size: 10px; color: #999;">100万</div>
+                  <div style="position: absolute; left: -20px; bottom: -2px; font-size: 10px; color: #999;">0</div>
+                </div>
+                <div style="text-align: center; margin-top: 10px; font-size: 12px; color: #666;">销售额(万元)</div>
               </div>
             `;
           } else {
@@ -1110,6 +1861,11 @@ const UnifiedAICenter = () => {
   const handleImageClick = (imageSrc, imageAlt) => {
     setSelectedImage(imageSrc);
     setShowImagePreview(true);
+  };
+  
+  // 柱状图点击处理函数
+  const handleChartClick = () => {
+    setShowChartPreview(true);
   };
 
   // 滚动到底部
@@ -1263,14 +2019,14 @@ const UnifiedAICenter = () => {
       
       {/* 中间对话区域 */}
       <div style={{ 
-        width: showEditor ? '600px' : (showPreview ? '40%' : (showImagePreview ? '40%' : '100%')), 
+        width: showEditor ? '600px' : (showPreview ? '40%' : (showImagePreview ? '40%' : (showChartPreview ? '40%' : '100%'))), 
         display: 'flex', 
         flexDirection: 'column',
-        borderRight: (showEditor || showPreview || showImagePreview) ? '1px solid #f0f0f0' : 'none',
+        borderRight: (showEditor || showPreview || showImagePreview || showChartPreview) ? '1px solid #f0f0f0' : 'none',
         background: '#fff',
         borderRadius: '8px',
         margin: '16px 0',
-        marginRight: (showEditor || showPreview || showImagePreview) ? '0' : '16px'
+        marginRight: (showEditor || showPreview || showImagePreview || showChartPreview) ? '0' : '16px'
       }}>
         {/* 对话记录区 */}
         <div style={{
@@ -1798,6 +2554,17 @@ const UnifiedAICenter = () => {
                                       e.stopPropagation();
                                       console.log('图片被点击:', img.src);
                                       handleImageClick(img.src, img.alt);
+                                    };
+                                  });
+                                  
+                                  // 为柱状图添加点击事件
+                                  const chartContainers = el.querySelectorAll('div[onclick*="handleChartClick"]');
+                                  chartContainers.forEach((chart) => {
+                                    chart.onclick = (e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      console.log('柱状图被点击');
+                                      handleChartClick();
                                     };
                                   });
                                 }
@@ -2897,6 +3664,113 @@ const UnifiedAICenter = () => {
                 boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
               }}
             />
+          </div>
+        </div>
+      )}
+
+      {/* 右侧柱状图预览区域 */}
+      {showChartPreview && (
+        <div style={{ 
+          width: '60%', 
+          display: 'flex', 
+          flexDirection: 'column',
+          background: '#fff',
+          borderRadius: '8px',
+          margin: '16px 16px 16px 0'
+        }}>
+          <div style={{
+            padding: '16px',
+            borderBottom: '1px solid #f0f0f0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <Title level={4} style={{ margin: 0 }}>图表预览</Title>
+            <Space>
+              <Button 
+                size="small" 
+                icon={<Download size={14} />}
+                onClick={() => {
+                  // 导出图表为图片
+                  const chartElement = document.querySelector('.chart-container');
+                  if (chartElement) {
+                    // 这里可以使用html2canvas等库来导出图片
+                    antdMessage.success('图表导出功能开发中');
+                  }
+                }}
+                title="导出图片"
+              />
+              <Button 
+                size="small" 
+                icon={<X size={14} />}
+                onClick={() => {
+                  setShowChartPreview(false);
+                }}
+                title="关闭预览"
+              />
+            </Space>
+          </div>
+          <div style={{
+            padding: '16px',
+            borderBottom: '1px solid #f0f0f0',
+            display: 'flex',
+            gap: '16px',
+            alignItems: 'center'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Text strong>图表类型:</Text>
+              <Radio.Group 
+                value={chartType} 
+                onChange={(e) => setChartType(e.target.value)}
+                size="small"
+              >
+                <Radio.Button value="bar">柱状图</Radio.Button>
+                <Radio.Button value="line">折线图</Radio.Button>
+                <Radio.Button value="pie">饼图</Radio.Button>
+                <Radio.Button value="table">表格</Radio.Button>
+              </Radio.Group>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Text strong>统计维度:</Text>
+              <Select 
+                value={chartDimension} 
+                onChange={setChartDimension}
+                size="small"
+                style={{ width: 120 }}
+              >
+                <Option value="monthly">月度</Option>
+                <Option value="quarterly">季度</Option>
+                <Option value="yearly">年度</Option>
+              </Select>
+            </div>
+          </div>
+          <div style={{ 
+            flex: 1, 
+            padding: '16px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            overflow: 'auto',
+            position: 'relative'
+          }}>
+            {/* 动态图表内容 */}
+            {renderChart()}
+            
+            {/* 悬停提示框 */}
+            {showTooltip && hoveredItem && (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: tooltipPosition.x,
+                  top: tooltipPosition.y - 10,
+                  transform: 'translate(-50%, -100%)',
+                  zIndex: 1000,
+                  pointerEvents: 'none'
+                }}
+              >
+                {getTooltipContent()}
+              </div>
+            )}
           </div>
         </div>
       )}
