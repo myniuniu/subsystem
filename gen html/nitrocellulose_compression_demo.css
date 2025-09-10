@@ -1,0 +1,287 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    color: white;
+    margin-bottom: 30px;
+    font-size: 2.5em;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.experiment-area {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 40px;
+    align-items: flex-start;
+}
+
+.glass-tube-container {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    flex-shrink: 0;
+}
+
+.glass-tube {
+    display: block;
+    margin: 0 auto;
+}
+
+.control-panel {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    flex: 1;
+    min-width: 300px;
+}
+
+.control-panel h3 {
+    color: #4A90E2;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+}
+
+.temperature-display,
+.pressure-display {
+    margin-bottom: 30px;
+}
+
+.temperature-value,
+.pressure-value {
+    font-size: 2em;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.temperature-bar,
+.pressure-bar {
+    width: 100%;
+    height: 20px;
+    background: #ecf0f1;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.temperature-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3498db 0%, #f39c12 50%, #e74c3c 100%);
+    border-radius: 10px;
+    width: 10%;
+    transition: width 0.3s ease;
+}
+
+.pressure-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #27ae60 0%, #f39c12 50%, #e74c3c 100%);
+    border-radius: 10px;
+    width: 10%;
+    transition: width 0.3s ease;
+}
+
+.status-display {
+    margin-bottom: 30px;
+}
+
+.status-text {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #27ae60;
+    padding: 10px;
+    background: #ecf0f1;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.status-text.compressing {
+    color: #f39c12;
+    background: #fef9e7;
+}
+
+.status-text.burning {
+    color: #e74c3c;
+    background: #fdedec;
+    animation: pulse 0.5s infinite alternate;
+}
+
+@keyframes pulse {
+    from { opacity: 0.7; }
+    to { opacity: 1; }
+}
+
+.reset-button {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.reset-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.reset-button:active {
+    transform: translateY(0);
+}
+
+.experiment-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.info-section {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.info-section h3 {
+    color: #4A90E2;
+    margin-bottom: 15px;
+    font-size: 1.3em;
+}
+
+.info-section ol {
+    padding-left: 20px;
+}
+
+.info-section li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.info-section p {
+    line-height: 1.6;
+    color: #555;
+}
+
+.warning {
+    border-left: 5px solid #e74c3c;
+}
+
+.warning h3 {
+    color: #e74c3c;
+}
+
+/* 拖拽相关样式 */
+#piston {
+    cursor: grab;
+    transition: transform 0.1s ease;
+}
+
+#piston:active {
+    cursor: grabbing;
+}
+
+#piston.dragging {
+    cursor: grabbing;
+}
+
+/* 燃烧动画 */
+@keyframes flicker {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    25% { opacity: 0.8; transform: scale(1.2); }
+    50% { opacity: 0.9; transform: scale(0.9); }
+    75% { opacity: 0.85; transform: scale(1.15); }
+}
+
+@keyframes fireGlow {
+    0%, 100% { filter: drop-shadow(0 0 5px #ff4500) drop-shadow(0 0 10px #ff6347); }
+    50% { filter: drop-shadow(0 0 15px #ff4500) drop-shadow(0 0 25px #ff6347); }
+}
+
+#fire-effect.burning {
+    animation: flicker 0.2s infinite, fireGlow 0.8s infinite;
+}
+
+#fire-effect {
+    transition: opacity 0.3s ease;
+}
+
+/* 压缩空气动画 */
+@keyframes compress {
+    0% { opacity: 0; }
+    50% { opacity: 0.6; }
+    100% { opacity: 0.3; }
+}
+
+#compressed-air.active {
+    animation: compress 0.5s ease-in-out;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .experiment-area {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .glass-tube-container {
+        align-self: center;
+    }
+    
+    h1 {
+        font-size: 2em;
+    }
+    
+    .experiment-info {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 硝化棉燃烧状态 */
+@keyframes nitrocelluloseBurn {
+    0%, 100% { 
+        fill: #ff4500;
+        filter: drop-shadow(0 0 8px #ff6347) drop-shadow(0 0 15px #ff4500);
+        transform: scale(1);
+    }
+    50% { 
+        fill: #ff6347;
+        filter: drop-shadow(0 0 15px #ff6347) drop-shadow(0 0 25px #ff4500);
+        transform: scale(1.1);
+    }
+}
+
+#nitrocellulose.burning {
+    animation: nitrocelluloseBurn 0.4s infinite;
+}
+
+/* 温度计效果 */
+.temperature-fill.hot {
+    background: linear-gradient(90deg, #f39c12 0%, #e74c3c 100%);
+}
+
+.temperature-fill.very-hot {
+    background: linear-gradient(90deg, #e74c3c 0%, #8b0000 100%);
+    animation: pulse 0.5s infinite alternate;
+}

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>硝化棉压缩燃烧实验模拟</title>
+    <link rel="stylesheet" href="nitrocellulose_compression_demo.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🔬 硝化棉压缩燃烧实验模拟</h1>
+        
+        <div class="experiment-area">
+            <div class="glass-tube-container">
+                <svg class="glass-tube" width="200" height="400" viewBox="0 0 200 400">
+                    <!-- 玻璃筒外壁 -->
+                    <rect x="30" y="50" width="140" height="320" 
+                          fill="none" stroke="#4A90E2" stroke-width="8" 
+                          rx="10" opacity="0.8"/>
+                    
+                    <!-- 玻璃筒内壁 -->
+                    <rect x="40" y="60" width="120" height="300" 
+                          fill="rgba(173, 216, 230, 0.1)" stroke="#87CEEB" 
+                          stroke-width="2" rx="5"/>
+                    
+                    <!-- 硝化棉 -->
+                    <circle id="nitrocellulose" cx="100" cy="340" r="8" 
+                            fill="#FFE4B5" stroke="#DEB887" stroke-width="2"/>
+                    
+                    <!-- 活塞 -->
+                    <g id="piston" transform="translate(0, 0)">
+                        <rect x="35" y="70" width="130" height="20" 
+                              fill="#696969" stroke="#2F4F4F" stroke-width="2" rx="3"/>
+                        <rect x="90" y="50" width="20" height="40" 
+                              fill="#A9A9A9" stroke="#2F4F4F" stroke-width="2" rx="2"/>
+                        <!-- 活塞手柄 -->
+                        <circle cx="100" cy="40" r="15" 
+                                fill="#D2691E" stroke="#8B4513" stroke-width="2"/>
+                        <text x="100" y="45" text-anchor="middle" 
+                              fill="white" font-size="12" font-weight="bold">拖拽</text>
+                    </g>
+                    
+                    <!-- 压缩空气效果 -->
+                    <g id="compressed-air" opacity="0">
+                        <rect x="45" y="300" width="110" height="40" 
+                              fill="rgba(255, 165, 0, 0.3)" rx="5"/>
+                    </g>
+                    
+                    <!-- 燃烧效果 -->
+                    <g id="fire-effect" opacity="0">
+                        <circle cx="100" cy="340" r="12" fill="rgba(255, 69, 0, 0.8)"/>
+                        <circle cx="95" cy="335" r="8" fill="rgba(255, 140, 0, 0.9)"/>
+                        <circle cx="105" cy="335" r="8" fill="rgba(255, 140, 0, 0.9)"/>
+                        <circle cx="100" cy="330" r="6" fill="rgba(255, 215, 0, 1)"/>
+                    </g>
+                </svg>
+            </div>
+            
+            <div class="control-panel">
+                <div class="temperature-display">
+                    <h3>🌡️ 温度监测</h3>
+                    <div class="temperature-value">
+                        <span id="temperature">25</span>°C
+                    </div>
+                    <div class="temperature-bar">
+                        <div id="temperature-fill" class="temperature-fill"></div>
+                    </div>
+                </div>
+                
+                <div class="pressure-display">
+                    <h3>📊 压力监测</h3>
+                    <div class="pressure-value">
+                        <span id="pressure">1.0</span> atm
+                    </div>
+                    <div class="pressure-bar">
+                        <div id="pressure-fill" class="pressure-fill"></div>
+                    </div>
+                </div>
+                
+                <div class="status-display">
+                    <h3>🔥 实验状态</h3>
+                    <div id="status" class="status-text">准备就绪</div>
+                </div>
+                
+                <button id="reset-btn" class="reset-button">🔄 重置实验</button>
+            </div>
+        </div>
+        
+        <div class="experiment-info">
+            <div class="info-section">
+                <h3>🧪 实验步骤</h3>
+                <ol>
+                    <li>在厚玻璃筒底部放置一小团硝化棉</li>
+                    <li>缓慢将活塞放入玻璃筒，确保密封性</li>
+                    <li>迅速用力将活塞压下</li>
+                    <li>观察硝化棉是否燃烧</li>
+                </ol>
+            </div>
+            
+            <div class="info-section">
+                <h3>🔬 实验原理</h3>
+                <p>当活塞迅速下压时，对空气做的功转化为空气的内能，导致温度升高。硝化棉的燃点较低（约160°C），当空气温度升高到超过其燃点时，硝化棉就会燃烧起来。这演示了热力学第一定律和绝热过程的原理。</p>
+            </div>
+            
+            <div class="info-section warning">
+                <h3>⚠️ 注意事项</h3>
+                <p>在实际实验中，需要注意使用厚壁玻璃筒以承受压力，并确保活塞密封性良好。操作时应佩戴护目镜，且周围不应有易燃物。本动画仅为模拟，请勿在无专业指导下尝试实际操作。</p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="nitrocellulose_compression_demo.js"></script>
+</body>
+</html>

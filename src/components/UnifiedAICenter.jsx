@@ -78,7 +78,8 @@ import {
   Radio,
   Menu,
   Empty,
-  Spin
+  Spin,
+  Popover
 } from 'antd';
 import './UnifiedAICenter.css';
 
@@ -88,7 +89,15 @@ const { Option } = Select;
 
 const UnifiedAICenter = () => {
   // 基础状态
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([
+    {
+      id: 'welcome-1',
+      type: 'ai',
+      content: '👋 欢迎使用AI工具箱！\n\n我是您的智能助手，可以帮助您：\n\n🔧 **编程开发** - 代码生成、调试、优化\n🌐 **多语言翻译** - 支持多种语言互译\n📊 **数据分析** - 图表制作、数据处理\n🎵 **音乐创作** - 旋律生成、和弦编配\n✏️ **文本创作** - 写作辅助、内容生成\n🖼️ **图像处理** - 图片分析、创意设计\n🔍 **智能搜索** - 信息检索、知识问答\n🎤 **语音交互** - 语音识别、对话交流\n\n💡 **使用提示：**\n- 选择左侧工具开始对话\n- 点击快速模板获取灵感\n- 使用语音输入更便捷\n- 支持文件上传和下载\n\n现在就开始您的AI之旅吧！',
+      timestamp: new Date(),
+      tool: null
+    }
+  ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [currentTool, setCurrentTool] = useState(null);
@@ -119,15 +128,231 @@ const UnifiedAICenter = () => {
   const [editorContent, setEditorContent] = useState('');
   const [editorMode, setEditorMode] = useState('markdown');
   const [splitScreenMode, setSplitScreenMode] = useState(false);
+  
+  // 预览区域状态
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState('');
+  
+  // 代码查看状态
+  const [sourceCode, setSourceCode] = useState('');
+  const [codeFileName, setCodeFileName] = useState('');
+  const [codeLoading, setCodeLoading] = useState(false);
+
+  // 工具函数
+  const getDemoName = (url) => {
+    if (url.includes('lens')) return '透镜成像演示';
+    if (url.includes('spring')) return '弹簧振动模拟器';
+    if (url.includes('circuit')) return '电路演示';
+    if (url.includes('projectile')) return '抛物运动模拟器';
+    if (url.includes('molecular')) return '分子结构3D查看器';
+    if (url.includes('function')) return '数学函数图形计算器';
+    return '演示程序';
+  };
+
+  const getDemoIcon = (url) => {
+    if (url.includes('lens')) return '🔬';
+    if (url.includes('spring')) return '🌊';
+    if (url.includes('circuit')) return '⚡';
+    if (url.includes('projectile')) return '🎯';
+    if (url.includes('molecular')) return '🧪';
+    if (url.includes('function')) return '📊';
+    return '🖥️';
+  };
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [richTextEditor, setRichTextEditor] = useState(null);
   
   // 消息滚动引用
   const messagesEndRef = useRef(null);
   
+  // 模板按钮引用
+  const templateButtonRef = useRef(null);
+  
   // 滚动到底部
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // 渲染消息内容，检测静态网页链接并显示为卡片
+  const renderMessageContent = (content) => {
+    if (!content) return content;
+    
+    // 检测URL的正则表达式
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = content.split(urlRegex);
+    const elements = [];
+    let textContent = '';
+    
+    parts.forEach((part, index) => {
+      // 重新创建正则表达式来测试每个部分
+      const testRegex = /^https?:\/\/[^\s]+$/;
+      if (testRegex.test(part)) {
+        // 检测是否为静态网页链接（html文件或常见的静态网站）
+        const isStaticPage = part.includes('.html') || 
+                            part.includes('github.io') || 
+                            part.includes('netlify.app') || 
+                            part.includes('vercel.app') ||
+                            part.includes('surge.sh') ||
+                            part.match(/\.(html|htm)$/i);
+        
+        if (isStaticPage) {
+          // 如果有文本内容，先添加文本
+          if (textContent.trim()) {
+            elements.push(
+              <div key={`text-${index}`} style={{ marginBottom: '12px' }}>
+                {textContent}
+              </div>
+            );
+            textContent = '';
+          }
+          
+
+          
+          // 添加演示卡片
+          elements.push(
+            <Card
+              key={`demo-${index}`}
+              size="small"
+              hoverable
+              style={{
+                marginTop: '8px',
+                marginBottom: '8px',
+                borderRadius: '8px',
+                border: '1px solid #e8f4fd',
+                background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+                cursor: 'pointer'
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // 修正URL：处理端口和路径
+                let correctedUrl = part;
+                // 处理5173端口到3000端口的转换
+                correctedUrl = correctedUrl.replace('localhost:5173/', 'localhost:3000/');
+                // 处理路径中的空格编码和实际空格
+                correctedUrl = correctedUrl.replace('/gen%20html/', '/gen-html/').replace('/gen html/', '/gen-html/');
+                // 截取URL到.html结束，去掉后面的编码参数
+                const htmlIndex = correctedUrl.indexOf('.html');
+                if (htmlIndex !== -1) {
+                  correctedUrl = correctedUrl.substring(0, htmlIndex + 5);
+                }
+                console.log('Original URL:', part);
+                console.log('Corrected URL:', correctedUrl);
+                setPreviewUrl(correctedUrl);
+                setShowPreview(true);
+                antdMessage.success('已在右侧预览区域打开演示页面');
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {/* 缩略图区域 */}
+                <div style={{
+                  width: '60px',
+                  height: '45px',
+                  borderRadius: '6px',
+                  overflow: 'hidden',
+                  flexShrink: 0,
+                  position: 'relative',
+                  background: '#f5f5f5',
+                  border: '1px solid #e0e0e0'
+                }}>
+                  <img
+                    src={`https://api.screenshotmachine.com/?key=demo&url=${encodeURIComponent(part)}&dimension=300x225&format=png&cacheLimit=0&delay=1000`}
+                    alt="网页预览"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover'
+                    }}
+                    onError={(e) => {
+                      // 如果缩略图加载失败，显示图标
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    display: 'none',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '20px',
+                    color: 'white'
+                  }}>
+                    {getDemoIcon(part)}
+                  </div>
+                </div>
+                
+                {/* 内容区域 */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontWeight: '600',
+                    color: '#1e40af',
+                    fontSize: '14px',
+                    marginBottom: '2px'
+                  }}>
+                    {getDemoName(part)}
+                  </div>
+                  <div style={{
+                    fontSize: '12px',
+                    color: '#64748b',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {part}
+                  </div>
+                </div>
+                
+                {/* 播放按钮 */}
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  background: '#1890ff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontSize: '14px',
+                  flexShrink: 0
+                }}>
+                  <Play size={14} />
+                </div>
+              </div>
+            </Card>
+          );
+        } else {
+          // 普通链接，添加到文本内容中
+          textContent += (
+            <a
+              href={part}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: '#1890ff' }}
+            >
+              {part}
+            </a>
+          );
+        }
+      } else {
+        // 普通文本，添加到文本内容中
+        textContent += part;
+      }
+    });
+    
+    // 如果还有剩余的文本内容，添加到元素数组中
+    if (textContent.trim()) {
+      elements.push(
+        <div key="final-text">
+          {textContent}
+        </div>
+      );
+    }
+    
+    return elements.length > 0 ? elements : content;
   };
 
   // 文件上传处理函数
@@ -517,7 +742,7 @@ const UnifiedAICenter = () => {
     }
   ]);
   const [currentChatId, setCurrentChatId] = useState(null);
-  const [selectedTool, setSelectedTool] = useState(null);
+  const [selectedTool, setSelectedTool] = useState({ key: 'coding', label: 'AI编程', icon: Code, description: '编程教学辅助和代码示例生成' });
   
   // 分享状态
   const [showShareModal, setShowShareModal] = useState(false);
@@ -602,6 +827,17 @@ const UnifiedAICenter = () => {
         { title: '凸透镜成像', content: '请帮我开发一个凸透镜成像演示程序，包含光路图绘制、成像规律和交互操作。' },
         { title: '豆包编程AI家教', content: '请帮我设计一个编程学习辅导系统，包含代码检查、学习建议和进度跟踪功能。' }
       ]
+    },
+    {
+      category: '科学演示',
+      templates: [
+        { title: '大气压强演示', content: '请帮我制作一个大气压强演示程序，包含压强变化动画和交互操作。', url: '/gen-html/atmospheric_pressure_demo.html' },
+        { title: '透镜成像演示', content: '请帮我开发一个透镜成像演示程序，包含光路图绘制和成像规律展示。', url: '/gen-html/lens_demo.html' },
+        { title: '透镜成像模拟器', content: '请帮我制作一个透镜成像模拟器，包含交互式光路模拟和成像特性分析。', url: '/gen-html/lens_demo.html' },
+        { title: '硝化纤维压缩演示', content: '请帮我开发一个硝化纤维压缩演示程序，包含压缩过程动画和物理原理说明。', url: '/gen-html/nitrocellulose_compression_demo.html' },
+        { title: '并联电路演示', content: '请帮我制作一个并联电路演示程序，包含电路连接动画和电流分析。', url: '/gen-html/parallel_circuit_demo.html' },
+        { title: '弹簧振动模拟器', content: '请帮我开发一个弹簧振动模拟器，包含振动动画和物理参数调节。', url: '/gen-html/spring_simulator.html' }
+      ]
     }
   ];
 
@@ -632,10 +868,117 @@ const UnifiedAICenter = () => {
 
   // 处理模板选择
   const handleTemplateSelect = (template) => {
+    // 所有模板都设置到输入框
     setInputMessage(template.content);
     setShowTemplates(false);
     setTemplateSearchText('');
     setSelectedCategory('all');
+    
+    // 自动发送消息
+    setTimeout(() => {
+      if (selectedTool && template.content.trim()) {
+        // 模拟点击发送按钮
+        const userMessage = {
+          id: Date.now().toString(),
+          type: 'user',
+          content: template.content,
+          timestamp: new Date(),
+          tool: currentTool,
+          files: uploadedFiles.length > 0 ? uploadedFiles.map(file => ({
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            url: file.preview || (file.source === 'cloud' ? file.url : URL.createObjectURL(file)),
+            source: file.source || 'upload'
+          })) : undefined
+        };
+        
+        setMessages(prev => [...prev, userMessage]);
+        setInputMessage('');
+        setUploadedFiles([]);
+        setIsLoading(true);
+        
+        // 生成AI回复
+        setTimeout(() => {
+          let aiResponse = '';
+          
+          // 检查用户消息是否包含演示相关内容，添加对应的预览链接
+          const addDemoLinks = (response) => {
+            // 优先使用模板中的url字段
+            if (template.url) {
+              const demoName = getDemoName(template.url);
+              const demoIcon = getDemoIcon(template.url);
+              response += `\n\n${demoIcon} ${demoName}：http://localhost:3000${template.url}`;
+              return response;
+            }
+            
+            const content = template.content.toLowerCase();
+            // 透镜成像演示已在主要演示链接中提供，此处不再重复添加
+            if (content.includes('弹簧') || content.includes('振动')) {
+              response += '\n\n🌊 弹簧振动模拟器演示：http://localhost:5173/demos/spring-oscillation.html';
+            }
+            if (content.includes('电路') || content.includes('欧姆定律')) {
+              response += '\n\n⚡ 欧姆定律电路演示：http://localhost:5173/demos/ohms-law.html';
+            }
+            if (content.includes('抛物') || content.includes('运动')) {
+              response += '\n\n🎯 抛物运动模拟器演示：http://localhost:5173/demos/projectile-motion.html';
+            }
+            if (content.includes('化学') || content.includes('分子')) {
+              response += '\n\n🧪 分子结构3D查看器演示：http://localhost:5173/demos/molecular-viewer.html';
+            }
+            if (content.includes('数学') || content.includes('函数')) {
+              response += '\n\n📊 数学函数图形计算器演示：http://localhost:5173/demos/function-grapher.html';
+            }
+            return response;
+          };
+          
+          switch(selectedTool.key) {
+            case 'chat':
+              aiResponse = `你好！我是智能聊天助手。关于"${template.content}"，我很乐意为您提供帮助。请告诉我更多详细信息，我会尽力为您解答。`;
+              break;
+            case 'code':
+              aiResponse = `作为编程助手，我理解您想要了解"${template.content}"。我可以帮您：\n\n• 编写代码示例\n• 解释技术概念\n• 调试程序问题\n• 优化代码性能\n\n请提供更多技术细节，我会给出具体的解决方案。`;
+              break;
+            case 'translate':
+              aiResponse = `我是翻译助手。关于"${template.content}"，请告诉我：\n\n1. 需要翻译的源语言\n2. 目标语言\n3. 翻译场景（商务、学术、日常等）\n\n这样我可以为您提供更准确的翻译服务。`;
+              break;
+            case 'math':
+              aiResponse = `作为数学计算助手，我正在分析"${template.content}"。我可以帮您：\n\n📊 数学公式求解\n📈 统计分析\n🔍 几何计算\n📋 数据处理\n\n请提供具体的数学问题，我会为您详细解答。`;
+              break;
+            case 'creative':
+              aiResponse = `我是创意写作助手，关于"${template.content}"的创作需求，我可以协助您：\n\n🎨 创意构思\n📝 内容创作\n🌈 风格优化\n✨ 文案润色\n\n请描述您的创作目标和风格偏好，我会提供专业建议。`;
+              break;
+            case 'analysis':
+              aiResponse = `作为数据分析助手，我正在分析"${template.content}"。我可以帮您：\n\n📊 数据可视化\n📈 趋势分析\n🔍 深度洞察\n📋 报告生成\n\n请提供具体的数据或分析需求，我会为您制定分析方案。`;
+              break;
+            case 'image':
+              aiResponse = `我是图像处理助手，关于"${template.content}"的图像需求，我可以协助您：\n\n🖼️ 图像生成\n🎨 图像编辑\n🔍 图像分析\n✨ 效果优化\n\n请描述您的图像处理需求，我会提供专业方案。`;
+              break;
+            case 'music':
+              aiResponse = `我是音乐创作助手，关于"${template.content}"的音乐创作，我可以帮您：\n\n🎵 旋律创作\n🎼 和声编配\n🎹 编曲建议\n🎤 歌词创作\n\n请告诉我您的音乐风格和创作需求。`;
+              break;
+            case 'writing':
+              aiResponse = `我是专业写作助手，正在为您分析"${template.content}"的写作需求。我可以帮您：\n\n📝 文章结构规划\n✍️ 内容创作与润色\n📚 素材收集与整理\n🎯 风格调整与优化\n\n基于您的主题，我建议从以下几个方面展开：\n\n1. 明确写作目标和受众\n2. 构建清晰的文章框架\n3. 收集相关素材和论据\n4. 进行创作和反复修改\n\n请告诉我您希望的文章类型、字数要求和具体风格偏好，我会为您提供更详细的写作指导。`;
+              break;
+            default:
+              aiResponse = `感谢您使用${selectedTool.label}！关于"${template.content}"，我正在为您处理。请稍等片刻，我会为您提供详细的回复。`;
+          }
+          
+          // 为所有回复添加演示链接检查
+          aiResponse = addDemoLinks(aiResponse);
+          
+          const aiMessage = {
+            id: (Date.now() + 1).toString(),
+            type: 'ai',
+            content: aiResponse,
+            timestamp: new Date(),
+            tool: currentTool
+          };
+          setMessages(prev => [...prev, aiMessage]);
+          setIsLoading(false);
+        }, 1500);
+      }
+    }, 100);
   };
 
   // 根据当前工具获取模版数据
@@ -688,6 +1031,30 @@ const UnifiedAICenter = () => {
     setTimeout(() => {
       let aiResponse = '';
       
+      // 检查用户消息是否包含演示相关内容，添加对应的预览链接
+      const addDemoLinks = (response) => {
+        const content = userMessage.content.toLowerCase();
+        if (content.includes('透镜') || content.includes('成像')) {
+          response += '\n\n🔬 透镜成像模拟器演示：http://localhost:3000/gen-html/lens_demo.html';
+        }
+        if (content.includes('弹簧') || content.includes('振动')) {
+          response += '\n\n🌊 弹簧振动模拟器演示：http://localhost:3000/gen-html/spring_simulator.html';
+        }
+        if (content.includes('电路') || content.includes('欧姆定律')) {
+          response += '\n\n⚡ 电路演示：http://localhost:3000/gen-html/parallel_circuit_demo.html';
+        }
+        if (content.includes('抛物') || content.includes('运动')) {
+          response += '\n\n🎯 抛物运动模拟器演示：http://localhost:3000/demos/projectile-motion.html';
+        }
+        if (content.includes('化学') || content.includes('分子')) {
+          response += '\n\n🧪 分子结构3D查看器演示：http://localhost:3000/demos/molecular-viewer.html';
+        }
+        if (content.includes('数学') || content.includes('函数')) {
+          response += '\n\n📊 数学函数图形计算器演示：http://localhost:3000/demos/function-grapher.html';
+        }
+        return response;
+      };
+      
       switch(selectedTool.key) {
         case 'chat':
           aiResponse = `你好！我是智能聊天助手。关于"${userMessage.content}"，我很乐意为您提供帮助。请告诉我更多详细信息，我会尽力为您解答。`;
@@ -719,6 +1086,9 @@ const UnifiedAICenter = () => {
         default:
           aiResponse = `感谢您使用${selectedTool.label}！关于"${userMessage.content}"，我正在为您处理。请稍等片刻，我会为您提供详细的回复。`;
       }
+      
+      // 为所有回复添加演示链接检查
+      aiResponse = addDemoLinks(aiResponse);
       
       const aiMessage = {
         id: (Date.now() + 1).toString(),
@@ -949,14 +1319,14 @@ const UnifiedAICenter = () => {
       
       {/* 中间对话区域 */}
       <div style={{ 
-        width: showEditor ? '600px' : '100%', 
+        width: showEditor ? '600px' : (showPreview ? '30%' : '100%'), 
         display: 'flex', 
         flexDirection: 'column',
-        borderRight: showEditor ? '1px solid #f0f0f0' : 'none',
+        borderRight: (showEditor || showPreview) ? '1px solid #f0f0f0' : 'none',
         background: '#fff',
         borderRadius: '8px',
         margin: '16px 0',
-        marginRight: showEditor ? '0' : '16px'
+        marginRight: (showEditor || showPreview) ? '0' : '16px'
       }}>
         {/* 对话记录区 */}
         <div style={{
@@ -1398,33 +1768,109 @@ const UnifiedAICenter = () => {
                           </Card>
                         ) : (
                           <div style={{ maxWidth: '90%', width: '100%' }}>
+                            {/* AI消息头部 */}
+                            <div style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              marginBottom: '8px',
+                              gap: '8px'
+                            }}>
+                              <Avatar 
+                                size={32} 
+                                icon={<Bot size={16} />}
+                                style={{ 
+                                  backgroundColor: '#667eea',
+                                  flexShrink: 0
+                                }}
+                              />
+                              <div style={{ flex: 1 }}>
+                                <div style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '8px'
+                                }}>
+                                  <Text strong style={{ 
+                                    fontSize: '14px',
+                                    color: '#1f2937'
+                                  }}>
+                                    {selectedTool?.label || 'AI助手'}
+                                  </Text>
+                                  <div style={{
+                                     padding: '2px 8px',
+                                     backgroundColor: '#f0f9ff',
+                                     borderRadius: '12px',
+                                     border: '1px solid #e0f2fe'
+                                   }}>
+                                     <Text style={{ 
+                                       fontSize: '11px',
+                                       color: '#0369a1',
+                                       fontWeight: 500
+                                     }}>
+                                       {selectedTool?.description || '智能助手回复'}
+                                     </Text>
+                                   </div>
+                                </div>
+                                <Text type="secondary" style={{ 
+                                  fontSize: '12px',
+                                  color: '#6b7280'
+                                }}>
+                                  创建时间：{message.timestamp ? new Date(message.timestamp).toLocaleString('zh-CN', {
+                                    year: 'numeric',
+                                    month: '2-digit', 
+                                    day: '2-digit',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  }) : '09:19'}
+                                </Text>
+                              </div>
+                            </div>
+                            
                             <Card
                               size="small"
                               style={{
-                                borderRadius: '12px',
+                                borderRadius: '16px',
                                 border: '1px solid #e5e7eb',
-                                marginBottom: '8px'
+                                marginBottom: '8px',
+                                background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)'
                               }}
                               styles={{
                                 body: {
-                                  padding: '16px'
+                                  padding: '20px'
                                 }
                               }}
                             >
                               {/* AI回复内容 */}
                               <div style={{ marginBottom: '16px' }}>
-                                <Text style={{ color: '#374151', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
-                                  {message.content}
+                                <Text style={{ 
+                                  color: '#374151', 
+                                  lineHeight: '1.7', 
+                                  whiteSpace: 'pre-wrap',
+                                  fontSize: '14px'
+                                }}>
+                                  {renderMessageContent(message.content)}
                                 </Text>
                               </div>
                               
-
-                              
                               {/* 操作按钮 */}
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <Space size={8}>
+                              <div style={{ 
+                                display: 'flex', 
+                                justifyContent: 'space-between', 
+                                alignItems: 'center',
+                                paddingTop: '12px',
+                                borderTop: '1px solid #f3f4f6'
+                              }}>
+                                <Space size={4}>
                                   <Tooltip title="朗读">
-                                    <Button type="text" size="small" icon={<Volume2 size={14} />} />
+                                    <Button 
+                                      type="text" 
+                                      size="small" 
+                                      icon={<Volume2 size={14} />}
+                                      style={{
+                                        color: '#6b7280',
+                                        borderRadius: '8px'
+                                      }}
+                                    />
                                   </Tooltip>
                                   <Tooltip title="复制">
                                     <Button 
@@ -1435,20 +1881,20 @@ const UnifiedAICenter = () => {
                                         navigator.clipboard.writeText(message.content);
                                         antdMessage.success('内容已复制到剪贴板');
                                       }}
+                                      style={{
+                                        color: '#6b7280',
+                                        borderRadius: '8px'
+                                      }}
                                     />
                                   </Tooltip>
                                   <Tooltip title="重新生成">
-                                    <Button type="text" size="small" icon={<RefreshCw size={14} />} />
-                                  </Tooltip>
-                                  <Tooltip title="编辑">
                                     <Button 
                                       type="text" 
                                       size="small" 
-                                      icon={<Edit3 size={14} />}
-                                      onClick={() => {
-                                        setEditorContent(message.content);
-                                        setShowEditor(true);
-                                        antdMessage.success('内容已加载到编辑器');
+                                      icon={<RefreshCw size={14} />}
+                                      style={{
+                                        color: '#6b7280',
+                                        borderRadius: '8px'
                                       }}
                                     />
                                   </Tooltip>
@@ -1458,15 +1904,46 @@ const UnifiedAICenter = () => {
                                       size="small" 
                                       icon={<Share2 size={14} />}
                                       onClick={() => setShowShareModal(true)}
+                                      style={{
+                                        color: '#6b7280',
+                                        borderRadius: '8px'
+                                      }}
+                                    />
+                                  </Tooltip>
+                                  <Tooltip title="更多">
+                                    <Button 
+                                      type="text" 
+                                      size="small" 
+                                      icon={<MoreHorizontal size={14} />}
+                                      style={{
+                                        color: '#6b7280',
+                                        borderRadius: '8px'
+                                      }}
                                     />
                                   </Tooltip>
                                 </Space>
-                                <Space size={8}>
+                                <Space size={4}>
                                   <Tooltip title="点赞">
-                                    <Button type="text" size="small" icon={<ThumbsUp size={14} />} />
+                                    <Button 
+                                      type="text" 
+                                      size="small" 
+                                      icon={<ThumbsUp size={14} />}
+                                      style={{
+                                        color: '#6b7280',
+                                        borderRadius: '8px'
+                                      }}
+                                    />
                                   </Tooltip>
                                   <Tooltip title="点踩">
-                                    <Button type="text" size="small" icon={<ThumbsDown size={14} />} />
+                                    <Button 
+                                      type="text" 
+                                      size="small" 
+                                      icon={<ThumbsDown size={14} />}
+                                      style={{
+                                        color: '#6b7280',
+                                        borderRadius: '8px'
+                                      }}
+                                    />
                                   </Tooltip>
                                 </Space>
                               </div>
@@ -1616,22 +2093,214 @@ const UnifiedAICenter = () => {
               alignItems: 'center',
               gap: '4px'
             }}>
-              {/* 模版按钮 - 写作、编程和图像生成工具显示 */}
-              {(currentTool === 'writing' || currentTool === 'coding' || currentTool === 'image-gen') && (
+              {/* 模版按钮 - 写作和编程工具使用Popover */}
+              {(currentTool === 'writing' || currentTool === 'coding') && (
+                <Popover
+                  content={
+                    <div style={{ width: '800px', maxHeight: '600px', overflow: 'auto' }}>
+                      <div style={{ marginBottom: '16px' }}>
+                        <Text type="secondary" style={{ fontSize: '14px', marginBottom: '16px', display: 'block' }}>
+                          {currentTool === 'writing' ? '选择一个模版快速开始写作，或者作为灵感参考' : '选择一个编程模版快速开始开发，或者作为项目参考'}
+                        </Text>
+                        
+                        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+                          <Input.Search
+                            placeholder="搜索模版标题或内容..."
+                            value={templateSearchText}
+                            onChange={(e) => setTemplateSearchText(e.target.value)}
+                            style={{ flex: 1, minWidth: '200px', maxWidth: '300px' }}
+                            allowClear
+                          />
+                          
+                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                            {templateCategories.map(category => (
+                              <Tag.CheckableTag
+                                key={category}
+                                checked={selectedCategory === category}
+                                onChange={() => setSelectedCategory(category)}
+                                style={{
+                                  padding: '4px 12px',
+                                  borderRadius: '16px',
+                                  fontSize: '13px'
+                                }}
+                              >
+                                {category === 'all' ? '全部' : category}
+                              </Tag.CheckableTag>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="template-content">
+                        {filteredTemplates.length === 0 ? (
+                          <Empty
+                            description="没有找到匹配的模版"
+                            style={{ margin: '40px 0' }}
+                          />
+                        ) : (
+                          filteredTemplates.map((category, categoryIndex) => (
+                          <div key={categoryIndex} style={{ marginBottom: '24px' }}>
+                            <div style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              marginBottom: '12px',
+                              paddingBottom: '6px',
+                              borderBottom: '1px solid #f0f0f0'
+                            }}>
+                              <Title level={5} style={{ 
+                                margin: 0, 
+                                color: '#1890ff',
+                                fontSize: '14px',
+                                fontWeight: 600
+                              }}>
+                                {category.category}
+                              </Title>
+                              <div style={{
+                                marginLeft: '8px',
+                                padding: '1px 6px',
+                                backgroundColor: '#f6ffed',
+                                border: '1px solid #b7eb8f',
+                                borderRadius: '8px',
+                                fontSize: '11px',
+                                color: '#52c41a'
+                              }}>
+                                {category.templates.length} 个模版
+                              </div>
+                            </div>
+                            
+                            <Row gutter={[12, 12]}>
+                              {category.templates.map((template, templateIndex) => (
+                                <Col xs={24} sm={12} md={8} key={templateIndex}>
+                                  <Card 
+                                    hoverable
+                                    onClick={() => {
+                                      handleTemplateSelect(template);
+                                      setShowTemplates(false);
+                                    }}
+                                    style={{
+                                      height: '120px',
+                                      cursor: 'pointer',
+                                      borderRadius: '8px',
+                                      transition: 'all 0.3s ease',
+                                      border: template.type === 'link' ? '1px solid #52c41a' : '1px solid #f0f0f0',
+                                      background: template.type === 'link' ? 'linear-gradient(135deg, #f6ffed 0%, #f0f9ff 100%)' : '#fff'
+                                    }}
+                                    styles={{
+                                      body: {
+                                        padding: '16px',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'space-between',
+                                        height: '100%'
+                                      }
+                                    }}
+                                  >
+                                    <div>
+                                      <Title level={5} style={{ 
+                                        margin: 0, 
+                                        marginBottom: '6px', 
+                                        fontSize: '13px',
+                                        fontWeight: 600,
+                                        color: '#262626',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px'
+                                      }}>
+                                        {template.title}
+                                        {template.type === 'link' && (
+                                          <div style={{
+                                            width: '14px',
+                                            height: '14px',
+                                            borderRadius: '50%',
+                                            backgroundColor: '#52c41a',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '8px',
+                                            color: 'white'
+                                          }}>
+                                            🔗
+                                          </div>
+                                        )}
+                                      </Title>
+                                      <Text type="secondary" style={{ 
+                                        fontSize: '12px', 
+                                        lineHeight: '1.4',
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: 'vertical',
+                                        overflow: 'hidden'
+                                      }}>
+                                        {template.content.length > 50 ? template.content.substring(0, 50) + '...' : template.content}
+                                      </Text>
+                                    </div>
+                                    <div style={{ 
+                                      color: template.type === 'link' ? '#52c41a' : '#1890ff', 
+                                      fontSize: '11px',
+                                      fontWeight: 500,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                      marginTop: '8px'
+                                    }}>
+                                      {template.type === 'link' ? (
+                                        <>
+                                          <ArrowRight size={10} />
+                                          打开演示
+                                        </>
+                                      ) : (
+                                        '点击使用'
+                                      )}
+                                    </div>
+                                  </Card>
+                                </Col>
+                              ))}
+                            </Row>
+                          </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  }
+                  title={
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {currentTool === 'writing' ? <FileText size={16} color="#1890ff" /> : <Code size={16} color="#1890ff" />}
+                      <span>{currentTool === 'writing' ? '选择写作模版' : '选择编程模版'}</span>
+                    </div>
+                  }
+                  trigger="click"
+                  placement="bottomLeft"
+                  open={showTemplates}
+                  onOpenChange={setShowTemplates}
+                  overlayStyle={{ maxWidth: '850px' }}
+                >
+                  <Button
+                    ref={templateButtonRef}
+                    type="text"
+                    icon={currentTool === 'writing' ? <FileText size={18} /> : <Code size={18} />}
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      padding: 0,
+                      color: '#6b7280',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '50%'
+                    }}
+                    title={
+                      currentTool === 'writing' ? "选择写作模板" : 
+                      "选择编程模板"
+                    }
+                  />
+                </Popover>
+              )}
+              {/* 图像生成工具的模版按钮 */}
+              {currentTool === 'image-gen' && (
                 <Button
                   type="text"
-                  icon={
-                    currentTool === 'writing' ? <FileText size={18} /> : 
-                    currentTool === 'coding' ? <Code size={18} /> : 
-                    <Image size={18} />
-                  }
-                  onClick={() => {
-                    if (currentTool === 'image-gen') {
-                      setShowImageTemplates(true);
-                    } else {
-                      setShowTemplates(true);
-                    }
-                  }}
+                  icon={<Image size={18} />}
+                  onClick={() => setShowImageTemplates(true)}
                   style={{
                     width: '36px',
                     height: '36px',
@@ -1642,11 +2311,7 @@ const UnifiedAICenter = () => {
                     justifyContent: 'center',
                     borderRadius: '50%'
                   }}
-                  title={
-                    currentTool === 'writing' ? "选择写作模板" : 
-                    currentTool === 'coding' ? "选择编程模板" : 
-                    "选择图像风格模板"
-                  }
+                  title="选择图像风格模板"
                 />
               )}
               {/* 附件按钮 - 仅在新对话工具中显示 */}
@@ -1942,156 +2607,173 @@ const UnifiedAICenter = () => {
         </div>
       )}
       
-      {/* 模版选择弹窗 */}
-      <Modal
-        title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {currentTool === 'writing' ? <FileText size={20} color="#1890ff" /> : <Code size={20} color="#1890ff" />}
-            <span>{currentTool === 'writing' ? '选择写作模版' : '选择编程模版'}</span>
-          </div>
-        }
-        open={showTemplates}
-        onCancel={() => setShowTemplates(false)}
-        footer={null}
-        width={1200}
-        className="template-modal"
-        styles={{
-          body: { padding: '24px' }
-        }}
-      >
-        <div style={{ marginBottom: '24px' }}>
-          <Text type="secondary" style={{ fontSize: '14px', marginBottom: '16px', display: 'block' }}>
-            {currentTool === 'writing' ? '选择一个模版快速开始写作，或者作为灵感参考' : '选择一个编程模版快速开始开发，或者作为项目参考'}
-          </Text>
-          
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <Input.Search
-              placeholder="搜索模版标题或内容..."
-              value={templateSearchText}
-              onChange={(e) => setTemplateSearchText(e.target.value)}
-              style={{ flex: 1, minWidth: '200px', maxWidth: '400px' }}
-              allowClear
-            />
-            
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {templateCategories.map(category => (
-                <Tag.CheckableTag
-                  key={category}
-                  checked={selectedCategory === category}
-                  onChange={() => setSelectedCategory(category)}
-                  style={{
-                    padding: '4px 12px',
-                    borderRadius: '16px',
-                    fontSize: '13px'
+      {/* 右侧预览区域 */}
+      {showPreview && (
+        <div style={{ 
+          width: '70%', 
+          display: 'flex', 
+          flexDirection: 'column',
+          background: '#fff',
+          borderRadius: '8px',
+          margin: '16px 16px 16px 0'
+        }}>
+          <div style={{
+            padding: '16px',
+            borderBottom: '1px solid #f0f0f0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <Title level={4} style={{ margin: 0 }}>演示内容 {previewUrl && `(${previewUrl.split('/').pop()})`}</Title>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <Tooltip title="下载文件">
+                <Button 
+                  size="small" 
+                  icon={<Download size={14} />}
+                  onClick={() => {
+                    if (previewUrl) {
+                      // 创建下载链接
+                      const link = document.createElement('a');
+                      link.href = previewUrl;
+                      link.download = previewUrl.split('/').pop() || 'demo.html';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      antdMessage.success('文件下载已开始');
+                    }
                   }}
-                >
-                  {category === 'all' ? '全部' : category}
-                </Tag.CheckableTag>
-              ))}
+                  title="下载文件"
+                />
+              </Tooltip>
+              <Button 
+                size="small" 
+                icon={<X size={14} />}
+                onClick={() => setShowPreview(false)}
+                title="关闭预览"
+              />
             </div>
           </div>
-        </div>
-        
-        <div className="template-content">
-          {filteredTemplates.length === 0 ? (
-            <Empty
-              description="没有找到匹配的模版"
-              style={{ margin: '40px 0' }}
-            />
-          ) : (
-            filteredTemplates.map((category, categoryIndex) => (
-            <div key={categoryIndex} style={{ marginBottom: '32px' }}>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                marginBottom: '16px',
-                paddingBottom: '8px',
-                borderBottom: '1px solid #f0f0f0'
-              }}>
-                <Title level={4} style={{ 
-                  margin: 0, 
-                  color: '#1890ff',
-                  fontSize: '16px',
-                  fontWeight: 600
-                }}>
-                  {category.category}
-                </Title>
-                <div style={{
-                  marginLeft: '12px',
-                  padding: '2px 8px',
-                  backgroundColor: '#f6ffed',
-                  border: '1px solid #b7eb8f',
-                  borderRadius: '12px',
-                  fontSize: '12px',
-                  color: '#52c41a'
-                }}>
-                  {category.templates.length} 个模版
-                </div>
-              </div>
-              
-              <Row gutter={[16, 16]}>
-                {category.templates.map((template, templateIndex) => (
-                  <Col xs={24} sm={12} md={8} key={templateIndex}>
-                    <Card 
-                      hoverable
-                      onClick={() => handleTemplateSelect(template)}
-                      style={{
-                        height: '140px',
-                        cursor: 'pointer',
-                        borderRadius: '12px',
-                        transition: 'all 0.3s ease',
-                        border: '1px solid #f0f0f0'
-                      }}
-                      styles={{
-                        body: {
-                          padding: '20px',
+          <div style={{ flex: 1 }}>
+            <Tabs
+              defaultActiveKey="preview"
+              style={{ height: '100%' }}
+              onChange={async (activeKey) => {
+                // 当切换到代码页签且还没有加载源代码时，自动加载
+                if (activeKey === 'code' && !sourceCode && previewUrl && !codeLoading) {
+                  setCodeLoading(true);
+                  try {
+                    // 获取文件名
+                    const fileName = previewUrl.split('/').pop();
+                    setCodeFileName(fileName);
+                    
+                    // 获取源代码
+                    const response = await fetch(previewUrl);
+                    const code = await response.text();
+                    setSourceCode(code);
+                    antdMessage.success('源代码加载成功');
+                  } catch (error) {
+                    console.error('获取源代码失败:', error);
+                    antdMessage.error('获取源代码失败');
+                  } finally {
+                    setCodeLoading(false);
+                  }
+                }
+              }}
+              items={[
+                {
+                  key: 'preview',
+                  label: (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Play size={14} />
+                      预览
+                    </span>
+                  ),
+                  children: (
+                    <div style={{ height: 'calc(100vh - 200px)', padding: '8px' }}>
+                      {previewUrl ? (
+                        <iframe
+                          src={previewUrl}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            border: 'none',
+                            borderRadius: '4px'
+                          }}
+                          title="静态页面预览"
+                          onLoad={() => console.log('iframe loaded:', previewUrl)}
+                          onError={() => console.log('iframe error:', previewUrl)}
+                        />
+                      ) : (
+                        <div style={{
                           display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'space-between',
-                          height: '100%'
-                        }
-                      }}
-                      actions={[
-                        <div key="use" style={{ 
-                          color: '#1890ff', 
-                          fontSize: '12px',
-                          fontWeight: 500
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          height: '100%',
+                          color: '#999',
+                          fontSize: '16px'
                         }}>
-                          点击使用
+                          请点击演示链接查看内容
                         </div>
-                      ]}
-                    >
-                      <div>
-                        <Title level={5} style={{ 
-                          margin: 0, 
-                          marginBottom: '8px', 
-                          fontSize: '15px',
-                          fontWeight: 600,
-                          color: '#262626'
-                        }}>
-                          {template.title}
-                        </Title>
-                        <Text type="secondary" style={{ 
-                          fontSize: '13px', 
-                          lineHeight: '1.5',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden'
-                        }}>
-                          {template.content.length > 60 ? template.content.substring(0, 60) + '...' : template.content}
-                        </Text>
-                      </div>
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
-            </div>
-            ))
-          )}
-        </div>
-      </Modal>
+                      )}
+                    </div>
+                  )
+                },
+                {
+                  key: 'code',
+                  label: (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Code size={14} />
+                      代码
+                    </span>
+                  ),
+                  children: (
+                    <div style={{ height: 'calc(100vh - 200px)', padding: '16px' }}>
+                      <Spin spinning={codeLoading}>
+                        {sourceCode ? (
+                          <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
 
+                            <div style={{ flex: 1, overflow: 'auto' }}>
+                              <pre style={{
+                                background: '#f6f8fa',
+                                border: '1px solid #e1e4e8',
+                                borderRadius: '6px',
+                                padding: '16px',
+                                fontSize: '12px',
+                                lineHeight: '1.45',
+                                overflow: 'auto',
+                                whiteSpace: 'pre-wrap',
+                                wordBreak: 'break-all',
+                                margin: 0,
+                                height: '100%'
+                              }}>
+                                <code>{sourceCode}</code>
+                              </pre>
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            height: '100%',
+                            color: '#999',
+                            fontSize: '16px'
+                          }}>
+                            <Code size={48} style={{ marginBottom: '16px', opacity: 0.3 }} />
+                            <div>正在自动加载源代码...</div>
+                          </div>
+                        )}
+                      </Spin>
+                    </div>
+                  )
+                }
+              ]}
+            />
+          </div>
+        </div>
+      )}
+      
       {/* 图像模版选择弹窗 */}
       <Modal
         title={null}
@@ -2300,6 +2982,7 @@ const UnifiedAICenter = () => {
           />
         </div>
       </Modal>
+
     </div>
   );
 };
