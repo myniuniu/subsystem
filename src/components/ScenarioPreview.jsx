@@ -97,7 +97,7 @@ const ScenarioPreview = ({ visible, onClose, scenario, onRun }) => {
       onCancel={onClose}
       width={1000}
       footer={null}
-      destroyOnClose
+      destroyOnHidden
       bodyStyle={{ padding: 0 }}
     >
       <div style={{ height: '80vh', display: 'flex', flexDirection: 'column' }}>

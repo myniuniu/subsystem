@@ -1,0 +1,396 @@
+/* 评估报告容器 */
+.evaluation-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+  background: #f5f5f5;
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* 加载状态 */
+.evaluation-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.loading-content {
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #1890ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 错误状态 */
+.evaluation-error {
+  max-width: 600px;
+  margin: 60px auto;
+  padding: 24px;
+}
+
+/* 头部区域 */
+.evaluation-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 32px;
+  margin-bottom: 24px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.evaluation-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+.back-button {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  backdrop-filter: blur(10px);
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: white;
+}
+
+.header-content {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.evaluation-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 16px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.title-icon {
+  margin-right: 12px;
+  color: #ffd700;
+}
+
+.scenario-info h2 {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.scenario-info p {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+}
+
+/* 总体得分卡片 */
+.score-overview-card {
+  margin-bottom: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: none;
+}
+
+.total-score {
+  text-align: center;
+}
+
+.score-circle {
+  margin-bottom: 16px;
+}
+
+.total-score h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin: 0;
+}
+
+.score-feedback {
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+/* 薄弱点分析卡片 */
+.weakness-card {
+  margin-bottom: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: none;
+}
+
+.weakness-card .ant-card-head {
+  background: #fff2f0;
+  border-bottom: 1px solid #ffccc7;
+}
+
+.weakness-item {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 20px 0;
+}
+
+.weakness-item:last-child {
+  border-bottom: none;
+}
+
+.weakness-content {
+  width: 100%;
+}
+
+.weakness-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.weakness-header h4 {
+  margin: 0;
+  color: #d32f2f;
+  font-weight: 600;
+}
+
+.weakness-description {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.weakness-recommendation {
+  display: flex;
+  align-items: flex-start;
+  background: #f6ffed;
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 4px solid #52c41a;
+}
+
+.recommendation-icon {
+  color: #52c41a;
+  margin-right: 8px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* 改进建议卡片 */
+.improvement-card {
+  margin-bottom: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: none;
+}
+
+.improvement-card .ant-card-head {
+  background: #f0f9ff;
+  border-bottom: 1px solid #bae7ff;
+}
+
+.improvement-item {
+  height: 100%;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  border: 1px solid #e8e8e8;
+}
+
+.improvement-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  border-color: #1890ff;
+}
+
+.improvement-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.improvement-header .anticon {
+  font-size: 1.2rem;
+  color: #1890ff;
+  margin-right: 8px;
+}
+
+.improvement-header h4 {
+  margin: 0;
+  color: #333;
+  font-weight: 600;
+}
+
+.improvement-meta {
+  margin-top: 12px;
+}
+
+.improvement-meta .ant-tag {
+  margin-right: 8px;
+  margin-bottom: 4px;
+}
+
+/* 总体反馈卡片 */
+.feedback-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: none;
+}
+
+.feedback-card .ant-card-head {
+  background: #f9f0ff;
+  border-bottom: 1px solid #d3adf7;
+}
+
+.overall-feedback {
+  background: #fafafa;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 4px solid #722ed1;
+}
+
+.overall-feedback p {
+  margin: 0;
+  line-height: 1.8;
+  color: #333;
+  font-size: 1rem;
+}
+
+.next-steps h4 {
+  color: #333;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.next-steps ol {
+  padding-left: 20px;
+}
+
+.next-steps li {
+  margin-bottom: 8px;
+  line-height: 1.6;
+  color: #666;
+}
+
+/* 通用图标样式 */
+.section-icon {
+  margin-right: 8px;
+  font-size: 1.1rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .evaluation-container {
+    padding: 16px;
+  }
+  
+  .evaluation-header {
+    padding: 24px 16px;
+  }
+  
+  .evaluation-title {
+    font-size: 2rem;
+  }
+  
+  .back-button {
+    top: 16px;
+    left: 16px;
+  }
+  
+  .score-overview-card .ant-row {
+    flex-direction: column;
+  }
+  
+  .score-overview-card .ant-col {
+    margin-bottom: 16px;
+  }
+  
+  .improvement-item {
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  .evaluation-title {
+    font-size: 1.8rem;
+  }
+  
+  .scenario-info h2 {
+    font-size: 1.3rem;
+  }
+  
+  .weakness-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .weakness-header .ant-tag {
+    margin-top: 8px;
+  }
+}
+
+/* 动画效果 */
+.evaluation-container .ant-card {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.evaluation-container .ant-card:nth-child(1) { animation-delay: 0.1s; }
+.evaluation-container .ant-card:nth-child(2) { animation-delay: 0.2s; }
+.evaluation-container .ant-card:nth-child(3) { animation-delay: 0.3s; }
+.evaluation-container .ant-card:nth-child(4) { animation-delay: 0.4s; }
+.evaluation-container .ant-card:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 进度条自定义样式 */
+.ant-progress-circle .ant-progress-text {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+/* 统计数字样式 */
+.ant-statistic-content {
+  font-weight: 600;
+}
+
+.ant-statistic-title {
+  font-weight: 500;
+  color: #666 !important;
+}

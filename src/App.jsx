@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Layout } from 'antd'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
@@ -19,11 +19,14 @@ import ClassManagement from './components/ClassManagement'
 import StudentManagement from './components/StudentManagement'
 import SimulationCenter from './components/SimulationCenter'
 import ResourceLibrary from './components/ResourceLibrary'
-import AssessmentSystem from './components/AssessmentSystem'
+
 import MentalHealthCoach from './components/MentalHealthCoach'
 import MyProgress from './components/MyProgress'
+import MyAssessment from './components/MyAssessment'
 import ScenarioLibrary from './components/ScenarioLibrary'
 import MentalHealthCoaching from './components/MentalHealthCoaching'
+import CounselorTraining from './components/CounselorTraining'
+import MyEvaluation from './components/MyEvaluation'
 
 import LearningAnalyticsCenter from './components/LearningAnalyticsCenter'
 import './App.css'
@@ -33,6 +36,28 @@ const { Header: AntHeader, Sider, Content } = Layout
 function App() {
   const [currentView, setCurrentView] = useState('home') // 'home', 'chat', 'image', 'search', etc.
   const [messages, setMessages] = useState([])
+  
+  // 调试信息
+  useEffect(() => {
+    console.log('Current view changed to:', currentView)
+  }, [currentView])
+  
+  // 监听来自iframe的postMessage事件
+  useEffect(() => {
+    const handleMessage = (event) => {
+      console.log('Received postMessage:', event.data)
+      if (event.data && event.data.type === 'NAVIGATE_TO_EVALUATION') {
+        console.log('Navigating to my-evaluation')
+        setCurrentView('my-evaluation')
+      }
+    }
+    
+    window.addEventListener('message', handleMessage)
+    
+    return () => {
+      window.removeEventListener('message', handleMessage)
+    }
+  }, [])
   
   // 消息中心联系人数据
   const [contacts] = useState([
@@ -269,36 +294,17 @@ function App() {
             ) : currentView === 'resource-library' ? (
               <ResourceLibrary />
             ) : currentView === 'mental-health-coach' ? (
-              <MentalHealthCoach />
+              <MentalHealthCoach onNavigate={setCurrentView} />
             ) : currentView === 'my-progress' ? (
               <MyProgress />
+            ) : currentView === 'my-assessment' ? (
+              <MyAssessment />
             ) : currentView === 'scenario-library' ? (
               <ScenarioLibrary onViewChange={handleViewChange} />
             ) : currentView === 'mental-health-coaching' ? (
               <MentalHealthCoaching onBack={handleViewChange} />
-            ) : currentView === 'assessment-system' ? (
-              <AssessmentSystem 
-                results={{
-                  score: 85,
-                  duration: 1200,
-                  scenarioId: 'scenario-1',
-                  completedAt: new Date().toISOString(),
-                  skillScores: {
-                    empathy: 8.5,
-                    listening: 7.8,
-                    problemIdentification: 9.2,
-                    intervention: 8.0,
-                    ethics: 8.8
-                  },
-                  responses: [
-                    { step: 1, choice: 'A', type: 'empathy', score: 8 },
-                    { step: 2, choice: 'B', type: 'listening', score: 7 },
-                    { step: 3, choice: 'A', type: 'intervention', score: 9 }
-                  ]
-                }}
-                onBack={() => setCurrentView('home')}
-                onRetry={() => setCurrentView('skill-training')}
-              />
+            ) : currentView === 'my-evaluation' ? (
+              <MyEvaluation onBack={() => handleViewChange('my-assessment')} />
             ) : (
               <MainContent 
                 currentView={currentView}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Play, Users, BookOpen, BarChart3, Settings, Award, Clock, Target } from 'lucide-react';
 import CounselorTraining from './CounselorTraining';
 import ResourceLibrary from './ResourceLibrary';
-import AssessmentSystem from './AssessmentSystem';
+
 import './SimulationCenter.css';
 import './Animations.css';
 
@@ -42,14 +42,7 @@ const SimulationCenter = () => {
       color: 'from-green-500 to-teal-600',
       features: ['知识库', '案例库', '工具库']
     },
-    {
-      id: 'assessment',
-      title: '评估系统',
-      description: '技能水平评估与分析报告',
-      icon: BarChart3,
-      color: 'from-orange-500 to-red-600',
-      features: ['技能评估', '进度跟踪', '个性化建议']
-    }
+
   ];
 
   // 模拟评估结果数据
@@ -93,12 +86,7 @@ const SimulationCenter = () => {
         return <CounselorTraining onBack={() => setCurrentModule('overview')} />;
       case 'resources':
         return <ResourceLibrary onBack={() => setCurrentModule('overview')} />;
-      case 'assessment':
-        return <AssessmentSystem 
-          results={mockAssessmentResults}
-          onBack={() => setCurrentModule('overview')} 
-          onRetry={() => setCurrentModule('training')}
-        />;
+
       default:
         return renderOverview();
     }

@@ -452,13 +452,13 @@ const ScenarioLibrary = ({ onViewChange }) => {
       difficulty: 'medium',
       duration: '20-30分钟',
       thumbnail: '/gen-html/mental-health-coach.html',
+      isSpecialScenario: true,
+      routePath: '/mental-health-coach',
       files: {
         html: '/gen-html/mental-health-coach.html',
         css: '/gen-html/mental-health-coach.css',
         js: '/gen-html/mental-health-coach.js'
-      },
-      isSpecialScenario: true,
-      routePath: '/mental-health-coach'
+      }
     }
   ]
 

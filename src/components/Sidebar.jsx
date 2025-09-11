@@ -363,9 +363,8 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
         { id: 'skill-training', icon: Target, label: '技能训练', color: '#eb2f96' },
         { id: 'resource-library', icon: Database, label: '资源库', color: '#52c41a' },
         { id: 'scenario-library', icon: Library, label: '场景模拟', color: '#fa8c16' },
-        { id: 'assessment-system', icon: ClipboardCheck, label: '评估系统', color: '#722ed1' },
-        { id: 'mental-health-coach', icon: Heart, label: '心理健康辅导', color: '#f56565' },
-        { id: 'my-progress', icon: TrendingUp, label: '我的进度', color: '#1890ff' }
+        { id: 'my-progress', icon: TrendingUp, label: '我的进度', color: '#1890ff' },
+        { id: 'my-assessment', icon: BarChart3, label: '我的评估', color: '#eb2f96' }
       ]
     },
     {

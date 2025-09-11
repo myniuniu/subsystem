@@ -126,7 +126,7 @@ const CategoryManagement = ({ visible, onClose, categories, onCategoriesChange }
       onCancel={onClose}
       width={800}
       footer={null}
-      destroyOnClose
+      destroyOnHidden
     >
       <div style={{ marginBottom: 24 }}>
         <Card size="small">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Play, Clock, Users, Target, Award, Star, BookOpen, ChevronRight } from 'lucide-react';
 import DialogueEngine from './DialogueEngine';
-import AssessmentSystem from './AssessmentSystem';
+
 import './CounselorTraining.css';
 
 const CounselorTraining = ({ onBack }) => {
@@ -271,13 +271,7 @@ const CounselorTraining = ({ onBack }) => {
         />
       )}
       
-      {currentView === 'assessment' && assessmentResults && (
-        <AssessmentSystem 
-          results={assessmentResults}
-          onBack={() => setCurrentView('overview')}
-          onRetry={handleRetryScenario}
-        />
-      )}
+
     </div>
   );
 };

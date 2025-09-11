@@ -197,7 +197,7 @@ const MentalHealthCoaching = ({ onBack }) => {
         
         <div className="progress-stats">
           <Row gutter={16}>
-            <Col span={8}>
+            <Col span={6}>
               <Card className="stat-card">
                 <div className="stat-content">
                   <div className="stat-number">{scenarios.length}</div>
@@ -205,7 +205,7 @@ const MentalHealthCoaching = ({ onBack }) => {
                 </div>
               </Card>
             </Col>
-            <Col span={8}>
+            <Col span={6}>
               <Card className="stat-card">
                 <div className="stat-content">
                   <div className="stat-number">{completedScenarios.length}</div>
@@ -213,13 +213,22 @@ const MentalHealthCoaching = ({ onBack }) => {
                 </div>
               </Card>
             </Col>
-            <Col span={8}>
+            <Col span={6}>
               <Card className="stat-card">
                 <div className="stat-content">
                   <div className="stat-number">
                     {Math.round((completedScenarios.length / scenarios.length) * 100)}%
                   </div>
                   <div className="stat-label">完成率</div>
+                </div>
+              </Card>
+            </Col>
+            <Col span={6}>
+              <Card className="stat-card assessment-card" hoverable onClick={() => onBack && onBack('my-assessment')}>
+                <div className="stat-content">
+                  <div className="assessment-icon">📊</div>
+                  <div className="stat-label">我的评估</div>
+                  <div className="assessment-desc">查看详细评估报告</div>
                 </div>
               </Card>
             </Col>

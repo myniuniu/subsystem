@@ -13,8 +13,8 @@
 
 .app {
   background: var(--theme-background);
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  overflow-y: auto;
   transition: background 0.3s ease;
 }
 
