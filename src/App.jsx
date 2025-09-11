@@ -23,6 +23,7 @@ import AssessmentSystem from './components/AssessmentSystem'
 import MentalHealthCoach from './components/MentalHealthCoach'
 import MyProgress from './components/MyProgress'
 import ScenarioLibrary from './components/ScenarioLibrary'
+import MentalHealthCoaching from './components/MentalHealthCoaching'
 
 import LearningAnalyticsCenter from './components/LearningAnalyticsCenter'
 import './App.css'
@@ -272,7 +273,9 @@ function App() {
             ) : currentView === 'my-progress' ? (
               <MyProgress />
             ) : currentView === 'scenario-library' ? (
-              <ScenarioLibrary />
+              <ScenarioLibrary onViewChange={handleViewChange} />
+            ) : currentView === 'mental-health-coaching' ? (
+              <MentalHealthCoaching onBack={handleViewChange} />
             ) : currentView === 'assessment-system' ? (
               <AssessmentSystem 
                 results={{

@@ -1,0 +1,356 @@
+.mental-health-coaching {
+  padding: 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+.coaching-header {
+  margin-bottom: 32px;
+}
+
+.header-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.back-btn {
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  background: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.header-info {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.header-info h2 {
+  color: #1a1a1a;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-info .ant-typography {
+  color: #666;
+  margin-bottom: 0;
+}
+
+.progress-stats {
+  margin-top: 16px;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.stat-content {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.stat-number {
+  font-size: 32px;
+  font-weight: bold;
+  color: #1890ff;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.scenarios-grid {
+  margin-top: 32px;
+}
+
+.scenario-card {
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  height: 100%;
+}
+
+.scenario-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.scenario-card.completed {
+  border: 2px solid #52c41a;
+  background: linear-gradient(135deg, rgba(82, 196, 26, 0.05), rgba(255, 255, 255, 0.95));
+}
+
+.scenario-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.scenario-category {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.category-icon {
+  font-size: 18px;
+}
+
+.completion-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(82, 196, 26, 0.1);
+  border-radius: 50%;
+}
+
+.scenario-content h4 {
+  color: #1a1a1a;
+  margin-bottom: 12px;
+  font-size: 18px;
+}
+
+.scenario-content .ant-typography {
+  color: #666;
+  margin-bottom: 16px;
+}
+
+.scenario-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #666;
+  font-size: 12px;
+}
+
+.scenario-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.scenario-skills .ant-tag {
+  margin: 0;
+  border-radius: 12px;
+  font-size: 11px;
+}
+
+.ant-card-actions {
+  background: rgba(248, 249, 250, 0.8);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.ant-card-actions > li {
+  margin: 8px 0;
+}
+
+.ant-card-actions .ant-btn {
+  border: none;
+  box-shadow: none;
+  font-weight: 500;
+}
+
+.ant-card-actions .ant-btn-primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.ant-card-actions .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #5a6fd8, #6a4190);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* 训练模式样式 */
+.training-mode {
+  background: #f5f5f5;
+}
+
+.training-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.scenario-info h4 {
+  margin-bottom: 4px;
+  color: #1a1a1a;
+}
+
+.scenario-info .ant-typography {
+  color: #666;
+  margin: 0;
+}
+
+/* 场景详情弹窗样式 */
+.scenario-details {
+  padding: 8px 0;
+}
+
+.student-profile .ant-card {
+  margin-top: 12px;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.student-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.student-grade {
+  font-size: 14px;
+  color: #666;
+}
+
+.student-background {
+  color: #666;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.training-objectives ul {
+  margin: 12px 0 0 0;
+  padding-left: 20px;
+}
+
+.training-objectives li {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.required-skills {
+  margin-bottom: 0;
+}
+
+.required-skills .ant-space {
+  margin-top: 12px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .mental-health-coaching {
+    padding: 16px;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .header-info {
+    padding: 16px;
+  }
+  
+  .stat-number {
+    font-size: 24px;
+  }
+  
+  .scenario-card {
+    margin-bottom: 16px;
+  }
+  
+  .training-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px;
+  }
+}
+
+/* 动画效果 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scenario-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.scenario-card:nth-child(1) { animation-delay: 0.1s; }
+.scenario-card:nth-child(2) { animation-delay: 0.2s; }
+.scenario-card:nth-child(3) { animation-delay: 0.3s; }
+.scenario-card:nth-child(4) { animation-delay: 0.4s; }
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.loading-container p {
+  margin-top: 16px;
+  color: #666;
+  font-size: 16px;
+}

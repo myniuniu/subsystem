@@ -52,7 +52,7 @@ const { Search: AntSearch } = Input
 const { Option } = Select
 const { TabPane } = Tabs
 
-const ScenarioLibrary = () => {
+const ScenarioLibrary = ({ onViewChange }) => {
   const [scenarios, setScenarios] = useState([])
   const [filteredScenarios, setFilteredScenarios] = useState([])
   const [loading, setLoading] = useState(true)
@@ -436,6 +436,29 @@ const ScenarioLibrary = () => {
         css: '/gen-html/learning_difficulties.css',
         js: '/gen-html/learning_difficulties.js'
       }
+    },
+    {
+      id: '17',
+      title: '心理健康辅导',
+      description: '通过模拟真实的心理咨询场景，提升心理健康辅导技能。包含学业压力、社交焦虑、抑郁情绪等多种场景训练。',
+      category: 'psychology',
+      roles: ['counselor', 'teacher'],
+      tags: ['心理咨询', '情绪管理', '压力缓解', '沟通技巧'],
+      author: '心理健康专家',
+      createTime: '2024-01-15',
+      lastModified: '2024-01-15',
+      views: 2580,
+      likes: 234,
+      difficulty: 'medium',
+      duration: '20-30分钟',
+      thumbnail: '/gen-html/mental-health-coach.html',
+      files: {
+        html: '/gen-html/mental-health-coach.html',
+        css: '/gen-html/mental-health-coach.css',
+        js: '/gen-html/mental-health-coach.js'
+      },
+      isSpecialScenario: true,
+      routePath: '/mental-health-coach'
     }
   ]
 
@@ -499,7 +522,14 @@ const ScenarioLibrary = () => {
 
   // 运行场景
   const handleRunScenario = (scenario) => {
-    window.open(scenario.files.html, '_blank')
+    // 检查是否为特殊场景（需要路由跳转）
+    if (scenario.isSpecialScenario && scenario.routePath && onViewChange) {
+      // 跳转到特定页面
+      onViewChange(scenario.routePath.replace('/', ''))
+    } else {
+      // 普通场景在新窗口打开
+      window.open(scenario.files.html, '_blank')
+    }
   }
 
   // 预览场景
