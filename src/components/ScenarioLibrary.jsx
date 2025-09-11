@@ -58,6 +58,7 @@ const ScenarioLibrary = () => {
   const [loading, setLoading] = useState(true)
   const [searchText, setSearchText] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
+  const [selectedRole, setSelectedRole] = useState('all')
   const [previewVisible, setPreviewVisible] = useState(false)
   const [selectedScenario, setSelectedScenario] = useState(null)
   const [uploadVisible, setUploadVisible] = useState(false)
@@ -77,6 +78,16 @@ const ScenarioLibrary = () => {
     { id: 'special', name: '特殊教育', description: '特殊需要学生教育支持场景', color: '#13c2c2', scenarioCount: 2 }
   ]
 
+  // 适用角色数据
+  const mockRoles = [
+    { id: 'student', name: '学生', color: '#52c41a' },
+    { id: 'parent', name: '家长', color: '#1890ff' },
+    { id: 'teacher', name: '教师', color: '#722ed1' },
+    { id: 'counselor', name: '心理咨询师', color: '#fa8c16' },
+    { id: 'principal', name: '校长/管理者', color: '#eb2f96' },
+    { id: 'social_worker', name: '社工', color: '#13c2c2' }
+  ]
+
   // 模拟场景数据
   const mockScenarios = [
     // 学生心理健康场景
@@ -85,6 +96,7 @@ const ScenarioLibrary = () => {
       title: '考试焦虑缓解训练',
       description: '针对即将面临重要考试的学生，通过放松技巧和认知重构帮助缓解考试焦虑，提升考试表现。包含呼吸练习、正念冥想和积极自我对话等技巧。',
       category: 'psychology',
+      roles: ['student', 'counselor', 'teacher'],
       tags: ['考试焦虑', '放松技巧', '心理调适', '学生'],
       author: '陈心理老师',
       createTime: '2024-01-20',
@@ -105,6 +117,7 @@ const ScenarioLibrary = () => {
       title: '校园霸凌应对策略',
       description: '帮助遭受校园霸凌的学生学会自我保护，建立自信心，同时教授旁观者如何正确介入和寻求帮助。',
       category: 'psychology',
+      roles: ['student', 'teacher', 'counselor', 'social_worker'],
       tags: ['校园霸凌', '自我保护', '心理创伤', '同伴支持'],
       author: '李心理咨询师',
       createTime: '2024-01-18',
@@ -127,6 +140,7 @@ const ScenarioLibrary = () => {
       title: '青春期亲子沟通艺术',
       description: '专为青春期孩子的家长设计，学习如何与叛逆期的孩子有效沟通，理解青春期心理特点，建立良好的亲子关系。',
       category: 'family',
+      roles: ['parent', 'counselor'],
       tags: ['青春期', '亲子沟通', '家长教育', '叛逆期'],
       author: '王家庭教育专家',
       createTime: '2024-01-16',
@@ -147,6 +161,7 @@ const ScenarioLibrary = () => {
       title: '单亲家庭孩子心理关怀',
       description: '针对单亲家庭的特殊情况，帮助单亲家长了解孩子可能面临的心理挑战，学习给予适当的情感支持和引导。',
       category: 'family',
+      roles: ['parent', 'counselor', 'social_worker'],
       tags: ['单亲家庭', '心理关怀', '情感支持', '家庭结构'],
       author: '张家庭咨询师',
       createTime: '2024-01-14',
@@ -167,6 +182,7 @@ const ScenarioLibrary = () => {
       title: '隔代教育协调技巧',
       description: '解决祖辈与父母在教育理念上的分歧，学习如何协调不同代际的教育观念，为孩子创造和谐的成长环境。',
       category: 'family',
+      roles: ['parent', 'counselor'],
       tags: ['隔代教育', '教育理念', '家庭和谐', '代际沟通'],
       author: '刘教育顾问',
       createTime: '2024-01-12',
@@ -189,6 +205,7 @@ const ScenarioLibrary = () => {
       title: '课堂管理与纪律维护',
       description: '帮助新手教师掌握有效的课堂管理技巧，学会处理课堂突发事件，建立良好的师生关系和课堂秩序。',
       category: 'teacher',
+      roles: ['teacher', 'principal'],
       tags: ['课堂管理', '纪律维护', '师生关系', '新手教师'],
       author: '赵资深教师',
       createTime: '2024-01-19',
@@ -209,6 +226,7 @@ const ScenarioLibrary = () => {
       title: '差异化教学策略实施',
       description: '针对班级中不同学习能力和风格的学生，学习如何设计和实施差异化教学，确保每个学生都能得到适合的教育。',
       category: 'teacher',
+      roles: ['teacher'],
       tags: ['差异化教学', '个性化学习', '教学策略', '因材施教'],
       author: '孙教学专家',
       createTime: '2024-01-17',
@@ -229,6 +247,7 @@ const ScenarioLibrary = () => {
       title: '学生心理危机识别与干预',
       description: '培训教师识别学生心理危机的早期信号，学习基本的心理急救技能和转介流程，保障学生心理健康。',
       category: 'teacher',
+      roles: ['teacher', 'counselor', 'principal'],
       tags: ['心理危机', '危机干预', '心理急救', '学生安全'],
       author: '周心理教师',
       createTime: '2024-01-15',
@@ -251,6 +270,7 @@ const ScenarioLibrary = () => {
       title: '班级文化建设与凝聚力提升',
       description: '指导班主任如何营造积极向上的班级氛围，建立班级文化，增强班级凝聚力，促进学生全面发展。',
       category: 'management',
+      roles: ['teacher', 'principal'],
       tags: ['班级文化', '凝聚力', '班级管理', '学生发展'],
       author: '吴优秀班主任',
       createTime: '2024-01-13',
@@ -271,6 +291,7 @@ const ScenarioLibrary = () => {
       title: '问题学生教育转化策略',
       description: '针对行为问题学生，学习科学的教育转化方法，通过个别辅导、行为矫正等手段帮助学生健康成长。',
       category: 'management',
+      roles: ['teacher', 'counselor', 'principal'],
       tags: ['问题学生', '教育转化', '行为矫正', '个别辅导'],
       author: '郑德育主任',
       createTime: '2024-01-11',
@@ -291,6 +312,7 @@ const ScenarioLibrary = () => {
       title: '家校合作沟通技巧',
       description: '提升班主任与家长沟通的技巧，建立良好的家校合作关系，共同促进学生成长和发展。',
       category: 'management',
+      roles: ['teacher', 'parent'],
       tags: ['家校合作', '沟通技巧', '家长工作', '协同教育'],
       author: '何资深班主任',
       createTime: '2024-01-09',
@@ -313,6 +335,7 @@ const ScenarioLibrary = () => {
       title: '学校危机管理与应急处置',
       description: '培训校长处理各类校园突发事件的能力，建立完善的危机管理体系，确保校园安全稳定。',
       category: 'leadership',
+      roles: ['principal', 'teacher'],
       tags: ['危机管理', '应急处置', '校园安全', '管理体系'],
       author: '马校长',
       createTime: '2024-01-08',
@@ -333,6 +356,7 @@ const ScenarioLibrary = () => {
       title: '教师团队建设与激励机制',
       description: '指导校长如何建设高效的教师团队，设计合理的激励机制，提升教师工作积极性和专业发展水平。',
       category: 'leadership',
+      roles: ['principal'],
       tags: ['团队建设', '激励机制', '教师发展', '管理艺术'],
       author: '冯教育专家',
       createTime: '2024-01-06',
@@ -431,6 +455,13 @@ const ScenarioLibrary = () => {
       filtered = filtered.filter(scenario => scenario.category === selectedCategory)
     }
 
+    // 按角色筛选
+    if (selectedRole !== 'all') {
+      filtered = filtered.filter(scenario => 
+        scenario.roles && scenario.roles.includes(selectedRole)
+      )
+    }
+
     // 按搜索文本筛选
     if (searchText) {
       filtered = filtered.filter(scenario => 
@@ -441,7 +472,7 @@ const ScenarioLibrary = () => {
     }
 
     setFilteredScenarios(filtered)
-  }, [scenarios, selectedCategory, searchText])
+  }, [scenarios, selectedCategory, selectedRole, searchText])
 
   // 获取难度标签颜色
   const getDifficultyColor = (difficulty) => {
@@ -616,6 +647,27 @@ const ScenarioLibrary = () => {
               ))}
             </Select>
           </Col>
+          <Col>
+            <Select
+              value={selectedRole}
+              onChange={setSelectedRole}
+              style={{ width: 150 }}
+              placeholder="选择角色"
+            >
+              <Option value="all">
+                <Tag color="#52c41a" style={{ margin: 0 }}>
+                  全部角色
+                </Tag>
+              </Option>
+              {mockRoles.map(role => (
+                <Option key={role.id} value={role.id}>
+                  <Tag color={role.color} style={{ margin: 0 }}>
+                    {role.name}
+                  </Tag>
+                </Option>
+              ))}
+            </Select>
+          </Col>
         </Row>
       </div>
 
@@ -654,7 +706,7 @@ const ScenarioLibrary = () => {
                           icon={<Play size={16} />}
                           onClick={() => handleRunScenario(scenario)}
                         >
-                          运行
+                          进入
                         </Button>
                       </div>
                     </div>
