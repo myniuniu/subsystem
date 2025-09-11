@@ -224,7 +224,7 @@ const MentalHealthCoaching = ({ onBack }) => {
               </Card>
             </Col>
             <Col span={6}>
-              <Card className="stat-card assessment-card" hoverable onClick={() => onBack && onBack('my-assessment')}>
+              <Card className="stat-card assessment-card" hoverable onClick={() => onBack && onBack('my-evaluation')}>
                 <div className="stat-content">
                   <div className="assessment-icon">📊</div>
                   <div className="stat-label">我的评估</div>

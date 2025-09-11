@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { Card, Row, Col, Progress, Badge, Timeline, Statistic, Tabs, Alert, Button, List, Avatar } from 'antd'
 import { BarChart3, Target, AlertTriangle, BookOpen, PlayCircle, TrendingUp, Award, Brain, Eye, MessageCircle, CheckCircle } from 'lucide-react'
 import { ArrowLeftOutlined } from '@ant-design/icons'
-import './MyAssessment.css'
+import RadarChart from './RadarChart'
+import './MyEvaluation.css'
+import './RadarChart.css'
 
 const MyEvaluation = ({ onBack }) => {
   const [assessmentData, setAssessmentData] = useState({
@@ -178,7 +180,7 @@ const MyEvaluation = ({ onBack }) => {
   }
 
   return (
-    <div className="my-assessment">
+    <div className="my-evaluation">
       <div className="assessment-header">
         <Button 
           icon={<ArrowLeftOutlined />} 
@@ -297,6 +299,16 @@ const MyEvaluation = ({ onBack }) => {
                 className="score-explanation"
               />
             </Card>
+               )
+             },
+             {
+               key: 'radar',
+               label: '能力雷达图',
+               children: (
+                 <RadarChart 
+                   data={assessmentData.quantifiedScores} 
+                   title="能力维度雷达图"
+                 />
                )
              },
              {

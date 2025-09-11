@@ -360,11 +360,10 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       type: 'group',
       expanded: false,
       children: [
-        { id: 'skill-training', icon: Target, label: '技能训练', color: '#eb2f96' },
         { id: 'resource-library', icon: Database, label: '资源库', color: '#52c41a' },
         { id: 'scenario-library', icon: Library, label: '场景模拟', color: '#fa8c16' },
         { id: 'my-progress', icon: TrendingUp, label: '我的进度', color: '#1890ff' },
-        { id: 'my-assessment', icon: BarChart3, label: '我的评估', color: '#eb2f96' }
+
       ]
     },
     {

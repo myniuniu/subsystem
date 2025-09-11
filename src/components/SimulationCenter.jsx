@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Users, BookOpen, BarChart3, Settings, Award, Clock, Target } from 'lucide-react';
-import CounselorTraining from './CounselorTraining';
+
 import ResourceLibrary from './ResourceLibrary';
 
 import './SimulationCenter.css';
@@ -26,14 +26,6 @@ const SimulationCenter = () => {
   });
 
   const modules = [
-    {
-      id: 'training',
-      title: '技能训练',
-      description: '心理健康辅导技能实战训练',
-      icon: Users,
-      color: 'from-blue-500 to-purple-600',
-      features: ['情景模拟', '智能对话', '实时反馈']
-    },
     {
       id: 'resources',
       title: '资源库',
@@ -82,8 +74,6 @@ const SimulationCenter = () => {
 
   const renderModuleContent = () => {
     switch (currentModule) {
-      case 'training':
-        return <CounselorTraining onBack={() => setCurrentModule('overview')} />;
       case 'resources':
         return <ResourceLibrary onBack={() => setCurrentModule('overview')} />;
 
@@ -102,7 +92,7 @@ const SimulationCenter = () => {
               场景模拟仿真系统
             </h1>
             <p className="system-subtitle">
-              基于人工智能的心理健康辅导技能训练平台
+              基于人工智能的心理健康场景模拟仿真平台
             </p>
           </div>
           <div className="system-stats">

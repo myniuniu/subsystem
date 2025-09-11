@@ -29,7 +29,7 @@ const MentalHealthCoach = ({ onNavigate }) => {
           border: 'none',
           borderRadius: '8px'
         }}
-        title="心理健康辅导技能训练"
+        title="心理健康辅导场景模拟"
       />
     </div>
   )

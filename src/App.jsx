@@ -22,10 +22,10 @@ import ResourceLibrary from './components/ResourceLibrary'
 
 import MentalHealthCoach from './components/MentalHealthCoach'
 import MyProgress from './components/MyProgress'
-import MyAssessment from './components/MyAssessment'
+
 import ScenarioLibrary from './components/ScenarioLibrary'
 import MentalHealthCoaching from './components/MentalHealthCoaching'
-import CounselorTraining from './components/CounselorTraining'
+
 import MyEvaluation from './components/MyEvaluation'
 
 import LearningAnalyticsCenter from './components/LearningAnalyticsCenter'
@@ -289,22 +289,18 @@ function App() {
               <StudentManagement />
             ) : currentView === 'simulation-center' ? (
               <SimulationCenter />
-            ) : currentView === 'skill-training' ? (
-              <SimulationCenter />
             ) : currentView === 'resource-library' ? (
               <ResourceLibrary />
             ) : currentView === 'mental-health-coach' ? (
               <MentalHealthCoach onNavigate={setCurrentView} />
             ) : currentView === 'my-progress' ? (
               <MyProgress />
-            ) : currentView === 'my-assessment' ? (
-              <MyAssessment />
             ) : currentView === 'scenario-library' ? (
               <ScenarioLibrary onViewChange={handleViewChange} />
             ) : currentView === 'mental-health-coaching' ? (
               <MentalHealthCoaching onBack={handleViewChange} />
             ) : currentView === 'my-evaluation' ? (
-              <MyEvaluation onBack={() => handleViewChange('my-assessment')} />
+              <MyEvaluation onBack={() => setCurrentView('home')} />
             ) : (
               <MainContent 
                 currentView={currentView}
