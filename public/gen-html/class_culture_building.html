@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班级文化建设与凝聚力提升</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .container {
+            text-align: center;
+            color: white;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: unity-glow 3s ease-in-out infinite;
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .culture-elements {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .element {
+            text-align: center;
+            padding: 20px 15px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .element::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .element:hover::before {
+            left: 100%;
+        }
+        
+        .element:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .element-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .element-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .element-desc {
+            font-size: 11px;
+            opacity: 0.8;
+            line-height: 1.3;
+        }
+        
+        @keyframes unity-glow {
+            0%, 100% { 
+                transform: scale(1);
+                filter: drop-shadow(0 0 15px rgba(0, 206, 201, 0.4));
+            }
+            50% { 
+                transform: scale(1.05);
+                filter: drop-shadow(0 0 25px rgba(0, 206, 201, 0.6));
+            }
+        }
+        
+        .unity-circles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .unity-circle {
+            position: absolute;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: expand-unity 5s ease-in-out infinite;
+        }
+        
+        .unity-circle:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            top: 20%;
+            left: 15%;
+            animation-delay: 0s;
+        }
+        
+        .unity-circle:nth-child(2) {
+            width: 60px;
+            height: 60px;
+            top: 60%;
+            right: 20%;
+            animation-delay: 2s;
+        }
+        
+        .unity-circle:nth-child(3) {
+            width: 70px;
+            height: 70px;
+            bottom: 25%;
+            left: 25%;
+            animation-delay: 1s;
+        }
+        
+        @keyframes expand-unity {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.3;
+            }
+            50% {
+                transform: scale(1.3);
+                opacity: 0.6;
+            }
+        }
+        
+        .connection-lines {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .connection {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+            animation: connect-flow 4s ease-in-out infinite;
+        }
+        
+        .connection:nth-child(1) {
+            top: 30%;
+            left: 15%;
+            width: 40%;
+            transform: rotate(25deg);
+            animation-delay: 0s;
+        }
+        
+        .connection:nth-child(2) {
+            top: 70%;
+            right: 20%;
+            width: 35%;
+            transform: rotate(-20deg);
+            animation-delay: 2s;
+        }
+        
+        @keyframes connect-flow {
+            0%, 100% {
+                opacity: 0;
+                transform: rotate(25deg) translateX(-20px);
+            }
+            50% {
+                opacity: 1;
+                transform: rotate(25deg) translateX(0);
+            }
+        }
+        
+        .team-spirits {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .spirit {
+            position: absolute;
+            font-size: 20px;
+            animation: spirit-dance 6s ease-in-out infinite;
+        }
+        
+        .spirit:nth-child(1) {
+            top: 15%;
+            left: 10%;
+            animation-delay: 0s;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .spirit:nth-child(2) {
+            top: 65%;
+            right: 15%;
+            animation-delay: 3s;
+            color: rgba(0, 206, 201, 0.9);
+        }
+        
+        .spirit:nth-child(3) {
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 1.5s;
+            color: rgba(0, 184, 148, 0.8);
+        }
+        
+        @keyframes spirit-dance {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg) scale(1);
+                opacity: 0.8;
+            }
+            33% {
+                transform: translateY(-8px) rotate(5deg) scale(1.1);
+                opacity: 1;
+            }
+            66% {
+                transform: translateY(-4px) rotate(-3deg) scale(1.05);
+                opacity: 0.9;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="unity-circles">
+        <div class="unity-circle"></div>
+        <div class="unity-circle"></div>
+        <div class="unity-circle"></div>
+    </div>
+    
+    <div class="connection-lines">
+        <div class="connection"></div>
+        <div class="connection"></div>
+    </div>
+    
+    <div class="team-spirits">
+        <div class="spirit">🌟</div>
+        <div class="spirit">🤝</div>
+        <div class="spirit">💪</div>
+    </div>
+    
+    <div class="container">
+        <div class="icon">🏫✨</div>
+        <h1 class="title">班级文化建设与凝聚力提升</h1>
+        <p class="subtitle">营造积极向上的班级氛围<br>增强班级凝聚力，促进学生全面发展</p>
+        
+        <div class="culture-elements">
+            <div class="element">
+                <span class="element-icon">🎨</span>
+                <div class="element-name">文化氛围</div>
+                <div class="element-desc">营造积极向上的班级文化</div>
+            </div>
+            <div class="element">
+                <span class="element-icon">🤝</span>
+                <div class="element-name">团队合作</div>
+                <div class="element-desc">培养学生合作精神和能力</div>
+            </div>
+            <div class="element">
+                <span class="element-icon">🏆</span>
+                <div class="element-name">集体荣誉</div>
+                <div class="element-desc">建立班级荣誉感和归属感</div>
+            </div>
+            <div class="element">
+                <span class="element-icon">🌱</span>
+                <div class="element-name">共同成长</div>
+                <div class="element-desc">促进每个学生全面发展</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

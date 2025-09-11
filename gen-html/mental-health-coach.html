@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>心灵导航 - 辅导员心理健康辅导技能训练</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6', // 信任蓝
+                        secondary: '#10B981', // 成长绿
+                        accent: '#F59E0B', // 活力橙
+                        neutral: '#64748B', // 中性灰
+                        danger: '#EF4444', // 警示红
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .card-hover {
+                transition: all 0.3s ease;
+            }
+            .card-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+            .progress-step {
+                transition: all 0.5s ease;
+            }
+            .dialog-appear {
+                animation: fadeIn 0.5s ease forwards;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 min-h-screen">
+    <!-- 导航栏 -->
+    <nav id="main-nav" class="bg-white shadow-md fixed w-full z-10 transition-all duration-300">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-heart-o text-primary text-2xl"></i>
+                <span class="text-xl font-bold text-primary">心灵导航</span>
+            </div>
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="#" class="text-gray-600 hover:text-primary transition-colors duration-200" id="nav-home">首页</a>
+                <a href="#" class="text-gray-600 hover:text-primary transition-colors duration-200" id="nav-scenarios">场景库</a>
+                <a href="#" class="text-gray-600 hover:text-primary transition-colors duration-200" id="nav-resources">资源中心</a>
+                <a href="#" class="text-gray-600 hover:text-primary transition-colors duration-200" id="nav-profile">我的进度</a>
+            </div>
+            <button class="md:hidden text-gray-600 focus:outline-none" id="mobile-menu-button">
+                <i class="fa fa-bars text-xl"></i>
+            </button>
+        </div>
+        <!-- 移动端菜单 -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg absolute w-full">
+            <div class="container mx-auto px-4 py-2 flex flex-col space-y-3">
+                <a href="#" class="text-gray-600 hover:text-primary py-2 transition-colors duration-200">首页</a>
+                <a href="#" class="text-gray-600 hover:text-primary py-2 transition-colors duration-200">场景库</a>
+                <a href="#" class="text-gray-600 hover:text-primary py-2 transition-colors duration-200">资源中心</a>
+                <a href="#" class="text-gray-600 hover:text-primary py-2 transition-colors duration-200">我的进度</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容区域 -->
+    <main class="pt-16">
+        <!-- 首页 -->
+        <section id="home-screen" class="container mx-auto px-4 py-10">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-10">
+                <div class="md:w-1/2 space-y-6">
+                    <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-gray-800 leading-tight">
+                        提升你的<br><span class="text-primary">心理健康辅导技能</span>
+                    </h1>
+                    <p class="text-lg text-gray-600 leading-relaxed">
+                        通过交互式模拟场景，练习如何识别、评估和应对学生的心理健康问题，成为更专业的辅导员。
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                        <button id="start-game-btn" class="bg-primary hover:bg-primary/90 text-white font-medium py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center">
+                            <i class="fa fa-play-circle mr-2"></i> 开始训练
+                        </button>
+                        <button id="learn-more-btn" class="bg-white border-2 border-primary text-primary hover:bg-primary/5 font-medium py-3 px-8 rounded-lg transition-all duration-300 flex items-center justify-center">
+                            <i class="fa fa-info-circle mr-2"></i> 了解更多
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-4 pt-6">
+                        <div class="flex -space-x-2">
+                            <img src="https://picsum.photos/id/1001/100" alt="用户头像" class="w-10 h-10 rounded-full border-2 border-white">
+                            <img src="https://picsum.photos/id/1002/100" alt="用户头像" class="w-10 h-10 rounded-full border-2 border-white">
+                            <img src="https://picsum.photos/id/1003/100" alt="用户头像" class="w-10 h-10 rounded-full border-2 border-white">
+                            <div class="w-10 h-10 rounded-full bg-primary/10 border-2 border-white flex items-center justify-center text-primary text-sm font-medium">
+                                +24
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600">已有27位辅导员正在使用</p>
+                    </div>
+                </div>
+                <div class="md:w-1/2 relative">
+                    <div class="relative z-10 rounded-xl overflow-hidden shadow-2xl transform rotate-2 transition-transform hover:rotate-0 duration-500">
+                        <img src="https://picsum.photos/id/237/600/400" alt="心理健康辅导场景" class="w-full h-auto">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
+                            <div class="p-6 text-white">
+                                <h3 class="text-xl font-bold">真实场景模拟</h3>
+                                <p>体验各种常见学生心理问题情境</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute top-10 -right-5 w-32 h-32 bg-secondary/20 rounded-full -z-10"></div>
+                    <div class="absolute -bottom-5 -left-5 w-40 h-40 bg-accent/20 rounded-full -z-10"></div>
+                </div>
+            </div>
+
+            <!-- 特点介绍 -->
+            <div class="py-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-lg card-hover">
+                    <div class="w-14 h-14 bg-primary/10 rounded-lg flex items-center justify-center mb-5">
+                        <i class="fa fa-graduation-cap text-primary text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">多样场景</h3>
+                    <p class="text-gray-600">包含12种常见学生心理健康问题场景，从学业压力到抑郁倾向全覆盖。</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg card-hover">
+                    <div class="w-14 h-14 bg-secondary/10 rounded-lg flex items-center justify-center mb-5">
+                        <i class="fa fa-comments text-secondary text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">互动对话</h3>
+                    <p class="text-gray-600">通过分支对话系统，体验不同回应方式带来的不同结果，学习有效沟通技巧。</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg card-hover">
+                    <div class="w-14 h-14 bg-accent/10 rounded-lg flex items-center justify-center mb-5">
+                        <i class="fa fa-line-chart text-accent text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">技能评估</h3>
+                    <p class="text-gray-600">接收专业反馈和评分，了解自己的优势和不足，针对性提升辅导能力。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 场景选择界面 -->
+        <section id="scenarios-screen" class="container mx-auto px-4 py-10 hidden">
+            <div class="mb-10">
+                <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-800 mb-4">选择训练场景</h2>
+                <p class="text-gray-600 max-w-3xl">从以下场景中选择，每个场景将模拟不同类型的学生心理健康问题。完成越多场景，你的辅导技能图谱将越完善。</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- 场景卡片 1 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover scenario-card" data-scenario="academic-stress">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://picsum.photos/id/20/600/400" alt="学业压力场景" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-3">
+                            <span class="bg-primary/10 text-primary text-xs font-medium px-2.5 py-0.5 rounded">初级</span>
+                            <span class="ml-auto text-sm text-gray-500"><i class="fa fa-clock-o mr-1"></i> 15分钟</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">学业压力过大</h3>
+                        <p class="text-gray-600 text-sm mb-4">一名大二学生因多门课程考试临近而感到极度焦虑，出现失眠和注意力不集中的情况。</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star-half-o text-accent"></i>
+                                <span class="ml-2 text-sm text-gray-500">4.5</span>
+                            </div>
+                            <button class="text-primary hover:text-primary/80 font-medium text-sm flex items-center">
+                                开始 <i class="fa fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 场景卡片 2 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover scenario-card" data-scenario="social-anxiety">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://picsum.photos/id/21/600/400" alt="社交焦虑场景" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-3">
+                            <span class="bg-primary/10 text-primary text-xs font-medium px-2.5 py-0.5 rounded">中级</span>
+                            <span class="ml-auto text-sm text-gray-500"><i class="fa fa-clock-o mr-1"></i> 20分钟</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">社交焦虑障碍</h3>
+                        <p class="text-gray-600 text-sm mb-4">一名新生因无法适应集体生活，害怕与人交往，经常独自待在宿舍，甚至不愿去上课。</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star-o text-accent"></i>
+                                <span class="ml-2 text-sm text-gray-500">4.0</span>
+                            </div>
+                            <button class="text-primary hover:text-primary/80 font-medium text-sm flex items-center">
+                                开始 <i class="fa fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 场景卡片 3 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover scenario-card" data-scenario="depression">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://picsum.photos/id/22/600/400" alt="抑郁倾向场景" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-3">
+                            <span class="bg-danger/10 text-danger text-xs font-medium px-2.5 py-0.5 rounded">高级</span>
+                            <span class="ml-auto text-sm text-gray-500"><i class="fa fa-clock-o mr-1"></i> 25分钟</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">抑郁倾向识别</h3>
+                        <p class="text-gray-600 text-sm mb-4">一名学生近期情绪低落，对以往感兴趣的事物失去兴趣，成绩明显下滑，有自伤想法。</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <span class="ml-2 text-sm text-gray-500">5.0</span>
+                            </div>
+                            <button class="text-primary hover:text-primary/80 font-medium text-sm flex items-center">
+                                开始 <i class="fa fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 场景卡片 4 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover scenario-card" data-scenario="family-issues">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://picsum.photos/id/23/600/400" alt="家庭问题场景" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-3">
+                            <span class="bg-primary/10 text-primary text-xs font-medium px-2.5 py-0.5 rounded">中级</span>
+                            <span class="ml-auto text-sm text-gray-500"><i class="fa fa-clock-o mr-1"></i> 20分钟</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">家庭关系问题</h3>
+                        <p class="text-gray-600 text-sm mb-4">一名学生因家庭矛盾（父母离异）而情绪不稳定，影响学习和生活，需要情感支持。</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star-half-o text-accent"></i>
+                                <i class="fa fa-star-o text-accent"></i>
+                                <span class="ml-2 text-sm text-gray-500">3.5</span>
+                            </div>
+                            <button class="text-primary hover:text-primary/80 font-medium text-sm flex items-center">
+                                开始 <i class="fa fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 场景卡片 5 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover scenario-card" data-scenario="identity-crisis">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://picsum.photos/id/24/600/400" alt="自我认同危机场景" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-3">
+                            <span class="bg-primary/10 text-primary text-xs font-medium px-2.5 py-0.5 rounded">中级</span>
+                            <span class="ml-auto text-sm text-gray-500"><i class="fa fa-clock-o mr-1"></i> 20分钟</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">自我认同危机</h3>
+                        <p class="text-gray-600 text-sm mb-4">一名大三学生对未来感到迷茫，不确定自己的职业方向，出现自我怀疑和焦虑情绪。</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star-o text-accent"></i>
+                                <span class="ml-2 text-sm text-gray-500">4.0</span>
+                            </div>
+                            <button class="text-primary hover:text-primary/80 font-medium text-sm flex items-center">
+                                开始 <i class="fa fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 场景卡片 6 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover scenario-card" data-scenario="addiction">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://picsum.photos/id/25/600/400" alt="网络成瘾场景" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-3">
+                            <span class="bg-danger/10 text-danger text-xs font-medium px-2.5 py-0.5 rounded">高级</span>
+                            <span class="ml-auto text-sm text-gray-500"><i class="fa fa-clock-o mr-1"></i> 30分钟</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">网络成瘾问题</h3>
+                        <p class="text-gray-600 text-sm mb-4">一名学生沉迷网络游戏，经常逃课，昼夜颠倒，与同学关系疏远，有明显的戒断反应。</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star-half-o text-accent"></i>
+                                <span class="ml-2 text-sm text-gray-500">4.5</span>
+                            </div>
+                            <button class="text-primary hover:text-primary/80 font-medium text-sm flex items-center">
+                                开始 <i class="fa fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 游戏场景界面 -->
+        <section id="game-screen" class="container mx-auto px-4 py-10 hidden">
+            <div class="flex flex-col lg:flex-row gap-8">
+                <!-- 左侧：场景和对话 -->
+                <div class="lg:w-2/3">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+                        <div class="bg-primary/10 p-4 flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fa fa-bookmark text-primary mr-2"></i>
+                                <h3 class="font-bold text-gray-800" id="current-scenario-title">学业压力过大</h3>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="hidden md:flex items-center text-sm text-gray-600">
+                                    <i class="fa fa-clock-o mr-1"></i>
+                                    <span id="game-timer">00:00</span>
+                                </div>
+                                <button id="exit-game-btn" class="text-gray-600 hover:text-danger transition-colors">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 场景描述 -->
+                        <div class="p-6 border-b border-gray-100" id="scenario-description">
+                            <p>你是一名大学辅导员，正在办公室工作。大二学生李明敲门进来，他看起来很疲惫，眼神躲闪，坐立不安。他告诉你最近考试很多，感觉压力很大，晚上睡不着觉，上课也无法集中注意力。</p>
+                        </div>
+                        
+                        <!-- 对话区域 -->
+                        <div class="p-6 h-80 overflow-y-auto" id="dialog-container">
+                            <div class="flex mb-6 dialog-appear">
+                                <img src="https://picsum.photos/id/1012/100" alt="学生头像" class="w-12 h-12 rounded-full mr-4">
+                                <div class="bg-gray-100 rounded-lg rounded-tl-none px-4 py-3 max-w-md">
+                                    <p class="text-gray-800">老师，我最近感觉压力特别大，马上要期末考试了，我担心考不好，晚上总是睡不着觉。</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 选择区域 -->
+                        <div class="p-6 border-t border-gray-100 bg-gray-50" id="choices-container">
+                            <h4 class="font-medium text-gray-700 mb-4">你会如何回应？</h4>
+                            <div class="space-y-3">
+                                <button class="choice-btn w-full text-left bg-white border border-gray-200 rounded-lg px-4 py-3 hover:bg-primary/5 hover:border-primary transition-colors" data-choice="1">
+                                    <p>"别担心，大家考试前都会紧张，过几天就好了。"</p>
+                                </button>
+                                <button class="choice-btn w-full text-left bg-white border border-gray-200 rounded-lg px-4 py-3 hover:bg-primary/5 hover:border-primary transition-colors" data-choice="2">
+                                    <p>"我能看出你现在确实很焦虑。能具体说说是什么让你最担心吗？"</p>
+                                </button>
+                                <button class="choice-btn w-full text-left bg-white border border-gray-200 rounded-lg px-4 py-3 hover:bg-primary/5 hover:border-primary transition-colors" data-choice="3">
+                                    <p>"你应该调整一下学习方法，制定一个复习计划，这样就不会那么紧张了。"</p>
+                                </button>
+                                <button class="choice-btn w-full text-left bg-white border border-gray-200 rounded-lg px-4 py-3 hover:bg-primary/5 hover:border-primary transition-colors" data-choice="4">
+                                    <p>"听起来你压力很大，已经影响到睡眠了。我们可以一起想办法解决这个问题。"</p>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 右侧：辅导要点和提示 -->
+                <div class="lg:w-1/3">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden sticky top-24">
+                        <div class="bg-secondary/10 p-4">
+                            <h3 class="font-bold text-gray-800 flex items-center">
+                                <i class="fa fa-lightbulb-o text-secondary mr-2"></i>
+                                辅导要点
+                            </h3>
+                        </div>
+                        <div class="p-5">
+                            <ul class="space-y-3 text-sm text-gray-600">
+                                <li class="flex items-start">
+                                    <i class="fa fa-check-circle text-secondary mt-1 mr-2"></i>
+                                    <span>积极倾听，让学生感受到被理解和接纳</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fa fa-check-circle text-secondary mt-1 mr-2"></i>
+                                    <span>关注学生的情绪体验，而非仅仅解决问题</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fa fa-check-circle text-secondary mt-1 mr-2"></i>
+                                    <span>帮助学生识别压力源，区分可控与不可控因素</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fa fa-check-circle text-secondary mt-1 mr-2"></i>
+                                    <span>提供实用的应对策略，如时间管理、放松技巧等</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fa fa-check-circle text-secondary mt-1 mr-2"></i>
+                                    <span>评估风险程度，必要时转介专业心理咨询</span>
+                                </li>
+                            </ul>
+                            
+                            <div class="mt-6 pt-4 border-t border-gray-100">
+                                <button id="hint-btn" class="text-primary hover:text-primary/80 text-sm font-medium flex items-center">
+                                    <i class="fa fa-question-circle mr-1"></i> 查看提示
+                                </button>
+                                <div id="hint-content" class="mt-3 p-3 bg-primary/5 rounded-lg text-sm text-gray-700 hidden">
+                                    <p>尝试先共情学生的感受，认可他的情绪体验，再进一步了解具体情况。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 反馈结果界面 -->
+        <section id="feedback-screen" class="container mx-auto px-4 py-10 hidden">
+            <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="bg-gradient-to-r from-primary to-secondary p-6 text-white text-center">
+                    <h2 class="text-2xl font-bold mb-2">场景训练完成</h2>
+                    <p class="opacity-90">以下是你的表现评估和专业反馈</p>
+                </div>
+                
+                <div class="p-8">
+                    <!-- 评分 -->
+                    <div class="text-center mb-8">
+                        <div class="inline-flex items-center justify-center w-32 h-32 rounded-full bg-primary/10 mb-4">
+                            <span class="text-4xl font-bold text-primary" id="feedback-score">85</span>
+                            <span class="text-xl font-medium text-primary ml-1">分</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800" id="feedback-rating">优秀</h3>
+                        <p class="text-gray-600 mt-2">在学业压力场景中，你的辅导表现良好</p>
+                    </div>
+                    
+                    <!-- 能力评估 -->
+                    <div class="mb-8">
+                        <h4 class="font-bold text-gray-800 mb-4">能力评估</h4>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm text-gray-600">情绪识别与共情</span>
+                                    <span class="text-sm font-medium text-primary">90分</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full" style="width: 90%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm text-gray-600">问题分析与引导</span>
+                                    <span class="text-sm font-medium text-primary">85分</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full" style="width: 85%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm text-gray-600">资源提供与转介</span>
+                                    <span class="text-sm font-medium text-primary">75分</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full" style="width: 75%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm text-gray-600">危机评估与处理</span>
+                                    <span class="text-sm font-medium text-primary">90分</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full" style="width: 90%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 专业反馈 -->
+                    <div class="mb-8 p-4 bg-gray-50 rounded-lg">
+                        <h4 class="font-bold text-gray-800 mb-3">专业反馈</h4>
+                        <p class="text-gray-700 text-sm leading-relaxed" id="feedback-text">
+                            你的表现总体优秀，特别是在共情学生情绪和危机评估方面做得很好。在资源提供方面可以进一步提升，建议熟悉学校现有的心理健康支持资源，以便更精准地为学生提供帮助。记住，作为辅导员，你的角色是提供支持和引导，而非解决学生的所有问题。当学生的情况超出你的专业范围时，及时转介是明智之举。
+                        </p>
+                    </div>
+                    
+                    <!-- 下一步 -->
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button id="another-scenario-btn" class="flex-1 bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg shadow hover:shadow-md transition-all duration-300 flex items-center justify-center">
+                            <i class="fa fa-refresh mr-2"></i> 尝试其他场景
+                        </button>
+                        <button id="review-resources-btn" class="flex-1 bg-white border-2 border-primary text-primary hover:bg-primary/5 font-medium py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center">
+                            <i class="fa fa-book mr-2"></i> 查看学习资源
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 资源中心 -->
+        <section id="resources-screen" class="container mx-auto px-4 py-10 hidden">
+            <div class="mb-10">
+                <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-800 mb-4">心理健康辅导资源中心</h2>
+                <p class="text-gray-600 max-w-3xl">这里提供专业的心理健康辅导知识、工具和参考资料，帮助你提升辅导技能。</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- 左侧：资源分类 -->
+                <div>
+                    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fa fa-folder-open text-primary mr-2"></i> 资源分类
+                        </h3>
+                        <div class="space-y-2">
+                            <button class="resource-category w-full text-left p-3 rounded-lg bg-primary/10 text-primary font-medium flex items-center">
+                                <i class="fa fa-file-text-o mr-3 w-5 text-center"></i>
+                                辅导技巧手册
+                            </button>
+                            <button class="resource-category w-full text-left p-3 rounded-lg hover:bg-gray-50 text-gray-700 font-medium flex items-center transition-colors">
+                                <i class="fa fa-video-camera mr-3 w-5 text-center"></i>
+                                视频教程
+                            </button>
+                            <button class="resource-category w-full text-left p-3 rounded-lg hover:bg-gray-50 text-gray-700 font-medium flex items-center transition-colors">
+                                <i class="fa fa-question-circle-o mr-3 w-5 text-center"></i>
+                                常见问题解答
+                            </button>
+                            <button class="resource-category w-full text-left p-3 rounded-lg hover:bg-gray-50 text-gray-700 font-medium flex items-center transition-colors">
+                                <i class="fa fa-users mr-3 w-5 text-center"></i>
+                                案例分析
+                            </button>
+                            <button class="resource-category w-full text-left p-3 rounded-lg hover:bg-gray-50 text-gray-700 font-medium flex items-center transition-colors">
+                                <i class="fa fa-book mr-3 w-5 text-center"></i>
+                                推荐阅读
+                            </button>
+                            <button class="resource-category w-full text-left p-3 rounded-lg hover:bg-gray-50 text-gray-700 font-medium flex items-center transition-colors">
+                                <i class="fa fa-link mr-3 w-5 text-center"></i>
+                                外部资源链接
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fa fa-calendar-check-o text-primary mr-2"></i> 近期培训
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="border-l-4 border-primary pl-4 py-1">
+                                <h4 class="font-medium text-gray-800">大学生抑郁症识别与干预</h4>
+                                <p class="text-sm text-gray-600 mt-1">2023-10-15 · 线上直播</p>
+                            </div>
+                            <div class="border-l-4 border-gray-300 pl-4 py-1">
+                                <h4 class="font-medium text-gray-800">危机干预技巧工作坊</h4>
+                                <p class="text-sm text-gray-600 mt-1">2023-10-22 · 学术中心B102</p>
+                            </div>
+                            <div class="border-l-4 border-gray-300 pl-4 py-1">
+                                <h4 class="font-medium text-gray-800">积极心理学在辅导中的应用</h4>
+                                <p class="text-sm text-gray-600 mt-1">2023-11-05 · 线上录播</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 右侧：资源列表 -->
+                <div>
+                    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold flex items-center">
+                                <i class="fa fa-file-text-o text-primary mr-2"></i> 辅导技巧手册
+                            </h3>
+                            <div class="relative">
+                                <input type="text" placeholder="搜索资源..." class="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 w-48">
+                                <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-medium text-gray-800 hover:text-primary transition-colors cursor-pointer">学生焦虑情绪的识别与应对指南</h4>
+                                        <p class="text-sm text-gray-600 mt-1">详细介绍如何识别不同类型的焦虑表现，以及有效的应对策略</p>
+                                    </div>
+                                    <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">PDF</span>
+                                </div>
+                                <div class="flex items-center mt-3 text-sm text-gray-500">
+                                    <span class="flex items-center mr-4"><i class="fa fa-download mr-1"></i> 245次</span>
+                                    <span class="flex items-center"><i class="fa fa-calendar mr-1"></i> 2023-09-10</span>
+                                </div>
+                            </div>
+                            
+                            <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-medium text-gray-800 hover:text-primary transition-colors cursor-pointer">有效倾听技巧：建立信任的基础</h4>
+                                        <p class="text-sm text-gray-600 mt-1">学习如何通过积极倾听建立与学生的信任关系，促进有效沟通</p>
+                                    </div>
+                                    <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">PDF</span>
+                                </div>
+                                <div class="flex items-center mt-3 text-sm text-gray-500">
+                                    <span class="flex items-center mr-4"><i class="fa fa-download mr-1"></i> 189次</span>
+                                    <span class="flex items-center"><i class="fa fa-calendar mr-1"></i> 2023-08-25</span>
+                                </div>
+                            </div>
+                            
+                            <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-medium text-gray-800 hover:text-primary transition-colors cursor-pointer">心理健康危机评估与干预流程</h4>
+                                        <p class="text-sm text-gray-600 mt-1">标准化的危机评估工具和干预流程，帮助辅导员应对紧急情况</p>
+                                    </div>
+                                    <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">PDF</span>
+                                </div>
+                                <div class="flex items-center mt-3 text-sm text-gray-500">
+                                    <span class="flex items-center mr-4"><i class="fa fa-download mr-1"></i> 312次</span>
+                                    <span class="flex items-center"><i class="fa fa-calendar mr-1"></i> 2023-09-01</span>
+                                </div>
+                            </div>
+                            
+                            <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-medium text-gray-800 hover:text-primary transition-colors cursor-pointer">转介流程与资源指南</h4>
+                                        <p class="text-sm text-gray-600 mt-1">详细介绍校内校外心理健康资源，以及如何正确进行转介</p>
+                                    </div>
+                                    <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">PDF</span>
+                                </div>
+                                <div class="flex items-center mt-3 text-sm text-gray-500">
+                                    <span class="flex items-center mr-4"><i class="fa fa-download mr-1"></i> 278次</span>
+                                    <span class="flex items-center"><i class="fa fa-calendar mr-1"></i> 2023-08-15</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button class="w-full mt-6 py-2 text-primary hover:text-primary/80 font-medium text-sm border border-primary/30 rounded-lg hover:bg-primary/5 transition-colors">
+                            查看更多资源
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 个人进度 -->
+        <section id="profile-screen" class="container mx-auto px-4 py-10 hidden">
+            <div class="mb-10">
+                <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-800 mb-4">我的学习进度</h2>
+                <p class="text-gray-600 max-w-3xl">跟踪你的学习进度和技能提升，了解自己在不同领域的表现。</p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- 左侧：个人信息和总体进度 -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                        <div class="flex items-center mb-6">
+                            <img src="https://picsum.photos/id/1005/200" alt="个人头像" class="w-16 h-16 rounded-full mr-4">
+                            <div>
+                                <h3 class="font-bold text-xl text-gray-800">张辅导员</h3>
+                                <p class="text-gray-600 text-sm">加入时间：2023-09-01</p>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-gray-100 pt-5">
+                            <h4 class="font-medium text-gray-800 mb-3">总体进度</h4>
+                            <div class="space-y-4">
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span class="text-sm text-gray-600">已完成场景</span>
+                                        <span class="text-sm font-medium text-primary">2/6</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-primary h-2 rounded-full" style="width: 33%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span class="text-sm text-gray-600">平均得分</span>
+                                        <span class="text-sm font-medium text-primary">82分</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-primary h-2 rounded-full" style="width: 82%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span class="text-sm text-gray-600">资源学习</span>
+                                        <span class="text-sm font-medium text-primary">4/12</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-primary h-2 rounded-full" style="width: 33%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h4 class="font-bold text-gray-800 mb-4">技能图谱</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm text-gray-600">情绪识别</span>
+                                    <span class="text-sm font-medium">88分</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full" style="width: 88%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm text-gray-600">沟通技巧</span>
+                                    <span class="text-sm font-medium">85分</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full" style="width: 85%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm text-gray-600">问题评估</span>
+                                    <span class="text-sm font-medium">76分</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full" style="width: 76%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm text-gray-600">干预策略</span>
+                                    <span class="text-sm font-medium">72分</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full" style="width: 72%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm text-gray-600">危机处理</span>
+                                    <span class="text-sm font-medium">80分</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full" style="width: 80%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 右侧：学习记录 -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-xl font-bold mb-6 flex items-center">
+                            <i class="fa fa-history text-primary mr-2"></i> 学习记录
+                        </h3>
+                        
+                        <div class="space-y-6">
+                            <div class="border-l-4 border-primary pl-5 py-1">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-medium text-gray-800">学业压力过大</h4>
+                                        <p class="text-sm text-gray-600 mt-1">完成了该场景的训练</p>
+                                    </div>
+                                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">85分</span>
+                                </div>
+                                <div class="flex items-center mt-3 text-sm text-gray-500">
+                                    <span class="flex items-center"><i class="fa fa-clock-o mr-1"></i> 2023-10-08 14:30</span>
+                                </div>
+                            </div>
+                            
+                            <div class="border-l-4 border-primary pl-5 py-1">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-medium text-gray-800">社交焦虑障碍</h4>
+                                        <p class="text-sm text-gray-600 mt-1">完成了该场景的训练</p>
+                                    </div>
+                                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">79分</span>
+                                </div>
+                                <div class="flex items-center mt-3 text-sm text-gray-500">
+                                    <span class="flex items-center"><i class="fa fa-clock-o mr-1"></i> 2023-10-05 09:15</span>
+                                </div>
+                            </div>
+                            
+                            <div class="border-l-4 border-gray-300 pl-5 py-1">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-medium text-gray-800">学生焦虑情绪的识别与应对指南</h4>
+                                        <p class="text-sm text-gray-600 mt-1">阅读了该资源</p>
+                                    </div>
+                                    <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">已完成</span>
+                                </div>
+                                <div class="flex items-center mt-3 text-sm text-gray-500">
+                                    <span class="flex items-center"><i class="fa fa-clock-o mr-1"></i> 2023-10-01 16:45</span>
+                                </div>
+                            </div>
+                            
+                            <div class="border-l-4 border-gray-300 pl-5 py-1">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-medium text-gray-800">有效倾听技巧：建立信任的基础</h4>
+                                        <p class="text-sm text-gray-600 mt-1">阅读了该资源</p>
+                                    </div>
+                                    <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">已完成</span>
+                                </div>
+                                <div class="flex items-center mt-3 text-sm text-gray-500">
+                                    <span class="flex items-center"><i class="fa fa-clock-o mr-1"></i> 2023-09-28 10:20</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button class="w-full mt-6 py-2 text-primary hover:text-primary/80 font-medium text-sm border border-primary/30 rounded-lg hover:bg-primary/5 transition-colors">
+                            查看更多记录
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 text-white py-10 mt-16">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <i class="fa fa-heart-o text-white text-2xl"></i>
+                        <span class="text-xl font-bold">心灵导航</span>
+                    </div>
+                    <p class="text-gray-400 text-sm">
+                        专为高校辅导员设计的心理健康辅导技能训练平台，助力提升辅导能力，更好地支持学生成长。
+                    </p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-medium mb-4">快速链接</h4>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li><a href="#" class="hover:text-white transition-colors">首页</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">场景库</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">资源中心</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">关于我们</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-medium mb-4">资源分类</h4>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li><a href="#" class="hover:text-white transition-colors">辅导技巧手册</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">视频教程</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">案例分析</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">推荐阅读</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-medium mb-4">联系我们</h4>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li class="flex items-center"><i class="fa fa-envelope-o mr-2"></i> contact@xinlingdaohang.com</li>
+                        <li class="flex items-center"><i class="fa fa-phone mr-2"></i> 400-123-4567</li>
+                        <li class="flex items-center"><i class="fa fa-map-marker mr-2"></i> 北京市海淀区学院路30号</li>
+                    </ul>
+                    <div class="flex space-x-4 mt-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fa fa-weixin text-xl"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fa fa-weibo text-xl"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fa fa-qq text-xl"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-500 text-sm">
+                <p>© 2023 心灵导航 版权所有 | 京ICP备12345678号</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 页面导航逻辑
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取所有屏幕元素
+            const homeScreen = document.getElementById('home-screen');
+            const scenariosScreen = document.getElementById('scenarios-screen');
+            const gameScreen = document.getElementById('game-screen');
+            const feedbackScreen = document.getElementById('feedback-screen');
+            const resourcesScreen = document.getElementById('resources-screen');
+            const profileScreen = document.getElementById('profile-screen');
+            
+            // 导航按钮
+            const navHome = document.getElementById('nav-home');
+            const navScenarios = document.getElementById('nav-scenarios');
+            const navResources = document.getElementById('nav-resources');
+            const navProfile = document.getElementById('nav-profile');
+            const startGameBtn = document.getElementById('start-game-btn');
+            const learnMoreBtn = document.getElementById('learn-more-btn');
+            const exitGameBtn = document.getElementById('exit-game-btn');
+            const anotherScenarioBtn = document.getElementById('another-scenario-btn');
+            const reviewResourcesBtn = document.getElementById('review-resources-btn');
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const hintBtn = document.getElementById('hint-btn');
+            const hintContent = document.getElementById('hint-content');
+            
+            // 场景卡片
+            const scenarioCards = document.querySelectorAll('.scenario-card');
+            
+            // 对话选择按钮
+            const choiceBtns = document.querySelectorAll('.choice-btn');
+            
+            // 显示指定屏幕，隐藏其他所有屏幕
+            function showScreen(screen) {
+                homeScreen.classList.add('hidden');
+                scenariosScreen.classList.add('hidden');
+                gameScreen.classList.add('hidden');
+                feedbackScreen.classList.add('hidden');
+                resourcesScreen.classList.add('hidden');
+                profileScreen.classList.add('hidden');
+                
+                screen.classList.remove('hidden');
+            }
+            
+            // 导航栏滚动效果
+            window.addEventListener('scroll', function() {
+                const nav = document.getElementById('main-nav');
+                if (window.scrollY > 10) {
+                    nav.classList.add('py-2', 'shadow-lg');
+                    nav.classList.remove('py-3', 'shadow-md');
+                } else {
+                    nav.classList.add('py-3', 'shadow-md');
+                    nav.classList.remove('py-2', 'shadow-lg');
+                }
+            });
+            
+            // 移动端菜单切换
+            mobileMenuButton.addEventListener('click', function() {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // 导航事件监听
+            navHome.addEventListener('click', function(e) {
+                e.preventDefault();
+                showScreen(homeScreen);
+                mobileMenu.classList.add('hidden');
+            });
+            
+            navScenarios.addEventListener('click', function(e) {
+                e.preventDefault();
+                showScreen(scenariosScreen);
+                mobileMenu.classList.add('hidden');
+            });
+            
+            navResources.addEventListener('click', function(e) {
+                e.preventDefault();
+                showScreen(resourcesScreen);
+                mobileMenu.classList.add('hidden');
+            });
+            
+            navProfile.addEventListener('click', function(e) {
+                e.preventDefault();
+                showScreen(profileScreen);
+                mobileMenu.classList.add('hidden');
+            });
+            
+            startGameBtn.addEventListener('click', function() {
+                showScreen(scenariosScreen);
+            });
+            
+            learnMoreBtn.addEventListener('click', function() {
+                showScreen(resourcesScreen);
+            });
+            
+            exitGameBtn.addEventListener('click', function() {
+                if (confirm('确定要退出当前场景吗？进度将不会保存。')) {
+                    showScreen(scenariosScreen);
+                }
+            });
+            
+            anotherScenarioBtn.addEventListener('click', function() {
+                showScreen(scenariosScreen);
+            });
+            
+            reviewResourcesBtn.addEventListener('click', function() {
+                showScreen(resourcesScreen);
+            });
+            
+            // 提示按钮切换
+            hintBtn.addEventListener('click', function() {
+                hintContent.classList.toggle('hidden');
+            });
+            
+            // 场景选择
+            scenarioCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const scenario = this.getAttribute('data-scenario');
+                    // 更新当前场景标题
+                    const scenarioTitle = document.getElementById('current-scenario-title');
+                    switch(scenario) {
+                        case 'academic-stress':
+                            scenarioTitle.textContent = '学业压力过大';
+                            break;
+                        case 'social-anxiety':
+                            scenarioTitle.textContent = '社交焦虑障碍';
+                            break;
+                        case 'depression':
+                            scenarioTitle.textContent = '抑郁倾向识别';
+                            break;
+                        case 'family-issues':
+                            scenarioTitle.textContent = '家庭关系问题';
+                            break;
+                        case 'identity-crisis':
+                            scenarioTitle.textContent = '自我认同危机';
+                            break;
+                        case 'addiction':
+                            scenarioTitle.textContent = '网络成瘾问题';
+                            break;
+                    }
+                    showScreen(gameScreen);
+                    // 重置对话容器
+                    resetGame();
+                });
+            });
+            
+            // 重置游戏状态
+            function resetGame() {
+                const dialogContainer = document.getElementById('dialog-container');
+                dialogContainer.innerHTML = `
+                    <div class="flex mb-6 dialog-appear">
+                        <img src="https://picsum.photos/id/1012/100" alt="学生头像" class="w-12 h-12 rounded-full mr-4">
+                        <div class="bg-gray-100 rounded-lg rounded-tl-none px-4 py-3 max-w-md">
+                            <p class="text-gray-800">老师，我最近感觉压力特别大，马上要期末考试了，我担心考不好，晚上总是睡不着觉。</p>
+                        </div>
+                    </div>
+                `;
+                
+                // 重置计时器
+                startTimer();
+            }
+            
+            // 计时器功能
+            let timerInterval;
+            let seconds = 0;
+            
+            function startTimer() {
+                // 清除之前的计时器
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                }
+                seconds = 0;
+                updateTimerDisplay();
+                
+                timerInterval = setInterval(function() {
+                    seconds++;
+                    updateTimerDisplay();
+                }, 1000);
+            }
+            
+            function updateTimerDisplay() {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                const timerDisplay = document.getElementById('game-timer');
+                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+            }
+            
+            // 对话选择处理
+            choiceBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const choice = this.getAttribute('data-choice');
+                    const dialogContainer = document.getElementById('dialog-container');
+                    const choicesContainer = document.getElementById('choices-container');
+                    
+                    // 添加辅导员的回应
+                    let counselorResponse = '';
+                    switch(choice) {
+                        case '1':
+                            counselorResponse = '"别担心，大家考试前都会紧张，过几天就好了。"';
+                            break;
+                        case '2':
+                            counselorResponse = '"我能看出你现在确实很焦虑。能具体说说是什么让你最担心吗？"';
+                            break;
+                        case '3':
+                            counselorResponse = '"你应该调整一下学习方法，制定一个复习计划，这样就不会那么紧张了。"';
+                            break;
+                        case '4':
+                            counselorResponse = '"听起来你压力很大，已经影响到睡眠了。我们可以一起想办法解决这个问题。"';
+                            break;
+                    }
+                    
+                    const counselorHtml = `
+                        <div class="flex justify-end mb-6 dialog-appear">
+                            <div class="bg-primary text-white rounded-lg rounded-tr-none px-4 py-3 max-w-md">
+                                <p>${counselorResponse}</p>
+                            </div>
+                            <img src="https://picsum.photos/id/1005/100" alt="辅导员头像" class="w-12 h-12 rounded-full ml-4">
+                        </div>
+                    `;
+                    
+                    dialogContainer.insertAdjacentHTML('beforeend', counselorHtml);
+                    dialogContainer.scrollTop = dialogContainer.scrollHeight;
+                    
+                    // 根据选择显示不同的学生回应
+                    setTimeout(function() {
+                        let studentResponse = '';
+                        if (choice == '2' || choice == '4') {
+                            // 积极回应
+                            studentResponse = '谢谢老师，我主要担心高等数学，这门课太难了，我怕挂科影响毕业。最近经常学到凌晨，但感觉什么都没记住。';
+                            
+                            // 显示新的选择
+                            choicesContainer.innerHTML = `
+                                <h4 class="font-medium text-gray-700 mb-4">你会如何回应？</h4>
+                                <div class="space-y-3">
+                                    <button class="choice-btn w-full text-left bg-white border border-gray-200 rounded-lg px-4 py-3 hover:bg-primary/5 hover:border-primary transition-colors" data-choice="5">
+                                        <p>"很多学生都觉得高数难，你可以找学习好的同学帮帮忙，或者报个补习班。"</p>
+                                    </button>
+                                    <button class="choice-btn w-full text-left bg-white border border-gray-200 rounded-lg px-4 py-3 hover:bg-primary/5 hover:border-primary transition-colors" data-choice="6">
+                                        <p>"听起来你对自己要求很高，也很努力。我们可以一起分析一下你的学习情况，看看哪里可以调整。"</p>
+                                    </button>
+                                    <button class="choice-btn w-full text-left bg-white border border-gray-200 rounded-lg px-4 py-3 hover:bg-primary/5 hover:border-primary transition-colors" data-choice="7">
+                                        <p>"不要给自己太大压力，挂科了还可以补考。你应该注意休息，睡眠不好反而影响学习效率。"</p>
+                                    </button>
+                                </div>
+                            `;
+                            
+                            // 为新的选择按钮添加事件监听
+                            const newChoiceBtns = document.querySelectorAll('.choice-btn');
+                            newChoiceBtns.forEach(newBtn => {
+                                newBtn.addEventListener('click', handleSecondChoice);
+                            });
+                        } else {
+                            // 不太理想的回应
+                            studentResponse = '嗯...也许吧。(低头沉默，显得有些失望)';
+                            
+                            // 显示新的选择
+                            choicesContainer.innerHTML = `
+                                <h4 class="font-medium text-gray-700 mb-4">你会如何回应？</h4>
+                                <div class="space-y-3">
+                                    <button class="choice-btn w-full text-left bg-white border border-gray-200 rounded-lg px-4 py-3 hover:bg-primary/5 hover:border-primary transition-colors" data-choice="8">
+                                        <p>"你好像还有其他顾虑？可以跟我说说。"</p>
+                                    </button>
+                                    <button class="choice-btn w-full text-left bg-white border border-gray-200 rounded-lg px-4 py-3 hover:bg-primary/5 hover:border-primary transition-colors" data-choice="9">
+                                        <p>"如果你愿意的话，可以预约学校的心理咨询，他们可能会给你一些更好的建议。"</p>
+                                    </button>
+                                </div>
+                            `;
+                            
+                            // 为新的选择按钮添加事件监听
+                            const newChoiceBtns = document.querySelectorAll('.choice-btn');
+                            newChoiceBtns.forEach(newBtn => {
+                                newBtn.addEventListener('click', handleSecondChoice);
+                            });
+                        }
+                        
+                        const studentHtml = `
+                            <div class="flex mb-6 dialog-appear">
+                                <img src="https://picsum.photos/id/1012/100" alt="学生头像" class="w-12 h-12 rounded-full mr-4">
+                                <div class="bg-gray-100 rounded-lg rounded-tl-none px-4 py-3 max-w-md">
+                                    <p class="text-gray-800">${studentResponse}</p>
+                                </div>
+                            </div>
+                        `;
+                        
+                        dialogContainer.insertAdjacentHTML('beforeend', studentHtml);
+                        dialogContainer.scrollTop = dialogContainer.scrollHeight;
+                    }, 1000);
+                });
+            });
+            
+            // 处理第二轮选择
+            function handleSecondChoice() {
+                const choice = this.getAttribute('data-choice');
+                const dialogContainer = document.getElementById('dialog-container');
+                const choicesContainer = document.getElementById('choices-container');
+                
+                // 添加辅导员的回应
+                let counselorResponse = '';
+                switch(choice) {
+                    case '5':
+                        counselorResponse = '"很多学生都觉得高数难，你可以找学习好的同学帮帮忙，或者报个补习班。"';
+                        break;
+                    case '6':
+                        counselorResponse = '"听起来你对自己要求很高，也很努力。我们可以一起分析一下你的学习情况，看看哪里可以调整。另外，学校有高数辅导课，每周三次，我可以帮你报名。"';
+                        break;
+                    case '7':
+                        counselorResponse = '"不要给自己太大压力，挂科了还可以补考。你应该注意休息，睡眠不好反而影响学习效率。学校心理咨询中心有放松训练的团体活动，或许对你有帮助。"';
+                        break;
+                    case '8':
+                        counselorResponse = '"你好像还有其他顾虑？可以跟我说说。"';
+                        break;
+                    case '9':
+                        counselorResponse = '"如果你愿意的话，可以预约学校的心理咨询，他们可能会给你一些更好的建议。"';
+                        break;
+                }
+                
+                const counselorHtml = `
+                    <div class="flex justify-end mb-6 dialog-appear">
+                        <div class="bg-primary text-white rounded-lg rounded-tr-none px-4 py-3 max-w-md">
+                            <p>${counselorResponse}</p>
+                        </div>
+                        <img src="https://picsum.photos/id/1005/100" alt="辅导员头像" class="w-12 h-12 rounded-full ml-4">
+                    </div>
+                `;
+                
+                dialogContainer.insertAdjacentHTML('beforeend', counselorHtml);
+                dialogContainer.scrollTop = dialogContainer.scrollHeight;
+                
+                // 显示最终学生回应
+                setTimeout(function() {
+                    let studentResponse = '';
+                    if (choice == '6' || choice == '7') {
+                        studentResponse = '谢谢老师，我感觉好多了。我愿意尝试一下辅导课/放松训练。我还担心家里会失望，但听您这么说，我觉得可以和他们好好沟通一下。';
+                    } else {
+                        studentResponse = '谢谢老师，我再考虑一下。';
+                    }
+                    
+                    const studentHtml = `
+                        <div class="flex mb-6 dialog-appear">
+                            <img src="https://picsum.photos/id/1012/100" alt="学生头像" class="w-12 h-12 rounded-full mr-4">
+                            <div class="bg-gray-100 rounded-lg rounded-tl-none px-4 py-3 max-w-md">
+                                <p class="text-gray-800">${studentResponse}</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    dialogContainer.insertAdjacentHTML('beforeend', studentHtml);
+                    dialogContainer.scrollTop = dialogContainer.scrollHeight;
+                    
+                    // 显示结束信息并切换到反馈页面
+                    setTimeout(function() {
+                        // 清除计时器
+                        if (timerInterval) {
+                            clearInterval(timerInterval);
+                        }
+                        
+                        // 根据选择计算分数
+                        let score = 0;
+                        if (choice == '6') {
+                            score = 90;
+                        } else if (choice == '7' || choice == '2' || choice == '4') {
+                            score = 85;
+                        } else if (choice == '5' || choice == '8') {
+                            score = 75;
+                        } else {
+                            score = 65;
+                        }
+                        
+                        // 更新反馈分数
+                        document.getElementById('feedback-score').textContent = score;
+                        
+                        // 更新反馈等级
+                        const feedbackRating = document.getElementById('feedback-rating');
+                        if (score >= 90) {
+                            feedbackRating.textContent = '卓越';
+                            feedbackRating.className = 'text-xl font-bold text-secondary';
+                        } else if (score >= 80) {
+                            feedbackRating.textContent = '优秀';
+                            feedbackRating.className = 'text-xl font-bold text-primary';
+                        } else if (score >= 70) {
+                            feedbackRating.textContent = '良好';
+                            feedbackRating.className = 'text-xl font-bold text-accent';
+                        } else {
+                            feedbackRating.textContent = '有待提高';
+                            feedbackRating.className = 'text-xl font-bold text-neutral';
+                        }
+                        
+                        showScreen(feedbackScreen);
+                    }, 2000);
+                }, 1000);
+            }
+        });
+    </script>
+</body>
+</html>

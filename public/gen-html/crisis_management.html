@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学校危机管理与应急处理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .container {
+            text-align: center;
+            color: white;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: crisis-alert 2s ease-in-out infinite;
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .crisis-steps {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .step {
+            text-align: center;
+            padding: 20px 15px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .step::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .step:hover::after {
+            transform: scaleX(1);
+        }
+        
+        .step:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .step-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .step-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .step-desc {
+            font-size: 11px;
+            opacity: 0.8;
+            line-height: 1.3;
+        }
+        
+        @keyframes crisis-alert {
+            0%, 100% { 
+                transform: scale(1);
+                filter: drop-shadow(0 0 15px rgba(231, 76, 60, 0.4));
+            }
+            50% { 
+                transform: scale(1.05);
+                filter: drop-shadow(0 0 25px rgba(192, 57, 43, 0.6));
+            }
+        }
+        
+        .emergency-signals {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .signal {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            animation: emergency-pulse 3s ease-in-out infinite;
+        }
+        
+        .signal:nth-child(1) {
+            top: 20%;
+            left: 15%;
+            animation-delay: 0s;
+        }
+        
+        .signal:nth-child(2) {
+            top: 30%;
+            right: 20%;
+            animation-delay: 1s;
+        }
+        
+        .signal:nth-child(3) {
+            bottom: 25%;
+            left: 25%;
+            animation-delay: 2s;
+        }
+        
+        .signal:nth-child(4) {
+            bottom: 35%;
+            right: 15%;
+            animation-delay: 0.5s;
+        }
+        
+        @keyframes emergency-pulse {
+            0%, 100% {
+                opacity: 0.3;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(2);
+            }
+        }
+        
+        .alert-waves {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .wave {
+            position: absolute;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: alert-expand 4s ease-in-out infinite;
+        }
+        
+        .wave:nth-child(1) {
+            width: 100px;
+            height: 100px;
+            top: 15%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+        
+        .wave:nth-child(2) {
+            width: 120px;
+            height: 120px;
+            bottom: 20%;
+            right: 15%;
+            animation-delay: 2s;
+        }
+        
+        @keyframes alert-expand {
+            0% {
+                transform: scale(0.5);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+        
+        .response-network {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .network-line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.2), rgba(231, 76, 60, 0.5), rgba(255, 255, 255, 0.2));
+            animation: network-connect 5s ease-in-out infinite;
+        }
+        
+        .network-line:nth-child(1) {
+            top: 40%;
+            left: 20%;
+            width: 60%;
+            transform: rotate(25deg);
+            animation-delay: 0s;
+        }
+        
+        .network-line:nth-child(2) {
+            top: 60%;
+            right: 25%;
+            width: 50%;
+            transform: rotate(-20deg);
+            animation-delay: 2.5s;
+        }
+        
+        @keyframes network-connect {
+            0%, 100% {
+                opacity: 0.3;
+                transform: rotate(25deg) scaleX(1);
+            }
+            50% {
+                opacity: 0.7;
+                transform: rotate(25deg) scaleX(1.1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="emergency-signals">
+        <div class="signal"></div>
+        <div class="signal"></div>
+        <div class="signal"></div>
+        <div class="signal"></div>
+    </div>
+    
+    <div class="alert-waves">
+        <div class="wave"></div>
+        <div class="wave"></div>
+    </div>
+    
+    <div class="response-network">
+        <div class="network-line"></div>
+        <div class="network-line"></div>
+    </div>
+    
+    <div class="container">
+        <div class="icon">🚨🏫</div>
+        <h1 class="title">学校危机管理与应急处理</h1>
+        <p class="subtitle">建立完善的危机管理体系<br>确保校园安全和师生平安</p>
+        
+        <div class="crisis-steps">
+            <div class="step">
+                <span class="step-icon">⚠️</span>
+                <div class="step-name">风险识别</div>
+                <div class="step-desc">及时发现潜在危机信号</div>
+            </div>
+            <div class="step">
+                <span class="step-icon">📋</span>
+                <div class="step-name">应急预案</div>
+                <div class="step-desc">制定详细的应急处理方案</div>
+            </div>
+            <div class="step">
+                <span class="step-icon">🚀</span>
+                <div class="step-name">快速响应</div>
+                <div class="step-desc">启动应急机制迅速处置</div>
+            </div>
+            <div class="step">
+                <span class="step-icon">🔄</span>
+                <div class="step-name">恢复重建</div>
+                <div class="step-desc">危机后的恢复和总结</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

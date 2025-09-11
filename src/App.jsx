@@ -17,6 +17,14 @@ import HomeworkCenter from './components/HomeworkCenter'
 import CourseManagement from './components/CourseManagement'
 import ClassManagement from './components/ClassManagement'
 import StudentManagement from './components/StudentManagement'
+import SimulationCenter from './components/SimulationCenter'
+import ResourceLibrary from './components/ResourceLibrary'
+import AssessmentSystem from './components/AssessmentSystem'
+import MentalHealthCoach from './components/MentalHealthCoach'
+import MyProgress from './components/MyProgress'
+import ScenarioLibrary from './components/ScenarioLibrary'
+
+import ScenarioSimulationNew from './components/ScenarioSimulationNew'
 
 import LearningAnalyticsCenter from './components/LearningAnalyticsCenter'
 import './App.css'
@@ -255,6 +263,43 @@ function App() {
               <ClassManagement />
             ) : currentView === 'student-management' ? (
               <StudentManagement />
+            ) : currentView === 'simulation-center' ? (
+              <SimulationCenter />
+            ) : currentView === 'skill-training' ? (
+              <SimulationCenter />
+            ) : currentView === 'resource-library' ? (
+              <ResourceLibrary />
+            ) : currentView === 'mental-health-coach' ? (
+              <MentalHealthCoach />
+            ) : currentView === 'my-progress' ? (
+              <MyProgress />
+            ) : currentView === 'scenario-library' ? (
+              <ScenarioLibrary />
+            ) : currentView === 'scenario-simulation' ? (
+              <ScenarioSimulationNew />
+            ) : currentView === 'assessment-system' ? (
+              <AssessmentSystem 
+                results={{
+                  score: 85,
+                  duration: 1200,
+                  scenarioId: 'scenario-1',
+                  completedAt: new Date().toISOString(),
+                  skillScores: {
+                    empathy: 8.5,
+                    listening: 7.8,
+                    problemIdentification: 9.2,
+                    intervention: 8.0,
+                    ethics: 8.8
+                  },
+                  responses: [
+                    { step: 1, choice: 'A', type: 'empathy', score: 8 },
+                    { step: 2, choice: 'B', type: 'listening', score: 7 },
+                    { step: 3, choice: 'A', type: 'intervention', score: 9 }
+                  ]
+                }}
+                onBack={() => setCurrentView('home')}
+                onRetry={() => setCurrentView('skill-training')}
+              />
             ) : (
               <MainContent 
                 currentView={currentView}

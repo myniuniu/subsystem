@@ -37,7 +37,14 @@ import {
   BookOpen,
   School,
   UserCheck,
-  ExternalLink
+  ExternalLink,
+  Brain,
+  Target,
+  Database,
+  ClipboardCheck,
+  Heart,
+  TrendingUp,
+  Library
 } from 'lucide-react'
 import './Sidebar.css'
 
@@ -337,12 +344,29 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       label: '教学管理',
       color: '#1890ff',
       type: 'group', // 分组菜单
-      expanded: false, // 是否展开
+      expanded: true, // 是否展开
       children: [
         { id: 'course-management', icon: BookOpen, label: '课程管理', color: '#1890ff' },
         { id: 'class-management', icon: School, label: '班级管理', color: '#52c41a' },
         { id: 'student-management', icon: UserCheck, label: '学生管理', color: '#722ed1' },
         { id: 'homework-center', icon: BookMarked, label: '作业管理中心', color: '#13c2c2' }
+      ]
+    },
+    {
+      id: 'simulation-system',
+      icon: Brain,
+      label: '场景模拟仿真系统',
+      color: '#eb2f96',
+      type: 'group',
+      expanded: false,
+      children: [
+        { id: 'skill-training', icon: Target, label: '技能训练', color: '#eb2f96' },
+        { id: 'resource-library', icon: Database, label: '资源库', color: '#52c41a' },
+        { id: 'scenario-library', icon: Library, label: '场景库管理', color: '#fa8c16' },
+        { id: 'assessment-system', icon: ClipboardCheck, label: '评估系统', color: '#722ed1' },
+        { id: 'scenario-simulation', icon: Brain, label: '场景模拟', color: '#13c2c2' },
+        { id: 'mental-health-coach', icon: Heart, label: '心理健康辅导', color: '#f56565' },
+        { id: 'my-progress', icon: TrendingUp, label: '我的进度', color: '#1890ff' }
       ]
     },
     {

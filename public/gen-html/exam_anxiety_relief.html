@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考试焦虑缓解训练</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .container {
+            text-align: center;
+            color: white;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: breathe 3s ease-in-out infinite;
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .techniques {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+        }
+        
+        .technique {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            margin: 0 5px;
+            flex: 1;
+            transition: transform 0.3s ease;
+        }
+        
+        .technique:hover {
+            transform: translateY(-5px);
+        }
+        
+        .technique-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .technique-name {
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .floating-elements {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .floating-element {
+            position: absolute;
+            opacity: 0.3;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .floating-element:nth-child(1) {
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+        
+        .floating-element:nth-child(2) {
+            top: 60%;
+            right: 15%;
+            animation-delay: 2s;
+        }
+        
+        .floating-element:nth-child(3) {
+            bottom: 30%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-elements">
+        <div class="floating-element">🌸</div>
+        <div class="floating-element">🍃</div>
+        <div class="floating-element">✨</div>
+    </div>
+    
+    <div class="container">
+        <div class="icon">🧘‍♀️</div>
+        <h1 class="title">考试焦虑缓解训练</h1>
+        <p class="subtitle">通过科学的放松技巧和认知重构<br>帮助你从容面对考试挑战</p>
+        
+        <div class="techniques">
+            <div class="technique">
+                <div class="technique-icon">🫁</div>
+                <div class="technique-name">呼吸练习</div>
+            </div>
+            <div class="technique">
+                <div class="technique-icon">🧠</div>
+                <div class="technique-name">正念冥想</div>
+            </div>
+            <div class="technique">
+                <div class="technique-icon">💭</div>
+                <div class="technique-name">积极对话</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

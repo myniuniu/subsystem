@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园霸凌应对策略</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .container {
+            text-align: center;
+            color: white;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .strategies {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .strategy {
+            text-align: center;
+            padding: 20px 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .strategy:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .strategy-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .strategy-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .strategy-desc {
+            font-size: 11px;
+            opacity: 0.8;
+            line-height: 1.3;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .shield-animation {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            animation: shield-rotate 8s linear infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes shield-rotate {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        .support-network {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .support-dot {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: twinkle 3s ease-in-out infinite;
+        }
+        
+        .support-dot:nth-child(1) { top: 15%; left: 20%; animation-delay: 0s; }
+        .support-dot:nth-child(2) { top: 25%; right: 25%; animation-delay: 1s; }
+        .support-dot:nth-child(3) { bottom: 20%; left: 30%; animation-delay: 2s; }
+        .support-dot:nth-child(4) { bottom: 30%; right: 20%; animation-delay: 0.5s; }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); }
+        }
+    </style>
+</head>
+<body>
+    <div class="shield-animation"></div>
+    
+    <div class="support-network">
+        <div class="support-dot"></div>
+        <div class="support-dot"></div>
+        <div class="support-dot"></div>
+        <div class="support-dot"></div>
+    </div>
+    
+    <div class="container">
+        <div class="icon">🛡️</div>
+        <h1 class="title">校园霸凌应对策略</h1>
+        <p class="subtitle">学会自我保护，建立自信心<br>创造安全友善的校园环境</p>
+        
+        <div class="strategies">
+            <div class="strategy">
+                <span class="strategy-icon">🚨</span>
+                <div class="strategy-name">及时求助</div>
+                <div class="strategy-desc">向老师、家长或信任的成人寻求帮助</div>
+            </div>
+            <div class="strategy">
+                <span class="strategy-icon">💪</span>
+                <div class="strategy-name">自我保护</div>
+                <div class="strategy-desc">学习自我防护技巧，保护人身安全</div>
+            </div>
+            <div class="strategy">
+                <span class="strategy-icon">🤝</span>
+                <div class="strategy-name">同伴支持</div>
+                <div class="strategy-desc">团结同学，互相帮助和支持</div>
+            </div>
+            <div class="strategy">
+                <span class="strategy-icon">💎</span>
+                <div class="strategy-name">建立自信</div>
+                <div class="strategy-desc">培养自信心，提升心理韧性</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
