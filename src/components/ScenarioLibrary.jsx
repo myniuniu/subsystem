@@ -559,7 +559,7 @@ const ScenarioLibrary = () => {
     <div className="scenario-library">
       <div className="scenario-library-header">
         <div className="header-title">
-          <h2>场景库管理</h2>
+          <h2>场景模拟</h2>
           <p>管理和运行交互式教学场景</p>
         </div>
         <div className="header-actions">

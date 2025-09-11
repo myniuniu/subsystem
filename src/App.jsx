@@ -24,8 +24,6 @@ import MentalHealthCoach from './components/MentalHealthCoach'
 import MyProgress from './components/MyProgress'
 import ScenarioLibrary from './components/ScenarioLibrary'
 
-import ScenarioSimulationNew from './components/ScenarioSimulationNew'
-
 import LearningAnalyticsCenter from './components/LearningAnalyticsCenter'
 import './App.css'
 
@@ -275,8 +273,6 @@ function App() {
               <MyProgress />
             ) : currentView === 'scenario-library' ? (
               <ScenarioLibrary />
-            ) : currentView === 'scenario-simulation' ? (
-              <ScenarioSimulationNew />
             ) : currentView === 'assessment-system' ? (
               <AssessmentSystem 
                 results={{
