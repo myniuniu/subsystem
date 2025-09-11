@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, BookOpen, Video, FileText, Download, Star, Eye, Clock, Tag, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Search, Filter, BookOpen, Video, FileText, Download, Star, Eye, Clock, Tag, ChevronRight } from 'lucide-react';
 import './ResourceLibrary.css';
 
 const ResourceLibrary = ({ onBack }) => {
@@ -237,11 +237,6 @@ const ResourceLibrary = ({ onBack }) => {
       {/* 头部 */}
       <div className="library-header">
         <div className="header-nav">
-          <button className="back-button" onClick={onBack}>
-            <ArrowLeft size={20} />
-            返回
-          </button>
-          
           <h1 className="library-title">
             <BookOpen size={24} />
             心理健康资源库
