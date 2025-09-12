@@ -1,0 +1,91 @@
+<svg width="400" height="200" viewBox="0 0 400 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景渐变 -->
+  <defs>
+    <linearGradient id="geoBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f0f9ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e0f2fe;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="geoIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0ea5e9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0284c7;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="landmass" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#22c55e;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#16a34a;stop-opacity:0.6" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="400" height="200" fill="url(#geoBg)" rx="8"/>
+  
+  <!-- 地图界面 -->
+  <g transform="translate(200, 100)">
+    <!-- 地图边框 -->
+    <rect x="-80" y="-50" width="160" height="100" fill="white" stroke="url(#geoIcon)" stroke-width="3" rx="8"/>
+    
+    <!-- 陆地区域 -->
+    <g transform="translate(-80, -50)">
+      <!-- 大陆1 -->
+      <path d="M 20 20 Q 40 15 60 25 Q 80 20 100 30 Q 120 25 140 35 Q 130 50 110 55 Q 90 60 70 55 Q 50 50 30 45 Q 15 40 20 20 Z" fill="url(#landmass)"/>
+      
+      <!-- 大陆2 -->
+      <path d="M 30 65 Q 50 60 70 70 Q 90 65 110 75 Q 100 85 80 80 Q 60 85 40 80 Q 25 75 30 65 Z" fill="url(#landmass)"/>
+      
+      <!-- 小岛 -->
+      <ellipse cx="120" cy="70" rx="8" ry="5" fill="url(#landmass)"/>
+      <ellipse cx="40" cy="35" rx="5" ry="3" fill="url(#landmass)"/>
+    </g>
+    
+    <!-- 网格线 -->
+    <g opacity="0.3" stroke="url(#geoIcon)" stroke-width="1">
+      <!-- 经线 -->
+      <line x1="-60" y1="-50" x2="-60" y2="50"/>
+      <line x1="-20" y1="-50" x2="-20" y2="50"/>
+      <line x1="20" y1="-50" x2="20" y2="50"/>
+      <line x1="60" y1="-50" x2="60" y2="50"/>
+      
+      <!-- 纬线 -->
+      <line x1="-80" y1="-30" x2="80" y2="-30"/>
+      <line x1="-80" y1="-10" x2="80" y2="-10"/>
+      <line x1="-80" y1="10" x2="80" y2="10"/>
+      <line x1="-80" y1="30" x2="80" y2="30"/>
+    </g>
+    
+    <!-- 标记点 -->
+    <g fill="#ef4444">
+      <circle cx="-30" cy="-20" r="3"/>
+      <circle cx="10" cy="15" r="3"/>
+      <circle cx="40" cy="-10" r="3"/>
+      <!-- 标记图标 -->
+      <path d="M -30 -25 L -30 -15 L -25 -20 Z" fill="#ef4444"/>
+      <path d="M 10 10 L 10 20 L 15 15 Z" fill="#ef4444"/>
+      <path d="M 40 -15 L 40 -5 L 45 -10 Z" fill="#ef4444"/>
+    </g>
+  </g>
+  
+  <!-- 工具栏 -->
+  <g transform="translate(50, 30)">
+    <rect x="0" y="0" width="80" height="20" fill="white" stroke="url(#geoIcon)" stroke-width="2" rx="4"/>
+    <circle cx="10" cy="10" r="3" fill="url(#geoIcon)"/>
+    <rect x="20" y="7" width="6" height="6" fill="url(#geoIcon)"/>
+    <polygon points="35,7 38,13 41,7" fill="url(#geoIcon)"/>
+    <line x1="50" y1="7" x2="56" y2="13" stroke="url(#geoIcon)" stroke-width="2"/>
+    <line x1="50" y1="13" x2="56" y2="7" stroke="url(#geoIcon)" stroke-width="2"/>
+    <text x="65" y="12" font-family="Arial" font-size="8" fill="url(#geoIcon)">GIS</text>
+  </g>
+  
+  <!-- 坐标装饰 -->
+  <g opacity="0.5" fill="#0284c7">
+    <text x="320" y="40" font-family="monospace" font-size="10">120°E</text>
+    <text x="320" y="160" font-family="monospace" font-size="10">30°N</text>
+    <text x="60" y="170" font-family="monospace" font-size="10">GPS</text>
+  </g>
+  
+  <!-- 标题 -->
+  <text x="200" y="160" text-anchor="middle" fill="#0c4a6e" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="600">
+    地理信息系统
+  </text>
+  <text x="200" y="180" text-anchor="middle" fill="#075985" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">
+    GIS数据分析
+  </text>
+</svg>

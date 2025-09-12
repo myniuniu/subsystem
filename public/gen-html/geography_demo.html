@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地理演示教学</title>
+    <link rel="stylesheet" href="geography_demo.css">
+</head>
+<body>
+    <div class="demo-container">
+        <!-- 头部标题 -->
+        <header class="demo-header">
+            <h1>地理演示教学</h1>
+            <p>AI智能中心 - 交互式地理可视化平台</p>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <div class="main-content">
+            <!-- 左侧控制面板 -->
+            <div class="control-panel">
+                <!-- 地理主题选择 -->
+                <div class="panel-section">
+                    <h3>地理主题</h3>
+                    <select id="geoTopic" class="control-select">
+                        <option value="earth_structure">地球结构</option>
+                        <option value="plate_tectonics">板块构造</option>
+                        <option value="climate_zones">气候带分布</option>
+                        <option value="ocean_currents">洋流系统</option>
+                        <option value="landforms">地形地貌</option>
+                        <option value="weather_systems">天气系统</option>
+                        <option value="solar_system">太阳系</option>
+                        <option value="map_projections">地图投影</option>
+                    </select>
+                </div>
+
+                <!-- 地球参数 -->
+                <div class="panel-section">
+                    <h3>地球参数</h3>
+                    <div class="parameter-controls">
+                        <div class="parameter-control">
+                            <label>自转速度:</label>
+                            <input type="range" id="rotationSpeed" min="0" max="5" step="0.1" value="1">
+                            <span id="rotationSpeedValue">1.0x</span>
+                        </div>
+                        <div class="parameter-control">
+                            <label>倾斜角度:</label>
+                            <input type="range" id="tiltAngle" min="0" max="45" step="1" value="23.5">
+                            <span id="tiltAngleValue">23.5°</span>
+                        </div>
+                        <div class="parameter-control">
+                            <label>公转位置:</label>
+                            <input type="range" id="orbitPosition" min="0" max="360" step="1" value="0">
+                            <span id="orbitPositionValue">0°</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 视图控制 -->
+                <div class="panel-section">
+                    <h3>视图控制</h3>
+                    <div class="view-controls">
+                        <div class="view-buttons">
+                            <button id="viewGlobal" class="btn btn-small active">全球视图</button>
+                            <button id="viewRegional" class="btn btn-small">区域视图</button>
+                            <button id="viewLocal" class="btn btn-small">局部视图</button>
+                        </div>
+                        <div class="zoom-control">
+                            <label>缩放级别:</label>
+                            <input type="range" id="zoomLevel" min="0.5" max="5" step="0.1" value="1">
+                            <span id="zoomLevelValue">1.0x</span>
+                        </div>
+                        <div class="rotation-controls">
+                            <div class="rotation-control">
+                                <label>经度:</label>
+                                <input type="range" id="longitude" min="-180" max="180" step="1" value="0">
+                                <span id="longitudeValue">0°</span>
+                            </div>
+                            <div class="rotation-control">
+                                <label>纬度:</label>
+                                <input type="range" id="latitude" min="-90" max="90" step="1" value="0">
+                                <span id="latitudeValue">0°</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 图层控制 -->
+                <div class="panel-section">
+                    <h3>图层显示</h3>
+                    <div class="layer-controls">
+                        <div class="layer-item">
+                            <label>
+                                <input type="checkbox" id="showContinents" checked>
+                                大陆轮廓
+                            </label>
+                        </div>
+                        <div class="layer-item">
+                            <label>
+                                <input type="checkbox" id="showOceans" checked>
+                                海洋
+                            </label>
+                        </div>
+                        <div class="layer-item">
+                            <label>
+                                <input type="checkbox" id="showMountains">
+                                山脉
+                            </label>
+                        </div>
+                        <div class="layer-item">
+                            <label>
+                                <input type="checkbox" id="showRivers">
+                                河流
+                            </label>
+                        </div>
+                        <div class="layer-item">
+                            <label>
+                                <input type="checkbox" id="showClimate">
+                                气候带
+                            </label>
+                        </div>
+                        <div class="layer-item">
+                            <label>
+                                <input type="checkbox" id="showPlates">
+                                板块边界
+                            </label>
+                        </div>
+                        <div class="layer-item">
+                            <label>
+                                <input type="checkbox" id="showCurrents">
+                                洋流
+                            </label>
+                        </div>
+                        <div class="layer-item">
+                            <label>
+                                <input type="checkbox" id="showGrid">
+                                经纬网
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 时间控制 -->
+                <div class="panel-section">
+                    <h3>时间控制</h3>
+                    <div class="time-controls">
+                        <div class="time-scale">
+                            <label>时间尺度:</label>
+                            <select id="timeScale">
+                                <option value="realtime">实时</option>
+                                <option value="daily">日变化</option>
+                                <option value="seasonal">季节变化</option>
+                                <option value="annual">年变化</option>
+                                <option value="geological">地质时间</option>
+                            </select>
+                        </div>
+                        <div class="time-speed">
+                            <label>时间速度:</label>
+                            <input type="range" id="timeSpeed" min="0.1" max="10" step="0.1" value="1">
+                            <span id="timeSpeedValue">1.0x</span>
+                        </div>
+                        <div class="time-buttons">
+                            <button id="playTime" class="btn btn-success">播放</button>
+                            <button id="pauseTime" class="btn btn-warning">暂停</button>
+                            <button id="resetTime" class="btn btn-secondary">重置</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 测量工具 -->
+                <div class="panel-section">
+                    <h3>测量工具</h3>
+                    <div class="measurement-tools">
+                        <div class="tool-buttons">
+                            <button id="measureDistance" class="btn btn-small">距离测量</button>
+                            <button id="measureArea" class="btn btn-small">面积测量</button>
+                            <button id="measureElevation" class="btn btn-small">海拔测量</button>
+                        </div>
+                        <div class="measurement-results">
+                            <div class="result-item">
+                                <label>距离:</label>
+                                <span id="distanceResult">-</span>
+                            </div>
+                            <div class="result-item">
+                                <label>面积:</label>
+                                <span id="areaResult">-</span>
+                            </div>
+                            <div class="result-item">
+                                <label>海拔:</label>
+                                <span id="elevationResult">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 地理数据 -->
+                <div class="panel-section">
+                    <h3>地理数据</h3>
+                    <div class="geo-data">
+                        <div class="data-item">
+                            <label>当前位置:</label>
+                            <span id="currentLocation">0°N, 0°E</span>
+                        </div>
+                        <div class="data-item">
+                            <label>时区:</label>
+                            <span id="timeZone">UTC+0</span>
+                        </div>
+                        <div class="data-item">
+                            <label>日照时长:</label>
+                            <span id="daylightHours">12小时</span>
+                        </div>
+                        <div class="data-item">
+                            <label>季节:</label>
+                            <span id="currentSeason">春季</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 学习目标 -->
+                <div class="panel-section">
+                    <h3>学习目标</h3>
+                    <ul class="learning-objectives">
+                        <li>理解地球的结构和运动规律</li>
+                        <li>掌握板块构造理论</li>
+                        <li>学习气候形成机制</li>
+                        <li>了解地形地貌成因</li>
+                        <li>培养空间思维能力</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 右侧可视化区域 -->
+            <div class="visualization-area">
+                <!-- 主地球显示 -->
+                <div class="main-earth">
+                    <h3>地球模型</h3>
+                    <div class="earth-container">
+                        <canvas id="earthCanvas" width="600" height="500"></canvas>
+                        <div class="earth-controls">
+                            <button id="resetRotation" class="tool-btn">重置旋转</button>
+                            <button id="toggleAnimation" class="tool-btn">切换动画</button>
+                            <button id="screenshot" class="tool-btn">截图</button>
+                        </div>
+                        <div class="coordinate-info">
+                            <span>鼠标位置: <span id="mouseGeoCoords">0°N, 0°E</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 剖面图 -->
+                <div class="cross-section">
+                    <h3>地球剖面图</h3>
+                    <div class="section-container">
+                        <canvas id="sectionCanvas" width="400" height="300"></canvas>
+                        <div class="section-controls">
+                            <select id="sectionType">
+                                <option value="structure">地球结构</option>
+                                <option value="atmosphere">大气层</option>
+                                <option value="ocean">海洋结构</option>
+                                <option value="crust">地壳结构</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 气候图表 -->
+                <div class="climate-chart">
+                    <h3>气候数据</h3>
+                    <div class="chart-container">
+                        <canvas id="climateCanvas" width="400" height="250"></canvas>
+                        <div class="chart-controls">
+                            <select id="climateData">
+                                <option value="temperature">温度分布</option>
+                                <option value="precipitation">降水分布</option>
+                                <option value="pressure">气压分布</option>
+                                <option value="wind">风向风速</option>
+                            </select>
+                            <button id="updateClimate" class="btn btn-small">更新数据</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部实验步骤 -->
+        <div class="experiment-steps">
+            <h3>学习步骤</h3>
+            <div class="steps-container">
+                <div class="step" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>选择主题</h4>
+                        <p>选择要学习的地理现象和概念</p>
+                    </div>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>调整参数</h4>
+                        <p>设置地球参数和显示图层</p>
+                    </div>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>观察现象</h4>
+                        <p>通过动画观察地理过程</p>
+                    </div>
+                </div>
+                <div class="step" data-step="4">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4>数据分析</h4>
+                        <p>使用工具测量和分析数据</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 理论知识 -->
+        <div class="theory-section">
+            <h3>地理理论</h3>
+            <div class="theory-content">
+                <div class="theory-item">
+                    <h4>地球系统</h4>
+                    <p>地球是一个复杂的系统，包括大气圈、水圈、岩石圈和生物圈的相互作用。</p>
+                </div>
+                <div class="theory-item">
+                    <h4>板块构造</h4>
+                    <p>地球表面由多个板块组成，板块运动形成了地震、火山和山脉等地质现象。</p>
+                </div>
+                <div class="theory-item">
+                    <h4>气候系统</h4>
+                    <p>气候是大气、海洋、陆地和冰雪相互作用的结果，受太阳辐射和地球运动影响。</p>
+                </div>
+                <div class="theory-item">
+                    <h4>地形演化</h4>
+                    <p>地形是内力和外力长期作用的结果，包括构造运动、侵蚀和沉积过程。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="geography_demo.js"></script>
+</body>
+</html>

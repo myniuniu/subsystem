@@ -44,7 +44,8 @@ import {
   ClipboardCheck,
   Heart,
   TrendingUp,
-  Library
+  Library,
+  Edit
 } from 'lucide-react'
 import './Sidebar.css'
 
@@ -338,6 +339,13 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       color: '#667eea',
       type: 'single'
     },
+    { 
+       id: 'smart-notes', 
+       icon: Edit, 
+       label: '智能笔记', 
+       color: '#52c41a',
+       type: 'single'
+     },
     {
       id: 'teaching-management',
       icon: BookOpen,
@@ -362,6 +370,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       children: [
         { id: 'resource-library', icon: Database, label: '资源库', color: '#52c41a' },
         { id: 'scenario-library', icon: Library, label: '场景模拟', color: '#fa8c16' },
+        { id: 'simulation-platform', icon: Users, label: '模拟仿真开放平台', color: '#722ed1' },
         { id: 'my-progress', icon: TrendingUp, label: '我的进度', color: '#1890ff' },
 
       ]

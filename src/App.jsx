@@ -25,10 +25,13 @@ import MyProgress from './components/MyProgress'
 
 import ScenarioLibrary from './components/ScenarioLibrary'
 import MentalHealthCoaching from './components/MentalHealthCoaching'
+import ScienceDemo from './components/ScienceDemo'
 
 import MyEvaluation from './components/MyEvaluation'
+import SimulationPlatform from './components/SimulationPlatform'
 
 import LearningAnalyticsCenter from './components/LearningAnalyticsCenter'
+import SmartNotes from './components/SmartNotes'
 import './App.css'
 
 const { Header: AntHeader, Sider, Content } = Layout
@@ -299,8 +302,14 @@ function App() {
               <ScenarioLibrary onViewChange={handleViewChange} />
             ) : currentView === 'mental-health-coaching' ? (
               <MentalHealthCoaching onBack={handleViewChange} />
+            ) : currentView === 'science-demo' ? (
+              <ScienceDemo onNavigate={setCurrentView} />
             ) : currentView === 'my-evaluation' ? (
               <MyEvaluation onBack={() => setCurrentView('home')} />
+            ) : currentView === 'simulation-platform' ? (
+              <SimulationPlatform onViewChange={handleViewChange} />
+            ) : currentView === 'smart-notes' ? (
+              <SmartNotes />
             ) : (
               <MainContent 
                 currentView={currentView}

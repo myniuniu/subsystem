@@ -1,0 +1,455 @@
+/* 导入导出模态框样式 */
+.import-export-modal {
+  .ant-modal-body {
+    padding: 20px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+}
+
+/* 导出内容样式 */
+.export-content {
+  .export-settings-card {
+    margin-bottom: 16px;
+    
+    .ant-card-body {
+      padding: 16px;
+    }
+    
+    .ant-select {
+      .ant-select-selector {
+        border-radius: 6px;
+      }
+    }
+    
+    label {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      cursor: pointer;
+      
+      input[type="checkbox"] {
+        margin-right: 8px;
+        transform: scale(1.1);
+      }
+      
+      &:hover {
+        color: #1890ff;
+      }
+    }
+  }
+  
+  .export-preview-card {
+    .ant-card-body {
+      padding: 16px;
+      text-align: center;
+    }
+    
+    .ant-btn {
+      margin-top: 16px;
+      height: 40px;
+      padding: 0 32px;
+      font-size: 16px;
+      border-radius: 8px;
+      
+      &.ant-btn-primary {
+        background: linear-gradient(135deg, #1890ff, #096dd9);
+        border: none;
+        
+        &:hover {
+          background: linear-gradient(135deg, #40a9ff, #1890ff);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+        }
+      }
+    }
+  }
+}
+
+/* 导入内容样式 */
+.import-content {
+  .import-upload-card {
+    margin-bottom: 16px;
+    
+    .ant-card-body {
+      padding: 16px;
+    }
+    
+    .ant-upload-drag {
+      border: 2px dashed #d9d9d9;
+      border-radius: 8px;
+      background: #fafafa;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        border-color: #1890ff;
+        background: #f0f8ff;
+      }
+      
+      .ant-upload-drag-icon {
+        .anticon {
+          font-size: 48px;
+          color: #1890ff;
+        }
+      }
+      
+      .ant-upload-text {
+        font-size: 16px;
+        font-weight: 500;
+        color: #262626;
+        margin: 16px 0 8px 0;
+      }
+      
+      .ant-upload-hint {
+        color: #8c8c8c;
+        font-size: 14px;
+      }
+    }
+  }
+  
+  .import-progress-card {
+    margin-bottom: 16px;
+    
+    .ant-card-body {
+      padding: 16px;
+      text-align: center;
+    }
+    
+    .ant-progress {
+      margin-bottom: 16px;
+      
+      .ant-progress-bg {
+        background: linear-gradient(90deg, #1890ff, #40a9ff);
+      }
+    }
+  }
+  
+  .import-results-card {
+    .ant-card-body {
+      padding: 16px;
+    }
+    
+    .anticon {
+      font-size: 16px;
+    }
+    
+    .ant-list {
+      margin-top: 8px;
+      
+      .ant-list-item {
+        padding: 4px 0;
+        border-bottom: 1px solid #f0f0f0;
+        
+        &:last-child {
+          border-bottom: none;
+        }
+      }
+    }
+  }
+}
+
+/* 标签页样式 */
+.ant-tabs {
+  .ant-tabs-tab {
+    font-weight: 500;
+    
+    &.ant-tabs-tab-active {
+      .ant-tabs-tab-btn {
+        color: #1890ff;
+      }
+    }
+  }
+  
+  .ant-tabs-ink-bar {
+    background: linear-gradient(90deg, #1890ff, #40a9ff);
+  }
+}
+
+/* 卡片样式 */
+.ant-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  
+  .ant-card-head {
+    border-bottom: 1px solid #f0f0f0;
+    
+    .ant-card-head-title {
+      font-weight: 600;
+      color: #262626;
+    }
+  }
+}
+
+/* 警告框样式 */
+.ant-alert {
+  border-radius: 8px;
+  
+  &.ant-alert-info {
+    background: #f0f8ff;
+    border: 1px solid #bae7ff;
+    
+    .ant-alert-icon {
+      color: #1890ff;
+    }
+  }
+}
+
+/* 分割线样式 */
+.ant-divider {
+  margin: 16px 0;
+  border-color: #f0f0f0;
+}
+
+/* 进度条样式 */
+.ant-progress {
+  .ant-progress-outer {
+    .ant-progress-inner {
+      background: #f5f5f5;
+      border-radius: 10px;
+      
+      .ant-progress-bg {
+        border-radius: 10px;
+        background: linear-gradient(90deg, #1890ff, #40a9ff);
+      }
+    }
+  }
+  
+  .ant-progress-text {
+    color: #1890ff;
+    font-weight: 500;
+  }
+}
+
+/* 列表样式 */
+.ant-list {
+  .ant-list-item {
+    padding: 8px 0;
+    
+    .ant-typography {
+      margin: 0;
+      
+      &[class*="danger"] {
+        font-size: 13px;
+      }
+    }
+  }
+}
+
+/* 选择器样式 */
+.ant-select {
+  .ant-select-selector {
+    border-radius: 6px;
+    
+    &:focus {
+      border-color: #1890ff;
+      box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+    }
+  }
+  
+  .ant-select-arrow {
+    color: #8c8c8c;
+  }
+}
+
+/* 复选框样式 */
+input[type="checkbox"] {
+  accent-color: #1890ff;
+  
+  &:checked {
+    background-color: #1890ff;
+    border-color: #1890ff;
+  }
+}
+
+/* 文本样式 */
+.ant-typography {
+  &.ant-typography-caption {
+    color: #8c8c8c;
+    font-size: 12px;
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .import-export-modal {
+    .ant-modal {
+      width: 95% !important;
+      margin: 10px;
+    }
+    
+    .ant-modal-body {
+      padding: 16px;
+    }
+  }
+  
+  .export-content,
+  .import-content {
+    .ant-card {
+      margin-bottom: 12px;
+    }
+    
+    .ant-card-body {
+      padding: 12px;
+    }
+  }
+  
+  .export-settings-card {
+    .ant-select {
+      width: 100% !important;
+      margin-left: 0 !important;
+      margin-top: 8px;
+    }
+  }
+  
+  .export-preview-card {
+    .ant-btn {
+      width: 100%;
+      margin-top: 12px;
+    }
+  }
+  
+  .import-upload-card {
+    .ant-upload-drag {
+      .ant-upload-drag-icon {
+        .anticon {
+          font-size: 36px;
+        }
+      }
+      
+      .ant-upload-text {
+        font-size: 14px;
+      }
+      
+      .ant-upload-hint {
+        font-size: 12px;
+      }
+    }
+  }
+}
+
+/* 滚动条样式 */
+.import-export-modal {
+  .ant-modal-body {
+    scrollbar-width: thin;
+    scrollbar-color: #d9d9d9 transparent;
+    
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background-color: #d9d9d9;
+      border-radius: 3px;
+      
+      &:hover {
+        background-color: #bfbfbf;
+      }
+    }
+  }
+}
+
+.ant-list {
+  scrollbar-width: thin;
+  scrollbar-color: #d9d9d9 transparent;
+  
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: #d9d9d9;
+    border-radius: 2px;
+    
+    &:hover {
+      background-color: #bfbfbf;
+    }
+  }
+}
+
+/* 动画效果 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.import-progress-card {
+  animation: fadeInUp 0.3s ease;
+}
+
+.import-results-card {
+  animation: fadeInUp 0.5s ease;
+}
+
+.ant-upload-drag:hover {
+  animation: pulse 0.3s ease;
+}
+
+/* 加载状态样式 */
+.ant-upload-drag[disabled] {
+  background: #f5f5f5 !important;
+  border-color: #d9d9d9 !important;
+  cursor: not-allowed;
+  
+  .ant-upload-drag-icon .anticon {
+    color: #bfbfbf !important;
+  }
+  
+  .ant-upload-text,
+  .ant-upload-hint {
+    color: #bfbfbf !important;
+  }
+}
+
+/* 成功和错误状态样式 */
+.import-results-card {
+  .anticon {
+    &[class*="check-circle"] {
+      color: #52c41a;
+    }
+    
+    &[class*="exclamation-circle"] {
+      color: #faad14;
+    }
+  }
+}
+
+/* 文件格式提示样式 */
+.format-hint {
+  background: #f0f8ff;
+  border: 1px solid #bae7ff;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 16px;
+  
+  .ant-typography {
+    margin: 0;
+    color: #1890ff;
+    font-size: 13px;
+  }
+}

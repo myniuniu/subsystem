@@ -1,0 +1,412 @@
+/* 高级搜索样式 */
+.advanced-search-modal {
+  .ant-modal-body {
+    padding: 20px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+}
+
+.advanced-search-content {
+  .search-form {
+    .ant-form-item {
+      margin-bottom: 16px;
+    }
+    
+    .ant-form-item-label {
+      padding-bottom: 4px;
+      
+      label {
+        font-weight: 500;
+        color: #262626;
+      }
+    }
+  }
+}
+
+/* 标签选择区域 */
+.tag-selection {
+  max-height: 120px;
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  background: #fafafa;
+  
+  .selectable-tag {
+    margin: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 16px;
+    padding: 4px 12px;
+    
+    &:hover {
+      transform: scale(1.05);
+    }
+    
+    &.ant-tag-checkable-checked {
+      background: #1890ff;
+      border-color: #1890ff;
+      color: white;
+    }
+    
+    .anticon {
+      margin-right: 4px;
+    }
+  }
+}
+
+/* 搜索选项卡片 */
+.search-options-card {
+  margin-top: 16px;
+  
+  .ant-card-head {
+    padding: 8px 16px;
+    min-height: auto;
+    
+    .ant-card-head-title {
+      font-size: 14px;
+      font-weight: 500;
+    }
+  }
+  
+  .ant-card-body {
+    padding: 12px 16px;
+  }
+  
+  .ant-checkbox-wrapper {
+    font-size: 13px;
+  }
+}
+
+/* 保存搜索卡片 */
+.save-search-card {
+  margin-top: 16px;
+  
+  .ant-card-head {
+    padding: 8px 16px;
+    min-height: auto;
+    
+    .ant-card-head-title {
+      font-size: 14px;
+      font-weight: 500;
+    }
+  }
+  
+  .ant-card-body {
+    padding: 12px 16px;
+  }
+}
+
+/* 侧边栏 */
+.search-sidebar {
+  height: 100%;
+}
+
+/* 保存的搜索 */
+.saved-searches-card {
+  margin-bottom: 16px;
+  
+  .ant-card-head {
+    padding: 8px 16px;
+    min-height: auto;
+    
+    .ant-card-head-title {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .ant-card-extra {
+      .ant-badge {
+        .ant-badge-count {
+          background: #1890ff;
+          font-size: 10px;
+          min-width: 16px;
+          height: 16px;
+          line-height: 14px;
+        }
+      }
+    }
+  }
+  
+  .ant-card-body {
+    padding: 12px 16px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+}
+
+.saved-searches-list {
+  .saved-search-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    .search-info {
+      flex: 1;
+      
+      .ant-typography {
+        display: block;
+        margin: 0;
+        
+        &.search-date {
+          font-size: 11px;
+          margin-top: 2px;
+        }
+      }
+    }
+    
+    .search-actions {
+      display: flex;
+      gap: 4px;
+      
+      .ant-btn {
+        padding: 0 8px;
+        height: 24px;
+        font-size: 11px;
+      }
+    }
+  }
+}
+
+/* 搜索历史 */
+.search-history-card {
+  .ant-card-head {
+    padding: 8px 16px;
+    min-height: auto;
+    
+    .ant-card-head-title {
+      font-size: 14px;
+      font-weight: 500;
+    }
+  }
+  
+  .ant-card-body {
+    padding: 12px 16px;
+    max-height: 150px;
+    overflow-y: auto;
+  }
+}
+
+.search-history-list {
+  .history-item {
+    margin-bottom: 4px;
+    
+    .ant-btn {
+      padding: 0;
+      height: auto;
+      font-size: 12px;
+      text-align: left;
+      
+      .anticon {
+        margin-right: 4px;
+        color: #8c8c8c;
+      }
+    }
+  }
+}
+
+/* 滑块样式 */
+.ant-slider {
+  margin: 16px 0 24px 0;
+  
+  .ant-slider-rail {
+    background: #f5f5f5;
+  }
+  
+  .ant-slider-track {
+    background: linear-gradient(90deg, #1890ff, #40a9ff);
+  }
+  
+  .ant-slider-handle {
+    border: 2px solid #1890ff;
+    
+    &:hover {
+      border-color: #40a9ff;
+    }
+  }
+  
+  .ant-slider-mark {
+    .ant-slider-mark-text {
+      font-size: 11px;
+      color: #8c8c8c;
+    }
+  }
+}
+
+/* 输入框和选择器样式 */
+.ant-input {
+  border-radius: 6px;
+  
+  &:focus {
+    border-color: #1890ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  }
+}
+
+.ant-select {
+  .ant-select-selector {
+    border-radius: 6px;
+    
+    &:focus {
+      border-color: #1890ff;
+      box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+    }
+  }
+}
+
+.ant-picker {
+  border-radius: 6px;
+  
+  &:focus {
+    border-color: #1890ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  }
+}
+
+/* 按钮样式 */
+.ant-btn {
+  border-radius: 6px;
+  font-weight: 500;
+  
+  &.ant-btn-primary {
+    background: linear-gradient(135deg, #1890ff, #096dd9);
+    border: none;
+    
+    &:hover {
+      background: linear-gradient(135deg, #40a9ff, #1890ff);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+    }
+  }
+}
+
+/* 卡片样式 */
+.ant-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  
+  .ant-card-head {
+    border-bottom: 1px solid #f0f0f0;
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .advanced-search-modal {
+    .ant-modal {
+      width: 95% !important;
+      margin: 10px;
+    }
+    
+    .ant-modal-body {
+      padding: 16px;
+    }
+  }
+  
+  .advanced-search-content {
+    .ant-row {
+      flex-direction: column;
+      
+      .ant-col {
+        width: 100% !important;
+        margin-bottom: 16px;
+      }
+    }
+  }
+  
+  .tag-selection {
+    max-height: 80px;
+  }
+  
+  .saved-searches-card,
+  .search-history-card {
+    .ant-card-body {
+      max-height: 120px;
+    }
+  }
+  
+  .saved-search-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    
+    .search-actions {
+      align-self: flex-end;
+    }
+  }
+}
+
+/* 滚动条样式 */
+.tag-selection,
+.saved-searches-list,
+.search-history-list {
+  scrollbar-width: thin;
+  scrollbar-color: #d9d9d9 transparent;
+  
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: #d9d9d9;
+    border-radius: 2px;
+    
+    &:hover {
+      background-color: #bfbfbf;
+    }
+  }
+}
+
+/* 动画效果 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.saved-search-item,
+.history-item {
+  animation: fadeInUp 0.3s ease;
+}
+
+.selectable-tag {
+  transition: all 0.2s ease;
+}
+
+/* 表单验证样式 */
+.ant-form-item-has-error {
+  .ant-input,
+  .ant-select-selector,
+  .ant-picker {
+    border-color: #ff4d4f;
+    
+    &:focus {
+      border-color: #ff4d4f;
+      box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2);
+    }
+  }
+}
+
+/* 空状态样式 */
+.ant-typography {
+  &[class*="secondary"] {
+    color: #8c8c8c;
+    font-style: italic;
+  }
+}

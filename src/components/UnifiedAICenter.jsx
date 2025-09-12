@@ -1463,7 +1463,12 @@ const UnifiedAICenter = () => {
         { title: '透镜成像模拟器', content: '请帮我制作一个透镜成像模拟器，包含交互式光路模拟和成像特性分析。', url: '/gen-html/lens_demo.html' },
         { title: '硝化纤维压缩演示', content: '请帮我开发一个硝化纤维压缩演示程序，包含压缩过程动画和物理原理说明。', url: '/gen-html/nitrocellulose_compression_demo.html' },
         { title: '并联电路演示', content: '请帮我制作一个并联电路演示程序，包含电路连接动画和电流分析。', url: '/gen-html/parallel_circuit_demo.html' },
-        { title: '弹簧振动模拟器', content: '请帮我开发一个弹簧振动模拟器，包含振动动画和物理参数调节。', url: '/gen-html/spring_simulator.html' }
+        { title: '弹簧振动模拟器', content: '请帮我开发一个弹簧振动模拟器，包含振动动画和物理参数调节。', url: '/gen-html/spring_simulator.html' },
+        { title: '物理实验演示', content: '请帮我制作一个物理实验演示程序，包含力学、光学、电学等多种实验模拟。', url: '/gen-html/physics_demo.html' },
+        { title: '化学反应演示', content: '请帮我开发一个化学反应演示程序，包含分子模型、反应过程和实验装置。', url: '/gen-html/chemistry_demo.html' },
+        { title: '生物实验演示', content: '请帮我制作一个生物实验演示程序，包含显微镜观察、分子结构和生化过程。', url: '/gen-html/biology_demo.html' },
+        { title: '数学可视化演示', content: '请帮我开发一个数学可视化演示程序，包含函数图像、几何图形和统计分析。', url: '/gen-html/math_demo.html' },
+        { title: '地理演示教学', content: '请帮我制作一个地理演示教学程序，包含地球模型、地形地貌和气候变化。', url: '/gen-html/geography_demo.html' }
       ]
     }
   ];
@@ -1495,7 +1500,12 @@ const UnifiedAICenter = () => {
 
   // 处理模板选择
   const handleTemplateSelect = (template) => {
-    // 所有模板都设置到输入框
+    // 如果模板有URL，直接打开预览
+    if (template.url) {
+      window.open(template.url, '_blank');
+      return;
+    }
+    // 其他模板设置到输入框
     setInputMessage(template.content);
     setShowTemplates(false);
     setTemplateSearchText('');

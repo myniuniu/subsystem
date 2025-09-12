@@ -1,0 +1,110 @@
+<svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="atom" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="400" height="300" fill="url(#bg)"/>
+  
+  <!-- 装饰性网格 -->
+  <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="400" height="300" fill="url(#grid)"/>
+  
+  <!-- 原子模型 -->
+  <g transform="translate(200,150)">
+    <!-- 原子核 -->
+    <circle cx="0" cy="0" r="15" fill="url(#atom)">
+      <animate attributeName="r" values="15;18;15" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    
+    <!-- 电子轨道1 -->
+    <ellipse cx="0" cy="0" rx="40" ry="20" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2">
+      <animateTransform attributeName="transform" type="rotate" values="0;360" dur="3s" repeatCount="indefinite"/>
+    </ellipse>
+    <circle r="4" fill="#10b981">
+      <animateMotion dur="3s" repeatCount="indefinite">
+        <path d="M 40,0 A 40,20 0 1,1 -40,0 A 40,20 0 1,1 40,0"/>
+      </animateMotion>
+    </circle>
+    
+    <!-- 电子轨道2 -->
+    <ellipse cx="0" cy="0" rx="60" ry="30" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2">
+      <animateTransform attributeName="transform" type="rotate" values="45;405" dur="4s" repeatCount="indefinite"/>
+    </ellipse>
+    <circle r="4" fill="#ef4444">
+      <animateMotion dur="4s" repeatCount="indefinite">
+        <path d="M 60,0 A 60,30 0 1,0 -60,0 A 60,30 0 1,0 60,0"/>
+      </animateMotion>
+    </circle>
+    
+    <!-- 电子轨道3 -->
+    <ellipse cx="0" cy="0" rx="80" ry="40" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2">
+      <animateTransform attributeName="transform" type="rotate" values="90;450" dur="5s" repeatCount="indefinite"/>
+    </ellipse>
+    <circle r="4" fill="#8b5cf6">
+      <animateMotion dur="5s" repeatCount="indefinite">
+        <path d="M 80,0 A 80,40 0 1,1 -80,0 A 80,40 0 1,1 80,0"/>
+      </animateMotion>
+    </circle>
+  </g>
+  
+  <!-- 分子结构 -->
+  <g transform="translate(80,80)">
+    <!-- 分子键 -->
+    <line x1="0" y1="0" x2="30" y2="20" stroke="rgba(255,255,255,0.8)" stroke-width="3"/>
+    <line x1="30" y1="20" x2="60" y2="0" stroke="rgba(255,255,255,0.8)" stroke-width="3"/>
+    <line x1="30" y1="20" x2="30" y2="50" stroke="rgba(255,255,255,0.8)" stroke-width="3"/>
+    
+    <!-- 原子 -->
+    <circle cx="0" cy="0" r="8" fill="#f59e0b"/>
+    <circle cx="30" cy="20" r="10" fill="#10b981"/>
+    <circle cx="60" cy="0" r="8" fill="#ef4444"/>
+    <circle cx="30" cy="50" r="8" fill="#3b82f6"/>
+    
+    <!-- 标签 -->
+    <text x="0" y="-15" fill="white" font-size="10" text-anchor="middle" font-family="Arial">H</text>
+    <text x="30" y="10" fill="white" font-size="12" text-anchor="middle" font-family="Arial">C</text>
+    <text x="60" y="-15" fill="white" font-size="10" text-anchor="middle" font-family="Arial">O</text>
+    <text x="30" y="68" fill="white" font-size="10" text-anchor="middle" font-family="Arial">N</text>
+  </g>
+  
+  <!-- DNA螺旋 -->
+  <g transform="translate(320,220)">
+    <path d="M 0,0 Q 15,-20 30,0 Q 45,20 60,0" fill="none" stroke="#10b981" stroke-width="3">
+      <animate attributeName="d" values="M 0,0 Q 15,-20 30,0 Q 45,20 60,0;M 0,0 Q 15,-25 30,0 Q 45,25 60,0;M 0,0 Q 15,-20 30,0 Q 45,20 60,0" dur="2s" repeatCount="indefinite"/>
+    </path>
+    <path d="M 0,-40 Q 15,-60 30,-40 Q 45,-20 60,-40" fill="none" stroke="#ef4444" stroke-width="3">
+      <animate attributeName="d" values="M 0,-40 Q 15,-60 30,-40 Q 45,-20 60,-40;M 0,-40 Q 15,-65 30,-40 Q 45,-15 60,-40;M 0,-40 Q 15,-60 30,-40 Q 45,-20 60,-40" dur="2s" repeatCount="indefinite"/>
+    </path>
+    
+    <!-- 连接线 -->
+    <line x1="15" y1="-20" x2="15" y2="-60" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+    <line x1="45" y1="20" x2="45" y2="-20" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+  </g>
+  
+  <!-- 标题 -->
+  <text x="200" y="40" fill="white" font-size="24" font-weight="bold" text-anchor="middle" font-family="Arial">科学演示</text>
+  <text x="200" y="65" fill="rgba(255,255,255,0.8)" font-size="14" text-anchor="middle" font-family="Arial">3D交互式科学教学平台</text>
+  
+  <!-- 装饰元素 -->
+  <circle cx="50" cy="250" r="3" fill="#fbbf24" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0.3;0.8" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="350" cy="50" r="4" fill="#10b981" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;0.2;0.6" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="370" cy="280" r="2" fill="#ef4444" opacity="0.7">
+    <animate attributeName="opacity" values="0.7;0.3;0.7" dur="1.8s" repeatCount="indefinite"/>
+  </circle>
+</svg>

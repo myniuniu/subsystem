@@ -1,0 +1,485 @@
+/* 物理实验演示教学样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.demo-header {
+    text-align: center;
+    margin-bottom: 30px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.demo-header h1 {
+    font-size: 2.5em;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.demo-header p {
+    font-size: 1.2em;
+    color: #7f8c8d;
+    line-height: 1.6;
+}
+
+.experiment-area {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.controls-panel {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    height: fit-content;
+}
+
+.control-group {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+.control-group:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.control-group h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.experiment-selector select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #bdc3c7;
+    border-radius: 8px;
+    font-size: 1em;
+    background: white;
+    transition: border-color 0.3s;
+}
+
+.experiment-selector select:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.parameter-control {
+    margin-bottom: 15px;
+}
+
+.parameter-control label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #34495e;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.input-group input[type="range"] {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: #ecf0f1;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.input-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #3498db;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.input-group span {
+    min-width: 60px;
+    text-align: right;
+    font-weight: 600;
+    color: #2c3e50;
+    background: #ecf0f1;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.control-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.control-btn {
+    padding: 12px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: #95a5a6;
+    color: white;
+}
+
+.control-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.control-btn.primary {
+    background: #27ae60;
+    grid-column: 1 / -1;
+}
+
+.control-btn.primary:hover {
+    background: #2ecc71;
+}
+
+.data-display {
+    display: grid;
+    gap: 10px;
+}
+
+.data-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 4px solid #3498db;
+}
+
+.data-item .label {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.data-item span:last-child {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    color: #e74c3c;
+}
+
+.learning-objectives ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.learning-objectives li {
+    padding: 8px 0;
+    padding-left: 20px;
+    position: relative;
+    color: #2c3e50;
+    line-height: 1.4;
+}
+
+.learning-objectives li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #27ae60;
+    font-weight: bold;
+}
+
+.visualization-area {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.scene-container {
+    position: relative;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+#physicsCanvas {
+    width: 100%;
+    height: 600px;
+    border: 2px solid #bdc3c7;
+    border-radius: 10px;
+    background: linear-gradient(to bottom, #87CEEB 0%, #98FB98 100%);
+}
+
+.scene-overlay {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    pointer-events: none;
+}
+
+.coordinate-system {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+}
+
+.axis {
+    position: absolute;
+    font-weight: bold;
+    color: #2c3e50;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.x-axis {
+    bottom: -25px;
+    right: -15px;
+}
+
+.y-axis {
+    top: -25px;
+    left: -15px;
+}
+
+.measurement-tools {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.experiment-steps {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.experiment-steps h3 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 1.2em;
+}
+
+.steps-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 15px;
+    border-radius: 10px;
+    background: #f8f9fa;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+}
+
+.step.active {
+    background: #e3f2fd;
+    border-color: #2196f3;
+    transform: scale(1.02);
+}
+
+.step-number {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #95a5a6;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.step.active .step-number {
+    background: #2196f3;
+}
+
+.step-content h4 {
+    color: #2c3e50;
+    margin-bottom: 5px;
+    font-size: 1em;
+}
+
+.step-content p {
+    color: #7f8c8d;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+.theory-section {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.theory-section h3 {
+    color: #2c3e50;
+    margin-bottom: 25px;
+    font-size: 1.3em;
+    text-align: center;
+}
+
+.theory-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+.formula-box {
+    text-align: center;
+    padding: 25px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+}
+
+.formula-box h4 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+}
+
+.formula {
+    font-size: 2em;
+    font-weight: bold;
+    color: #e74c3c;
+    margin: 20px 0;
+    font-family: 'Times New Roman', serif;
+}
+
+.formula-box p {
+    color: #7f8c8d;
+    line-height: 1.5;
+    font-style: italic;
+}
+
+.concept-explanation h4 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+}
+
+.concept-explanation ul {
+    list-style: none;
+    padding: 0;
+}
+
+.concept-explanation li {
+    padding: 10px 0;
+    border-bottom: 1px solid #ecf0f1;
+    line-height: 1.5;
+}
+
+.concept-explanation li:last-child {
+    border-bottom: none;
+}
+
+.concept-explanation strong {
+    color: #2c3e50;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+    .experiment-area {
+        grid-template-columns: 1fr;
+    }
+    
+    .theory-content {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .demo-header {
+        padding: 20px;
+    }
+    
+    .demo-header h1 {
+        font-size: 2em;
+    }
+    
+    .controls-panel {
+        padding: 20px;
+    }
+    
+    .steps-container {
+        grid-template-columns: 1fr;
+    }
+    
+    #physicsCanvas {
+        height: 400px;
+    }
+}
+
+/* 动画效果 */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.control-btn.active {
+    animation: pulse 2s infinite;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.step {
+    animation: slideIn 0.5s ease-out;
+}
+
+.step:nth-child(1) { animation-delay: 0.1s; }
+.step:nth-child(2) { animation-delay: 0.2s; }
+.step:nth-child(3) { animation-delay: 0.3s; }
+.step:nth-child(4) { animation-delay: 0.4s; }

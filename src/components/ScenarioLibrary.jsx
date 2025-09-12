@@ -47,6 +47,7 @@ import './ScenarioLibrary.css'
 import CategoryManagement from './CategoryManagement'
 import ScenarioPreview from './ScenarioPreview'
 import ScenarioUpload from './ScenarioUpload'
+import scenarioService, { SCENARIO_STATUS } from '../services/scenarioService'
 
 const { Search: AntSearch } = Input
 const { Option } = Select
@@ -75,7 +76,8 @@ const ScenarioLibrary = ({ onViewChange }) => {
     { id: 'teacher', name: '教师培训', description: '教师专业发展与教学技能场景', color: '#722ed1', scenarioCount: 3 },
     { id: 'management', name: '班级管理', description: '班主任工作与班级建设场景', color: '#fa8c16', scenarioCount: 3 },
     { id: 'leadership', name: '学校管理', description: '校长管理与学校发展场景', color: '#eb2f96', scenarioCount: 3 },
-    { id: 'special', name: '特殊教育', description: '特殊需要学生教育支持场景', color: '#13c2c2', scenarioCount: 2 }
+    { id: 'special', name: '特殊教育', description: '特殊需要学生教育支持场景', color: '#13c2c2', scenarioCount: 2 },
+    { id: 'science_demo', name: '教学科学演示', description: '科学实验演示与教学可视化场景', color: '#f5222d', scenarioCount: 8 }
   ]
 
   // 适用角色数据
@@ -264,6 +266,31 @@ const ScenarioLibrary = ({ onViewChange }) => {
       }
     },
     
+    // 科学演示场景
+    {
+      id: 'science_demo_1',
+      title: '科学演示',
+      description: '通过3D可视化和交互式演示，帮助教师掌握物理、化学、生物、数学、地理等学科的科学演示技巧，提升课堂教学效果。',
+      category: 'science_demo',
+      roles: ['teacher'],
+      tags: ['科学演示', '3D可视化', '交互式教学', '多学科'],
+      author: 'AI智能教研助手',
+      createTime: '2024-01-21',
+      lastModified: '2024-01-21',
+      views: 0,
+      likes: 0,
+      difficulty: 'medium',
+      duration: '30-60分钟',
+      thumbnail: '/images/science_demo_thumbnail.svg',
+      isSpecialScenario: true,
+      routePath: '/science-demo',
+      files: {
+        html: '/gen-html/science_demo_home.html',
+        css: '/gen-html/science_demo_home.css',
+        js: '/gen-html/science_demo_home.js'
+      }
+    },
+    
     // 班主任工作场景
     {
       id: '9',
@@ -365,7 +392,7 @@ const ScenarioLibrary = ({ onViewChange }) => {
       likes: 145,
       difficulty: 'hard',
       duration: '65分钟',
-      thumbnail: '/gen-html/team_building.html',
+      thumbnail: '/images/team_building_thumbnail.svg',
       files: {
         html: '/gen-html/team_building.html',
         css: '/gen-html/team_building.css',
@@ -459,18 +486,243 @@ const ScenarioLibrary = ({ onViewChange }) => {
         css: '/gen-html/mental-health-coach.css',
         js: '/gen-html/mental-health-coach.js'
       }
+    },
+    
+    // 教学科学演示场景
+    {
+      id: '18',
+      title: '物理实验演示教学',
+      description: '通过3D可视化展示物理实验过程，包含力学、电磁学、光学等实验的动态演示，帮助学生理解抽象的物理概念。',
+      category: 'science_demo',
+      roles: ['teacher', 'student'],
+      tags: ['物理实验', '3D演示', '力学', '电磁学', '光学'],
+      author: 'AI智能中心',
+      createTime: '2024-01-22',
+      lastModified: '2024-01-22',
+      views: 1250,
+      likes: 98,
+      difficulty: 'medium',
+      duration: '25分钟',
+      thumbnail: '/gen-html/physics_demo.html',
+      isSpecialScenario: true,
+      has3D: true,
+      files: {
+        html: '/gen-html/physics_demo.html',
+        css: '/gen-html/physics_demo.css',
+        js: '/gen-html/physics_demo.js'
+      }
+    },
+    {
+      id: '19',
+      title: '化学反应过程展示',
+      description: '动态展示化学反应的分子级过程，包含酸碱反应、氧化还原、有机合成等反应的可视化演示。',
+      category: 'science_demo',
+      roles: ['teacher', 'student'],
+      tags: ['化学反应', '分子演示', '酸碱反应', '氧化还原', '有机化学'],
+      author: 'AI智能中心',
+      createTime: '2024-01-22',
+      lastModified: '2024-01-22',
+      views: 980,
+      likes: 76,
+      difficulty: 'medium',
+      duration: '30分钟',
+      thumbnail: '/gen-html/chemistry_demo.html',
+      isSpecialScenario: true,
+      has3D: true,
+      files: {
+        html: '/gen-html/chemistry_demo.html',
+        css: '/gen-html/chemistry_demo.css',
+        js: '/gen-html/chemistry_demo.js'
+      }
+    },
+    {
+      id: '20',
+      title: '生物结构3D模型',
+      description: '展示细胞结构、器官系统、DNA结构等生物学概念的3D模型，支持交互式探索和标注功能。',
+      category: 'science_demo',
+      roles: ['teacher', 'student'],
+      tags: ['生物结构', '细胞模型', 'DNA', '器官系统', '3D模型'],
+      author: 'AI智能中心',
+      createTime: '2024-01-22',
+      lastModified: '2024-01-22',
+      views: 1420,
+      likes: 112,
+      difficulty: 'easy',
+      duration: '20分钟',
+      thumbnail: '/gen-html/biology_demo.html',
+      isSpecialScenario: true,
+      has3D: true,
+      files: {
+        html: '/gen-html/biology_demo.html',
+        css: '/gen-html/biology_demo.css',
+        js: '/gen-html/biology_demo.js'
+      }
+    },
+    {
+      id: '21',
+      title: '数学几何图形演示',
+      description: '动态展示几何图形的变换、立体几何的构造过程，以及函数图像的变化规律。',
+      category: 'science_demo',
+      roles: ['teacher', 'student'],
+      tags: ['几何图形', '立体几何', '函数图像', '数学可视化', '图形变换'],
+      author: 'AI智能中心',
+      createTime: '2024-01-22',
+      lastModified: '2024-01-22',
+      views: 1680,
+      likes: 134,
+      difficulty: 'medium',
+      duration: '35分钟',
+      thumbnail: '/gen-html/math_demo.html',
+      isSpecialScenario: true,
+      has3D: true,
+      files: {
+        html: '/gen-html/math_demo.html',
+        css: '/gen-html/math_demo.css',
+        js: '/gen-html/math_demo.js'
+      }
+    },
+    {
+      id: '22',
+      title: '地理地形地貌展示',
+      description: '3D展示地球地形地貌、气候变化、地质构造等地理现象，支持多角度观察和测量。',
+      category: 'science_demo',
+      roles: ['teacher', 'student'],
+      tags: ['地理地形', '地貌展示', '气候变化', '地质构造', '3D地球'],
+      author: 'AI智能中心',
+      createTime: '2024-01-22',
+      lastModified: '2024-01-22',
+      views: 890,
+      likes: 67,
+      difficulty: 'medium',
+      duration: '40分钟',
+      thumbnail: '/gen-html/geography_demo.html',
+      isSpecialScenario: true,
+      has3D: true,
+      files: {
+        html: '/gen-html/geography_demo.html',
+        css: '/gen-html/geography_demo.css',
+        js: '/gen-html/geography_demo.js'
+      }
+    },
+    {
+      id: '23',
+      title: '天文星体运动模拟',
+      description: '模拟太阳系行星运动、恒星演化、星系结构等天文现象，帮助理解宇宙规律。',
+      category: 'science_demo',
+      roles: ['teacher', 'student'],
+      tags: ['天文模拟', '行星运动', '恒星演化', '星系结构', '宇宙规律'],
+      author: 'AI智能中心',
+      createTime: '2024-01-22',
+      lastModified: '2024-01-22',
+      views: 1150,
+      likes: 89,
+      difficulty: 'hard',
+      duration: '45分钟',
+      thumbnail: '/images/astronomy_thumbnail.svg',
+      isSpecialScenario: true,
+      has3D: true,
+      files: {
+        html: '/gen-html/astronomy_demo.html',
+        css: '/gen-html/astronomy_demo.css',
+        js: '/gen-html/astronomy_demo.js'
+      }
+    },
+    {
+      id: '24',
+      title: '历史文物3D重现',
+      description: '通过3D技术重现历史文物、古建筑、历史场景，让学生身临其境地学习历史。',
+      category: 'science_demo',
+      roles: ['teacher', 'student'],
+      tags: ['历史文物', '3D重现', '古建筑', '历史场景', '文化遗产'],
+      author: 'AI智能中心',
+      createTime: '2024-01-22',
+      lastModified: '2024-01-22',
+      views: 1320,
+      likes: 105,
+      difficulty: 'easy',
+      duration: '30分钟',
+      thumbnail: '/images/history_3d_thumbnail.svg',
+      isSpecialScenario: true,
+      has3D: true,
+      files: {
+        html: '/gen-html/history_demo.html',
+        css: '/gen-html/history_demo.css',
+        js: '/gen-html/history_demo.js'
+      }
+    },
+    {
+      id: '25',
+      title: '工程技术原理演示',
+      description: '展示机械原理、电路工作、建筑结构等工程技术概念，培养学生的工程思维。',
+      category: 'science_demo',
+      roles: ['teacher', 'student'],
+      tags: ['工程技术', '机械原理', '电路演示', '建筑结构', '工程思维'],
+      author: 'AI智能中心',
+      createTime: '2024-01-22',
+      lastModified: '2024-01-22',
+      views: 760,
+      likes: 58,
+      difficulty: 'hard',
+      duration: '50分钟',
+      thumbnail: '/images/engineering_demo_thumbnail.svg',
+      isSpecialScenario: true,
+      has3D: true,
+      files: {
+        html: '/gen-html/engineering_demo.html',
+        css: '/gen-html/engineering_demo.css',
+        js: '/gen-html/engineering_demo.js'
+      }
     }
   ]
 
   useEffect(() => {
-    // 模拟加载数据
-    setTimeout(() => {
+    loadScenarios()
+  }, [])
+  
+  // 加载场景数据（包含开放平台场景）
+  const loadScenarios = async () => {
+    setLoading(true)
+    try {
+      // 获取开放平台已发布的场景
+      const platformScenariosRes = await scenarioService.getAllScenarios({ 
+        status: SCENARIO_STATUS.PUBLISHED 
+      })
+      
+      let allScenarios = [...mockScenarios] // 保留原有场景
+      
+      // 合并开放平台场景
+      if (platformScenariosRes.success && platformScenariosRes.data) {
+        const platformScenarios = platformScenariosRes.data.map(scenario => ({
+          ...scenario,
+          // 确保字段兼容性
+          thumbnail: scenario.thumbnail || '/gen-html/default_scenario.html',
+          files: scenario.files || {
+            html: scenario.thumbnail || '/gen-html/default_scenario.html',
+            css: '',
+            js: ''
+          },
+          // 标记为开放平台场景
+          isPlatformScenario: true,
+          // 转换分类ID到名称显示
+          categoryName: mockCategories.find(cat => cat.id === scenario.category)?.name || scenario.category
+        }))
+        
+        allScenarios = [...allScenarios, ...platformScenarios]
+      }
+      
+      setScenarios(allScenarios)
+      setFilteredScenarios(allScenarios)
+      setCategories(mockCategories)
+    } catch (error) {
+      console.error('加载场景失败:', error)
+      // 降级到模拟数据
       setScenarios(mockScenarios)
       setFilteredScenarios(mockScenarios)
       setCategories(mockCategories)
+    } finally {
       setLoading(false)
-    }, 1000)
-  }, [])
+    }
+  }
 
   // 搜索和筛选
   useEffect(() => {
@@ -627,24 +879,7 @@ const ScenarioLibrary = ({ onViewChange }) => {
           <p>管理和运行交互式教学场景</p>
         </div>
         <div className="header-actions">
-          <Space>
-            <Button 
-              icon={<Settings size={16} />}
-              onClick={() => setCategoryManagementVisible(true)}
-            >
-              分类管理
-            </Button>
-            <Button 
-              type="primary" 
-              icon={<Plus size={16} />}
-              onClick={() => {
-                setEditingScenario(null)
-                setUploadVisible(true)
-              }}
-            >
-              新建场景
-            </Button>
-          </Space>
+          {/* 分类管理和新建场景按钮已移除 */}
         </div>
       </div>
 

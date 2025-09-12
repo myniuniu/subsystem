@@ -1,0 +1,396 @@
+/* AI助手样式 */
+.ai-assistant-modal {
+  .ant-modal-body {
+    padding: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+}
+
+.ai-assistant-content {
+  min-height: 400px;
+}
+
+/* 功能选项卡 */
+.ai-feature-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  
+  .ant-btn {
+    border-radius: 20px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+    }
+    
+    .anticon {
+      margin-right: 4px;
+    }
+  }
+}
+
+/* 功能内容区域 */
+.ai-feature-content {
+  .feature-controls {
+    background: #fafafa;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    border: 1px solid #f0f0f0;
+    
+    .ant-space {
+      width: 100%;
+    }
+    
+    .ant-btn {
+      font-weight: 500;
+      
+      &.ant-btn-primary {
+        background: linear-gradient(135deg, #1890ff, #096dd9);
+        border: none;
+        box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+        
+        &:hover {
+          background: linear-gradient(135deg, #40a9ff, #1890ff);
+          transform: translateY(-1px);
+        }
+      }
+    }
+  }
+}
+
+/* AI结果卡片 */
+.ai-result-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e8f4fd;
+  margin-bottom: 16px;
+  
+  .ant-card-head {
+    background: linear-gradient(135deg, #e6f7ff, #f0f9ff);
+    border-bottom: 1px solid #d4edda;
+    border-radius: 12px 12px 0 0;
+    
+    .ant-card-head-title {
+      color: #1890ff;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      
+      &::before {
+        content: '🤖';
+        margin-right: 8px;
+        font-size: 16px;
+      }
+    }
+  }
+  
+  .ant-card-body {
+    padding: 20px;
+  }
+}
+
+/* 摘要内容 */
+.summary-content {
+  .summary-text {
+    background: #f6ffed;
+    padding: 16px;
+    border-radius: 8px;
+    border-left: 4px solid #52c41a;
+    margin: 12px 0;
+    line-height: 1.6;
+    font-size: 14px;
+  }
+  
+  .ant-list {
+    .ant-list-item {
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      .ant-badge {
+        .ant-badge-count {
+          background: #1890ff;
+          font-size: 10px;
+          min-width: 16px;
+          height: 16px;
+          line-height: 14px;
+        }
+      }
+    }
+  }
+}
+
+/* 标签内容 */
+.tags-content {
+  .suggested-tags {
+    margin: 16px 0;
+    
+    .suggested-tag {
+      margin: 4px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-radius: 16px;
+      padding: 4px 12px;
+      font-weight: 500;
+      
+      &:hover {
+        transform: scale(1.05);
+        box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+      }
+    }
+  }
+}
+
+/* 问答内容 */
+.qa-content {
+  .qa-answer {
+    background: #f0f9ff;
+    padding: 16px;
+    border-radius: 8px;
+    border-left: 4px solid #1890ff;
+    margin: 12px 0;
+    line-height: 1.6;
+  }
+  
+  .qa-sources {
+    margin-top: 8px;
+    
+    .ant-tag {
+      margin: 2px 4px;
+      border-radius: 12px;
+      font-size: 11px;
+    }
+  }
+}
+
+/* 结果操作区域 */
+.result-actions {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  .ant-btn {
+    border-radius: 16px;
+    font-weight: 500;
+    
+    &.ant-btn-primary {
+      background: linear-gradient(135deg, #52c41a, #389e0d);
+      border: none;
+      
+      &:hover {
+        background: linear-gradient(135deg, #73d13d, #52c41a);
+        transform: translateY(-1px);
+      }
+    }
+    
+    .anticon {
+      margin-right: 4px;
+    }
+  }
+}
+
+/* 加载状态 */
+.ant-spin-container {
+  min-height: 200px;
+}
+
+.ant-spin-spinning {
+  .ai-feature-content {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+/* 输入框样式 */
+.ant-input {
+  border-radius: 20px;
+  padding: 8px 16px;
+  
+  &:focus {
+    border-color: #1890ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  }
+}
+
+.ant-select {
+  .ant-select-selector {
+    border-radius: 16px;
+    
+    &:focus {
+      border-color: #1890ff;
+      box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+    }
+  }
+}
+
+/* 列表样式优化 */
+.ant-list-item {
+  .ant-list-item-meta {
+    .ant-list-item-meta-description {
+      color: #595959;
+      line-height: 1.5;
+    }
+  }
+  
+  .ant-list-item-action {
+    .ant-btn-link {
+      color: #1890ff;
+      font-weight: 500;
+      
+      &:hover {
+        color: #40a9ff;
+      }
+    }
+  }
+}
+
+/* 警告信息样式 */
+.ant-alert {
+  border-radius: 8px;
+  
+  &.ant-alert-info {
+    background: #e6f7ff;
+    border: 1px solid #91d5ff;
+    
+    .ant-alert-icon {
+      color: #1890ff;
+    }
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .ai-assistant-modal {
+    .ant-modal {
+      width: 95% !important;
+      margin: 10px;
+    }
+    
+    .ant-modal-body {
+      padding: 16px;
+    }
+  }
+  
+  .ai-feature-tabs {
+    .ant-btn {
+      flex: 1;
+      min-width: 0;
+      
+      span {
+        display: none;
+      }
+      
+      .anticon {
+        margin-right: 0;
+      }
+    }
+  }
+  
+  .feature-controls {
+    .ant-space {
+      flex-direction: column;
+      width: 100%;
+      
+      .ant-space-item {
+        width: 100%;
+        
+        .ant-select,
+        .ant-btn {
+          width: 100%;
+        }
+      }
+    }
+  }
+  
+  .result-actions {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+    
+    .ant-space {
+      justify-content: center;
+    }
+  }
+  
+  .suggested-tags {
+    text-align: center;
+  }
+}
+
+/* 动画效果 */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.ai-result-card {
+  animation: slideInUp 0.4s ease;
+}
+
+.suggested-tag:hover {
+  animation: pulse 0.3s ease;
+}
+
+/* 滚动条样式 */
+.ai-assistant-content {
+  scrollbar-width: thin;
+  scrollbar-color: #d9d9d9 transparent;
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: #d9d9d9;
+    border-radius: 3px;
+    
+    &:hover {
+      background-color: #bfbfbf;
+    }
+  }
+}
+
+/* 置信度显示 */
+.result-actions .ant-typography {
+  font-size: 12px;
+  color: #8c8c8c;
+  
+  &::before {
+    content: '🎯';
+    margin-right: 4px;
+  }
+}
