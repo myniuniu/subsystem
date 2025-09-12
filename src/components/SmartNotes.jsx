@@ -43,7 +43,8 @@ import {
   UserOutlined,
   SettingOutlined,
   RobotOutlined,
-  DownloadOutlined
+  DownloadOutlined,
+  DatabaseOutlined
 } from '@ant-design/icons';
 import NoteEditor from './NoteEditor';
 import CategoryTagManager from './CategoryTagManager';
@@ -53,6 +54,7 @@ import ImportExport from './ImportExport';
 import NoteCreateModal from './NoteCreateModal';
 import NoteEditPage from './NoteEditPage';
 import notesService from '../services/notesService';
+import mockDataGenerator from '../utils/mockDataGenerator';
 import './SmartNotes.css';
 
 const { Content, Sider } = Layout;
@@ -103,15 +105,51 @@ const SmartNotes = () => {
   ];
 
   // 加载数据
+  // 检查localStorage数据的调试函数
+  const checkLocalStorageData = () => {
+    console.log('=== localStorage 数据检查 ===');
+    const notesData = localStorage.getItem('smart_notes_data');
+    const categoriesData = localStorage.getItem('smart_notes_categories');
+    const tagsData = localStorage.getItem('smart_notes_tags');
+    
+    console.log('原始笔记数据:', notesData);
+    console.log('原始分类数据:', categoriesData);
+    console.log('原始标签数据:', tagsData);
+    
+    if (notesData) {
+      try {
+        const parsedNotes = JSON.parse(notesData);
+        console.log('解析后的笔记数据:', parsedNotes.length, parsedNotes);
+      } catch (e) {
+        console.error('笔记数据解析失败:', e);
+      }
+    } else {
+      console.log('localStorage中没有笔记数据');
+    }
+    console.log('========================');
+  };
+
   const loadData = async () => {
     try {
       setLoading(true);
+      
+      // 检查localStorage数据
+      checkLocalStorageData();
+      
       const [notesData, categoriesData, tagsData, statsData] = await Promise.all([
         Promise.resolve(notesService.getAllNotes()),
         Promise.resolve(notesService.getCategories()),
         Promise.resolve(notesService.getTags()),
         Promise.resolve(notesService.getNotesStats())
       ]);
+      
+      // 调试信息
+      console.log('=== 数据加载调试信息 ===');
+      console.log('笔记数据:', notesData.length, notesData);
+      console.log('分类数据:', categoriesData.length, categoriesData);
+      console.log('标签数据:', tagsData.length, tagsData);
+      console.log('统计数据:', statsData);
+      console.log('========================');
       
       setNotes(notesData);
       setNoteCategories(categoriesData);
@@ -405,17 +443,7 @@ const SmartNotes = () => {
       <Layout>
         {/* 侧边栏 */}
         <Sider width={280} className="notes-sidebar">
-          <div className="sidebar-header">
-            <Title level={4}>📝 智能笔记</Title>
-            <Button 
-              type="primary" 
-              icon={<PlusOutlined />}
-              onClick={handleCreateNote}
-              className="create-btn"
-            >
-              新建笔记
-            </Button>
-          </div>
+
 
           <div className="sidebar-content">
             {/* 搜索框 */}
@@ -460,29 +488,7 @@ const SmartNotes = () => {
               </div>
             </div>
 
-            {/* 标签过滤 */}
-            <div className="tags-section">
-              <Text strong>标签</Text>
-              <div className="tags-list">
-                {tags.map(tag => (
-                  <Tag
-                    key={tag}
-                    className={`tag-filter ${
-                      selectedTags.includes(tag) ? 'active' : ''
-                    }`}
-                    onClick={() => {
-                      if (selectedTags.includes(tag)) {
-                        setSelectedTags(selectedTags.filter(t => t !== tag));
-                      } else {
-                        setSelectedTags([...selectedTags, tag]);
-                      }
-                    }}
-                  >
-                    {tag} {stats.tags?.[tag] && `(${stats.tags[tag]})`}
-                  </Tag>
-                ))}
-              </div>
-            </div>
+
           </div>
         </Sider>
 
@@ -498,23 +504,40 @@ const SmartNotes = () => {
                 )}
               </Text>
             </div>
+            
             <div className="header-actions">
               <Space>
-                <Button icon={<ImportOutlined />} onClick={handleImportNotes}>导入</Button>
-                <Button icon={<ExportOutlined />} onClick={handleExportNotes}>导出</Button>
-                <Button icon={<SettingOutlined />} onClick={() => setIsCategoryManagerVisible(true)}>管理</Button>
-                <Button icon={<RobotOutlined />} onClick={() => handleOpenAIAssistant()}>AI助手</Button>
                 <Button 
-                  icon={<SearchOutlined />} 
-                  onClick={handleAdvancedSearch}
+                  icon={<DatabaseOutlined />}
+                  onClick={async () => {
+                    try {
+                      console.log('=== 点击生成模拟数据按钮 ===');
+                      console.log('生成前检查localStorage:');
+                      checkLocalStorageData();
+                      
+                      console.log('开始调用 mockDataGenerator.generateAllMockData()');
+                      const result = await mockDataGenerator.generateAllMockData();
+                      console.log('生成结果:', result);
+                      
+                      console.log('生成后检查localStorage:');
+                      checkLocalStorageData();
+                      
+                      if (result.success) {
+                        console.log('开始重新加载数据...');
+                        await loadData();
+                        console.log('数据重新加载完成');
+                        message.success(`成功生成 ${result.count} 条模拟数据`);
+                      } else {
+                        console.error('生成失败:', result.error);
+                        message.error('生成模拟数据失败');
+                      }
+                    } catch (error) {
+                      console.error('生成模拟数据失败:', error);
+                      message.error('生成模拟数据失败');
+                    }
+                  }}
                 >
-                  高级搜索
-                </Button>
-                <Button 
-                  icon={<DownloadOutlined />} 
-                  onClick={handleImportExport}
-                >
-                  导入导出
+                  生成模拟数据
                 </Button>
                 <Button 
                   type="primary" 
@@ -523,8 +546,21 @@ const SmartNotes = () => {
                 >
                   新建笔记
                 </Button>
+                <Button 
+                  icon={<SearchOutlined />}
+                  onClick={handleAdvancedSearch}
+                >
+                  高级搜索
+                </Button>
+                <Button 
+                  icon={<ImportOutlined />}
+                  onClick={handleImportExport}
+                >
+                  导入导出
+                </Button>
               </Space>
             </div>
+
           </div>
 
           {/* 笔记列表 */}

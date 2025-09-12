@@ -77,6 +77,29 @@ const NoteEditPage = ({ onBack }) => {
   
   // 操作结果相关状态
   const [operationResults, setOperationResults] = useState([]);
+  
+  // 操作面板相关状态
+  const [selectedOperation, setSelectedOperation] = useState('audio'); // 当前选中的操作类型
+  
+  // 模拟操作记录数据
+  const operationRecords = {
+    audio: [
+      { id: 1, title: '解锁成都味觉密码：从米其林到苍蝇馆子，辣味之外的川菜七滋八味与多元流派', source: '10个来源', time: '1小时前', type: 'audio' },
+      { id: 2, title: '成都美食：一张餐桌，两种故事', source: '10个来源', time: '2小时前', type: 'audio' }
+    ],
+    video: [
+      { id: 3, title: '成都米其林美食与地道风味之旅', source: '2小时前', time: '2小时前', type: 'video' },
+      { id: 4, title: '成都美食指南', source: '10个来源', time: '2小时前', type: 'video' }
+    ],
+    mindmap: [
+      { id: 5, title: '成都美食文化思维导图', source: '基于15个来源生成', time: '30分钟前', type: 'mindmap' },
+      { id: 6, title: '川菜发展历程导图', source: '基于8个来源生成', time: '1小时前', type: 'mindmap' }
+    ],
+    report: [
+      { id: 7, title: '成都美食产业分析报告', source: '综合20个数据源', time: '45分钟前', type: 'report' },
+      { id: 8, title: '川菜文化传承研究报告', source: '综合12个数据源', time: '1.5小时前', type: 'report' }
+    ]
+  };
 
   // 文件上传处理
   const handleFileUpload = (info) => {
@@ -508,13 +531,204 @@ const NoteEditPage = ({ onBack }) => {
         </div>
 
         {/* 右侧操作区域 */}
-        <div style={{ width: 320, background: '#fff', margin: '16px 16px 16px 0', borderRadius: '8px', overflow: 'hidden' }}>
-          <div style={{ padding: '20px' }}>
+        <div style={{ width: 320, background: '#fff', margin: '16px 16px 16px 0', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          {/* 上半部分 - 功能概览 */}
+          <div style={{ padding: '20px', flex: 1 }}>
             <Title level={5} style={{ marginBottom: 16, color: '#1f1f1f' }}>
               🛠️ 操作面板
             </Title>
-            <div style={{ textAlign: 'center', color: '#999' }}>
-              功能开发中...
+            
+            {/* 功能卡片网格 */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: 16 }}>
+              {/* 音频概览 */}
+              <Card 
+                size="small" 
+                hoverable
+                onClick={() => setSelectedOperation('audio')}
+                style={{ 
+                  background: selectedOperation === 'audio' 
+                    ? 'linear-gradient(135deg, #1565c0 0%, #0d47a1 100%)' 
+                    : 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transform: selectedOperation === 'audio' ? 'scale(0.98)' : 'scale(1)',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div style={{ padding: '8px 0' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>🎵</div>
+                  <Text style={{ 
+                    fontSize: '12px', 
+                    fontWeight: 500, 
+                    color: selectedOperation === 'audio' ? '#fff' : '#1565c0' 
+                  }}>音频概览</Text>
+                </div>
+              </Card>
+              
+              {/* 视频概览 */}
+              <Card 
+                size="small" 
+                hoverable
+                onClick={() => setSelectedOperation('video')}
+                style={{ 
+                  background: selectedOperation === 'video' 
+                    ? 'linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%)' 
+                    : 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transform: selectedOperation === 'video' ? 'scale(0.98)' : 'scale(1)',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div style={{ padding: '8px 0' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>📹</div>
+                  <Text style={{ 
+                    fontSize: '12px', 
+                    fontWeight: 500, 
+                    color: selectedOperation === 'video' ? '#fff' : '#2e7d32' 
+                  }}>视频概览</Text>
+                </div>
+              </Card>
+              
+              {/* 思维导图 */}
+              <Card 
+                size="small" 
+                hoverable
+                onClick={() => setSelectedOperation('mindmap')}
+                style={{ 
+                  background: selectedOperation === 'mindmap' 
+                    ? 'linear-gradient(135deg, #c2185b 0%, #880e4f 100%)' 
+                    : 'linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transform: selectedOperation === 'mindmap' ? 'scale(0.98)' : 'scale(1)',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div style={{ padding: '8px 0' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>🧠</div>
+                  <Text style={{ 
+                    fontSize: '12px', 
+                    fontWeight: 500, 
+                    color: selectedOperation === 'mindmap' ? '#fff' : '#c2185b' 
+                  }}>思维导图</Text>
+                </div>
+              </Card>
+              
+              {/* 报告 */}
+              <Card 
+                size="small" 
+                hoverable
+                onClick={() => setSelectedOperation('report')}
+                style={{ 
+                  background: selectedOperation === 'report' 
+                    ? 'linear-gradient(135deg, #ef6c00 0%, #bf360c 100%)' 
+                    : 'linear-gradient(135deg, #fff3e0 0%, #ffcc80 100%)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transform: selectedOperation === 'report' ? 'scale(0.98)' : 'scale(1)',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div style={{ padding: '8px 0' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>📊</div>
+                  <Text style={{ 
+                    fontSize: '12px', 
+                    fontWeight: 500, 
+                    color: selectedOperation === 'report' ? '#fff' : '#ef6c00' 
+                  }}>报告</Text>
+                </div>
+              </Card>
+            </div>
+          </div>
+          
+          {/* 下半部分 - 操作记录 */}
+          <div style={{ padding: '20px', borderTop: '1px solid #f0f0f0', flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <Title level={5} style={{ marginBottom: 16, color: '#1f1f1f', fontSize: '14px' }}>
+              📋 操作记录
+            </Title>
+            
+            <div style={{ flex: 1, overflowY: 'auto', maxHeight: '300px' }}>
+              {operationRecords[selectedOperation]?.map(record => {
+                const getIcon = (type) => {
+                  switch(type) {
+                    case 'audio': return '🎵';
+                    case 'video': return '📹';
+                    case 'mindmap': return '🧠';
+                    case 'report': return '📊';
+                    default: return '📄';
+                  }
+                };
+                
+                return (
+                  <Card 
+                    key={record.id}
+                    size="small" 
+                    hoverable
+                    style={{ 
+                      marginBottom: '8px',
+                      borderRadius: '8px',
+                      border: '1px solid #f0f0f0',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                      <div style={{ fontSize: '16px', marginTop: '2px' }}>
+                        {getIcon(record.type)}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <Text 
+                          style={{ 
+                            fontSize: '12px', 
+                            fontWeight: 500, 
+                            color: '#1f1f1f',
+                            display: 'block',
+                            marginBottom: '4px',
+                            lineHeight: '1.4'
+                          }}
+                          ellipsis={{ tooltip: record.title }}
+                        >
+                          {record.title}
+                        </Text>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Text style={{ fontSize: '10px', color: '#999' }}>
+                            {record.source}
+                          </Text>
+                          <Text style={{ fontSize: '10px', color: '#999' }}>
+                            {record.time}
+                          </Text>
+                        </div>
+                      </div>
+                      <Button 
+                        type="text" 
+                        size="small" 
+                        icon={<div style={{ fontSize: '12px' }}>▶</div>}
+                        style={{ padding: '2px 4px', height: 'auto', minWidth: 'auto' }}
+                      />
+                      <Button 
+                        type="text" 
+                        size="small" 
+                        icon={<div style={{ fontSize: '12px' }}>⋯</div>}
+                        style={{ padding: '2px 4px', height: 'auto', minWidth: 'auto' }}
+                      />
+                    </div>
+                  </Card>
+                );
+              })}
+              
+              {(!operationRecords[selectedOperation] || operationRecords[selectedOperation].length === 0) && (
+                <div style={{ textAlign: 'center', color: '#999', padding: '20px 0' }}>
+                  暂无操作记录
+                </div>
+              )}
             </div>
           </div>
         </div>
