@@ -32,6 +32,7 @@ import SimulationPlatform from './components/SimulationPlatform'
 
 import LearningAnalyticsCenter from './components/LearningAnalyticsCenter'
 import SmartNotes from './components/SmartNotes'
+import NoteEditPage from './components/NoteEditPage'
 import './App.css'
 
 const { Header: AntHeader, Sider, Content } = Layout
@@ -44,6 +45,26 @@ function App() {
   useEffect(() => {
     console.log('Current view changed to:', currentView)
   }, [currentView])
+  
+  // 监听URL哈希变化
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1); // 去掉 # 号
+      if (hash) {
+        setCurrentView(hash);
+      }
+    };
+    
+    // 初始化时检查哈希
+    handleHashChange();
+    
+    // 监听哈希变化
+    window.addEventListener('hashchange', handleHashChange);
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
   
   // 监听来自iframe的postMessage事件
   useEffect(() => {
@@ -310,6 +331,8 @@ function App() {
               <SimulationPlatform onViewChange={handleViewChange} />
             ) : currentView === 'smart-notes' ? (
               <SmartNotes />
+            ) : currentView === 'note-edit-page' ? (
+              <NoteEditPage />
             ) : (
               <MainContent 
                 currentView={currentView}

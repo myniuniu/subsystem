@@ -50,6 +50,8 @@ import CategoryTagManager from './CategoryTagManager';
 import AIAssistant from './AIAssistant';
 import AdvancedSearch from './AdvancedSearch';
 import ImportExport from './ImportExport';
+import NoteCreateModal from './NoteCreateModal';
+import NoteEditPage from './NoteEditPage';
 import notesService from '../services/notesService';
 import './SmartNotes.css';
 
@@ -76,9 +78,11 @@ const SmartNotes = () => {
   const [aiSelectedNote, setAISelectedNote] = useState(null);
   const [advancedSearchVisible, setAdvancedSearchVisible] = useState(false);
   const [importExportVisible, setImportExportVisible] = useState(false);
+  const [noteCreateModalVisible, setNoteCreateModalVisible] = useState(false);
   const [editorMode, setEditorMode] = useState('create');
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({});
+  const [showNoteEditPage, setShowNoteEditPage] = useState(false);
   const [form] = Form.useForm();
 
   // 笔记分类
@@ -137,9 +141,13 @@ const SmartNotes = () => {
 
   // 创建新笔记
   const handleCreateNote = () => {
-    setSelectedNote(null);
-    setEditorMode('create');
-    setIsEditorVisible(true);
+    // 在主区域显示笔记编辑页面
+    setShowNoteEditPage(true);
+  };
+
+  // 关闭编辑页面
+  const handleCloseEditPage = () => {
+    setShowNoteEditPage(false);
   };
 
   // 编辑笔记
@@ -160,14 +168,20 @@ const SmartNotes = () => {
   const handleSaveNote = async (noteData) => {
     try {
       let savedNote;
-      if (editorMode === 'create') {
+      if (noteData.id) {
+        // 更新现有笔记
+        savedNote = notesService.updateNote(noteData.id, noteData);
+      } else if (editorMode === 'create') {
+        // 从原编辑器创建新笔记
         savedNote = notesService.createNote(noteData);
       } else {
-        savedNote = notesService.updateNote(selectedNote.id, noteData);
+        // 从新弹窗创建新笔记
+        savedNote = notesService.createNote(noteData);
       }
       
       await loadData(); // 重新加载数据
       setIsEditorVisible(false);
+      setNoteCreateModalVisible(false);
       return savedNote;
     } catch (error) {
       console.error('保存失败:', error);
@@ -380,6 +394,11 @@ const SmartNotes = () => {
       onClick: () => handleDeleteNote(note.id)
     }
   ];
+
+  // 如果显示编辑页面，则渲染NoteEditPage
+  if (showNoteEditPage) {
+    return <NoteEditPage onBack={handleCloseEditPage} />;
+  }
 
   return (
     <div className="smart-notes">
@@ -664,6 +683,16 @@ const SmartNotes = () => {
         onClose={() => setImportExportVisible(false)}
         notes={notes}
         onImportComplete={handleImportComplete}
+      />
+
+      {/* 新建笔记弹窗 */}
+      <NoteCreateModal
+        visible={noteCreateModalVisible}
+        onCancel={() => setNoteCreateModalVisible(false)}
+        onSave={handleSaveNote}
+        notes={notes}
+        categories={noteCategories}
+        tags={tags}
       />
     </div>
   );

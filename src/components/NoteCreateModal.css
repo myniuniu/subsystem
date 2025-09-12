@@ -1,0 +1,454 @@
+.note-create-modal {
+  .ant-modal-content {
+    height: 80vh;
+    padding: 0;
+  }
+
+  .ant-modal-body {
+    height: calc(80vh - 110px);
+    padding: 0;
+  }
+
+  .modal-layout {
+    height: 100%;
+    background: #fff;
+  }
+}
+
+/* 左侧边栏样式 */
+.notes-sidebar {
+  background: #fafafa;
+  border-right: 1px solid #f0f0f0;
+  height: 100%;
+
+  .sidebar-header {
+    padding: 16px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .sidebar-content {
+    padding: 16px;
+    height: calc(100% - 72px);
+    overflow-y: auto;
+
+    .search-input {
+      margin-bottom: 8px;
+    }
+
+    .category-select {
+      margin-bottom: 12px;
+    }
+  }
+
+  .notes-list {
+    height: calc(100% - 120px);
+    overflow-y: auto;
+
+    .empty-notes {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .note-item {
+      margin-bottom: 8px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+
+      &:hover {
+        background: #f5f5f5;
+      }
+
+      &.selected {
+        background: #e6f7ff;
+        border-color: #1890ff;
+
+        .note-card {
+          border-color: #1890ff;
+          box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+        }
+      }
+
+      .note-card {
+        width: 100%;
+        margin: 0;
+        transition: all 0.2s;
+
+        .ant-card-body {
+          padding: 12px;
+        }
+
+        .note-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+
+          .category-icon {
+            font-size: 14px;
+          }
+
+          .category-text {
+            font-size: 12px;
+          }
+
+          .star-icon {
+            color: #faad14;
+            font-size: 14px;
+          }
+        }
+
+        .note-title {
+          margin: 0 0 8px 0;
+          font-size: 14px;
+          font-weight: 600;
+          line-height: 1.4;
+        }
+
+        .note-preview {
+          margin: 0 0 8px 0;
+          font-size: 12px;
+          line-height: 1.4;
+          color: #666;
+        }
+
+        .note-tags {
+          margin-bottom: 8px;
+          min-height: 20px;
+
+          .ant-tag {
+            margin: 2px 4px 2px 0;
+            font-size: 11px;
+            padding: 0 6px;
+            line-height: 18px;
+          }
+        }
+
+        .note-meta {
+          .time-text {
+            font-size: 11px;
+            color: #999;
+
+            .anticon {
+              margin-right: 4px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/* 右侧编辑区域样式 */
+.editor-content {
+  background: #fff;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .editor-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+
+    .editor-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+
+      .editor-title {
+        flex: 1;
+        margin-right: 16px;
+
+        .title-input {
+          font-size: 24px;
+          font-weight: 600;
+          border: none;
+          box-shadow: none;
+          padding: 0;
+
+          &:focus {
+            border-bottom: 2px solid #1890ff;
+            box-shadow: none;
+          }
+        }
+
+        .title-display {
+          margin: 0;
+          font-size: 24px;
+          font-weight: 600;
+          color: #262626;
+        }
+      }
+
+      .editor-actions {
+        flex-shrink: 0;
+      }
+    }
+
+    .tags-section {
+      margin-bottom: 16px;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+
+      .ant-tag {
+        margin: 2px 8px 2px 0;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+      }
+
+      .ant-select {
+        .ant-select-selector {
+          border: 1px dashed #d9d9d9;
+          background: #fafafa;
+        }
+      }
+    }
+
+    .editor-body {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+
+      .quill-editor {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+
+        .ql-toolbar {
+          border: 1px solid #d9d9d9;
+          border-bottom: none;
+          border-radius: 6px 6px 0 0;
+          background: #fafafa;
+        }
+
+        .ql-container {
+          flex: 1;
+          border: 1px solid #d9d9d9;
+          border-radius: 0 0 6px 6px;
+          font-size: 14px;
+          line-height: 1.6;
+
+          .ql-editor {
+            min-height: 300px;
+            padding: 16px;
+
+            &.ql-blank::before {
+              color: #bfbfbf;
+              font-style: normal;
+            }
+          }
+        }
+      }
+
+      .content-display {
+        flex: 1;
+        padding: 16px;
+        border: 1px solid #f0f0f0;
+        border-radius: 6px;
+        background: #fafafa;
+        overflow-y: auto;
+        font-size: 14px;
+        line-height: 1.6;
+        color: #262626;
+
+        h1, h2, h3, h4, h5, h6 {
+          margin-top: 24px;
+          margin-bottom: 16px;
+          font-weight: 600;
+        }
+
+        h1 { font-size: 24px; }
+        h2 { font-size: 20px; }
+        h3 { font-size: 18px; }
+        h4 { font-size: 16px; }
+        h5 { font-size: 14px; }
+        h6 { font-size: 12px; }
+
+        p {
+          margin-bottom: 16px;
+        }
+
+        ul, ol {
+          margin-bottom: 16px;
+          padding-left: 24px;
+        }
+
+        li {
+          margin-bottom: 4px;
+        }
+
+        blockquote {
+          margin: 16px 0;
+          padding: 12px 16px;
+          border-left: 4px solid #1890ff;
+          background: #f6f8fa;
+          color: #666;
+        }
+
+        code {
+          padding: 2px 6px;
+          background: #f6f8fa;
+          border-radius: 3px;
+          font-family: 'Monaco', 'Consolas', monospace;
+          font-size: 13px;
+        }
+
+        pre {
+          padding: 16px;
+          background: #f6f8fa;
+          border-radius: 6px;
+          overflow-x: auto;
+          margin: 16px 0;
+
+          code {
+            padding: 0;
+            background: none;
+          }
+        }
+
+        img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 6px;
+          margin: 16px 0;
+        }
+
+        a {
+          color: #1890ff;
+          text-decoration: none;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+  }
+
+  .empty-editor {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .empty-content {
+      text-align: center;
+      padding: 40px;
+
+      .empty-icon {
+        font-size: 64px;
+        color: #d9d9d9;
+        margin-bottom: 16px;
+      }
+
+      .ant-typography {
+        margin-bottom: 8px;
+      }
+    }
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .note-create-modal {
+    .ant-modal {
+      width: 95% !important;
+      margin: 10px;
+    }
+
+    .notes-sidebar {
+      width: 280px !important;
+    }
+  }
+}
+
+/* 滚动条样式 */
+.notes-list::-webkit-scrollbar,
+.editor-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notes-list::-webkit-scrollbar-track,
+.editor-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.notes-list::-webkit-scrollbar-thumb,
+.editor-body::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.notes-list::-webkit-scrollbar-thumb:hover,
+.editor-body::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 动画效果 */
+.note-item {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.editor-container {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 主题色彩调整 */
+.ant-tag {
+  &.ant-tag-blue {
+    background: #e6f7ff;
+    border-color: #91d5ff;
+    color: #1890ff;
+  }
+
+  &.ant-tag-green {
+    background: #f6ffed;
+    border-color: #b7eb8f;
+    color: #52c41a;
+  }
+
+  &.ant-tag-orange {
+    background: #fff7e6;
+    border-color: #ffd591;
+    color: #fa8c16;
+  }
+
+  &.ant-tag-red {
+    background: #fff2f0;
+    border-color: #ffb3b3;
+    color: #f5222d;
+  }
+
+  &.ant-tag-purple {
+    background: #f9f0ff;
+    border-color: #d3adf7;
+    color: #722ed1;
+  }
+}
