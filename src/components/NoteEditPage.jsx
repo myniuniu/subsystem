@@ -22,6 +22,7 @@ import {
   Dropdown
 } from 'antd';
 import MaterialAddPage from './MaterialAddPage';
+import ExploreModal from './ExploreModal';
 import {
   ArrowLeftOutlined,
   SaveOutlined,
@@ -97,6 +98,9 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
   // 操作面板相关状态
   const [selectedOperation, setSelectedOperation] = useState('audio'); // 当前选中的操作类型
   
+  // 探索弹窗相关状态
+  const [showExploreModal, setShowExploreModal] = useState(false);
+  
   // 操作记录状态
   const [operationRecords, setOperationRecords] = useState({
     audio: [],
@@ -136,6 +140,61 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
     }));
     
     message.success('新建笔记已添加到操作记录');
+  };
+
+  // 处理探索功能
+  const handleExplore = (exploreData) => {
+    const { query, source } = exploreData;
+    
+    // 模拟探索结果
+    const mockResults = {
+      web: [
+        {
+          id: Date.now() + 1,
+          title: `关于"${query}"的网络资源`,
+          url: `https://search.example.com/q=${encodeURIComponent(query)}`,
+          content: `通过网络搜索找到的关于"${query}"的相关内容...`,
+          addTime: '刚刚',
+          source: 'Web搜索'
+        }
+      ],
+      'google-drive': [
+        {
+          id: Date.now() + 2,
+          title: `Google云端硬盘中的"${query}"相关文档`,
+          url: `https://drive.google.com/search?q=${encodeURIComponent(query)}`,
+          content: `从Google云端硬盘中找到的关于"${query}"的文档...`,
+          addTime: '刚刚',
+          source: 'Google云端硬盘'
+        }
+      ]
+    };
+    
+    // 根据选择的来源添加结果到对应的资料列表
+    const results = mockResults[source] || [];
+    
+    if (results.length > 0) {
+      // 添加到链接列表
+      setLinks(prev => [...results.map(r => ({
+        id: r.id,
+        url: r.url,
+        title: r.title,
+        addTime: r.addTime
+      })), ...prev]);
+      
+      // 添加到文本内容列表
+      setAddedTexts(prev => [...results.map(r => ({
+        id: r.id + 1000,
+        title: r.title,
+        content: r.content,
+        addTime: r.addTime,
+        source: r.source
+      })), ...prev]);
+      
+      message.success(`成功从${source === 'web' ? 'Web' : 'Google云端硬盘'}探索到${results.length}条相关资源`);
+    } else {
+      message.info('未找到相关资源，请尝试其他关键词');
+    }
   };
 
   // 操作按钮点击处理函数
@@ -915,6 +974,7 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
                 <Button 
                   type="default" 
                   block
+                  onClick={() => setShowExploreModal(true)}
                 >
                   探索
                 </Button>
@@ -2077,6 +2137,13 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
       <MaterialAddPage 
         visible={showMaterialAddModal}
         onClose={() => setShowMaterialAddModal(false)}
+      />
+      
+      {/* 探索弹窗 */}
+      <ExploreModal
+        visible={showExploreModal}
+        onClose={() => setShowExploreModal(false)}
+        onExplore={handleExplore}
       />
     </>
   );
