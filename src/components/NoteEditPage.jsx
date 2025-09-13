@@ -18,7 +18,8 @@ import {
   Col,
   Modal,
   Checkbox,
-  Popconfirm
+  Popconfirm,
+  Dropdown
 } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -184,6 +185,76 @@ const NoteEditPage = ({ onBack }) => {
     }));
 
     message.success(`${operationTitles[operationType]}已生成并添加到操作记录`);
+  };
+
+  // 处理更多操作菜单点击
+  const handleMoreAction = (action, record) => {
+    switch (action) {
+      case 'convertToSource':
+        message.success(`已将"${record.title}"转换为来源`);
+        break;
+      case 'convertAllToSource':
+        message.success('已将所有笔记转换为来源');
+        break;
+      case 'delete':
+        // 从操作记录中删除该记录
+        setOperationRecords(prev => {
+          const newRecords = { ...prev };
+          Object.keys(newRecords).forEach(type => {
+            newRecords[type] = newRecords[type].filter(r => r.id !== record.id);
+          });
+          return newRecords;
+        });
+        message.success(`已删除"${record.title}"`);
+        break;
+      default:
+        break;
+    }
+  };
+
+  // 获取更多操作菜单项
+  const getMoreMenuItems = (record) => {
+    const commonItems = [
+      {
+        key: 'delete',
+        label: (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '16px' }}>🗑️</span>
+            <span>删除</span>
+          </div>
+        ),
+        onClick: () => handleMoreAction('delete', record)
+      }
+    ];
+
+    // 报告类型添加额外选项
+    if (record.type === 'report') {
+      return [
+        {
+          key: 'convertToSource',
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>📋</span>
+              <span>转换为来源</span>
+            </div>
+          ),
+          onClick: () => handleMoreAction('convertToSource', record)
+        },
+        {
+          key: 'convertAllToSource',
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>📄</span>
+              <span>将所有笔记转换为来源</span>
+            </div>
+          ),
+          onClick: () => handleMoreAction('convertAllToSource', record)
+        },
+        ...commonItems
+      ];
+    }
+
+    return commonItems;
   };
 
   // 文件上传处理
@@ -1005,12 +1076,19 @@ const NoteEditPage = ({ onBack }) => {
                         icon={<div style={{ fontSize: '12px' }}>▶</div>}
                         style={{ padding: '2px 4px', height: 'auto', minWidth: 'auto' }}
                       />
-                      <Button 
-                        type="text" 
-                        size="small" 
-                        icon={<div style={{ fontSize: '12px' }}>⋯</div>}
-                        style={{ padding: '2px 4px', height: 'auto', minWidth: 'auto' }}
-                      />
+                      <Dropdown
+                        menu={{ items: getMoreMenuItems(record) }}
+                        trigger={['click']}
+                        placement="bottomRight"
+                      >
+                        <Button 
+                          type="text" 
+                          size="small" 
+                          icon={<div style={{ fontSize: '12px' }}>⋯</div>}
+                          style={{ padding: '2px 4px', height: 'auto', minWidth: 'auto' }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </Dropdown>
                     </div>
                   </Card>
                 );
