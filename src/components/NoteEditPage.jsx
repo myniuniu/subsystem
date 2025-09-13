@@ -41,19 +41,54 @@ const { Option } = Select;
 
 const NoteEditPage = ({ onBack }) => {
   // 资料收集相关状态
-  const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [links, setLinks] = useState([]);
+  const [uploadedFiles, setUploadedFiles] = useState([
+    { id: 14, name: '成都美食调研报告.pdf', size: 2048000, type: 'application/pdf', uploadTime: '10分钟前' },
+    { id: 15, name: '川菜菜谱大全.docx', size: 1536000, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', uploadTime: '30分钟前' },
+    { id: 16, name: '成都餐厅数据表.xlsx', size: 1024000, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', uploadTime: '1小时前' },
+    { id: 38, name: '川菜历史文献资料.pdf', size: 3072000, type: 'application/pdf', uploadTime: '1.5小时前' },
+    { id: 39, name: '成都火锅店分布图.png', size: 512000, type: 'image/png', uploadTime: '2小时前' },
+    { id: 40, name: '川菜调料配方表.xlsx', size: 768000, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', uploadTime: '3小时前' },
+    { id: 41, name: '成都小吃制作视频.mp4', size: 10240000, type: 'video/mp4', uploadTime: '4小时前' },
+    { id: 42, name: '川菜营养成分分析.docx', size: 1280000, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', uploadTime: '5小时前' }
+  ]);
+  const [links, setLinks] = useState([
+    { id: 20, url: 'https://zhuanlan.zhihu.com/chengdu-food', title: '成都美食攻略 - 知乎专栏', addTime: '8分钟前' },
+    { id: 21, url: 'https://www.sichuancuisinemuseum.com', title: '川菜博物馆官网', addTime: '18分钟前' },
+    { id: 22, url: 'https://guide.michelin.com/chengdu', title: '成都米其林餐厅指南', addTime: '28分钟前' },
+    { id: 48, url: 'https://www.dianping.com/chengdu/hotpot', title: '大众点评成都火锅排行榜', addTime: '40分钟前' },
+    { id: 49, url: 'https://www.cdta.gov.cn/food', title: '成都文化旅游局美食推荐', addTime: '1小时前' },
+    { id: 50, url: 'https://www.bilibili.com/sichuancuisine', title: '川菜制作技法视频教程', addTime: '1.5小时前' },
+    { id: 51, url: 'https://baike.baidu.com/chengdu-snacks', title: '成都小吃地图 - 百度百科', addTime: '2小时前' },
+    { id: 52, url: 'https://www.tmall.com/sichuan-spices', title: '川菜调料采购指南', addTime: '3小时前' },
+    { id: 53, url: 'https://www.chengdufoodfestival.com', title: '成都美食节官方网站', addTime: '4小时前' }
+  ]);
   const [newLink, setNewLink] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [websiteType, setWebsiteType] = useState('normal'); // 'normal' 或 'video'
   const [websiteUrl, setWebsiteUrl] = useState('');// 文字内容相关状态
   const [textContent, setTextContent] = useState('');
-  const [addedTexts, setAddedTexts] = useState([]);
+  const [addedTexts, setAddedTexts] = useState([
+    { id: 17, title: '成都美食个人体验笔记', content: '在成都生活了三年，深深被这座城市的美食文化所吸引。从街头巷尾的小吃到高档餐厅的精致川菜，每一道菜都承载着深厚的文化底蕴...', addTime: '5分钟前' },
+    { id: 18, title: '川菜口味特点总结', content: '川菜以麻、辣、鲜、香为主要特色，讲究一菜一格，百菜百味。其调味方法多样，有鱼香、宫保、怪味、酸辣等24种基本味型...', addTime: '15分钟前' },
+    { id: 19, title: '成都小吃街探访记录', content: '今天走访了锦里、宽窄巷子、春熙路等著名小吃街，品尝了龙抄手、钟水饺、夫妻肺片、三大炮等经典小吃，每一样都有其独特的制作工艺...', addTime: '25分钟前' },
+    { id: 43, title: '火锅底料制作心得', content: '经过多次尝试，总结出制作正宗成都火锅底料的关键：选用优质郫县豆瓣酱，配以干辣椒、花椒、香料等，小火慢炒出红油...', addTime: '45分钟前' },
+    { id: 44, title: '成都茶馆文化观察', content: '成都的茶馆不仅是品茶的地方，更是社交和文化交流的重要场所。在这里可以听川剧、打麻将、聊天，体验慢生活的魅力...', addTime: '1小时前' },
+    { id: 45, title: '川菜调味技巧笔记', content: '川菜调味的精髓在于复合调味，通过多种调料的巧妙搭配，形成层次丰富的口感。豆瓣酱是川菜之魂，花椒提供麻味...', addTime: '2小时前' },
+    { id: 46, title: '宽窄巷子美食攻略', content: '宽窄巷子作为成都的文化名片，汇聚了众多特色美食。推荐必吃：叶儿粑、糖油果子、三大炮、冰粉等传统小吃...', addTime: '3小时前' },
+    { id: 47, title: '成都夜市小吃推荐', content: '成都的夜市文化丰富多彩，建设路小吃街、玉林路、电子科大万人坑等都是夜宵的好去处，烧烤、串串、冒菜应有尽有...', addTime: '4小时前' }
+  ]);
   
   // 课程视频相关状态
   const [videoTitle, setVideoTitle] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
-  const [courseVideos, setCourseVideos] = useState([]);
+  const [courseVideos, setCourseVideos] = useState([
+    { id: 3, title: '成都米其林美食与地道风味之旅', url: 'https://www.bilibili.com/video/BV1xx411c7mu', addTime: '2小时前' },
+    { id: 4, title: '川菜制作工艺详解', url: 'https://www.bilibili.com/video/BV2yy411d8kl', addTime: '3小时前' },
+    { id: 5, title: '成都火锅文化纪录片', url: 'https://www.bilibili.com/video/BV3zz411e9wx', addTime: '4小时前' },
+    { id: 26, title: '宽窄巷子美食探店', url: 'https://www.xiaohongshu.com/explore/chengdu-food', addTime: '5小时前' },
+    { id: 27, title: '川菜大师烹饪示范', url: 'https://www.bilibili.com/video/BV4aa411b7cd', addTime: '6小时前' },
+    { id: 28, title: '成都小吃制作全程', url: 'https://www.bilibili.com/video/BV5bb411c8ef', addTime: '1天前' }
+  ]);
   
   // 问答区域相关状态
   const [messages, setMessages] = useState([
@@ -85,19 +120,74 @@ const NoteEditPage = ({ onBack }) => {
   const operationRecords = {
     audio: [
       { id: 1, title: '解锁成都味觉密码：从米其林到苍蝇馆子，辣味之外的川菜七滋八味与多元流派', source: '10个来源', time: '1小时前', type: 'audio' },
-      { id: 2, title: '成都美食：一张餐桌，两种故事', source: '10个来源', time: '2小时前', type: 'audio' }
+      { id: 2, title: '成都美食：一张餐桌，两种故事', source: '10个来源', time: '2小时前', type: 'audio' },
+      { id: 23, title: '成都火锅文化深度解析', source: '8个来源', time: '3小时前', type: 'audio' },
+      { id: 24, title: '川菜调味技法音频讲解', source: '12个来源', time: '4小时前', type: 'audio' },
+      { id: 25, title: '成都茶馆文化与美食搭配', source: '6个来源', time: '5小时前', type: 'audio' }
     ],
     video: [
-      { id: 3, title: '成都米其林美食与地道风味之旅', source: '2小时前', time: '2小时前', type: 'video' },
-      { id: 4, title: '成都美食指南', source: '10个来源', time: '2小时前', type: 'video' }
+      { id: 3, title: '成都米其林美食与地道风味之旅', source: '课程视频', time: '2小时前', type: 'video' },
+      { id: 4, title: '川菜制作工艺详解', source: '课程视频', time: '3小时前', type: 'video' },
+      { id: 5, title: '成都火锅文化纪录片', source: '课程视频', time: '4小时前', type: 'video' },
+      { id: 26, title: '宽窄巷子美食探店', source: '课程视频', time: '5小时前', type: 'video' },
+      { id: 27, title: '川菜大师烹饪示范', source: '课程视频', time: '6小时前', type: 'video' },
+      { id: 28, title: '成都小吃制作全程', source: '课程视频', time: '1天前', type: 'video' }
     ],
     mindmap: [
-      { id: 5, title: '成都美食文化思维导图', source: '基于15个来源生成', time: '30分钟前', type: 'mindmap' },
-      { id: 6, title: '川菜发展历程导图', source: '基于8个来源生成', time: '1小时前', type: 'mindmap' }
+      { id: 6, title: '成都美食文化思维导图', source: '基于15个来源生成', time: '30分钟前', type: 'mindmap' },
+      { id: 7, title: '川菜发展历程导图', source: '基于8个来源生成', time: '1小时前', type: 'mindmap' },
+      { id: 29, title: '成都火锅产业链分析图', source: '基于20个来源生成', time: '2小时前', type: 'mindmap' },
+      { id: 30, title: '川菜调料体系结构图', source: '基于12个来源生成', time: '3小时前', type: 'mindmap' }
     ],
     report: [
-      { id: 7, title: '成都美食产业分析报告', source: '综合20个数据源', time: '45分钟前', type: 'report' },
-      { id: 8, title: '川菜文化传承研究报告', source: '综合12个数据源', time: '1.5小时前', type: 'report' }
+      { id: 8, title: '成都美食产业分析报告', source: '综合20个数据源', time: '45分钟前', type: 'report' },
+      { id: 9, title: '川菜国际化发展研究', source: '综合12个数据源', time: '1.5小时前', type: 'report' },
+      { id: 31, title: '成都餐饮市场调研报告', source: '综合25个数据源', time: '2小时前', type: 'report' },
+      { id: 32, title: '川菜营养价值分析报告', source: '综合15个数据源', time: '4小时前', type: 'report' },
+      { id: 33, title: '成都美食旅游发展报告', source: '综合18个数据源', time: '1天前', type: 'report' }
+    ],
+    ppt: [
+      { id: 10, title: '成都美食文化PPT演示', source: '基于18个来源生成', time: '25分钟前', type: 'ppt' },
+      { id: 11, title: '川菜历史发展演示文稿', source: '基于12个来源生成', time: '50分钟前', type: 'ppt' },
+      { id: 34, title: '成都火锅文化推广PPT', source: '基于22个来源生成', time: '1.5小时前', type: 'ppt' },
+      { id: 35, title: '川菜烹饪技法演示', source: '基于14个来源生成', time: '3小时前', type: 'ppt' }
+    ],
+    webcode: [
+      { id: 12, title: '成都美食推荐网页', source: '基于API数据生成', time: '35分钟前', type: 'webcode' },
+      { id: 13, title: '川菜菜谱展示页面', source: '基于数据库生成', time: '1.2小时前', type: 'webcode' },
+      { id: 36, title: '成都餐厅评价系统', source: '基于评价数据生成', time: '1小时前', type: 'webcode' },
+      { id: 37, title: '川菜营养计算器', source: '基于营养数据生成', time: '2小时前', type: 'webcode' }
+    ],
+    file: [
+      { id: 14, title: '成都美食调研报告.pdf', source: '已上传文件', time: '10分钟前', type: 'file' },
+      { id: 15, title: '川菜菜谱大全.docx', source: '已上传文件', time: '30分钟前', type: 'file' },
+      { id: 16, title: '成都餐厅数据表.xlsx', source: '已上传文件', time: '1小时前', type: 'file' },
+      { id: 38, title: '川菜历史文献资料.pdf', source: '已上传文件', time: '1.5小时前', type: 'file' },
+      { id: 39, title: '成都火锅店分布图.png', source: '已上传文件', time: '2小时前', type: 'file' },
+      { id: 40, title: '川菜调料配方表.xlsx', source: '已上传文件', time: '3小时前', type: 'file' },
+      { id: 41, title: '成都小吃制作视频.mp4', source: '已上传文件', time: '4小时前', type: 'file' },
+      { id: 42, title: '川菜营养成分分析.docx', source: '已上传文件', time: '5小时前', type: 'file' }
+    ],
+    text: [
+      { id: 17, title: '成都美食个人体验笔记', source: '添加的文字', time: '5分钟前', type: 'text' },
+      { id: 18, title: '川菜口味特点总结', source: '添加的文字', time: '15分钟前', type: 'text' },
+      { id: 19, title: '成都小吃街探访记录', source: '添加的文字', time: '25分钟前', type: 'text' },
+      { id: 43, title: '火锅底料制作心得', source: '添加的文字', time: '45分钟前', type: 'text' },
+      { id: 44, title: '成都茶馆文化观察', source: '添加的文字', time: '1小时前', type: 'text' },
+      { id: 45, title: '川菜调味技巧笔记', source: '添加的文字', time: '2小时前', type: 'text' },
+      { id: 46, title: '宽窄巷子美食攻略', source: '添加的文字', time: '3小时前', type: 'text' },
+      { id: 47, title: '成都夜市小吃推荐', source: '添加的文字', time: '4小时前', type: 'text' }
+    ],
+    link: [
+      { id: 20, title: '成都美食攻略 - 知乎专栏', source: '保存的链接', time: '8分钟前', type: 'link' },
+      { id: 21, title: '川菜博物馆官网', source: '保存的链接', time: '18分钟前', type: 'link' },
+      { id: 22, title: '成都米其林餐厅指南', source: '保存的链接', time: '28分钟前', type: 'link' },
+      { id: 48, title: '大众点评成都火锅排行榜', source: '保存的链接', time: '40分钟前', type: 'link' },
+      { id: 49, title: '成都文化旅游局美食推荐', source: '保存的链接', time: '1小时前', type: 'link' },
+      { id: 50, title: '川菜制作技法视频教程', source: '保存的链接', time: '1.5小时前', type: 'link' },
+      { id: 51, title: '成都小吃地图 - 百度百科', source: '保存的链接', time: '2小时前', type: 'link' },
+      { id: 52, title: '川菜调料采购指南', source: '保存的链接', time: '3小时前', type: 'link' },
+      { id: 53, title: '成都美食节官方网站', source: '保存的链接', time: '4小时前', type: 'link' }
     ]
   };
 
@@ -292,6 +382,8 @@ const NoteEditPage = ({ onBack }) => {
     message.success('链接删除成功');
   };
 
+
+
   // 返回
   const handleBack = () => {
     if (onBack) {
@@ -346,20 +438,21 @@ const NoteEditPage = ({ onBack }) => {
             
             <Divider style={{ margin: '16px 0' }} />
             
-            {/* 已上传文件列表 */}
-            <div style={{ marginBottom: 16 }}>
-              <Text strong>已上传文件 ({uploadedFiles.length})</Text>
-            </div>
-            <div style={{ maxHeight: 200, overflowY: 'auto', marginBottom: 16 }}>
+            {/* 统一的资料列表 */}
+            <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+              {/* 已上传文件 */}
               {uploadedFiles.map(file => (
-                <Card key={file.id} size="small" style={{ marginBottom: 8 }}>
+                <Card key={`file-${file.id}`} size="small" style={{ marginBottom: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ flex: 1 }}>
-                      <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{file.name}</Text>
-                      <br />
-                      <Text type="secondary" style={{ fontSize: 10 }}>
-                        {(file.size / 1024).toFixed(1)}KB
-                      </Text>
+                    <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                      <FileTextOutlined style={{ fontSize: 16, color: '#1890ff', marginRight: 8 }} />
+                      <div style={{ flex: 1 }}>
+                        <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{file.name}</Text>
+                        <br />
+                        <Text type="secondary" style={{ fontSize: 10 }}>
+                          {(file.size / 1024).toFixed(1)}KB
+                        </Text>
+                      </div>
                     </div>
                     <Button 
                       type="text" 
@@ -371,22 +464,20 @@ const NoteEditPage = ({ onBack }) => {
                   </div>
                 </Card>
               ))}
-            </div>
-            
-            {/* 添加的文字列表 */}
-            <div style={{ marginBottom: 16 }}>
-              <Text strong>添加的文字 ({addedTexts.length})</Text>
-            </div>
-            <div style={{ maxHeight: 150, overflowY: 'auto', marginBottom: 16 }}>
+              
+              {/* 添加的文字 */}
               {addedTexts.map(text => (
-                <Card key={text.id} size="small" style={{ marginBottom: 8 }}>
+                <Card key={`text-${text.id}`} size="small" style={{ marginBottom: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ flex: 1 }}>
-                      <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{text.title}</Text>
-                      <br />
-                      <Text type="secondary" style={{ fontSize: 10 }} ellipsis>
-                        {text.content.length > 50 ? text.content.substring(0, 50) + '...' : text.content}
-                      </Text>
+                    <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                      <FileTextOutlined style={{ fontSize: 16, color: '#52c41a', marginRight: 8 }} />
+                      <div style={{ flex: 1 }}>
+                        <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{text.title}</Text>
+                        <br />
+                        <Text type="secondary" style={{ fontSize: 10 }} ellipsis>
+                          {text.content.length > 50 ? text.content.substring(0, 50) + '...' : text.content}
+                        </Text>
+                      </div>
                     </div>
                     <Button 
                       type="text" 
@@ -398,22 +489,20 @@ const NoteEditPage = ({ onBack }) => {
                   </div>
                 </Card>
               ))}
-            </div>
-            
-            {/* 课程视频列表 */}
-            <div style={{ marginBottom: 16 }}>
-              <Text strong>课程视频 ({courseVideos.length})</Text>
-            </div>
-            <div style={{ maxHeight: 150, overflowY: 'auto', marginBottom: 16 }}>
+              
+              {/* 课程视频 */}
               {courseVideos.map(video => (
-                <Card key={video.id} size="small" style={{ marginBottom: 8 }}>
+                <Card key={`video-${video.id}`} size="small" style={{ marginBottom: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ flex: 1 }}>
-                      <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>🎥 {video.title}</Text>
-                      <br />
-                      <Text type="secondary" style={{ fontSize: 10 }} ellipsis>
-                        {video.url}
-                      </Text>
+                    <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                      <div style={{ fontSize: 16, marginRight: 8 }}>🎥</div>
+                      <div style={{ flex: 1 }}>
+                        <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{video.title}</Text>
+                        <br />
+                        <Text type="secondary" style={{ fontSize: 10 }} ellipsis>
+                          {video.url}
+                        </Text>
+                      </div>
                     </div>
                     <Button 
                       type="text" 
@@ -425,22 +514,20 @@ const NoteEditPage = ({ onBack }) => {
                   </div>
                 </Card>
               ))}
-            </div>
-            
-            {/* 链接列表 */}
-            <div style={{ marginBottom: 16 }}>
-              <Text strong>保存的链接 ({links.length})</Text>
-            </div>
-            <div style={{ maxHeight: 150, overflowY: 'auto' }}>
+              
+              {/* 保存的链接 */}
               {links.map(link => (
-                <Card key={link.id} size="small" style={{ marginBottom: 8 }}>
+                <Card key={`link-${link.id}`} size="small" style={{ marginBottom: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ flex: 1 }}>
-                      <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{link.title}</Text>
-                      <br />
-                      <Text type="secondary" style={{ fontSize: 10 }} ellipsis>
-                        {link.url}
-                      </Text>
+                    <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                      <LinkOutlined style={{ fontSize: 16, color: '#fa8c16', marginRight: 8 }} />
+                      <div style={{ flex: 1 }}>
+                        <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{link.title}</Text>
+                        <br />
+                        <Text type="secondary" style={{ fontSize: 10 }} ellipsis>
+                          {link.url}
+                        </Text>
+                      </div>
                     </div>
                     <Button 
                       type="text" 
@@ -539,30 +626,26 @@ const NoteEditPage = ({ onBack }) => {
             </Title>
             
             {/* 功能卡片网格 */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: 16 }}>
               {/* 音频概览 */}
               <Card 
                 size="small" 
                 hoverable
-                onClick={() => setSelectedOperation('audio')}
                 style={{ 
-                  background: selectedOperation === 'audio' 
-                    ? 'linear-gradient(135deg, #1565c0 0%, #0d47a1 100%)' 
-                    : 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+                  background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
                   border: 'none',
                   borderRadius: '12px',
                   textAlign: 'center',
                   cursor: 'pointer',
-                  transform: selectedOperation === 'audio' ? 'scale(0.98)' : 'scale(1)',
                   transition: 'all 0.2s ease'
                 }}
               >
-                <div style={{ padding: '8px 0' }}>
-                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>🎵</div>
+                <div style={{ padding: '6px 0' }}>
+                  <div style={{ fontSize: '20px', marginBottom: '6px' }}>🎵</div>
                   <Text style={{ 
-                    fontSize: '12px', 
+                    fontSize: '11px', 
                     fontWeight: 500, 
-                    color: selectedOperation === 'audio' ? '#fff' : '#1565c0' 
+                    color: '#1565c0' 
                   }}>音频概览</Text>
                 </div>
               </Card>
@@ -571,25 +654,21 @@ const NoteEditPage = ({ onBack }) => {
               <Card 
                 size="small" 
                 hoverable
-                onClick={() => setSelectedOperation('video')}
                 style={{ 
-                  background: selectedOperation === 'video' 
-                    ? 'linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%)' 
-                    : 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
+                  background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
                   border: 'none',
                   borderRadius: '12px',
                   textAlign: 'center',
                   cursor: 'pointer',
-                  transform: selectedOperation === 'video' ? 'scale(0.98)' : 'scale(1)',
                   transition: 'all 0.2s ease'
                 }}
               >
-                <div style={{ padding: '8px 0' }}>
-                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>📹</div>
+                <div style={{ padding: '6px 0' }}>
+                  <div style={{ fontSize: '20px', marginBottom: '6px' }}>📹</div>
                   <Text style={{ 
-                    fontSize: '12px', 
+                    fontSize: '11px', 
                     fontWeight: 500, 
-                    color: selectedOperation === 'video' ? '#fff' : '#2e7d32' 
+                    color: '#2e7d32' 
                   }}>视频概览</Text>
                 </div>
               </Card>
@@ -598,25 +677,21 @@ const NoteEditPage = ({ onBack }) => {
               <Card 
                 size="small" 
                 hoverable
-                onClick={() => setSelectedOperation('mindmap')}
                 style={{ 
-                  background: selectedOperation === 'mindmap' 
-                    ? 'linear-gradient(135deg, #c2185b 0%, #880e4f 100%)' 
-                    : 'linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%)',
+                  background: 'linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%)',
                   border: 'none',
                   borderRadius: '12px',
                   textAlign: 'center',
                   cursor: 'pointer',
-                  transform: selectedOperation === 'mindmap' ? 'scale(0.98)' : 'scale(1)',
                   transition: 'all 0.2s ease'
                 }}
               >
-                <div style={{ padding: '8px 0' }}>
-                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>🧠</div>
+                <div style={{ padding: '6px 0' }}>
+                  <div style={{ fontSize: '20px', marginBottom: '6px' }}>🧠</div>
                   <Text style={{ 
-                    fontSize: '12px', 
+                    fontSize: '11px', 
                     fontWeight: 500, 
-                    color: selectedOperation === 'mindmap' ? '#fff' : '#c2185b' 
+                    color: '#c2185b' 
                   }}>思维导图</Text>
                 </div>
               </Card>
@@ -625,27 +700,69 @@ const NoteEditPage = ({ onBack }) => {
               <Card 
                 size="small" 
                 hoverable
-                onClick={() => setSelectedOperation('report')}
                 style={{ 
-                  background: selectedOperation === 'report' 
-                    ? 'linear-gradient(135deg, #ef6c00 0%, #bf360c 100%)' 
-                    : 'linear-gradient(135deg, #fff3e0 0%, #ffcc80 100%)',
+                  background: 'linear-gradient(135deg, #fff3e0 0%, #ffcc80 100%)',
                   border: 'none',
                   borderRadius: '12px',
                   textAlign: 'center',
                   cursor: 'pointer',
-                  transform: selectedOperation === 'report' ? 'scale(0.98)' : 'scale(1)',
                   transition: 'all 0.2s ease'
                 }}
               >
-                <div style={{ padding: '8px 0' }}>
-                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>📊</div>
+                <div style={{ padding: '6px 0' }}>
+                  <div style={{ fontSize: '20px', marginBottom: '6px' }}>📊</div>
                   <Text style={{ 
-                    fontSize: '12px', 
+                    fontSize: '11px', 
                     fontWeight: 500, 
-                    color: selectedOperation === 'report' ? '#fff' : '#ef6c00' 
+                    color: '#ef6c00' 
                   }}>报告</Text>
                 </div>
+              </Card>
+              
+              {/* PPT概览 */}
+              <Card 
+                size="small" 
+                hoverable
+                style={{ 
+                  background: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div style={{ padding: '6px 0' }}>
+                   <div style={{ fontSize: '20px', marginBottom: '6px' }}>📽️</div>
+                   <Text style={{ 
+                     fontSize: '11px', 
+                     fontWeight: 500, 
+                     color: '#d32f2f' 
+                   }}>PPT概览</Text>
+                 </div>
+              </Card>
+              
+              {/* 网页代码 */}
+              <Card 
+                size="small" 
+                hoverable
+                style={{ 
+                  background: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div style={{ padding: '6px 0' }}>
+                   <div style={{ fontSize: '20px', marginBottom: '6px' }}>💻</div>
+                   <Text style={{ 
+                     fontSize: '11px', 
+                     fontWeight: 500, 
+                     color: '#7b1fa2' 
+                   }}>网页代码</Text>
+                 </div>
               </Card>
             </div>
           </div>
@@ -657,16 +774,21 @@ const NoteEditPage = ({ onBack }) => {
             </Title>
             
             <div style={{ flex: 1, overflowY: 'auto', maxHeight: '300px' }}>
-              {operationRecords[selectedOperation]?.map(record => {
+              {Object.values(operationRecords).flat().map(record => {
                 const getIcon = (type) => {
-                  switch(type) {
-                    case 'audio': return '🎵';
-                    case 'video': return '📹';
-                    case 'mindmap': return '🧠';
-                    case 'report': return '📊';
-                    default: return '📄';
-                  }
-                };
+                    switch(type) {
+                      case 'audio': return '🎵';
+                      case 'video': return '📹';
+                      case 'mindmap': return '🧠';
+                      case 'report': return '📊';
+                      case 'ppt': return '📽️';
+                      case 'webcode': return '💻';
+                      case 'file': return '📄';
+                      case 'text': return '📝';
+                      case 'link': return '🔗';
+                      default: return '📄';
+                    }
+                  };
                 
                 return (
                   <Card 
@@ -724,7 +846,7 @@ const NoteEditPage = ({ onBack }) => {
                 );
               })}
               
-              {(!operationRecords[selectedOperation] || operationRecords[selectedOperation].length === 0) && (
+              {Object.values(operationRecords).flat().length === 0 && (
                 <div style={{ textAlign: 'center', color: '#999', padding: '20px 0' }}>
                   暂无操作记录
                 </div>
