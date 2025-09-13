@@ -185,6 +185,25 @@ const NoteEditPage = ({ onBack }) => {
     message.success(`${operationTitles[operationType]}已生成并添加到操作记录`);
   };
 
+  // 保存AI回复到笔记
+  const handleSaveToNote = (content) => {
+    const newRecord = {
+      id: Date.now(),
+      title: `AI问答笔记 - ${new Date().toLocaleString()}`,
+      source: 'AI智能问答',
+      time: '刚刚',
+      type: 'report',
+      content: content
+    };
+
+    setOperationRecords(prev => ({
+      ...prev,
+      report: [newRecord, ...prev.report]
+    }));
+
+    message.success('AI回复已保存到笔记');
+  };
+
   // 处理更多操作菜单点击
   const handleMoreAction = (action, record) => {
     switch (action) {
@@ -1014,13 +1033,34 @@ const NoteEditPage = ({ onBack }) => {
                     <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#1890ff' }} />
                   )}
                   <div style={{
-                    maxWidth: '70%',
-                    padding: '12px 16px',
-                    borderRadius: '12px',
-                    backgroundColor: msg.type === 'user' ? '#1890ff' : '#f6f6f6',
-                    color: msg.type === 'user' ? '#fff' : '#333'
+                    maxWidth: '70%'
                   }}>
-                    <Text style={{ color: 'inherit' }}>{msg.content}</Text>
+                    <div style={{
+                      padding: '12px 16px',
+                      borderRadius: '12px',
+                      backgroundColor: msg.type === 'user' ? '#1890ff' : '#f6f6f6',
+                      color: msg.type === 'user' ? '#fff' : '#333'
+                    }}>
+                      <Text style={{ color: 'inherit' }}>{msg.content}</Text>
+                    </div>
+                    {msg.type === 'assistant' && (
+                      <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'flex-start' }}>
+                        <Button
+                          size="small"
+                          type="text"
+                          icon={<SaveOutlined />}
+                          onClick={() => handleSaveToNote(msg.content)}
+                          style={{
+                            fontSize: '12px',
+                            color: '#666',
+                            padding: '4px 8px',
+                            height: 'auto'
+                          }}
+                        >
+                          保存到笔记
+                        </Button>
+                      </div>
+                    )}
                   </div>
                   {msg.type === 'user' && (
                     <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#52c41a' }} />
