@@ -16,7 +16,9 @@ import {
   Select,
   Row,
   Col,
-  Modal
+  Modal,
+  Checkbox,
+  Popconfirm
 } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -51,6 +53,11 @@ const NoteEditPage = ({ onBack }) => {
     { id: 41, name: '成都小吃制作视频.mp4', size: 10240000, type: 'video/mp4', uploadTime: '4小时前' },
     { id: 42, name: '川菜营养成分分析.docx', size: 1280000, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', uploadTime: '5小时前' }
   ]);
+  
+  // 多选功能状态
+  const [selectedMaterials, setSelectedMaterials] = useState([]);
+  const [showMaterialDetail, setShowMaterialDetail] = useState(false);
+  const [currentMaterial, setCurrentMaterial] = useState(null);
   const [links, setLinks] = useState([
     { id: 20, url: 'https://zhuanlan.zhihu.com/chengdu-food', title: '成都美食攻略 - 知乎专栏', addTime: '8分钟前' },
     { id: 21, url: 'https://www.sichuancuisinemuseum.com', title: '川菜博物馆官网', addTime: '18分钟前' },
@@ -116,8 +123,8 @@ const NoteEditPage = ({ onBack }) => {
   // 操作面板相关状态
   const [selectedOperation, setSelectedOperation] = useState('audio'); // 当前选中的操作类型
   
-  // 模拟操作记录数据
-  const operationRecords = {
+  // 操作记录数据状态管理
+  const [operationRecords, setOperationRecords] = useState({
     audio: [
       { id: 1, title: '解锁成都味觉密码：从米其林到苍蝇馆子，辣味之外的川菜七滋八味与多元流派', source: '10个来源', time: '1小时前', type: 'audio' },
       { id: 2, title: '成都美食：一张餐桌，两种故事', source: '10个来源', time: '2小时前', type: 'audio' },
@@ -189,6 +196,56 @@ const NoteEditPage = ({ onBack }) => {
       { id: 52, title: '川菜调料采购指南', source: '保存的链接', time: '3小时前', type: 'link' },
       { id: 53, title: '成都美食节官方网站', source: '保存的链接', time: '4小时前', type: 'link' }
     ]
+  });
+
+  // 新建笔记功能
+  const handleCreateNewNote = () => {
+    const newNote = {
+      id: Date.now(),
+      title: '新建笔记',
+      source: '手动创建',
+      time: '刚刚',
+      type: 'text'
+    };
+    
+    setOperationRecords(prev => ({
+      ...prev,
+      text: [newNote, ...prev.text]
+    }));
+    
+    message.success('新建笔记已添加到操作记录');
+  };
+
+  // 操作按钮点击处理函数
+  const handleOperationClick = (operationType) => {
+    if (selectedMaterials.length === 0) {
+      message.warning('请先选择要操作的资料');
+      return;
+    }
+
+    const operationTitles = {
+      audio: '音频概览',
+      video: '视频概览', 
+      mindmap: '思维导图',
+      report: '分析报告',
+      ppt: 'PPT演示',
+      webcode: '网页代码'
+    };
+
+    const newRecord = {
+      id: Date.now(),
+      title: `基于${selectedMaterials.length}个资料生成${operationTitles[operationType]}`,
+      source: `${selectedMaterials.length}个来源`,
+      time: '刚刚',
+      type: operationType
+    };
+
+    setOperationRecords(prev => ({
+      ...prev,
+      [operationType]: [newRecord, ...prev[operationType]]
+    }));
+
+    message.success(`${operationTitles[operationType]}已生成并添加到操作记录`);
   };
 
   // 文件上传处理
@@ -378,9 +435,71 @@ const NoteEditPage = ({ onBack }) => {
 
   // 删除链接
   const handleDeleteLink = (linkId) => {
-    setLinks(prev => prev.filter(link => link.id !== linkId));
+    setLinks(links.filter(link => link.id !== linkId));
     message.success('链接删除成功');
   };
+
+  // 多选功能处理函数
+  const handleSelectMaterial = (materialId, checked) => {
+    if (checked) {
+      setSelectedMaterials([...selectedMaterials, materialId]);
+    } else {
+      setSelectedMaterials(selectedMaterials.filter(id => id !== materialId));
+    }
+  };
+
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      const allMaterialIds = [
+        ...uploadedFiles.map(file => `file-${file.id}`),
+        ...addedTexts.map(text => `text-${text.id}`),
+        ...courseVideos.map(video => `video-${video.id}`),
+        ...links.map(link => `link-${link.id}`)
+      ];
+      setSelectedMaterials(allMaterialIds);
+    } else {
+      setSelectedMaterials([]);
+    }
+  };
+
+  const handleBatchDelete = () => {
+    selectedMaterials.forEach(materialId => {
+      const [type, id] = materialId.split('-');
+      const numId = parseInt(id);
+      
+      switch (type) {
+        case 'file':
+          setUploadedFiles(prev => prev.filter(file => file.id !== numId));
+          break;
+        case 'text':
+          setAddedTexts(prev => prev.filter(text => text.id !== numId));
+          break;
+        case 'video':
+          setCourseVideos(prev => prev.filter(video => video.id !== numId));
+          break;
+        case 'link':
+          setLinks(prev => prev.filter(link => link.id !== numId));
+          break;
+      }
+    });
+    setSelectedMaterials([]);
+    message.success(`已删除 ${selectedMaterials.length} 个资料`);
+  };
+
+  const handleViewMaterial = (material, type) => {
+    setCurrentMaterial({ ...material, type });
+    setShowMaterialDetail(true);
+  };
+
+  // 计算选中状态
+  const allMaterials = [
+    ...uploadedFiles.map(file => `file-${file.id}`),
+    ...addedTexts.map(text => `text-${text.id}`),
+    ...courseVideos.map(video => `video-${video.id}`),
+    ...links.map(link => `link-${link.id}`)
+  ];
+  const isAllSelected = allMaterials.length > 0 && selectedMaterials.length === allMaterials.length;
+  const isIndeterminate = selectedMaterials.length > 0 && selectedMaterials.length < allMaterials.length;
 
 
 
@@ -400,19 +519,50 @@ const NoteEditPage = ({ onBack }) => {
       <div style={{ width: 320, background: '#fff', margin: '16px 0 16px 16px', borderRadius: '8px', overflow: 'hidden' }}>
           <div style={{ padding: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
-                📚 资料收集
-              </Title>
-              {onBack && (
-                <Button 
-                  type="text" 
-                  icon={<ArrowLeftOutlined />} 
-                  onClick={handleBack}
-                  style={{ color: '#666' }}
-                >
-                  返回
-                </Button>
-              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
+                  📚 资料收集
+                </Title>
+                {allMaterials.length > 0 && (
+                  <Checkbox
+                    indeterminate={isIndeterminate}
+                    checked={isAllSelected}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                  >
+                    {selectedMaterials.length > 0 ? `已选 ${selectedMaterials.length}` : '全选'}
+                  </Checkbox>
+                )}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {selectedMaterials.length > 0 && (
+                  <Popconfirm
+                    title="确认删除"
+                    description={`确定要删除选中的 ${selectedMaterials.length} 个资料吗？`}
+                    onConfirm={handleBatchDelete}
+                    okText="确定"
+                    cancelText="取消"
+                  >
+                    <Button 
+                      type="text" 
+                      icon={<DeleteOutlined />}
+                      danger
+                      size="small"
+                    >
+                      删除选中
+                    </Button>
+                  </Popconfirm>
+                )}
+                {onBack && (
+                  <Button 
+                    type="text" 
+                    icon={<ArrowLeftOutlined />} 
+                    onClick={handleBack}
+                    style={{ color: '#666' }}
+                  >
+                    返回
+                  </Button>
+                )}
+              </div>
             </div>
             
             {/* 操作按钮区域 */}
@@ -442,9 +592,25 @@ const NoteEditPage = ({ onBack }) => {
             <div style={{ maxHeight: 400, overflowY: 'auto' }}>
               {/* 已上传文件 */}
               {uploadedFiles.map(file => (
-                <Card key={`file-${file.id}`} size="small" style={{ marginBottom: 8 }}>
+                <Card 
+                  key={`file-${file.id}`} 
+                  size="small" 
+                  style={{ 
+                    marginBottom: 8,
+                    border: selectedMaterials.includes(`file-${file.id}`) ? '2px solid #1890ff' : '1px solid #f0f0f0',
+                    backgroundColor: selectedMaterials.includes(`file-${file.id}`) ? '#f6ffed' : 'white'
+                  }}
+                >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                    <Checkbox
+                      checked={selectedMaterials.includes(`file-${file.id}`)}
+                      onChange={(e) => handleSelectMaterial(`file-${file.id}`, e.target.checked)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <div 
+                      style={{ display: 'flex', alignItems: 'center', flex: 1, marginLeft: 8, cursor: 'pointer' }}
+                      onClick={() => handleViewMaterial(file, 'file')}
+                    >
                       <FileTextOutlined style={{ fontSize: 16, color: '#1890ff', marginRight: 8 }} />
                       <div style={{ flex: 1 }}>
                         <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{file.name}</Text>
@@ -458,7 +624,10 @@ const NoteEditPage = ({ onBack }) => {
                       type="text" 
                       size="small" 
                       icon={<DeleteOutlined />}
-                      onClick={() => handleDeleteFile(file.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteFile(file.id);
+                      }}
                       danger
                     />
                   </div>
@@ -467,9 +636,25 @@ const NoteEditPage = ({ onBack }) => {
               
               {/* 添加的文字 */}
               {addedTexts.map(text => (
-                <Card key={`text-${text.id}`} size="small" style={{ marginBottom: 8 }}>
+                <Card 
+                  key={`text-${text.id}`} 
+                  size="small" 
+                  style={{ 
+                    marginBottom: 8,
+                    border: selectedMaterials.includes(`text-${text.id}`) ? '2px solid #1890ff' : '1px solid #f0f0f0',
+                    backgroundColor: selectedMaterials.includes(`text-${text.id}`) ? '#f6ffed' : 'white'
+                  }}
+                >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                    <Checkbox
+                      checked={selectedMaterials.includes(`text-${text.id}`)}
+                      onChange={(e) => handleSelectMaterial(`text-${text.id}`, e.target.checked)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <div 
+                      style={{ display: 'flex', alignItems: 'center', flex: 1, marginLeft: 8, cursor: 'pointer' }}
+                      onClick={() => handleViewMaterial(text, 'text')}
+                    >
                       <FileTextOutlined style={{ fontSize: 16, color: '#52c41a', marginRight: 8 }} />
                       <div style={{ flex: 1 }}>
                         <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{text.title}</Text>
@@ -483,7 +668,10 @@ const NoteEditPage = ({ onBack }) => {
                       type="text" 
                       size="small" 
                       icon={<DeleteOutlined />}
-                      onClick={() => handleDeleteText(text.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteText(text.id);
+                      }}
                       danger
                     />
                   </div>
@@ -492,9 +680,25 @@ const NoteEditPage = ({ onBack }) => {
               
               {/* 课程视频 */}
               {courseVideos.map(video => (
-                <Card key={`video-${video.id}`} size="small" style={{ marginBottom: 8 }}>
+                <Card 
+                  key={`video-${video.id}`} 
+                  size="small" 
+                  style={{ 
+                    marginBottom: 8,
+                    border: selectedMaterials.includes(`video-${video.id}`) ? '2px solid #1890ff' : '1px solid #f0f0f0',
+                    backgroundColor: selectedMaterials.includes(`video-${video.id}`) ? '#f6ffed' : 'white'
+                  }}
+                >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                    <Checkbox
+                      checked={selectedMaterials.includes(`video-${video.id}`)}
+                      onChange={(e) => handleSelectMaterial(`video-${video.id}`, e.target.checked)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <div 
+                      style={{ display: 'flex', alignItems: 'center', flex: 1, marginLeft: 8, cursor: 'pointer' }}
+                      onClick={() => handleViewMaterial(video, 'video')}
+                    >
                       <div style={{ fontSize: 16, marginRight: 8 }}>🎥</div>
                       <div style={{ flex: 1 }}>
                         <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{video.title}</Text>
@@ -508,7 +712,10 @@ const NoteEditPage = ({ onBack }) => {
                       type="text" 
                       size="small" 
                       icon={<DeleteOutlined />}
-                      onClick={() => handleDeleteVideo(video.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteVideo(video.id);
+                      }}
                       danger
                     />
                   </div>
@@ -517,9 +724,25 @@ const NoteEditPage = ({ onBack }) => {
               
               {/* 保存的链接 */}
               {links.map(link => (
-                <Card key={`link-${link.id}`} size="small" style={{ marginBottom: 8 }}>
+                <Card 
+                  key={`link-${link.id}`} 
+                  size="small" 
+                  style={{ 
+                    marginBottom: 8,
+                    border: selectedMaterials.includes(`link-${link.id}`) ? '2px solid #1890ff' : '1px solid #f0f0f0',
+                    backgroundColor: selectedMaterials.includes(`link-${link.id}`) ? '#f6ffed' : 'white'
+                  }}
+                >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                    <Checkbox
+                      checked={selectedMaterials.includes(`link-${link.id}`)}
+                      onChange={(e) => handleSelectMaterial(`link-${link.id}`, e.target.checked)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <div 
+                      style={{ display: 'flex', alignItems: 'center', flex: 1, marginLeft: 8, cursor: 'pointer' }}
+                      onClick={() => handleViewMaterial(link, 'link')}
+                    >
                       <LinkOutlined style={{ fontSize: 16, color: '#fa8c16', marginRight: 8 }} />
                       <div style={{ flex: 1 }}>
                         <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{link.title}</Text>
@@ -533,7 +756,10 @@ const NoteEditPage = ({ onBack }) => {
                       type="text" 
                       size="small" 
                       icon={<DeleteOutlined />}
-                      onClick={() => handleDeleteLink(link.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteLink(link.id);
+                      }}
                       danger
                     />
                   </div>
@@ -631,6 +857,7 @@ const NoteEditPage = ({ onBack }) => {
               <Card 
                 size="small" 
                 hoverable
+                onClick={() => handleOperationClick('audio')}
                 style={{ 
                   background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
                   border: 'none',
@@ -654,6 +881,7 @@ const NoteEditPage = ({ onBack }) => {
               <Card 
                 size="small" 
                 hoverable
+                onClick={() => handleOperationClick('video')}
                 style={{ 
                   background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
                   border: 'none',
@@ -677,6 +905,7 @@ const NoteEditPage = ({ onBack }) => {
               <Card 
                 size="small" 
                 hoverable
+                onClick={() => handleOperationClick('mindmap')}
                 style={{ 
                   background: 'linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%)',
                   border: 'none',
@@ -700,6 +929,7 @@ const NoteEditPage = ({ onBack }) => {
               <Card 
                 size="small" 
                 hoverable
+                onClick={() => handleOperationClick('report')}
                 style={{ 
                   background: 'linear-gradient(135deg, #fff3e0 0%, #ffcc80 100%)',
                   border: 'none',
@@ -723,6 +953,7 @@ const NoteEditPage = ({ onBack }) => {
               <Card 
                 size="small" 
                 hoverable
+                onClick={() => handleOperationClick('ppt')}
                 style={{ 
                   background: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)',
                   border: 'none',
@@ -746,6 +977,7 @@ const NoteEditPage = ({ onBack }) => {
               <Card 
                 size="small" 
                 hoverable
+                onClick={() => handleOperationClick('webcode')}
                 style={{ 
                   background: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)',
                   border: 'none',
@@ -851,6 +1083,24 @@ const NoteEditPage = ({ onBack }) => {
                   暂无操作记录
                 </div>
               )}
+            </div>
+            
+            {/* 新建笔记按钮 */}
+            <div style={{ marginTop: '12px', textAlign: 'center' }}>
+              <Button 
+                type="primary" 
+                icon={<PlusOutlined />}
+                onClick={handleCreateNewNote}
+                style={{
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  height: '32px',
+                  paddingLeft: '12px',
+                  paddingRight: '12px'
+                }}
+              >
+                新建笔记
+              </Button>
             </div>
           </div>
         </div>
@@ -1021,6 +1271,76 @@ const NoteEditPage = ({ onBack }) => {
 
       </div>
        </Modal>
+       
+      {/* 资料详情查看弹窗 */}
+      <Modal
+        title={`查看${currentMaterial?.type === 'file' ? '文件' : 
+                currentMaterial?.type === 'text' ? '文字' : 
+                currentMaterial?.type === 'video' ? '视频' : '链接'}详情`}
+        open={showMaterialDetail}
+        onCancel={() => {
+          setShowMaterialDetail(false);
+          setCurrentMaterial(null);
+        }}
+        footer={[
+          <Button key="close" onClick={() => {
+            setShowMaterialDetail(false);
+            setCurrentMaterial(null);
+          }}>
+            关闭
+          </Button>
+        ]}
+        width={600}
+      >
+        {currentMaterial && currentMaterial.data && (
+           <div>
+             {currentMaterial.type === 'file' && (
+               <div>
+                 <p><strong>文件名：</strong>{currentMaterial.data.name}</p>
+                 <p><strong>文件大小：</strong>{(currentMaterial.data.size / 1024).toFixed(1)}KB</p>
+                 <p><strong>文件类型：</strong>{currentMaterial.data.type || '未知'}</p>
+                 <p><strong>上传时间：</strong>{new Date().toLocaleString()}</p>
+               </div>
+             )}
+             {currentMaterial.type === 'text' && (
+               <div>
+                 <p><strong>标题：</strong>{currentMaterial.data.title}</p>
+                 <p><strong>内容：</strong></p>
+                 <div style={{ 
+                   padding: '12px', 
+                   backgroundColor: '#f5f5f5', 
+                   borderRadius: '6px',
+                   whiteSpace: 'pre-wrap',
+                   maxHeight: '300px',
+                   overflow: 'auto'
+                 }}>
+                   {currentMaterial.data.content}
+                 </div>
+               </div>
+             )}
+             {currentMaterial.type === 'video' && (
+               <div>
+                 <p><strong>视频标题：</strong>{currentMaterial.data.title}</p>
+                 <p><strong>视频链接：</strong>
+                   <a href={currentMaterial.data.url} target="_blank" rel="noopener noreferrer">
+                     {currentMaterial.data.url}
+                   </a>
+                 </p>
+               </div>
+             )}
+             {currentMaterial.type === 'link' && (
+               <div>
+                 <p><strong>链接标题：</strong>{currentMaterial.data.title}</p>
+                 <p><strong>链接地址：</strong>
+                   <a href={currentMaterial.data.url} target="_blank" rel="noopener noreferrer">
+                     {currentMaterial.data.url}
+                   </a>
+                 </p>
+               </div>
+             )}
+           </div>
+         )}
+      </Modal>
     </>
   );
 };

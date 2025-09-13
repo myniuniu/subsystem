@@ -567,7 +567,9 @@ const SmartNotes = () => {
           <div className="notes-grid">
             {loading ? (
               <div className="loading-container">
-                <Spin size="large" tip="加载中..." />
+                <Spin size="large">
+                  <div style={{ marginTop: 8 }}>加载中...</div>
+                </Spin>
               </div>
             ) : filteredNotes.length === 0 ? (
               <Empty

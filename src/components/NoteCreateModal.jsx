@@ -222,7 +222,7 @@ const NoteCreateModal = ({ visible, onCancel, onSave, notes = [], categories = [
       height={800}
       footer={null}
       className="note-create-modal"
-      destroyOnClose
+      destroyOnHidden
     >
       <Layout className="modal-layout">
         {/* 左侧笔记列表 */}
