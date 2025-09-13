@@ -125,77 +125,15 @@ const NoteEditPage = ({ onBack }) => {
   
   // 操作记录数据状态管理
   const [operationRecords, setOperationRecords] = useState({
-    audio: [
-      { id: 1, title: '解锁成都味觉密码：从米其林到苍蝇馆子，辣味之外的川菜七滋八味与多元流派', source: '10个来源', time: '1小时前', type: 'audio' },
-      { id: 2, title: '成都美食：一张餐桌，两种故事', source: '10个来源', time: '2小时前', type: 'audio' },
-      { id: 23, title: '成都火锅文化深度解析', source: '8个来源', time: '3小时前', type: 'audio' },
-      { id: 24, title: '川菜调味技法音频讲解', source: '12个来源', time: '4小时前', type: 'audio' },
-      { id: 25, title: '成都茶馆文化与美食搭配', source: '6个来源', time: '5小时前', type: 'audio' }
-    ],
-    video: [
-      { id: 3, title: '成都米其林美食与地道风味之旅', source: '课程视频', time: '2小时前', type: 'video' },
-      { id: 4, title: '川菜制作工艺详解', source: '课程视频', time: '3小时前', type: 'video' },
-      { id: 5, title: '成都火锅文化纪录片', source: '课程视频', time: '4小时前', type: 'video' },
-      { id: 26, title: '宽窄巷子美食探店', source: '课程视频', time: '5小时前', type: 'video' },
-      { id: 27, title: '川菜大师烹饪示范', source: '课程视频', time: '6小时前', type: 'video' },
-      { id: 28, title: '成都小吃制作全程', source: '课程视频', time: '1天前', type: 'video' }
-    ],
-    mindmap: [
-      { id: 6, title: '成都美食文化思维导图', source: '基于15个来源生成', time: '30分钟前', type: 'mindmap' },
-      { id: 7, title: '川菜发展历程导图', source: '基于8个来源生成', time: '1小时前', type: 'mindmap' },
-      { id: 29, title: '成都火锅产业链分析图', source: '基于20个来源生成', time: '2小时前', type: 'mindmap' },
-      { id: 30, title: '川菜调料体系结构图', source: '基于12个来源生成', time: '3小时前', type: 'mindmap' }
-    ],
-    report: [
-      { id: 8, title: '成都美食产业分析报告', source: '综合20个数据源', time: '45分钟前', type: 'report' },
-      { id: 9, title: '川菜国际化发展研究', source: '综合12个数据源', time: '1.5小时前', type: 'report' },
-      { id: 31, title: '成都餐饮市场调研报告', source: '综合25个数据源', time: '2小时前', type: 'report' },
-      { id: 32, title: '川菜营养价值分析报告', source: '综合15个数据源', time: '4小时前', type: 'report' },
-      { id: 33, title: '成都美食旅游发展报告', source: '综合18个数据源', time: '1天前', type: 'report' }
-    ],
-    ppt: [
-      { id: 10, title: '成都美食文化PPT演示', source: '基于18个来源生成', time: '25分钟前', type: 'ppt' },
-      { id: 11, title: '川菜历史发展演示文稿', source: '基于12个来源生成', time: '50分钟前', type: 'ppt' },
-      { id: 34, title: '成都火锅文化推广PPT', source: '基于22个来源生成', time: '1.5小时前', type: 'ppt' },
-      { id: 35, title: '川菜烹饪技法演示', source: '基于14个来源生成', time: '3小时前', type: 'ppt' }
-    ],
-    webcode: [
-      { id: 12, title: '成都美食推荐网页', source: '基于API数据生成', time: '35分钟前', type: 'webcode' },
-      { id: 13, title: '川菜菜谱展示页面', source: '基于数据库生成', time: '1.2小时前', type: 'webcode' },
-      { id: 36, title: '成都餐厅评价系统', source: '基于评价数据生成', time: '1小时前', type: 'webcode' },
-      { id: 37, title: '川菜营养计算器', source: '基于营养数据生成', time: '2小时前', type: 'webcode' }
-    ],
-    file: [
-      { id: 14, title: '成都美食调研报告.pdf', source: '已上传文件', time: '10分钟前', type: 'file' },
-      { id: 15, title: '川菜菜谱大全.docx', source: '已上传文件', time: '30分钟前', type: 'file' },
-      { id: 16, title: '成都餐厅数据表.xlsx', source: '已上传文件', time: '1小时前', type: 'file' },
-      { id: 38, title: '川菜历史文献资料.pdf', source: '已上传文件', time: '1.5小时前', type: 'file' },
-      { id: 39, title: '成都火锅店分布图.png', source: '已上传文件', time: '2小时前', type: 'file' },
-      { id: 40, title: '川菜调料配方表.xlsx', source: '已上传文件', time: '3小时前', type: 'file' },
-      { id: 41, title: '成都小吃制作视频.mp4', source: '已上传文件', time: '4小时前', type: 'file' },
-      { id: 42, title: '川菜营养成分分析.docx', source: '已上传文件', time: '5小时前', type: 'file' }
-    ],
-    text: [
-      { id: 17, title: '成都美食个人体验笔记', source: '添加的文字', time: '5分钟前', type: 'text' },
-      { id: 18, title: '川菜口味特点总结', source: '添加的文字', time: '15分钟前', type: 'text' },
-      { id: 19, title: '成都小吃街探访记录', source: '添加的文字', time: '25分钟前', type: 'text' },
-      { id: 43, title: '火锅底料制作心得', source: '添加的文字', time: '45分钟前', type: 'text' },
-      { id: 44, title: '成都茶馆文化观察', source: '添加的文字', time: '1小时前', type: 'text' },
-      { id: 45, title: '川菜调味技巧笔记', source: '添加的文字', time: '2小时前', type: 'text' },
-      { id: 46, title: '宽窄巷子美食攻略', source: '添加的文字', time: '3小时前', type: 'text' },
-      { id: 47, title: '成都夜市小吃推荐', source: '添加的文字', time: '4小时前', type: 'text' }
-    ],
-    link: [
-      { id: 20, title: '成都美食攻略 - 知乎专栏', source: '保存的链接', time: '8分钟前', type: 'link' },
-      { id: 21, title: '川菜博物馆官网', source: '保存的链接', time: '18分钟前', type: 'link' },
-      { id: 22, title: '成都米其林餐厅指南', source: '保存的链接', time: '28分钟前', type: 'link' },
-      { id: 48, title: '大众点评成都火锅排行榜', source: '保存的链接', time: '40分钟前', type: 'link' },
-      { id: 49, title: '成都文化旅游局美食推荐', source: '保存的链接', time: '1小时前', type: 'link' },
-      { id: 50, title: '川菜制作技法视频教程', source: '保存的链接', time: '1.5小时前', type: 'link' },
-      { id: 51, title: '成都小吃地图 - 百度百科', source: '保存的链接', time: '2小时前', type: 'link' },
-      { id: 52, title: '川菜调料采购指南', source: '保存的链接', time: '3小时前', type: 'link' },
-      { id: 53, title: '成都美食节官方网站', source: '保存的链接', time: '4小时前', type: 'link' }
-    ]
+    audio: [],
+    video: [],
+    mindmap: [],
+    report: [],
+    ppt: [],
+    webcode: [],
+    file: [],
+    text: [],
+    link: []
   });
 
   // 新建笔记功能
