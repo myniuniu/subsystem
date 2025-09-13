@@ -45,14 +45,7 @@ const { Option } = Select;
 const NoteEditPage = ({ onBack }) => {
   // 资料收集相关状态
   const [uploadedFiles, setUploadedFiles] = useState([
-    { id: 14, name: '成都美食调研报告.pdf', size: 2048000, type: 'application/pdf', uploadTime: '10分钟前' },
-    { id: 15, name: '川菜菜谱大全.docx', size: 1536000, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', uploadTime: '30分钟前' },
-    { id: 16, name: '成都餐厅数据表.xlsx', size: 1024000, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', uploadTime: '1小时前' },
-    { id: 38, name: '川菜历史文献资料.pdf', size: 3072000, type: 'application/pdf', uploadTime: '1.5小时前' },
-    { id: 39, name: '成都火锅店分布图.png', size: 512000, type: 'image/png', uploadTime: '2小时前' },
-    { id: 40, name: '川菜调料配方表.xlsx', size: 768000, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', uploadTime: '3小时前' },
-    { id: 41, name: '成都小吃制作视频.mp4', size: 10240000, type: 'video/mp4', uploadTime: '4小时前' },
-    { id: 42, name: '川菜营养成分分析.docx', size: 1280000, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', uploadTime: '5小时前' }
+    { id: 1, name: '成都火锅制作工艺.pdf', type: 'application/pdf', uploadTime: '刚刚' }
   ]);
   
   // 多选功能状态
@@ -60,15 +53,7 @@ const NoteEditPage = ({ onBack }) => {
   const [showMaterialDetail, setShowMaterialDetail] = useState(false);
   const [currentMaterial, setCurrentMaterial] = useState(null);
   const [links, setLinks] = useState([
-    { id: 20, url: 'https://zhuanlan.zhihu.com/chengdu-food', title: '成都美食攻略 - 知乎专栏', addTime: '8分钟前' },
-    { id: 21, url: 'https://www.sichuancuisinemuseum.com', title: '川菜博物馆官网', addTime: '18分钟前' },
-    { id: 22, url: 'https://guide.michelin.com/chengdu', title: '成都米其林餐厅指南', addTime: '28分钟前' },
-    { id: 48, url: 'https://www.dianping.com/chengdu/hotpot', title: '大众点评成都火锅排行榜', addTime: '40分钟前' },
-    { id: 49, url: 'https://www.cdta.gov.cn/food', title: '成都文化旅游局美食推荐', addTime: '1小时前' },
-    { id: 50, url: 'https://www.bilibili.com/sichuancuisine', title: '川菜制作技法视频教程', addTime: '1.5小时前' },
-    { id: 51, url: 'https://baike.baidu.com/chengdu-snacks', title: '成都小吃地图 - 百度百科', addTime: '2小时前' },
-    { id: 52, url: 'https://www.tmall.com/sichuan-spices', title: '川菜调料采购指南', addTime: '3小时前' },
-    { id: 53, url: 'https://www.chengdufoodfestival.com', title: '成都美食节官方网站', addTime: '4小时前' }
+    { id: 2, url: 'https://chengdu-food.com', title: '成都美食攻略网站', addTime: '刚刚' }
   ]);
   const [newLink, setNewLink] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -76,26 +61,14 @@ const NoteEditPage = ({ onBack }) => {
   const [websiteUrl, setWebsiteUrl] = useState('');// 文字内容相关状态
   const [textContent, setTextContent] = useState('');
   const [addedTexts, setAddedTexts] = useState([
-    { id: 17, title: '成都美食个人体验笔记', content: '在成都生活了三年，深深被这座城市的美食文化所吸引。从街头巷尾的小吃到高档餐厅的精致川菜，每一道菜都承载着深厚的文化底蕴...', addTime: '5分钟前' },
-    { id: 18, title: '川菜口味特点总结', content: '川菜以麻、辣、鲜、香为主要特色，讲究一菜一格，百菜百味。其调味方法多样，有鱼香、宫保、怪味、酸辣等24种基本味型...', addTime: '15分钟前' },
-    { id: 19, title: '成都小吃街探访记录', content: '今天走访了锦里、宽窄巷子、春熙路等著名小吃街，品尝了龙抄手、钟水饺、夫妻肺片、三大炮等经典小吃，每一样都有其独特的制作工艺...', addTime: '25分钟前' },
-    { id: 43, title: '火锅底料制作心得', content: '经过多次尝试，总结出制作正宗成都火锅底料的关键：选用优质郫县豆瓣酱，配以干辣椒、花椒、香料等，小火慢炒出红油...', addTime: '45分钟前' },
-    { id: 44, title: '成都茶馆文化观察', content: '成都的茶馆不仅是品茶的地方，更是社交和文化交流的重要场所。在这里可以听川剧、打麻将、聊天，体验慢生活的魅力...', addTime: '1小时前' },
-    { id: 45, title: '川菜调味技巧笔记', content: '川菜调味的精髓在于复合调味，通过多种调料的巧妙搭配，形成层次丰富的口感。豆瓣酱是川菜之魂，花椒提供麻味...', addTime: '2小时前' },
-    { id: 46, title: '宽窄巷子美食攻略', content: '宽窄巷子作为成都的文化名片，汇聚了众多特色美食。推荐必吃：叶儿粑、糖油果子、三大炮、冰粉等传统小吃...', addTime: '3小时前' },
-    { id: 47, title: '成都夜市小吃推荐', content: '成都的夜市文化丰富多彩，建设路小吃街、玉林路、电子科大万人坑等都是夜宵的好去处，烧烤、串串、冒菜应有尽有...', addTime: '4小时前' }
+    { id: 3, title: '成都小吃介绍', content: '成都是著名的美食之都，拥有麻婆豆腐、回锅肉、担担面、龙抄手等众多特色小吃...', addTime: '刚刚' }
   ]);
   
   // 课程视频相关状态
   const [videoTitle, setVideoTitle] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [courseVideos, setCourseVideos] = useState([
-    { id: 3, title: '成都米其林美食与地道风味之旅', url: 'https://www.bilibili.com/video/BV1xx411c7mu', addTime: '2小时前' },
-    { id: 4, title: '川菜制作工艺详解', url: 'https://www.bilibili.com/video/BV2yy411d8kl', addTime: '3小时前' },
-    { id: 5, title: '成都火锅文化纪录片', url: 'https://www.bilibili.com/video/BV3zz411e9wx', addTime: '4小时前' },
-    { id: 26, title: '宽窄巷子美食探店', url: 'https://www.xiaohongshu.com/explore/chengdu-food', addTime: '5小时前' },
-    { id: 27, title: '川菜大师烹饪示范', url: 'https://www.bilibili.com/video/BV4aa411b7cd', addTime: '6小时前' },
-    { id: 28, title: '成都小吃制作全程', url: 'https://www.bilibili.com/video/BV5bb411c8ef', addTime: '1天前' }
+    { id: 4, title: '成都火锅制作教程', url: 'https://video.com/chengdu-hotpot', addTime: '刚刚' }
   ]);
   
   // 问答区域相关状态
@@ -208,10 +181,42 @@ const NoteEditPage = ({ onBack }) => {
   const handleMoreAction = (action, record) => {
     switch (action) {
       case 'convertToSource':
-        message.success(`已将"${record.title}"转换为来源`);
+        // 将操作记录转换为资料来源
+        const newMaterial = {
+          id: Date.now(),
+          title: record.title,
+          content: record.content || `来源于操作记录：${record.title}`,
+          addTime: '刚刚',
+          source: record.source || '操作记录转换'
+        };
+        
+        // 根据记录类型添加到对应的资料数组
+        if (record.type === 'report' || record.type === 'mindmap') {
+          setAddedTexts(prev => [newMaterial, ...prev]);
+        } else if (record.type === 'video' || record.type === 'audio') {
+          setCourseVideos(prev => [{
+            ...newMaterial,
+            url: record.url || 'https://converted-from-record.com'
+          }, ...prev]);
+        } else {
+          setAddedTexts(prev => [newMaterial, ...prev]);
+        }
+        
+        message.success(`已将"${record.title}"转换为来源并保存到资料`);
         break;
       case 'convertAllToSource':
-        message.success('已将所有笔记转换为来源');
+        // 将所有操作记录转换为资料来源
+        const allRecords = Object.values(operationRecords).flat();
+        const convertedMaterials = allRecords.map(rec => ({
+          id: Date.now() + Math.random(),
+          title: rec.title,
+          content: rec.content || `来源于操作记录：${rec.title}`,
+          addTime: '刚刚',
+          source: rec.source || '操作记录转换'
+        }));
+        
+        setAddedTexts(prev => [...convertedMaterials, ...prev]);
+        message.success(`已将${allRecords.length}条操作记录转换为来源并保存到资料`);
         break;
       case 'delete':
         // 从操作记录中删除该记录
@@ -778,7 +783,7 @@ const NoteEditPage = ({ onBack }) => {
             <Divider style={{ margin: '16px 0' }} />
             
             {/* 统一的资料列表 */}
-            <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+            <div style={{ height: 'calc(100vh - 280px)', overflowY: 'auto' }}>
               {/* 已上传文件 */}
               {uploadedFiles.map(file => (
                 <Card 
@@ -803,10 +808,6 @@ const NoteEditPage = ({ onBack }) => {
                       <FileTextOutlined style={{ fontSize: 16, color: '#1890ff', marginRight: 8 }} />
                       <div style={{ flex: 1 }}>
                         <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{file.name}</Text>
-                        <br />
-                        <Text type="secondary" style={{ fontSize: 10 }}>
-                          {(file.size / 1024).toFixed(1)}KB
-                        </Text>
                       </div>
                     </div>
                     <Button 
@@ -1078,6 +1079,40 @@ const NoteEditPage = ({ onBack }) => {
             )}
           </div>
           
+          {/* 常见问题按钮 */}
+          <div style={{ padding: '16px 20px 0 20px', borderTop: '1px solid #f0f0f0' }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+              <Button 
+                size="small" 
+                style={{ borderRadius: '16px', fontSize: '12px' }}
+                onClick={() => setInputMessage('成都川菜有哪些经典菜品和特色？')}
+              >
+                成都川菜有哪些经典菜品和特色？
+              </Button>
+              <Button 
+                size="small" 
+                style={{ borderRadius: '16px', fontSize: '12px' }}
+                onClick={() => setInputMessage('火锅底料的制作工艺和配方要点是什么？')}
+              >
+                火锅底料的制作工艺和配方要点是什么？
+              </Button>
+              <Button 
+                size="small" 
+                style={{ borderRadius: '16px', fontSize: '12px' }}
+                onClick={() => setInputMessage('成都小吃的地理分布和文化背景如何？')}
+              >
+                成都小吃的地理分布和文化背景如何？
+              </Button>
+              <Button 
+                size="small" 
+                style={{ borderRadius: '16px', fontSize: '12px' }}
+                onClick={() => setInputMessage('川菜调料的营养价值和健康影响？')}
+              >
+                川菜调料的营养价值和健康影响？
+              </Button>
+            </div>
+          </div>
+          
           {/* 输入区域 */}
           <div style={{ padding: '20px', borderTop: '1px solid #f0f0f0' }}>
             <Space.Compact style={{ width: '100%' }}>
@@ -1103,42 +1138,7 @@ const NoteEditPage = ({ onBack }) => {
                 发送
               </Button>
             </Space.Compact>
-            
-            {/* 可能想问的问题 */}
-            <div style={{ marginTop: '12px' }}>
-              <Text type="secondary" style={{ fontSize: '12px', marginBottom: '8px', display: 'block' }}>
-                💡 可能想问的问题：
-              </Text>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {[
-                  '成都川菜有哪些经典菜品和特色？',
-                  '火锅底料的制作工艺和配方要点是什么？',
-                  '成都小吃的地理分布和文化背景如何？',
-                  '川菜调料的营养价值和健康影响？'
-                ].map((question, index) => (
-                  <Button
-                    key={index}
-                    size="small"
-                    type="text"
-                    onClick={() => {
-                      setInputMessage(question);
-                      setTimeout(() => handleSendMessage(), 100);
-                    }}
-                    style={{
-                      fontSize: '12px',
-                      height: 'auto',
-                      padding: '4px 8px',
-                      borderRadius: '12px',
-                      backgroundColor: '#f0f0f0',
-                      border: '1px solid #d9d9d9',
-                      color: '#666'
-                    }}
-                  >
-                    {question}
-                  </Button>
-                ))}
-              </div>
-            </div>
+
           </div>
         </div>
 
@@ -1608,7 +1608,6 @@ const NoteEditPage = ({ onBack }) => {
              {currentMaterial.type === 'file' && (
                <div>
                  <p><strong>文件名：</strong>{currentMaterial.data.name}</p>
-                 <p><strong>文件大小：</strong>{(currentMaterial.data.size / 1024).toFixed(1)}KB</p>
                  <p><strong>文件类型：</strong>{currentMaterial.data.type || '未知'}</p>
                  <p><strong>上传时间：</strong>{new Date().toLocaleString()}</p>
                </div>
