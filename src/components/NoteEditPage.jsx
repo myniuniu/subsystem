@@ -124,7 +124,7 @@ const NoteEditPage = ({ onBack }) => {
   // 操作面板相关状态
   const [selectedOperation, setSelectedOperation] = useState('audio'); // 当前选中的操作类型
   
-  // 操作记录数据状态管理
+  // 操作记录状态
   const [operationRecords, setOperationRecords] = useState({
     audio: [],
     video: [],
@@ -137,6 +137,11 @@ const NoteEditPage = ({ onBack }) => {
     link: []
   });
 
+  // 内容查看弹窗状态
+  const [showContentModal, setShowContentModal] = useState(false);
+  const [currentRecord, setCurrentRecord] = useState(null);
+  const [modalContent, setModalContent] = useState('');
+
   // 新建笔记功能
   const handleCreateNewNote = () => {
     const newNote = {
@@ -144,12 +149,12 @@ const NoteEditPage = ({ onBack }) => {
       title: '新建笔记',
       source: '手动创建',
       time: '刚刚',
-      type: 'text'
+      type: 'report'
     };
     
     setOperationRecords(prev => ({
       ...prev,
-      text: [newNote, ...prev.text]
+      report: [newNote, ...prev.report]
     }));
     
     message.success('新建笔记已添加到操作记录');
@@ -255,6 +260,169 @@ const NoteEditPage = ({ onBack }) => {
     }
 
     return commonItems;
+  };
+
+  // 处理记录点击打开
+  const handleRecordClick = (record) => {
+    setCurrentRecord(record);
+    
+    // 根据记录类型生成不同的内容
+    switch (record.type) {
+      case 'report':
+        setModalContent(`
+          <div style="padding: 20px; line-height: 1.6;">
+            <h2 style="color: #1890ff; margin-bottom: 20px;">${record.title}</h2>
+            <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+              <strong>📊 数据来源：</strong>${record.source}<br>
+              <strong>⏰ 生成时间：</strong>${record.time}
+            </div>
+            <h3 style="color: #333; margin: 20px 0 10px 0;">📈 分析概述</h3>
+            <p>基于收集的资料，本报告对相关内容进行了深入分析。通过数据挖掘和模式识别，我们发现了以下关键洞察...</p>
+            <h3 style="color: #333; margin: 20px 0 10px 0;">🔍 主要发现</h3>
+            <ul>
+              <li>关键趋势分析显示出明显的增长模式</li>
+              <li>数据相关性分析揭示了重要的关联因素</li>
+              <li>预测模型表明未来发展的潜在方向</li>
+            </ul>
+            <h3 style="color: #333; margin: 20px 0 10px 0;">💡 建议与结论</h3>
+            <p>综合分析结果，建议采取以下措施以优化效果和提升价值...</p>
+          </div>
+        `);
+        break;
+      case 'audio':
+        setModalContent(`
+          <div style="padding: 20px; text-align: center;">
+            <h2 style="color: #1890ff; margin-bottom: 30px;">${record.title}</h2>
+            <div style="background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%); padding: 30px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(24, 144, 255, 0.1);">
+              <div style="font-size: 64px; margin-bottom: 20px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">🎵</div>
+              <p style="font-size: 18px; color: #1890ff; margin: 0; font-weight: 500;">音频播放器</p>
+            </div>
+            <div style="background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%); border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 6px 20px rgba(0,0,0,0.3);">
+              <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 15px;">
+                <button style="background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%); color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; font-size: 18px; box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3); transition: all 0.2s ease;">▶</button>
+                <div style="flex: 1; height: 6px; background: #444; border-radius: 3px; position: relative; overflow: hidden;">
+                  <div style="width: 30%; height: 100%; background: linear-gradient(90deg, #1890ff 0%, #40a9ff 100%); border-radius: 3px; box-shadow: 0 0 8px rgba(24, 144, 255, 0.5);"></div>
+                </div>
+                <span style="color: #fff; font-size: 14px; font-family: monospace;">02:30 / 05:00</span>
+              </div>
+              <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 15px;">
+                <button style="background: transparent; color: #ccc; border: none; cursor: pointer; font-size: 20px; padding: 5px;">⏮</button>
+                <button style="background: transparent; color: #ccc; border: none; cursor: pointer; font-size: 20px; padding: 5px;">⏸</button>
+                <button style="background: transparent; color: #ccc; border: none; cursor: pointer; font-size: 20px; padding: 5px;">⏭</button>
+                <button style="background: transparent; color: #ccc; border: none; cursor: pointer; font-size: 16px; padding: 5px;">🔊</button>
+              </div>
+              <div style="text-align: center;">
+                <span style="color: #999; font-size: 14px;">${record.source}</span>
+              </div>
+            </div>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #1890ff;">
+              <div style="text-align: left;">
+                <p style="margin: 0 0 10px 0; color: #333;"><strong>📝 内容摘要：</strong>基于${record.source}生成的音频概览</p>
+                <p style="margin: 0 0 10px 0; color: #333;"><strong>⏱️ 时长：</strong>约 5 分钟</p>
+                <p style="margin: 0; color: #333;"><strong>🎯 重点内容：</strong>核心要点提炼和关键信息总结，建议使用耳机获得更好的收听体验</p>
+              </div>
+            </div>
+          </div>
+        `);
+        break;
+      case 'video':
+        setModalContent(`
+          <div style="padding: 20px;">
+            <h2 style="color: #1890ff; margin-bottom: 30px; text-align: center;">${record.title}</h2>
+            <div style="background: linear-gradient(135deg, #000 0%, #1a1a1a 100%); border-radius: 12px; margin-bottom: 25px; position: relative; aspect-ratio: 16/9; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
+              <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center;">
+                <div style="font-size: 72px; margin-bottom: 15px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));">🎬</div>
+                <button style="background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%); color: white; border: 3px solid rgba(255,255,255,0.8); border-radius: 50%; width: 80px; height: 80px; cursor: pointer; font-size: 28px; backdrop-filter: blur(10px); transition: all 0.3s ease; box-shadow: 0 4px 16px rgba(255,255,255,0.2);">▶</button>
+              </div>
+              <div style="position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.6); padding: 8px 12px; border-radius: 20px; backdrop-filter: blur(10px);">
+                <span style="color: white; font-size: 12px; font-weight: 500;">HD 1080p</span>
+              </div>
+              <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 20px 15px 15px; backdrop-filter: blur(5px);">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                  <button style="background: transparent; color: white; border: none; cursor: pointer; font-size: 16px; padding: 4px;">⏮</button>
+                  <button style="background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; padding: 6px 8px;">⏸</button>
+                  <button style="background: transparent; color: white; border: none; cursor: pointer; font-size: 16px; padding: 4px;">⏭</button>
+                  <span style="color: white; font-size: 13px; font-family: monospace; margin-left: 8px;">00:00 / 08:00</span>
+                  <div style="flex: 1; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px; margin: 0 10px; overflow: hidden;">
+                    <div style="width: 0%; height: 100%; background: linear-gradient(90deg, #1890ff 0%, #40a9ff 100%); border-radius: 3px; box-shadow: 0 0 8px rgba(24, 144, 255, 0.6);"></div>
+                  </div>
+                  <button style="background: transparent; color: white; border: none; cursor: pointer; font-size: 16px; padding: 4px;">🔊</button>
+                  <button style="background: transparent; color: white; border: none; cursor: pointer; font-size: 16px; padding: 4px;">⛶</button>
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 20px;">
+              <div style="flex: 1; background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #1890ff;">
+                <h4 style="color: #333; margin: 0 0 10px 0; font-size: 14px;">📹 视频信息</h4>
+                <p style="color: #666; line-height: 1.6; margin: 0; font-size: 13px;">分辨率: 1920×1080<br>时长: 8分钟<br>来源: ${record.source}</p>
+              </div>
+              <div style="flex: 2; background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #52c41a;">
+                <h4 style="color: #333; margin: 0 0 10px 0; font-size: 14px;">📝 内容概述</h4>
+                <p style="color: #666; line-height: 1.6; margin: 0; font-size: 13px;">这是基于您上传资料生成的视频概览内容，包含了可视化的数据展示、详细解说和互动演示。视频采用高清画质，支持全屏播放和字幕显示。</p>
+              </div>
+            </div>
+          </div>
+        `);
+        break;
+      case 'mindmap':
+        setModalContent(`
+          <div style="padding: 20px; text-align: center;">
+            <h2 style="color: #1890ff; margin-bottom: 20px;">${record.title}</h2>
+            <div style="background: #f0f8ff; padding: 20px; border-radius: 12px;">
+              <div style="font-size: 48px; margin-bottom: 15px;">🧠</div>
+              <p style="color: #666; margin-bottom: 20px;">思维导图内容</p>
+              <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-height: 400px;">
+                <svg width="100%" height="400" style="border: 1px solid #e8e8e8; border-radius: 4px;">
+                  <!-- 中心节点 -->
+                  <circle cx="300" cy="200" r="40" fill="#1890ff" />
+                  <text x="300" y="205" text-anchor="middle" fill="white" font-size="12">核心主题</text>
+                  
+                  <!-- 分支节点 -->
+                  <circle cx="150" cy="100" r="25" fill="#52c41a" />
+                  <text x="150" y="105" text-anchor="middle" fill="white" font-size="10">要点1</text>
+                  <line x1="275" y1="175" x2="175" y2="125" stroke="#1890ff" stroke-width="2" />
+                  
+                  <circle cx="450" cy="100" r="25" fill="#52c41a" />
+                  <text x="450" y="105" text-anchor="middle" fill="white" font-size="10">要点2</text>
+                  <line x1="325" y1="175" x2="425" y2="125" stroke="#1890ff" stroke-width="2" />
+                  
+                  <circle cx="150" cy="300" r="25" fill="#52c41a" />
+                  <text x="150" y="305" text-anchor="middle" fill="white" font-size="10">要点3</text>
+                  <line x1="275" y1="225" x2="175" y2="275" stroke="#1890ff" stroke-width="2" />
+                  
+                  <circle cx="450" cy="300" r="25" fill="#52c41a" />
+                  <text x="450" y="305" text-anchor="middle" fill="white" font-size="10">要点4</text>
+                  <line x1="325" y1="225" x2="425" y2="275" stroke="#1890ff" stroke-width="2" />
+                  
+                  <!-- 子节点 -->
+                  <circle cx="80" cy="50" r="15" fill="#faad14" />
+                  <text x="80" y="55" text-anchor="middle" fill="white" font-size="8">细节</text>
+                  <line x1="135" y1="85" x2="95" y2="65" stroke="#52c41a" stroke-width="1" />
+                  
+                  <circle cx="520" cy="50" r="15" fill="#faad14" />
+                  <text x="520" y="55" text-anchor="middle" fill="white" font-size="8">细节</text>
+                  <line x1="465" y1="85" x2="505" y2="65" stroke="#52c41a" stroke-width="1" />
+                </svg>
+                <div style="margin-top: 15px; text-align: left; color: #333;">
+                  <p><strong>🎯 思维导图说明：</strong>基于${record.source}构建的知识结构图</p>
+                  <p><strong>📊 节点数量：</strong>主要节点 4 个，子节点 8 个</p>
+                  <p><strong>🔗 关联关系：</strong>展示了核心概念间的逻辑关系</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        `);
+        break;
+      default:
+        setModalContent(`
+          <div style="padding: 20px; text-align: center;">
+            <h2 style="color: #1890ff; margin-bottom: 20px;">${record.title}</h2>
+            <p>暂无预览内容</p>
+          </div>
+        `);
+    }
+    
+    setShowContentModal(true);
   };
 
   // 文件上传处理
@@ -1042,6 +1210,7 @@ const NoteEditPage = ({ onBack }) => {
                       border: '1px solid #f0f0f0',
                       cursor: 'pointer'
                     }}
+                    onClick={() => handleRecordClick(record)}
                   >
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                       <div style={{ fontSize: '16px', marginTop: '2px' }}>
@@ -1075,6 +1244,10 @@ const NoteEditPage = ({ onBack }) => {
                         size="small" 
                         icon={<div style={{ fontSize: '12px' }}>▶</div>}
                         style={{ padding: '2px 4px', height: 'auto', minWidth: 'auto' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRecordClick(record);
+                        }}
                       />
                       <Dropdown
                         menu={{ items: getMoreMenuItems(record) }}
@@ -1356,6 +1529,25 @@ const NoteEditPage = ({ onBack }) => {
              )}
            </div>
          )}
+      </Modal>
+
+      {/* 内容查看弹窗 */}
+      <Modal
+        title={currentRecord?.title || '内容查看'}
+        open={showContentModal}
+        onCancel={() => setShowContentModal(false)}
+        footer={[
+          <Button key="close" onClick={() => setShowContentModal(false)}>
+            关闭
+          </Button>
+        ]}
+        width={800}
+        style={{ top: 20 }}
+      >
+        <div 
+          dangerouslySetInnerHTML={{ __html: modalContent }}
+          style={{ maxHeight: '70vh', overflowY: 'auto' }}
+        />
       </Modal>
     </>
   );
