@@ -63,7 +63,7 @@ const { Option } = Select;
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 
-const SmartNotes = () => {
+const SmartNotes = ({ onViewChange }) => {
   // 状态管理
   const [notes, setNotes] = useState([]);
   const [filteredNotes, setFilteredNotes] = useState([]);
@@ -435,7 +435,7 @@ const SmartNotes = () => {
 
   // 如果显示编辑页面，则渲染NoteEditPage
   if (showNoteEditPage) {
-    return <NoteEditPage onBack={handleCloseEditPage} />;
+    return <NoteEditPage onBack={handleCloseEditPage} onViewChange={onViewChange} />;
   }
 
   return (

@@ -330,9 +330,12 @@ function App() {
             ) : currentView === 'simulation-platform' ? (
               <SimulationPlatform onViewChange={handleViewChange} />
             ) : currentView === 'smart-notes' ? (
-              <SmartNotes />
+              <SmartNotes onViewChange={handleViewChange} />
             ) : currentView === 'note-edit-page' ? (
-              <NoteEditPage />
+              <NoteEditPage 
+                onBack={() => handleViewChange('smart-notes')}
+                onViewChange={handleViewChange}
+              />
             ) : (
               <MainContent 
                 currentView={currentView}

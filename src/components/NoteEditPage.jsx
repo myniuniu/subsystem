@@ -21,6 +21,7 @@ import {
   Popconfirm,
   Dropdown
 } from 'antd';
+import MaterialAddPage from './MaterialAddPage';
 import {
   ArrowLeftOutlined,
   SaveOutlined,
@@ -47,7 +48,7 @@ const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
-const NoteEditPage = ({ onBack }) => {
+const NoteEditPage = ({ onBack, onViewChange }) => {
   // 资料收集相关状态
   const [uploadedFiles, setUploadedFiles] = useState([
     { id: 1, name: '成都火锅制作工艺.pdf', type: 'application/pdf', uploadTime: '刚刚' }
@@ -62,6 +63,7 @@ const NoteEditPage = ({ onBack }) => {
   ]);
   const [newLink, setNewLink] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showMaterialAddModal, setShowMaterialAddModal] = useState(false);
   const [websiteType, setWebsiteType] = useState('normal'); // 'normal' 或 'video'
   const [websiteUrl, setWebsiteUrl] = useState('');// 文字内容相关状态
   const [textContent, setTextContent] = useState('');
@@ -904,7 +906,9 @@ const NoteEditPage = ({ onBack }) => {
                   icon={<PlusOutlined />} 
                   block
                   style={{ marginBottom: 8 }}
-                  onClick={() => setShowUploadModal(true)}
+                  onClick={() => {
+                    setShowMaterialAddModal(true);
+                  }}
                 >
                   添加
                 </Button>
@@ -2048,6 +2052,12 @@ const NoteEditPage = ({ onBack }) => {
           style={{ maxHeight: '70vh', overflowY: 'auto' }}
         />
       </Modal>
+      
+      {/* 资料添加弹窗 */}
+      <MaterialAddPage 
+        visible={showMaterialAddModal}
+        onClose={() => setShowMaterialAddModal(false)}
+      />
     </>
   );
 };
