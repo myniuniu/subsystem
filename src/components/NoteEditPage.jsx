@@ -99,14 +99,7 @@ const NoteEditPage = ({ onBack }) => {
   ]);
   
   // 问答区域相关状态
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      type: 'assistant',
-      content: '您好！我是您的AI助手。请上传相关资料，我将基于这些内容为您提供专业的问答服务。',
-      timestamp: new Date().toISOString()
-    }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
@@ -954,6 +947,59 @@ const NoteEditPage = ({ onBack }) => {
             </Title>
           </div>
           
+          {/* 摘要区域 */}
+          <div style={{ padding: '20px', borderBottom: '1px solid #f0f0f0', backgroundColor: '#fafafa' }}>
+            <div style={{ marginBottom: '12px' }}>
+              <Text strong style={{ color: '#1890ff' }}>📋 针对所有来源的摘要</Text>
+            </div>
+            <Card size="small" style={{ marginBottom: '16px', backgroundColor: '#fff' }}>
+               <Paragraph style={{ margin: 0, fontSize: '14px', lineHeight: '1.6' }}>
+                 收集的资料涵盖了成都美食文化的各个方面，包括川菜历史文献、餐厅数据分析、火锅店分布、调料配方、制作技法视频以及营养成分分析等。这些材料从历史传承、地理分布、制作工艺、营养价值等多维度展现了成都美食的丰富内涵，为深入了解川菜文化和成都饮食特色提供了全面的参考依据。
+               </Paragraph>
+             </Card>
+            
+            {/* 快捷操作按钮 */}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <Button 
+                size="small" 
+                icon={<FileTextOutlined />}
+                onClick={() => {
+                  const newNote = {
+                    id: Date.now(),
+                    title: '摘要笔记',
+                    source: '智能摘要',
+                    time: '刚刚',
+                    type: 'report'
+                  };
+                  setOperationRecords(prev => ({
+                    ...prev,
+                    report: [newNote, ...prev.report]
+                  }));
+                  message.success('摘要已保存为笔记');
+                }}
+                style={{ borderRadius: '16px' }}
+              >
+                保存笔记
+              </Button>
+              <Button 
+                size="small" 
+                icon={<span>🎵</span>}
+                onClick={() => handleOperationClick('audio')}
+                style={{ borderRadius: '16px' }}
+              >
+                音频概览
+              </Button>
+              <Button 
+                size="small" 
+                icon={<span>🧠</span>}
+                onClick={() => handleOperationClick('mindmap')}
+                style={{ borderRadius: '16px' }}
+              >
+                思维导图
+              </Button>
+            </div>
+          </div>
+          
           {/* 消息列表 */}
           <div style={{ flex: 1, padding: '20px', overflowY: 'auto', maxHeight: 'calc(100vh - 300px)' }}>
             {messages.map(msg => (
@@ -1017,6 +1063,42 @@ const NoteEditPage = ({ onBack }) => {
                 发送
               </Button>
             </Space.Compact>
+            
+            {/* 可能想问的问题 */}
+            <div style={{ marginTop: '12px' }}>
+              <Text type="secondary" style={{ fontSize: '12px', marginBottom: '8px', display: 'block' }}>
+                💡 可能想问的问题：
+              </Text>
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                {[
+                  '成都川菜有哪些经典菜品和特色？',
+                  '火锅底料的制作工艺和配方要点是什么？',
+                  '成都小吃的地理分布和文化背景如何？',
+                  '川菜调料的营养价值和健康影响？'
+                ].map((question, index) => (
+                  <Button
+                    key={index}
+                    size="small"
+                    type="text"
+                    onClick={() => {
+                      setInputMessage(question);
+                      setTimeout(() => handleSendMessage(), 100);
+                    }}
+                    style={{
+                      fontSize: '12px',
+                      height: 'auto',
+                      padding: '4px 8px',
+                      borderRadius: '12px',
+                      backgroundColor: '#f0f0f0',
+                      border: '1px solid #d9d9d9',
+                      color: '#666'
+                    }}
+                  >
+                    {question}
+                  </Button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
