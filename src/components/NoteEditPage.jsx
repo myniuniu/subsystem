@@ -1422,34 +1422,54 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
           
           {/* 常见问题按钮 */}
           <div style={{ padding: '16px 20px 0 20px', borderTop: '1px solid #f0f0f0' }}>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', overflow: 'hidden' }}>
               <Button 
                 size="small" 
-                style={{ borderRadius: '16px', fontSize: '12px' }}
-                onClick={() => setInputMessage('成都川菜有哪些经典菜品和特色？')}
+                style={{ 
+                  borderRadius: '16px', 
+                  fontSize: '11px',
+                  flex: '1 1 0',
+                  minWidth: 0,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+                onClick={() => setInputMessage('川菜特色？')}
+                title="川菜特色？"
               >
-                成都川菜有哪些经典菜品和特色？
+                川菜特色？
               </Button>
               <Button 
                 size="small" 
-                style={{ borderRadius: '16px', fontSize: '12px' }}
-                onClick={() => setInputMessage('火锅底料的制作工艺和配方要点是什么？')}
+                style={{ 
+                  borderRadius: '16px', 
+                  fontSize: '11px',
+                  flex: '1 1 0',
+                  minWidth: 0,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+                onClick={() => setInputMessage('火锅做法？')}
+                title="火锅做法？"
               >
-                火锅底料的制作工艺和配方要点是什么？
+                火锅做法？
               </Button>
               <Button 
                 size="small" 
-                style={{ borderRadius: '16px', fontSize: '12px' }}
-                onClick={() => setInputMessage('成都小吃的地理分布和文化背景如何？')}
+                style={{ 
+                  borderRadius: '16px', 
+                  fontSize: '11px',
+                  flex: '1 1 0',
+                  minWidth: 0,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+                onClick={() => setInputMessage('小吃推荐？')}
+                title="小吃推荐？"
               >
-                成都小吃的地理分布和文化背景如何？
-              </Button>
-              <Button 
-                size="small" 
-                style={{ borderRadius: '16px', fontSize: '12px' }}
-                onClick={() => setInputMessage('川菜调料的营养价值和健康影响？')}
-              >
-                川菜调料的营养价值和健康影响？
+                小吃推荐？
               </Button>
             </div>
           </div>

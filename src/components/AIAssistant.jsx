@@ -493,6 +493,19 @@ const AIAssistant = ({ note, visible, onClose, onApplySuggestion }) => {
     </div>
   );
 
+  // 推荐问题列表
+  const suggestedQuestions = [
+    '主要观点？',
+    '关键概念？',
+    '如何应用？'
+  ];
+
+  // 处理推荐问题点击
+  const handleSuggestedQuestion = (suggestedQ) => {
+    setQuestion(suggestedQ);
+    handleAskQuestion();
+  };
+
   // 渲染智能问答
   const renderQAFeature = () => (
     <div className="ai-feature-content">
@@ -513,6 +526,39 @@ const AIAssistant = ({ note, visible, onClose, onApplySuggestion }) => {
             提问
           </Button>
         </Space.Compact>
+        
+        <div style={{ marginTop: '12px' }}>
+          <Text type="secondary" style={{ fontSize: '12px', marginBottom: '8px', display: 'block' }}>
+            推荐问题：
+          </Text>
+          <div style={{ display: 'flex', gap: '8px', width: '100%', overflow: 'hidden' }}>
+            {suggestedQuestions.map((q, index) => (
+              <Button
+                key={index}
+                size="small"
+                type="text"
+                onClick={() => handleSuggestedQuestion(q)}
+                style={{
+                  fontSize: '11px',
+                  height: '24px',
+                  padding: '0 6px',
+                  border: '1px solid #d9d9d9',
+                  borderRadius: '12px',
+                  backgroundColor: '#fafafa',
+                  color: '#666',
+                  whiteSpace: 'nowrap',
+                  flex: '1 1 0',
+                  minWidth: 0,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+                title={q}
+              >
+                {q}
+              </Button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {results.qa && (

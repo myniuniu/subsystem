@@ -800,11 +800,22 @@ const MaterialAddPage = ({ visible, onClose }) => {
               <div style={{ marginBottom: '12px' }}>
                 <Text strong style={{ fontSize: '16px' }}>课程视频</Text>
               </div>
-              <div>
-                <Button type="link" style={{ padding: 0, height: 'auto', fontSize: '14px', color: '#1890ff' }}>
+              <Button 
+                  type="primary"
+                  size="small"
+                  onClick={handleVideoClick}
+                  style={{
+                    backgroundColor: '#1890ff',
+                    borderColor: '#1890ff',
+                    borderRadius: '16px',
+                    fontSize: '12px',
+                    height: '28px',
+                    paddingLeft: '12px',
+                    paddingRight: '12px'
+                  }}
+                >
                   平台课程
                 </Button>
-              </div>
             </Card>
 
             {/* 链接 */}
