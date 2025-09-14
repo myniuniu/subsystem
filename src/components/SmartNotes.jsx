@@ -44,7 +44,11 @@ import {
   SettingOutlined,
   RobotOutlined,
   DownloadOutlined,
-  DatabaseOutlined
+  DatabaseOutlined,
+  BarChartOutlined,
+  PieChartOutlined,
+  LineChartOutlined,
+  DownOutlined
 } from '@ant-design/icons';
 import NoteEditor from './NoteEditor';
 import CategoryTagManager from './CategoryTagManager';
@@ -365,6 +369,171 @@ const SmartNotes = ({ onViewChange }) => {
     message.success('导入完成，笔记列表已更新');
   };
 
+  // 报告生成功能
+  const handleGenerateReport = (reportType) => {
+    try {
+      let reportTitle = '';
+      let reportContent = '';
+      
+      switch (reportType) {
+        case 'brief':
+          reportTitle = '简报文档';
+          reportContent = generateBriefReport();
+          break;
+        case 'study-guide':
+          reportTitle = '学习指南';
+          reportContent = generateStudyGuideReport();
+          break;
+        case 'faq':
+          reportTitle = '常见问题解答';
+          reportContent = generateFAQReport();
+          break;
+        case 'timeline':
+          reportTitle = '时间轴';
+          reportContent = generateTimelineReport();
+          break;
+        default:
+          message.error('未知的报告类型');
+          return;
+      }
+      
+      // 创建报告笔记
+      const reportNote = {
+        title: `${reportTitle} - ${new Date().toLocaleDateString()}`,
+        content: reportContent,
+        category: 'work',
+        tags: ['报告', reportType],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      // 保存报告
+      handleSaveNote(reportNote);
+      message.success(`${reportTitle}生成成功`);
+      
+    } catch (error) {
+      console.error('生成报告失败:', error);
+      message.error('生成报告失败，请重试');
+    }
+  };
+  
+  // 生成简报文档
+  const generateBriefReport = () => {
+    const totalNotes = notes.length;
+    const categories = {};
+    const recentNotes = notes.slice(0, 5);
+    
+    notes.forEach(note => {
+      categories[note.category] = (categories[note.category] || 0) + 1;
+    });
+    
+    return `# 笔记简报文档
+
+## 概览
+- 总笔记数：${totalNotes}
+- 生成时间：${new Date().toLocaleString()}
+
+## 分类统计
+${Object.entries(categories).map(([cat, count]) => `- ${getCategoryInfo(cat).label}：${count}条`).join('\n')}
+
+## 最近笔记
+${recentNotes.map((note, index) => `${index + 1}. ${note.title}`).join('\n')}
+
+---
+*此报告由智能笔记系统自动生成*`;
+  };
+  
+  // 生成学习指南
+  const generateStudyGuideReport = () => {
+    const studyNotes = notes.filter(note => note.category === 'study');
+    const workNotes = notes.filter(note => note.category === 'work');
+    
+    return `# 学习指南
+
+## 学习笔记总结
+共有${studyNotes.length}条学习笔记
+
+### 主要学习内容
+${studyNotes.slice(0, 10).map((note, index) => `${index + 1}. ${note.title}`).join('\n')}
+
+## 工作相关笔记
+共有${workNotes.length}条工作笔记
+
+### 重要工作记录
+${workNotes.slice(0, 5).map((note, index) => `${index + 1}. ${note.title}`).join('\n')}
+
+## 学习建议
+1. 定期回顾和整理笔记
+2. 建立知识体系和关联
+3. 实践应用所学知识
+4. 持续更新和完善笔记内容
+
+---
+*此指南基于您的笔记内容自动生成*`;
+  };
+  
+  // 生成常见问题解答
+  const generateFAQReport = () => {
+    const allTags = [...new Set(notes.flatMap(note => note.tags || []))];
+    const popularTags = allTags.slice(0, 10);
+    
+    return `# 常见问题解答
+
+## Q: 如何更好地组织笔记？
+A: 建议使用分类和标签功能，将相关笔记归类整理。目前您使用的标签有：${popularTags.join('、')}
+
+## Q: 如何快速找到需要的笔记？
+A: 可以使用搜索功能，支持按标题、内容、标签等多种方式搜索。
+
+## Q: 如何提高笔记质量？
+A: 建议：
+1. 使用清晰的标题和结构
+2. 添加相关标签便于分类
+3. 定期回顾和更新内容
+4. 使用AI助手功能获得改进建议
+
+## Q: 如何备份笔记数据？
+A: 可以使用导入导出功能，定期备份您的笔记数据。
+
+## Q: 如何利用AI助手？
+A: AI助手可以帮助您：
+- 生成笔记摘要
+- 推荐相关标签
+- 提供内容建议
+- 优化笔记结构
+
+---
+*基于您的使用情况生成的常见问题*`;
+  };
+  
+  // 生成时间轴报告
+  const generateTimelineReport = () => {
+    const sortedNotes = [...notes].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const timelineData = sortedNotes.slice(0, 20);
+    
+    return `# 笔记时间轴
+
+## 最近创建的笔记
+
+${timelineData.map(note => {
+      const date = new Date(note.createdAt).toLocaleDateString();
+      const category = getCategoryInfo(note.category).label;
+      return `### ${date}
+**${note.title}**
+- 分类：${category}
+- 标签：${(note.tags || []).join('、') || '无'}
+`;
+    }).join('\n')}
+
+## 创建统计
+- 总笔记数：${notes.length}
+- 最早笔记：${sortedNotes.length > 0 ? new Date(sortedNotes[sortedNotes.length - 1].createdAt).toLocaleDateString() : '无'}
+- 最新笔记：${sortedNotes.length > 0 ? new Date(sortedNotes[0].createdAt).toLocaleDateString() : '无'}
+
+---
+*按时间顺序展示的笔记创建记录*`;
+  };
+
   const handleAIApplySuggestion = (type, data) => {
     if (!aiSelectedNote) return;
     
@@ -558,6 +727,45 @@ const SmartNotes = ({ onViewChange }) => {
                 >
                   导入导出
                 </Button>
+                <Dropdown
+                  menu={{
+                    items: [
+                      {
+                        key: 'brief',
+                        label: '简报文档',
+                        icon: <FileTextOutlined />,
+                        onClick: () => handleGenerateReport('brief')
+                      },
+                      {
+                        key: 'study-guide',
+                        label: '学习指南',
+                        icon: <BookOutlined />,
+                        onClick: () => handleGenerateReport('study-guide')
+                      },
+                      {
+                        key: 'faq',
+                        label: '常见问题解答',
+                        icon: <BulbOutlined />,
+                        onClick: () => handleGenerateReport('faq')
+                      },
+                      {
+                        key: 'timeline',
+                        label: '时间轴',
+                        icon: <ClockCircleOutlined />,
+                        onClick: () => handleGenerateReport('timeline')
+                      }
+                    ]
+                  }}
+                  trigger={['contextMenu']}
+                  placement="bottomLeft"
+                  overlayClassName="report-dropdown"
+                >
+                  <Button>
+                    <FileTextOutlined />
+                    报告
+                    <DownOutlined />
+                  </Button>
+                </Dropdown>
               </Space>
             </div>
 
