@@ -1753,28 +1753,78 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
               </Card>
               
               {/* 报告 */}
-              <Card 
-                size="small" 
-                hoverable
-                onClick={() => handleOperationClick('report')}
-                style={{ 
-                  background: 'linear-gradient(135deg, #fff3e0 0%, #ffcc80 100%)',
-                  border: 'none',
-                  borderRadius: '12px',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
+              <Dropdown
+                menu={{
+                  items: [
+                    {
+                      key: 'brief',
+                      label: (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '16px' }}>📄</span>
+                          <span>简报文档</span>
+                        </div>
+                      ),
+                      onClick: () => message.info('简报文档功能开发中')
+                    },
+                    {
+                      key: 'guide',
+                      label: (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '16px' }}>📖</span>
+                          <span>学习指南</span>
+                        </div>
+                      ),
+                      onClick: () => message.info('学习指南功能开发中')
+                    },
+                    {
+                      key: 'faq',
+                      label: (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '16px' }}>❓</span>
+                          <span>常见问题解答</span>
+                        </div>
+                      ),
+                      onClick: () => message.info('常见问题解答功能开发中')
+                    },
+                    {
+                      key: 'timeline',
+                      label: (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '16px' }}>⏰</span>
+                          <span>时间轴</span>
+                        </div>
+                      ),
+                      onClick: () => message.info('时间轴功能开发中')
+                    }
+                  ]
                 }}
+                trigger={['hover']}
+                placement="bottomLeft"
+                overlayClassName="report-dropdown"
               >
-                <div style={{ padding: '6px 0' }}>
-                  <div style={{ fontSize: '20px', marginBottom: '6px' }}>📊</div>
-                  <Text style={{ 
-                    fontSize: '11px', 
-                    fontWeight: 500, 
-                    color: '#ef6c00' 
-                  }}>报告</Text>
-                </div>
-              </Card>
+                <Card 
+                  size="small" 
+                  hoverable
+                  onClick={() => handleOperationClick('report')}
+                  style={{ 
+                    background: 'linear-gradient(135deg, #fff3e0 0%, #ffcc80 100%)',
+                    border: 'none',
+                    borderRadius: '12px',
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ padding: '6px 0' }}>
+                    <div style={{ fontSize: '20px', marginBottom: '6px' }}>📊</div>
+                    <Text style={{ 
+                      fontSize: '11px', 
+                      fontWeight: 500, 
+                      color: '#ef6c00' 
+                    }}>报告</Text>
+                  </div>
+                </Card>
+              </Dropdown>
               
               {/* PPT概览 */}
               <Card 
