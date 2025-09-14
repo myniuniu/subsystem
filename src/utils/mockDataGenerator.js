@@ -1,782 +1,296 @@
-/**
- * 模拟数据生成器
- * 为智能笔记系统生成各种分类的模拟数据
- */
-
+// 模拟数据生成器
 import notesService from '../services/notesService';
 import dataRecordService from '../services/dataRecordService.js';
 
+// 生成唯一ID的辅助函数
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
 class MockDataGenerator {
   constructor() {
+    // 学习笔记数据
     this.studyNotes = [
       {
-        title: 'JavaScript 异步编程详解',
-        content: `# JavaScript 异步编程详解
-
-## Promise 基础
-Promise 是 JavaScript 中处理异步操作的重要机制。它有三种状态：
-- pending（待定）
-- fulfilled（已兑现）
-- rejected（已拒绝）
-
-## async/await 语法
-\`\`\`javascript
-async function fetchData() {
-  try {
-    const response = await fetch('/api/data');
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('获取数据失败:', error);
-  }
-}
-\`\`\`
-
-## 总结
-异步编程是现代 JavaScript 开发的核心技能，掌握 Promise 和 async/await 对提高代码质量至关重要。`,
+        id: generateId(),
+        title: '建构主义教学理论在程序设计课程中的应用',
+        content: '# 建构主义教学理论在程序设计课程中的应用\n\n## 理论基础\n建构主义认为学习是学习者主动建构知识的过程，而不是被动接受信息。在程序设计教学中，这一理论具有重要指导意义。\n\n## 核心原则\n1. **学习者中心**：以学生为主体，教师为引导者\n2. **情境学习**：在真实的编程环境中学习\n3. **协作学习**：通过团队项目培养合作能力\n4. **反思学习**：鼓励学生思考和总结\n\n## 实践策略\n- 项目驱动教学法\n- 同伴编程（Pair Programming）\n- 代码审查和讨论\n- 问题解决导向学习\n\n## 教学效果\n通过建构主义教学方法，学生的编程思维和实践能力得到显著提升，学习积极性明显增强。',
         category: 'study',
-        tags: ['JavaScript', '异步编程', '前端开发', '重要'],
-        starred: true
+        tags: ['教学理论', '建构主义', '程序设计', '教学方法'],
+        starred: true,
+        createdAt: new Date('2024-01-15'),
+        updatedAt: new Date('2024-01-15')
       },
       {
-        title: 'React Hooks 学习笔记',
-        content: `# React Hooks 学习笔记
-
-## useState Hook
-用于在函数组件中添加状态：
-\`\`\`javascript
-const [count, setCount] = useState(0);
-\`\`\`
-
-## useEffect Hook
-用于处理副作用：
-\`\`\`javascript
-useEffect(() => {
-  document.title = \`点击了 \${count} 次\`;
-}, [count]);
-\`\`\`
-
-## 自定义 Hook
-可以将组件逻辑提取到可重用的函数中。
-
-## 注意事项
-- Hook 只能在函数组件的顶层调用
-- 不要在循环、条件或嵌套函数中调用 Hook`,
+        id: generateId(),
+        title: '数据结构课程教学设计与实践',
+        content: '# 数据结构课程教学设计与实践\n\n## 课程目标\n- 掌握基本数据结构的概念和实现\n- 培养算法分析和设计能力\n- 提高编程实践技能\n- 培养计算思维\n\n## 教学内容组织\n### 线性结构\n- 数组和链表\n- 栈和队列\n- 字符串处理\n\n### 树形结构\n- 二叉树及其遍历\n- 二叉搜索树\n- 平衡树（AVL、红黑树）\n\n### 图结构\n- 图的表示方法\n- 图的遍历算法\n- 最短路径算法\n\n## 教学方法创新\n1. **可视化教学**：使用动画演示算法过程\n2. **渐进式学习**：从简单到复杂，循序渐进\n3. **实践导向**：每个概念都配合编程实践\n4. **案例教学**：结合实际应用场景\n\n## 评价方式\n- 平时作业（30%）\n- 实验报告（30%）\n- 期末考试（40%）',
         category: 'study',
-        tags: ['React', 'Hooks', '前端框架', '学习'],
-        starred: false
+        tags: ['数据结构', '教学设计', '算法', '编程实践'],
+        starred: false,
+        createdAt: new Date('2024-01-20'),
+        updatedAt: new Date('2024-01-22')
       },
       {
-        title: '数据结构与算法 - 二叉树',
-        content: `# 二叉树数据结构
-
-## 基本概念
-二叉树是每个节点最多有两个子树的树结构。
-
-## 遍历方式
-1. **前序遍历**：根 -> 左 -> 右
-2. **中序遍历**：左 -> 根 -> 右
-3. **后序遍历**：左 -> 右 -> 根
-4. **层序遍历**：按层从左到右
-
-## 代码实现
-\`\`\`javascript
-class TreeNode {
-  constructor(val) {
-    this.val = val;
-    this.left = null;
-    this.right = null;
-  }
-}
-
-// 中序遍历
-function inorderTraversal(root) {
-  const result = [];
-  
-  function traverse(node) {
-    if (node) {
-      traverse(node.left);
-      result.push(node.val);
-      traverse(node.right);
-    }
-  }
-  
-  traverse(root);
-  return result;
-}
-\`\`\``,
+        id: generateId(),
+        title: 'Python入门课程设计思路',
+        content: '# Python入门课程设计思路\n\n## 课程定位\nPython作为一门易学易用的编程语言，适合作为编程入门课程。本课程面向零基础学生，旨在培养编程思维和实践能力。\n\n## 教学大纲\n### 第一阶段：基础语法（4周）\n- Python环境搭建\n- 变量和数据类型\n- 控制结构（条件、循环）\n- 函数定义和调用\n\n### 第二阶段：数据处理（4周）\n- 列表、元组、字典\n- 字符串处理\n- 文件操作\n- 异常处理\n\n### 第三阶段：面向对象（3周）\n- 类和对象\n- 继承和多态\n- 模块和包\n\n### 第四阶段：实践项目（3周）\n- 数据分析小项目\n- Web爬虫实践\n- 图形界面程序\n\n## 教学特色\n1. **项目驱动**：每个阶段都有实际项目\n2. **互动教学**：课堂编程演示和学生练习\n3. **个性化指导**：针对不同基础的学生提供差异化指导\n4. **实用导向**：注重解决实际问题的能力\n\n## 考核方式\n- 课堂参与（20%）\n- 阶段项目（50%）\n- 期末项目（30%）',
         category: 'study',
-        tags: ['算法', '数据结构', '二叉树', '编程'],
-        starred: true
+        tags: ['Python', '入门教学', '课程设计', '编程基础'],
+        starred: false,
+        createdAt: new Date('2024-02-01'),
+        updatedAt: new Date('2024-02-03')
       },
       {
-        title: 'CSS Grid 布局学习',
-        content: `# CSS Grid 布局完全指南
-
-## 基础概念
-CSS Grid 是一个二维布局系统，可以同时处理行和列。
-
-## 基本属性
-### 容器属性
-- \`display: grid\`
-- \`grid-template-columns\`
-- \`grid-template-rows\`
-- \`gap\`
-
-### 项目属性
-- \`grid-column\`
-- \`grid-row\`
-- \`grid-area\`
-
-## 实例代码
-\`\`\`css
-.container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: 100px 200px;
-  gap: 20px;
-}
-
-.item1 {
-  grid-column: 1 / 3;
-  grid-row: 1;
-}
-\`\`\`
-
-## 优势
-- 强大的二维布局能力
-- 简化复杂布局的实现
-- 响应式设计友好`,
+        id: generateId(),
+        title: '在线教学平台使用心得',
+        content: '# 在线教学平台使用心得\n\n## 平台选择\n经过对比测试，选择了腾讯会议+雨课堂的组合方案，既保证了视频质量，又实现了互动功能。\n\n## 使用技巧\n### 课前准备\n- 提前测试设备和网络\n- 准备备用方案\n- 制作课件时考虑屏幕分享效果\n- 设计互动环节\n\n### 课中管理\n- 控制课堂节奏，适当停顿\n- 多使用提问和投票功能\n- 关注学生反馈和弹幕\n- 录制课程供学生回看\n\n### 课后跟进\n- 及时发布课程资料\n- 收集学生反馈\n- 分析学习数据\n- 优化教学内容\n\n## 经验总结\n在线教学需要更多的互动设计和技术支持，但也为教学创新提供了新的可能性。',
         category: 'study',
-        tags: ['CSS', 'Grid', '布局', '前端'],
-        starred: false
+        tags: ['在线教学', '教学平台', '远程教育', '教学技巧'],
+        starred: false,
+        createdAt: new Date('2024-02-10'),
+        updatedAt: new Date('2024-02-12')
       },
       {
-        title: 'Node.js 后端开发基础',
-        content: `# Node.js 后端开发入门
-
-## 什么是 Node.js
-Node.js 是一个基于 Chrome V8 引擎的 JavaScript 运行环境。
-
-## 核心模块
-### HTTP 模块
-\`\`\`javascript
-const http = require('http');
-
-const server = http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('Hello World!');
-});
-
-server.listen(3000, () => {
-  console.log('服务器运行在 http://localhost:3000');
-});
-\`\`\`
-
-### 文件系统模块
-\`\`\`javascript
-const fs = require('fs');
-
-// 异步读取文件
-fs.readFile('file.txt', 'utf8', (err, data) => {
-  if (err) throw err;
-  console.log(data);
-});
-\`\`\`
-
-## Express 框架
-Express 是 Node.js 最流行的 Web 框架。
-
-\`\`\`javascript
-const express = require('express');
-const app = express();
-
-app.get('/', (req, res) => {
-  res.send('Hello Express!');
-});
-
-app.listen(3000);
-\`\`\``,
+        id: generateId(),
+        title: '学生学习行为分析与个性化教学策略',
+        content: '# 学生学习行为分析与个性化教学策略\n\n## 数据收集\n通过学习管理系统收集学生的学习行为数据：\n- 登录时间和频率\n- 学习资源访问情况\n- 作业提交时间和质量\n- 讨论参与度\n- 测试成绩分布\n\n## 行为模式分析\n### 学习类型分类\n1. **积极主动型**：经常提前学习，主动参与讨论\n2. **按部就班型**：严格按照课程进度学习\n3. **临时抱佛脚型**：集中在截止日期前学习\n4. **困难挣扎型**：学习进度缓慢，需要额外帮助\n\n## 个性化策略\n### 针对不同类型的教学调整\n- 为积极型学生提供拓展资源\n- 为按部就班型学生保持稳定节奏\n- 为临时型学生设置提醒和激励机制\n- 为困难型学生提供额外辅导和简化材料\n\n## 实施效果\n个性化教学策略实施后，学生的学习满意度和成绩都有显著提升。',
         category: 'study',
-        tags: ['Node.js', '后端开发', 'Express', 'JavaScript'],
-        starred: false
+        tags: ['学习分析', '个性化教学', '数据驱动', '教学策略'],
+        starred: true,
+        createdAt: new Date('2024-02-15'),
+        updatedAt: new Date('2024-02-18')
       }
     ];
 
+    // 工作笔记数据
     this.workNotes = [
       {
-        title: '项目需求分析文档',
-        content: `# 智能笔记系统需求分析
-
-## 项目背景
-开发一个功能完善的智能笔记管理系统，支持多种笔记格式和智能分析功能。
-
-## 功能需求
-### 核心功能
-1. **笔记管理**
-   - 创建、编辑、删除笔记
-   - 分类和标签管理
-   - 搜索和过滤功能
-
-2. **数据分析**
-   - 用户行为统计
-   - 笔记访问分析
-   - 使用习惯报告
-
-3. **智能功能**
-   - AI 助手
-   - 自动分类建议
-   - 内容推荐
-
-## 技术栈
-- 前端：React + Ant Design
-- 存储：LocalStorage
-- 图表：Ant Design Charts
-
-## 时间安排
-- 第一阶段：基础功能开发（2周）
-- 第二阶段：智能功能集成（1周）
-- 第三阶段：测试和优化（1周）`,
+        id: generateId(),
+        title: '计算机科学与技术专业课程体系设计',
+        content: '# 计算机科学与技术专业课程体系设计\n\n## 培养目标\n培养具有良好科学素养，系统掌握计算机科学与技术基本理论、基本知识和基本技能的高级专门人才。\n\n## 核心课程设置\n### 数学基础课程\n- 高等数学\n- 线性代数\n- 概率论与数理统计\n- 离散数学\n\n### 专业基础课程\n- 程序设计基础\n- 数据结构\n- 计算机组成原理\n- 操作系统\n- 计算机网络\n- 数据库系统\n\n### 专业核心课程\n- 算法设计与分析\n- 软件工程\n- 编译原理\n- 人工智能\n- 机器学习\n\n## 实践教学体系\n- 课程实验（每门核心课程配套）\n- 课程设计（综合性项目）\n- 专业实习（企业实践）\n- 毕业设计（创新性项目）\n\n## 改革方向\n1. 加强实践教学比重\n2. 引入前沿技术内容\n3. 强化创新能力培养\n4. 注重跨学科融合',
         category: 'work',
-        tags: ['需求分析', '项目管理', '技术文档', '重要'],
-        starred: true
+        tags: ['课程体系', '专业建设', '教学改革', '人才培养'],
+        starred: true,
+        createdAt: new Date('2024-01-10'),
+        updatedAt: new Date('2024-01-12')
       },
       {
-        title: '团队会议纪要 - 2024年1月',
-        content: `# 团队月度会议纪要
-
-**时间**：2024年1月15日 14:00-16:00
-**参会人员**：张三、李四、王五、赵六
-**主持人**：张三
-
-## 会议议题
-
-### 1. 项目进度汇报
-- 前端开发进度：80%
-- 后端接口开发：70%
-- 测试用例编写：60%
-
-### 2. 问题讨论
-#### 技术难点
-- 数据同步机制需要优化
-- 性能瓶颈在大数据量处理
-
-#### 解决方案
-- 采用增量同步策略
-- 实现数据分页和虚拟滚动
-
-### 3. 下周工作安排
-- **张三**：完成用户权限模块
-- **李四**：优化数据库查询性能
-- **王五**：编写单元测试
-- **赵六**：准备用户验收测试
-
-## 行动项
-1. 李四本周内提交性能优化方案
-2. 王五完成核心模块测试覆盖
-3. 下次会议时间：1月22日`,
+        id: generateId(),
+        title: '教研室会议纪要 - 2024年春季学期工作安排',
+        content: '# 教研室会议纪要\n\n**会议时间**：2024年2月20日 14:00-16:00\n**参会人员**：全体教研室成员\n**主持人**：张主任\n\n## 主要议题\n\n### 1. 新学期教学安排\n- 确认各门课程的任课教师\n- 讨论教学大纲的修订\n- 安排实验室使用计划\n\n### 2. 科研项目进展\n- 国家自然科学基金项目中期检查\n- 省级教改项目申报准备\n- 校企合作项目推进\n\n### 3. 师资队伍建设\n- 新教师培养计划\n- 骨干教师进修安排\n- 外聘专家讲座计划\n\n### 4. 学生工作\n- 本科生导师制实施\n- 研究生招生宣传\n- 学科竞赛组织\n\n## 决议事项\n1. 成立课程建设小组\n2. 制定实验室管理制度\n3. 启动青年教师培养计划\n\n## 下次会议\n时间：2024年3月15日\n议题：期中教学检查总结',
         category: 'work',
-        tags: ['会议纪要', '项目管理', '团队协作'],
-        starred: false
+        tags: ['会议纪要', '教研室', '工作安排', '教学管理'],
+        starred: false,
+        createdAt: new Date('2024-02-20'),
+        updatedAt: new Date('2024-02-20')
       },
       {
-        title: 'API 接口设计文档',
-        content: `# RESTful API 设计规范
-
-## 基本原则
-1. 使用 HTTP 动词表示操作
-2. 使用名词表示资源
-3. 统一的响应格式
-4. 合理的状态码使用
-
-## 接口列表
-
-### 用户管理
-\`\`\`
-GET    /api/users          # 获取用户列表
-GET    /api/users/:id      # 获取用户详情
-POST   /api/users          # 创建用户
-PUT    /api/users/:id      # 更新用户
-DELETE /api/users/:id      # 删除用户
-\`\`\`
-
-### 笔记管理
-\`\`\`
-GET    /api/notes          # 获取笔记列表
-GET    /api/notes/:id      # 获取笔记详情
-POST   /api/notes          # 创建笔记
-PUT    /api/notes/:id      # 更新笔记
-DELETE /api/notes/:id      # 删除笔记
-\`\`\`
-
-## 响应格式
-\`\`\`json
-{
-  "code": 200,
-  "message": "success",
-  "data": {},
-  "timestamp": "2024-01-15T10:30:00Z"
-}
-\`\`\`
-
-## 错误处理
-- 400: 请求参数错误
-- 401: 未授权
-- 403: 禁止访问
-- 404: 资源不存在
-- 500: 服务器内部错误`,
+        id: generateId(),
+        title: '期末考试成绩分析与教学反思',
+        content: '# 期末考试成绩分析与教学反思\n\n## 成绩统计\n**课程**：数据结构与算法\n**班级**：计算机2022级1-3班\n**总人数**：156人\n\n### 成绩分布\n- 优秀（90-100分）：23人（14.7%）\n- 良好（80-89分）：45人（28.8%）\n- 中等（70-79分）：52人（33.3%）\n- 及格（60-69分）：28人（17.9%）\n- 不及格（<60分）：8人（5.1%）\n\n## 问题分析\n\n### 主要问题\n1. **算法设计能力不足**\n   - 学生对复杂算法的理解不够深入\n   - 缺乏独立设计算法的能力\n\n2. **编程实现薄弱**\n   - 理论知识与实践脱节\n   - 代码调试能力有待提高\n\n3. **时间复杂度分析困难**\n   - 对算法效率的理解不够\n   - 缺乏量化分析能力\n\n## 改进措施\n1. 增加课堂编程演示\n2. 强化实验课程设计\n3. 引入在线编程平台\n4. 建立学习小组互助机制\n\n## 下学期计划\n- 调整教学内容比例\n- 增加实践环节\n- 完善考核方式',
         category: 'work',
-        tags: ['API设计', '技术文档', '后端开发'],
-        starred: true
+        tags: ['成绩分析', '教学反思', '数据结构', '教学改进'],
+        starred: true,
+        createdAt: new Date('2024-01-25'),
+        updatedAt: new Date('2024-01-28')
       },
       {
-        title: '代码审查清单',
-        content: `# 代码审查清单
-
-## 代码质量
-- [ ] 代码符合团队编码规范
-- [ ] 变量和函数命名清晰易懂
-- [ ] 代码逻辑清晰，易于理解
-- [ ] 避免重复代码
-- [ ] 适当的注释说明
-
-## 功能实现
-- [ ] 功能实现符合需求
-- [ ] 边界条件处理完善
-- [ ] 错误处理机制完整
-- [ ] 性能考虑合理
-
-## 安全性
-- [ ] 输入验证和过滤
-- [ ] SQL 注入防护
-- [ ] XSS 攻击防护
-- [ ] 敏感信息保护
-
-## 测试
-- [ ] 单元测试覆盖率达标
-- [ ] 集成测试通过
-- [ ] 手动测试验证
-
-## 文档
-- [ ] API 文档更新
-- [ ] 代码注释完整
-- [ ] 变更日志记录
-
-## 部署
-- [ ] 配置文件检查
-- [ ] 依赖版本确认
-- [ ] 回滚方案准备`,
+        id: generateId(),
+        title: '实验室建设与管理规划方案',
+        content: '# 实验室建设与管理规划方案\n\n## 建设目标\n建设现代化的计算机实验教学中心，为本科生和研究生提供优质的实验环境。\n\n## 硬件建设\n\n### 基础设施\n- 计算机硬件更新（200台高性能PC）\n- 网络设备升级（千兆交换机）\n- 服务器集群搭建（用于大数据和AI实验）\n- 投影和音响设备完善\n\n### 专业实验室\n1. **软件工程实验室**\n   - 支持大型软件开发项目\n   - 配置版本控制和项目管理工具\n\n2. **人工智能实验室**\n   - GPU服务器用于深度学习\n   - 机器人实验平台\n\n3. **网络安全实验室**\n   - 网络攻防演练环境\n   - 安全测试工具\n\n## 软件环境\n- 开发环境：Visual Studio, IntelliJ IDEA\n- 数据库：MySQL, MongoDB, Redis\n- 大数据平台：Hadoop, Spark\n- AI框架：TensorFlow, PyTorch\n\n## 管理制度\n1. 实验室开放时间管理\n2. 设备维护保养制度\n3. 安全管理规范\n4. 使用预约系统\n\n## 预算估算\n总投资：500万元\n- 硬件设备：350万元\n- 软件许可：100万元\n- 装修改造：50万元',
         category: 'work',
-        tags: ['代码审查', '质量控制', '开发流程'],
-        starred: false
+        tags: ['实验室建设', '设备管理', '教学环境', '规划方案'],
+        starred: false,
+        createdAt: new Date('2024-02-05'),
+        updatedAt: new Date('2024-02-08')
       }
     ];
 
+    // 个人笔记数据
     this.personalNotes = [
       {
-        title: '2024年个人目标规划',
-        content: `# 2024年个人发展规划
-
-## 技术成长目标
-### 前端技能提升
-- [ ] 深入学习 React 18 新特性
-- [ ] 掌握 TypeScript 高级用法
-- [ ] 学习微前端架构
-- [ ] 了解 Web3 相关技术
-
-### 后端技能拓展
-- [ ] 学习 Go 语言
-- [ ] 深入理解分布式系统
-- [ ] 掌握 Docker 和 Kubernetes
-- [ ] 学习云原生技术栈
-
-## 个人发展
-### 软技能
-- [ ] 提升沟通表达能力
-- [ ] 加强项目管理技能
-- [ ] 培养团队领导力
-- [ ] 提高英语水平
-
-### 学习计划
-- 每周阅读 2 篇技术文章
-- 每月完成 1 个小项目
-- 每季度学习 1 门新技术
-- 每年参加 2 次技术会议
-
-## 生活目标
-- 保持健康的作息时间
-- 每周运动 3 次
-- 多陪伴家人朋友
-- 培养 1-2 个新爱好
-
-## 财务规划
-- 制定合理的储蓄计划
-- 学习投资理财知识
-- 规划职业发展路径`,
+        id: generateId(),
+        title: '2024年教师职业发展规划',
+        content: '# 2024年教师职业发展规划\n\n## 年度目标\n\n### 教学方面\n- 完成2门核心课程的教学改革\n- 指导本科生完成创新项目2项\n- 学生评教成绩保持在4.5分以上\n\n### 科研方面\n- 发表SCI论文2篇\n- 申请国家自然科学基金项目1项\n- 完成在研项目的中期检查\n\n### 个人提升\n- 参加国际学术会议1次\n- 完成在线课程学习3门\n- 考取相关专业认证\n\n## 具体计划\n\n### 第一季度\n- 完成课程大纲修订\n- 提交基金项目申请书\n- 参加教学培训\n\n### 第二季度\n- 开展教学改革实践\n- 推进科研项目进展\n- 准备学术会议论文\n\n### 第三季度\n- 参加国际会议\n- 完成论文投稿\n- 总结教学改革效果\n\n### 第四季度\n- 年度工作总结\n- 制定下年度计划\n- 完成各项考核\n\n## 预期成果\n通过一年的努力，在教学和科研方面都取得显著进步，为职业发展奠定坚实基础。',
         category: 'personal',
-        tags: ['目标规划', '个人发展', '年度计划', '重要'],
-        starred: true
+        tags: ['职业规划', '年度目标', '教师发展', '个人提升'],
+        starred: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-03')
       },
       {
-        title: '读书笔记：《代码整洁之道》',
-        content: `# 《代码整洁之道》读书笔记
-
-## 核心观点
-
-### 整洁代码的特征
-1. **可读性强**：代码应该像散文一样易读
-2. **简洁明了**：做一件事，并且做好
-3. **表达力强**：代码即文档
-4. **易于维护**：修改代码不会破坏其他功能
-
-### 命名规则
-- 使用有意义的名称
-- 避免误导性名称
-- 做有意义的区分
-- 使用可搜索的名称
-
-### 函数设计原则
-- 函数应该短小
-- 只做一件事
-- 每个函数一个抽象层级
-- 使用描述性名称
-
-## 实践建议
-
-### 代码格式
-- 保持一致的缩进
-- 合理使用空行分隔
-- 控制行长度
-- 团队统一格式规范
-
-### 注释原则
-- 好代码本身就是注释
-- 注释应该解释"为什么"而不是"是什么"
-- 避免冗余注释
-- 及时更新注释
-
-## 个人感悟
-写代码不仅仅是实现功能，更是一种艺术。整洁的代码不仅让自己受益，也是对团队和未来维护者的负责。
-
-## 行动计划
-- 在日常开发中践行整洁代码原则
-- 定期重构现有代码
-- 与团队分享整洁代码理念`,
+        id: generateId(),
+        title: '《教学勇气》读书笔记',
+        content: '# 《教学勇气》读书笔记\n\n**作者**：帕克·帕尔默\n**阅读时间**：2024年1月\n\n## 核心观点\n\n### 教学的本质\n教学不仅仅是传授知识，更是一种心灵的连接。真正的教学需要教师展现真实的自我，与学生建立authentic的关系。\n\n### 教师的内在生活\n- 教师的内在状态直接影响教学质量\n- 需要不断进行自我反思和成长\n- 勇气是教学中最重要的品质\n\n### 学习共同体\n- 创建安全的学习环境\n- 鼓励学生表达真实想法\n- 培养批判性思维\n\n## 个人感悟\n\n### 对教学的重新认识\n这本书让我重新思考了教学的意义。教学不应该是单向的知识传递，而应该是师生共同探索真理的过程。\n\n### 实践启发\n1. **真实性**：在课堂上展现真实的自我\n2. **倾听**：更多地倾听学生的声音\n3. **勇气**：敢于面对教学中的困难和挑战\n4. **反思**：定期反思自己的教学实践\n\n## 行动计划\n- 在课堂上更多地分享个人经历和思考\n- 创建更多的互动和讨论机会\n- 建立学生反馈机制\n- 定期进行教学反思\n\n这本书对我的教学理念产生了深远影响，值得反复阅读和思考。',
         category: 'personal',
-        tags: ['读书笔记', '代码质量', '软件工程', '学习'],
-        starred: false
+        tags: ['读书笔记', '教学理念', '教师成长', '教育哲学'],
+        starred: true,
+        createdAt: new Date('2024-01-18'),
+        updatedAt: new Date('2024-01-20')
       },
       {
-        title: '健身计划记录',
-        content: `# 2024年健身计划
-
-## 目标设定
-- 减重 10 公斤
-- 增加肌肉量
-- 提高心肺功能
-- 改善体态
-
-## 训练计划
-
-### 周一：胸部 + 三头肌
-- 平板卧推 4组 x 8-12次
-- 上斜哑铃推举 3组 x 10-15次
-- 双杠臂屈伸 3组 x 8-12次
-- 三头肌下压 3组 x 12-15次
-
-### 周三：背部 + 二头肌
-- 引体向上 4组 x 5-10次
-- 杠铃划船 4组 x 8-12次
-- 哑铃弯举 3组 x 10-15次
-- 锤式弯举 3组 x 12-15次
-
-### 周五：腿部 + 肩部
-- 深蹲 4组 x 8-12次
-- 硬拉 3组 x 6-10次
-- 肩上推举 3组 x 10-15次
-- 侧平举 3组 x 12-15次
-
-### 有氧运动
-- 每次训练后 20-30 分钟有氧
-- 周末长时间有氧运动
-
-## 饮食计划
-- 增加蛋白质摄入
-- 控制碳水化合物
-- 多吃蔬菜水果
-- 充足的水分摄入
-
-## 进度记录
-- 每周测量体重和体脂率
-- 记录训练重量和次数
-- 拍照记录体型变化`,
+        id: generateId(),
+        title: '家庭生活与工作平衡策略',
+        content: '# 家庭生活与工作平衡策略\n\n## 现状分析\n作为一名大学教师，需要在教学、科研、家庭之间找到平衡点。目前面临的主要挑战：\n- 工作时间不规律\n- 科研压力较大\n- 家庭时间不足\n- 个人休息时间缺乏\n\n## 平衡策略\n\n### 时间管理\n1. **工作时间界限**\n   - 设定明确的工作时间\n   - 避免将工作带回家\n   - 周末至少保留一天给家庭\n\n2. **优先级管理**\n   - 区分紧急和重要的事务\n   - 学会说"不"\n   - 合理分配精力\n\n### 家庭关系\n1. **陪伴质量**\n   - 专注的陪伴比时间长度更重要\n   - 参与孩子的学习和成长\n   - 与配偶保持良好沟通\n\n2. **家务分工**\n   - 合理分配家务责任\n   - 培养孩子的自理能力\n   - 适当寻求外部帮助\n\n### 个人发展\n1. **健康管理**\n   - 保持规律的运动习惯\n   - 注意饮食和睡眠\n   - 定期体检\n\n2. **兴趣爱好**\n   - 保留个人兴趣时间\n   - 培养放松的方式\n   - 与朋友保持联系\n\n## 实施计划\n- 制定详细的时间表\n- 与家人沟通并获得支持\n- 定期评估和调整策略\n\n平衡工作和生活是一个持续的过程，需要不断调整和优化。',
         category: 'personal',
-        tags: ['健身', '健康', '生活规划'],
-        starred: false
+        tags: ['工作生活平衡', '时间管理', '家庭关系', '个人发展'],
+        starred: false,
+        createdAt: new Date('2024-02-12'),
+        updatedAt: new Date('2024-02-14')
       }
     ];
 
-    this.ideasNotes = [
+    // 想法笔记数据
+    this.ideas = [
       {
-        title: '智能代码生成工具创意',
-        content: `# AI 驱动的智能代码生成工具
-
-## 核心创意
-开发一个基于 AI 的代码生成工具，能够根据自然语言描述生成高质量的代码。
-
-## 功能特性
-
-### 自然语言转代码
-- 支持中英文描述
-- 理解复杂的业务逻辑
-- 生成多种编程语言代码
-
-### 智能优化
-- 代码性能优化建议
-- 安全漏洞检测
-- 代码规范检查
-
-### 学习能力
-- 从用户反馈中学习
-- 适应团队编码风格
-- 持续改进生成质量
-
-## 技术实现
-
-### AI 模型
-- 基于大语言模型
-- 针对代码生成场景微调
-- 支持多种编程语言
-
-### 集成方式
-- VS Code 插件
-- JetBrains IDE 插件
-- Web 在线版本
-- API 接口服务
-
-## 商业模式
-- 免费版：基础功能
-- 专业版：高级功能 + 团队协作
-- 企业版：私有部署 + 定制化
-
-## 竞争优势
-- 更好的中文支持
-- 针对特定领域优化
-- 更强的学习适应能力
-
-## 发展路线
-1. MVP 版本开发
-2. 用户测试和反馈
-3. 功能完善和优化
-4. 商业化推广`,
+        id: generateId(),
+        title: '基于AI的个性化教学系统设计构想',
+        content: '# 基于AI的个性化教学系统设计构想\n\n## 系统概述\n设计一个基于人工智能的个性化教学系统，能够根据学生的学习特点、进度和偏好，提供定制化的学习内容和路径。\n\n## 核心功能\n\n### 学习者画像\n- 学习风格识别（视觉型、听觉型、动手型）\n- 知识基础评估\n- 学习进度跟踪\n- 兴趣偏好分析\n\n### 智能推荐\n- 个性化学习路径规划\n- 适应性学习资源推荐\n- 难度自动调节\n- 学习时间优化建议\n\n### 智能辅导\n- 自动答疑系统\n- 学习困难诊断\n- 个性化练习生成\n- 实时学习反馈\n\n## 技术架构\n\n### 数据层\n- 学习行为数据收集\n- 知识图谱构建\n- 学习资源库管理\n\n### 算法层\n- 机器学习模型训练\n- 自然语言处理\n- 推荐算法优化\n\n### 应用层\n- Web端学习平台\n- 移动端APP\n- 教师管理后台\n\n## 预期效果\n- 提高学习效率30%以上\n- 增强学习兴趣和动机\n- 减少教师重复性工作\n- 实现真正的因材施教\n\n## 实施计划\n1. 需求调研和系统设计\n2. 核心算法开发\n3. 原型系统构建\n4. 小规模试点测试\n5. 系统优化和推广\n\n这个系统有望革命性地改变传统教学模式，实现教育的个性化和智能化。',
         category: 'ideas',
-        tags: ['AI', '代码生成', '创业想法', '工具开发'],
-        starred: true
+        tags: ['人工智能', '个性化教学', '教育技术', '系统设计'],
+        starred: true,
+        createdAt: new Date('2024-01-08'),
+        updatedAt: new Date('2024-01-10')
       },
       {
-        title: '个人知识管理系统构想',
-        content: `# 第二大脑 - 个人知识管理系统
-
-## 灵感来源
-受到《Building a Second Brain》一书启发，构建一个真正智能的个人知识管理系统。
-
-## 核心理念
-
-### PARA 方法
-- **Projects**：当前项目
-- **Areas**：责任领域
-- **Resources**：未来参考
-- **Archive**：已完成项目
-
-### 渐进式总结
-1. 高亮重要内容
-2. 加粗关键信息
-3. 提取核心观点
-4. 形成个人见解
-
-## 功能设计
-
-### 智能输入
-- 语音转文字
-- 图片文字识别
-- 网页内容抓取
-- 文档自动导入
-
-### 知识连接
-- 自动标签建议
-- 相关内容推荐
-- 知识图谱可视化
-- 概念关联分析
-
-### 智能检索
-- 语义搜索
-- 模糊匹配
-- 时间线检索
-- 关联内容发现
-
-### 知识输出
-- 自动生成摘要
-- 思维导图导出
-- 报告模板生成
-- 知识分享功能
-
-## 技术架构
-
-### 前端
-- React + TypeScript
-- 富文本编辑器
-- 图表可视化组件
-
-### 后端
-- Node.js + Express
-- 向量数据库
-- 自然语言处理
-
-### AI 能力
-- 文本分析和理解
-- 内容自动分类
-- 智能推荐算法
-
-## 差异化特色
-- 更符合中文用户习惯
-- 集成更多本土化服务
-- 强调知识的实际应用`,
+        id: generateId(),
+        title: '翻转课堂教学模式改革构想',
+        content: '# 翻转课堂教学模式改革构想\n\n## 改革背景\n传统的"教师讲、学生听"的教学模式已经不能满足现代教育的需求。翻转课堂作为一种新的教学模式，将知识传授和知识内化的过程进行翻转，值得深入探索。\n\n## 翻转课堂模式设计\n\n### 课前阶段\n**学生自主学习**\n- 观看教学视频\n- 阅读相关资料\n- 完成预习测试\n- 提出疑问和思考\n\n**教师准备工作**\n- 制作高质量教学视频\n- 设计预习任务\n- 分析学生预习情况\n- 准备课堂活动\n\n### 课中阶段\n**互动式教学**\n- 答疑解惑\n- 小组讨论\n- 案例分析\n- 实践操作\n- 同伴教学\n\n### 课后阶段\n**巩固提升**\n- 完成进阶练习\n- 参与在线讨论\n- 反思学习过程\n- 准备下次课程\n\n## 实施策略\n\n### 技术支持\n- 建设在线学习平台\n- 制作系列教学视频\n- 开发互动学习工具\n- 建立学习分析系统\n\n### 教师培训\n- 翻转课堂理念培训\n- 视频制作技能培训\n- 课堂活动设计培训\n- 学习分析工具使用\n\n### 学生引导\n- 自主学习能力培养\n- 学习方法指导\n- 协作学习技能训练\n- 学习动机激发\n\n## 评价体系\n\n### 过程性评价\n- 预习完成情况（20%）\n- 课堂参与度（30%）\n- 小组合作表现（20%）\n- 课后反思质量（10%）\n\n### 结果性评价\n- 期中考试（10%）\n- 期末考试（10%）\n\n## 预期成果\n- 提高学生学习主动性\n- 增强课堂互动效果\n- 培养学生批判性思维\n- 提升教学质量和效率\n\n## 风险与对策\n\n### 可能的挑战\n- 学生适应期较长\n- 教师工作量增加\n- 技术设备要求高\n\n### 应对策略\n- 循序渐进推进改革\n- 提供充分的支持和培训\n- 建立激励机制\n\n翻转课堂改革需要系统性的规划和持续的努力，但其带来的教学效果提升是值得期待的。',
         category: 'ideas',
-        tags: ['知识管理', '第二大脑', '产品设计', '个人效率'],
-        starred: true
+        tags: ['翻转课堂', '教学改革', '教学模式', '教育创新'],
+        starred: false,
+        createdAt: new Date('2024-02-01'),
+        updatedAt: new Date('2024-02-03')
       }
     ];
   }
 
   // 生成所有模拟数据
-  async generateAllMockData() {
+  generateAllMockData() {
     try {
       console.log('开始生成模拟数据...');
       
+      // 清空现有数据
+      this.clearAllData();
+      
       // 生成笔记数据
-      const allNotes = [
-        ...this.studyNotes,
-        ...this.workNotes,
-        ...this.personalNotes,
-        ...this.ideasNotes
-      ];
+      this.generateNotes();
       
-      // 创建笔记并记录行为
-      for (let i = 0; i < allNotes.length; i++) {
-        const noteData = allNotes[i];
-        const createdNote = notesService.createNote(noteData);
-        
-        // 模拟创建时间（过去30天内随机）
-        const randomDays = Math.floor(Math.random() * 30);
-        const createdAt = new Date();
-        createdAt.setDate(createdAt.getDate() - randomDays);
-        
-        // 更新创建时间
-        const notes = notesService.getAllNotes();
-        const noteIndex = notes.findIndex(n => n.id === createdNote.id);
-        if (noteIndex !== -1) {
-          notes[noteIndex].createdAt = createdAt.toISOString();
-          notes[noteIndex].updatedAt = createdAt.toISOString();
-          localStorage.setItem('smart_notes_data', JSON.stringify(notes));
-        }
-        
-        // 记录创建行为
-        dataRecordService.recordUserBehavior('note_create', {
-          noteId: createdNote.id,
-          category: noteData.category,
-          tags: noteData.tags,
-          timestamp: createdAt.toISOString()
-        });
-        
-        // 模拟一些查看行为
-        const viewCount = Math.floor(Math.random() * 10) + 1;
-        for (let j = 0; j < viewCount; j++) {
-          const viewDate = new Date(createdAt);
-          viewDate.setDate(viewDate.getDate() + Math.floor(Math.random() * (30 - randomDays)));
-          
-          dataRecordService.recordNoteAccess(createdNote.id, {
-            timestamp: viewDate.toISOString()
-          });
-          
-          dataRecordService.recordUserBehavior('note_view', {
-            noteId: createdNote.id,
-            category: noteData.category,
-            timestamp: viewDate.toISOString()
-          });
-        }
-        
-        // 模拟一些编辑行为
-        if (Math.random() > 0.7) {
-          const editDate = new Date(createdAt);
-          editDate.setDate(editDate.getDate() + Math.floor(Math.random() * 15));
-          
-          dataRecordService.recordUserBehavior('note_edit', {
-            noteId: createdNote.id,
-            category: noteData.category,
-            timestamp: editDate.toISOString()
-          });
-        }
-      }
+      // 生成数据记录
+      this.generateDataRecords();
       
-      // 生成一些搜索行为记录
-      this.generateSearchBehaviors();
-      
-      console.log(`成功生成 ${allNotes.length} 条笔记数据`);
+      console.log('模拟数据生成完成！');
       return {
         success: true,
-        count: allNotes.length,
-        message: '模拟数据生成完成'
+        message: '模拟数据生成成功',
+        stats: this.getDataStats()
       };
-      
     } catch (error) {
       console.error('生成模拟数据失败:', error);
       return {
         success: false,
-        error: error.message
+        message: '模拟数据生成失败: ' + error.message
       };
     }
   }
-  
+
+  // 清空所有数据
+  clearAllData() {
+    try {
+      notesService.clearAllData();
+      dataRecordService.clearAllData();
+      console.log('数据清空完成');
+    } catch (error) {
+      console.error('清空数据失败:', error);
+      throw error;
+    }
+  }
+
+  // 生成笔记数据
+  generateNotes() {
+    const allNotes = [
+      ...this.studyNotes,
+      ...this.workNotes,
+      ...this.personalNotes,
+      ...this.ideas
+    ];
+
+    for (const note of allNotes) {
+      notesService.createNote(note);
+    }
+    
+    console.log(`生成了 ${allNotes.length} 条笔记`);
+  }
+
+  // 生成数据记录
+  generateDataRecords() {
+    // 生成搜索行为数据
+    const searchBehaviors = this.generateSearchBehaviors();
+    for (const record of searchBehaviors) {
+      dataRecordService.recordSearch(record.data.query, []);
+    }
+
+    // 生成其他类型的数据记录
+    const otherRecords = this.generateOtherRecords();
+    for (const record of otherRecords) {
+      dataRecordService.recordUserBehavior(record.type, record.data);
+    }
+
+    console.log(`生成了 ${searchBehaviors.length + otherRecords.length} 条数据记录`);
+  }
+
   // 生成搜索行为数据
   generateSearchBehaviors() {
-    const searchKeywords = [
-      'JavaScript', 'React', '算法', '项目管理', '健身',
-      '代码审查', 'API设计', '个人规划', 'AI', '知识管理'
+    const searchTerms = [
+      '教学方法', '课程设计', '学生评价', '教学反思', '在线教育',
+      '人工智能', '机器学习', '数据结构', '算法设计', '软件工程',
+      '教育技术', '翻转课堂', '个性化学习', '学习分析', '教学创新'
     ];
-    
-    searchKeywords.forEach(keyword => {
-      const searchCount = Math.floor(Math.random() * 5) + 1;
-      for (let i = 0; i < searchCount; i++) {
-        const searchDate = new Date();
-        searchDate.setDate(searchDate.getDate() - Math.floor(Math.random() * 30));
-        
-        dataRecordService.recordUserBehavior('search', {
-          keyword,
-          timestamp: searchDate.toISOString(),
-          resultCount: Math.floor(Math.random() * 10) + 1
-        });
-      }
-    });
+
+    const behaviors = [];
+    for (let i = 0; i < 50; i++) {
+      const randomTerm = searchTerms[Math.floor(Math.random() * searchTerms.length)];
+      behaviors.push({
+        id: generateId(),
+        type: 'search',
+        data: {
+          query: randomTerm,
+          timestamp: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
+          results: Math.floor(Math.random() * 20) + 1
+        }
+      });
+    }
+    return behaviors;
   }
-  
+
+  // 生成其他数据记录
+  generateOtherRecords() {
+    const records = [];
+    
+    // 生成笔记创建记录
+    for (let i = 0; i < 30; i++) {
+      records.push({
+        id: generateId(),
+        type: 'note_created',
+        data: {
+          category: ['study', 'work', 'personal', 'ideas'][Math.floor(Math.random() * 4)],
+          timestamp: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000)
+        }
+      });
+    }
+
+    return records;
+  }
+
   // 获取数据统计
   getDataStats() {
-    const notes = notesService.getAllNotes();
-    const categories = {};
-    const tags = {};
-    
-    notes.forEach(note => {
-      categories[note.category] = (categories[note.category] || 0) + 1;
-      note.tags.forEach(tag => {
-        tags[tag] = (tags[tag] || 0) + 1;
-      });
-    });
-    
     return {
-      totalNotes: notes.length,
-      categories,
-      tags,
-      starredNotes: notes.filter(note => note.starred).length
+      studyNotes: this.studyNotes.length,
+      workNotes: this.workNotes.length,
+      personalNotes: this.personalNotes.length,
+      ideas: this.ideas.length,
+      total: this.studyNotes.length + this.workNotes.length + this.personalNotes.length + this.ideas.length
     };
   }
 }
