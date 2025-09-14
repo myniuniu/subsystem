@@ -31,6 +31,8 @@ const ExploreModal = ({ visible, onClose, onExplore }) => {
       className="explore-modal"
       closable={false}
       centered
+      destroyOnClose={true}
+      maskClosable={true}
     >
       <div className="explore-modal-content">
         {/* 头部 */}

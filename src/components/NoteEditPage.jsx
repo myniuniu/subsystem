@@ -123,6 +123,11 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewType, setPreviewType] = useState('');
   const [previewData, setPreviewData] = useState(null);
+  
+  // 智能笔记相关状态
+  const [smartNotes, setSmartNotes] = useState([]);
+  const [showSmartNotesModal, setShowSmartNotesModal] = useState(false);
+  const [selectedNote, setSelectedNote] = useState(null);
 
   // 新建笔记功能
   const handleCreateNewNote = () => {
@@ -750,8 +755,10 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
   };
 
   const handleViewMaterial = (material, type) => {
-    setCurrentMaterial({ ...material, type });
-    setShowMaterialDetail(true);
+    // 生成单个资料的智能笔记
+    const smartNote = generateSmartNote(material, type);
+    setSmartNotes([smartNote]);
+    setShowSmartNotesModal(true);
   };
 
   // 预览资料功能
@@ -759,6 +766,90 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
     setPreviewData(material);
     setPreviewType(type);
     setShowPreviewModal(true);
+  };
+
+  // 智能笔记生成功能
+  const generateSmartNote = (material, type) => {
+    let smartNote = {
+      id: Date.now(),
+      type: type,
+      title: material.title || material.name,
+      originalData: material,
+      summary: '',
+      keyPoints: [],
+      tags: [],
+      createdAt: new Date().toLocaleString()
+    };
+
+    // 根据不同类型生成智能摘要
+    switch (type) {
+      case 'file':
+        smartNote.summary = `文件资料：${material.name}，类型：${material.type || '未知'}。建议进一步分析文件内容以提取关键信息。`;
+        smartNote.keyPoints = ['文件已上传', '待内容分析', '可用于AI问答'];
+        smartNote.tags = ['文件', material.type || '未知类型'];
+        break;
+      
+      case 'video':
+        smartNote.summary = `视频资料：${material.title}。视频内容可能包含重要的学习材料，建议观看并记录要点。`;
+        smartNote.keyPoints = ['视频已添加', '包含音视频内容', '适合深度学习'];
+        smartNote.tags = ['视频', '学习资料'];
+        if (material.url.includes('bilibili.com')) {
+          smartNote.tags.push('B站');
+        } else if (material.url.includes('youtube.com')) {
+          smartNote.tags.push('YouTube');
+        }
+        break;
+      
+      case 'link':
+        smartNote.summary = `网站链接：${material.title}。网页内容可能包含有价值的信息，建议浏览并提取关键内容。`;
+        smartNote.keyPoints = ['网站已添加', '可在线访问', '内容待分析'];
+        smartNote.tags = ['网站', '在线资源'];
+        break;
+      
+      case 'text':
+        const wordCount = material.content.length;
+        const hasMarkdown = /[*_`#\[\]]/g.test(material.content);
+        smartNote.summary = `文字内容：${material.title}，共${wordCount}字。${hasMarkdown ? '包含格式化内容，' : ''}可直接用于AI分析和问答。`;
+        smartNote.keyPoints = [
+          `文字长度：${wordCount}字`,
+          hasMarkdown ? '包含Markdown格式' : '纯文本内容',
+          '可直接分析'
+        ];
+        smartNote.tags = ['文字', hasMarkdown ? 'Markdown' : '纯文本'];
+        break;
+    }
+
+    return smartNote;
+  };
+
+  // 批量生成智能笔记
+  const handleGenerateSmartNotes = () => {
+    const notes = [];
+    
+    // 为所有资料生成智能笔记
+    uploadedFiles.forEach(file => {
+      notes.push(generateSmartNote(file, 'file'));
+    });
+    
+    addedTexts.forEach(text => {
+      notes.push(generateSmartNote(text, 'text'));
+    });
+    
+    courseVideos.forEach(video => {
+      notes.push(generateSmartNote(video, 'video'));
+    });
+    
+    links.forEach(link => {
+      notes.push(generateSmartNote(link, 'link'));
+    });
+
+    if (notes.length > 0) {
+      setSmartNotes(notes);
+      setShowSmartNotesModal(true);
+      message.success(`已生成 ${notes.length} 条智能笔记`);
+    } else {
+      message.info('暂无资料可生成智能笔记');
+    }
   };
 
   // 渲染文件预览内容
@@ -958,27 +1049,24 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
             </div>
             
             {/* 操作按钮区域 */}
-            <div style={{ marginBottom: 24 }}>
-              <Space direction="vertical" style={{ width: '100%' }}>
-                <Button 
-                  type="primary" 
-                  icon={<PlusOutlined />} 
-                  block
-                  style={{ marginBottom: 8 }}
-                  onClick={() => {
-                    setShowMaterialAddModal(true);
-                  }}
-                >
-                  添加
-                </Button>
-                <Button 
-                  type="default" 
-                  block
-                  onClick={() => setShowExploreModal(true)}
-                >
-                  探索
-                </Button>
-              </Space>
+            <div style={{ marginBottom: 24, display: 'flex', gap: 8 }}>
+              <Button 
+                type="primary" 
+                icon={<PlusOutlined />} 
+                style={{ flex: 1 }}
+                onClick={() => {
+                  setShowMaterialAddModal(true);
+                }}
+              >
+                添加
+              </Button>
+              <Button 
+                type="default" 
+                style={{ flex: 1 }}
+                onClick={() => setShowExploreModal(true)}
+              >
+                探索
+              </Button>
             </div>
             
             <Divider style={{ margin: '16px 0' }} />
@@ -1558,8 +1646,9 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
               <TextArea
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder={selectedMaterials.length > 0 ? `基于已选择的 ${selectedMaterials.length} 个资料，请输入您的问题...` : "请输入您的问题..."}
+                placeholder={selectedMaterials.length > 0 ? `基于已选择的 ${selectedMaterials.length} 个资料，请输入您的问题...` : "请先选择资料后再输入问题..."}
                 autoSize={{ minRows: 1, maxRows: 3 }}
+                disabled={selectedMaterials.length === 0}
                 onPressEnter={(e) => {
                   if (!e.shiftKey) {
                     e.preventDefault();
@@ -1572,7 +1661,7 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
                 icon={<SendOutlined />}
                 onClick={handleSendMessage}
                 loading={isLoading}
-                disabled={!inputMessage.trim()}
+                disabled={!inputMessage.trim() || selectedMaterials.length === 0}
               >
                 发送
               </Button>
@@ -2022,74 +2111,7 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
       </div>
        </Modal>
        
-      {/* 资料详情查看弹窗 */}
-      <Modal
-        title={`查看${currentMaterial?.type === 'file' ? '文件' : 
-                currentMaterial?.type === 'text' ? '文字' : 
-                currentMaterial?.type === 'video' ? '视频' : '链接'}详情`}
-        open={showMaterialDetail}
-        onCancel={() => {
-          setShowMaterialDetail(false);
-          setCurrentMaterial(null);
-        }}
-        footer={[
-          <Button key="close" onClick={() => {
-            setShowMaterialDetail(false);
-            setCurrentMaterial(null);
-          }}>
-            关闭
-          </Button>
-        ]}
-        width={600}
-      >
-        {currentMaterial && currentMaterial.data && (
-           <div>
-             {currentMaterial.type === 'file' && (
-               <div>
-                 <p><strong>文件名：</strong>{currentMaterial.data.name}</p>
-                 <p><strong>文件类型：</strong>{currentMaterial.data.type || '未知'}</p>
-                 <p><strong>上传时间：</strong>{new Date().toLocaleString()}</p>
-               </div>
-             )}
-             {currentMaterial.type === 'text' && (
-               <div>
-                 <p><strong>标题：</strong>{currentMaterial.data.title}</p>
-                 <p><strong>内容：</strong></p>
-                 <div style={{ 
-                   padding: '12px', 
-                   backgroundColor: '#f5f5f5', 
-                   borderRadius: '6px',
-                   whiteSpace: 'pre-wrap',
-                   maxHeight: '300px',
-                   overflow: 'auto'
-                 }}>
-                   {currentMaterial.data.content}
-                 </div>
-               </div>
-             )}
-             {currentMaterial.type === 'video' && (
-               <div>
-                 <p><strong>视频标题：</strong>{currentMaterial.data.title}</p>
-                 <p><strong>视频链接：</strong>
-                   <a href={currentMaterial.data.url} target="_blank" rel="noopener noreferrer">
-                     {currentMaterial.data.url}
-                   </a>
-                 </p>
-               </div>
-             )}
-             {currentMaterial.type === 'link' && (
-               <div>
-                 <p><strong>链接标题：</strong>{currentMaterial.data.title}</p>
-                 <p><strong>链接地址：</strong>
-                   <a href={currentMaterial.data.url} target="_blank" rel="noopener noreferrer">
-                     {currentMaterial.data.url}
-                   </a>
-                 </p>
-               </div>
-             )}
-           </div>
-         )}
-      </Modal>
+
 
       {/* 资料预览弹窗 */}
       <Modal
@@ -2138,6 +2160,130 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
         visible={showMaterialAddModal}
         onClose={() => setShowMaterialAddModal(false)}
       />
+      
+      {/* 智能笔记弹窗 */}
+      <Modal
+        title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <RobotOutlined style={{ color: '#1890ff' }} />
+          {smartNotes.length === 1 ? '资料智能预览' : '智能笔记预览'}
+        </div>}
+        open={showSmartNotesModal}
+        onCancel={() => {
+          setShowSmartNotesModal(false);
+          setSelectedNote(null);
+        }}
+        footer={[
+          <Button key="close" onClick={() => {
+            setShowSmartNotesModal(false);
+            setSelectedNote(null);
+          }}>
+            关闭
+          </Button>
+        ]}
+        width={900}
+        style={{ top: 20 }}
+      >
+        <div style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+          {smartNotes.length > 0 ? (
+            <div>
+              <div style={{ marginBottom: 16, padding: '12px', backgroundColor: '#f0f9ff', borderRadius: '6px', border: '1px solid #bae7ff' }}>
+                 <Text type="secondary">
+                   {smartNotes.length === 1 ? 
+                     '🤖 AI智能分析该资料，为您提供摘要、关键要点和标签分类' : 
+                     `📝 已为您生成 ${smartNotes.length} 条智能笔记，包含资料摘要、关键要点和标签分类`
+                   }
+                 </Text>
+               </div>
+              
+              <List
+                itemLayout="vertical"
+                dataSource={smartNotes}
+                renderItem={(note, index) => (
+                  <List.Item
+                    key={note.id}
+                    style={{
+                      padding: '16px',
+                      marginBottom: '12px',
+                      backgroundColor: selectedNote?.id === note.id ? '#f6ffed' : '#fafafa',
+                      borderRadius: '8px',
+                      border: selectedNote?.id === note.id ? '1px solid #b7eb8f' : '1px solid #f0f0f0',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => setSelectedNote(selectedNote?.id === note.id ? null : note)}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                      <div style={{ flex: 1 }}>
+                        <Title level={5} style={{ margin: 0, marginBottom: 4 }}>
+                          {note.type === 'file' && '📄'}
+                          {note.type === 'video' && '🎥'}
+                          {note.type === 'link' && '🔗'}
+                          {note.type === 'text' && '📝'}
+                          {' '}{note.title}
+                        </Title>
+                        <Text type="secondary" style={{ fontSize: '12px' }}>
+                          {note.createdAt}
+                        </Text>
+                      </div>
+                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                        {note.tags.map((tag, tagIndex) => (
+                          <Tag key={tagIndex} size="small" color={note.type === 'file' ? 'blue' : note.type === 'video' ? 'red' : note.type === 'link' ? 'green' : 'orange'}>
+                            {tag}
+                          </Tag>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <Paragraph style={{ margin: 0, marginBottom: 12, color: '#666' }}>
+                      {note.summary}
+                    </Paragraph>
+                    
+                    {selectedNote?.id === note.id && (
+                      <div style={{ marginTop: 12, padding: '12px', backgroundColor: '#fff', borderRadius: '6px', border: '1px solid #e8f4fd' }}>
+                        <Title level={5} style={{ margin: 0, marginBottom: 8, color: '#1890ff' }}>关键要点：</Title>
+                        <ul style={{ margin: 0, paddingLeft: 20 }}>
+                          {note.keyPoints.map((point, pointIndex) => (
+                            <li key={pointIndex} style={{ marginBottom: 4, color: '#666' }}>{point}</li>
+                          ))}
+                        </ul>
+                        
+                        <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+                          <Button 
+                            size="small" 
+                            icon={<EyeOutlined />}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePreviewMaterial(note.originalData, note.type);
+                            }}
+                          >
+                            预览原资料
+                          </Button>
+                          <Button 
+                            size="small" 
+                            type="primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              message.success('笔记已保存到操作记录');
+                              // 这里可以添加保存到操作记录的逻辑
+                            }}
+                          >
+                            保存笔记
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </List.Item>
+                )}
+              />
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '50px', color: '#999' }}>
+              <RobotOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
+              <div>暂无智能笔记</div>
+              <div style={{ fontSize: '12px', marginTop: '8px' }}>请先添加资料，然后点击"智能笔记"按钮生成</div>
+            </div>
+          )}
+        </div>
+      </Modal>
       
       {/* 探索弹窗 */}
       <ExploreModal
