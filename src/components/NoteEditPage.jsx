@@ -1939,16 +1939,18 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
                           </Text>
                         </div>
                       </div>
-                      <Button 
-                        type="text" 
-                        size="small" 
-                        icon={<div style={{ fontSize: '12px' }}>▶</div>}
-                        style={{ padding: '2px 4px', height: 'auto', minWidth: 'auto' }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRecordClick(record);
-                        }}
-                      />
+                      {(record.type === 'audio' || record.type === 'video') && (
+                        <Button 
+                          type="text" 
+                          size="small" 
+                          icon={<div style={{ fontSize: '12px' }}>▶</div>}
+                          style={{ padding: '2px 4px', height: 'auto', minWidth: 'auto' }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRecordClick(record);
+                          }}
+                        />
+                      )}
                       <Dropdown
                         menu={{ items: getMoreMenuItems(record) }}
                         trigger={['click']}
