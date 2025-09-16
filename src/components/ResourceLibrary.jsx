@@ -1,136 +1,167 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, BookOpen, Video, FileText, Download, Star, Eye, Clock, Tag, ChevronRight } from 'lucide-react';
+import { Search, Filter, BookOpen, Video, FileText, Download, Star, Eye, Clock, Tag, ChevronRight, ArrowLeft, Play } from 'lucide-react';
 import './ResourceLibrary.css';
+import resourceLibraryService from '../services/resourceLibraryService.js';
+import { generateMockResourceData } from '../data/resourceLibraryMockData.js';
+import {
+  ResourceType,
+  ResourceCategory,
+  DifficultyLevel,
+  TargetAudience,
+  AgeGroup
+} from '../types/resourceLibrary.js';
 
 const ResourceLibrary = ({ onBack }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
+  const [selectedAudience, setSelectedAudience] = useState('all');
   const [selectedResource, setSelectedResource] = useState(null);
   const [favorites, setFavorites] = useState([]);
   const [viewHistory, setViewHistory] = useState([]);
+  const [resources, setResources] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [statistics, setStatistics] = useState(null);
 
-  // 资源数据
-  const resources = [
-    {
-      id: 'anxiety-guide',
-      title: '大学生焦虑症识别与干预指南',
-      type: 'guide',
-      category: 'anxiety',
-      description: '详细介绍大学生焦虑症的症状识别、评估方法和干预策略，包含实用的咨询技巧和案例分析。',
-      content: '这是一个详细的焦虑症识别与干预指南，包含理论知识和实践技巧。',
-      author: '心理健康教育中心',
-      publishDate: '2024-01-15',
-      readTime: '25分钟',
-      views: 1245,
-      rating: 4.8,
-      tags: ['焦虑症', '识别', '干预', 'CBT', '大学生']
-    },
-    {
-      id: 'depression-case',
-      title: '抑郁症大学生咨询案例集',
-      type: 'case',
-      category: 'depression',
-      description: '收录了10个典型的大学生抑郁症咨询案例，详细记录了咨询过程、技术运用和效果评估。',
-      content: '这是一个包含多个抑郁症咨询案例的资源集合。',
-      author: '临床心理学专家组',
-      publishDate: '2024-01-20',
-      readTime: '45分钟',
-      views: 892,
-      rating: 4.9,
-      tags: ['抑郁症', '案例分析', '咨询技术', '大学生', '治疗过程']
-    },
-    {
-      id: 'crisis-intervention',
-      title: '大学生心理危机干预操作手册',
-      type: 'manual',
-      category: 'crisis',
-      description: '针对大学生心理危机的识别、评估和干预的标准化操作流程，包含紧急情况处理预案。',
-      content: '这是一个完整的心理危机干预操作手册。',
-      author: '心理危机干预专家委员会',
-      publishDate: '2024-01-10',
-      readTime: '60分钟',
-      views: 2156,
-      rating: 4.9,
-      tags: ['心理危机', '干预流程', '自杀预防', '操作手册', '应急处理']
-    },
-    {
-      id: 'communication-skills',
-      title: '心理咨询沟通技巧视频教程',
-      type: 'video',
-      category: 'skills',
-      description: '通过实际案例演示，学习心理咨询中的基本沟通技巧，包括倾听、共情、提问等核心技能。',
-      content: '这是一个视频资源，包含12个模块的沟通技巧训练内容。',
-      author: '心理咨询技能培训中心',
-      publishDate: '2024-01-25',
-      readTime: '120分钟',
-      views: 3421,
-      rating: 4.7,
-      tags: ['沟通技巧', '视频教程', '实践演示', '咨询技能', '培训']
-    },
-    {
-      id: 'group-therapy',
-      title: '大学生团体心理辅导方案集',
-      type: 'program',
-      category: 'group',
-      description: '针对不同主题设计的团体心理辅导方案，包括人际关系、情绪管理、自我成长等主题。',
-      content: '这是一个包含多个团体辅导方案的资源集合。',
-      author: '团体心理辅导专家组',
-      publishDate: '2024-01-18',
-      readTime: '40分钟',
-      views: 1567,
-      rating: 4.6,
-      tags: ['团体辅导', '方案设计', '人际关系', '情绪管理', '自我成长']
+  // 初始化数据
+  useEffect(() => {
+    loadInitialData();
+  }, []);
+
+  const loadInitialData = async () => {
+    setLoading(true);
+    try {
+      // 生成模拟数据
+      const mockData = generateMockResourceData();
+      
+      // 更新服务中的数据
+      resourceLibraryService.storage.resources = mockData.resources;
+      resourceLibraryService.storage.categories = mockData.categories;
+      
+      // 获取资源和分类
+      const [resourcesResult, categoriesResult, statsResult] = await Promise.all([
+        resourceLibraryService.getAllResources(),
+        resourceLibraryService.getCategories(),
+        resourceLibraryService.getStatistics()
+      ]);
+      
+      if (resourcesResult.success) {
+        setResources(resourcesResult.data);
+      }
+      
+      if (categoriesResult.success) {
+        setCategories(categoriesResult.data);
+      }
+      
+      if (statsResult.success) {
+        setStatistics(statsResult.data);
+      }
+    } catch (error) {
+      console.error('加载数据失败:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  // 分类数据
-  const categories = [
+  // 动态生成分类数据
+  const categoryOptions = [
     { id: 'all', name: '全部', count: resources.length },
-    { id: 'anxiety', name: '焦虑相关', count: resources.filter(r => r.category === 'anxiety').length },
-    { id: 'depression', name: '抑郁相关', count: resources.filter(r => r.category === 'depression').length },
-    { id: 'crisis', name: '危机干预', count: resources.filter(r => r.category === 'crisis').length },
-    { id: 'skills', name: '咨询技能', count: resources.filter(r => r.category === 'skills').length },
-    { id: 'group', name: '团体辅导', count: resources.filter(r => r.category === 'group').length }
+    ...categories.map(cat => ({
+      id: cat.id,
+      name: cat.name,
+      count: cat.resourceCount || 0
+    }))
   ];
 
   // 资源类型
   const types = [
     { id: 'all', name: '全部类型', icon: '📚' },
-    { id: 'guide', name: '指导手册', icon: '📖' },
-    { id: 'case', name: '案例分析', icon: '📋' },
-    { id: 'manual', name: '操作手册', icon: '📝' },
-    { id: 'video', name: '视频教程', icon: '🎥' },
-    { id: 'program', name: '辅导方案', icon: '📊' }
+    { id: ResourceType.GUIDE, name: '指导手册', icon: '📖' },
+    { id: ResourceType.VIDEO, name: '视频教程', icon: '🎥' },
+    { id: ResourceType.AUDIO, name: '音频资源', icon: '🎵' },
+    { id: ResourceType.DOCUMENT, name: '文档资料', icon: '📄' },
+    { id: ResourceType.TOOL, name: '工具软件', icon: '🔧' },
+    { id: ResourceType.CASE_STUDY, name: '案例研究', icon: '🧪' }
+  ];
+
+  // 难度等级选项
+  const difficultyOptions = [
+    { id: 'all', name: '全部难度' },
+    { id: DifficultyLevel.EASY, name: '简单' },
+    { id: DifficultyLevel.MEDIUM, name: '中等' },
+    { id: DifficultyLevel.HARD, name: '困难' }
+  ];
+
+  // 目标受众选项
+  const audienceOptions = [
+    { id: 'all', name: '全部受众' },
+    ...Object.values(TargetAudience).map(audience => ({
+      id: audience,
+      name: audience
+    }))
   ];
 
   // 过滤资源
   const filteredResources = resources.filter(resource => {
     const matchesSearch = resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          resource.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         resource.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+                         resource.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         resource.keywords?.some(kw => kw.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesCategory = selectedCategory === 'all' || resource.category === selectedCategory;
-    const matchesType = selectedType === 'all' || resource.type === selectedType;
+    const matchesType = selectedType === 'all' || resource.resourceType === selectedType;
+    const matchesDifficulty = selectedDifficulty === 'all' || resource.difficulty === selectedDifficulty;
+    const matchesAudience = selectedAudience === 'all' || resource.targetAudience?.includes(selectedAudience);
     
-    return matchesSearch && matchesCategory && matchesType;
+    return matchesSearch && matchesCategory && matchesType && matchesDifficulty && matchesAudience;
   });
 
   // 切换收藏
-  const toggleFavorite = (resourceId) => {
-    setFavorites(prev => 
-      prev.includes(resourceId) 
-        ? prev.filter(id => id !== resourceId)
-        : [...prev, resourceId]
-    );
+  const toggleFavorite = async (resourceId) => {
+    try {
+      const result = await resourceLibraryService.likeResource(resourceId);
+      if (result.success) {
+        setFavorites(prev => 
+          prev.includes(resourceId) 
+            ? prev.filter(id => id !== resourceId)
+            : [...prev, resourceId]
+        );
+        
+        // 更新资源数据中的点赞数
+        setResources(prev => prev.map(resource => 
+          resource.id === resourceId 
+            ? { ...resource, stats: { ...resource.stats, likes: result.data.likes } }
+            : resource
+        ));
+      }
+    } catch (error) {
+      console.error('切换收藏失败:', error);
+    }
   };
 
   // 查看资源
-  const viewResource = (resource) => {
+  const viewResource = async (resource) => {
     setSelectedResource(resource);
     setViewHistory(prev => {
       const newHistory = prev.filter(id => id !== resource.id);
       return [resource.id, ...newHistory].slice(0, 10);
     });
+    
+    // 增加浏览量
+    try {
+      const result = await resourceLibraryService.getResourceById(resource.id);
+      if (result.success) {
+        // 更新资源数据中的浏览量
+        setResources(prev => prev.map(r => 
+          r.id === resource.id 
+            ? { ...r, stats: { ...r.stats, views: result.data.stats.views } }
+            : r
+        ));
+      }
+    } catch (error) {
+      console.error('更新浏览量失败:', error);
+    }
   };
 
   // 获取类型图标
@@ -142,8 +173,89 @@ const ResourceLibrary = ({ onBack }) => {
   // 获取类型名称
   const getTypeName = (type) => {
     const typeObj = types.find(t => t.id === type);
-    return typeObj ? typeObj.name : '未知类型';
+    const typeMap = {
+      'video': '视频',
+      'article': '文章',
+      'course': '课程',
+      'tool': '工具',
+      'book': '书籍',
+      'document': '文档',
+      'audio': '音频',
+      'interactive': '互动',
+      'assessment': '评估',
+      'template': '模板'
+    };
+    return typeObj ? typeObj.name : (typeMap[type] || '其他');
   };
+
+  // 获取难度颜色
+  const getDifficultyColor = (difficulty) => {
+    const colorMap = {
+      'beginner': '#4CAF50',
+      'intermediate': '#FF9800',
+      'advanced': '#F44336',
+      'expert': '#9C27B0'
+    };
+    switch (difficulty) {
+      case DifficultyLevel.EASY: return '#52c41a';
+      case DifficultyLevel.MEDIUM: return '#faad14';
+      case DifficultyLevel.HARD: return '#f5222d';
+      default: return colorMap[difficulty] || '#d9d9d9';
+    }
+  };
+
+  // 获取难度文本
+  const getDifficultyText = (difficulty) => {
+    const textMap = {
+      'beginner': '初级',
+      'intermediate': '中级',
+      'advanced': '高级',
+      'expert': '专家'
+    };
+    switch (difficulty) {
+      case DifficultyLevel.EASY: return '简单';
+      case DifficultyLevel.MEDIUM: return '中等';
+      case DifficultyLevel.HARD: return '困难';
+      default: return textMap[difficulty] || '未知';
+    }
+  };
+
+  // 下载资源
+  const downloadResource = async (resource, event) => {
+    event.stopPropagation();
+    try {
+      const result = await resourceLibraryService.incrementDownloads(resource.id);
+      if (result.success) {
+        // 更新资源数据中的下载量
+        setResources(prev => prev.map(r => 
+          r.id === resource.id 
+            ? { ...r, stats: { ...r.stats, downloads: result.data.downloads } }
+            : r
+        ));
+        
+        // 模拟下载
+        const link = document.createElement('a');
+        link.href = resource.content?.mainFile || '#';
+        link.download = resource.title;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (error) {
+      console.error('下载失败:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="resource-library loading">
+        <div className="loading-spinner">
+          <div className="spinner"></div>
+          <p>正在加载资源库...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (selectedResource) {
     return (
@@ -163,7 +275,10 @@ const ResourceLibrary = ({ onBack }) => {
               {favorites.includes(selectedResource.id) ? '已收藏' : '收藏'}
             </button>
             
-            <button className="download-btn">
+            <button 
+              className="download-btn"
+              onClick={(e) => downloadResource(selectedResource, e)}
+            >
               <Download size={20} />
               下载
             </button>
@@ -181,16 +296,32 @@ const ResourceLibrary = ({ onBack }) => {
               </div>
               <div className="meta-item">
                 <Clock size={16} />
-                <span>{selectedResource.readTime}</span>
+                <span>{selectedResource.duration || selectedResource.readTime}</span>
               </div>
               <div className="meta-item">
                 <Eye size={16} />
-                <span>{selectedResource.views} 次浏览</span>
+                <span>{selectedResource.stats?.views || selectedResource.views} 次浏览</span>
               </div>
               <div className="meta-item">
                 <Star size={16} />
-                <span>{selectedResource.rating} 分</span>
+                <span>{selectedResource.stats?.rating || selectedResource.rating} 分</span>
               </div>
+              {selectedResource.stats?.downloads && (
+                <div className="meta-item">
+                  <Download size={16} />
+                  <span>{selectedResource.stats.downloads} 次下载</span>
+                </div>
+              )}
+              {selectedResource.difficulty && (
+                <div className="meta-item">
+                  <span 
+                    className="difficulty-badge"
+                    style={{ backgroundColor: getDifficultyColor(selectedResource.difficulty) }}
+                  >
+                    {getDifficultyText(selectedResource.difficulty)}
+                  </span>
+                </div>
+              )}
             </div>
             
             <div className="detail-tags">
@@ -203,9 +334,37 @@ const ResourceLibrary = ({ onBack }) => {
             </div>
             
             <div className="author-info">
-              <span>作者：{selectedResource.author}</span>
-              <span>发布时间：{selectedResource.publishDate}</span>
+              <span>作者：{selectedResource.author?.name || selectedResource.author}</span>
+              {selectedResource.author?.organization && (
+                <span>机构：{selectedResource.author.organization}</span>
+              )}
+              <span>发布时间：{selectedResource.createTime || selectedResource.publishDate}</span>
+              {selectedResource.updateTime && selectedResource.updateTime !== selectedResource.createTime && (
+                <span>更新时间：{selectedResource.updateTime}</span>
+              )}
             </div>
+            
+            {selectedResource.targetAudience && selectedResource.targetAudience.length > 0 && (
+              <div className="target-audience">
+                <h4>目标受众：</h4>
+                <div className="audience-tags">
+                  {selectedResource.targetAudience.map((audience, index) => (
+                    <span key={index} className="audience-tag">{audience}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {selectedResource.ageGroup && selectedResource.ageGroup.length > 0 && (
+              <div className="age-group">
+                <h4>适用年龄：</h4>
+                <div className="age-tags">
+                  {selectedResource.ageGroup.map((age, index) => (
+                    <span key={index} className="age-tag">{age}</span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           
           <div className="detail-body">
@@ -239,7 +398,7 @@ const ResourceLibrary = ({ onBack }) => {
         <div className="header-nav">
           <h1 className="library-title">
             <BookOpen size={24} />
-            心理健康资源库
+            资源库
           </h1>
         </div>
         
@@ -256,32 +415,54 @@ const ResourceLibrary = ({ onBack }) => {
           </div>
           
           <div className="filter-section">
-            <div className="category-filters">
-              {categories.map(category => (
-                <button
-                  key={category.id}
-                  className={`category-btn ${selectedCategory === category.id ? 'active' : ''}`}
-                  onClick={() => setSelectedCategory(category.id)}
+              <div className="category-filters">
+                {categoryOptions.map(category => (
+                  <button
+                    key={category.id}
+                    className={`category-btn ${selectedCategory === category.id ? 'active' : ''}`}
+                    onClick={() => setSelectedCategory(category.id)}
+                  >
+                    {category.name}
+                    <span className="count">({category.count})</span>
+                  </button>
+                ))}
+              </div>
+              
+              <div className="type-filters">
+                {types.map(type => (
+                  <button
+                    key={type.id}
+                    className={`type-btn ${selectedType === type.id ? 'active' : ''}`}
+                    onClick={() => setSelectedType(type.id)}
+                  >
+                    <span className="type-icon">{type.icon}</span>
+                    {type.name}
+                  </button>
+                ))}
+              </div>
+              
+              <div className="additional-filters">
+                <select 
+                  value={selectedDifficulty} 
+                  onChange={(e) => setSelectedDifficulty(e.target.value)}
+                  className="difficulty-select"
                 >
-                  {category.name}
-                  <span className="count">({category.count})</span>
-                </button>
-              ))}
-            </div>
-            
-            <div className="type-filters">
-              {types.map(type => (
-                <button
-                  key={type.id}
-                  className={`type-btn ${selectedType === type.id ? 'active' : ''}`}
-                  onClick={() => setSelectedType(type.id)}
+                  {difficultyOptions.map(option => (
+                    <option key={option.id} value={option.id}>{option.name}</option>
+                  ))}
+                </select>
+                
+                <select 
+                  value={selectedAudience} 
+                  onChange={(e) => setSelectedAudience(e.target.value)}
+                  className="audience-select"
                 >
-                  <span className="type-icon">{type.icon}</span>
-                  {type.name}
-                </button>
-              ))}
+                  {audienceOptions.map(option => (
+                    <option key={option.id} value={option.id}>{option.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </div>
         </div>
       </div>
       
@@ -305,9 +486,9 @@ const ResourceLibrary = ({ onBack }) => {
                 >
                   <div className="card-header">
                     <div className="resource-type">
-                      <span className="type-icon">{getTypeIcon(resource.type)}</span>
-                      <span className="type-name">{getTypeName(resource.type)}</span>
-                    </div>
+                    <span className="type-icon">{getTypeIcon(resource.resourceType || resource.type)}</span>
+                    <span className="type-name">{getTypeName(resource.resourceType || resource.type)}</span>
+                  </div>
                     
                     <button 
                       className={`favorite-btn ${favorites.includes(resource.id) ? 'favorited' : ''}`}
@@ -326,16 +507,26 @@ const ResourceLibrary = ({ onBack }) => {
                   <div className="resource-meta">
                     <div className="meta-item">
                       <Clock size={14} />
-                      <span>{resource.readTime}</span>
+                      <span>{resource.duration || resource.readTime}</span>
                     </div>
                     <div className="meta-item">
                       <Eye size={14} />
-                      <span>{resource.views}</span>
+                      <span>{resource.stats?.views || resource.views}</span>
                     </div>
                     <div className="meta-item">
                       <Star size={14} />
-                      <span>{resource.rating}</span>
+                      <span>{resource.stats?.rating || resource.rating}</span>
                     </div>
+                    {resource.difficulty && (
+                      <div className="meta-item difficulty">
+                        <span 
+                          className="difficulty-badge"
+                          style={{ backgroundColor: getDifficultyColor(resource.difficulty) }}
+                        >
+                          {getDifficultyText(resource.difficulty)}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="resource-tags">
@@ -348,8 +539,18 @@ const ResourceLibrary = ({ onBack }) => {
                   </div>
                   
                   <div className="card-footer">
-                    <span className="author">{resource.author}</span>
-                    <ChevronRight size={16} />
+                    <span className="author">{resource.author?.name || resource.author}</span>
+                    <div className="card-actions">
+                      <button 
+                        className="download-btn-small"
+                        onClick={(e) => downloadResource(resource, e)}
+                        title="下载资源"
+                      >
+                        <Download size={14} />
+                        <span>{resource.stats?.downloads || 0}</span>
+                      </button>
+                      <ChevronRight size={16} />
+                    </div>
                   </div>
                 </div>
               ))}
