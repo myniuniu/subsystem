@@ -58,7 +58,7 @@
 }
 
 .menu-list {
-  margin-top: 16px;
+  margin-top: 4px;
   padding: 0 8px;
   max-height: calc(100vh - 80px);
   overflow-y: auto;
@@ -93,7 +93,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  margin: 4px 0;
+  margin: 2px 0;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -166,15 +166,15 @@
   margin-left: 20px;
   border-left: 2px solid var(--theme-border);
   padding-left: 12px;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .submenu-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  margin: 2px 0;
+  padding: 6px 12px;
+  margin: 1px 0;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -436,6 +436,8 @@
   transform: scale(0.8);
   margin-left: 4px;
   flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .menu-item:hover .remove-button {

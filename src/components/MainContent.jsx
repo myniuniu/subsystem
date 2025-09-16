@@ -60,7 +60,6 @@ const MainContent = ({ currentView, onViewChange, onStartChat }) => {
     showStats: true,
     showSchedule: true,
     showQuickActions: true,
-    showModuleStatus: true,
     showRecentActivities: true
   })
 
@@ -199,66 +198,7 @@ const MainContent = ({ currentView, onViewChange, onStartChat }) => {
     }
   ]
 
-  // 模块状态数据
-  const moduleStatus = [
-    {
-      id: 'unified-ai-center',
-      icon: Bot,
-      title: 'AI统一中心',
-      status: 'active',
-      lastUsed: '刚刚',
-      usage: '高频使用'
-    },
-    {
-      id: 'calendar-center',
-      icon: Calendar,
-      title: '日历中心',
-      status: 'active',
-      lastUsed: '30分钟前',
-      usage: '高频使用'
-    },
 
-    {
-      id: 'lesson-observation',
-      icon: Eye,
-      title: '听课评课',
-      status: 'active',
-      lastUsed: '4小时前',
-      usage: '正常使用'
-    },
-    {
-      id: 'docs-center',
-      icon: FileText,
-      title: '文档中心',
-      status: 'active',
-      lastUsed: '1小时前',
-      usage: '正常使用'
-    },
-    {
-      id: 'message-center',
-      icon: MessageCircle,
-      title: '消息中心',
-      status: 'active',
-      lastUsed: '2小时前',
-      usage: '正常使用'
-    },
-    {
-      id: 'meeting-center',
-      icon: Video,
-      title: '会议中心',
-      status: 'idle',
-      lastUsed: '1天前',
-      usage: '低频使用'
-    },
-    {
-      id: 'download-center',
-      icon: Download,
-      title: '下载中心',
-      status: 'idle',
-      lastUsed: '2天前',
-      usage: '低频使用'
-    }
-  ]
 
   // 最近活动数据
   const recentActivities = [
@@ -436,15 +376,7 @@ const MainContent = ({ currentView, onViewChange, onStartChat }) => {
                   />
                 </Col>
               </Row>
-              <Row justify="space-between" align="middle">
-                <Col>模块状态监控</Col>
-                <Col>
-                  <Switch 
-                    checked={workspaceSettings.showModuleStatus}
-                    onChange={() => toggleSetting('showModuleStatus')}
-                  />
-                </Col>
-              </Row>
+
               <Row justify="space-between" align="middle">
                 <Col>最近活动记录</Col>
                 <Col>
@@ -698,81 +630,9 @@ const MainContent = ({ currentView, onViewChange, onStartChat }) => {
 
         <div style={{ margin: '0 24px' }}>
           <Row gutter={[24, 24]}>
-            {/* 模块状态 */}
-            {workspaceSettings.showModuleStatus && (
-              <Col xs={24} lg={12}>
-                <Card 
-                  title={
-                    <Space>
-                      <Settings size={16} />
-                      模块状态
-                    </Space>
-                  }
-                  style={{ 
-                    height: '100%',
-                    borderRadius: '12px',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-                    border: '1px solid #f0f0f0'
-                  }}
-                >
-                  <Paragraph type="secondary" style={{ marginBottom: '16px', color: '#8c8c8c' }}>查看各功能模块使用情况</Paragraph>
-                  <Row gutter={[12, 12]}>
-                    {moduleStatus.map((module, index) => {
-                      const Icon = module.icon
-                      return (
-                        <Col xs={24} sm={12} key={module.id}>
-                          <Card 
-                            hoverable
-                            size="small"
-                            onClick={() => handleToolClick(module.id)}
-                            style={{ 
-                              height: '100%',
-                              borderRadius: '8px',
-                              border: '1px solid #f0f0f0',
-                              transition: 'all 0.3s ease'
-                            }}
-                            styles={{ body: { padding: '12px' } }}
-                          >
-                            <Space direction="vertical" style={{ width: '100%' }}>
-                              <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                                <div style={{
-                                  width: '28px',
-                                  height: '28px',
-                                  borderRadius: '6px',
-                                  background: '#f6ffed',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  border: '1px solid #b7eb8f'
-                                }}>
-                                  <Icon size={14} style={{ color: '#52c41a' }} />
-                                </div>
-                                <Badge 
-                                  status={module.status === 'active' ? 'success' : 'default'} 
-                                  text={module.status === 'active' ? '运行中' : '空闲'}
-                                  style={{ fontSize: '11px' }}
-                                />
-                              </Space>
-                              <div>
-                                <Text strong style={{ fontSize: '13px', color: 'var(--theme-textPrimary)' }}>{module.title}</Text>
-                                <br />
-                                <Text type="secondary" style={{ fontSize: '11px', color: 'var(--theme-textSecondary)' }}>最后使用: {module.lastUsed}</Text>
-                                <br />
-                                <Text type="secondary" style={{ fontSize: '11px', color: 'var(--theme-textSecondary)' }}>{module.usage}</Text>
-                              </div>
-                            </Space>
-                          </Card>
-                        </Col>
-                      )
-                    })}
-                  </Row>
-                </Card>
-              </Col>
-            )}
-
             {/* 最近活动 */}
             {workspaceSettings.showRecentActivities && (
-              <Col xs={24} lg={12}>
+              <Col xs={24} lg={24}>
                 <Card 
                   title={
                     <Space>
