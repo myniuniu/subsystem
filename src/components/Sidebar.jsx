@@ -346,6 +346,13 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
        color: '#52c41a',
        type: 'single'
      },
+    { 
+       id: 'training-needs', 
+       icon: Target, 
+       label: '培训需求', 
+       color: '#fa8c16',
+       type: 'single'
+     },
     {
       id: 'teaching-management',
       icon: BookOpen,

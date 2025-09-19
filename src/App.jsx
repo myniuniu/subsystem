@@ -33,6 +33,8 @@ import SimulationPlatform from './components/SimulationPlatform'
 import LearningAnalyticsCenter from './components/LearningAnalyticsCenter'
 import SmartNotes from './components/SmartNotes'
 import NoteEditPage from './components/NoteEditPage'
+import TrainingNeeds from './components/TrainingNeeds'
+import NeedEditPage from './components/NeedEditPage'
 import './App.css'
 
 const { Header: AntHeader, Sider, Content } = Layout
@@ -40,6 +42,13 @@ const { Header: AntHeader, Sider, Content } = Layout
 function App() {
   const [currentView, setCurrentView] = useState('home') // 'home', 'chat', 'image', 'search', etc.
   const [messages, setMessages] = useState([])
+  
+  // 页面状态管理
+  const [pageState, setPageState] = useState({
+    selectedNote: null,
+    selectedNeed: null,
+    editorMode: 'create' // 'create', 'edit', 'view'
+  })
   
   // 调试信息
   useEffect(() => {
@@ -183,8 +192,25 @@ function App() {
   // 计算实际的下载中任务数量
   const downloadingCount = downloads.filter(d => d.status === 'downloading').length
 
-  const handleViewChange = (view) => {
+  const handleViewChange = (view, data = null) => {
+    console.log('View change requested:', view, data)
+    
+    // 处理页面状态
+    if (data) {
+      setPageState(prev => ({
+        ...prev,
+        ...data
+      }))
+    }
+    
     setCurrentView(view)
+    
+    // 更新URL哈希
+    if (view !== 'home') {
+      window.location.hash = view
+    } else {
+      window.location.hash = ''
+    }
   }
 
   const handleSendMessage = (message) => {
@@ -335,6 +361,18 @@ function App() {
               <NoteEditPage 
                 onBack={() => handleViewChange('smart-notes')}
                 onViewChange={handleViewChange}
+              />
+            ) : currentView === 'training-needs' ? (
+              <TrainingNeeds 
+                onViewChange={handleViewChange}
+                pageState={pageState}
+              />
+            ) : currentView === 'need-edit-page' ? (
+              <NeedEditPage 
+                onBack={() => handleViewChange('training-needs')}
+                onViewChange={handleViewChange}
+                selectedNeed={pageState.selectedNeed}
+                mode={pageState.editorMode}
               />
             ) : (
               <MainContent 

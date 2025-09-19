@@ -1,98 +1,70 @@
-/* 模态框样式 */
-.note-editor-modal .ant-modal-content {
-  padding: 0;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+/* 培训需求编辑器样式 */
+.need-editor-modal {
+  top: 20px;
 }
 
-.note-editor-modal .ant-modal-body {
-  padding: 0;
-  max-height: 80vh;
+.need-editor-modal .ant-modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.need-editor-modal .ant-modal-header {
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 16px 24px;
+}
+
+.need-editor-modal .ant-modal-body {
+  padding: 24px;
+  max-height: 70vh;
   overflow-y: auto;
 }
 
-.note-editor-modal .ant-modal-footer {
-  border-top: 1px solid #f0f0f0;
-  padding: 16px 24px;
-  background: #fafafa;
-  border-radius: 0 0 12px 12px;
-}
-
-/* 自定义头部样式 */
-.custom-modal-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 20px 24px;
-  border-radius: 12px 12px 0 0;
-}
-
-.header-content {
+/* 编辑器头部 */
+.editor-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
 }
 
-.header-title {
+.editor-header .ant-typography {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.header-info {
+  color: #666;
   font-size: 12px;
-  opacity: 0.9;
 }
 
 /* 表单样式 */
-.note-editor-form {
-  padding: 24px;
+.need-editor-form .ant-form-item-label > label {
+  font-weight: 500;
+  color: #374151;
 }
 
-.form-label {
-  font-weight: 600;
-  color: #262626;
-  font-size: 14px;
-}
-
-.title-input {
+.need-editor-form .ant-input,
+.need-editor-form .ant-select-selector {
   border-radius: 8px;
-  border: 2px solid #f0f0f0;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
-.title-input:focus,
-.title-input:hover {
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+.need-editor-form .ant-input:focus,
+.need-editor-form .ant-select-focused .ant-select-selector {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
 }
 
-.category-select {
-  border-radius: 8px;
+.need-editor-form .ant-input-lg {
+  padding: 12px 16px;
+  font-size: 16px;
+  font-weight: 500;
 }
 
-.category-select .ant-select-selector {
-  border: 2px solid #f0f0f0;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.category-select:hover .ant-select-selector,
-.category-select.ant-select-focused .ant-select-selector {
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
-}
-
-/* 标签区域样式 */
-.tags-section {
-  border: 2px solid #f0f0f0;
+/* 标签输入区域 */
+.tags-input {
+  border: 1px solid #d9d9d9;
   border-radius: 8px;
   padding: 12px;
   background: #fafafa;
-  transition: all 0.3s ease;
-}
-
-.tags-section:hover {
-  border-color: #d9d9d9;
+  min-height: 60px;
 }
 
 .selected-tags {
@@ -100,48 +72,52 @@
   min-height: 24px;
 }
 
-.custom-tag {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 16px;
-  padding: 4px 12px;
-  margin: 2px 4px 2px 0;
+.selected-tags .ant-tag {
+  margin-bottom: 4px;
+  border-radius: 4px;
   font-size: 12px;
-  font-weight: 500;
+  padding: 4px 8px;
+  border: none;
+  background: #e6f7ff;
+  color: #1890ff;
+  transition: all 0.2s ease;
 }
 
-.custom-tag .ant-tag-close-icon {
-  color: rgba(255, 255, 255, 0.8);
-  margin-left: 6px;
+.selected-tags .ant-tag:hover {
+  background: #bae7ff;
 }
 
-.custom-tag .ant-tag-close-icon:hover {
-  color: white;
+.selected-tags .ant-tag .anticon-close {
+  color: #1890ff;
+  font-size: 10px;
+  margin-left: 4px;
 }
 
-.tag-input-section {
+.tag-input-row {
   display: flex;
   gap: 8px;
   align-items: center;
   flex-wrap: wrap;
 }
 
-.tag-input-section .ant-input {
-  border-radius: 6px;
-  border: 1px solid #d9d9d9;
-}
-
-.tag-input-section .ant-btn {
+.tag-input-row .ant-input {
   border-radius: 6px;
 }
 
-.tag-input-section .ant-select {
+.tag-input-row .ant-btn {
+  border-radius: 6px;
+  height: 24px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+.tag-input-row .ant-select {
   border-radius: 6px;
 }
 
-.tag-input-section .ant-select .ant-select-selector {
+.tag-input-row .ant-select .ant-select-selector {
   border-radius: 6px;
+  height: 24px;
 }
 
 /* 格式化工具栏 */
@@ -343,36 +319,36 @@
 }
 
 /* 模态框底部按钮 */
-.note-editor-modal .ant-modal-footer {
+.need-editor-modal .ant-modal-footer {
   padding: 16px 24px;
   border-top: 1px solid #f0f0f0;
   background: #fafafa;
 }
 
-.note-editor-modal .ant-modal-footer .ant-btn {
+.need-editor-modal .ant-modal-footer .ant-btn {
   border-radius: 8px;
   height: 36px;
   padding: 0 20px;
   font-weight: 500;
 }
 
-.note-editor-modal .ant-modal-footer .ant-btn-primary {
+.need-editor-modal .ant-modal-footer .ant-btn-primary {
   box-shadow: 0 2px 4px rgba(24, 144, 255, 0.2);
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .note-editor-modal {
+  .need-editor-modal {
     margin: 0;
     max-width: 100vw;
     top: 0;
   }
   
-  .note-editor-modal .ant-modal-content {
+  .need-editor-modal .ant-modal-content {
     border-radius: 0;
   }
   
-  .note-editor-modal .ant-modal-body {
+  .need-editor-modal .ant-modal-body {
     padding: 16px;
     max-height: calc(100vh - 120px);
   }
@@ -408,32 +384,32 @@
     font-size: 16px; /* 防止iOS缩放 */
   }
   
-  .note-editor-form .ant-input-lg {
+  .need-editor-form .ant-input-lg {
     font-size: 16px; /* 防止iOS缩放 */
   }
 }
 
 /* 滚动条样式 */
-.note-editor-modal .ant-modal-body::-webkit-scrollbar {
+.need-editor-modal .ant-modal-body::-webkit-scrollbar {
   width: 6px;
 }
 
-.note-editor-modal .ant-modal-body::-webkit-scrollbar-track {
+.need-editor-modal .ant-modal-body::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 3px;
 }
 
-.note-editor-modal .ant-modal-body::-webkit-scrollbar-thumb {
+.need-editor-modal .ant-modal-body::-webkit-scrollbar-thumb {
   background: #c1c1c1;
   border-radius: 3px;
 }
 
-.note-editor-modal .ant-modal-body::-webkit-scrollbar-thumb:hover {
+.need-editor-modal .ant-modal-body::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
 
 /* 动画效果 */
-.note-editor-modal .ant-modal-content {
+.need-editor-modal .ant-modal-content {
   animation: modalSlideIn 0.3s ease;
 }
 
@@ -449,32 +425,32 @@
 }
 
 /* 加载状态 */
-.note-editor-modal .ant-btn-loading {
+.need-editor-modal .ant-btn-loading {
   pointer-events: none;
 }
 
 /* 禁用状态 */
-.note-editor-form .ant-input[disabled],
-.note-editor-form .ant-select-disabled .ant-select-selector {
+.need-editor-form .ant-input[disabled],
+.need-editor-form .ant-select-disabled .ant-select-selector {
   background: #f5f5f5;
   color: #666;
   cursor: not-allowed;
 }
 
 /* 错误状态 */
-.note-editor-form .ant-form-item-has-error .ant-input,
-.note-editor-form .ant-form-item-has-error .ant-select-selector {
+.need-editor-form .ant-form-item-has-error .ant-input,
+.need-editor-form .ant-form-item-has-error .ant-select-selector {
   border-color: #ff4d4f;
 }
 
-.note-editor-form .ant-form-item-has-error .ant-input:focus,
-.note-editor-form .ant-form-item-has-error .ant-select-focused .ant-select-selector {
+.need-editor-form .ant-form-item-has-error .ant-input:focus,
+.need-editor-form .ant-form-item-has-error .ant-select-focused .ant-select-selector {
   border-color: #ff4d4f;
   box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2);
 }
 
 /* 成功状态 */
-.note-editor-form .ant-form-item-has-success .ant-input {
+.need-editor-form .ant-form-item-has-success .ant-input {
   border-color: #52c41a;
 }
 
@@ -490,20 +466,20 @@
 }
 
 /* Switch 组件样式 */
-.note-editor-form .ant-switch {
+.need-editor-form .ant-switch {
   background: #bfbfbf;
 }
 
-.note-editor-form .ant-switch-checked {
+.need-editor-form .ant-switch-checked {
   background: #1890ff;
 }
 
-.note-editor-form .ant-switch .ant-switch-handle {
+.need-editor-form .ant-switch .ant-switch-handle {
   width: 18px;
   height: 18px;
 }
 
-.note-editor-form .ant-switch .ant-switch-handle::before {
+.need-editor-form .ant-switch .ant-switch-handle::before {
   border-radius: 9px;
 }
 

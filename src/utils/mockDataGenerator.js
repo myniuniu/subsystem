@@ -1,6 +1,7 @@
 // 模拟数据生成器
 import notesService from '../services/notesService';
 import dataRecordService from '../services/dataRecordService.js';
+import { EDUCATION_LEVELS, ROLES, TRAINING_TYPES, TRAINING_SOURCES, PRIORITY_LEVELS, TRAINING_STATUS } from '../data/trainingDataTemplates';
 
 // 生成唯一ID的辅助函数
 function generateId() {
@@ -281,6 +282,69 @@ class MockDataGenerator {
     }
 
     return records;
+  }
+
+  // 生成培训需求数据
+  generateTrainingNeeds(count = 10) {
+    const trainingNeeds = [];
+    const titles = [
+      '新课程标准培训需求',
+      '信息技术应用能力提升',
+      '班级管理技能培训',
+      '学生心理健康教育',
+      '教学方法创新研修',
+      '课程思政建设培训',
+      '教育评价改革学习',
+      '家校合作沟通技巧',
+      '特殊教育专业培训',
+      '教师职业素养提升',
+      '数字化教学工具使用',
+      '学科核心素养培养',
+      '教育科研方法指导',
+      '师德师风建设培训',
+      '创新创业教育指导'
+    ];
+
+    const contents = [
+      '根据新课程标准要求，需要对教师进行系统性培训，帮助教师理解新理念、掌握新方法。',
+      '随着教育信息化的发展，教师需要提升信息技术应用能力，更好地服务教学。',
+      '班级管理是教师的基本技能，需要通过培训提升管理水平和沟通能力。',
+      '学生心理健康问题日益突出，教师需要掌握基本的心理健康教育知识和技能。',
+      '教学方法的创新是提高教学质量的关键，需要不断学习新的教学理念和方法。',
+      '课程思政是新时代教育的重要内容，需要教师具备相应的理论基础和实践能力。',
+      '教育评价改革对教师提出了新要求，需要学习新的评价理念和方法。',
+      '家校合作是教育成功的重要因素，教师需要掌握有效的沟通技巧。',
+      '特殊教育需要专业的知识和技能，普通教师也需要了解相关内容。',
+      '教师职业素养的提升是教师专业发展的基础，需要持续关注和培养。'
+    ];
+
+    for (let i = 0; i < count; i++) {
+      const educationLevels = Object.keys(EDUCATION_LEVELS);
+      const roles = Object.keys(ROLES);
+      const trainingTypes = Object.keys(TRAINING_TYPES);
+      const sources = Object.keys(TRAINING_SOURCES);
+      const priorities = Object.keys(PRIORITY_LEVELS);
+      const statuses = Object.keys(TRAINING_STATUS);
+
+      trainingNeeds.push({
+        id: generateId(),
+        title: titles[i % titles.length] + ` (${i + 1})`,
+        content: contents[i % contents.length],
+        category: 'training',
+        tags: ['培训', '教师发展', '专业提升'],
+        educationLevel: educationLevels[Math.floor(Math.random() * educationLevels.length)],
+        role: roles[Math.floor(Math.random() * roles.length)],
+        trainingType: trainingTypes[Math.floor(Math.random() * trainingTypes.length)],
+        source: sources[Math.floor(Math.random() * sources.length)],
+        priority: priorities[Math.floor(Math.random() * priorities.length)],
+        status: statuses[Math.floor(Math.random() * statuses.length)],
+        starred: Math.random() > 0.7,
+        createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
+        updatedAt: new Date()
+      });
+    }
+
+    return trainingNeeds;
   }
 
   // 获取数据统计
