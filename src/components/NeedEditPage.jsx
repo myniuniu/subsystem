@@ -1617,7 +1617,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
     <>
       <div style={{ display: 'flex', height: '100vh', background: '#f5f5f5' }}>
       {/* 左侧资料收集区域 */}
-      <div style={{ width: 320, background: '#fff', margin: '16px 0 16px 16px', borderRadius: '8px', overflow: 'hidden' }}>
+      <div style={{ flex: 2.5, background: '#fff', margin: '16px 0 16px 16px', borderRadius: '8px', overflow: 'hidden' }}>
           <div style={{ padding: '20px' }}>
             {/* 页面头部 - 标题和操作按钮 */}
             <div style={{ marginBottom: 16 }}>
@@ -2348,7 +2348,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
       </div>
 
       {/* 中间问答区域 */}
-      <div style={{ flex: 1, margin: '16px', background: '#fff', borderRadius: '8px', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 5, margin: '16px', background: '#fff', borderRadius: '8px', display: 'flex', flexDirection: 'column' }}>
           <div style={{ padding: '20px', borderBottom: '1px solid #f0f0f0' }}>
             <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
               💬 智能问答
@@ -2479,7 +2479,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
         </div>
 
         {/* 右侧操作区域 */}
-        <div style={{ width: 320, background: '#fff', margin: '16px 16px 16px 0', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 2.5, background: '#fff', margin: '16px 16px 16px 0', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           {/* 上半部分 - 功能概览 */}
           <div style={{ padding: '20px', flex: 1 }}>
             <Title level={5} style={{ marginBottom: 16, color: '#1f1f1f' }}>
