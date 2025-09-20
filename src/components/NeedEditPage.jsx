@@ -1102,23 +1102,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
                 </div>
               </div>
               
-              {/* 需求标题输入框 */}
-              <Input
-                placeholder="请输入需求标题"
-                value={needTitle}
-                onChange={(e) => setNeedTitle(e.target.value)}
-                style={{ marginBottom: 12 }}
-                size="large"
-              />
-              
-              {/* 需求内容输入框 */}
-              <TextArea
-                placeholder="请输入需求描述..."
-                value={needContent}
-                onChange={(e) => setNeedContent(e.target.value)}
-                rows={3}
-                style={{ marginBottom: 16 }}
-              />
+
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>

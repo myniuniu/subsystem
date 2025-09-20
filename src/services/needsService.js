@@ -37,6 +37,11 @@ import {
   EDUCATION_LEVELS,
   ROLES
 } from '../data/trainingDataTemplates.js';
+import {
+  NEW_TEACHER_TRAINING_DATA,
+  generateNewTeacherTrainingData,
+  getNewTeacherTrainingStats
+} from '../data/newTeacherTrainingData.js';
 
 class NeedsService {
   constructor() {
@@ -46,7 +51,10 @@ class NeedsService {
   // 初始化存储
   initializeStorage() {
     if (!localStorage.getItem(STORAGE_KEY)) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
+      // 初始化时包含新老师培训数据
+      const initialData = [...NEW_TEACHER_TRAINING_DATA];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(initialData));
+      console.log('已初始化新老师培训数据到存储中');
     }
     if (!localStorage.getItem(CATEGORIES_KEY)) {
       localStorage.setItem(CATEGORIES_KEY, JSON.stringify(DEFAULT_CATEGORIES));
@@ -310,6 +318,27 @@ class NeedsService {
           stats.categories[category.id] = needs.filter(need => need.priority).length;
         } else {
           stats.categories[category.id] = needs.filter(need => need.category === category.id).length;
+        }
+      });
+      
+      // 为了兼容TrainingNeeds组件中使用的category.value，也添加相同的统计数据
+      const uiCategories = [
+        { value: 'all', id: 'all' },
+        { value: 'teaching_methods', id: 'teaching_methods' },
+        { value: 'student_management', id: 'student_management' },
+        { value: 'educational_tech', id: 'educational_tech' },
+        { value: 'curriculum_design', id: 'curriculum_design' },
+        { value: 'research_innovation', id: 'research_innovation' },
+        { value: 'mental_health', id: 'mental_health' },
+        { value: 'professional_dev', id: 'professional_dev' },
+        { value: 'policy_compliance', id: 'policy_compliance' }
+      ];
+      
+      uiCategories.forEach(category => {
+        if (category.value === 'all') {
+          stats.categories[category.value] = needs.length;
+        } else {
+          stats.categories[category.value] = needs.filter(need => need.category === category.value).length;
         }
       });
       
@@ -595,6 +624,70 @@ class NeedsService {
     } catch (error) {
       console.error('生成角色培训数据失败:', error);
       return [];
+    }
+  }
+
+  // 生成新老师技能培训数据
+  generateNewTeacherTrainingData() {
+    try {
+      // 直接使用导入的NEW_TEACHER_TRAINING_DATA，避免递归调用
+      const newTeacherData = [...NEW_TEACHER_TRAINING_DATA];
+      const existingData = this.getAllNeeds();
+      
+      // 检查是否已存在新老师培训数据，避免重复添加
+      const hasNewTeacherData = existingData.some(item => 
+        item.tags && item.tags.includes('新教师')
+      );
+      
+      if (!hasNewTeacherData) {
+        const newData = [...existingData, ...newTeacherData];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
+        console.log(`生成了 ${newTeacherData.length} 条新老师技能培训数据`);
+        return newTeacherData;
+      } else {
+        console.log('新老师培训数据已存在，跳过生成');
+        return existingData.filter(item => 
+          item.tags && item.tags.includes('新教师')
+        );
+      }
+    } catch (error) {
+      console.error('生成新老师培训数据失败:', error);
+      return [];
+    }
+  }
+
+  // 获取新老师培训统计数据
+  getNewTeacherTrainingStats() {
+    try {
+      const allNeeds = this.getAllNeeds();
+      const newTeacherNeeds = allNeeds.filter(item => 
+        item.tags && item.tags.includes('新教师')
+      );
+      
+      if (newTeacherNeeds.length === 0) {
+        return getNewTeacherTrainingStats();
+      }
+      
+      return {
+        total: newTeacherNeeds.length,
+        byType: newTeacherNeeds.reduce((acc, item) => {
+          acc[item.type] = (acc[item.type] || 0) + 1;
+          return acc;
+        }, {}),
+        byStatus: newTeacherNeeds.reduce((acc, item) => {
+          acc[item.status] = (acc[item.status] || 0) + 1;
+          return acc;
+        }, {}),
+        byPriority: newTeacherNeeds.reduce((acc, item) => {
+          acc[item.priorityLevel] = (acc[item.priorityLevel] || 0) + 1;
+          return acc;
+        }, {}),
+        highPriorityCount: newTeacherNeeds.filter(item => item.priority).length,
+        completedCount: newTeacherNeeds.filter(item => item.status === 'completed').length
+      };
+    } catch (error) {
+      console.error('获取新老师培训统计失败:', error);
+      return getNewTeacherTrainingStats();
     }
   }
 
