@@ -49,7 +49,7 @@ const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
-const NeedEditPage = ({ onBack, onViewChange }) => {
+const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) => {
   // 资料收集相关状态
   const [uploadedFiles, setUploadedFiles] = useState([
     { id: 1, name: '成都火锅制作工艺.pdf', type: 'application/pdf', uploadTime: '刚刚' }
@@ -128,6 +128,59 @@ const NeedEditPage = ({ onBack, onViewChange }) => {
   const [smartNotes, setSmartNotes] = useState([]);
   const [showSmartNotesModal, setShowSmartNotesModal] = useState(false);
   const [selectedNote, setSelectedNote] = useState(null);
+
+  // 编辑模式相关状态
+  const [isEditing, setIsEditing] = useState(mode === 'edit');
+  const [needTitle, setNeedTitle] = useState('');
+  const [needContent, setNeedContent] = useState('');
+
+  // 初始化编辑数据
+  useEffect(() => {
+    if (selectedNeed && mode === 'edit') {
+      setNeedTitle(selectedNeed.title || '');
+      setNeedContent(selectedNeed.content || '');
+      // 如果有其他需要预填充的数据，也在这里设置
+      if (selectedNeed.materials) {
+        setUploadedFiles(selectedNeed.materials || []);
+      }
+      if (selectedNeed.links) {
+        setLinks(selectedNeed.links || []);
+      }
+      if (selectedNeed.texts) {
+        setAddedTexts(selectedNeed.texts || []);
+      }
+      if (selectedNeed.videos) {
+        setCourseVideos(selectedNeed.videos || []);
+      }
+    }
+  }, [selectedNeed, mode]);
+
+  // 保存需求
+  const handleSaveNeed = () => {
+    if (!needTitle.trim()) {
+      message.error('请输入需求标题');
+      return;
+    }
+    
+    const needData = {
+      id: selectedNeed?.id || Date.now(),
+      title: needTitle,
+      content: needContent,
+      materials: uploadedFiles,
+      links: links,
+      texts: addedTexts,
+      videos: courseVideos,
+      updateTime: new Date().toLocaleString()
+    };
+
+    // 这里可以调用保存API
+    message.success(mode === 'edit' ? '需求更新成功' : '需求创建成功');
+    
+    // 返回上一页
+    if (onBack) {
+      onBack();
+    }
+  };
 
   // 新建需求功能
   const handleCreateNewNote = () => {
@@ -1016,6 +1069,58 @@ const NeedEditPage = ({ onBack, onViewChange }) => {
       {/* 左侧资料收集区域 */}
       <div style={{ width: 320, background: '#fff', margin: '16px 0 16px 16px', borderRadius: '8px', overflow: 'hidden' }}>
           <div style={{ padding: '20px' }}>
+            {/* 页面头部 - 标题和操作按钮 */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
+                    {mode === 'edit' ? '📝 编辑需求' : '📝 新建需求'}
+                  </Title>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {mode === 'edit' && (
+                    <Button 
+                      type="primary" 
+                      icon={<SaveOutlined />}
+                      onClick={handleSaveNeed}
+                      size="small"
+                    >
+                      保存
+                    </Button>
+                  )}
+                  {onBack && (
+                    <Button 
+                      type="text" 
+                      icon={<ArrowLeftOutlined />} 
+                      onClick={handleBack}
+                      style={{ color: '#666' }}
+                      size="small"
+                    >
+                      返回
+                    </Button>
+                  )}
+                </div>
+              </div>
+              
+              {/* 需求标题输入框 */}
+              <Input
+                placeholder="请输入需求标题"
+                value={needTitle}
+                onChange={(e) => setNeedTitle(e.target.value)}
+                style={{ marginBottom: 12 }}
+                size="large"
+              />
+              
+              {/* 需求内容输入框 */}
+              <TextArea
+                placeholder="请输入需求描述..."
+                value={needContent}
+                onChange={(e) => setNeedContent(e.target.value)}
+                rows={3}
+                style={{ marginBottom: 16 }}
+              />
+            </div>
+
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
@@ -1040,16 +1145,6 @@ const NeedEditPage = ({ onBack, onViewChange }) => {
                       删除选中
                     </Button>
                   </Popconfirm>
-                )}
-                {onBack && (
-                  <Button 
-                    type="text" 
-                    icon={<ArrowLeftOutlined />} 
-                    onClick={handleBack}
-                    style={{ color: '#666' }}
-                  >
-                    返回
-                  </Button>
                 )}
               </div>
             </div>
