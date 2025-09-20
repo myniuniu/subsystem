@@ -52,7 +52,9 @@ const { Option } = Select;
 const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) => {
   // 资料收集相关状态
   const [uploadedFiles, setUploadedFiles] = useState([
-    { id: 1, name: '成都火锅制作工艺.pdf', type: 'application/pdf', uploadTime: '刚刚' }
+    { id: 1, name: '教师专业发展指导手册.pdf', type: 'application/pdf', uploadTime: '刚刚' },
+    { id: 2, name: '现代教育技术应用培训资料.pdf', type: 'application/pdf', uploadTime: '2分钟前' },
+    { id: 3, name: '核心素养导向的课程设计指南.pdf', type: 'application/pdf', uploadTime: '5分钟前' }
   ]);
   
   // 多选功能状态
@@ -60,23 +62,148 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
   const [showMaterialDetail, setShowMaterialDetail] = useState(false);
   const [currentMaterial, setCurrentMaterial] = useState(null);
   const [links, setLinks] = useState([
-    { id: 2, url: 'https://chengdu-food.com', title: '成都美食攻略网站', addTime: '刚刚' }
+    { id: 2, url: 'https://teacher-training.edu.cn', title: '教师培训资源平台', addTime: '刚刚' },
+    { id: 3, url: 'https://education-tech.org', title: '教育技术发展研究网', addTime: '3分钟前' },
+    { id: 4, url: 'https://core-competency.edu', title: '核心素养教育资源库', addTime: '8分钟前' }
   ]);
   const [newLink, setNewLink] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showMaterialAddModal, setShowMaterialAddModal] = useState(false);
   const [websiteType, setWebsiteType] = useState('normal'); // 'normal' 或 'video'
-  const [websiteUrl, setWebsiteUrl] = useState('');// 文字内容相关状态
+  const [websiteUrl, setWebsiteUrl] = useState('');
+  
+  // 文字内容相关状态
   const [textContent, setTextContent] = useState('');
   const [addedTexts, setAddedTexts] = useState([
-    { id: 3, title: '成都小吃介绍', content: '成都是著名的美食之都，拥有麻婆豆腐、回锅肉、担担面、龙抄手等众多特色小吃...', addTime: '刚刚' }
+    { 
+      id: 4, 
+      title: '教师培训需求分析', 
+      content: '在教育改革不断深化、教育技术飞速发展的当下，传统的教学模式和教师知识结构已难以完全适配新时代教育教学的要求。当前，部分教师在教学过程中面临诸多挑战，例如，对核心素养导向的课程设计理解不够深入，难以将核心素养有效融入课堂教学环节；在运用多媒体、人工智能等现代教育技术辅助教学时，存在操作不熟练、应用方式单一等问题，无法充分发挥技术对教学的赋能作用；同时，面对学生个性化发展需求日益增长的情况，教师在差异化教学策略的制定与实施方面能力不足，难以满足不同学习层次、不同兴趣特长学生的学习需求。此外，随着教育评价体系的不断完善，教师对新型教育评价方法的掌握和运用也存在欠缺，影响了教学质量的进一步提升。为解决上述问题，助力教师提升专业素养和教学能力，更好地适应教育发展新形势，特开展本次教师培训。', 
+      addTime: '刚刚' 
+    },
+    { 
+      id: 5, 
+      title: '教师信息技术能力提升方案', 
+      content: '随着信息技术在教育领域的深度融合，教师的信息技术应用能力已成为影响教学质量的关键因素。本方案旨在通过系统性培训，帮助教师掌握现代教育技术工具的使用方法，提升数字化教学设计能力，培养创新教学思维。培训内容包括：多媒体课件制作技巧、在线教学平台操作、教学资源数字化处理、学习分析与数据驱动教学、人工智能辅助教学应用等核心模块。通过理论学习与实践操作相结合的方式，确保教师能够熟练运用信息技术优化教学过程，提高教学效果。', 
+      addTime: '10分钟前' 
+    },
+    { 
+      id: 6, 
+      title: '差异化教学策略研究', 
+      content: '面对学生个体差异日益显著的教学现实，传统的"一刀切"教学模式已无法满足所有学生的学习需求。差异化教学作为一种以学生为中心的教学理念，强调根据学生的学习风格、能力水平、兴趣特点等因素，灵活调整教学内容、方法和评价方式。本研究通过分析不同类型学生的学习特征，提出了多元化的教学策略：包括分层教学法、合作学习模式、项目式学习、翻转课堂等创新教学方法。同时，探讨了如何运用学习分析技术，实现精准教学和个性化学习支持，为教师实施差异化教学提供科学依据和实践指导。', 
+      addTime: '15分钟前' 
+    }
   ]);
   
   // 课程视频相关状态
   const [videoTitle, setVideoTitle] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [courseVideos, setCourseVideos] = useState([
-    { id: 4, title: '成都火锅制作教程', url: 'https://video.com/chengdu-hotpot', addTime: '刚刚' }
+    { id: 4, title: '现代教学方法与技巧', url: 'https://edu-video.com/modern-teaching', addTime: '刚刚' },
+    { id: 5, title: '信息技术与课程整合', url: 'https://edu-video.com/tech-integration', addTime: '5分钟前' },
+    { id: 6, title: '学生心理发展与教育', url: 'https://edu-video.com/student-psychology', addTime: '12分钟前' }
+  ]);
+
+  // 研究论文相关状态
+  const [researchPapers, setResearchPapers] = useState([
+    { 
+      id: 1, 
+      title: '基于核心素养的教师专业发展研究', 
+      authors: '张明华, 李晓红, 王建国', 
+      journal: '教育研究', 
+      year: '2023', 
+      abstract: '本研究基于核心素养理念，构建了教师专业发展的理论框架，通过对500名中小学教师的调研，分析了当前教师在核心素养导向教学中面临的挑战，提出了系统性的专业发展路径和策略建议。',
+      keywords: ['核心素养', '教师专业发展', '教学能力', '培训体系'],
+      addTime: '刚刚' 
+    },
+    { 
+      id: 2, 
+      title: '信息技术与教育教学深度融合的实证研究', 
+      authors: '陈志强, 刘美玲', 
+      journal: '中国电化教育', 
+      year: '2023', 
+      abstract: '研究采用混合研究方法，深入分析了信息技术在教育教学中的应用现状，识别了技术融合的关键影响因素，构建了深度融合的评价指标体系，为教师信息技术能力提升提供了科学依据。',
+      keywords: ['信息技术', '教育融合', '数字化教学', '教师培训'],
+      addTime: '5分钟前' 
+    },
+    { 
+      id: 3, 
+      title: '差异化教学策略对学生学习效果的影响研究', 
+      authors: '赵丽娟, 孙文博, 马晓峰', 
+      journal: '教育科学研究', 
+      year: '2022', 
+      abstract: '通过准实验设计，比较分析了差异化教学策略与传统教学方法对不同类型学生学习效果的影响，结果表明差异化教学能显著提升学生的学习动机和学业成就，为教师实施个性化教学提供了实证支持。',
+      keywords: ['差异化教学', '个性化学习', '学习效果', '教学策略'],
+      addTime: '10分钟前' 
+    }
+  ]);
+
+  // 调研报告相关状态
+  const [surveys, setSurveys] = useState([
+    { 
+      id: 1, 
+      title: '2023年全国中小学教师培训需求调研报告', 
+      organization: '教育部教师工作司', 
+      date: '2023年8月', 
+      summary: '本次调研覆盖全国31个省市自治区，共收集有效问卷15,847份。调研发现，教师在信息技术应用、学科教学能力、学生心理健康教育等方面存在较大培训需求，其中67%的教师希望加强现代教育技术培训。',
+      keyFindings: ['信息技术应用能力不足', '缺乏差异化教学方法', '学生心理健康教育知识欠缺', '教育评价方法单一'],
+      addTime: '刚刚' 
+    },
+    { 
+      id: 2, 
+      title: '教师专业发展现状与需求分析报告', 
+      organization: '中国教育科学研究院', 
+      date: '2023年6月', 
+      summary: '通过深度访谈和问卷调查相结合的方式，对1,200名一线教师进行了专业发展现状调研。结果显示，教师普遍认为当前培训内容与实际教学需求存在脱节，希望获得更多实用性强的培训内容。',
+      keyFindings: ['培训内容实用性不强', '培训形式单一', '缺乏持续跟踪指导', '评价反馈机制不完善'],
+      addTime: '8分钟前' 
+    },
+    { 
+      id: 3, 
+      title: '数字化时代教师能力素养调研分析', 
+      organization: '华东师范大学教育学部', 
+      date: '2023年4月', 
+      summary: '针对数字化转型背景下教师能力素养现状进行深入调研，发现教师在数字化教学设计、在线教学实施、学习数据分析等方面能力有待提升，建议建立分层分类的数字化能力培训体系。',
+      keyFindings: ['数字化教学设计能力薄弱', '在线教学技能不足', '数据分析应用缺乏', '数字化评价方法陌生'],
+      addTime: '15分钟前' 
+    }
+  ]);
+
+  // 案例研究相关状态
+  const [caseStudies, setCaseStudies] = useState([
+    { 
+      id: 1, 
+      title: '北京市海淀区教师信息技术能力提升培训案例', 
+      location: '北京市海淀区', 
+      duration: '2022年9月-2023年6月', 
+      participants: '全区中小学教师2,800人', 
+      description: '海淀区教委实施的大规模教师信息技术能力提升培训项目，采用"理论学习+实践操作+跟踪指导"的培训模式，取得显著成效。',
+      methods: ['分层培训', '项目式学习', '同伴互助', '专家指导'],
+      outcomes: ['教师信息技术应用能力显著提升', '数字化教学资源使用率提高85%', '学生学习效果明显改善', '形成可复制推广的培训模式'],
+      addTime: '刚刚' 
+    },
+    { 
+      id: 2, 
+      title: '上海市浦东新区差异化教学实践案例', 
+      location: '上海市浦东新区', 
+      duration: '2022年3月-2023年2月', 
+      participants: '试点学校教师450人', 
+      description: '浦东新区选取15所试点学校，开展差异化教学策略培训与实践，通过课堂观察、学生访谈等方式评估培训效果，形成了系统的差异化教学实施方案。',
+      methods: ['行动研究', '课例研讨', '反思总结', '经验分享'],
+      outcomes: ['教师差异化教学意识增强', '个性化教学策略更加丰富', '学生学习积极性提高', '教学质量稳步提升'],
+      addTime: '12分钟前' 
+    },
+    { 
+      id: 3, 
+      title: '深圳市南山区教师专业学习共同体建设案例', 
+      location: '深圳市南山区', 
+      duration: '2021年9月-2023年7月', 
+      participants: '区内各学科教师1,200人', 
+      description: '南山区教育局构建了以学科为纽带的教师专业学习共同体，通过定期研讨、课题研究、成果分享等活动，促进教师专业成长和教学质量提升。',
+      methods: ['学习共同体', '课题研究', '同课异构', '成果展示'],
+      outcomes: ['教师专业发展内驱力增强', '学科教学水平整体提升', '形成浓厚的研究氛围', '建立可持续发展机制'],
+      addTime: '20分钟前' 
+    }
   ]);
   
   // 问答区域相关状态
@@ -106,7 +233,343 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
     audio: [],
     video: [],
     mindmap: [],
-    report: [],
+    report: [
+      {
+        id: 1001,
+        title: '培训方案设计与实施指南',
+        source: '培训管理系统',
+        time: '刚刚',
+        type: 'report',
+        content: `
+          <h3 style="color: #1890ff; margin-bottom: 15px;">📋 企业培训方案设计框架</h3>
+          
+          <div style="margin-bottom: 20px; padding: 15px; background-color: #f0f8ff; border-radius: 8px;">
+            <h4 style="color: #1890ff; margin-bottom: 10px;">🎯 培训目标设定</h4>
+            <div style="margin-left: 15px;">
+              <p><strong>总体目标：</strong>提升员工综合素质和专业技能，增强企业核心竞争力</p>
+              <p><strong>具体目标：</strong></p>
+              <ul style="margin-left: 20px;">
+                <li>提高管理人员的领导力和决策能力</li>
+                <li>增强技术人员的专业技能和创新能力</li>
+                <li>培养员工的团队协作和沟通技巧</li>
+                <li>建立学习型组织文化</li>
+              </ul>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px; padding: 15px; background-color: #fff7e6; border-radius: 8px;">
+            <h4 style="color: #fa8c16; margin-bottom: 10px;">📚 课程体系设计</h4>
+            <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
+              <thead>
+                <tr style="background-color: #f5f5f5;">
+                  <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">培训模块</th>
+                  <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">课程内容</th>
+                  <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">学时</th>
+                  <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">目标人群</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 8px;">管理技能</td>
+                  <td style="border: 1px solid #ddd; padding: 8px;">领导力、决策分析、团队管理</td>
+                  <td style="border: 1px solid #ddd; padding: 8px;">40学时</td>
+                  <td style="border: 1px solid #ddd; padding: 8px;">中高层管理者</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 8px;">专业技能</td>
+                  <td style="border: 1px solid #ddd; padding: 8px;">技术更新、工艺改进、质量控制</td>
+                  <td style="border: 1px solid #ddd; padding: 8px;">60学时</td>
+                  <td style="border: 1px solid #ddd; padding: 8px;">技术人员</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 8px;">通用技能</td>
+                  <td style="border: 1px solid #ddd; padding: 8px;">沟通协调、时间管理、创新思维</td>
+                  <td style="border: 1px solid #ddd; padding: 8px;">30学时</td>
+                  <td style="border: 1px solid #ddd; padding: 8px;">全体员工</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 8px;">企业文化</td>
+                  <td style="border: 1px solid #ddd; padding: 8px;">价值观传递、制度解读、团队建设</td>
+                  <td style="border: 1px solid #ddd; padding: 8px;">20学时</td>
+                  <td style="border: 1px solid #ddd; padding: 8px;">新员工</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div style="margin-bottom: 20px; padding: 15px; background-color: #f6ffed; border-radius: 8px;">
+            <h4 style="color: #52c41a; margin-bottom: 10px;">👨‍🏫 师资配置方案</h4>
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; margin-bottom: 10px;">
+              <div style="flex: 1; margin: 5px; padding: 10px; background: white; border-radius: 4px; border: 1px solid #d9d9d9;">
+                <strong>内部讲师：</strong>60%<br>
+                <small>企业高管、技术专家、优秀员工</small>
+              </div>
+              <div style="flex: 1; margin: 5px; padding: 10px; background: white; border-radius: 4px; border: 1px solid #d9d9d9;">
+                <strong>外部专家：</strong>30%<br>
+                <small>行业专家、咨询顾问、高校教授</small>
+              </div>
+              <div style="flex: 1; margin: 5px; padding: 10px; background: white; border-radius: 4px; border: 1px solid #d9d9d9;">
+                <strong>在线课程：</strong>10%<br>
+                <small>知名平台、专业机构、认证课程</small>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px; padding: 15px; background-color: #f9f0ff; border-radius: 8px;">
+            <h4 style="color: #722ed1; margin-bottom: 10px;">🎓 培训方式选择</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div style="padding: 10px; background: white; border-radius: 4px; border: 1px solid #d9d9d9;">
+                <strong>线下培训</strong>
+                <ul style="margin: 5px 0 0 15px; font-size: 12px;">
+                  <li>面授课程</li>
+                  <li>工作坊</li>
+                  <li>实地考察</li>
+                  <li>导师制</li>
+                </ul>
+              </div>
+              <div style="padding: 10px; background: white; border-radius: 4px; border: 1px solid #d9d9d9;">
+                <strong>线上培训</strong>
+                <ul style="margin: 5px 0 0 15px; font-size: 12px;">
+                  <li>在线课程</li>
+                  <li>直播培训</li>
+                  <li>微课学习</li>
+                  <li>移动学习</li>
+                </ul>
+              </div>
+              <div style="padding: 10px; background: white; border-radius: 4px; border: 1px solid #d9d9d9;">
+                <strong>混合式培训</strong>
+                <ul style="margin: 5px 0 0 15px; font-size: 12px;">
+                  <li>翻转课堂</li>
+                  <li>项目制学习</li>
+                  <li>行动学习</li>
+                  <li>案例研讨</li>
+                </ul>
+              </div>
+              <div style="padding: 10px; background: white; border-radius: 4px; border: 1px solid #d9d9d9;">
+                <strong>实践培训</strong>
+                <ul style="margin: 5px 0 0 15px; font-size: 12px;">
+                  <li>岗位轮换</li>
+                  <li>项目参与</li>
+                  <li>技能竞赛</li>
+                  <li>经验分享</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px; padding: 15px; background-color: #fff1f0; border-radius: 8px;">
+            <h4 style="color: #f5222d; margin-bottom: 10px;">📊 效果评估体系</h4>
+            <div style="margin-bottom: 15px;">
+              <h5 style="color: #f5222d; margin-bottom: 8px;">柯氏四级评估模型</h5>
+              <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr style="background-color: #f5f5f5;">
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">评估层级</th>
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">评估内容</th>
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">评估方法</th>
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">权重</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="border: 1px solid #ddd; padding: 6px;">反应层</td>
+                    <td style="border: 1px solid #ddd; padding: 6px;">学员满意度</td>
+                    <td style="border: 1px solid #ddd; padding: 6px;">问卷调查、访谈</td>
+                    <td style="border: 1px solid #ddd; padding: 6px;">20%</td>
+                  </tr>
+                  <tr>
+                    <td style="border: 1px solid #ddd; padding: 6px;">学习层</td>
+                    <td style="border: 1px solid #ddd; padding: 6px;">知识技能掌握</td>
+                    <td style="border: 1px solid #ddd; padding: 6px;">考试测评、技能演示</td>
+                    <td style="border: 1px solid #ddd; padding: 6px;">30%</td>
+                  </tr>
+                  <tr>
+                    <td style="border: 1px solid #ddd; padding: 6px;">行为层</td>
+                    <td style="border: 1px solid #ddd; padding: 6px;">行为改变程度</td>
+                    <td style="border: 1px solid #ddd; padding: 6px;">360度评估、观察记录</td>
+                    <td style="border: 1px solid #ddd; padding: 6px;">30%</td>
+                  </tr>
+                  <tr>
+                    <td style="border: 1px solid #ddd; padding: 6px;">结果层</td>
+                    <td style="border: 1px solid #ddd; padding: 6px;">业务成果改善</td>
+                    <td style="border: 1px solid #ddd; padding: 6px;">绩效指标、ROI分析</td>
+                    <td style="border: 1px solid #ddd; padding: 6px;">20%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px; padding: 15px; background-color: #e6fffb; border-radius: 8px;">
+            <h4 style="color: #13c2c2; margin-bottom: 10px;">⏰ 实施时间安排</h4>
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+              <div style="margin: 5px 0;"><strong>方案制定：</strong>1-2周</div>
+              <div style="margin: 5px 0;"><strong>资源准备：</strong>2-3周</div>
+              <div style="margin: 5px 0;"><strong>培训实施：</strong>3-6个月</div>
+              <div style="margin: 5px 0;"><strong>效果评估：</strong>持续进行</div>
+            </div>
+          </div>
+
+          <div style="margin-top: 15px; padding: 10px; background-color: #feffe6; border-radius: 8px;">
+            <p style="margin: 0; color: #a0d911;"><strong>💡 实施建议：</strong>建立培训管理委员会，制定详细的实施计划，确保各部门协调配合。定期收集反馈，及时调整培训内容和方式，确保培训效果最大化。</p>
+          </div>
+        `
+      },
+      {
+        id: 1002,
+        title: '培训课表安排与时间管理',
+        source: '课程管理系统',
+        time: '刚刚',
+        type: 'report',
+        content: `
+          <h3 style="color: #1890ff; margin-bottom: 15px;">📹 录播视频课程安排表</h3>
+          <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <thead>
+              <tr style="background-color: #f5f5f5;">
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">课程序号</th>
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">视频课程名称</th>
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">主讲教师</th>
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">视频时长</th>
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">课程类型</th>
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">观看状态</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">01</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">企业管理基础理论精讲</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">李教授</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">180分钟</td>
+                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #e6f7ff; color: #1890ff; padding: 2px 8px; border-radius: 4px;">理论课程</span></td>
+                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #f6ffed; color: #52c41a; padding: 2px 8px; border-radius: 4px;">✓ 可观看</span></td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">02</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">团队协作与沟通技巧实战</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">王老师</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">165分钟</td>
+                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #fff7e6; color: #fa8c16; padding: 2px 8px; border-radius: 4px;">实操课程</span></td>
+                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #f6ffed; color: #52c41a; padding: 2px 8px; border-radius: 4px;">✓ 可观看</span></td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">03</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">项目管理实务案例解析</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">张经理</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">195分钟</td>
+                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #f9f0ff; color: #722ed1; padding: 2px 8px; border-radius: 4px;">案例课程</span></td>
+                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #f6ffed; color: #52c41a; padding: 2px 8px; border-radius: 4px;">✓ 可观看</span></td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">04</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">创新思维与问题解决方法</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">陈专家</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">120分钟</td>
+                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #fff1f0; color: #f5222d; padding: 2px 8px; border-radius: 4px;">思维训练</span></td>
+                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #f6ffed; color: #52c41a; padding: 2px 8px; border-radius: 4px;">✓ 可观看</span></td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">05</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">数字化转型与应用实践</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">刘顾问</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">135分钟</td>
+                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #e6fffb; color: #13c2c2; padding: 2px 8px; border-radius: 4px;">技术课程</span></td>
+                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #f6ffed; color: #52c41a; padding: 2px 8px; border-radius: 4px;">✓ 可观看</span></td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">06</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">综合能力测评与总结</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">全体教师</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">90分钟</td>
+                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #feffe6; color: #a0d911; padding: 2px 8px; border-radius: 4px;">测评课程</span></td>
+                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #fff2e8; color: #fa541c; padding: 2px 8px; border-radius: 4px;">⏳ 待开放</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="margin-top: 20px; padding: 15px; background-color: #f0f8ff; border-radius: 8px;">
+            <h4 style="color: #1890ff; margin-bottom: 10px;">📊 录播课程统计信息</h4>
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+              <div style="margin: 5px 0;"><strong>课程总数：</strong>6门</div>
+              <div style="margin: 5px 0;"><strong>总视频时长：</strong>885分钟（约14.75小时）</div>
+              <div style="margin: 5px 0;"><strong>主讲教师：</strong>5位</div>
+              <div style="margin: 5px 0;"><strong>可观看课程：</strong>5门</div>
+            </div>
+          </div>
+          <div style="margin-top: 15px; padding: 10px; background-color: #fff7e6; border-radius: 8px;">
+            <p style="margin: 0; color: #d48806;"><strong>📝 观看须知：</strong>所有录播视频课程支持随时观看，建议按序号顺序学习。每门课程观看完毕后请完成相应的课后练习。最后一门测评课程将在前5门课程全部完成后开放。</p>
+          </div>
+          <div style="margin-top: 10px; padding: 10px; background-color: #f6ffed; border-radius: 8px;">
+            <p style="margin: 0; color: #389e0d;"><strong>🎯 学习建议：</strong>建议每天观看1-2门课程，合理安排学习进度。视频支持倍速播放、暂停回看等功能，可根据个人学习节奏调整。</p>
+          </div>
+        `
+      },
+      {
+        id: 1003,
+        title: '参训人员清单',
+        source: '人员管理系统',
+        time: '刚刚',
+        type: 'report',
+        content: `
+          <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <thead>
+              <tr style="background-color: #f5f5f5;">
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">姓名</th>
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">部门</th>
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">职位</th>
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">工作年限</th>
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">培训需求</th>
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">联系方式</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="border: 1px solid #ddd; padding: 10px;">张明</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">技术部</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">高级工程师</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">5年</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">项目管理、团队协作</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">zhangming@company.com</td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #ddd; padding: 10px;">李华</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">市场部</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">市场专员</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">3年</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">数据分析、营销策略</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">lihua@company.com</td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #ddd; padding: 10px;">王芳</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">人事部</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">人事主管</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">7年</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">法律法规、绩效管理</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">wangfang@company.com</td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #ddd; padding: 10px;">刘强</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">财务部</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">财务分析师</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">4年</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">财务软件、风险控制</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">liuqiang@company.com</td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #ddd; padding: 10px;">陈静</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">客服部</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">客服经理</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">6年</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">沟通技巧、客户关系</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">chenjing@company.com</td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="margin-top: 20px; color: #666; font-size: 14px;">
+            <strong>统计信息：</strong>共5名参训人员，涵盖技术部、市场部、人事部、财务部、客服部等5个部门。
+            平均工作年限：5年。主要培训需求集中在管理技能、专业技术和沟通协作等方面。
+          </p>
+        `
+      }
+    ],
     ppt: [],
     webcode: [],
     file: [],
@@ -122,6 +585,9 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
   // 预览功能状态
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewType, setPreviewType] = useState('');
+  
+  // Hover状态管理 - 统一管理所有项目的hover状态
+  const [hoveredItems, setHoveredItems] = useState({});
   const [previewData, setPreviewData] = useState(null);
   
   // 智能需求相关状态
@@ -416,160 +882,16 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
   const handleRecordClick = (record) => {
     setCurrentRecord(record);
     
-    // 根据记录类型生成不同的内容
-    switch (record.type) {
-      case 'report':
-        setModalContent(`
-          <div style="padding: 20px; line-height: 1.6;">
-            <h2 style="color: #1890ff; margin-bottom: 20px;">${record.title}</h2>
-            <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-              <strong>📊 数据来源：</strong>${record.source}<br>
-              <strong>⏰ 生成时间：</strong>${record.time}
-            </div>
-            <h3 style="color: #333; margin: 20px 0 10px 0;">📈 分析概述</h3>
-            <p>基于收集的资料，本报告对相关内容进行了深入分析。通过数据挖掘和模式识别，我们发现了以下关键洞察...</p>
-            <h3 style="color: #333; margin: 20px 0 10px 0;">🔍 主要发现</h3>
-            <ul>
-              <li>关键趋势分析显示出明显的增长模式</li>
-              <li>数据相关性分析揭示了重要的关联因素</li>
-              <li>预测模型表明未来发展的潜在方向</li>
-            </ul>
-            <h3 style="color: #333; margin: 20px 0 10px 0;">💡 建议与结论</h3>
-            <p>综合分析结果，建议采取以下措施以优化效果和提升价值...</p>
-          </div>
-        `);
-        break;
-      case 'audio':
-        setModalContent(`
-          <div style="padding: 20px; text-align: center;">
-            <h2 style="color: #1890ff; margin-bottom: 30px;">${record.title}</h2>
-            <div style="background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%); padding: 30px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(24, 144, 255, 0.1);">
-              <div style="font-size: 64px; margin-bottom: 20px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">🎵</div>
-              <p style="font-size: 18px; color: #1890ff; margin: 0; font-weight: 500;">音频播放器</p>
-            </div>
-            <div style="background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%); border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 6px 20px rgba(0,0,0,0.3);">
-              <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 15px;">
-                <button style="background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%); color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; font-size: 18px; box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3); transition: all 0.2s ease;">▶</button>
-                <div style="flex: 1; height: 6px; background: #444; border-radius: 3px; position: relative; overflow: hidden;">
-                  <div style="width: 30%; height: 100%; background: linear-gradient(90deg, #1890ff 0%, #40a9ff 100%); border-radius: 3px; box-shadow: 0 0 8px rgba(24, 144, 255, 0.5);"></div>
-                </div>
-                <span style="color: #fff; font-size: 14px; font-family: monospace;">02:30 / 05:00</span>
-              </div>
-              <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 15px;">
-                <button style="background: transparent; color: #ccc; border: none; cursor: pointer; font-size: 20px; padding: 5px;">⏮</button>
-                <button style="background: transparent; color: #ccc; border: none; cursor: pointer; font-size: 20px; padding: 5px;">⏸</button>
-                <button style="background: transparent; color: #ccc; border: none; cursor: pointer; font-size: 20px; padding: 5px;">⏭</button>
-                <button style="background: transparent; color: #ccc; border: none; cursor: pointer; font-size: 16px; padding: 5px;">🔊</button>
-              </div>
-              <div style="text-align: center;">
-                <span style="color: #999; font-size: 14px;">${record.source}</span>
-              </div>
-            </div>
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #1890ff;">
-              <div style="text-align: left;">
-                <p style="margin: 0 0 10px 0; color: #333;"><strong>📝 内容摘要：</strong>基于${record.source}生成的音频概览</p>
-                <p style="margin: 0 0 10px 0; color: #333;"><strong>⏱️ 时长：</strong>约 5 分钟</p>
-                <p style="margin: 0; color: #333;"><strong>🎯 重点内容：</strong>核心要点提炼和关键信息总结，建议使用耳机获得更好的收听体验</p>
-              </div>
-            </div>
-          </div>
-        `);
-        break;
-      case 'video':
-        setModalContent(`
-          <div style="padding: 20px;">
-            <h2 style="color: #1890ff; margin-bottom: 30px; text-align: center;">${record.title}</h2>
-            <div style="background: linear-gradient(135deg, #000 0%, #1a1a1a 100%); border-radius: 12px; margin-bottom: 25px; position: relative; aspect-ratio: 16/9; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
-              <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center;">
-                <div style="font-size: 72px; margin-bottom: 15px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));">🎬</div>
-                <button style="background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%); color: white; border: 3px solid rgba(255,255,255,0.8); border-radius: 50%; width: 80px; height: 80px; cursor: pointer; font-size: 28px; backdrop-filter: blur(10px); transition: all 0.3s ease; box-shadow: 0 4px 16px rgba(255,255,255,0.2);">▶</button>
-              </div>
-              <div style="position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.6); padding: 8px 12px; border-radius: 20px; backdrop-filter: blur(10px);">
-                <span style="color: white; font-size: 12px; font-weight: 500;">HD 1080p</span>
-              </div>
-              <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 20px 15px 15px; backdrop-filter: blur(5px);">
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                  <button style="background: transparent; color: white; border: none; cursor: pointer; font-size: 16px; padding: 4px;">⏮</button>
-                  <button style="background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; padding: 6px 8px;">⏸</button>
-                  <button style="background: transparent; color: white; border: none; cursor: pointer; font-size: 16px; padding: 4px;">⏭</button>
-                  <span style="color: white; font-size: 13px; font-family: monospace; margin-left: 8px;">00:00 / 08:00</span>
-                  <div style="flex: 1; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px; margin: 0 10px; overflow: hidden;">
-                    <div style="width: 0%; height: 100%; background: linear-gradient(90deg, #1890ff 0%, #40a9ff 100%); border-radius: 3px; box-shadow: 0 0 8px rgba(24, 144, 255, 0.6);"></div>
-                  </div>
-                  <button style="background: transparent; color: white; border: none; cursor: pointer; font-size: 16px; padding: 4px;">🔊</button>
-                  <button style="background: transparent; color: white; border: none; cursor: pointer; font-size: 16px; padding: 4px;">⛶</button>
-                </div>
-              </div>
-            </div>
-            <div style="display: flex; gap: 20px;">
-              <div style="flex: 1; background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #1890ff;">
-                <h4 style="color: #333; margin: 0 0 10px 0; font-size: 14px;">📹 视频信息</h4>
-                <p style="color: #666; line-height: 1.6; margin: 0; font-size: 13px;">分辨率: 1920×1080<br>时长: 8分钟<br>来源: ${record.source}</p>
-              </div>
-              <div style="flex: 2; background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #52c41a;">
-                <h4 style="color: #333; margin: 0 0 10px 0; font-size: 14px;">📝 内容概述</h4>
-                <p style="color: #666; line-height: 1.6; margin: 0; font-size: 13px;">这是基于您上传资料生成的视频概览内容，包含了可视化的数据展示、详细解说和互动演示。视频采用高清画质，支持全屏播放和字幕显示。</p>
-              </div>
-            </div>
-          </div>
-        `);
-        break;
-      case 'mindmap':
-        setModalContent(`
-          <div style="padding: 20px; text-align: center;">
-            <h2 style="color: #1890ff; margin-bottom: 20px;">${record.title}</h2>
-            <div style="background: #f0f8ff; padding: 20px; border-radius: 12px;">
-              <div style="font-size: 48px; margin-bottom: 15px;">🧠</div>
-              <p style="color: #666; margin-bottom: 20px;">思维导图内容</p>
-              <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-height: 400px;">
-                <svg width="100%" height="400" style="border: 1px solid #e8e8e8; border-radius: 4px;">
-                  <!-- 中心节点 -->
-                  <circle cx="300" cy="200" r="40" fill="#1890ff" />
-                  <text x="300" y="205" text-anchor="middle" fill="white" font-size="12">核心主题</text>
-                  
-                  <!-- 分支节点 -->
-                  <circle cx="150" cy="100" r="25" fill="#52c41a" />
-                  <text x="150" y="105" text-anchor="middle" fill="white" font-size="10">要点1</text>
-                  <line x1="275" y1="175" x2="175" y2="125" stroke="#1890ff" stroke-width="2" />
-                  
-                  <circle cx="450" cy="100" r="25" fill="#52c41a" />
-                  <text x="450" y="105" text-anchor="middle" fill="white" font-size="10">要点2</text>
-                  <line x1="325" y1="175" x2="425" y2="125" stroke="#1890ff" stroke-width="2" />
-                  
-                  <circle cx="150" cy="300" r="25" fill="#52c41a" />
-                  <text x="150" y="305" text-anchor="middle" fill="white" font-size="10">要点3</text>
-                  <line x1="275" y1="225" x2="175" y2="275" stroke="#1890ff" stroke-width="2" />
-                  
-                  <circle cx="450" cy="300" r="25" fill="#52c41a" />
-                  <text x="450" y="305" text-anchor="middle" fill="white" font-size="10">要点4</text>
-                  <line x1="325" y1="225" x2="425" y2="275" stroke="#1890ff" stroke-width="2" />
-                  
-                  <!-- 子节点 -->
-                  <circle cx="80" cy="50" r="15" fill="#faad14" />
-                  <text x="80" y="55" text-anchor="middle" fill="white" font-size="8">细节</text>
-                  <line x1="135" y1="85" x2="95" y2="65" stroke="#52c41a" stroke-width="1" />
-                  
-                  <circle cx="520" cy="50" r="15" fill="#faad14" />
-                  <text x="520" y="55" text-anchor="middle" fill="white" font-size="8">细节</text>
-                  <line x1="465" y1="85" x2="505" y2="65" stroke="#52c41a" stroke-width="1" />
-                </svg>
-                <div style="margin-top: 15px; text-align: left; color: #333;">
-                  <p><strong>🎯 思维导图说明：</strong>基于${record.source}构建的知识结构图</p>
-                  <p><strong>📊 节点数量：</strong>主要节点 4 个，子节点 8 个</p>
-                  <p><strong>🔗 关联关系：</strong>展示了核心概念间的逻辑关系</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        `);
-        break;
-      default:
-        setModalContent(`
-          <div style="padding: 20px; text-align: center;">
-            <h2 style="color: #1890ff; margin-bottom: 20px;">${record.title}</h2>
-            <p>暂无预览内容</p>
-          </div>
-        `);
+    // 直接显示记录的内容，不进行包装
+    if (record.content) {
+      setModalContent(record.content);
+    } else {
+      // 如果没有内容，显示简单的提示
+      setModalContent(`
+        <div style="padding: 20px; text-align: center; color: #999;">
+          <p>暂无具体内容</p>
+        </div>
+      `);
     }
     
     setShowContentModal(true);
@@ -814,10 +1136,10 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
   };
 
   const handleViewMaterial = (material, type) => {
-    // 生成单个资料的智能需求
-    const smartNote = generateSmartNote(material, type);
-    setSmartNotes([smartNote]);
-    setShowSmartNotesModal(true);
+    // 直接预览原材料
+    setPreviewData(material);
+    setPreviewType(type);
+    setShowPreviewModal(true);
   };
 
   // 预览资料功能
@@ -837,44 +1159,121 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
       summary: '',
       keyPoints: [],
       tags: [],
+      possibleQuestions: [],
       createdAt: new Date().toLocaleString()
     };
 
     // 根据不同类型生成智能摘要
     switch (type) {
       case 'file':
-        smartNote.summary = `文件资料：${material.name}，类型：${material.type || '未知'}。建议进一步分析文件内容以提取关键信息。`;
-        smartNote.keyPoints = ['文件已上传', '待内容分析', '可用于AI问答'];
-        smartNote.tags = ['文件', material.type || '未知类型'];
+        smartNote.summary = `文件资料：${material.name}，类型：${material.type || '未知'}。该文件可能包含重要的教学资源或参考材料，建议进一步分析文件内容以提取关键信息，用于教师培训和教学改进。`;
+        smartNote.keyPoints = ['文件已上传', '待内容分析', '可用于AI问答', '支持多种格式'];
+        smartNote.tags = ['文件', material.type || '未知类型', '教学资源'];
+        smartNote.possibleQuestions = [
+          '这个文件的主要内容是什么？',
+          '文件中有哪些关键信息点？',
+          '如何将这个文件应用到教学中？',
+          '文件内容与当前教学目标的关联性如何？'
+        ];
         break;
       
       case 'video':
-        smartNote.summary = `视频资料：${material.title}。视频内容可能包含重要的学习材料，建议观看并记录要点。`;
-        smartNote.keyPoints = ['视频已添加', '包含音视频内容', '适合深度学习'];
-        smartNote.tags = ['视频', '学习资料'];
+        smartNote.summary = `视频资料：${material.title}。该视频可能包含教学演示、培训内容或案例分析，是重要的视觉学习材料。建议观看并记录要点，提取可用于教师培训的关键信息。`;
+        smartNote.keyPoints = ['视频已添加', '包含音视频内容', '适合深度学习', '可重复观看'];
+        smartNote.tags = ['视频', '学习资料', '教师培训'];
         if (material.url.includes('bilibili.com')) {
           smartNote.tags.push('B站');
         } else if (material.url.includes('youtube.com')) {
           smartNote.tags.push('YouTube');
         }
+        smartNote.possibleQuestions = [
+          '视频中展示了哪些教学方法？',
+          '视频内容如何应用到实际教学中？',
+          '视频中有哪些值得学习的教学技巧？',
+          '如何基于视频内容设计培训活动？'
+        ];
         break;
       
       case 'link':
-        smartNote.summary = `网站链接：${material.title}。网页内容可能包含有价值的信息，建议浏览并提取关键内容。`;
-        smartNote.keyPoints = ['网站已添加', '可在线访问', '内容待分析'];
-        smartNote.tags = ['网站', '在线资源'];
+        smartNote.summary = `网站链接：${material.title}。该网页可能包含教育资源、研究报告或教学工具，是有价值的在线参考资料。建议浏览并提取关键内容，用于丰富教学资源库。`;
+        smartNote.keyPoints = ['网站已添加', '可在线访问', '内容待分析', '实时更新'];
+        smartNote.tags = ['网站', '在线资源', '教育工具'];
+        smartNote.possibleQuestions = [
+          '网站提供了哪些教育资源？',
+          '如何利用网站内容进行教学？',
+          '网站中的信息如何与课程内容结合？',
+          '网站是否提供可下载的教学材料？'
+        ];
         break;
       
       case 'text':
         const wordCount = material.content.length;
         const hasMarkdown = /[*_`#\[\]]/g.test(material.content);
-        smartNote.summary = `文字内容：${material.title}，共${wordCount}字。${hasMarkdown ? '包含格式化内容，' : ''}可直接用于AI分析和问答。`;
+        smartNote.summary = `文字内容：${material.title}，共${wordCount}字。${hasMarkdown ? '包含格式化内容，' : ''}该文本可能包含教学理论、实践经验或培训要点，可直接用于AI分析和问答，是重要的知识资源。`;
         smartNote.keyPoints = [
           `文字长度：${wordCount}字`,
           hasMarkdown ? '包含Markdown格式' : '纯文本内容',
-          '可直接分析'
+          '可直接分析',
+          '知识密度高'
         ];
-        smartNote.tags = ['文字', hasMarkdown ? 'Markdown' : '纯文本'];
+        smartNote.tags = ['文字', hasMarkdown ? 'Markdown' : '纯文本', '知识库'];
+        smartNote.possibleQuestions = [
+          '文本中的核心观点是什么？',
+          '如何将文本内容应用到教学实践中？',
+          '文本提到了哪些教学策略？',
+          '文本内容如何帮助教师专业发展？'
+        ];
+        break;
+
+      case 'paper':
+        smartNote.summary = `研究论文：${material.title}，作者：${material.author}，发表于${material.year}年。该论文提供了学术研究视角，包含理论基础和实证分析，是教师培训中重要的理论支撑材料。`;
+        smartNote.keyPoints = [
+          `作者：${material.author}`,
+          `发表年份：${material.year}`,
+          material.journal ? `期刊：${material.journal}` : '会议论文',
+          '学术权威性高'
+        ];
+        smartNote.tags = ['研究论文', '学术资源', '理论基础', '教师培训'];
+        smartNote.possibleQuestions = [
+          '论文的主要研究发现是什么？',
+          '研究方法对教学实践有何启示？',
+          '论文结论如何指导教师培训？',
+          '研究成果如何应用到课堂教学中？'
+        ];
+        break;
+
+      case 'survey':
+        smartNote.summary = `调研报告：${material.title}，由${material.organization}于${material.year}年发布。该报告基于实际调研数据，反映了教育现状和趋势，为教师培训提供数据支撑和实践指导。`;
+        smartNote.keyPoints = [
+          `调研机构：${material.organization}`,
+          `调研年份：${material.year}`,
+          material.sampleSize ? `样本规模：${material.sampleSize}` : '大规模调研',
+          '数据权威可靠'
+        ];
+        smartNote.tags = ['调研报告', '数据分析', '教育现状', '培训指导'];
+        smartNote.possibleQuestions = [
+          '调研揭示了哪些教育问题？',
+          '调研数据如何指导教师培训方向？',
+          '报告中的建议如何落实到教学中？',
+          '调研结果对教师发展有何意义？'
+        ];
+        break;
+
+      case 'case':
+        smartNote.summary = `案例研究：${material.title}，实施学校：${material.school}，实施于${material.year}年。该案例展示了具体的教学实践过程和效果，为教师培训提供可借鉴的实践经验和操作指南。`;
+        smartNote.keyPoints = [
+          `实施学校：${material.school}`,
+          `实施年份：${material.year}`,
+          material.participants ? `参与人数：${material.participants}` : '实践案例',
+          '可操作性强'
+        ];
+        smartNote.tags = ['案例研究', '实践经验', '教学改进', '培训案例'];
+        smartNote.possibleQuestions = [
+          '案例中采用了哪些教学策略？',
+          '实施过程中遇到了什么挑战？',
+          '案例的成功经验如何复制推广？',
+          '案例对教师培训有哪些启发？'
+        ];
         break;
     }
 
@@ -900,6 +1299,19 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
     
     links.forEach(link => {
       notes.push(generateSmartNote(link, 'link'));
+    });
+
+    // 为新增的材料类型生成智能需求
+    researchPapers.forEach(paper => {
+      notes.push(generateSmartNote(paper, 'paper'));
+    });
+
+    surveys.forEach(survey => {
+      notes.push(generateSmartNote(survey, 'survey'));
+    });
+
+    caseStudies.forEach(caseStudy => {
+      notes.push(generateSmartNote(caseStudy, 'case'));
     });
 
     if (notes.length > 0) {
@@ -1037,6 +1449,147 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
           lineHeight: '1.6'
         }}>
           {renderMarkdown(text.content)}
+        </div>
+      </div>
+    );
+  };
+
+  // 渲染研究论文预览
+  const renderPaperPreview = (paper) => {
+    return (
+      <div>
+        <div style={{ marginBottom: '16px' }}>
+          <h3>📄 {paper.title}</h3>
+          <div style={{ color: '#666', marginBottom: '8px' }}>
+            <p><strong>作者:</strong> {paper.author}</p>
+            <p><strong>发表年份:</strong> {paper.year}</p>
+            <p><strong>期刊/会议:</strong> {paper.journal || '未知'}</p>
+          </div>
+        </div>
+        <div style={{ 
+          padding: '20px', 
+          backgroundColor: '#fafafa', 
+          borderRadius: '8px',
+          border: '1px solid #f0f0f0',
+          maxHeight: '400px',
+          overflow: 'auto',
+          lineHeight: '1.6'
+        }}>
+          <h4>摘要</h4>
+          <p>{paper.abstract || '暂无摘要信息'}</p>
+          {paper.keywords && (
+            <>
+              <h4>关键词</h4>
+              <p>{paper.keywords}</p>
+            </>
+          )}
+          {paper.url && (
+            <div style={{ marginTop: '16px' }}>
+              <a href={paper.url} target="_blank" rel="noopener noreferrer" style={{ color: '#1890ff' }}>
+                查看完整论文 →
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // 渲染调研报告预览
+  const renderSurveyPreview = (survey) => {
+    return (
+      <div>
+        <div style={{ marginBottom: '16px' }}>
+          <h3>📊 {survey.title}</h3>
+          <div style={{ color: '#666', marginBottom: '8px' }}>
+            <p><strong>调研机构:</strong> {survey.organization}</p>
+            <p><strong>调研年份:</strong> {survey.year}</p>
+            <p><strong>样本规模:</strong> {survey.sampleSize || '未知'}</p>
+          </div>
+        </div>
+        <div style={{ 
+          padding: '20px', 
+          backgroundColor: '#fafafa', 
+          borderRadius: '8px',
+          border: '1px solid #f0f0f0',
+          maxHeight: '400px',
+          overflow: 'auto',
+          lineHeight: '1.6'
+        }}>
+          <h4>调研概述</h4>
+          <p>{survey.summary || '暂无概述信息'}</p>
+          {survey.keyFindings && (
+            <>
+              <h4>主要发现</h4>
+              <p>{survey.keyFindings}</p>
+            </>
+          )}
+          {survey.methodology && (
+            <>
+              <h4>调研方法</h4>
+              <p>{survey.methodology}</p>
+            </>
+          )}
+          {survey.url && (
+            <div style={{ marginTop: '16px' }}>
+              <a href={survey.url} target="_blank" rel="noopener noreferrer" style={{ color: '#1890ff' }}>
+                查看完整报告 →
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // 渲染案例研究预览
+  const renderCasePreview = (caseStudy) => {
+    return (
+      <div>
+        <div style={{ marginBottom: '16px' }}>
+          <h3>📋 {caseStudy.title}</h3>
+          <div style={{ color: '#666', marginBottom: '8px' }}>
+            <p><strong>实施学校:</strong> {caseStudy.school}</p>
+            <p><strong>实施年份:</strong> {caseStudy.year}</p>
+            <p><strong>参与人数:</strong> {caseStudy.participants || '未知'}</p>
+          </div>
+        </div>
+        <div style={{ 
+          padding: '20px', 
+          backgroundColor: '#fafafa', 
+          borderRadius: '8px',
+          border: '1px solid #f0f0f0',
+          maxHeight: '400px',
+          overflow: 'auto',
+          lineHeight: '1.6'
+        }}>
+          <h4>案例背景</h4>
+          <p>{caseStudy.background || '暂无背景信息'}</p>
+          {caseStudy.implementation && (
+            <>
+              <h4>实施过程</h4>
+              <p>{caseStudy.implementation}</p>
+            </>
+          )}
+          {caseStudy.results && (
+            <>
+              <h4>实施效果</h4>
+              <p>{caseStudy.results}</p>
+            </>
+          )}
+          {caseStudy.lessons && (
+            <>
+              <h4>经验总结</h4>
+              <p>{caseStudy.lessons}</p>
+            </>
+          )}
+          {caseStudy.url && (
+            <div style={{ marginTop: '16px' }}>
+              <a href={caseStudy.url} target="_blank" rel="noopener noreferrer" style={{ color: '#1890ff' }}>
+                查看详细案例 →
+              </a>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -1184,7 +1737,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
             <div style={{ height: 'calc(100vh - 280px)', overflowY: 'auto' }}>
               {/* 已上传文件 */}
               {uploadedFiles.map(file => {
-                const [isHovered, setIsHovered] = React.useState(false);
+                const isHovered = hoveredItems[`file-${file.id}`] || false;
                 return (
                   <Card 
                     key={`file-${file.id}`} 
@@ -1194,8 +1747,8 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
                       border: selectedMaterials.includes(`file-${file.id}`) ? '2px solid #1890ff' : '1px solid #f0f0f0',
                       backgroundColor: selectedMaterials.includes(`file-${file.id}`) ? '#f6ffed' : 'white'
                     }}
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
+                    onMouseEnter={() => setHoveredItems(prev => ({ ...prev, [`file-${file.id}`]: true }))}
+                    onMouseLeave={() => setHoveredItems(prev => ({ ...prev, [`file-${file.id}`]: false }))}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div 
@@ -1268,7 +1821,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
               
               {/* 添加的文字 */}
               {addedTexts.map(text => {
-                const [isHovered, setIsHovered] = React.useState(false);
+                const isHovered = hoveredItems[`text-${text.id}`] || false;
                 return (
                   <Card 
                     key={`text-${text.id}`} 
@@ -1278,8 +1831,8 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
                       border: selectedMaterials.includes(`text-${text.id}`) ? '2px solid #1890ff' : '1px solid #f0f0f0',
                       backgroundColor: selectedMaterials.includes(`text-${text.id}`) ? '#f6ffed' : 'white'
                     }}
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
+                    onMouseEnter={() => setHoveredItems(prev => ({ ...prev, [`text-${text.id}`]: true }))}
+                    onMouseLeave={() => setHoveredItems(prev => ({ ...prev, [`text-${text.id}`]: false }))}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div 
@@ -1356,7 +1909,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
               
               {/* 课程视频 */}
               {courseVideos.map(video => {
-                const [isHovered, setIsHovered] = React.useState(false);
+                const isHovered = hoveredItems[`video-${video.id}`] || false;
                 return (
                   <Card 
                     key={`video-${video.id}`} 
@@ -1366,8 +1919,8 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
                       border: selectedMaterials.includes(`video-${video.id}`) ? '2px solid #1890ff' : '1px solid #f0f0f0',
                       backgroundColor: selectedMaterials.includes(`video-${video.id}`) ? '#f6ffed' : 'white'
                     }}
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
+                    onMouseEnter={() => setHoveredItems(prev => ({ ...prev, [`video-${video.id}`]: true }))}
+                    onMouseLeave={() => setHoveredItems(prev => ({ ...prev, [`video-${video.id}`]: false }))}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div 
@@ -1444,7 +1997,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
               
               {/* 保存的链接 */}
               {links.map(link => {
-                const [isHovered, setIsHovered] = React.useState(false);
+                const isHovered = hoveredItems[`link-${link.id}`] || false;
                 return (
                   <Card 
                     key={`link-${link.id}`} 
@@ -1454,8 +2007,8 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
                       border: selectedMaterials.includes(`link-${link.id}`) ? '2px solid #1890ff' : '1px solid #f0f0f0',
                       backgroundColor: selectedMaterials.includes(`link-${link.id}`) ? '#f6ffed' : 'white'
                     }}
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
+                    onMouseEnter={() => setHoveredItems(prev => ({ ...prev, [`link-${link.id}`]: true }))}
+                    onMouseLeave={() => setHoveredItems(prev => ({ ...prev, [`link-${link.id}`]: false }))}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div 
@@ -1529,6 +2082,270 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
                   </Card>
                 );
               })}
+              
+              {/* 研究论文 */}
+              {researchPapers.map(paper => {
+                const isHovered = hoveredItems[`paper-${paper.id}`] || false;
+                return (
+                  <Card 
+                    key={`paper-${paper.id}`} 
+                    size="small" 
+                    style={{ 
+                      marginBottom: 8,
+                      border: selectedMaterials.includes(`paper-${paper.id}`) ? '2px solid #1890ff' : '1px solid #f0f0f0',
+                      backgroundColor: selectedMaterials.includes(`paper-${paper.id}`) ? '#f6ffed' : 'white'
+                    }}
+                    onMouseEnter={() => setHoveredItems(prev => ({ ...prev, [`paper-${paper.id}`]: true }))}
+                    onMouseLeave={() => setHoveredItems(prev => ({ ...prev, [`paper-${paper.id}`]: false }))}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div 
+                        style={{ display: 'flex', alignItems: 'center', flex: 1, cursor: 'pointer' }}
+                        onClick={() => handleViewMaterial(paper, 'paper')}
+                      >
+                        {isHovered ? (
+                           <Dropdown
+                             menu={{
+                               items: [
+                                 {
+                                   key: 'rename',
+                                   label: '重命名',
+                                   icon: <EditOutlined />,
+                                   onClick: () => {
+                                      const newTitle = prompt('请输入新的论文标题:', paper.title);
+                                      if (newTitle && newTitle.trim()) {
+                                        setResearchPapers(prev => 
+                                          prev.map(p => 
+                                            p.id === paper.id ? { ...p, title: newTitle.trim() } : p
+                                          )
+                                        );
+                                        message.success('论文重命名成功');
+                                      }
+                                    }
+                                 },
+                                 {
+                                    key: 'delete',
+                                    label: '删除',
+                                    icon: <DeleteOutlined />,
+                                    onClick: () => {
+                                      Modal.confirm({
+                                        title: '确认删除',
+                                        content: `确定要删除论文"${paper.title}"吗？`,
+                                        okText: '确定',
+                                        cancelText: '取消',
+                                        onOk: () => setResearchPapers(prev => prev.filter(p => p.id !== paper.id))
+                                      });
+                                    },
+                                    danger: true
+                                  }
+                               ]
+                             }}
+                             trigger={['click']}
+                           >
+                            <Button 
+                              type="text" 
+                              size="small" 
+                              icon={<MoreOutlined />}
+                              onClick={(e) => e.stopPropagation()}
+                              style={{ marginRight: 8 }}
+                            />
+                          </Dropdown>
+                        ) : (
+                          <div style={{ fontSize: 16, marginRight: 8 }}>📄</div>
+                        )}
+                        <div style={{ flex: 1 }}>
+                          <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{paper.title}</Text>
+                          <br />
+                          <Text type="secondary" style={{ fontSize: 10 }} ellipsis>
+                            {paper.author} • {paper.year}
+                          </Text>
+                        </div>
+                      </div>
+                      <Checkbox
+                        checked={selectedMaterials.includes(`paper-${paper.id}`)}
+                        onChange={(e) => handleSelectMaterial(`paper-${paper.id}`, e.target.checked)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                  </Card>
+                );
+              })}
+              
+              {/* 调研报告 */}
+              {surveys.map(survey => {
+                const isHovered = hoveredItems[`survey-${survey.id}`] || false;
+                return (
+                  <Card 
+                    key={`survey-${survey.id}`} 
+                    size="small" 
+                    style={{ 
+                      marginBottom: 8,
+                      border: selectedMaterials.includes(`survey-${survey.id}`) ? '2px solid #1890ff' : '1px solid #f0f0f0',
+                      backgroundColor: selectedMaterials.includes(`survey-${survey.id}`) ? '#f6ffed' : 'white'
+                    }}
+                    onMouseEnter={() => setHoveredItems(prev => ({ ...prev, [`survey-${survey.id}`]: true }))}
+                    onMouseLeave={() => setHoveredItems(prev => ({ ...prev, [`survey-${survey.id}`]: false }))}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div 
+                        style={{ display: 'flex', alignItems: 'center', flex: 1, cursor: 'pointer' }}
+                        onClick={() => handleViewMaterial(survey, 'survey')}
+                      >
+                        {isHovered ? (
+                           <Dropdown
+                             menu={{
+                               items: [
+                                 {
+                                   key: 'rename',
+                                   label: '重命名',
+                                   icon: <EditOutlined />,
+                                   onClick: () => {
+                                      const newTitle = prompt('请输入新的报告标题:', survey.title);
+                                      if (newTitle && newTitle.trim()) {
+                                        setSurveys(prev => 
+                                          prev.map(s => 
+                                            s.id === survey.id ? { ...s, title: newTitle.trim() } : s
+                                          )
+                                        );
+                                        message.success('报告重命名成功');
+                                      }
+                                    }
+                                 },
+                                 {
+                                    key: 'delete',
+                                    label: '删除',
+                                    icon: <DeleteOutlined />,
+                                    onClick: () => {
+                                      Modal.confirm({
+                                        title: '确认删除',
+                                        content: `确定要删除报告"${survey.title}"吗？`,
+                                        okText: '确定',
+                                        cancelText: '取消',
+                                        onOk: () => setSurveys(prev => prev.filter(s => s.id !== survey.id))
+                                      });
+                                    },
+                                    danger: true
+                                  }
+                               ]
+                             }}
+                             trigger={['click']}
+                           >
+                            <Button 
+                              type="text" 
+                              size="small" 
+                              icon={<MoreOutlined />}
+                              onClick={(e) => e.stopPropagation()}
+                              style={{ marginRight: 8 }}
+                            />
+                          </Dropdown>
+                        ) : (
+                          <div style={{ fontSize: 16, marginRight: 8 }}>📊</div>
+                        )}
+                        <div style={{ flex: 1 }}>
+                          <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{survey.title}</Text>
+                          <br />
+                          <Text type="secondary" style={{ fontSize: 10 }} ellipsis>
+                            {survey.organization} • {survey.year}
+                          </Text>
+                        </div>
+                      </div>
+                      <Checkbox
+                        checked={selectedMaterials.includes(`survey-${survey.id}`)}
+                        onChange={(e) => handleSelectMaterial(`survey-${survey.id}`, e.target.checked)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                  </Card>
+                );
+              })}
+              
+              {/* 案例研究 */}
+              {caseStudies.map(caseStudy => {
+                const isHovered = hoveredItems[`case-${caseStudy.id}`] || false;
+                return (
+                  <Card 
+                    key={`case-${caseStudy.id}`} 
+                    size="small" 
+                    style={{ 
+                      marginBottom: 8,
+                      border: selectedMaterials.includes(`case-${caseStudy.id}`) ? '2px solid #1890ff' : '1px solid #f0f0f0',
+                      backgroundColor: selectedMaterials.includes(`case-${caseStudy.id}`) ? '#f6ffed' : 'white'
+                    }}
+                    onMouseEnter={() => setHoveredItems(prev => ({ ...prev, [`case-${caseStudy.id}`]: true }))}
+                    onMouseLeave={() => setHoveredItems(prev => ({ ...prev, [`case-${caseStudy.id}`]: false }))}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div 
+                        style={{ display: 'flex', alignItems: 'center', flex: 1, cursor: 'pointer' }}
+                        onClick={() => handleViewMaterial(caseStudy, 'case')}
+                      >
+                        {isHovered ? (
+                           <Dropdown
+                             menu={{
+                               items: [
+                                 {
+                                   key: 'rename',
+                                   label: '重命名',
+                                   icon: <EditOutlined />,
+                                   onClick: () => {
+                                      const newTitle = prompt('请输入新的案例标题:', caseStudy.title);
+                                      if (newTitle && newTitle.trim()) {
+                                        setCaseStudies(prev => 
+                                          prev.map(c => 
+                                            c.id === caseStudy.id ? { ...c, title: newTitle.trim() } : c
+                                          )
+                                        );
+                                        message.success('案例重命名成功');
+                                      }
+                                    }
+                                 },
+                                 {
+                                    key: 'delete',
+                                    label: '删除',
+                                    icon: <DeleteOutlined />,
+                                    onClick: () => {
+                                      Modal.confirm({
+                                        title: '确认删除',
+                                        content: `确定要删除案例"${caseStudy.title}"吗？`,
+                                        okText: '确定',
+                                        cancelText: '取消',
+                                        onOk: () => setCaseStudies(prev => prev.filter(c => c.id !== caseStudy.id))
+                                      });
+                                    },
+                                    danger: true
+                                  }
+                               ]
+                             }}
+                             trigger={['click']}
+                           >
+                            <Button 
+                              type="text" 
+                              size="small" 
+                              icon={<MoreOutlined />}
+                              onClick={(e) => e.stopPropagation()}
+                              style={{ marginRight: 8 }}
+                            />
+                          </Dropdown>
+                        ) : (
+                          <div style={{ fontSize: 16, marginRight: 8 }}>📋</div>
+                        )}
+                        <div style={{ flex: 1 }}>
+                          <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{caseStudy.title}</Text>
+                          <br />
+                          <Text type="secondary" style={{ fontSize: 10 }} ellipsis>
+                            {caseStudy.school} • {caseStudy.year}
+                          </Text>
+                        </div>
+                      </div>
+                      <Checkbox
+                        checked={selectedMaterials.includes(`case-${caseStudy.id}`)}
+                        onChange={(e) => handleSelectMaterial(`case-${caseStudy.id}`, e.target.checked)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                  </Card>
+                );
+              })}
             </div>
           </div>
       </div>
@@ -1548,7 +2365,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
             </div>
             <Card size="small" style={{ marginBottom: '16px', backgroundColor: '#fff' }}>
                <Paragraph style={{ margin: 0, fontSize: '14px', lineHeight: '1.6' }}>
-                 收集的资料涵盖了成都美食文化的各个方面，包括川菜历史文献、餐厅数据分析、火锅店分布、调料配方、制作技法视频以及营养成分分析等。这些材料从历史传承、地理分布、制作工艺、营养价值等多维度展现了成都美食的丰富内涵，为深入了解川菜文化和成都饮食特色提供了全面的参考依据。
+                 收集的资料全面覆盖了教师专业发展与培训的各个维度，包括专业发展指导手册、现代教育技术应用资料、核心素养课程设计指南等理论文献；教师培训平台、教育技术研究网站等在线资源；培训需求分析、信息技术能力提升方案、差异化教学策略等实践方案；现代教学方法、技术整合、学生心理发展等专业视频；以及相关的实证研究论文、调研报告和成功案例分析。这些材料从理论基础、实践指导、技术应用、案例借鉴等多个角度，为教师专业发展和培训体系建设提供了系统性的参考依据和实施指导。
                </Paragraph>
              </Card>
             
@@ -1653,59 +2470,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
             )}
           </div>
           
-          {/* 常见问题按钮 */}
-          <div style={{ padding: '16px 20px 0 20px', borderTop: '1px solid #f0f0f0' }}>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', overflow: 'hidden' }}>
-              <Button 
-                size="small" 
-                style={{ 
-                  borderRadius: '16px', 
-                  fontSize: '11px',
-                  flex: '1 1 0',
-                  minWidth: 0,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }}
-                onClick={() => setInputMessage('川菜特色？')}
-                title="川菜特色？"
-              >
-                川菜特色？
-              </Button>
-              <Button 
-                size="small" 
-                style={{ 
-                  borderRadius: '16px', 
-                  fontSize: '11px',
-                  flex: '1 1 0',
-                  minWidth: 0,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }}
-                onClick={() => setInputMessage('火锅做法？')}
-                title="火锅做法？"
-              >
-                火锅做法？
-              </Button>
-              <Button 
-                size="small" 
-                style={{ 
-                  borderRadius: '16px', 
-                  fontSize: '11px',
-                  flex: '1 1 0',
-                  minWidth: 0,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }}
-                onClick={() => setInputMessage('小吃推荐？')}
-                title="小吃推荐？"
-              >
-                小吃推荐？
-              </Button>
-            </div>
-          </div>
+
           
           {/* 输入区域 */}
           <div style={{ padding: '20px', borderTop: '1px solid #f0f0f0' }}>
@@ -2341,6 +3106,9 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
             {previewType === 'video' && renderVideoPreview(previewData)}
             {previewType === 'link' && renderLinkPreview(previewData)}
             {previewType === 'text' && renderTextPreview(previewData)}
+            {previewType === 'paper' && renderPaperPreview(previewData)}
+            {previewType === 'survey' && renderSurveyPreview(previewData)}
+            {previewType === 'case' && renderCasePreview(previewData)}
           </div>
         )}
       </Modal>
@@ -2427,6 +3195,9 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
                           {note.type === 'video' && '🎥'}
                           {note.type === 'link' && '🔗'}
                           {note.type === 'text' && '📝'}
+                          {note.type === 'paper' && '📄'}
+                          {note.type === 'survey' && '📊'}
+                          {note.type === 'case' && '📋'}
                           {' '}{note.title}
                         </Title>
                         <Text type="secondary" style={{ fontSize: '12px' }}>
@@ -2435,7 +3206,15 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
                       </div>
                       <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                         {note.tags.map((tag, tagIndex) => (
-                          <Tag key={tagIndex} size="small" color={note.type === 'file' ? 'blue' : note.type === 'video' ? 'red' : note.type === 'link' ? 'green' : 'orange'}>
+                          <Tag key={tagIndex} size="small" color={
+                            note.type === 'file' ? 'blue' : 
+                            note.type === 'video' ? 'red' : 
+                            note.type === 'link' ? 'green' : 
+                            note.type === 'text' ? 'orange' :
+                            note.type === 'paper' ? 'purple' :
+                            note.type === 'survey' ? 'cyan' :
+                            note.type === 'case' ? 'magenta' : 'default'
+                          }>
                             {tag}
                           </Tag>
                         ))}
@@ -2454,6 +3233,17 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
                             <li key={pointIndex} style={{ marginBottom: 4, color: '#666' }}>{point}</li>
                           ))}
                         </ul>
+                        
+                        {note.possibleQuestions && note.possibleQuestions.length > 0 && (
+                          <div style={{ marginTop: 12 }}>
+                            <Title level={5} style={{ margin: 0, marginBottom: 8, color: '#52c41a' }}>可能问的问题：</Title>
+                            <ul style={{ margin: 0, paddingLeft: 20 }}>
+                              {note.possibleQuestions.map((question, questionIndex) => (
+                                <li key={questionIndex} style={{ marginBottom: 4, color: '#666' }}>{question}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                         
                         <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
                           <Button 
