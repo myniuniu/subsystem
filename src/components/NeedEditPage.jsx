@@ -233,13 +233,13 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
     audio: [],
     video: [],
     mindmap: [],
-    report: [
+    'training-plan': [
       {
         id: 1001,
         title: '培训方案设计与实施指南',
         source: '培训管理系统',
         time: '刚刚',
-        type: 'report',
+        type: 'training-plan',
         content: `
           <h3 style="color: #1890ff; margin-bottom: 15px;">📋 企业培训方案设计框架</h3>
           
@@ -414,7 +414,9 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
             <p style="margin: 0; color: #a0d911;"><strong>💡 实施建议：</strong>建立培训管理委员会，制定详细的实施计划，确保各部门协调配合。定期收集反馈，及时调整培训内容和方式，确保培训效果最大化。</p>
           </div>
         `
-      },
+      }
+    ],
+    report: [
       {
         id: 1002,
         title: '培训课表安排与时间管理',
@@ -766,15 +768,16 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
       return;
     }
 
-    // 对于培训方案、课表、参训人员，生成报告类型的操作记录
-    const recordType = ['training-plan', 'schedule', 'participants'].includes(operationType) ? 'report' : operationType;
+    // 对于培训方案，使用独立的培训方案类型；对于课表、参训人员，生成报告类型的操作记录
+    const recordType = operationType === 'training-plan' ? 'training-plan' : 
+                      ['schedule', 'participants'].includes(operationType) ? 'report' : operationType;
 
     const newRecord = {
       id: Date.now(),
       title: `基于${totalMaterials}个资料生成${operationTitles[operationType]}`,
       source: `${totalMaterials}个来源`,
       time: '刚刚',
-      type: recordType
+      type: operationType === 'training-plan' ? 'training-plan' : recordType
     };
 
     setOperationRecords(prev => ({
@@ -807,6 +810,15 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
   // 处理更多操作菜单点击
   const handleMoreAction = (action, record) => {
     switch (action) {
+      case 'submit':
+        // 提交培训方案
+        message.loading('正在提交培训方案...', 1);
+        setTimeout(() => {
+          message.success(`培训方案"${record.title}"已成功提交！`);
+          // 这里可以添加实际的提交逻辑，比如调用API
+          console.log('提交培训方案:', record);
+        }, 1000);
+        break;
       case 'convertToSource':
         // 将操作记录转换为资料来源
         const newMaterial = {
@@ -818,7 +830,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
         };
         
         // 根据记录类型添加到对应的资料数组
-        if (record.type === 'report' || record.type === 'mindmap') {
+        if (record.type === 'report' || record.type === 'mindmap' || record.type === 'training-plan') {
           setAddedTexts(prev => [newMaterial, ...prev]);
         } else if (record.type === 'video' || record.type === 'audio') {
           setCourseVideos(prev => [{
@@ -830,20 +842,6 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
         }
         
         message.success(`已将"${record.title}"转换为来源并保存到资料`);
-        break;
-      case 'convertAllToSource':
-        // 将所有操作记录转换为资料来源
-        const allRecords = Object.values(operationRecords).flat();
-        const convertedMaterials = allRecords.map(rec => ({
-          id: Date.now() + Math.random(),
-          title: rec.title,
-          content: rec.content || `来源于操作记录：${rec.title}`,
-          addTime: '刚刚',
-          source: rec.source || '操作记录转换'
-        }));
-        
-        setAddedTexts(prev => [...convertedMaterials, ...prev]);
-        message.success(`已将${allRecords.length}条操作记录转换为来源并保存到资料`);
         break;
       case 'delete':
         // 从操作记录中删除该记录
@@ -876,6 +874,33 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
       }
     ];
 
+    // 培训方案类型添加提交按钮
+    if (record.type === 'training-plan') {
+      return [
+        {
+          key: 'submit',
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>📤</span>
+              <span>提交</span>
+            </div>
+          ),
+          onClick: () => handleMoreAction('submit', record)
+        },
+        {
+          key: 'convertToSource',
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>📋</span>
+              <span>转换为来源</span>
+            </div>
+          ),
+          onClick: () => handleMoreAction('convertToSource', record)
+        },
+        ...commonItems
+      ];
+    }
+
     // 报告类型添加额外选项
     if (record.type === 'report') {
       return [
@@ -888,16 +913,6 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
             </div>
           ),
           onClick: () => handleMoreAction('convertToSource', record)
-        },
-        {
-          key: 'convertAllToSource',
-          label: (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '16px' }}>📄</span>
-              <span>将所有需求转换为来源</span>
-            </div>
-          ),
-          onClick: () => handleMoreAction('convertAllToSource', record)
         },
         ...commonItems
       ];
@@ -2397,46 +2412,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
                </Paragraph>
              </Card>
             
-            {/* 快捷操作按钮 */}
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <Button 
-                size="small" 
-                icon={<FileTextOutlined />}
-                onClick={() => {
-                  const newNote = {
-                    id: Date.now(),
-                    title: '摘要需求',
-                    source: '智能摘要',
-                    time: '刚刚',
-                    type: 'report'
-                  };
-                  setOperationRecords(prev => ({
-                    ...prev,
-                    report: [newNote, ...prev.report]
-                  }));
-                  message.success('摘要已保存为需求');
-                }}
-                style={{ borderRadius: '16px' }}
-              >
-                保存需求
-              </Button>
-              <Button 
-                size="small" 
-                icon={<span>🎵</span>}
-                onClick={() => handleOperationClick('audio')}
-                style={{ borderRadius: '16px' }}
-              >
-                音频概览
-              </Button>
-              <Button 
-                size="small" 
-                icon={<span>🧠</span>}
-                onClick={() => handleOperationClick('mindmap')}
-                style={{ borderRadius: '16px' }}
-              >
-                思维导图
-              </Button>
-            </div>
+
           </div>
           
           {/* 消息列表 */}

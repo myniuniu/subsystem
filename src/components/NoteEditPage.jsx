@@ -317,20 +317,6 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
         
         message.success(`已将"${record.title}"转换为来源并保存到资料`);
         break;
-      case 'convertAllToSource':
-        // 将所有操作记录转换为资料来源
-        const allRecords = Object.values(operationRecords).flat();
-        const convertedMaterials = allRecords.map(rec => ({
-          id: Date.now() + Math.random(),
-          title: rec.title,
-          content: rec.content || `来源于操作记录：${rec.title}`,
-          addTime: '刚刚',
-          source: rec.source || '操作记录转换'
-        }));
-        
-        setAddedTexts(prev => [...convertedMaterials, ...prev]);
-        message.success(`已将${allRecords.length}条操作记录转换为来源并保存到资料`);
-        break;
       case 'delete':
         // 从操作记录中删除该记录
         setOperationRecords(prev => {
@@ -374,16 +360,6 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
             </div>
           ),
           onClick: () => handleMoreAction('convertToSource', record)
-        },
-        {
-          key: 'convertAllToSource',
-          label: (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '16px' }}>📄</span>
-              <span>将所有笔记转换为来源</span>
-            </div>
-          ),
-          onClick: () => handleMoreAction('convertAllToSource', record)
         },
         ...commonItems
       ];
