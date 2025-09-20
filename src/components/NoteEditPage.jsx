@@ -1895,10 +1895,6 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
           
           {/* 下半部分 - 操作记录 */}
           <div style={{ padding: '20px', borderTop: '1px solid #f0f0f0', flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <Title level={5} style={{ marginBottom: 16, color: '#1f1f1f', fontSize: '14px' }}>
-              📋 操作记录
-            </Title>
-            
             <div style={{ flex: 1, overflowY: 'auto', maxHeight: '300px' }}>
               {Object.values(operationRecords).flat().map(record => {
                 const getIcon = (type) => {
