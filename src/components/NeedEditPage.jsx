@@ -219,17 +219,20 @@ const NeedEditPage = ({ onBack, onViewChange }) => {
     // 计算所有资料的总数
     const totalMaterials = uploadedFiles.length + addedTexts.length + courseVideos.length + links.length;
 
+    // 对于培训方案、课表、参训人员，生成报告类型的操作记录
+    const recordType = ['training-plan', 'schedule', 'participants'].includes(operationType) ? 'report' : operationType;
+
     const newRecord = {
       id: Date.now(),
       title: `基于${totalMaterials}个资料生成${operationTitles[operationType]}`,
       source: `${totalMaterials}个来源`,
       time: '刚刚',
-      type: operationType
+      type: recordType
     };
 
     setOperationRecords(prev => ({
       ...prev,
-      [operationType]: [newRecord, ...prev[operationType]]
+      [recordType]: [newRecord, ...prev[recordType]]
     }));
 
     message.success(`${operationTitles[operationType]}已生成并添加到操作记录`);
