@@ -731,12 +731,40 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
       ppt: 'PPT演示',
       webcode: '网页代码',
       'training-plan': '培训方案',
+      'sync-training-plan': '同步培训方案',
       schedule: '课表',
       participants: '参训人员清单'
     };
 
     // 计算所有资料的总数
     const totalMaterials = uploadedFiles.length + addedTexts.length + courseVideos.length + links.length;
+
+    // 特殊处理同步培训方案 - 调用API
+    if (operationType === 'sync-training-plan') {
+      // 这里应该调用具体的同步培训方案API
+      console.log('调用同步培训方案API', { totalMaterials, materials: { uploadedFiles, addedTexts, courseVideos, links } });
+      message.success('正在同步培训方案，请稍候...');
+      
+      // 模拟API调用
+      setTimeout(() => {
+        const newRecord = {
+          id: Date.now(),
+          title: `基于${totalMaterials}个资料${operationTitles[operationType]}`,
+          source: `API同步 - ${totalMaterials}个来源`,
+          time: '刚刚',
+          type: 'report'
+        };
+
+        setOperationRecords(prev => ({
+          ...prev,
+          report: [newRecord, ...prev.report]
+        }));
+
+        message.success(`${operationTitles[operationType]}同步完成`);
+      }, 2000);
+      
+      return;
+    }
 
     // 对于培训方案、课表、参训人员，生成报告类型的操作记录
     const recordType = ['training-plan', 'schedule', 'participants'].includes(operationType) ? 'report' : operationType;
@@ -2793,6 +2821,30 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
                      fontWeight: 500, 
                      color: '#1976d2' 
                    }}>参训人员</Text>
+                 </div>
+              </Card>
+              
+              {/* 同步培训方案 */}
+              <Card 
+                size="small" 
+                hoverable
+                onClick={() => handleOperationClick('sync-training-plan')}
+                style={{ 
+                  background: 'linear-gradient(135deg, #fff3e0 0%, #ffb74d 100%)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div style={{ padding: '6px 0' }}>
+                   <div style={{ fontSize: '20px', marginBottom: '6px' }}>🔄</div>
+                   <Text style={{ 
+                     fontSize: '11px', 
+                     fontWeight: 500, 
+                     color: '#f57c00' 
+                   }}>同步培训方案</Text>
                  </div>
               </Card>
             </div>
