@@ -1,70 +1,98 @@
-/* 培训需求编辑器样式 */
-.need-editor-modal {
-  top: 20px;
-}
-
+/* 模态框样式 */
 .need-editor-modal .ant-modal-content {
+  padding: 0;
   border-radius: 12px;
-  overflow: hidden;
-}
-
-.need-editor-modal .ant-modal-header {
-  background: #fafafa;
-  border-bottom: 1px solid #f0f0f0;
-  padding: 16px 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
 .need-editor-modal .ant-modal-body {
-  padding: 24px;
-  max-height: 70vh;
+  padding: 0;
+  max-height: 80vh;
   overflow-y: auto;
 }
 
-/* 编辑器头部 */
-.editor-header {
+.need-editor-modal .ant-modal-footer {
+  border-top: 1px solid #f0f0f0;
+  padding: 16px 24px;
+  background: #fafafa;
+  border-radius: 0 0 12px 12px;
+}
+
+/* 自定义头部样式 */
+.custom-modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px 24px;
+  border-radius: 12px 12px 0 0;
+}
+
+.header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
 }
 
-.editor-header .ant-typography {
+.header-title {
   margin: 0;
-  color: #666;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.header-info {
   font-size: 12px;
+  opacity: 0.9;
 }
 
 /* 表单样式 */
-.need-editor-form .ant-form-item-label > label {
-  font-weight: 500;
-  color: #374151;
+.need-editor-form {
+  padding: 24px;
 }
 
-.need-editor-form .ant-input,
-.need-editor-form .ant-select-selector {
+.form-label {
+  font-weight: 600;
+  color: #262626;
+  font-size: 14px;
+}
+
+.title-input {
   border-radius: 8px;
-  transition: all 0.2s ease;
+  border: 2px solid #f0f0f0;
+  transition: all 0.3s ease;
 }
 
-.need-editor-form .ant-input:focus,
-.need-editor-form .ant-select-focused .ant-select-selector {
-  border-color: #40a9ff;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+.title-input:focus,
+.title-input:hover {
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
 }
 
-.need-editor-form .ant-input-lg {
-  padding: 12px 16px;
-  font-size: 16px;
-  font-weight: 500;
+.category-select {
+  border-radius: 8px;
 }
 
-/* 标签输入区域 */
-.tags-input {
-  border: 1px solid #d9d9d9;
+.category-select .ant-select-selector {
+  border: 2px solid #f0f0f0;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.category-select:hover .ant-select-selector,
+.category-select.ant-select-focused .ant-select-selector {
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+/* 标签区域样式 */
+.tags-section {
+  border: 2px solid #f0f0f0;
   border-radius: 8px;
   padding: 12px;
   background: #fafafa;
-  min-height: 60px;
+  transition: all 0.3s ease;
+}
+
+.tags-section:hover {
+  border-color: #d9d9d9;
 }
 
 .selected-tags {
@@ -72,52 +100,48 @@
   min-height: 24px;
 }
 
-.selected-tags .ant-tag {
-  margin-bottom: 4px;
-  border-radius: 4px;
-  font-size: 12px;
-  padding: 4px 8px;
+.custom-tag {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
   border: none;
-  background: #e6f7ff;
-  color: #1890ff;
-  transition: all 0.2s ease;
+  border-radius: 16px;
+  padding: 4px 12px;
+  margin: 2px 4px 2px 0;
+  font-size: 12px;
+  font-weight: 500;
 }
 
-.selected-tags .ant-tag:hover {
-  background: #bae7ff;
+.custom-tag .ant-tag-close-icon {
+  color: rgba(255, 255, 255, 0.8);
+  margin-left: 6px;
 }
 
-.selected-tags .ant-tag .anticon-close {
-  color: #1890ff;
-  font-size: 10px;
-  margin-left: 4px;
+.custom-tag .ant-tag-close-icon:hover {
+  color: white;
 }
 
-.tag-input-row {
+.tag-input-section {
   display: flex;
   gap: 8px;
   align-items: center;
   flex-wrap: wrap;
 }
 
-.tag-input-row .ant-input {
+.tag-input-section .ant-input {
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
+}
+
+.tag-input-section .ant-btn {
   border-radius: 6px;
 }
 
-.tag-input-row .ant-btn {
-  border-radius: 6px;
-  height: 24px;
-  padding: 0 8px;
-  font-size: 12px;
-}
-
-.tag-input-row .ant-select {
+.tag-input-section .ant-select {
   border-radius: 6px;
 }
 
-.tag-input-row .ant-select .ant-select-selector {
+.tag-input-section .ant-select .ant-select-selector {
   border-radius: 6px;
-  height: 24px;
 }
 
 /* 格式化工具栏 */

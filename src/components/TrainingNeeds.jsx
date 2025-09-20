@@ -120,7 +120,7 @@ const TrainingNeeds = ({ onViewChange, pageState }) => {
       const notesData = await needsService.getAllNotes();
       const categoriesData = await needsService.getCategories();
       const tagsData = await needsService.getTags();
-      const statsData = await needsService.getStats();
+      const statsData = await needsService.getNeedsStats();
       
       // 调试信息
       console.log('=== 数据加载调试信息 ===');

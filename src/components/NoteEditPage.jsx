@@ -1877,77 +1877,7 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
                  </div>
               </Card>
               
-              {/* 培训方案 */}
-              <Card 
-                size="small" 
-                hoverable
-                onClick={() => handleOperationClick('training-plan')}
-                style={{ 
-                  background: 'linear-gradient(135deg, #e8f5e8 0%, #a5d6a7 100%)',
-                  border: 'none',
-                  borderRadius: '12px',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                <div style={{ padding: '6px 0' }}>
-                   <div style={{ fontSize: '20px', marginBottom: '6px' }}>📋</div>
-                   <Text style={{ 
-                     fontSize: '11px', 
-                     fontWeight: 500, 
-                     color: '#388e3c' 
-                   }}>培训方案</Text>
-                 </div>
-              </Card>
-              
-              {/* 课表 */}
-              <Card 
-                size="small" 
-                hoverable
-                onClick={() => handleOperationClick('schedule')}
-                style={{ 
-                  background: 'linear-gradient(135deg, #fff8e1 0%, #ffcc02 100%)',
-                  border: 'none',
-                  borderRadius: '12px',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                <div style={{ padding: '6px 0' }}>
-                   <div style={{ fontSize: '20px', marginBottom: '6px' }}>📅</div>
-                   <Text style={{ 
-                     fontSize: '11px', 
-                     fontWeight: 500, 
-                     color: '#f57c00' 
-                   }}>课表</Text>
-                 </div>
-              </Card>
-              
-              {/* 参训人员清单 */}
-              <Card 
-                size="small" 
-                hoverable
-                onClick={() => handleOperationClick('participants')}
-                style={{ 
-                  background: 'linear-gradient(135deg, #e3f2fd 0%, #90caf9 100%)',
-                  border: 'none',
-                  borderRadius: '12px',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                <div style={{ padding: '6px 0' }}>
-                   <div style={{ fontSize: '20px', marginBottom: '6px' }}>👥</div>
-                   <Text style={{ 
-                     fontSize: '11px', 
-                     fontWeight: 500, 
-                     color: '#1976d2' 
-                   }}>参训人员</Text>
-                 </div>
-              </Card>
+
             </div>
           </div>
           

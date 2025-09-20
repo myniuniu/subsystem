@@ -31,7 +31,6 @@ import {
   PictureOutlined,
   CodeOutlined
 } from '@ant-design/icons';
-import { EDUCATION_LEVELS, ROLES, TRAINING_TYPES, TRAINING_SOURCES, PRIORITY_LEVELS, TRAINING_STATUS } from '../data/trainingDataTemplates';
 import './NeedEditor.css';
 
 const { TextArea } = Input;
@@ -40,7 +39,7 @@ const { Text } = Typography;
 
 const NeedEditor = ({
   visible,
-  need,
+  note,
   categories,
   tags,
   onSave,
@@ -59,36 +58,24 @@ const NeedEditor = ({
   // 初始化表单数据
   useEffect(() => {
     if (visible) {
-      if (need && mode !== 'create') {
+      if (note && mode !== 'create') {
         form.setFieldsValue({
-          title: need.title,
-          content: need.content,
-          category: need.category,
-          tags: need.tags,
-          starred: need.starred,
-          educationLevel: need.educationLevel,
-          role: need.role,
-          trainingType: need.trainingType,
-          source: need.source,
-          priority: need.priority,
-          status: need.status
+          title: note.title,
+          content: note.content,
+          category: note.category,
+          tags: note.tags,
+          starred: note.starred
         });
-        setSelectedTags(need.tags || []);
-        setWordCount(getWordCount(need.content || ''));
-        setPreviewMode(mode === 'view'); // 查看模式默认为预览
+        setSelectedTags(note.tags || []);
+        setWordCount(getWordCount(note.content || ''));
       } else {
         form.resetFields();
-        form.setFieldsValue({
-          priority: PRIORITY_LEVELS.MEDIUM,
-          status: TRAINING_STATUS.PENDING,
-          starred: false
-        });
         setSelectedTags([]);
         setWordCount(0);
-        setPreviewMode(false);
       }
+      setPreviewMode(mode === 'view');
     }
-  }, [visible, need, mode, form]);
+  }, [visible, note, mode, form]);
 
   // 计算字数
   const getWordCount = (content) => {
@@ -105,19 +92,19 @@ const NeedEditor = ({
     setCursorPosition(e.target.selectionStart);
   };
 
-  // 保存培训需求
+  // 保存需求
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
       setLoading(true);
       
-      const needData = {
+      const noteData = {
         ...values,
         tags: selectedTags
       };
       
-      await onSave(needData);
-      message.success(mode === 'create' ? '培训需求创建成功' : '培训需求更新成功');
+      await onSave(noteData);
+      message.success(mode === 'create' ? '需求创建成功' : '需求更新成功');
       form.resetFields();
       setSelectedTags([]);
     } catch (error) {
@@ -231,9 +218,9 @@ const NeedEditor = ({
   const modalTitle = (
     <div className="editor-header">
       <Space>
-        {mode === 'create' && '创建培训需求'}
-        {mode === 'edit' && '编辑培训需求'}
-        {mode === 'view' && '查看培训需求'}
+        {mode === 'create' && '创建需求'}
+        {mode === 'edit' && '编辑需求'}
+        {mode === 'view' && '查看需求'}
         {mode !== 'view' && (
           <Tooltip title={previewMode ? '编辑模式' : '预览模式'}>
             <Button
@@ -257,14 +244,14 @@ const NeedEditor = ({
 
   return (
     <Modal
-      title={modalTitle}
+      title={null}
       open={visible}
       onCancel={onCancel}
       width={800}
       className="need-editor-modal"
       footer={[
         <Button key="cancel" onClick={onCancel}>
-          <CloseOutlined /> 取消
+          取消
         </Button>,
         mode !== 'view' && (
           <Button
@@ -279,6 +266,16 @@ const NeedEditor = ({
         )
       ].filter(Boolean)}
     >
+      {/* 自定义头部 */}
+      <div className="custom-modal-header">
+        <div className="header-content">
+          <h3 className="header-title">编辑需求</h3>
+          <div className="header-info">
+            <span>字数: {wordCount} 预计阅读: {Math.max(1, Math.ceil(wordCount / 250))} 分钟</span>
+          </div>
+        </div>
+      </div>
+
       <Form
         form={form}
         layout="vertical"
@@ -287,13 +284,14 @@ const NeedEditor = ({
         {/* 标题 */}
         <Form.Item
           name="title"
-          label="标题"
-          rules={[{ required: true, message: '请输入培训需求标题' }]}
+          label={<span className="form-label">标题</span>}
+          rules={[{ required: true, message: '请输入需求标题' }]}
         >
           <Input
-            placeholder="请输入培训需求标题"
+            placeholder="请输入需求标题"
             disabled={mode === 'view'}
             size="large"
+            className="title-input"
           />
         </Form.Item>
 
@@ -302,12 +300,13 @@ const NeedEditor = ({
             {/* 分类 */}
             <Form.Item
               name="category"
-              label="分类"
+              label={<span className="form-label">分类</span>}
               rules={[{ required: true, message: '请选择分类' }]}
             >
               <Select
                 placeholder="选择分类"
                 disabled={mode === 'view'}
+                className="category-select"
               >
                 {categories
                   .filter(cat => cat.id !== 'all' && cat.id !== 'starred')
@@ -324,7 +323,7 @@ const NeedEditor = ({
             {/* 收藏 */}
             <Form.Item
               name="starred"
-              label="收藏"
+              label={<span className="form-label">收藏</span>}
               valuePropName="checked"
             >
               <Switch
@@ -336,143 +335,23 @@ const NeedEditor = ({
           </Col>
         </Row>
 
-        <Row gutter={16}>
-          <Col span={8}>
-            {/* 教育层次 */}
-            <Form.Item
-              name="educationLevel"
-              label="教育层次"
-              rules={[{ required: true, message: '请选择教育层次' }]}
-            >
-              <Select
-                placeholder="选择教育层次"
-                disabled={mode === 'view'}
-              >
-                {Object.entries(EDUCATION_LEVELS).map(([key, value]) => (
-                  <Option key={key} value={key}>
-                    {value}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            {/* 角色 */}
-            <Form.Item
-              name="role"
-              label="角色"
-              rules={[{ required: true, message: '请选择角色' }]}
-            >
-              <Select
-                placeholder="选择角色"
-                disabled={mode === 'view'}
-              >
-                {Object.entries(ROLES).map(([key, value]) => (
-                  <Option key={key} value={key}>
-                    {value}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            {/* 培训类型 */}
-            <Form.Item
-              name="trainingType"
-              label="培训类型"
-              rules={[{ required: true, message: '请选择培训类型' }]}
-            >
-              <Select
-                placeholder="选择培训类型"
-                disabled={mode === 'view'}
-              >
-                {Object.entries(TRAINING_TYPES).map(([key, value]) => (
-                  <Option key={key} value={key}>
-                    {value}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col span={8}>
-            {/* 培训来源 */}
-            <Form.Item
-              name="source"
-              label="培训来源"
-              rules={[{ required: true, message: '请选择培训来源' }]}
-            >
-              <Select
-                placeholder="选择培训来源"
-                disabled={mode === 'view'}
-              >
-                {Object.entries(TRAINING_SOURCES).map(([key, value]) => (
-                  <Option key={key} value={key}>
-                    {value}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            {/* 优先级 */}
-            <Form.Item
-              name="priority"
-              label="优先级"
-              rules={[{ required: true, message: '请选择优先级' }]}
-            >
-              <Select
-                placeholder="选择优先级"
-                disabled={mode === 'view'}
-              >
-                {Object.entries(PRIORITY_LEVELS).map(([key, value]) => (
-                  <Option key={key} value={key}>
-                    {value}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            {/* 状态 */}
-            <Form.Item
-              name="status"
-              label="状态"
-              rules={[{ required: true, message: '请选择状态' }]}
-            >
-              <Select
-                placeholder="选择状态"
-                disabled={mode === 'view'}
-              >
-                {Object.entries(TRAINING_STATUS).map(([key, value]) => (
-                  <Option key={key} value={key}>
-                    {value}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Col>
-        </Row>
-
         {/* 标签 */}
-        <Form.Item label="标签">
-          <div className="tags-input">
+        <Form.Item label={<span className="form-label">标签</span>}>
+          <div className="tags-section">
             <div className="selected-tags">
               {selectedTags.map(tag => (
                 <Tag
                   key={tag}
                   closable={mode !== 'view'}
                   onClose={() => handleRemoveTag(tag)}
-                  color="blue"
+                  className="custom-tag"
                 >
                   {tag}
                 </Tag>
               ))}
             </div>
             {mode !== 'view' && (
-              <div className="tag-input-row">
+              <div className="tag-input-section">
                 <Input
                   placeholder="添加标签"
                   value={newTag}
@@ -512,8 +391,6 @@ const NeedEditor = ({
           </div>
         </Form.Item>
 
-        <Divider />
-
         {/* 格式化工具栏 */}
         {mode !== 'view' && !previewMode && (
           <div className="format-toolbar">
@@ -529,15 +406,14 @@ const NeedEditor = ({
                 </Tooltip>
               ))}
             </Space>
-            <Divider />
           </div>
         )}
 
         {/* 内容编辑区 */}
         <Form.Item
           name="content"
-          label="内容"
-          rules={[{ required: true, message: '请输入培训需求内容' }]}
+          label={<span className="form-label">内容</span>}
+          rules={[{ required: true, message: '请输入需求内容' }]}
         >
           {previewMode ? (
             <div className="content-preview">
@@ -546,7 +422,7 @@ const NeedEditor = ({
           ) : (
             <TextArea
               ref={textAreaRef}
-              placeholder="详细描述培训需求..."
+              placeholder="开始写下你的想法..."
               disabled={mode === 'view'}
               rows={12}
               onChange={handleContentChange}
