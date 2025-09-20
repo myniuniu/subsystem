@@ -147,6 +147,42 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
     message.success('新建笔记已添加到操作记录');
   };
 
+  // 生成基于实际来源的摘要内容
+  const generateSummaryContent = () => {
+    const allSources = [];
+    
+    // 收集所有资料来源
+    if (uploadedFiles.length > 0) {
+      allSources.push(`文档资料：${uploadedFiles.map(file => file.name).join('、')}`);
+    }
+    
+    if (links.length > 0) {
+      allSources.push(`网站链接：${links.map(link => link.title || link.url).join('、')}`);
+    }
+    
+    if (addedTexts.length > 0) {
+      allSources.push(`文本内容：${addedTexts.map(text => text.title).join('、')}`);
+    }
+    
+    if (courseVideos.length > 0) {
+      allSources.push(`视频资源：${courseVideos.map(video => video.title).join('、')}`);
+    }
+    
+    // 如果没有任何资料，返回默认提示
+    if (allSources.length === 0) {
+      return '暂无资料来源，请先添加文档、链接、文本或视频资源，系统将基于这些内容自动生成智能摘要。';
+    }
+    
+    // 基于实际来源生成摘要
+    const sourceTypes = [];
+    if (uploadedFiles.length > 0) sourceTypes.push('文档资料');
+    if (links.length > 0) sourceTypes.push('网站资源');
+    if (addedTexts.length > 0) sourceTypes.push('文本内容');
+    if (courseVideos.length > 0) sourceTypes.push('视频教程');
+    
+    return `已收集的资料包含${sourceTypes.join('、')}等多种类型的信息源。${allSources.join('；')}。这些资料为您提供了全面的信息基础，涵盖了相关主题的多个维度和视角，有助于深入理解和学习相关内容。`;
+  };
+
   // 处理探索功能
   const handleExplore = (exploreData) => {
     const { query, source } = exploreData;
@@ -1466,7 +1502,7 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
             </div>
             <Card size="small" style={{ marginBottom: '16px', backgroundColor: '#fff' }}>
                <Paragraph style={{ margin: 0, fontSize: '14px', lineHeight: '1.6' }}>
-                 收集的资料全面覆盖了教师专业发展与培训的各个维度，包括专业发展指导手册、现代教育技术应用资料、核心素养课程设计指南等理论文献；教师培训平台、教育技术研究网站等在线资源；培训需求分析、信息技术能力提升方案、差异化教学策略等实践方案；现代教学方法、技术整合、学生心理发展等专业视频；以及相关的实证研究论文、调研报告和成功案例分析。这些材料从理论基础、实践指导、技术应用、案例借鉴等多个角度，为教师专业发展和培训体系建设提供了系统性的参考依据和实施指导。
+                 {generateSummaryContent()}
                </Paragraph>
              </Card>
             
