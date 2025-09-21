@@ -48,7 +48,8 @@ import {
   BarChartOutlined,
   PieChartOutlined,
   LineChartOutlined,
-  DownOutlined
+  DownOutlined,
+  SyncOutlined
 } from '@ant-design/icons';
 import NoteEditor from './NoteEditor';
 import CategoryTagManager from './CategoryTagManager';
@@ -58,6 +59,7 @@ import ImportExport from './ImportExport';
 import NoteCreateModal from './NoteCreateModal';
 import NoteEditPage from './NoteEditPage';
 import notesService from '../services/notesService';
+import courseSelectionService from '../services/courseSelectionService';
 import mockDataGenerator from '../utils/mockDataGenerator';
 import './SmartNotes.css';
 
@@ -174,10 +176,39 @@ const SmartNotes = ({ onViewChange }) => {
 
   // 搜索和过滤
   useEffect(() => {
-    const filtered = notesService.searchNotes(searchTerm, {
-      category: selectedCategory,
-      tags: selectedTags
-    });
+    let filtered = notes;
+
+    // 按分类筛选
+    if (selectedCategory && selectedCategory !== 'all') {
+      if (selectedCategory === 'organizational_training') {
+        // 筛选组织培训相关的笔记
+        filtered = filtered.filter(note => 
+          note.courseType === 'organizational_training' || 
+          note.tags?.includes('组织培训') ||
+          note.category === 'organizational_training'
+        );
+      } else {
+        filtered = filtered.filter(note => note.category === selectedCategory);
+      }
+    }
+
+    // 按标签筛选
+    if (selectedTags && selectedTags.length > 0) {
+      filtered = filtered.filter(note => 
+        selectedTags.some(tag => note.tags?.includes(tag))
+      );
+    }
+
+    // 按搜索词筛选
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(note =>
+        note.title.toLowerCase().includes(term) ||
+        note.content.toLowerCase().includes(term) ||
+        note.tags?.some(tag => tag.toLowerCase().includes(term))
+      );
+    }
+
     setFilteredNotes(filtered);
   }, [notes, selectedCategory, selectedTags, searchTerm]);
 
@@ -318,6 +349,91 @@ const SmartNotes = ({ onViewChange }) => {
   const handleOpenAIAssistant = (note = null) => {
     setAISelectedNote(note || selectedNote);
     setIsAIAssistantVisible(true);
+  };
+
+  // 同步选课功能
+  const handleSyncCourseSelection = async () => {
+    try {
+      setLoading(true);
+      
+      // 获取所有选课记录
+      const courses = courseSelectionService.getAllCourses();
+      
+      if (courses.length === 0) {
+        message.warning('暂无选课记录可同步');
+        return;
+      }
+
+      // 将选课记录转换为智能笔记
+      const syncedNotes = courses.map(course => ({
+        id: `course_${course.id}`,
+        title: `【选课同步】${course.title}`,
+        content: `## 课程信息
+**课程名称：** ${course.title}
+**课程类型：** ${course.type === 'organizational_training' ? '组织培训' : '自主学习'}
+**课程状态：** ${course.status}
+**创建时间：** ${course.createdAt}
+
+## 课程描述
+${course.description || '暂无描述'}
+
+## 课程内容
+${course.content || '暂无详细内容'}
+
+${course.instructor ? `**主讲教师：** ${course.instructor}` : ''}
+${course.schedule ? `**课程安排：** ${JSON.stringify(course.schedule)}` : ''}
+
+---
+*此笔记由选课系统自动同步生成*`,
+        category: 'study',
+        tags: [
+          '选课同步',
+          course.type === 'organizational_training' ? '组织培训' : '自主学习',
+          ...(course.tags || [])
+        ],
+        source: '选课系统',
+        courseId: course.id,
+        courseType: course.type,
+        starred: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }));
+
+      // 检查重复并保存笔记
+      let addedCount = 0;
+      for (const note of syncedNotes) {
+        const existingNote = notes.find(n => n.courseId === note.courseId);
+        if (!existingNote) {
+          await notesService.createNote(note);
+          addedCount++;
+        }
+      }
+
+      // 重新加载数据
+      await loadData();
+      
+      if (addedCount > 0) {
+        message.success(`成功同步 ${addedCount} 条选课记录`);
+      } else {
+        message.info('所有选课记录已同步，无新增内容');
+      }
+    } catch (error) {
+      console.error('同步选课失败:', error);
+      message.error('同步选课失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 组织培训快速筛选功能
+  const handleOrgTrainingFilter = () => {
+    if (selectedCategory === 'organizational_training') {
+      // 如果已经是组织培训筛选，则切换回全部
+      setSelectedCategory('all');
+    } else {
+      // 切换到组织培训筛选
+      setSelectedCategory('organizational_training');
+    }
   };
 
   // 高级搜索功能
@@ -726,6 +842,21 @@ ${timelineData.map(note => {
                   onClick={handleImportExport}
                 >
                   导入导出
+                </Button>
+                <Button 
+                  className="sync-course-btn"
+                  icon={<SyncOutlined />}
+                  onClick={handleSyncCourseSelection}
+                  size="large"
+                >
+                  同步选课
+                </Button>
+                <Button 
+                  className="org-training-filter-btn"
+                  type={selectedCategory === 'organizational_training' ? 'primary' : 'default'}
+                  onClick={handleOrgTrainingFilter}
+                >
+                  🏢 组织培训
                 </Button>
                 <Dropdown
                   menu={{

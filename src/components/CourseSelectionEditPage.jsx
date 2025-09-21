@@ -40,8 +40,10 @@ import {
   EyeOutlined,
   PlayCircleOutlined,
   GlobalOutlined,
+  // 导入图标
   MoreOutlined,
-  EditOutlined
+  EditOutlined,
+  SettingOutlined
 } from '@ant-design/icons';
 
 const { Content, Sider } = Layout;
@@ -229,6 +231,10 @@ const CourseSelectionEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'c
   
   // 探索弹窗相关状态
   const [showExploreModal, setShowExploreModal] = useState(false);
+  
+  // 配置弹窗相关状态
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [configType, setConfigType] = useState(''); // 'schedule' 或 'training-plan'
   
   // 操作记录状态
   const [operationRecords, setOperationRecords] = useState({
@@ -2553,6 +2559,37 @@ const CourseSelectionEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'c
                         }}>{config.label}</Text>
                       </div>
                     </Card>
+                    
+                    {/* 配置按钮 - 只为课程推荐和培训方案显示 */}
+                    {(toolType === 'schedule' || toolType === 'training-plan') && (
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<SettingOutlined />}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setConfigType(toolType);
+                          setShowConfigModal(true);
+                        }}
+                        style={{
+                          position: 'absolute',
+                          top: '-5px',
+                          left: '-5px',
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '50%',
+                          backgroundColor: '#1890ff',
+                          color: 'white',
+                          fontSize: '10px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: 0,
+                          minWidth: 'auto'
+                        }}
+                      />
+                    )}
+                    
                     {/* 移除按钮 */}
                     {visibleTools.length > 2 && (
                       <Button
@@ -2631,7 +2668,7 @@ const CourseSelectionEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'c
                   hoverable
                   style={{ 
                     background: 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)',
-                    border: '2px dashed #d9d9d9',
+                    border: 'none',
                     borderRadius: '12px',
                     textAlign: 'center',
                     cursor: 'pointer',
@@ -3122,6 +3159,108 @@ const CourseSelectionEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'c
         onClose={() => setShowExploreModal(false)}
         onExplore={handleExplore}
       />
+
+      {/* 配置弹窗 */}
+      <Modal
+        title={`${configType === 'schedule' ? '课程推荐' : '培训方案'}配置`}
+        visible={showConfigModal}
+        onCancel={() => setShowConfigModal(false)}
+        onOk={() => {
+          message.success('配置保存成功');
+          setShowConfigModal(false);
+        }}
+        width={600}
+      >
+        <div style={{ padding: '20px 0' }}>
+          {configType === 'schedule' && (
+            <div>
+              <Title level={5}>课程推荐配置</Title>
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <div>
+                  <Text strong>推荐算法：</Text>
+                  <Select defaultValue="collaborative" style={{ width: 200, marginLeft: 10 }}>
+                    <Option value="collaborative">协同过滤</Option>
+                    <Option value="content">内容推荐</Option>
+                    <Option value="hybrid">混合推荐</Option>
+                  </Select>
+                </div>
+                <div>
+                  <Text strong>推荐数量：</Text>
+                  <Select defaultValue="10" style={{ width: 100, marginLeft: 10 }}>
+                    <Option value="5">5门</Option>
+                    <Option value="10">10门</Option>
+                    <Option value="15">15门</Option>
+                    <Option value="20">20门</Option>
+                  </Select>
+                </div>
+                <div>
+                  <Text strong>难度偏好：</Text>
+                  <Select defaultValue="auto" style={{ width: 150, marginLeft: 10 }}>
+                    <Option value="beginner">初级</Option>
+                    <Option value="intermediate">中级</Option>
+                    <Option value="advanced">高级</Option>
+                    <Option value="auto">自动匹配</Option>
+                  </Select>
+                </div>
+                <div>
+                  <Checkbox defaultChecked>考虑学习历史</Checkbox>
+                </div>
+                <div>
+                  <Checkbox defaultChecked>考虑同事偏好</Checkbox>
+                </div>
+                <div>
+                  <Checkbox>优先推荐热门课程</Checkbox>
+                </div>
+              </Space>
+            </div>
+          )}
+          
+          {configType === 'training-plan' && (
+            <div>
+              <Title level={5}>培训方案配置</Title>
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <div>
+                  <Text strong>方案类型：</Text>
+                  <Select defaultValue="standard" style={{ width: 200, marginLeft: 10 }}>
+                    <Option value="standard">标准方案</Option>
+                    <Option value="custom">定制方案</Option>
+                    <Option value="intensive">强化方案</Option>
+                  </Select>
+                </div>
+                <div>
+                  <Text strong>培训周期：</Text>
+                  <Select defaultValue="4" style={{ width: 150, marginLeft: 10 }}>
+                    <Option value="2">2周</Option>
+                    <Option value="4">4周</Option>
+                    <Option value="8">8周</Option>
+                    <Option value="12">12周</Option>
+                  </Select>
+                </div>
+                <div>
+                  <Text strong>学习强度：</Text>
+                  <Select defaultValue="medium" style={{ width: 120, marginLeft: 10 }}>
+                    <Option value="low">轻松</Option>
+                    <Option value="medium">适中</Option>
+                    <Option value="high">紧凑</Option>
+                  </Select>
+                </div>
+                <div>
+                  <Checkbox defaultChecked>包含实践环节</Checkbox>
+                </div>
+                <div>
+                  <Checkbox defaultChecked>包含考核评估</Checkbox>
+                </div>
+                <div>
+                  <Checkbox>包含小组讨论</Checkbox>
+                </div>
+                <div>
+                  <Checkbox>自动生成学习路径</Checkbox>
+                </div>
+              </Space>
+            </div>
+          )}
+        </div>
+      </Modal>
     </>
   );
 };

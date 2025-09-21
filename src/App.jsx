@@ -37,7 +37,7 @@ import TrainingNeeds from './components/TrainingNeeds'
 import NeedEditPage from './components/NeedEditPage'
 import CourseSelection from './components/CourseSelection'
 import CourseSelectionEditPage from './components/CourseSelectionEditPage'
-import CoursePlanning from './components/CoursePlanning'
+
 import './App.css'
 
 const { Header: AntHeader, Sider, Content } = Layout
@@ -389,8 +389,6 @@ function App() {
                 selectedNeed={pageState.selectedNeed}
                 mode={pageState.editorMode}
               />
-            ) : currentView === 'course-planning' ? (
-              <CoursePlanning />
             ) : (
               <MainContent 
                 currentView={currentView}
