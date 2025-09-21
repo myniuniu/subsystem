@@ -359,7 +359,46 @@ const SmartNotes = ({ onViewChange }) => {
     setIsAIAssistantVisible(true);
   };
 
-  // 同步选课功能
+  // 同步组织培训课程功能
+  const handleSyncOrganizationalTraining = async () => {
+    try {
+      setLoading(true);
+      
+      // 获取所有组织培训课程
+      const allCourses = courseSelectionService.getAllCourses();
+      const organizationalCourses = allCourses.filter(course => 
+        course.type === 'organizational_training'
+      );
+      
+      if (organizationalCourses.length === 0) {
+        message.warning('暂无组织培训课程可同步');
+        return;
+      }
+
+      // 使用智能笔记服务的同步功能
+      const result = notesService.syncOrganizationalCourses(organizationalCourses);
+      
+      if (result.success) {
+        // 重新加载数据
+        await loadData();
+        
+        if (result.syncedCount > 0) {
+          message.success(`成功同步 ${result.syncedCount} 条组织培训课程`);
+        } else {
+          message.info('所有组织培训课程已同步，无新增内容');
+        }
+      } else {
+        message.error(`同步失败：${result.error}`);
+      }
+    } catch (error) {
+      console.error('同步组织培训课程失败:', error);
+      message.error('同步组织培训课程失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 同步选课功能（保留原有功能，但使用新的服务方法）
   const handleSyncCourseSelection = async () => {
     try {
       setLoading(true);
@@ -372,58 +411,20 @@ const SmartNotes = ({ onViewChange }) => {
         return;
       }
 
-      // 将选课记录转换为智能笔记
-      const syncedNotes = courses.map(course => ({
-        id: `course_${course.id}`,
-        title: `【选课同步】${course.title}`,
-        content: `## 课程信息
-**课程名称：** ${course.title}
-**课程类型：** ${course.type === 'organizational_training' ? '组织培训' : '自主学习'}
-**课程状态：** ${course.status}
-**创建时间：** ${course.createdAt}
-
-## 课程描述
-${course.description || '暂无描述'}
-
-## 课程内容
-${course.content || '暂无详细内容'}
-
-${course.instructor ? `**主讲教师：** ${course.instructor}` : ''}
-${course.schedule ? `**课程安排：** ${JSON.stringify(course.schedule)}` : ''}
-
----
-*此笔记由选课系统自动同步生成*`,
-        category: 'study',
-        tags: [
-          '选课同步',
-          course.type === 'organizational_training' ? '组织培训' : '自主学习',
-          ...(course.tags || [])
-        ],
-        source: '选课系统',
-        courseId: course.id,
-        courseType: course.type,
-        starred: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }));
-
-      // 检查重复并保存笔记
-      let addedCount = 0;
-      for (const note of syncedNotes) {
-        const existingNote = notes.find(n => n.courseId === note.courseId);
-        if (!existingNote) {
-          await notesService.createNote(note);
-          addedCount++;
-        }
-      }
-
-      // 重新加载数据
-      await loadData();
+      // 使用智能笔记服务的同步功能
+      const result = notesService.syncOrganizationalCourses(courses);
       
-      if (addedCount > 0) {
-        message.success(`成功同步 ${addedCount} 条选课记录`);
+      if (result.success) {
+        // 重新加载数据
+        await loadData();
+        
+        if (result.syncedCount > 0) {
+          message.success(`成功同步 ${result.syncedCount} 条选课记录`);
+        } else {
+          message.info('所有选课记录已同步，无新增内容');
+        }
       } else {
-        message.info('所有选课记录已同步，无新增内容');
+        message.error(`同步失败：${result.error}`);
       }
     } catch (error) {
       console.error('同步选课失败:', error);
@@ -880,6 +881,15 @@ ${timelineData.map(note => {
                   size="large"
                 >
                   同步选课
+                </Button>
+                <Button 
+                  className="sync-org-training-btn"
+                  icon={<SyncOutlined />}
+                  onClick={handleSyncOrganizationalTraining}
+                  size="large"
+                  type="default"
+                >
+                  同步组织培训
                 </Button>
                 <Dropdown
                   menu={{

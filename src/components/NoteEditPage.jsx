@@ -57,6 +57,11 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     ] : note?.materials?.files || []
   );
   
+  // 组织培训课程来源状态
+  const [organizationalCourses, setOrganizationalCourses] = useState(
+    note?.organizationalCourses || []
+  );
+  
   // 多选功能状态
   const [selectedMaterials, setSelectedMaterials] = useState([]);
   const [showMaterialDetail, setShowMaterialDetail] = useState(false);
@@ -176,6 +181,10 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
       allSources.push(`视频资源：${courseVideos.map(video => video.title).join('、')}`);
     }
     
+    if (organizationalCourses.length > 0) {
+      allSources.push(`组织培训：${organizationalCourses.map(course => course.title).join('、')}`);
+    }
+    
     // 如果没有任何资料，返回默认提示
     if (allSources.length === 0) {
       return '暂无资料来源，请先添加文档、链接、文本或视频资源，系统将基于这些内容自动生成智能摘要。';
@@ -187,6 +196,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     if (links.length > 0) sourceTypes.push('网站资源');
     if (addedTexts.length > 0) sourceTypes.push('文本内容');
     if (courseVideos.length > 0) sourceTypes.push('视频教程');
+    if (organizationalCourses.length > 0) sourceTypes.push('组织培训');
     
     return `已收集的资料包含${sourceTypes.join('、')}等多种类型的信息源。${allSources.join('；')}。这些资料为您提供了全面的信息基础，涵盖了相关主题的多个维度和视角，有助于深入理解和学习相关内容。`;
   };
@@ -745,7 +755,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
         ...uploadedFiles.map(file => `file-${file.id}`),
         ...addedTexts.map(text => `text-${text.id}`),
         ...courseVideos.map(video => `video-${video.id}`),
-        ...links.map(link => `link-${link.id}`)
+        ...links.map(link => `link-${link.id}`),
+        ...organizationalCourses.map(course => `course-${course.id}`)
       ];
       setSelectedMaterials(allMaterialIds);
     } else {
@@ -770,6 +781,9 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
           break;
         case 'link':
           setLinks(prev => prev.filter(link => link.id !== numId));
+          break;
+        case 'course':
+          setOrganizationalCourses(prev => prev.filter(course => course.id !== numId));
           break;
       }
     });
@@ -840,6 +854,17 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
         ];
         smartNote.tags = ['文字', hasMarkdown ? 'Markdown' : '纯文本'];
         break;
+      
+      case 'course':
+        smartNote.summary = `组织培训课程：${material.title}。${material.description || ''}培训类型：${material.trainingType}，学习时长：${material.duration}。`;
+        smartNote.keyPoints = [
+          `培训类型：${material.trainingType}`,
+          `学习时长：${material.duration}`,
+          `课程状态：${material.status}`,
+          '来源：组织培训'
+        ];
+        smartNote.tags = ['组织培训', material.trainingType, '课程'];
+        break;
     }
 
     return smartNote;
@@ -864,6 +889,10 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     
     links.forEach(link => {
       notes.push(generateSmartNote(link, 'link'));
+    });
+
+    organizationalCourses.forEach(course => {
+      notes.push(generateSmartNote(course, 'course'));
     });
 
     if (notes.length > 0) {
@@ -1109,10 +1138,10 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
               <Checkbox 
                 style={{ marginLeft: 'auto' }}
                 checked={selectedMaterials.length > 0 && selectedMaterials.length === (
-                  uploadedFiles.length + addedTexts.length + courseVideos.length + links.length
+                  uploadedFiles.length + addedTexts.length + courseVideos.length + links.length + organizationalCourses.length
                 )}
                 indeterminate={selectedMaterials.length > 0 && selectedMaterials.length < (
-                  uploadedFiles.length + addedTexts.length + courseVideos.length + links.length
+                  uploadedFiles.length + addedTexts.length + courseVideos.length + links.length + organizationalCourses.length
                 )}
                 onChange={(e) => handleSelectAll(e.target.checked)}
               />
@@ -1461,6 +1490,102 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                       <Checkbox
                         checked={selectedMaterials.includes(`link-${link.id}`)}
                         onChange={(e) => handleSelectMaterial(`link-${link.id}`, e.target.checked)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                  </Card>
+                );
+              })}
+              
+              {/* 组织培训课程 */}
+              {organizationalCourses.map(course => {
+                const [isHovered, setIsHovered] = React.useState(false);
+                return (
+                  <Card 
+                    key={`course-${course.id}`} 
+                    size="small" 
+                    style={{ 
+                      marginBottom: 8,
+                      border: selectedMaterials.includes(`course-${course.id}`) ? '2px solid #1890ff' : '1px solid #f0f0f0',
+                      backgroundColor: selectedMaterials.includes(`course-${course.id}`) ? '#f6ffed' : 'white'
+                    }}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div 
+                        style={{ display: 'flex', alignItems: 'center', flex: 1, cursor: 'pointer' }}
+                        onClick={() => handleViewMaterial(course, 'course')}
+                      >
+                        {isHovered ? (
+                           <Dropdown
+                             menu={{
+                               items: [
+                                 {
+                                   key: 'view',
+                                   label: '查看详情',
+                                   icon: <EyeOutlined />,
+                                   onClick: () => {
+                                     Modal.info({
+                                       title: course.title,
+                                       content: (
+                                         <div>
+                                           <p><strong>课程描述：</strong>{course.description}</p>
+                                           <p><strong>培训类型：</strong>{course.trainingType}</p>
+                                           <p><strong>学习时长：</strong>{course.duration}</p>
+                                           <p><strong>课程状态：</strong>{course.status}</p>
+                                         </div>
+                                       ),
+                                       width: 600
+                                     });
+                                   }
+                                 },
+                                 {
+                                    key: 'delete',
+                                    label: '移除',
+                                    icon: <DeleteOutlined />,
+                                    onClick: () => {
+                                      Modal.confirm({
+                                        title: '确认移除',
+                                        content: `确定要从资料来源中移除课程"${course.title}"吗？`,
+                                        okText: '确定',
+                                        cancelText: '取消',
+                                        onOk: () => {
+                                          setOrganizationalCourses(prev => 
+                                            prev.filter(c => c.id !== course.id)
+                                          );
+                                          message.success('课程已从资料来源中移除');
+                                        }
+                                      });
+                                    },
+                                    danger: true
+                                  }
+                               ]
+                             }}
+                             trigger={['click']}
+                           >
+                            <Button 
+                              type="text" 
+                              size="small" 
+                              icon={<MoreOutlined />}
+                              onClick={(e) => e.stopPropagation()}
+                              style={{ marginRight: 8 }}
+                            />
+                          </Dropdown>
+                        ) : (
+                          <PlayCircleOutlined style={{ fontSize: 16, color: '#52c41a', marginRight: 8 }} />
+                        )}
+                        <div style={{ flex: 1 }}>
+                          <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{course.title}</Text>
+                          <br />
+                          <Text type="secondary" style={{ fontSize: 10 }} ellipsis>
+                            {course.trainingType} · {course.duration}
+                          </Text>
+                        </div>
+                      </div>
+                      <Checkbox
+                        checked={selectedMaterials.includes(`course-${course.id}`)}
+                        onChange={(e) => handleSelectMaterial(`course-${course.id}`, e.target.checked)}
                         onClick={(e) => e.stopPropagation()}
                       />
                     </div>

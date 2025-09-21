@@ -650,6 +650,200 @@ class NotesService {
     localStorage.removeItem('search_history');
     return true;
   }
+
+  // 同步组织培训课程到智能笔记
+  syncOrganizationalCourses(courses) {
+    try {
+      const existingNotes = this.getAllNotes();
+      const syncedNotes = [];
+      
+      courses.forEach(course => {
+        // 检查是否已经同步过该课程
+        const existingNote = existingNotes.find(note => 
+          note.source === '组织培训' && note.courseId === course.id
+        );
+        
+        if (!existingNote) {
+          // 创建新的智能笔记
+          const noteData = {
+            title: `【组织培训】${course.title}`,
+            content: this.generateCourseNoteContent(course),
+            category: 'study',
+            tags: this.generateCourseTags(course),
+            source: '组织培训',
+            courseId: course.id,
+            courseType: course.type,
+            starred: false
+          };
+          
+          const newNote = this.createNote(noteData);
+          syncedNotes.push(newNote);
+        } else {
+          // 更新现有笔记
+          const updatedContent = this.generateCourseNoteContent(course);
+          const updatedTags = this.generateCourseTags(course);
+          
+          this.updateNote(existingNote.id, {
+            title: `【组织培训】${course.title}`,
+            content: updatedContent,
+            tags: updatedTags,
+            updatedAt: new Date().toISOString()
+          });
+          
+          syncedNotes.push(existingNote);
+        }
+      });
+      
+      return {
+        success: true,
+        syncedCount: syncedNotes.length,
+        syncedNotes: syncedNotes
+      };
+    } catch (error) {
+      console.error('同步组织培训课程失败:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  // 生成课程笔记内容
+  generateCourseNoteContent(course) {
+    const statusMap = {
+      '待开课': '📅 待开课',
+      '进行中': '🔄 进行中',
+      '已完成': '✅已完成',
+      '已取消': '❌ 已取消'
+    };
+
+    const typeMap = {
+      'organizational_training': '组织培训',
+      'self_learning': '自主学习'
+    };
+
+    const categoryMap = {
+      'teaching_methods': '教学方法',
+      'student_management': '学生管理',
+      'educational_tech': '教育技术',
+      'curriculum_design': '课程设计',
+      'policy_compliance': '政策合规'
+    };
+
+    return `## 课程基本信息
+
+**课程名称：** ${course.title}
+**课程类型：** ${typeMap[course.type] || course.type}
+**课程分类：** ${categoryMap[course.category] || course.category}
+**课程状态：** ${statusMap[course.status] || course.status}
+**创建时间：** ${new Date(course.createdAt).toLocaleString()}
+**更新时间：** ${new Date(course.updatedAt).toLocaleString()}
+
+## 课程描述
+
+${course.description || '暂无课程描述'}
+
+## 课程内容
+
+${course.content || '暂无详细课程内容'}
+
+${course.instructor ? `## 主讲教师\n\n**教师：** ${course.instructor}` : ''}
+
+${course.schedule ? `## 课程安排\n\n${JSON.stringify(course.schedule, null, 2)}` : ''}
+
+${course.participants && course.participants.length > 0 ? `## 参与人员\n\n${course.participants.map(p => `- ${p}`).join('\n')}` : ''}
+
+## 学习笔记
+
+*在此处记录学习心得和要点...*
+
+---
+
+**数据来源：** 组织培训系统  
+**同步时间：** ${new Date().toLocaleString()}  
+**课程ID：** ${course.id}`;
+  }
+
+  // 生成课程标签
+  generateCourseTags(course) {
+    const tags = ['组织培训'];
+    
+    // 添加课程状态标签
+    if (course.status) {
+      tags.push(course.status);
+    }
+    
+    // 添加课程分类标签
+    const categoryMap = {
+      'teaching_methods': '教学方法',
+      'student_management': '学生管理',
+      'educational_tech': '教育技术',
+      'curriculum_design': '课程设计',
+      'policy_compliance': '政策合规'
+    };
+    
+    if (course.category && categoryMap[course.category]) {
+      tags.push(categoryMap[course.category]);
+    }
+    
+    // 添加原有标签
+    if (course.tags && Array.isArray(course.tags)) {
+      tags.push(...course.tags);
+    }
+    
+    // 去重并返回
+    return [...new Set(tags)];
+  }
+
+  // 获取来自组织培训的笔记
+  getOrganizationalTrainingNotes() {
+    try {
+      const notes = this.getAllNotes();
+      return notes.filter(note => note.source === '组织培训');
+    } catch (error) {
+      console.error('获取组织培训笔记失败:', error);
+      return [];
+    }
+  }
+
+  // 删除组织培训同步的笔记
+  removeOrganizationalTrainingNotes(courseIds = []) {
+    try {
+      const notes = this.getAllNotes();
+      let removedCount = 0;
+      
+      if (courseIds.length > 0) {
+        // 删除指定课程的笔记
+        const notesToRemove = notes.filter(note => 
+          note.source === '组织培训' && courseIds.includes(note.courseId)
+        );
+        
+        notesToRemove.forEach(note => {
+          this.deleteNote(note.id);
+          removedCount++;
+        });
+      } else {
+        // 删除所有组织培训笔记
+        const notesToRemove = notes.filter(note => note.source === '组织培训');
+        
+        notesToRemove.forEach(note => {
+          this.deleteNote(note.id);
+          removedCount++;
+        });
+      }
+      
+      return {
+        success: true,
+        removedCount: removedCount
+      };
+    } catch (error) {
+      console.error('删除组织培训笔记失败:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
 }
 
 // 创建单例实例
