@@ -354,6 +354,13 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
        type: 'single'
      },
     { 
+       id: 'course-selection', 
+       icon: BookOpen, 
+       label: '选课模块', 
+       color: '#13c2c2',
+       type: 'single'
+     },
+    { 
        id: 'course-planning', 
        icon: BookOpen, 
        label: '配课模块', 

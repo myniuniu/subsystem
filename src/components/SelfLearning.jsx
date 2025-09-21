@@ -86,13 +86,13 @@ const SelfLearning = ({ onBack }) => {
 
   // 初始化示例数据
   useEffect(() => {
-    // 加载培训需求数据
+    // 加载培训选课数据
     const loadTrainingNeeds = () => {
       try {
         const needs = needsService.getAllNeeds();
         setTrainingNeeds(needs);
       } catch (error) {
-        console.error('加载培训需求失败:', error);
+        console.error('加载培训选课失败:', error);
       }
     };
 
@@ -169,14 +169,14 @@ const SelfLearning = ({ onBack }) => {
     message.success('学习主题创建成功！');
   };
 
-  // 基于培训需求创建学习主题
+  // 基于培训选课创建学习主题
   const createTopicFromNeed = (need) => {
     const newTopic = {
       id: `topic-${Date.now()}`,
       title: `学习主题：${need.title}`,
-      description: need.content || need.description || '基于培训需求创建的学习主题',
+      description: need.content || need.description || '基于培训选课创建的学习主题',
       category: need.category || 'general',
-      tags: [...(need.tags || []), '来自培训需求'],
+      tags: [...(need.tags || []), '来自培训选课'],
       createdAt: new Date(),
       status: 'active',
       courses: [],
@@ -184,10 +184,10 @@ const SelfLearning = ({ onBack }) => {
     };
     
     setMyTopics(prev => [...prev, newTopic]);
-    message.success('已基于培训需求创建学习主题！');
+    message.success('已基于培训选课创建学习主题！');
   };
 
-  // 获取相关培训需求
+  // 获取相关培训选课
   const getRelatedNeeds = (topic) => {
     if (!topic || !trainingNeeds.length) return [];
     
@@ -478,16 +478,16 @@ const SelfLearning = ({ onBack }) => {
     </div>
   );
 
-  // 渲染培训需求
+  // 渲染培训选课
   const renderTrainingNeeds = () => (
     <div>
       <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <Title level={4}>培训需求</Title>
-          <Text type="secondary">查看培训需求并创建相关学习主题</Text>
+          <Title level={4}>培训选课</Title>
+          <Text type="secondary">查看培训选课并创建相关学习主题</Text>
         </div>
         <Space>
-          <Button icon={<SearchOutlined />}>搜索需求</Button>
+          <Button icon={<SearchOutlined />}>搜索选课</Button>
           <Button icon={<FilterOutlined />}>筛选</Button>
         </Space>
       </div>
@@ -496,7 +496,7 @@ const SelfLearning = ({ onBack }) => {
         <Card>
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description="暂无培训需求数据"
+            description="暂无培训选课数据"
           />
         </Card>
       ) : (
@@ -571,7 +571,7 @@ const SelfLearning = ({ onBack }) => {
 
       {trainingNeeds.length > 12 && (
         <div style={{ textAlign: 'center', marginTop: 24 }}>
-          <Button>查看更多培训需求</Button>
+          <Button>查看更多培训选课</Button>
         </div>
       )}
     </div>
@@ -699,7 +699,7 @@ const SelfLearning = ({ onBack }) => {
           <TabPane tab="我的主题" key="my-topics" icon={<BulbOutlined />}>
             {renderMyTopics()}
           </TabPane>
-          <TabPane tab="培训需求" key="training-needs" icon={<FileTextOutlined />}>
+          <TabPane tab="培训选课" key="training-needs" icon={<FileTextOutlined />}>
             {renderTrainingNeeds()}
           </TabPane>
           <TabPane tab="课程管理" key="course-management" icon={<BookOutlined />}>
@@ -767,10 +767,10 @@ const SelfLearning = ({ onBack }) => {
 
             <Form.Item
               name="relatedNeedId"
-              label="关联培训需求"
+              label="关联培训选课"
             >
               <Select
-                placeholder="选择相关的培训需求（可选）"
+                placeholder="选择相关的培训选课（可选）"
                 allowClear
                 showSearch
                 optionFilterProp="children"

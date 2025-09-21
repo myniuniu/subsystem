@@ -35,6 +35,8 @@ import SmartNotes from './components/SmartNotes'
 import NoteEditPage from './components/NoteEditPage'
 import TrainingNeeds from './components/TrainingNeeds'
 import NeedEditPage from './components/NeedEditPage'
+import CourseSelection from './components/CourseSelection'
+import CourseSelectionEditPage from './components/CourseSelectionEditPage'
 import CoursePlanning from './components/CoursePlanning'
 import './App.css'
 
@@ -368,9 +370,21 @@ function App() {
                 onViewChange={handleViewChange}
                 pageState={pageState}
               />
+            ) : currentView === 'course-selection' ? (
+              <CourseSelection 
+                onViewChange={handleViewChange}
+                pageState={pageState}
+              />
             ) : currentView === 'need-edit-page' ? (
               <NeedEditPage 
                 onBack={() => handleViewChange('training-needs')}
+                onViewChange={handleViewChange}
+                selectedNeed={pageState.selectedNeed}
+                mode={pageState.editorMode}
+              />
+            ) : currentView === 'course-selection-edit-page' ? (
+              <CourseSelectionEditPage 
+                onBack={() => handleViewChange('course-selection')}
                 onViewChange={handleViewChange}
                 selectedNeed={pageState.selectedNeed}
                 mode={pageState.editorMode}

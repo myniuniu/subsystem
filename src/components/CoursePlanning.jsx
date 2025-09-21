@@ -189,7 +189,7 @@ const CoursePlanning = ({ onBack, onModeSelect }) => {
               配课模块 - 智能学习资源配置中心
             </Title>
             <Paragraph style={{ color: 'rgba(255,255,255,0.9)', fontSize: 16, marginBottom: 16 }}>
-              连接培训需求与学习资源的核心枢纽，支持组织学习与自主学习双模式
+              连接培训选课与学习资源的核心枢纽，支持组织学习与自主学习双模式
             </Paragraph>
             <Space size="large">
               <Button
@@ -236,7 +236,7 @@ const CoursePlanning = ({ onBack, onModeSelect }) => {
               />
               <Title level={3}>组织学习模式</Title>
               <Paragraph type="secondary" style={{ marginBottom: 16 }}>
-                围绕培训需求主题，实现需求-资源-人群的精准匹配，保障组织培训目标落地
+                围绕培训选课主题，实现选课-资源-人群的精准匹配，保障组织培训目标落地
               </Paragraph>
               <div className="feature-tags">
                 <Tag color="blue">培训主题管理</Tag>
@@ -263,7 +263,7 @@ const CoursePlanning = ({ onBack, onModeSelect }) => {
               />
               <Title level={3}>自主学习模式</Title>
               <Paragraph type="secondary" style={{ marginBottom: 16 }}>
-                支持用户围绕自定义主题，自主组合资源、生成学习路径，满足个性化兴趣需求
+                支持用户围绕自定义主题，自主组合资源、生成学习路径，满足个性化兴趣选课
               </Paragraph>
               <div className="feature-tags">
                 <Tag color="green">个性化推荐</Tag>

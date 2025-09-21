@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Layout,
   Card,
   Button,
   Typography,
@@ -72,7 +71,6 @@ import needsService from '../services/needsService';
 import AIAssistant from './AIAssistant';
 import CourseWorkspace from './CourseWorkspace';
 
-const { Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
 const { TabPane } = Tabs;
@@ -85,24 +83,24 @@ const OrganizationLearning = ({ onBack }) => {
   const [showAIAssistant, setShowAIAssistant] = useState(false);
 
   useEffect(() => {
-    // 获取培训需求数据
+    // 获取培训选课数据
     const fetchTrainingNeeds = async () => {
       try {
         const needs = needsService.getAllNeeds();
         setTrainingNeeds(needs);
-        // 默认选择第一个培训需求
+        // 默认选择第一个培训选课
         if (needs.length > 0) {
           setSelectedNeed(needs[0]);
         }
       } catch (error) {
-        message.error('获取培训需求失败');
+        message.error('获取培训选课失败');
       }
     };
 
     fetchTrainingNeeds();
   }, []);
 
-  // 处理培训需求切换
+  // 处理培训选课切换
   const handleNeedChange = (needId) => {
     const need = trainingNeeds.find(n => n.id === needId);
     setSelectedNeed(need);
@@ -114,7 +112,7 @@ const OrganizationLearning = ({ onBack }) => {
       label: (
         <span>
           <ExperimentOutlined />
-          培训需求
+          培训选课
         </span>
       ),
       children: (
@@ -195,132 +193,58 @@ const OrganizationLearning = ({ onBack }) => {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
-      <Content style={{ padding: '24px' }}>
-        {/* 整合后的单一标题栏 */}
-        <div style={{ 
-          background: '#fff', 
-          padding: '16px 24px', 
-          borderRadius: '8px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-          marginBottom: '16px'
-        }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      background: '#f0f2f5',
+      padding: '16px'
+    }}>
+      {/* 配课工作台主体 - 移除标题栏，扩大主体区域 */}
+      <div style={{ 
+        background: '#fff', 
+        padding: '20px', 
+        borderRadius: '6px',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+        height: 'calc(100vh - 32px)',
+        overflow: 'hidden'
+      }}>
+        {selectedNeed ? (
+          <CourseWorkspace
+            trainingNeed={selectedNeed}
+            onBack={() => setSelectedNeed(null)}
+            onSave={(plan) => {
+              message.success(`配课方案"${plan.name}"已保存`);
+            }}
+            hideHeader={true}
+          />
+        ) : (
           <div style={{ 
             display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center'
+            flexDirection: 'column',
+            alignItems: 'center', 
+            justifyContent: 'center',
+            height: '100%',
+            color: '#8c8c8c'
           }}>
-            <Space>
-              <Button icon={<ArrowLeftOutlined />} onClick={onBack}>
-                返回
-              </Button>
-              <Title level={2} style={{ margin: 0 }}>
-                组织学习 - 配课工作台
-                {selectedNeed && (
-                  <Text type="secondary" style={{ fontSize: '16px', fontWeight: 'normal', marginLeft: '8px' }}>
-                    - {selectedNeed.title}
-                  </Text>
-                )}
-              </Title>
-            </Space>
-            
-            <Space>
-              <Select
-                placeholder="选择培训需求"
-                style={{ width: 300 }}
-                value={selectedNeed?.id}
-                onChange={handleNeedChange}
-                allowClear
-              >
-                {trainingNeeds.map(need => (
-                  <Option key={need.id} value={need.id}>
-                    <Space>
-                      <Tag color="blue">{need.priority}</Tag>
-                      {need.title}
-                    </Space>
-                  </Option>
-                ))}
-              </Select>
-              
-              {selectedNeed && (
-                <>
-                  <Radio.Group 
-                    defaultValue="collaborative"
-                    size="small"
-                  >
-                    <Radio.Button value="collaborative">协同模式</Radio.Button>
-                    <Radio.Button value="ai-only">AI模式</Radio.Button>
-                    <Radio.Button value="manual-only">人工模式</Radio.Button>
-                  </Radio.Group>
-                  
-                  <Button icon={<HistoryOutlined />} size="small">
-                    历史方案
-                  </Button>
-                  
-                  <Button icon={<SaveOutlined />} size="small">
-                    保存草稿
-                  </Button>
-                </>
-              )}
-              
-              <Button 
-                type="primary" 
-                icon={<RobotOutlined />}
-                onClick={() => setShowAIAssistant(true)}
-              >
-                AI学习助手
-              </Button>
-            </Space>
+            <ExperimentOutlined style={{ fontSize: 64, marginBottom: 16 }} />
+            <Title level={3} type="secondary">选择培训选课</Title>
+            <Text type="secondary">请从上方下拉菜单选择一个培训选课开始配课</Text>
           </div>
-        </div>
+        )}
+      </div>
 
-        {/* 配课工作台主体 */}
-        <div style={{ 
-          background: '#fff', 
-          padding: '24px', 
-          borderRadius: '8px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-          height: 'calc(100vh - 140px)'
-        }}>
-          {selectedNeed ? (
-            <CourseWorkspace
-              trainingNeed={selectedNeed}
-              onBack={() => setSelectedNeed(null)}
-              onSave={(plan) => {
-                message.success(`配课方案"${plan.name}"已保存`);
-              }}
-              hideHeader={true}
-            />
-          ) : (
-            <div style={{ 
-              display: 'flex', 
-              flexDirection: 'column',
-              alignItems: 'center', 
-              justifyContent: 'center',
-              height: '100%',
-              color: '#8c8c8c'
-            }}>
-              <ExperimentOutlined style={{ fontSize: 64, marginBottom: 16 }} />
-              <Title level={3} type="secondary">选择培训需求</Title>
-              <Text type="secondary">请从上方下拉菜单选择一个培训需求开始配课</Text>
-            </div>
-          )}
-        </div>
-
-        {/* AI学习助手 */}
-        <AIAssistant
-          visible={showAIAssistant}
-          onClose={() => setShowAIAssistant(false)}
-          mode="learning"
-          userProfile={{
-            name: '学习者',
-            department: '技术部',
-            level: '中级'
-          }}
-          learningHistory={[]}
-        />
-      </Content>
-    </Layout>
+      {/* AI学习助手 */}
+      <AIAssistant
+        visible={showAIAssistant}
+        onClose={() => setShowAIAssistant(false)}
+        mode="learning"
+        userProfile={{
+          name: '学习者',
+          department: '技术部',
+          level: '中级'
+        }}
+        learningHistory={[]}
+      />
+    </div>
   );
 };
 

@@ -49,7 +49,7 @@ const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
-const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) => {
+const CourseSelectionEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) => {
   // 资料收集相关状态
   const [uploadedFiles, setUploadedFiles] = useState([
     { id: 1, name: '教师专业发展指导手册.pdf', type: 'application/pdf', uploadTime: '刚刚' },
@@ -224,9 +224,8 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
   
   // 操作面板相关状态
   const [selectedOperation, setSelectedOperation] = useState('audio'); // 当前选中的操作类型
-  
-  // 工具管理状态
-  const [visibleTools, setVisibleTools] = useState(['training-plan', 'schedule', 'participants']); // 可见的工具
+  const [visibleTools, setVisibleTools] = useState(['schedule', 'training-plan']); // 默认显示的工具
+  const [showToolSelector, setShowToolSelector] = useState(false); // 工具选择器显示状态
   
   // 探索弹窗相关状态
   const [showExploreModal, setShowExploreModal] = useState(false);
@@ -507,73 +506,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
           </div>
         `
       },
-      {
-        id: 1003,
-        title: '参训人员清单',
-        source: '人员管理系统',
-        time: '刚刚',
-        type: 'report',
-        content: `
-          <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-            <thead>
-              <tr style="background-color: #f5f5f5;">
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">姓名</th>
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">部门</th>
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">职位</th>
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">工作年限</th>
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">培训需求</th>
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">联系方式</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style="border: 1px solid #ddd; padding: 10px;">张明</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">技术部</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">高级工程师</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">5年</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">项目管理、团队协作</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">zhangming@company.com</td>
-              </tr>
-              <tr>
-                <td style="border: 1px solid #ddd; padding: 10px;">李华</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">市场部</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">市场专员</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">3年</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">数据分析、营销策略</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">lihua@company.com</td>
-              </tr>
-              <tr>
-                <td style="border: 1px solid #ddd; padding: 10px;">王芳</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">人事部</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">人事主管</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">7年</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">法律法规、绩效管理</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">wangfang@company.com</td>
-              </tr>
-              <tr>
-                <td style="border: 1px solid #ddd; padding: 10px;">刘强</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">财务部</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">财务分析师</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">4年</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">财务软件、风险控制</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">liuqiang@company.com</td>
-              </tr>
-              <tr>
-                <td style="border: 1px solid #ddd; padding: 10px;">陈静</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">客服部</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">客服经理</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">6年</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">沟通技巧、客户关系</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">chenjing@company.com</td>
-              </tr>
-            </tbody>
-          </table>
-          <p style="margin-top: 20px; color: #666; font-size: 14px;">
-            <strong>统计信息：</strong>共5名参训人员，涵盖技术部、市场部、人事部、财务部、客服部等5个部门。
-            平均工作年限：5年。主要培训需求集中在管理技能、专业技术和沟通协作等方面。
-          </p>
-        `
-      }
+
     ],
     ppt: [],
     webcode: [],
@@ -708,7 +641,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
     }
   };
 
-  // 工具管理函数
+  // 添加工具到可见列表
   const handleAddTool = (toolType) => {
     const operationTitles = {
       audio: '音频概览',
@@ -718,7 +651,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
       ppt: 'PPT演示',
       webcode: '网页代码',
       'training-plan': '培训方案',
-      schedule: '课表',
+      schedule: '课程推荐',
       participants: '参训人员清单'
     };
     
@@ -726,8 +659,10 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
       setVisibleTools(prev => [...prev, toolType]);
       message.success(`已添加${operationTitles[toolType]}工具`);
     }
+    setShowToolSelector(false);
   };
 
+  // 从可见列表移除工具
   const handleRemoveTool = (toolType) => {
     const operationTitles = {
       audio: '音频概览',
@@ -737,12 +672,16 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
       ppt: 'PPT演示',
       webcode: '网页代码',
       'training-plan': '培训方案',
-      schedule: '课表',
+      schedule: '课程推荐',
       participants: '参训人员清单'
     };
     
-    setVisibleTools(prev => prev.filter(tool => tool !== toolType));
-    message.success(`已移除${operationTitles[toolType]}工具`);
+    if (visibleTools.length > 2) { // 保持至少2个工具
+      setVisibleTools(prev => prev.filter(tool => tool !== toolType));
+      message.success(`已移除${operationTitles[toolType]}工具`);
+    } else {
+      message.warning('至少需要保留2个工具');
+    }
   };
 
   // 操作按钮点击处理函数
@@ -755,14 +694,14 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
       ppt: 'PPT演示',
       webcode: '网页代码',
       'training-plan': '培训方案',
-      schedule: '课表',
+      schedule: '课程推荐',
       participants: '参训人员清单'
     };
 
     // 计算所有资料的总数
     const totalMaterials = uploadedFiles.length + addedTexts.length + courseVideos.length + links.length;
 
-    // 对于培训方案，使用独立的培训方案类型；对于课表、参训人员，生成报告类型的操作记录
+    // 对于培训方案，使用独立的培训方案类型；对于课程推荐、参训人员，生成报告类型的操作记录
     const recordType = operationType === 'training-plan' ? 'training-plan' : 
                       ['schedule', 'participants'].includes(operationType) ? 'report' : operationType;
 
@@ -2530,19 +2469,64 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: 16 }}>
               {/* 渲染可见的工具 */}
               {visibleTools.map(toolType => {
-                const toolConfig = {
-                  'audio': { icon: '🎵', title: '音频概览', gradient: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)', color: '#1565c0' },
-                  'video': { icon: '📹', title: '视频概览', gradient: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)', color: '#2e7d32' },
-                  'mindmap': { icon: '🧠', title: '思维导图', gradient: 'linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%)', color: '#c2185b' },
-                  'report': { icon: '📊', title: '报告', gradient: 'linear-gradient(135deg, #fff3e0 0%, #ffcc80 100%)', color: '#ef6c00' },
-                  'ppt': { icon: '📽️', title: 'PPT概览', gradient: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)', color: '#d32f2f' },
-                  'webcode': { icon: '💻', title: '网页代码', gradient: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)', color: '#7b1fa2' },
-                  'training-plan': { icon: '📋', title: '培训方案', gradient: 'linear-gradient(135deg, #e8f5e8 0%, #a5d6a7 100%)', color: '#388e3c' },
-                  'schedule': { icon: '📅', title: '课表', gradient: 'linear-gradient(135deg, #fff8e1 0%, #ffcc02 100%)', color: '#f57c00' },
-                  'participants': { icon: '👥', title: '参训人员', gradient: 'linear-gradient(135deg, #e3f2fd 0%, #90caf9 100%)', color: '#1976d2' }
+                const toolConfigs = {
+                  'schedule': {
+                    icon: '📅',
+                    label: '课程推荐',
+                    background: 'linear-gradient(135deg, #fff8e1 0%, #ffcc02 100%)',
+                    color: '#f57c00'
+                  },
+                  'training-plan': {
+                    icon: '📋',
+                    label: '培训方案',
+                    background: 'linear-gradient(135deg, #e8f5e8 0%, #a5d6a7 100%)',
+                    color: '#388e3c'
+                  },
+                  'audio': {
+                    icon: '🎵',
+                    label: '音频概览',
+                    background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+                    color: '#1565c0'
+                  },
+                  'video': {
+                    icon: '📹',
+                    label: '视频概览',
+                    background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
+                    color: '#2e7d32'
+                  },
+                  'mindmap': {
+                    icon: '🧠',
+                    label: '思维导图',
+                    background: 'linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%)',
+                    color: '#c2185b'
+                  },
+                  'report': {
+                    icon: '📊',
+                    label: '报告',
+                    background: 'linear-gradient(135deg, #fff3e0 0%, #ffcc80 100%)',
+                    color: '#ef6c00'
+                  },
+                  'ppt': {
+                    icon: '📽️',
+                    label: 'PPT概览',
+                    background: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)',
+                    color: '#d32f2f'
+                  },
+                  'webcode': {
+                    icon: '💻',
+                    label: '网页代码',
+                    background: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)',
+                    color: '#7b1fa2'
+                  },
+                  'participants': {
+                    icon: '👥',
+                    label: '参训人员',
+                    background: 'linear-gradient(135deg, #e3f2fd 0%, #90caf9 100%)',
+                    color: '#1976d2'
+                  }
                 };
 
-                const config = toolConfig[toolType];
+                const config = toolConfigs[toolType];
                 if (!config) return null;
 
                 return (
@@ -2552,7 +2536,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
                       hoverable
                       onClick={() => handleOperationClick(toolType)}
                       style={{ 
-                        background: config.gradient,
+                        background: config.background,
                         border: 'none',
                         borderRadius: '12px',
                         textAlign: 'center',
@@ -2566,51 +2550,78 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
                           fontSize: '11px', 
                           fontWeight: 500, 
                           color: config.color 
-                        }}>{config.title}</Text>
+                        }}>{config.label}</Text>
                       </div>
                     </Card>
                     {/* 移除按钮 */}
-                    <Button
-                      type="text"
-                      size="small"
-                      icon={<DeleteOutlined />}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveTool(toolType);
-                      }}
-                      style={{
-                        position: 'absolute',
-                        top: '-8px',
-                        right: '-8px',
-                        width: '20px',
-                        height: '20px',
-                        borderRadius: '50%',
-                        backgroundColor: '#ff4d4f',
-                        color: 'white',
-                        border: 'none',
-                        fontSize: '10px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 10
-                      }}
-                    />
+                    {visibleTools.length > 2 && (
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<DeleteOutlined />}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveTool(toolType);
+                        }}
+                        style={{
+                          position: 'absolute',
+                          top: '-5px',
+                          right: '-5px',
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '50%',
+                          backgroundColor: '#ff4d4f',
+                          color: 'white',
+                          fontSize: '10px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: 0,
+                          minWidth: 'auto'
+                        }}
+                      />
+                    )}
                   </div>
                 );
               })}
 
               {/* 添加工具按钮 */}
               <Dropdown
+                open={showToolSelector}
+                onOpenChange={setShowToolSelector}
                 menu={{
                   items: [
-                    { key: 'audio', label: '🎵 音频概览', disabled: visibleTools.includes('audio') },
-                    { key: 'video', label: '📹 视频概览', disabled: visibleTools.includes('video') },
-                    { key: 'mindmap', label: '🧠 思维导图', disabled: visibleTools.includes('mindmap') },
-                    { key: 'report', label: '📊 报告', disabled: visibleTools.includes('report') },
-                    { key: 'ppt', label: '📽️ PPT概览', disabled: visibleTools.includes('ppt') },
-                    { key: 'webcode', label: '💻 网页代码', disabled: visibleTools.includes('webcode') }
-                  ],
-                  onClick: ({ key }) => handleAddTool(key)
+                    'audio', 'video', 'mindmap', 'report', 'ppt', 'webcode', 'participants'
+                  ].filter(tool => !visibleTools.includes(tool)).map(tool => ({
+                    key: tool,
+                    label: (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '16px' }}>
+                          {{
+                            'audio': '🎵',
+                            'video': '📹',
+                            'mindmap': '🧠',
+                            'report': '📊',
+                            'ppt': '📽️',
+                            'webcode': '💻',
+                            'participants': '👥'
+                          }[tool]}
+                        </span>
+                        <span>
+                          {{
+                            'audio': '音频概览',
+                            'video': '视频概览',
+                            'mindmap': '思维导图',
+                            'report': '报告',
+                            'ppt': 'PPT概览',
+                            'webcode': '网页代码',
+                            'participants': '参训人员'
+                          }[tool]}
+                        </span>
+                      </div>
+                    ),
+                    onClick: () => handleAddTool(tool)
+                  }))
                 }}
                 trigger={['click']}
                 placement="bottomLeft"
@@ -2619,7 +2630,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
                   size="small" 
                   hoverable
                   style={{ 
-                    background: 'linear-gradient(135deg, #f6f6f6 0%, #e0e0e0 100%)',
+                    background: 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)',
                     border: '2px dashed #d9d9d9',
                     borderRadius: '12px',
                     textAlign: 'center',
@@ -2637,6 +2648,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
                   </div>
                 </Card>
               </Dropdown>
+
             </div>
           </div>
           
@@ -3114,4 +3126,4 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
   );
 };
 
-export default NeedEditPage;
+export default CourseSelectionEditPage;
