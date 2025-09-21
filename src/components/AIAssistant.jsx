@@ -16,7 +16,15 @@ import {
   message,
   Progress,
   Collapse,
-  Badge
+  Badge,
+  Avatar,
+  Rate,
+  Row,
+  Col,
+  Statistic,
+  Timeline,
+  Steps,
+  Empty
 } from 'antd';
 import {
   RobotOutlined,
@@ -32,9 +40,23 @@ import {
   EyeOutlined,
   EditOutlined,
   CopyOutlined,
-  DownloadOutlined
+  DownloadOutlined,
+  BookOutlined,
+  StarOutlined,
+  SendOutlined,
+  MessageOutlined,
+
+  TrophyOutlined,
+  ClockCircleOutlined,
+  UserOutlined,
+  PlayCircleOutlined,
+  HeartOutlined,
+  SettingOutlined,
+  ReloadOutlined,
+  CommentOutlined,
+  FireOutlined,
+  GiftOutlined
 } from '@ant-design/icons';
-import './AIAssistant.css';
 
 const { TextArea } = Input;
 const { Text, Title, Paragraph } = Typography;
@@ -150,22 +172,186 @@ class MockAIService {
   }
 }
 
-const AIAssistant = ({ note, visible, onClose, onApplySuggestion }) => {
-  const [activeFeature, setActiveFeature] = useState('summary');
+const AIAssistant = ({ 
+  note, 
+  visible, 
+  onClose, 
+  onApplySuggestion,
+  // 新增学习配课相关参数
+  userProfile = {}, 
+  learningHistory = [], 
+  currentTopics = [],
+  onRecommendCourse,
+  onCreateLearningPath,
+  mode = 'note' // 'note' 或 'learning'
+}) => {
+  const [activeFeature, setActiveFeature] = useState(mode === 'learning' ? 'chat' : 'summary');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState({});
   const [question, setQuestion] = useState('');
   const [summaryOptions, setSummaryOptions] = useState({ length: 'medium' });
   const [suggestionType, setSuggestionType] = useState('expand');
+  
+  // 学习配课相关状态
+  const [activeTab, setActiveTab] = useState('chat');
+  const [chatMessages, setChatMessages] = useState([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [recommendations, setRecommendations] = useState([]);
+  const [learningInsights, setLearningInsights] = useState(null);
 
   // 重置状态
   useEffect(() => {
-    if (visible && note) {
-      setResults({});
-      setQuestion('');
-      setActiveFeature('summary');
+    if (visible) {
+      if (mode === 'note' && note) {
+        setResults({});
+        setQuestion('');
+        setActiveFeature('summary');
+      } else if (mode === 'learning') {
+        initializeLearningAI();
+      }
     }
-  }, [visible, note]);
+  }, [visible, note, mode]);
+
+  // 初始化学习AI助手
+  const initializeLearningAI = () => {
+    // 生成个性化推荐
+    generateRecommendations();
+    
+    // 分析学习洞察
+    generateLearningInsights();
+    
+    // 初始化欢迎消息
+    const welcomeMessage = {
+      id: Date.now(),
+      type: 'ai',
+      content: `您好！我是您的AI学习助手 🤖\n\n基于您的学习历史和兴趣，我为您准备了一些个性化建议。有什么学习问题都可以问我哦！`,
+      timestamp: new Date(),
+      suggestions: [
+        '推荐适合我的课程',
+        '制定学习计划',
+        '分析我的学习进度',
+        '优化学习路径'
+      ]
+    };
+    
+    setChatMessages([welcomeMessage]);
+  };
+
+  // 生成课程推荐
+  const generateRecommendations = () => {
+    const sampleRecommendations = [
+      {
+        id: 'rec-001',
+        title: 'React 高级开发技巧',
+        reason: '基于您对前端开发的兴趣',
+        match: 95,
+        difficulty: '中级',
+        duration: '25学时',
+        rating: 4.8,
+        tags: ['React', '前端开发', '组件设计'],
+        instructor: '李老师',
+        learners: 1250,
+        description: '深入学习React高级特性，包括Hooks、性能优化、状态管理等'
+      },
+      {
+        id: 'rec-002',
+        title: 'Python 机器学习实战',
+        reason: '您最近关注数据分析领域',
+        match: 88,
+        difficulty: '中级',
+        duration: '40学时',
+        rating: 4.9,
+        tags: ['Python', '机器学习', '数据科学'],
+        instructor: '王博士',
+        learners: 890,
+        description: '从基础到实战，掌握机器学习核心算法和应用'
+      }
+    ];
+    
+    setRecommendations(sampleRecommendations);
+  };
+
+  // 生成学习洞察
+  const generateLearningInsights = () => {
+    const insights = {
+      totalHours: 156,
+      completedCourses: 8,
+      averageRating: 4.6,
+      strongAreas: ['前端开发', '编程基础', '项目管理'],
+      improvementAreas: ['数据分析', '算法设计', '系统架构'],
+      learningPattern: {
+        preferredTime: '晚上 19:00-21:00',
+        averageSession: '45分钟',
+        consistency: '85%'
+      },
+      nextMilestone: {
+        title: '全栈开发者',
+        progress: 65,
+        requirements: ['完成后端开发课程', '掌握数据库设计', '项目实战经验']
+      }
+    };
+    
+    setLearningInsights(insights);
+  };
+
+  // 发送消息
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim()) return;
+
+    const userMessage = {
+      id: Date.now(),
+      type: 'user',
+      content: inputMessage,
+      timestamp: new Date()
+    };
+
+    setChatMessages(prev => [...prev, userMessage]);
+    setInputMessage('');
+    setIsTyping(true);
+
+    // 模拟AI回复
+    setTimeout(() => {
+      const aiResponse = generateAIResponse(inputMessage);
+      setChatMessages(prev => [...prev, aiResponse]);
+      setIsTyping(false);
+    }, 1500);
+  };
+
+  // 生成AI回复
+  const generateAIResponse = (userInput) => {
+    const input = userInput.toLowerCase();
+    let response = '';
+    let suggestions = [];
+
+    if (input.includes('推荐') || input.includes('课程')) {
+      response = `根据您的学习历史和兴趣，我为您推荐以下课程：\n\n1. **React 高级开发技巧** - 匹配度95%\n   适合您当前的前端开发水平\n\n2. **Python 机器学习实战** - 匹配度88%\n   扩展您的技能栈到数据科学领域\n\n这些课程都有很好的评价，您可以查看详细信息。`;
+      suggestions = ['查看课程详情', '制定学习计划', '了解学习路径'];
+    } else if (input.includes('计划') || input.includes('规划')) {
+      response = `我来为您制定个性化学习计划：\n\n**短期目标（1-2个月）**\n- 完成React高级特性学习\n- 掌握状态管理和性能优化\n\n**中期目标（3-6个月）**\n- 学习后端开发技术\n- 完成全栈项目实战\n\n**长期目标（6-12个月）**\n- 成为全栈开发者\n- 具备独立项目开发能力`;
+      suggestions = ['调整计划', '查看详细步骤', '设置学习提醒'];
+    } else if (input.includes('进度') || input.includes('分析')) {
+      response = `让我分析一下您的学习情况：\n\n📊 **学习统计**\n- 总学习时长：156小时\n- 完成课程：8门\n- 平均评分：4.6/5.0\n\n🎯 **优势领域**\n前端开发、编程基础、项目管理\n\n📈 **提升空间**\n数据分析、算法设计、系统架构\n\n您的学习一致性很好，建议继续保持！`;
+      suggestions = ['查看详细报告', '优化学习方法', '设定新目标'];
+    } else {
+      response = `我理解您的问题。作为您的AI学习助手，我可以帮您：\n\n🎯 个性化课程推荐\n📚 制定学习计划\n📊 分析学习进度\n🛤️ 优化学习路径\n💡 解答学习疑问\n\n请告诉我您具体需要什么帮助？`;
+      suggestions = ['推荐课程', '制定计划', '分析进度', '学习建议'];
+    }
+
+    return {
+      id: Date.now(),
+      type: 'ai',
+      content: response,
+      timestamp: new Date(),
+      suggestions
+    };
+  };
+
+  // 处理建议点击
+  const handleSuggestionClick = (suggestion) => {
+    setInputMessage(suggestion);
+    handleSendMessage();
+  };
 
   // 生成智能摘要
   const handleGenerateSummary = async () => {
@@ -607,8 +793,294 @@ const AIAssistant = ({ note, visible, onClose, onApplySuggestion }) => {
     </div>
   );
 
+  // 渲染学习模式的聊天界面
+  const renderLearningChat = () => (
+    <div className="learning-chat-container">
+      <div className="chat-messages" style={{ height: '300px', overflowY: 'auto', marginBottom: '16px' }}>
+        {chatMessages.map((msg) => (
+          <div key={msg.id} className={`chat-message ${msg.type}`} style={{ marginBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+              <Avatar 
+                size="small" 
+                icon={msg.type === 'ai' ? <RobotOutlined /> : <UserOutlined />}
+                style={{ backgroundColor: msg.type === 'ai' ? '#1890ff' : '#52c41a' }}
+              />
+              <div style={{ flex: 1 }}>
+                <div style={{ 
+                  background: msg.type === 'ai' ? '#f6f8fa' : '#e6f7ff',
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  whiteSpace: 'pre-line'
+                }}>
+                  {msg.content}
+                </div>
+                {msg.suggestions && (
+                  <div style={{ marginTop: '8px' }}>
+                    <Space wrap>
+                      {msg.suggestions.map((suggestion, index) => (
+                        <Button
+                          key={index}
+                          size="small"
+                          type="link"
+                          onClick={() => handleSuggestionClick(suggestion)}
+                        >
+                          {suggestion}
+                        </Button>
+                      ))}
+                    </Space>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+        {isTyping && (
+          <div className="chat-message ai" style={{ marginBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+              <Avatar size="small" icon={<RobotOutlined />} style={{ backgroundColor: '#1890ff' }} />
+              <div style={{ background: '#f6f8fa', padding: '8px 12px', borderRadius: '8px' }}>
+                <Spin size="small" /> AI正在思考...
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      <div className="chat-input">
+        <Input.Group compact>
+          <Input
+            style={{ width: 'calc(100% - 80px)' }}
+            placeholder="请输入您的问题..."
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onPressEnter={handleSendMessage}
+          />
+          <Button 
+            type="primary" 
+            icon={<SendOutlined />}
+            onClick={handleSendMessage}
+            disabled={!inputMessage.trim() || isTyping}
+          >
+            发送
+          </Button>
+        </Input.Group>
+      </div>
+    </div>
+  );
+
+  // 渲染课程推荐
+  const renderRecommendations = () => (
+    <div className="recommendations-container">
+      <Title level={4}>
+        <BookOutlined /> 为您推荐的课程
+      </Title>
+      {recommendations.length === 0 ? (
+        <Empty description="暂无推荐课程" />
+      ) : (
+        <Row gutter={[16, 16]}>
+          {recommendations.map((course) => (
+            <Col span={24} key={course.id}>
+              <Card
+                hoverable
+                style={{ borderLeft: `4px solid ${course.match >= 90 ? '#52c41a' : '#1890ff'}` }}
+                actions={[
+                  <Button type="link" icon={<EyeOutlined />}>查看详情</Button>,
+                  <Button type="link" icon={<PlayCircleOutlined />}>开始学习</Button>,
+                  <Button type="link" icon={<HeartOutlined />}>收藏</Button>
+                ]}
+              >
+                <Card.Meta
+                  avatar={<Avatar size={48} style={{ backgroundColor: '#1890ff' }}>{course.title[0]}</Avatar>}
+                  title={
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>{course.title}</span>
+                      <Badge count={`${course.match}%匹配`} style={{ backgroundColor: '#52c41a' }} />
+                    </div>
+                  }
+                  description={
+                    <div>
+                      <Paragraph ellipsis={{ rows: 2 }}>{course.description}</Paragraph>
+                      <div style={{ marginTop: '8px' }}>
+                        <Space wrap>
+                          <Text type="secondary">
+                            <StarOutlined /> {course.rating}
+                          </Text>
+                          <Text type="secondary">
+                            <ClockCircleOutlined /> {course.duration}
+                          </Text>
+                          <Text type="secondary">
+                            <UserOutlined /> {course.learners}人学习
+                          </Text>
+                          <Text type="secondary">难度: {course.difficulty}</Text>
+                        </Space>
+                      </div>
+                      <div style={{ marginTop: '8px' }}>
+                        <Space wrap>
+                          {course.tags.map((tag, index) => (
+                            <Tag key={index} color="blue">{tag}</Tag>
+                          ))}
+                        </Space>
+                      </div>
+                      <Text type="secondary" style={{ fontSize: '12px' }}>
+                        推荐理由: {course.reason}
+                      </Text>
+                    </div>
+                  }
+                />
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      )}
+    </div>
+  );
+
+  // 渲染学习洞察
+  const renderLearningInsights = () => (
+    <div className="learning-insights-container">
+      <Title level={4}>
+        <TrophyOutlined /> 学习洞察分析
+      </Title>
+      
+      {learningInsights ? (
+        <Row gutter={[16, 16]}>
+          {/* 学习统计 */}
+          <Col span={24}>
+            <Card title="学习统计" size="small">
+              <Row gutter={16}>
+                <Col span={6}>
+                  <Statistic title="总学习时长" value={learningInsights.totalHours} suffix="小时" />
+                </Col>
+                <Col span={6}>
+                  <Statistic title="完成课程" value={learningInsights.completedCourses} suffix="门" />
+                </Col>
+                <Col span={6}>
+                  <Statistic title="平均评分" value={learningInsights.averageRating} precision={1} suffix="/5.0" />
+                </Col>
+                <Col span={6}>
+                  <Statistic title="学习一致性" value={learningInsights.learningPattern.consistency} suffix="%" />
+                </Col>
+              </Row>
+            </Card>
+          </Col>
+
+          {/* 优势与提升 */}
+          <Col span={12}>
+            <Card title="优势领域" size="small">
+              <Space wrap>
+                {learningInsights.strongAreas.map((area, index) => (
+                  <Tag key={index} color="green" icon={<CheckCircleOutlined />}>{area}</Tag>
+                ))}
+              </Space>
+            </Card>
+          </Col>
+          <Col span={12}>
+            <Card title="提升空间" size="small">
+              <Space wrap>
+                {learningInsights.improvementAreas.map((area, index) => (
+                  <Tag key={index} color="orange" icon={<ExclamationCircleOutlined />}>{area}</Tag>
+                ))}
+              </Space>
+            </Card>
+          </Col>
+
+          {/* 学习模式 */}
+          <Col span={12}>
+            <Card title="学习模式分析" size="small">
+              <div style={{ marginBottom: '8px' }}>
+                <Text strong>偏好时间: </Text>
+                <Text>{learningInsights.learningPattern.preferredTime}</Text>
+              </div>
+              <div>
+                <Text strong>平均时长: </Text>
+                <Text>{learningInsights.learningPattern.averageSession}</Text>
+              </div>
+            </Card>
+          </Col>
+
+          {/* 下一个里程碑 */}
+          <Col span={12}>
+            <Card title="下一个里程碑" size="small">
+              <div style={{ marginBottom: '12px' }}>
+                <Text strong>{learningInsights.nextMilestone.title}</Text>
+                <Progress 
+                  percent={learningInsights.nextMilestone.progress} 
+                  size="small" 
+                  style={{ marginTop: '4px' }}
+                />
+              </div>
+              <div>
+                <Text type="secondary">还需要:</Text>
+                <ul style={{ margin: '4px 0', paddingLeft: '16px' }}>
+                  {learningInsights.nextMilestone.requirements.map((req, index) => (
+                    <li key={index} style={{ fontSize: '12px', color: '#666' }}>{req}</li>
+                  ))}
+                </ul>
+              </div>
+            </Card>
+          </Col>
+        </Row>
+      ) : (
+        <Empty description="暂无学习数据" />
+      )}
+    </div>
+  );
+
+  // 渲染学习模式的标签页
+  const renderLearningTabs = () => (
+    <div className="learning-tabs">
+      <Space size="large">
+        <Button
+          type={activeTab === 'chat' ? 'primary' : 'default'}
+          icon={<MessageOutlined />}
+          onClick={() => setActiveTab('chat')}
+        >
+          AI对话
+        </Button>
+        <Button
+          type={activeTab === 'recommendations' ? 'primary' : 'default'}
+          icon={<BookOutlined />}
+          onClick={() => setActiveTab('recommendations')}
+        >
+          课程推荐
+        </Button>
+        <Button
+          type={activeTab === 'insights' ? 'primary' : 'default'}
+          icon={<TrophyOutlined />}
+          onClick={() => setActiveTab('insights')}
+        >
+          学习洞察
+        </Button>
+      </Space>
+    </div>
+  );
+
+  // 渲染学习模式内容
+  const renderLearningContent = () => {
+    switch (activeTab) {
+      case 'chat':
+        return renderLearningChat();
+      case 'recommendations':
+        return renderRecommendations();
+      case 'insights':
+        return renderLearningInsights();
+      default:
+        return renderLearningChat();
+    }
+  };
+
   // 渲染当前功能内容
   const renderCurrentFeature = () => {
+    if (mode === 'learning') {
+      return (
+        <div className="learning-mode-content">
+          {renderLearningTabs()}
+          <Divider />
+          {renderLearningContent()}
+        </div>
+      );
+    }
+    
     switch (activeFeature) {
       case 'summary':
         return renderSummaryFeature();
@@ -628,13 +1100,13 @@ const AIAssistant = ({ note, visible, onClose, onApplySuggestion }) => {
       title={
         <Space>
           <RobotOutlined />
-          AI智能助手
-          {note && <Text type="secondary">- {note.title}</Text>}
+          {mode === 'learning' ? 'AI学习助手' : 'AI智能助手'}
+          {note && mode !== 'learning' && <Text type="secondary">- {note.title}</Text>}
         </Space>
       }
       open={visible}
       onCancel={onClose}
-      width={800}
+      width={mode === 'learning' ? 900 : 800}
       className="ai-assistant-modal"
       footer={[
         <Button key="close" onClick={onClose}>
@@ -644,7 +1116,9 @@ const AIAssistant = ({ note, visible, onClose, onApplySuggestion }) => {
     >
       <Spin spinning={loading}>
         <div className="ai-assistant-content">
-          {!note ? (
+          {mode === 'learning' ? (
+            renderCurrentFeature()
+          ) : !note ? (
             <Alert
               message="请先选择一篇笔记"
               description="AI助手需要分析笔记内容才能提供智能建议"

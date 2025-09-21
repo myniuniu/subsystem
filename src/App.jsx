@@ -35,6 +35,7 @@ import SmartNotes from './components/SmartNotes'
 import NoteEditPage from './components/NoteEditPage'
 import TrainingNeeds from './components/TrainingNeeds'
 import NeedEditPage from './components/NeedEditPage'
+import CoursePlanning from './components/CoursePlanning'
 import './App.css'
 
 const { Header: AntHeader, Sider, Content } = Layout
@@ -374,6 +375,8 @@ function App() {
                 selectedNeed={pageState.selectedNeed}
                 mode={pageState.editorMode}
               />
+            ) : currentView === 'course-planning' ? (
+              <CoursePlanning />
             ) : (
               <MainContent 
                 currentView={currentView}
