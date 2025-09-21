@@ -341,6 +341,13 @@ class NotesService {
         }
       });
       
+      // 特别统计组织培训相关笔记
+      stats.categories.organizational_training = notes.filter(note => 
+        note.courseType === 'organizational_training' ||
+        note.tags?.includes('组织培训') ||
+        note.category === 'organizational_training'
+      ).length;
+      
       // 统计标签使用频率
       notes.forEach(note => {
         note.tags.forEach(tag => {

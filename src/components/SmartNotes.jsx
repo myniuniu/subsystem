@@ -742,9 +742,26 @@ ${timelineData.map(note => {
 
             {/* 分类列表 */}
             <div className="category-section">
-              <Text strong>分类</Text>
               <div className="category-list">
+                {/* 固定显示组织培训分类 */}
+                <div
+                  className={`category-item organizational-training-category ${
+                    selectedCategory === 'organizational_training' ? 'active' : ''
+                  }`}
+                  onClick={() => setSelectedCategory('organizational_training')}
+                >
+                  <BookOutlined className="category-icon" />
+                  <span className="category-label">🏢 组织培训</span>
+                  <span className="category-count">{stats.categories?.organizational_training || 0}</span>
+                </div>
+                
+                {/* 其他分类 */}
                 {categories.map(category => {
+                  // 跳过组织培训分类，因为已经固定显示在上面
+                  if (category.value === 'organizational_training') {
+                    return null;
+                  }
+                  
                   const iconMap = {
                     FileTextOutlined,
                     FolderOpenOutlined,
@@ -850,13 +867,6 @@ ${timelineData.map(note => {
                   size="large"
                 >
                   同步选课
-                </Button>
-                <Button 
-                  className="org-training-filter-btn"
-                  type={selectedCategory === 'organizational_training' ? 'primary' : 'default'}
-                  onClick={handleOrgTrainingFilter}
-                >
-                  🏢 组织培训
                 </Button>
                 <Dropdown
                   menu={{

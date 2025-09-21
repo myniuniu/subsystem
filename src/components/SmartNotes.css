@@ -50,6 +50,59 @@
 }
 
 /* 分类样式 */
+/* 组织培训分类特殊样式 */
+.organizational-training-category {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  border: 2px solid #5a67d8 !important;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3) !important;
+  font-weight: 600 !important;
+  margin-bottom: 8px !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.organizational-training-category::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.organizational-training-category:hover::before {
+  left: 100%;
+}
+
+.organizational-training-category:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4) !important;
+}
+
+.organizational-training-category .category-icon {
+  color: white !important;
+  font-size: 16px;
+}
+
+.organizational-training-category .category-label {
+  color: white !important;
+  font-weight: 600;
+}
+
+.organizational-training-category .category-count {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.organizational-training-category.active {
+  background: linear-gradient(135deg, #4c51bf 0%, #553c9a 100%) !important;
+  box-shadow: 0 6px 20px rgba(76, 81, 191, 0.5) !important;
+}
+
 .category-section {
   margin-bottom: 32px;
 }
@@ -58,6 +111,18 @@
   display: block;
   margin-bottom: 12px;
   color: #374151;
+  font-size: 14px;
+}
+
+.category-header {
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+.category-header .org-training-filter-btn {
+  width: 100%;
+  height: 36px;
   font-size: 14px;
 }
 
