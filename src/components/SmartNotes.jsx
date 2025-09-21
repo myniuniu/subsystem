@@ -91,6 +91,8 @@ const SmartNotes = ({ onViewChange }) => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({});
   const [showNoteEditPage, setShowNoteEditPage] = useState(false);
+  const [editingNote, setEditingNote] = useState(null);
+  const [editMode, setEditMode] = useState('create');
   const [form] = Form.useForm();
 
   // 笔记分类
@@ -215,26 +217,32 @@ const SmartNotes = ({ onViewChange }) => {
   // 创建新笔记
   const handleCreateNote = () => {
     // 在主区域显示笔记编辑页面
+    setEditingNote(null);
+    setEditMode('create');
     setShowNoteEditPage(true);
   };
 
   // 关闭编辑页面
   const handleCloseEditPage = () => {
     setShowNoteEditPage(false);
+    setEditingNote(null);
+    setEditMode('create');
   };
 
   // 编辑笔记
   const handleEditNote = (note) => {
     setSelectedNote(note);
-    setEditorMode('edit');
-    setIsEditorVisible(true);
+    setEditingNote(note);
+    setEditMode('edit');
+    setShowNoteEditPage(true);
   };
 
   // 查看笔记
   const handleViewNote = (note) => {
     setSelectedNote(note);
-    setEditorMode('view');
-    setIsEditorVisible(true);
+    setEditingNote(note);
+    setEditMode('view');
+    setShowNoteEditPage(true);
   };
 
   // 保存笔记
@@ -720,7 +728,12 @@ ${timelineData.map(note => {
 
   // 如果显示编辑页面，则渲染NoteEditPage
   if (showNoteEditPage) {
-    return <NoteEditPage onBack={handleCloseEditPage} onViewChange={onViewChange} />;
+    return <NoteEditPage 
+      onBack={handleCloseEditPage} 
+      onViewChange={onViewChange} 
+      note={editingNote}
+      mode={editMode}
+    />;
   }
 
   return (

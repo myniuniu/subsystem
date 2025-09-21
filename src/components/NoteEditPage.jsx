@@ -49,38 +49,46 @@ const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
-const NoteEditPage = ({ onBack, onViewChange }) => {
+const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) => {
   // 资料收集相关状态
-  const [uploadedFiles, setUploadedFiles] = useState([
-    { id: 1, name: '成都火锅制作工艺.pdf', type: 'application/pdf', uploadTime: '刚刚' }
-  ]);
+  const [uploadedFiles, setUploadedFiles] = useState(
+    mode === 'create' ? [
+      { id: 1, name: '成都火锅制作工艺.pdf', type: 'application/pdf', uploadTime: '刚刚' }
+    ] : note?.materials?.files || []
+  );
   
   // 多选功能状态
   const [selectedMaterials, setSelectedMaterials] = useState([]);
   const [showMaterialDetail, setShowMaterialDetail] = useState(false);
   const [currentMaterial, setCurrentMaterial] = useState(null);
-  const [links, setLinks] = useState([
-    { id: 2, url: 'https://chengdu-food.com', title: '成都美食攻略网站', addTime: '刚刚' }
-  ]);
+  const [links, setLinks] = useState(
+    mode === 'create' ? [
+      { id: 2, url: 'https://chengdu-food.com', title: '成都美食攻略网站', addTime: '刚刚' }
+    ] : note?.materials?.links || []
+  );
   const [newLink, setNewLink] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showMaterialAddModal, setShowMaterialAddModal] = useState(false);
   const [websiteType, setWebsiteType] = useState('normal'); // 'normal' 或 'video'
   const [websiteUrl, setWebsiteUrl] = useState('');// 文字内容相关状态
   const [textContent, setTextContent] = useState('');
-  const [addedTexts, setAddedTexts] = useState([
-    { id: 3, title: '成都小吃介绍', content: '成都是著名的美食之都，拥有麻婆豆腐、回锅肉、担担面、龙抄手等众多特色小吃...', addTime: '刚刚' }
-  ]);
+  const [addedTexts, setAddedTexts] = useState(
+    mode === 'create' ? [
+      { id: 3, title: '成都小吃介绍', content: '成都是著名的美食之都，拥有麻婆豆腐、回锅肉、担担面、龙抄手等众多特色小吃...', addTime: '刚刚' }
+    ] : note?.materials?.texts || []
+  );
   
   // 课程视频相关状态
   const [videoTitle, setVideoTitle] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
-  const [courseVideos, setCourseVideos] = useState([
-    { id: 4, title: '成都火锅制作教程', url: 'https://video.com/chengdu-hotpot', addTime: '刚刚' }
-  ]);
+  const [courseVideos, setCourseVideos] = useState(
+    mode === 'create' ? [
+      { id: 4, title: '成都火锅制作教程', url: 'https://video.com/chengdu-hotpot', addTime: '刚刚' }
+    ] : note?.materials?.videos || []
+  );
   
   // 问答区域相关状态
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(note?.messages || []);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
@@ -93,7 +101,7 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
   ]);
   
   // 操作结果相关状态
-  const [operationResults, setOperationResults] = useState([]);
+  const [operationResults, setOperationResults] = useState(note?.operationResults || []);
   
   // 操作面板相关状态
   const [selectedOperation, setSelectedOperation] = useState('audio'); // 当前选中的操作类型
@@ -102,7 +110,7 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
   const [showExploreModal, setShowExploreModal] = useState(false);
   
   // 操作记录状态
-  const [operationRecords, setOperationRecords] = useState({
+  const [operationRecords, setOperationRecords] = useState(note?.operationRecords || {
     audio: [],
     video: [],
     mindmap: [],
@@ -125,7 +133,7 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
   const [previewData, setPreviewData] = useState(null);
   
   // 智能笔记相关状态
-  const [smartNotes, setSmartNotes] = useState([]);
+  const [smartNotes, setSmartNotes] = useState(note?.smartNotes || []);
   const [showSmartNotesModal, setShowSmartNotesModal] = useState(false);
   const [selectedNote, setSelectedNote] = useState(null);
 
@@ -1028,7 +1036,7 @@ const NoteEditPage = ({ onBack, onViewChange }) => {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
-                  📚 资料收集
+                  {mode === 'create' ? '📚 资料收集' : mode === 'edit' ? '📝 编辑笔记' : '👁️ 查看笔记'}
                 </Title>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
