@@ -23,6 +23,7 @@ import {
 } from 'antd';
 import MaterialAddPage from './MaterialAddPage';
 import ExploreModal from './ExploreModal';
+import courseSelectionService from '../services/courseSelectionService';
 import {
   ArrowLeftOutlined,
   SaveOutlined,
@@ -90,6 +91,11 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     mode === 'create' ? [
       { id: 4, title: '成都火锅制作教程', url: 'https://video.com/chengdu-hotpot', addTime: '刚刚' }
     ] : note?.materials?.videos || []
+  );
+  
+  // 我的选课相关状态
+  const [selectedCourses, setSelectedCourses] = useState(
+    note?.materials?.courses || []
   );
   
   // 问答区域相关状态
@@ -677,6 +683,45 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
      setVideoTitle('');
      setVideoUrl('');
      message.success('课程视频添加成功');
+   };
+
+   // 添加选课
+   const handleAddCourse = (course) => {
+     // 检查是否已经添加过该课程
+     const isAlreadyAdded = selectedCourses.some(c => c.id === course.id);
+     if (isAlreadyAdded) {
+       message.warning('该课程已经添加过了');
+       return;
+     }
+
+     const courseObj = {
+       id: course.id || Date.now(),
+       title: course.title,
+       instructor: course.instructor,
+       duration: course.duration,
+       description: course.description || '',
+       addedAt: new Date().toLocaleString(),
+       type: 'course'
+     };
+
+     setSelectedCourses(prev => [...prev, courseObj]);
+     
+     // 同时添加到操作记录中
+     const newRecord = {
+       id: Date.now(),
+       title: course.title,
+       type: 'course',
+       source: `选课 - ${course.instructor}`,
+       time: new Date().toLocaleString(),
+       content: course.description || `课程：${course.title}，讲师：${course.instructor}，时长：${course.duration}`
+     };
+
+     setOperationRecords(prev => ({
+       ...prev,
+       course: [...(prev.course || []), newRecord]
+     }));
+
+     message.success(`已添加课程：${course.title}`);
    };
 
    // 删除课程视频
@@ -2041,6 +2086,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                       case 'file': return '📄';
                       case 'text': return '📝';
                       case 'link': return '🔗';
+                      case 'course': return '📚';
                       default: return '📄';
                     }
                   };
@@ -2303,6 +2349,87 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
            </Text>
            <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 4 }}>
              示例：https://www.bilibili.com/video/BV1xx411c7mu
+           </Text>
+         </div>
+
+         <Divider />
+
+         {/* 我的选课添加区域 */}
+         <div>
+           <Title level={5} style={{ marginBottom: 16 }}>我的选课</Title>
+           
+           {/* 选课列表 */}
+           <div style={{ marginBottom: 16 }}>
+             {courseSelectionService.getAllCourses().length > 0 ? (
+               <div style={{ maxHeight: 200, overflowY: 'auto' }}>
+                 {courseSelectionService.getAllCourses().map((course, index) => (
+                   <Card 
+                     key={index}
+                     size="small" 
+                     hoverable
+                     style={{ 
+                       marginBottom: 8,
+                       borderRadius: 8,
+                       border: '1px solid #f0f0f0',
+                       cursor: 'pointer'
+                     }}
+                     onClick={() => handleAddCourse(course)}
+                   >
+                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                       <div style={{ fontSize: 20 }}>📚</div>
+                       <div style={{ flex: 1 }}>
+                         <Text 
+                           style={{ 
+                             fontSize: 14, 
+                             fontWeight: 500, 
+                             color: '#1f1f1f',
+                             display: 'block',
+                             marginBottom: 4
+                           }}
+                         >
+                           {course.title}
+                         </Text>
+                         <Text style={{ fontSize: 12, color: '#999' }}>
+                           {course.instructor} • {course.duration}
+                         </Text>
+                       </div>
+                       <Button 
+                         type="primary" 
+                         size="small"
+                         icon={<PlusOutlined />}
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           handleAddCourse(course);
+                         }}
+                       >
+                         添加
+                       </Button>
+                     </div>
+                   </Card>
+                 ))}
+               </div>
+             ) : (
+               <div style={{ 
+                 textAlign: 'center', 
+                 color: '#999', 
+                 padding: '40px 20px',
+                 border: '1px dashed #d9d9d9',
+                 borderRadius: 8,
+                 background: '#fafafa'
+               }}>
+                 <div style={{ fontSize: 24, marginBottom: 8 }}>📚</div>
+                 <Text style={{ color: '#999' }}>暂无选课数据</Text>
+                 <br />
+                 <Text style={{ fontSize: 12, color: '#bfbfbf' }}>
+                   请先在选课管理中添加课程
+                 </Text>
+               </div>
+             )}
+           </div>
+           
+           {/* 说明文字 */}
+           <Text type="secondary" style={{ fontSize: 12, display: 'block' }}>
+             从您的选课中选择相关课程作为笔记来源
            </Text>
          </div>
 

@@ -629,7 +629,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
   // 保存需求
   const handleSaveNeed = () => {
     if (!needTitle.trim()) {
-      message.error('请输入需求标题');
+      message.error('请输入选课标题');
       return;
     }
     
@@ -645,7 +645,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
     };
 
     // 这里可以调用保存API
-    message.success(mode === 'edit' ? '需求更新成功' : '需求创建成功');
+    message.success(mode === 'edit' ? '选课更新成功' : '选课创建成功');
     
     // 返回上一页
     if (onBack) {
@@ -1664,7 +1664,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
-                    {mode === 'edit' ? '📝 编辑需求' : '📝 新建需求'}
+                    {mode === 'edit' ? '📝 编辑选课' : '📝 新建选课'}
                   </Title>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

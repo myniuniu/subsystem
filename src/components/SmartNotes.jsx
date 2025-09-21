@@ -863,18 +863,6 @@ ${timelineData.map(note => {
                   新建笔记
                 </Button>
                 <Button 
-                  icon={<SearchOutlined />}
-                  onClick={handleAdvancedSearch}
-                >
-                  高级搜索
-                </Button>
-                <Button 
-                  icon={<ImportOutlined />}
-                  onClick={handleImportExport}
-                >
-                  导入导出
-                </Button>
-                <Button 
                   className="sync-course-btn"
                   icon={<SyncOutlined />}
                   onClick={handleSyncCourseSelection}
@@ -891,45 +879,6 @@ ${timelineData.map(note => {
                 >
                   同步组织培训
                 </Button>
-                <Dropdown
-                  menu={{
-                    items: [
-                      {
-                        key: 'brief',
-                        label: '简报文档',
-                        icon: <FileTextOutlined />,
-                        onClick: () => handleGenerateReport('brief')
-                      },
-                      {
-                        key: 'study-guide',
-                        label: '学习指南',
-                        icon: <BookOutlined />,
-                        onClick: () => handleGenerateReport('study-guide')
-                      },
-                      {
-                        key: 'faq',
-                        label: '常见问题解答',
-                        icon: <BulbOutlined />,
-                        onClick: () => handleGenerateReport('faq')
-                      },
-                      {
-                        key: 'timeline',
-                        label: '时间轴',
-                        icon: <ClockCircleOutlined />,
-                        onClick: () => handleGenerateReport('timeline')
-                      }
-                    ]
-                  }}
-                  trigger={['contextMenu']}
-                  placement="bottomLeft"
-                  overlayClassName="report-dropdown"
-                >
-                  <Button>
-                    <FileTextOutlined />
-                    报告
-                    <DownOutlined />
-                  </Button>
-                </Dropdown>
               </Space>
             </div>
 

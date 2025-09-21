@@ -1,0 +1,302 @@
+.learning-progress {
+  padding: 24px;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* 统计卡片样式 */
+.stat-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.stat-extra {
+  margin-top: 8px;
+}
+
+/* 学科进度样式 */
+.subject-progress-item {
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.subject-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.subject-icon {
+  font-size: 24px;
+  margin-right: 8px;
+}
+
+/* 本周目标样式 */
+.weekly-goal {
+  text-align: center;
+  padding: 16px 0;
+}
+
+.goal-progress {
+  margin-bottom: 16px;
+}
+
+.goal-info {
+  margin-top: 12px;
+}
+
+/* 学习目标列表样式 */
+.goal-item {
+  width: 100%;
+}
+
+.goal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+/* 活动时间线样式 */
+.activity-item {
+  padding-left: 8px;
+}
+
+/* 成果分布样式 */
+.achievement-stats {
+  padding: 20px 0;
+}
+
+.achievement-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 8px 0;
+}
+
+.achievement-name {
+  flex: 1;
+  margin-left: 8px;
+}
+
+.achievement-value {
+  font-weight: 600;
+  color: #1890ff;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .learning-progress {
+    padding: 16px;
+  }
+  
+  .subject-progress-item {
+    padding: 12px;
+  }
+  
+  .subject-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .weekly-goal {
+    padding: 12px 0;
+  }
+}
+
+/* 卡片标题图标样式 */
+.ant-card-head-title .anticon {
+  margin-right: 8px;
+  color: #1890ff;
+}
+
+/* 进度条自定义样式 */
+.ant-progress-circle .ant-progress-text {
+  font-size: 14px !important;
+  font-weight: 600;
+}
+
+/* 时间线自定义样式 */
+.ant-timeline-item-content {
+  margin-left: 8px;
+}
+
+/* 统计数字样式增强 */
+.ant-statistic-content-value {
+  font-weight: 600;
+}
+
+.ant-statistic-content-prefix {
+  margin-right: 8px;
+}
+
+/* 标签样式优化 */
+.ant-tag {
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+/* 列表项样式 */
+.ant-list-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.ant-list-item:last-child {
+  border-bottom: none;
+}
+
+/* 图表容器样式 */
+.recharts-wrapper {
+  margin: 16px 0;
+}
+
+/* 选择器样式 */
+.ant-select-small {
+  min-width: 80px;
+}
+
+/* 徽章样式 */
+.ant-badge {
+  margin-right: 8px;
+}
+
+/* 空间组件样式 */
+.ant-space-item {
+  display: flex;
+  align-items: center;
+}
+
+/* 卡片内容间距 */
+.ant-card-body {
+  padding: 20px;
+}
+
+/* 行间距调整 */
+.ant-row {
+  margin-bottom: 0;
+}
+
+/* 进度条容器 */
+.ant-progress {
+  margin-bottom: 8px;
+}
+
+/* 文本样式增强 */
+.ant-typography {
+  margin-bottom: 0;
+}
+
+/* 时间线点样式 */
+.ant-timeline-item-head {
+  background-color: #fff;
+  border: 2px solid #1890ff;
+}
+
+/* 自定义滚动条 */
+.learning-progress::-webkit-scrollbar {
+  width: 6px;
+}
+
+.learning-progress::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.learning-progress::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.learning-progress::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 动画效果 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stat-card,
+.subject-progress-item,
+.goal-item,
+.activity-item {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* 悬停效果 */
+.subject-progress-item:hover {
+  background: #f0f0f0;
+  transition: background-color 0.3s ease;
+}
+
+.goal-item:hover {
+  background: #fafafa;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+/* 加载状态样式 */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+/* 空状态样式 */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.empty-state .anticon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  color: #d9d9d9;
+}
+
+/* 工具提示样式 */
+.ant-tooltip-inner {
+  background: rgba(0, 0, 0, 0.85);
+  border-radius: 6px;
+}
+
+/* 成功状态颜色 */
+.success-color {
+  color: #52c41a;
+}
+
+/* 警告状态颜色 */
+.warning-color {
+  color: #faad14;
+}
+
+/* 错误状态颜色 */
+.error-color {
+  color: #ff4d4f;
+}
+
+/* 信息状态颜色 */
+.info-color {
+  color: #1890ff;
+}

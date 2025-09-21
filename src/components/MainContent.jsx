@@ -50,6 +50,7 @@ import {
   Progress
 } from 'antd'
 import './MainContent.css'
+import LearningProgress from './LearningProgress'
 
 const { Content } = Layout
 const { Title, Text, Paragraph } = Typography
@@ -60,7 +61,8 @@ const MainContent = ({ currentView, onViewChange, onStartChat }) => {
     showStats: true,
     showSchedule: true,
     showQuickActions: true,
-    showRecentActivities: true
+    showRecentActivities: true,
+    showLearningProgress: true
   })
 
   const toggleSetting = (key) => {
@@ -386,6 +388,15 @@ const MainContent = ({ currentView, onViewChange, onStartChat }) => {
                   />
                 </Col>
               </Row>
+              <Row justify="space-between" align="middle">
+                <Col>学习进度监控</Col>
+                <Col>
+                  <Switch 
+                    checked={workspaceSettings.showLearningProgress}
+                    onChange={() => toggleSetting('showLearningProgress')}
+                  />
+                </Col>
+              </Row>
             </Space>
           </div>
         </Drawer>
@@ -676,6 +687,13 @@ const MainContent = ({ currentView, onViewChange, onStartChat }) => {
             )}
           </Row>
         </div>
+
+        {/* 学习进度监控 */}
+        {workspaceSettings.showLearningProgress && (
+          <div style={{ margin: '0 24px 24px' }}>
+            <LearningProgress />
+          </div>
+        )}
       </div>
     </div>
   )

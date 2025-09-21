@@ -262,7 +262,7 @@ const CourseSelection = ({ onViewChange, pageState }) => {
     // 跳转到选课编辑页面，传递选中的需求和编辑模式
     setSelectedNote(note);
     setEditorMode('edit');
-    setIsEditing(true);
+    setShowCourseSelectionEditPage(true);
   };
 
   // 查看选课
@@ -270,7 +270,7 @@ const CourseSelection = ({ onViewChange, pageState }) => {
     // 跳转到选课编辑页面（查看模式），传递选中的需求和查看模式
     setSelectedNote(note);
     setEditorMode('view');
-    setIsEditing(true);
+    setShowCourseSelectionEditPage(true);
   };
 
   // 搜索功能

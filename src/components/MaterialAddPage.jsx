@@ -8,7 +8,9 @@ import {
   Card,
   Space,
   Input,
-  message
+  message,
+  Divider,
+  Tag
 } from 'antd';
 import {
   UploadOutlined,
@@ -16,8 +18,12 @@ import {
   LinkOutlined,
   FileTextOutlined,
   ArrowLeftOutlined,
-  PlayCircleOutlined
+  ArrowRightOutlined,
+  PlayCircleOutlined,
+  BookOutlined,
+  PlusOutlined
 } from '@ant-design/icons';
+import courseSelectionService from '../services/courseSelectionService';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -36,6 +42,7 @@ const MaterialAddPage = ({ visible, onClose }) => {
   const [pastedText, setPastedText] = useState('');
   const [showVideoForm, setShowVideoForm] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const [showCourseForm, setShowCourseForm] = useState(false);
 
   const handleFileUpload = (info) => {
     const { status } = info.file;
@@ -157,13 +164,27 @@ const MaterialAddPage = ({ visible, onClose }) => {
     setPastedText('');
   };
 
+  const handleCourseClick = () => {
+    setShowCourseForm(true);
+  };
+
+  const handleCourseAdd = (course) => {
+    message.success(`课程"${course.title}"已添加到笔记资料中`);
+    setShowCourseForm(false);
+    onClose();
+  };
+
+  const handleCourseCancel = () => {
+    setShowCourseForm(false);
+  };
+
   return (
     <Modal
-      title={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showVideoForm) ? null : "添加来源"}
+      title={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showVideoForm || showCourseForm) ? null : "添加来源"}
       open={visible}
       onCancel={onClose}
       width={1040}
-      footer={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showVideoForm) ? null : [
+      footer={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showVideoForm || showCourseForm) ? null : [
         <Button key="cancel" onClick={onClose}>
           取消
         </Button>,
@@ -171,11 +192,162 @@ const MaterialAddPage = ({ visible, onClose }) => {
           保存资源
         </Button>
       ]}
-      centered={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showVideoForm)}
-      closable={!(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showVideoForm)}
-      bodyStyle={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showVideoForm) ? { padding: 0 } : {}}
+      centered={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showVideoForm || showCourseForm)}
+      closable={!(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showVideoForm || showCourseForm)}
+      bodyStyle={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showVideoForm || showCourseForm) ? { padding: 0 } : {}}
     >
-      {showVideoForm ? (
+      {showCourseForm ? (
+        <div>
+          {/* 标题栏 */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            padding: '16px 20px',
+            borderBottom: '1px solid #e5e7eb'
+          }}>
+            <Button 
+              type="text" 
+              icon={<ArrowLeftOutlined />} 
+              onClick={handleCourseCancel}
+              style={{ 
+                marginRight: '12px',
+                padding: '4px',
+                minWidth: 'auto',
+                height: 'auto'
+              }}
+            />
+            <Title level={4} style={{ margin: 0, fontSize: '16px', fontWeight: 500, color: '#1f2937' }}>
+              我的选课
+            </Title>
+          </div>
+          
+          {/* 内容区域 */}
+          <div style={{ padding: '24px 20px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <Text style={{ fontSize: '14px', color: '#6b7280' }}>
+                从您的选课中选择相关课程作为学习资料。
+              </Text>
+            </div>
+            
+            {/* 选课列表 */}
+            <div style={{ marginBottom: '24px', maxHeight: '400px', overflowY: 'auto' }}>
+              {courseSelectionService.getAllCourses().length > 0 ? (
+                courseSelectionService.getAllCourses().map((course, index) => (
+                  <Card 
+                    key={index}
+                    size="small"
+                    hoverable
+                    style={{ 
+                      marginBottom: '12px',
+                      border: '1px solid #f0f0f0',
+                      borderRadius: '8px',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => handleCourseAdd(course)}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ fontSize: 20 }}>📚</div>
+                      <div style={{ flex: 1 }}>
+                        <Text 
+                          style={{ 
+                            fontSize: 14, 
+                            fontWeight: 500, 
+                            color: '#1f1f1f',
+                            display: 'block',
+                            marginBottom: 4
+                          }}
+                        >
+                          {course.title}
+                        </Text>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                          <Text style={{ fontSize: 12, color: '#999' }}>
+                            {course.instructor || '未指定讲师'}
+                          </Text>
+                          <Text style={{ fontSize: 12, color: '#999' }}>•</Text>
+                          <Text style={{ fontSize: 12, color: '#999' }}>
+                            {course.status || '待开课'}
+                          </Text>
+                        </div>
+                        {course.description && (
+                          <Text style={{ fontSize: 12, color: '#666', display: 'block' }}>
+                            {course.description.length > 50 ? course.description.substring(0, 50) + '...' : course.description}
+                          </Text>
+                        )}
+                        {course.tags && course.tags.length > 0 && (
+                          <div style={{ marginTop: 4 }}>
+                            {course.tags.slice(0, 3).map(tag => (
+                              <Tag key={tag} size="small" style={{ fontSize: 10, marginRight: 4 }}>
+                                {tag}
+                              </Tag>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <Button 
+                        type="primary" 
+                        size="small"
+                        icon={<PlusOutlined />}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCourseAdd(course);
+                        }}
+                      >
+                        添加
+                      </Button>
+                    </div>
+                  </Card>
+                ))
+              ) : (
+                <div style={{ 
+                  textAlign: 'center', 
+                  color: '#999', 
+                  padding: '60px 20px',
+                  border: '1px dashed #d9d9d9',
+                  borderRadius: 8,
+                  background: '#fafafa'
+                }}>
+                  <div style={{ fontSize: 48, marginBottom: 16 }}>📚</div>
+                  <Text style={{ color: '#999', fontSize: 16, display: 'block', marginBottom: 8 }}>
+                    暂无选课数据
+                  </Text>
+                  <Text style={{ fontSize: 12, color: '#bfbfbf' }}>
+                    请先在选课管理中添加课程
+                  </Text>
+                </div>
+              )}
+            </div>
+            
+            <div style={{ marginBottom: '24px' }}>
+              <Text strong style={{ fontSize: '14px', color: '#1f2937', display: 'block', marginBottom: '8px' }}>
+                注意
+              </Text>
+              <ul style={{ margin: 0, paddingLeft: '20px', color: '#6b7280', fontSize: '14px', lineHeight: '1.5' }}>
+                <li>选择的课程将作为学习资料添加到您的笔记中。</li>
+                <li>课程内容可用于AI分析和问答功能。</li>
+                <li>确保选择与学习目标相关的课程内容。</li>
+              </ul>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <Button
+                onClick={handleCourseCancel}
+                style={{
+                  height: '36px',
+                  paddingLeft: '16px',
+                  paddingRight: '16px',
+                  borderRadius: '18px',
+                  border: '1px solid #d1d5db',
+                  backgroundColor: 'white',
+                  color: '#374151',
+                  fontSize: '14px'
+                }}
+              >
+                取消
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : showVideoForm ? (
          <div>
            {/* 标题栏 */}
            <div style={{ 
@@ -780,7 +952,7 @@ const MaterialAddPage = ({ visible, onClose }) => {
             gridTemplateColumns: '1fr 1fr 1fr',
             gap: '20px'
           }}>
-            {/* 课程视频 */}
+            {/* 我的选课 */}
             <Card 
               hoverable
               style={{ 
@@ -788,6 +960,45 @@ const MaterialAddPage = ({ visible, onClose }) => {
                 border: '1px solid #e8e8e8',
                 borderRadius: '8px',
                 cursor: 'pointer'
+              }}
+              bodyStyle={{ padding: '40px 24px' }}
+              onClick={handleCourseClick}
+            >
+              <BookOutlined style={{ 
+                fontSize: '40px', 
+                color: '#0ea5e9',
+                marginBottom: '20px'
+              }} />
+              <div style={{ marginBottom: '12px' }}>
+                <Text strong style={{ fontSize: '16px' }}>我的选课</Text>
+              </div>
+              <Button 
+                  type="primary"
+                  size="small"
+                  onClick={handleCourseClick}
+                  style={{
+                    backgroundColor: '#0ea5e9',
+                    borderColor: '#0ea5e9',
+                    borderRadius: '16px',
+                    fontSize: '12px',
+                    height: '28px',
+                    paddingLeft: '12px',
+                    paddingRight: '12px'
+                  }}
+                >
+                  选择课程
+                </Button>
+            </Card>
+
+            {/* 课程视频 */}
+            <Card 
+              hoverable 
+              style={{ 
+                textAlign: 'center',
+                border: '1px solid #f0f0f0',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
               }}
               bodyStyle={{ padding: '40px 24px' }}
               onClick={handleVideoClick}
@@ -801,24 +1012,22 @@ const MaterialAddPage = ({ visible, onClose }) => {
                 <Text strong style={{ fontSize: '16px' }}>课程视频</Text>
               </div>
               <Button 
-                  type="primary"
-                  size="small"
-                  onClick={handleVideoClick}
-                  style={{
-                    backgroundColor: '#1890ff',
-                    borderColor: '#1890ff',
-                    borderRadius: '16px',
-                    fontSize: '12px',
-                    height: '28px',
-                    paddingLeft: '12px',
-                    paddingRight: '12px'
-                  }}
-                >
-                  平台课程
-                </Button>
+                 type="primary"
+                 size="small"
+                 onClick={handleVideoClick}
+                 style={{
+                   backgroundColor: '#1890ff',
+                   borderColor: '#1890ff',
+                   borderRadius: '16px',
+                   fontSize: '12px',
+                   height: '28px',
+                   paddingLeft: '12px',
+                   paddingRight: '12px'
+                 }}
+               >
+                 平台课程
+               </Button>
             </Card>
-
-            {/* 链接 */}
             <Card 
               hoverable
               style={{ 
