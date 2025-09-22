@@ -60,6 +60,7 @@ import annotationService from '../services/annotationService';
 import mockDataGenerator from '../utils/mockDataGenerator';
 import './ResourceAnnotation.css';
 import NoteEditPage from './NoteEditPage';
+import ResourceAnnotationTree from './ResourceAnnotationTree';
 
 const { Content, Sider } = Layout;
 const { Search } = Input;
@@ -89,6 +90,7 @@ const ResourceAnnotation = ({ onViewChange, pageState }) => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({});
   const [showTrainingNeedsEditPage, setShowTrainingNeedsEditPage] = useState(false);
+  const [showTreeView, setShowTreeView] = useState(false);
   const [form] = Form.useForm();
 
   // 资源标注分类
@@ -748,114 +750,9 @@ ${timelineData.map(note => {
             </div>
           </div>
 
-          {/* 资源标注列表 */}
+          {/* 资源标注列表 - 树状视图 */}
           <div className="annotation-list">
-            {loading ? (
-              <div className="loading-container">
-                <Spin size="large" />
-                <Text>加载中...</Text>
-              </div>
-            ) : filteredNotes.length === 0 ? (
-              <Empty
-                description="暂无资源标注"
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-              >
-                <Button type="primary" onClick={handleCreateNote}>
-                  创建第一个资源标注
-                </Button>
-              </Empty>
-            ) : (
-              <Row gutter={[16, 16]}>
-                {filteredNotes.map(note => {
-                  const categoryInfo = getCategoryInfo(note.category);
-                  return (
-                    <Col xs={24} sm={12} lg={8} xl={6} key={note.id}>
-                      <Card
-                        className="annotation-card"
-                        hoverable
-                        actions={[
-                          <Tooltip title="查看">
-                            <EyeOutlined onClick={() => handleViewNote(note)} />
-                          </Tooltip>,
-                          <Tooltip title="编辑">
-                            <EditOutlined onClick={() => handleEditNote(note)} />
-                          </Tooltip>,
-                          <Tooltip title={note.starred ? '取消收藏' : '收藏'}>
-                            {note.starred ? (
-                              <StarFilled 
-                                style={{ color: '#faad14' }}
-                                onClick={() => handleToggleStar(note.id)} 
-                              />
-                            ) : (
-                              <StarOutlined onClick={() => handleToggleStar(note.id)} />
-                            )}
-                          </Tooltip>,
-                          <Dropdown
-                            menu={{
-                              items: getCardActions(note)
-                            }}
-                          >
-                            <MoreOutlined />
-                          </Dropdown>
-                        ]}
-                      >
-                        <Card.Meta
-                          avatar={
-                            <Avatar 
-                              style={{ 
-                                backgroundColor: '#f56a00',
-                                verticalAlign: 'middle' 
-                              }}
-                            >
-                              {categoryInfo.icon}
-                            </Avatar>
-                          }
-                          title={
-                            <div className="annotation-title">
-                              {note.title}
-                              {note.starred && (
-                                <StarFilled 
-                                  style={{ 
-                                    color: '#faad14', 
-                                    marginLeft: 8,
-                                    fontSize: 12
-                                  }} 
-                                />
-                              )}
-                            </div>
-                          }
-                          description={
-                            <div className="annotation-description">
-                              <Paragraph 
-                                ellipsis={{ rows: 2 }}
-                                style={{ marginBottom: 8 }}
-                              >
-                                {note.content}
-                              </Paragraph>
-                              <div className="annotation-meta">
-                                <Tag color="blue">{categoryInfo.label}</Tag>
-                                {note.tags?.slice(0, 2).map(tag => (
-                                  <Tag key={tag} size="small">{tag}</Tag>
-                                ))}
-                                {note.tags?.length > 2 && (
-                                  <Tag size="small">+{note.tags.length - 2}</Tag>
-                                )}
-                              </div>
-                              <div className="annotation-time">
-                                <ClockCircleOutlined />
-                                <Text type="secondary" style={{ fontSize: 12 }}>
-                                  {new Date(note.updatedAt).toLocaleDateString()}
-                                </Text>
-                              </div>
-                            </div>
-                          }
-                        />
-                      </Card>
-                    </Col>
-                  );
-                })}
-              </Row>
-            )}
+            <ResourceAnnotationTree />
           </div>
         </Content>
       </Layout>

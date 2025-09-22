@@ -201,6 +201,17 @@
   margin-bottom: 4px;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.header-right .ant-space {
+  flex-wrap: wrap;
+}
+
 .header-actions .ant-btn {
   border-radius: 8px;
   height: 36px;

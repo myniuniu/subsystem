@@ -1663,9 +1663,6 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
             <div style={{ marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
-                    {mode === 'edit' ? '📝 编辑选课' : '📝 新建选课'}
-                  </Title>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {mode === 'edit' && (
@@ -1678,17 +1675,6 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
                       保存
                     </Button>
                   )}
-                  {onBack && (
-                    <Button 
-                      type="text" 
-                      icon={<ArrowLeftOutlined />} 
-                      onClick={handleBack}
-                      style={{ color: '#666' }}
-                      size="small"
-                    >
-                      返回
-                    </Button>
-                  )}
                 </div>
               </div>
               
@@ -1697,9 +1683,6 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
-                  📚 资料收集
-                </Title>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 {selectedMaterials.length > 0 && (

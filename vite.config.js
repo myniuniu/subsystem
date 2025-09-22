@@ -6,7 +6,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000,
-    open: true
+    open: true,
+    hmr: {
+      overlay: true
+    }
   },
   build: {
     outDir: 'dist',
