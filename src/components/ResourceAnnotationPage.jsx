@@ -42,7 +42,8 @@ import {
   PlayCircleOutlined,
   GlobalOutlined,
   MoreOutlined,
-  EditOutlined
+  EditOutlined,
+  TagOutlined
 } from '@ant-design/icons';
 
 const { Content, Sider } = Layout;
@@ -104,6 +105,11 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
     { id: 5, title: '信息技术与课程整合', url: 'https://edu-video.com/tech-integration', addTime: '5分钟前' },
     { id: 6, title: '学生心理发展与教育', url: 'https://edu-video.com/student-psychology', addTime: '12分钟前' }
   ]);
+
+  // 标注相关状态
+  const [showAnnotationModal, setShowAnnotationModal] = useState(false);
+  const [annotationTags, setAnnotationTags] = useState([]);
+  const [currentTag, setCurrentTag] = useState('');
 
   // 研究论文相关状态
   const [researchPapers, setResearchPapers] = useState([
@@ -207,10 +213,11 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
     }
   ]);
   
-  // 问答区域相关状态
+  // 智能问答相关状态
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [recommendedResources, setRecommendedResources] = useState([]); // 新增：推荐的资源列表
   
   // 快捷操作相关状态
   const [quickActions] = useState([
@@ -237,345 +244,8 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
     audio: [],
     video: [],
     mindmap: [],
-    'training-plan': [
-      {
-        id: 1001,
-        title: '培训方案设计与实施指南',
-        source: '培训管理系统',
-        time: '刚刚',
-        type: 'training-plan',
-        content: `
-          <h3 style="color: #1890ff; margin-bottom: 15px;">📋 企业培训方案设计框架</h3>
-          
-          <div style="margin-bottom: 20px; padding: 15px; background-color: #f0f8ff; border-radius: 8px;">
-            <h4 style="color: #1890ff; margin-bottom: 10px;">🎯 培训目标设定</h4>
-            <div style="margin-left: 15px;">
-              <p><strong>总体目标：</strong>提升员工综合素质和专业技能，增强企业核心竞争力</p>
-              <p><strong>具体目标：</strong></p>
-              <ul style="margin-left: 20px;">
-                <li>提高管理人员的领导力和决策能力</li>
-                <li>增强技术人员的专业技能和创新能力</li>
-                <li>培养员工的团队协作和沟通技巧</li>
-                <li>建立学习型组织文化</li>
-              </ul>
-            </div>
-          </div>
-
-          <div style="margin-bottom: 20px; padding: 15px; background-color: #fff7e6; border-radius: 8px;">
-            <h4 style="color: #fa8c16; margin-bottom: 10px;">📚 课程体系设计</h4>
-            <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
-              <thead>
-                <tr style="background-color: #f5f5f5;">
-                  <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">培训模块</th>
-                  <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">课程内容</th>
-                  <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">学时</th>
-                  <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">目标人群</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="border: 1px solid #ddd; padding: 8px;">管理技能</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">领导力、决策分析、团队管理</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">40学时</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">中高层管理者</td>
-                </tr>
-                <tr>
-                  <td style="border: 1px solid #ddd; padding: 8px;">专业技能</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">技术更新、工艺改进、质量控制</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">60学时</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">技术人员</td>
-                </tr>
-                <tr>
-                  <td style="border: 1px solid #ddd; padding: 8px;">通用技能</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">沟通协调、时间管理、创新思维</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">30学时</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">全体员工</td>
-                </tr>
-                <tr>
-                  <td style="border: 1px solid #ddd; padding: 8px;">企业文化</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">价值观传递、制度解读、团队建设</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">20学时</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">新员工</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div style="margin-bottom: 20px; padding: 15px; background-color: #f6ffed; border-radius: 8px;">
-            <h4 style="color: #52c41a; margin-bottom: 10px;">👨‍🏫 师资配置方案</h4>
-            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; margin-bottom: 10px;">
-              <div style="flex: 1; margin: 5px; padding: 10px; background: white; border-radius: 4px; border: 1px solid #d9d9d9;">
-                <strong>内部讲师：</strong>60%<br>
-                <small>企业高管、技术专家、优秀员工</small>
-              </div>
-              <div style="flex: 1; margin: 5px; padding: 10px; background: white; border-radius: 4px; border: 1px solid #d9d9d9;">
-                <strong>外部专家：</strong>30%<br>
-                <small>行业专家、咨询顾问、高校教授</small>
-              </div>
-              <div style="flex: 1; margin: 5px; padding: 10px; background: white; border-radius: 4px; border: 1px solid #d9d9d9;">
-                <strong>在线课程：</strong>10%<br>
-                <small>知名平台、专业机构、认证课程</small>
-              </div>
-            </div>
-          </div>
-
-          <div style="margin-bottom: 20px; padding: 15px; background-color: #f9f0ff; border-radius: 8px;">
-            <h4 style="color: #722ed1; margin-bottom: 10px;">🎓 培训方式选择</h4>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-              <div style="padding: 10px; background: white; border-radius: 4px; border: 1px solid #d9d9d9;">
-                <strong>线下培训</strong>
-                <ul style="margin: 5px 0 0 15px; font-size: 12px;">
-                  <li>面授课程</li>
-                  <li>工作坊</li>
-                  <li>实地考察</li>
-                  <li>导师制</li>
-                </ul>
-              </div>
-              <div style="padding: 10px; background: white; border-radius: 4px; border: 1px solid #d9d9d9;">
-                <strong>线上培训</strong>
-                <ul style="margin: 5px 0 0 15px; font-size: 12px;">
-                  <li>在线课程</li>
-                  <li>直播培训</li>
-                  <li>微课学习</li>
-                  <li>移动学习</li>
-                </ul>
-              </div>
-              <div style="padding: 10px; background: white; border-radius: 4px; border: 1px solid #d9d9d9;">
-                <strong>混合式培训</strong>
-                <ul style="margin: 5px 0 0 15px; font-size: 12px;">
-                  <li>翻转课堂</li>
-                  <li>项目制学习</li>
-                  <li>行动学习</li>
-                  <li>案例研讨</li>
-                </ul>
-              </div>
-              <div style="padding: 10px; background: white; border-radius: 4px; border: 1px solid #d9d9d9;">
-                <strong>实践培训</strong>
-                <ul style="margin: 5px 0 0 15px; font-size: 12px;">
-                  <li>岗位轮换</li>
-                  <li>项目参与</li>
-                  <li>技能竞赛</li>
-                  <li>经验分享</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <div style="margin-bottom: 20px; padding: 15px; background-color: #fff1f0; border-radius: 8px;">
-            <h4 style="color: #f5222d; margin-bottom: 10px;">📊 效果评估体系</h4>
-            <div style="margin-bottom: 15px;">
-              <h5 style="color: #f5222d; margin-bottom: 8px;">柯氏四级评估模型</h5>
-              <table style="width: 100%; border-collapse: collapse;">
-                <thead>
-                  <tr style="background-color: #f5f5f5;">
-                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">评估层级</th>
-                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">评估内容</th>
-                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">评估方法</th>
-                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">权重</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td style="border: 1px solid #ddd; padding: 6px;">反应层</td>
-                    <td style="border: 1px solid #ddd; padding: 6px;">学员满意度</td>
-                    <td style="border: 1px solid #ddd; padding: 6px;">问卷调查、访谈</td>
-                    <td style="border: 1px solid #ddd; padding: 6px;">20%</td>
-                  </tr>
-                  <tr>
-                    <td style="border: 1px solid #ddd; padding: 6px;">学习层</td>
-                    <td style="border: 1px solid #ddd; padding: 6px;">知识技能掌握</td>
-                    <td style="border: 1px solid #ddd; padding: 6px;">考试测评、技能演示</td>
-                    <td style="border: 1px solid #ddd; padding: 6px;">30%</td>
-                  </tr>
-                  <tr>
-                    <td style="border: 1px solid #ddd; padding: 6px;">行为层</td>
-                    <td style="border: 1px solid #ddd; padding: 6px;">行为改变程度</td>
-                    <td style="border: 1px solid #ddd; padding: 6px;">360度评估、观察记录</td>
-                    <td style="border: 1px solid #ddd; padding: 6px;">30%</td>
-                  </tr>
-                  <tr>
-                    <td style="border: 1px solid #ddd; padding: 6px;">结果层</td>
-                    <td style="border: 1px solid #ddd; padding: 6px;">业务成果改善</td>
-                    <td style="border: 1px solid #ddd; padding: 6px;">绩效指标、ROI分析</td>
-                    <td style="border: 1px solid #ddd; padding: 6px;">20%</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div style="margin-bottom: 20px; padding: 15px; background-color: #e6fffb; border-radius: 8px;">
-            <h4 style="color: #13c2c2; margin-bottom: 10px;">⏰ 实施时间安排</h4>
-            <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
-              <div style="margin: 5px 0;"><strong>方案制定：</strong>1-2周</div>
-              <div style="margin: 5px 0;"><strong>资源准备：</strong>2-3周</div>
-              <div style="margin: 5px 0;"><strong>培训实施：</strong>3-6个月</div>
-              <div style="margin: 5px 0;"><strong>效果评估：</strong>持续进行</div>
-            </div>
-          </div>
-
-          <div style="margin-top: 15px; padding: 10px; background-color: #feffe6; border-radius: 8px;">
-            <p style="margin: 0; color: #a0d911;"><strong>💡 实施建议：</strong>建立培训管理委员会，制定详细的实施计划，确保各部门协调配合。定期收集反馈，及时调整培训内容和方式，确保培训效果最大化。</p>
-          </div>
-        `
-      }
-    ],
-    report: [
-      {
-        id: 1002,
-        title: '培训课表安排与时间管理',
-        source: '课程管理系统',
-        time: '刚刚',
-        type: 'report',
-        content: `
-          <h3 style="color: #1890ff; margin-bottom: 15px;">📹 录播视频课程安排表</h3>
-          <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-            <thead>
-              <tr style="background-color: #f5f5f5;">
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">课程序号</th>
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">视频课程名称</th>
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">主讲教师</th>
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">视频时长</th>
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">课程类型</th>
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">观看状态</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">01</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">企业管理基础理论精讲</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">李教授</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">180分钟</td>
-                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #e6f7ff; color: #1890ff; padding: 2px 8px; border-radius: 4px;">理论课程</span></td>
-                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #f6ffed; color: #52c41a; padding: 2px 8px; border-radius: 4px;">✓ 可观看</span></td>
-              </tr>
-              <tr>
-                <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">02</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">团队协作与沟通技巧实战</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">王老师</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">165分钟</td>
-                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #fff7e6; color: #fa8c16; padding: 2px 8px; border-radius: 4px;">实操课程</span></td>
-                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #f6ffed; color: #52c41a; padding: 2px 8px; border-radius: 4px;">✓ 可观看</span></td>
-              </tr>
-              <tr>
-                <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">03</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">项目管理实务案例解析</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">张经理</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">195分钟</td>
-                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #f9f0ff; color: #722ed1; padding: 2px 8px; border-radius: 4px;">案例课程</span></td>
-                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #f6ffed; color: #52c41a; padding: 2px 8px; border-radius: 4px;">✓ 可观看</span></td>
-              </tr>
-              <tr>
-                <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">04</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">创新思维与问题解决方法</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">陈专家</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">120分钟</td>
-                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #fff1f0; color: #f5222d; padding: 2px 8px; border-radius: 4px;">思维训练</span></td>
-                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #f6ffed; color: #52c41a; padding: 2px 8px; border-radius: 4px;">✓ 可观看</span></td>
-              </tr>
-              <tr>
-                <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">05</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">数字化转型与应用实践</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">刘顾问</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">135分钟</td>
-                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #e6fffb; color: #13c2c2; padding: 2px 8px; border-radius: 4px;">技术课程</span></td>
-                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #f6ffed; color: #52c41a; padding: 2px 8px; border-radius: 4px;">✓ 可观看</span></td>
-              </tr>
-              <tr>
-                <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">06</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">综合能力测评与总结</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">全体教师</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">90分钟</td>
-                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #feffe6; color: #a0d911; padding: 2px 8px; border-radius: 4px;">测评课程</span></td>
-                <td style="border: 1px solid #ddd; padding: 10px;"><span style="background: #fff2e8; color: #fa541c; padding: 2px 8px; border-radius: 4px;">⏳ 待开放</span></td>
-              </tr>
-            </tbody>
-          </table>
-          <div style="margin-top: 20px; padding: 15px; background-color: #f0f8ff; border-radius: 8px;">
-            <h4 style="color: #1890ff; margin-bottom: 10px;">📊 录播课程统计信息</h4>
-            <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
-              <div style="margin: 5px 0;"><strong>课程总数：</strong>6门</div>
-              <div style="margin: 5px 0;"><strong>总视频时长：</strong>885分钟（约14.75小时）</div>
-              <div style="margin: 5px 0;"><strong>主讲教师：</strong>5位</div>
-              <div style="margin: 5px 0;"><strong>可观看课程：</strong>5门</div>
-            </div>
-          </div>
-          <div style="margin-top: 15px; padding: 10px; background-color: #fff7e6; border-radius: 8px;">
-            <p style="margin: 0; color: #d48806;"><strong>📝 观看须知：</strong>所有录播视频课程支持随时观看，建议按序号顺序学习。每门课程观看完毕后请完成相应的课后练习。最后一门测评课程将在前5门课程全部完成后开放。</p>
-          </div>
-          <div style="margin-top: 10px; padding: 10px; background-color: #f6ffed; border-radius: 8px;">
-            <p style="margin: 0; color: #389e0d;"><strong>🎯 学习建议：</strong>建议每天观看1-2门课程，合理安排学习进度。视频支持倍速播放、暂停回看等功能，可根据个人学习节奏调整。</p>
-          </div>
-        `
-      },
-      {
-        id: 1003,
-        title: '参训人员清单',
-        source: '人员管理系统',
-        time: '刚刚',
-        type: 'report',
-        content: `
-          <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-            <thead>
-              <tr style="background-color: #f5f5f5;">
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">姓名</th>
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">部门</th>
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">职位</th>
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">工作年限</th>
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">培训需求</th>
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">联系方式</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style="border: 1px solid #ddd; padding: 10px;">张明</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">技术部</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">高级工程师</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">5年</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">项目管理、团队协作</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">zhangming@company.com</td>
-              </tr>
-              <tr>
-                <td style="border: 1px solid #ddd; padding: 10px;">李华</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">市场部</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">市场专员</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">3年</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">数据分析、营销策略</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">lihua@company.com</td>
-              </tr>
-              <tr>
-                <td style="border: 1px solid #ddd; padding: 10px;">王芳</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">人事部</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">人事主管</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">7年</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">法律法规、绩效管理</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">wangfang@company.com</td>
-              </tr>
-              <tr>
-                <td style="border: 1px solid #ddd; padding: 10px;">刘强</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">财务部</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">财务分析师</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">4年</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">财务软件、风险控制</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">liuqiang@company.com</td>
-              </tr>
-              <tr>
-                <td style="border: 1px solid #ddd; padding: 10px;">陈静</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">客服部</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">客服经理</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">6年</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">沟通技巧、客户关系</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">chenjing@company.com</td>
-              </tr>
-            </tbody>
-          </table>
-          <p style="margin-top: 20px; color: #666; font-size: 14px;">
-            <strong>统计信息：</strong>共5名参训人员，涵盖技术部、市场部、人事部、财务部、客服部等5个部门。
-            平均工作年限：5年。主要培训需求集中在管理技能、专业技术和沟通协作等方面。
-          </p>
-        `
-      }
-    ],
+    'training-plan': [],
+    report: [],
     ppt: [],
     webcode: [],
     file: [],
@@ -626,6 +296,85 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
       }
     }
   }, [selectedNeed, mode]);
+
+  // 处理标注按钮点击
+  const handleAnnotation = () => {
+    setShowAnnotationModal(true);
+  };
+
+  // 处理标签添加
+  const handleAddTag = () => {
+    if (currentTag.trim() && !annotationTags.includes(currentTag.trim())) {
+      setAnnotationTags([...annotationTags, currentTag.trim()]);
+      setCurrentTag('');
+    }
+  };
+
+  // 处理标签删除
+  const handleRemoveTag = (tagToRemove) => {
+    setAnnotationTags(annotationTags.filter(tag => tag !== tagToRemove));
+  };
+
+  // 处理标注确认
+  const handleAnnotationConfirm = () => {
+    if (annotationTags.length === 0) {
+      message.warning('请至少添加一个标签');
+      return;
+    }
+
+    // 添加操作记录
+    const newRecord = {
+      id: Date.now(),
+      title: `标签标注 - ${annotationTags.join(', ')}`,
+        source: '标签标注系统',
+      time: new Date().toLocaleString(),
+      type: 'annotation',
+      content: `
+        <h3 style="color: #1890ff; margin-bottom: 15px;">🏷️ 标签标注记录</h3>
+        
+        <div style="margin-bottom: 20px; padding: 15px; background-color: #f6ffed; border-radius: 8px;">
+          <h4 style="color: #52c41a; margin-bottom: 10px;">📝 标注详情</h4>
+          <div style="margin-left: 15px;">
+            <p><strong>标注时间：</strong>${new Date().toLocaleString()}</p>
+            <p><strong>标注用户：</strong>当前用户</p>
+            <p><strong>添加标签：</strong></p>
+            <div style="margin: 10px 0;">
+              ${annotationTags.map(tag => `<span style="display: inline-block; background: #1890ff; color: white; padding: 4px 8px; border-radius: 12px; margin: 2px 4px; font-size: 12px;">${tag}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 20px; padding: 15px; background-color: #fff7e6; border-radius: 8px;">
+          <h4 style="color: #fa8c16; margin-bottom: 10px;">💡 标注说明</h4>
+          <p>本次为资源添加了 ${annotationTags.length} 个标签，这些标签将帮助您更好地分类和管理资源。</p>
+          <p>标签内容：${annotationTags.join('、')}</p>
+        </div>
+      `,
+      tags: [...annotationTags],
+      action: '标签标注',
+      user: '当前用户'
+    };
+
+    // 将操作记录添加到对应的分类中（使用 'text' 分类存储标注记录）
+    setOperationRecords(prev => ({
+      ...prev,
+      text: [newRecord, ...(prev.text || [])]
+    }));
+    
+    // 重置状态
+    setAnnotationTags([]);
+    setCurrentTag('');
+    setShowAnnotationModal(false);
+    
+    message.success(`成功添加 ${annotationTags.length} 个标签，操作记录已生成`);
+  };
+
+  // 处理标注取消
+  const handleAnnotationCancel = () => {
+    setAnnotationTags([]);
+    setCurrentTag('');
+    setShowAnnotationModal(false);
+  };
 
   // 保存需求
   const handleSaveNeed = () => {
@@ -1071,6 +820,12 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
      message.success('课程视频删除成功');
    };
 
+  // 处理资源推荐回调
+  const handleResourceRecommend = (resources) => {
+    setRecommendedResources(resources);
+    message.success(`为您推荐了 ${resources.length} 个相关资源，已在左侧资源树中高亮显示`);
+  };
+
   // 发送消息
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -1086,7 +841,7 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
     setInputMessage('');
     setIsLoading(true);
     
-    // 模拟AI回复
+    // 模拟AI回复和资源推荐
     setTimeout(() => {
       const aiResponse = {
         id: Date.now() + 1,
@@ -1095,6 +850,27 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
         timestamp: new Date().toISOString()
       };
       setMessages(prev => [...prev, aiResponse]);
+      
+      // 模拟资源推荐逻辑
+      const mockRecommendedResources = [];
+      const keywords = inputMessage.toLowerCase();
+      
+      // 根据关键词推荐相关资源
+      if (keywords.includes('心理') || keywords.includes('健康') || keywords.includes('情绪')) {
+        mockRecommendedResources.push({ id: 'sm_001' }); // 学生心理健康教育
+      }
+      if (keywords.includes('管理') || keywords.includes('班级') || keywords.includes('纪律')) {
+        mockRecommendedResources.push({ id: 'sm_002' }); // 班级管理实用手册
+      }
+      if (keywords.includes('激励') || keywords.includes('评价') || keywords.includes('策略')) {
+        mockRecommendedResources.push({ id: 'sm_003' }); // 学生激励与评价策略
+      }
+      
+      // 如果有推荐资源，触发推荐回调
+      if (mockRecommendedResources.length > 0) {
+        handleResourceRecommend(mockRecommendedResources);
+      }
+      
       setIsLoading(false);
     }, 1500);
   };
@@ -1737,6 +1513,7 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
                 // 处理资源选择
                 console.log('选中的资源:', selectedKeys, selectedResources);
               }}
+              recommendedResources={recommendedResources}
             />
           </div>
         </div>
@@ -1848,9 +1625,8 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
               <TextArea
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder={selectedMaterials.length > 0 ? `基于已选择的 ${selectedMaterials.length} 个资料，请输入您的问题...` : "请先选择资料后再输入问题..."}
+                placeholder={selectedMaterials.length > 0 ? `基于已选择的 ${selectedMaterials.length} 个资料，请输入您的问题...` : "请输入您的问题，我会为您推荐相关资源..."}
                 autoSize={{ minRows: 1, maxRows: 3 }}
-                disabled={selectedMaterials.length === 0}
                 onPressEnter={(e) => {
                   if (!e.shiftKey) {
                     e.preventDefault();
@@ -1863,7 +1639,7 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
                 icon={<SendOutlined />}
                 onClick={handleSendMessage}
                 loading={isLoading}
-                disabled={!inputMessage.trim() || selectedMaterials.length === 0}
+                disabled={!inputMessage.trim()}
               >
                 发送
               </Button>
@@ -1880,117 +1656,30 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
               🛠️ 操作面板
             </Title>
             
-            {/* 功能卡片网格 */}
+            {/* 标注按钮 */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: 16 }}>
-              {/* 渲染可见的工具 */}
-              {visibleTools.map(toolType => {
-                const toolConfig = {
-                  'audio': { icon: '🎵', title: '音频概览', gradient: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)', color: '#1565c0' },
-                  'video': { icon: '📹', title: '视频概览', gradient: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)', color: '#2e7d32' },
-                  'mindmap': { icon: '🧠', title: '思维导图', gradient: 'linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%)', color: '#c2185b' },
-                  'report': { icon: '📊', title: '报告', gradient: 'linear-gradient(135deg, #fff3e0 0%, #ffcc80 100%)', color: '#ef6c00' },
-                  'ppt': { icon: '📽️', title: 'PPT概览', gradient: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)', color: '#d32f2f' },
-                  'webcode': { icon: '💻', title: '网页代码', gradient: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)', color: '#7b1fa2' },
-                  'training-plan': { icon: '📋', title: '培训方案', gradient: 'linear-gradient(135deg, #e8f5e8 0%, #a5d6a7 100%)', color: '#388e3c' },
-                  'schedule': { icon: '📅', title: '课表', gradient: 'linear-gradient(135deg, #fff8e1 0%, #ffcc02 100%)', color: '#f57c00' },
-                  'participants': { icon: '👥', title: '参训人员', gradient: 'linear-gradient(135deg, #e3f2fd 0%, #90caf9 100%)', color: '#1976d2' }
-                };
-
-                const config = toolConfig[toolType];
-                if (!config) return null;
-
-                return (
-                  <div key={toolType} style={{ position: 'relative' }}>
-                    <Card 
-                      size="small" 
-                      hoverable
-                      onClick={() => handleOperationClick(toolType)}
-                      style={{ 
-                        background: config.gradient,
-                        border: 'none',
-                        borderRadius: '12px',
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      <div style={{ padding: '6px 0' }}>
-                        <div style={{ fontSize: '20px', marginBottom: '6px' }}>{config.icon}</div>
-                        <Text style={{ 
-                          fontSize: '11px', 
-                          fontWeight: 500, 
-                          color: config.color 
-                        }}>{config.title}</Text>
-                      </div>
-                    </Card>
-                    {/* 移除按钮 */}
-                    <Button
-                      type="text"
-                      size="small"
-                      icon={<DeleteOutlined />}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveTool(toolType);
-                      }}
-                      style={{
-                        position: 'absolute',
-                        top: '-8px',
-                        right: '-8px',
-                        width: '20px',
-                        height: '20px',
-                        borderRadius: '50%',
-                        backgroundColor: '#ff4d4f',
-                        color: 'white',
-                        border: 'none',
-                        fontSize: '10px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 10
-                      }}
-                    />
-                  </div>
-                );
-              })}
-
-              {/* 添加工具按钮 */}
-              <Dropdown
-                menu={{
-                  items: [
-                    { key: 'audio', label: '🎵 音频概览', disabled: visibleTools.includes('audio') },
-                    { key: 'video', label: '📹 视频概览', disabled: visibleTools.includes('video') },
-                    { key: 'mindmap', label: '🧠 思维导图', disabled: visibleTools.includes('mindmap') },
-                    { key: 'report', label: '📊 报告', disabled: visibleTools.includes('report') },
-                    { key: 'ppt', label: '📽️ PPT概览', disabled: visibleTools.includes('ppt') },
-                    { key: 'webcode', label: '💻 网页代码', disabled: visibleTools.includes('webcode') }
-                  ],
-                  onClick: ({ key }) => handleAddTool(key)
+              <Card 
+                size="small" 
+                hoverable
+                onClick={handleAnnotation}
+                style={{ 
+                  background: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
                 }}
-                trigger={['click']}
-                placement="bottomLeft"
               >
-                <Card 
-                  size="small" 
-                  hoverable
-                  style={{ 
-                    background: 'linear-gradient(135deg, #f6f6f6 0%, #e0e0e0 100%)',
-                    border: '2px dashed #d9d9d9',
-                    borderRadius: '12px',
-                    textAlign: 'center',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <div style={{ padding: '6px 0' }}>
-                    <div style={{ fontSize: '20px', marginBottom: '6px' }}>➕</div>
-                    <Text style={{ 
-                      fontSize: '11px', 
-                      fontWeight: 500, 
-                      color: '#666' 
-                    }}>添加工具</Text>
-                  </div>
-                </Card>
-              </Dropdown>
+                <div style={{ padding: '6px 0' }}>
+                  <div style={{ fontSize: '20px', marginBottom: '6px' }}>📝</div>
+                  <Text style={{ 
+                    fontSize: '11px', 
+                    fontWeight: 500, 
+                    color: '#1890ff' 
+                  }}>标签标注</Text>
+                </div>
+              </Card>
             </div>
           </div>
           
@@ -2464,6 +2153,91 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
         onClose={() => setShowExploreModal(false)}
         onExplore={handleExplore}
       />
+
+      {/* 标注弹窗 */}
+      <Modal
+        title="📝 标签标注"
+        open={showAnnotationModal}
+        onOk={handleAnnotationConfirm}
+        onCancel={handleAnnotationCancel}
+        okText="确定"
+        cancelText="取消"
+        width={600}
+        style={{ top: 100 }}
+      >
+        <div style={{ padding: '20px 0' }}>
+          <div style={{ marginBottom: 20 }}>
+            <Text strong style={{ fontSize: 16, color: '#1890ff' }}>
+              为当前资源添加标签
+            </Text>
+            <div style={{ marginTop: 8, color: '#666', fontSize: 14 }}>
+              标签可以帮助您更好地分类和管理资源，支持添加多个标签
+            </div>
+          </div>
+
+          {/* 标签输入区域 */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+              <Input
+                placeholder="输入标签名称，按回车或点击添加"
+                value={currentTag}
+                onChange={(e) => setCurrentTag(e.target.value)}
+                onPressEnter={handleAddTag}
+                style={{ flex: 1 }}
+                maxLength={20}
+              />
+              <Button 
+                type="primary" 
+                icon={<PlusOutlined />}
+                onClick={handleAddTag}
+                disabled={!currentTag.trim()}
+              >
+                添加
+              </Button>
+            </div>
+            
+            {/* 已添加的标签显示 */}
+            {annotationTags.length > 0 && (
+              <div>
+                <Text style={{ color: '#666', fontSize: 14, marginBottom: 8, display: 'block' }}>
+                  已添加的标签 ({annotationTags.length}):
+                </Text>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {annotationTags.map((tag, index) => (
+                    <Tag
+                      key={index}
+                      closable
+                      onClose={() => handleRemoveTag(tag)}
+                      color="blue"
+                      style={{ 
+                        fontSize: 14, 
+                        padding: '4px 8px',
+                        borderRadius: 16,
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}
+                    >
+                      {tag}
+                    </Tag>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 提示信息 */}
+          <div style={{ 
+            backgroundColor: '#f6ffed', 
+            border: '1px solid #b7eb8f', 
+            borderRadius: 6, 
+            padding: 12,
+            fontSize: 14,
+            color: '#52c41a'
+          }}>
+            💡 提示：标签将帮助您快速筛选和查找相关资源，建议使用简洁明了的词汇
+          </div>
+        </div>
+      </Modal>
     </>
   );
 };

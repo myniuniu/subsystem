@@ -72,7 +72,8 @@ const ResourceTreeView = ({
   selectedResources = [], 
   showCheckbox = true,
   expandAll = false,
-  searchable = true 
+  searchable = true,
+  recommendedResources = [] // 新增：推荐的资源列表
 }) => {
   const [searchValue, setSearchValue] = useState('');
   const [expandedKeys, setExpandedKeys] = useState([]);
@@ -123,22 +124,32 @@ const ResourceTreeView = ({
           </div>
         ),
         key: category.id,
-        children: filteredResources.map(resource => ({
-          title: (
-            <div className="resource-node">
-              <span className="resource-icon">
-                {resourceTypeIcons[resource.type]}
-              </span>
-              <span className="resource-title">
-                {resource.title}
-              </span>
-            </div>
-          ),
-          key: `${category.id}-${resource.id}`,
-          isLeaf: true,
-          resourceData: resource,
-          categoryData: category
-        }))
+        children: filteredResources.map(resource => {
+          // 检查是否为推荐资源
+          const isRecommended = recommendedResources.some(rec => rec.id === resource.id);
+          
+          return {
+            title: (
+              <div className={`resource-node ${isRecommended ? 'recommended' : ''}`}>
+                <span className="resource-icon">
+                  {resourceTypeIcons[resource.type]}
+                </span>
+                <span className="resource-title">
+                  {resource.title}
+                </span>
+                {isRecommended && (
+                  <span className="recommended-badge">
+                    ⭐ 推荐
+                  </span>
+                )}
+              </div>
+            ),
+            key: `${category.id}-${resource.id}`,
+            isLeaf: true,
+            resourceData: resource,
+            categoryData: category
+          };
+        })
       };
     }).filter(Boolean);
   }, [searchValue]);
@@ -471,6 +482,20 @@ const ResourceTreeView = ({
           align-items: center;
           padding: 4px 8px;
           font-size: 13px;
+          transition: all 0.2s ease;
+        }
+
+        .resource-node.recommended {
+          background: linear-gradient(90deg, #fff7e6 0%, #fff2d9 100%);
+          border-radius: 4px;
+          border-left: 3px solid #faad14;
+          animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+          0% { box-shadow: 0 0 0 0 rgba(250, 173, 20, 0.4); }
+          70% { box-shadow: 0 0 0 4px rgba(250, 173, 20, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(250, 173, 20, 0); }
         }
 
         .resource-icon {
@@ -481,6 +506,19 @@ const ResourceTreeView = ({
 
         .resource-title {
           font-weight: 400 !important;
+          flex: 1;
+        }
+
+        .recommended-badge {
+          font-size: 10px;
+          color: #faad14;
+          font-weight: 500;
+          margin-left: 8px;
+          padding: 1px 4px;
+          background: rgba(250, 173, 20, 0.1);
+          border-radius: 8px;
+          border: 1px solid rgba(250, 173, 20, 0.3);
+        }
           font-size: 13px;
           color: var(--theme-text);
           line-height: 1.4;

@@ -615,7 +615,7 @@ ${timelineData.map(note => {
           <div className="sidebar-content">
             {/* 搜索框 */}
             <Search
-              placeholder="搜索资源标注..."
+              placeholder="搜索标签标注..."
               allowClear
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -661,9 +661,9 @@ ${timelineData.map(note => {
         <Content className="annotation-content">
           <div className="content-header">
             <div className="header-left">
-              <Title level={3}>资源标注管理</Title>
+              <Title level={3}>标签标注管理</Title>
               <Text type="secondary">
-                共 {filteredNotes.length} 条资源标注
+                共 {filteredNotes.length} 条标签标注
               </Text>
             </div>
             <div className="header-right">

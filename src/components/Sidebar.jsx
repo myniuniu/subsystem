@@ -365,7 +365,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
     { 
        id: 'resource-annotation', 
        icon: Tag, 
-       label: '资源标注', 
+       label: '标签标注', 
        color: '#f759ab',
        type: 'single'
      },

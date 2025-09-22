@@ -41,7 +41,9 @@ import {
   PlayCircleOutlined,
   GlobalOutlined,
   MoreOutlined,
-  EditOutlined
+  EditOutlined,
+  TagOutlined,
+  CloseOutlined
 } from '@ant-design/icons';
 
 const { Content, Sider } = Layout;
@@ -230,6 +232,12 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
   
   // 探索弹窗相关状态
   const [showExploreModal, setShowExploreModal] = useState(false);
+  
+  // 标记功能相关状态
+  const [showTagModal, setShowTagModal] = useState(false);
+  const [tagInput, setTagInput] = useState('');
+  const [tags, setTags] = useState([]);
+  const [currentTags, setCurrentTags] = useState([]);
   
   // 操作记录状态
   const [operationRecords, setOperationRecords] = useState({
@@ -1642,6 +1650,52 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
   const isAllSelected = allMaterials.length > 0 && selectedMaterials.length === allMaterials.length;
   const isIndeterminate = selectedMaterials.length > 0 && selectedMaterials.length < allMaterials.length;
 
+  // 标签管理函数
+  const handleRemoveTag = (tagToRemove) => {
+    const newTags = currentTags.filter(tag => tag !== tagToRemove);
+    setCurrentTags(newTags);
+    message.success('标签已移除');
+  };
+
+  const handleTagModalOpen = () => {
+    setShowTagModal(true);
+  };
+
+  const handleTagModalCancel = () => {
+    setShowTagModal(false);
+    setTagInput('');
+    setTags([]);
+  };
+
+  const handleTagModalOk = () => {
+    if (tags.length > 0) {
+      const newTags = [...new Set([...currentTags, ...tags])]; // 去重
+      setCurrentTags(newTags);
+      message.success(`成功添加 ${tags.length} 个标签`);
+    }
+    setShowTagModal(false);
+    setTagInput('');
+    setTags([]);
+  };
+
+  const handleTagInputChange = (e) => {
+    const value = e.target.value;
+    setTagInput(value);
+    
+    // 实时解析标签
+    const parsedTags = value
+      .split(/[,，;；\n]/) // 支持中英文逗号、分号、换行
+      .map(tag => tag.trim())
+      .filter(tag => tag.length > 0);
+    
+    setTags(parsedTags);
+  };
+
+  const handleTagRemoveFromPreview = (index) => {
+    const newTags = tags.filter((_, i) => i !== index);
+    setTags(newTags);
+    setTagInput(newTags.join(', '));
+  };
 
 
   // 返回
@@ -2638,6 +2692,44 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
                 </Card>
               </Dropdown>
             </div>
+            
+            {/* 标记按钮区域 - 已隐藏 */}
+            {false && (
+            <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', flex: 1 }}>
+                {currentTags.map((tag, index) => (
+                  <Tag 
+                    key={index} 
+                    closable 
+                    onClose={() => {
+                      setCurrentTags(currentTags.filter((_, i) => i !== index));
+                    }}
+                    style={{ 
+                      borderRadius: '12px',
+                      fontSize: '11px',
+                      padding: '2px 8px'
+                    }}
+                  >
+                    {tag}
+                  </Tag>
+                ))}
+              </div>
+              <Button
+                type="primary"
+                size="small"
+                icon={<TagOutlined />}
+                onClick={handleTagModalOpen}
+                style={{
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  height: '28px',
+                  marginLeft: '8px'
+                }}
+              >
+                标记
+              </Button>
+            </div>
+            )}
           </div>
           
           {/* 下半部分 - 操作记录 */}
@@ -3110,6 +3202,61 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
         onClose={() => setShowExploreModal(false)}
         onExplore={handleExplore}
       />
+      
+      {/* 标签输入弹窗 */}
+      <Modal
+        title="添加标签"
+        open={showTagModal}
+        onCancel={handleTagModalCancel}
+        onOk={handleTagModalOk}
+        okText="确认添加"
+        cancelText="取消"
+        width={600}
+      >
+        <div style={{ marginBottom: 16 }}>
+          <Text type="secondary">
+            输入标签内容，多个标签请用逗号、分号或换行分隔
+          </Text>
+        </div>
+        
+        <TextArea
+          value={tagInput}
+          onChange={handleTagInputChange}
+          placeholder="请输入标签内容，例如：教师培训,专业发展,核心素养"
+          autoSize={{ minRows: 3, maxRows: 6 }}
+          style={{ marginBottom: 16 }}
+        />
+        
+        {tags.length > 0 && (
+          <div>
+            <div style={{ marginBottom: 8 }}>
+              <Text strong>预览标签 ({tags.length}个)：</Text>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+              {tags.map((tag, index) => (
+                <Tag 
+                  key={index}
+                  closable
+                  onClose={() => handleTagRemoveFromPreview(index)}
+                  style={{ 
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    padding: '4px 8px'
+                  }}
+                >
+                  {tag}
+                </Tag>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {tags.length === 0 && tagInput.trim() && (
+          <div style={{ color: '#999', fontSize: '12px' }}>
+            请输入有效的标签内容
+          </div>
+        )}
+      </Modal>
     </>
   );
 };

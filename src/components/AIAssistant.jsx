@@ -26,6 +26,7 @@ import {
   Steps,
   Empty
 } from 'antd';
+import resourceRecommendationService from '../services/resourceRecommendationService.js';
 import {
   RobotOutlined,
   BulbOutlined,
@@ -183,6 +184,7 @@ const AIAssistant = ({
   currentTopics = [],
   onRecommendCourse,
   onCreateLearningPath,
+  onResourceRecommend, // 新增：资源推荐回调
   mode = 'note' // 'note' 或 'learning'
 }) => {
   const [activeFeature, setActiveFeature] = useState(mode === 'learning' ? 'chat' : 'summary');
@@ -311,31 +313,76 @@ const AIAssistant = ({
     setIsTyping(true);
 
     // 模拟AI回复
-    setTimeout(() => {
-      const aiResponse = generateAIResponse(inputMessage);
+    setTimeout(async () => {
+      const aiResponse = await generateAIResponse(inputMessage);
       setChatMessages(prev => [...prev, aiResponse]);
       setIsTyping(false);
     }, 1500);
   };
 
   // 生成AI回复
-  const generateAIResponse = (userInput) => {
+  const generateAIResponse = async (userInput) => {
     const input = userInput.toLowerCase();
     let response = '';
     let suggestions = [];
+    let recommendedResources = [];
 
-    if (input.includes('推荐') || input.includes('课程')) {
-      response = `根据您的学习历史和兴趣，我为您推荐以下课程：\n\n1. **React 高级开发技巧** - 匹配度95%\n   适合您当前的前端开发水平\n\n2. **Python 机器学习实战** - 匹配度88%\n   扩展您的技能栈到数据科学领域\n\n这些课程都有很好的评价，您可以查看详细信息。`;
-      suggestions = ['查看课程详情', '制定学习计划', '了解学习路径'];
-    } else if (input.includes('计划') || input.includes('规划')) {
-      response = `我来为您制定个性化学习计划：\n\n**短期目标（1-2个月）**\n- 完成React高级特性学习\n- 掌握状态管理和性能优化\n\n**中期目标（3-6个月）**\n- 学习后端开发技术\n- 完成全栈项目实战\n\n**长期目标（6-12个月）**\n- 成为全栈开发者\n- 具备独立项目开发能力`;
-      suggestions = ['调整计划', '查看详细步骤', '设置学习提醒'];
-    } else if (input.includes('进度') || input.includes('分析')) {
-      response = `让我分析一下您的学习情况：\n\n📊 **学习统计**\n- 总学习时长：156小时\n- 完成课程：8门\n- 平均评分：4.6/5.0\n\n🎯 **优势领域**\n前端开发、编程基础、项目管理\n\n📈 **提升空间**\n数据分析、算法设计、系统架构\n\n您的学习一致性很好，建议继续保持！`;
-      suggestions = ['查看详细报告', '优化学习方法', '设定新目标'];
-    } else {
-      response = `我理解您的问题。作为您的AI学习助手，我可以帮您：\n\n🎯 个性化课程推荐\n📚 制定学习计划\n📊 分析学习进度\n🛤️ 优化学习路径\n💡 解答学习疑问\n\n请告诉我您具体需要什么帮助？`;
-      suggestions = ['推荐课程', '制定计划', '分析进度', '学习建议'];
+    try {
+      // 检查是否是资源推荐请求
+      if (input.includes('推荐') || input.includes('资源') || input.includes('材料') || 
+          input.includes('找') || input.includes('需要') || input.includes('学习')) {
+        
+        // 调用资源推荐服务
+        const recommendationResult = await resourceRecommendationService.recommendResources(userInput, { limit: 5 });
+        
+        if (recommendationResult.success && recommendationResult.data.recommendations.length > 0) {
+          const recommendations = recommendationResult.data.recommendations;
+          recommendedResources = recommendations.map(rec => rec.resource);
+          
+          response = `根据您的需求"${userInput}"，我为您推荐以下资源：\n\n`;
+          
+          recommendations.slice(0, 3).forEach((rec, index) => {
+            const resource = rec.resource;
+            response += `${index + 1}. **${resource.title}**\n`;
+            response += `   类型：${getResourceTypeName(resource.resourceType)} | 难度：${getDifficultyName(resource.difficulty)}\n`;
+            response += `   匹配度：${rec.score}% | ${resource.description.substring(0, 50)}...\n`;
+            if (rec.reasons.length > 0) {
+              response += `   推荐理由：${rec.reasons[0]}\n`;
+            }
+            response += '\n';
+          });
+          
+          if (recommendations.length > 3) {
+            response += `还有 ${recommendations.length - 3} 个相关资源，点击"查看更多"了解详情。`;
+          }
+          
+          suggestions = ['查看资源详情', '添加到学习计划', '查看更多推荐', '优化搜索条件'];
+          
+          // 通知父组件更新资源树
+          if (onResourceRecommend) {
+            onResourceRecommend(recommendedResources);
+          }
+        } else {
+          response = `抱歉，没有找到与"${userInput}"完全匹配的资源。\n\n建议您：\n- 尝试使用更具体的关键词\n- 指定资源类型（如"视频教程"、"文档资料"）\n- 说明目标受众（如"教师"、"学生"、"家长"）\n- 指定难度等级（如"简单"、"中等"、"困难"）`;
+          suggestions = ['重新描述需求', '浏览热门资源', '查看分类资源', '获取搜索建议'];
+        }
+      } else if (input.includes('课程')) {
+        response = `根据您的学习历史和兴趣，我为您推荐以下课程：\n\n1. **React 高级开发技巧** - 匹配度95%\n   适合您当前的前端开发水平\n\n2. **Python 机器学习实战** - 匹配度88%\n   扩展您的技能栈到数据科学领域\n\n这些课程都有很好的评价，您可以查看详细信息。`;
+        suggestions = ['查看课程详情', '制定学习计划', '了解学习路径'];
+      } else if (input.includes('计划') || input.includes('规划')) {
+        response = `我来为您制定个性化学习计划：\n\n**短期目标（1-2个月）**\n- 完成React高级特性学习\n- 掌握状态管理和性能优化\n\n**中期目标（3-6个月）**\n- 学习后端开发技术\n- 完成全栈项目实战\n\n**长期目标（6-12个月）**\n- 成为全栈开发者\n- 具备独立项目开发能力`;
+        suggestions = ['调整计划', '查看详细步骤', '设置学习提醒'];
+      } else if (input.includes('进度') || input.includes('分析')) {
+        response = `让我分析一下您的学习情况：\n\n📊 **学习统计**\n- 总学习时长：156小时\n- 完成课程：8门\n- 平均评分：4.6/5.0\n\n🎯 **优势领域**\n前端开发、编程基础、项目管理\n\n📈 **提升空间**\n数据分析、算法设计、系统架构\n\n您的学习一致性很好，建议继续保持！`;
+        suggestions = ['查看详细报告', '优化学习方法', '设定新目标'];
+      } else {
+        response = `我理解您的问题。作为您的AI学习助手，我可以帮您：\n\n🎯 个性化资源推荐\n📚 制定学习计划\n📊 分析学习进度\n🛤️ 优化学习路径\n💡 解答学习疑问\n\n请告诉我您具体需要什么帮助？`;
+        suggestions = ['推荐学习资源', '制定计划', '分析进度', '学习建议'];
+      }
+    } catch (error) {
+      console.error('生成AI回复失败:', error);
+      response = '抱歉，处理您的请求时出现了问题，请稍后重试。';
+      suggestions = ['重新提问', '查看帮助'];
     }
 
     return {
@@ -343,8 +390,32 @@ const AIAssistant = ({
       type: 'ai',
       content: response,
       timestamp: new Date(),
-      suggestions
+      suggestions,
+      recommendedResources
     };
+  };
+
+  // 获取资源类型名称
+  const getResourceTypeName = (type) => {
+    const typeNames = {
+      'guide': '指导手册',
+      'video': '视频教程',
+      'audio': '音频资源',
+      'document': '文档资料',
+      'tool': '工具软件',
+      'case_study': '案例研究'
+    };
+    return typeNames[type] || type;
+  };
+
+  // 获取难度等级名称
+  const getDifficultyName = (difficulty) => {
+    const difficultyNames = {
+      'easy': '简单',
+      'medium': '中等',
+      'hard': '困难'
+    };
+    return difficultyNames[difficulty] || difficulty;
   };
 
   // 处理建议点击

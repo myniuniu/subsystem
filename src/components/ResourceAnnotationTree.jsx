@@ -316,7 +316,7 @@ const ResourceAnnotationTree = () => {
         <Row gutter={[16, 16]} align="middle">
           <Col span={8}>
             <Title level={4} style={{ margin: 0 }}>
-              <TagOutlined /> 资源标注管理
+              <TagOutlined /> 标签标注管理
             </Title>
           </Col>
           <Col span={16}>
