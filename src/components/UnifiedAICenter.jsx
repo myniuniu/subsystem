@@ -3335,6 +3335,72 @@ const UnifiedAICenter = () => {
                   )}
                 </div>
               )}
+              {/* 智能提示按钮 */}
+              <Popover
+                content={
+                  <div style={{ width: '300px', padding: '8px' }}>
+                    <div style={{ marginBottom: '12px' }}>
+                      <Text style={{ fontSize: '14px', fontWeight: 500, color: '#333' }}>智能提示</Text>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {[
+                        { text: '帮我分析这个问题的核心要点', icon: '🎯' },
+                        { text: '请提供详细的解决方案', icon: '💡' },
+                        { text: '总结一下关键信息', icon: '📝' },
+                        { text: '给出具体的操作步骤', icon: '📋' },
+                        { text: '分析可能的风险和注意事项', icon: '⚠️' }
+                      ].map((suggestion, index) => (
+                        <div
+                          key={index}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '8px 12px',
+                            cursor: 'pointer',
+                            borderRadius: '6px',
+                            transition: 'background-color 0.2s',
+                            border: '1px solid #f0f0f0'
+                          }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = '#f8f9fa'}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                          onClick={() => {
+                            setInputMessage(suggestion.text);
+                            // 关闭弹窗的逻辑会由 Popover 自动处理
+                          }}
+                        >
+                          <span style={{ marginRight: '8px', fontSize: '16px' }}>{suggestion.icon}</span>
+                          <Text style={{ fontSize: '13px', color: '#333' }}>{suggestion.text}</Text>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                }
+                title={
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Lightbulb size={16} color="#1890ff" />
+                    <span>智能提示</span>
+                  </div>
+                }
+                trigger="click"
+                placement="topLeft"
+                overlayStyle={{ maxWidth: '320px' }}
+              >
+                <Button
+                  type="text"
+                  icon={<Lightbulb size={18} />}
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    padding: 0,
+                    color: '#6b7280',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '50%'
+                  }}
+                  title="智能提示"
+                />
+              </Popover>
               <Button
                 type="text"
                 icon={<Phone size={18} />}

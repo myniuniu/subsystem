@@ -19,7 +19,8 @@ import {
   Modal,
   Checkbox,
   Popconfirm,
-  Dropdown
+  Dropdown,
+  Popover
 } from 'antd';
 import MaterialAddPage from './MaterialAddPage';
 import ExploreModal from './ExploreModal';
@@ -45,6 +46,7 @@ import {
   EditOutlined,
   TagOutlined
 } from '@ant-design/icons';
+import { Lightbulb } from 'lucide-react';
 
 const { Content, Sider } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -110,6 +112,11 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
   const [showAnnotationModal, setShowAnnotationModal] = useState(false);
   const [annotationTags, setAnnotationTags] = useState([]);
   const [currentTag, setCurrentTag] = useState('');
+  
+  // 图谱/知识点标注相关状态
+  const [showKnowledgeAnnotationModal, setShowKnowledgeAnnotationModal] = useState(false);
+  const [knowledgePoints, setKnowledgePoints] = useState([]);
+  const [currentKnowledgePoint, setCurrentKnowledgePoint] = useState('');
 
   // 研究论文相关状态
   const [researchPapers, setResearchPapers] = useState([
@@ -218,6 +225,7 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [recommendedResources, setRecommendedResources] = useState([]); // 新增：推荐的资源列表
+  const [selectedSkill, setSelectedSkill] = useState(null); // 新增：选中的技能状态
   
   // 快捷操作相关状态
   const [quickActions] = useState([
@@ -374,6 +382,85 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
     setAnnotationTags([]);
     setCurrentTag('');
     setShowAnnotationModal(false);
+  };
+
+  // 处理图谱/知识点标注按钮点击
+  const handleKnowledgeAnnotation = () => {
+    setShowKnowledgeAnnotationModal(true);
+  };
+
+  // 处理知识点添加
+  const handleAddKnowledgePoint = () => {
+    if (currentKnowledgePoint.trim() && !knowledgePoints.includes(currentKnowledgePoint.trim())) {
+      setKnowledgePoints([...knowledgePoints, currentKnowledgePoint.trim()]);
+      setCurrentKnowledgePoint('');
+    }
+  };
+
+  // 处理知识点删除
+  const handleRemoveKnowledgePoint = (pointToRemove) => {
+    setKnowledgePoints(knowledgePoints.filter(point => point !== pointToRemove));
+  };
+
+  // 处理图谱/知识点标注确认
+  const handleKnowledgeAnnotationConfirm = () => {
+    if (knowledgePoints.length === 0) {
+      message.warning('请至少添加一个知识点');
+      return;
+    }
+
+    // 添加操作记录
+    const newRecord = {
+      id: Date.now(),
+      title: `图谱/知识点标注 - ${knowledgePoints.join(', ')}`,
+      source: '知识图谱标注系统',
+      time: new Date().toLocaleString(),
+      type: 'knowledge',
+      content: `
+        <h3 style="color: #52c41a; margin-bottom: 15px;">🕸️ 图谱/知识点标注记录</h3>
+        
+        <div style="margin-bottom: 20px; padding: 15px; background-color: #f6ffed; border-radius: 8px;">
+          <h4 style="color: #52c41a; margin-bottom: 10px;">🧠 知识点详情</h4>
+          <div style="margin-left: 15px;">
+            <p><strong>标注时间：</strong>${new Date().toLocaleString()}</p>
+            <p><strong>标注用户：</strong>当前用户</p>
+            <p><strong>添加知识点：</strong></p>
+            <div style="margin: 10px 0;">
+              ${knowledgePoints.map(point => `<span style="display: inline-block; background: #52c41a; color: white; padding: 4px 8px; border-radius: 12px; margin: 2px 4px; font-size: 12px;">${point}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 20px; padding: 15px; background-color: #fff7e6; border-radius: 8px;">
+          <h4 style="color: #fa8c16; margin-bottom: 10px;">💡 标注说明</h4>
+          <p>本次为资源添加了 ${knowledgePoints.length} 个知识点，这些知识点将构建知识图谱，帮助您更好地理解和关联相关概念。</p>
+          <p>知识点内容：${knowledgePoints.join('、')}</p>
+        </div>
+      `,
+      knowledgePoints: [...knowledgePoints],
+      action: '图谱/知识点标注',
+      user: '当前用户'
+    };
+
+    // 将操作记录添加到对应的分类中（使用 'text' 分类存储标注记录）
+    setOperationRecords(prev => ({
+      ...prev,
+      text: [newRecord, ...(prev.text || [])]
+    }));
+    
+    // 重置状态
+    setKnowledgePoints([]);
+    setCurrentKnowledgePoint('');
+    setShowKnowledgeAnnotationModal(false);
+    
+    message.success(`成功添加 ${knowledgePoints.length} 个知识点，操作记录已生成`);
+  };
+
+  // 处理图谱/知识点标注取消
+  const handleKnowledgeAnnotationCancel = () => {
+    setKnowledgePoints([]);
+    setCurrentKnowledgePoint('');
+    setShowKnowledgeAnnotationModal(false);
   };
 
   // 保存需求
@@ -1603,48 +1690,174 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
           
           {/* 输入区域 */}
           <div style={{ padding: '20px', borderTop: '1px solid #f0f0f0' }}>
-            <Space.Compact style={{ width: '100%', position: 'relative' }}>
-              {/* 选中资料数量提示 - 浮动显示 */}
-              {selectedMaterials.length > 0 && (
-                <div style={{ 
-                  position: 'absolute',
-                  top: '-24px',
-                  left: '0',
-                  padding: '2px 8px', 
-                  backgroundColor: '#f6ffed', 
-                  border: '1px solid #b7eb8f', 
-                  borderRadius: '12px',
-                  fontSize: '10px',
-                  color: '#52c41a',
-                  zIndex: 10,
-                  whiteSpace: 'nowrap'
-                }}>
-                  📋 {selectedMaterials.length}个资料
+            {/* 选中资料数量提示 - 浮动显示 */}
+            {selectedMaterials.length > 0 && (
+              <div style={{ 
+                marginBottom: '8px',
+                padding: '2px 8px', 
+                backgroundColor: '#f6ffed', 
+                border: '1px solid #b7eb8f', 
+                borderRadius: '12px',
+                fontSize: '10px',
+                color: '#52c41a',
+                display: 'inline-block',
+                whiteSpace: 'nowrap'
+              }}>
+                📋 {selectedMaterials.length}个资料
+              </div>
+            )}
+            
+            {/* 完全复刻图示样式的输入框 */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              backgroundColor: '#f8f9fa',
+              border: '1px solid #e9ecef',
+              borderRadius: '24px',
+              padding: '8px 16px',
+              gap: '12px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+            }}>
+              {/* 输入框 */}
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {/* 选中的技能显示 */}
+                {selectedSkill && (
+                  <Button
+                    size="small"
+                    style={{
+                      backgroundColor: '#e6f7ff',
+                      color: '#1677ff',
+                      border: '1px solid #91d5ff',
+                      borderRadius: '12px',
+                      fontSize: '12px',
+                      height: '24px',
+                      padding: '0 8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                    onClick={() => setSelectedSkill(null)}
+                  >
+                    {selectedSkill.icon} {selectedSkill.label}
+                    <span style={{ marginLeft: '4px', fontSize: '10px' }}>×</span>
+                  </Button>
+                )}
+                
+                <Input
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  placeholder={selectedSkill ? `使用 ${selectedSkill.label} 技能，请输入您的问题...` : "发消息或输入 / 选择技能"}
+                  bordered={false}
+                  style={{
+                    flex: 1,
+                    backgroundColor: 'transparent',
+                    fontSize: '14px',
+                    color: '#333'
+                  }}
+                  onPressEnter={(e) => {
+                    if (!e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                />
+              </div>
+              
+              {/* 右侧按钮组 */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {/* 深度思考按钮 */}
+                <Button
+                  size="small"
+                  style={{
+                    backgroundColor: '#1677ff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '16px',
+                    fontSize: '12px',
+                    height: '28px',
+                    padding: '0 12px'
+                  }}
+                >
+                  🧠 深度思考
+                </Button>
+                
+                {/* 技能按钮 */}
+                <Dropdown
+                  menu={{
+                    items: [
+                      {
+                        key: 'knowledge-graph',
+                        label: '知识图谱',
+                        icon: '🕸️',
+                        onClick: () => {
+                          setSelectedSkill({
+                            key: 'knowledge-graph',
+                            label: '知识图谱',
+                            icon: '🕸️'
+                          });
+                        }
+                      },
+                      {
+                        key: 'resource-recommend',
+                        label: '资源推荐',
+                        icon: '📚',
+                        onClick: () => {
+                          setSelectedSkill({
+                            key: 'resource-recommend',
+                            label: '资源推荐',
+                            icon: '📚'
+                          });
+                        }
+                      }
+                    ]
+                  }}
+                  trigger={['click']}
+                  placement="topRight"
+                >
+                  <Button
+                    size="small"
+                    style={{
+                      backgroundColor: 'transparent',
+                      color: '#666',
+                      border: '1px solid #d9d9d9',
+                      borderRadius: '16px',
+                      fontSize: '12px',
+                      height: '28px',
+                      padding: '0 12px'
+                    }}
+                  >
+                    🔧 技能
+                  </Button>
+                </Dropdown>
+                
+                {/* 功能图标组 */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  
+                  {/* 发送按钮 */}
+                  <Button
+                    type="text"
+                    size="small"
+                    onClick={handleSendMessage}
+                    loading={isLoading}
+                    disabled={!inputMessage.trim()}
+                    style={{
+                      backgroundColor: '#e9ecef',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '32px',
+                      height: '32px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: inputMessage.trim() ? '#1677ff' : '#999',
+                      padding: 0
+                    }}
+                  >
+                    <SendOutlined style={{ fontSize: '14px' }} />
+                  </Button>
                 </div>
-              )}
-              <TextArea
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder={selectedMaterials.length > 0 ? `基于已选择的 ${selectedMaterials.length} 个资料，请输入您的问题...` : "请输入您的问题，我会为您推荐相关资源..."}
-                autoSize={{ minRows: 1, maxRows: 3 }}
-                onPressEnter={(e) => {
-                  if (!e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-              />
-              <Button 
-                type="primary" 
-                icon={<SendOutlined />}
-                onClick={handleSendMessage}
-                loading={isLoading}
-                disabled={!inputMessage.trim()}
-              >
-                发送
-              </Button>
-            </Space.Compact>
-
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1678,6 +1891,29 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
                     fontWeight: 500, 
                     color: '#1890ff' 
                   }}>标签标注</Text>
+                </div>
+              </Card>
+              
+              <Card 
+                size="small" 
+                hoverable
+                onClick={handleKnowledgeAnnotation}
+                style={{ 
+                  background: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div style={{ padding: '6px 0' }}>
+                  <div style={{ fontSize: '20px', marginBottom: '6px' }}>🕸️</div>
+                  <Text style={{ 
+                    fontSize: '11px', 
+                    fontWeight: 500, 
+                    color: '#52c41a' 
+                  }}>图谱/知识点标注</Text>
                 </div>
               </Card>
             </div>
@@ -2235,6 +2471,92 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
             color: '#52c41a'
           }}>
             💡 提示：标签将帮助您快速筛选和查找相关资源，建议使用简洁明了的词汇
+          </div>
+        </div>
+      </Modal>
+
+      {/* 图谱/知识点标注弹窗 */}
+      <Modal
+        title="🕸️ 图谱/知识点标注"
+        open={showKnowledgeAnnotationModal}
+        onOk={handleKnowledgeAnnotationConfirm}
+        onCancel={handleKnowledgeAnnotationCancel}
+        okText="确定"
+        cancelText="取消"
+        width={600}
+        style={{ top: 100 }}
+      >
+        <div style={{ padding: '20px 0' }}>
+          <div style={{ marginBottom: 20 }}>
+            <Text strong style={{ fontSize: 16, color: '#52c41a' }}>
+              为当前资源添加知识点
+            </Text>
+            <div style={{ marginTop: 8, color: '#666', fontSize: 14 }}>
+              知识点将构建知识图谱，帮助您更好地理解和关联相关概念
+            </div>
+          </div>
+
+          {/* 知识点输入区域 */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+              <Input
+                placeholder="输入知识点名称，按回车或点击添加"
+                value={currentKnowledgePoint}
+                onChange={(e) => setCurrentKnowledgePoint(e.target.value)}
+                onPressEnter={handleAddKnowledgePoint}
+                style={{ flex: 1 }}
+                maxLength={30}
+              />
+              <Button 
+                type="primary" 
+                icon={<PlusOutlined />}
+                onClick={handleAddKnowledgePoint}
+                disabled={!currentKnowledgePoint.trim()}
+                style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+              >
+                添加
+              </Button>
+            </div>
+            
+            {/* 已添加的知识点显示 */}
+            {knowledgePoints.length > 0 && (
+              <div>
+                <Text style={{ color: '#666', fontSize: 14, marginBottom: 8, display: 'block' }}>
+                  已添加的知识点 ({knowledgePoints.length}):
+                </Text>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {knowledgePoints.map((point, index) => (
+                    <Tag
+                      key={index}
+                      closable
+                      onClose={() => handleRemoveKnowledgePoint(point)}
+                      color="green"
+                      style={{ 
+                        fontSize: 14, 
+                        padding: '4px 8px',
+                        borderRadius: 16,
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}
+                    >
+                      {point}
+                    </Tag>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 提示信息 */}
+          <div style={{ 
+            backgroundColor: '#f6ffed', 
+            border: '1px solid #b7eb8f', 
+            borderRadius: 6, 
+            padding: 12,
+            fontSize: 14,
+            color: '#52c41a'
+          }}>
+            🧠 提示：知识点将用于构建知识图谱，建议使用准确的概念或术语名称
           </div>
         </div>
       </Modal>
