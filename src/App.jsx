@@ -35,6 +35,8 @@ import SmartNotes from './components/SmartNotes'
 import NoteEditPage from './components/NoteEditPage'
 import TrainingNeeds from './components/TrainingNeeds'
 import NeedEditPage from './components/NeedEditPage'
+import ResourceAnnotation from './components/ResourceAnnotation'
+import ResourceAnnotationPage from './components/ResourceAnnotationPage'
 import CourseSelection from './components/CourseSelection'
 import CourseSelectionEditPage from './components/CourseSelectionEditPage'
 
@@ -369,6 +371,13 @@ function App() {
               <TrainingNeeds 
                 onViewChange={handleViewChange}
                 pageState={pageState}
+              />
+            ) : currentView === 'resource-annotation' ? (
+              <ResourceAnnotationPage 
+                onBack={() => handleViewChange('home')}
+                onViewChange={handleViewChange}
+                selectedNeed={pageState.selectedNeed}
+                mode={pageState.editorMode}
               />
             ) : currentView === 'course-selection' ? (
               <CourseSelection 

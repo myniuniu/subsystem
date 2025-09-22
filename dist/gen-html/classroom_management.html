@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>课堂管理与纪律维护</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .container {
+            text-align: center;
+            color: white;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: teacher-presence 2.5s ease-in-out infinite;
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .management-skills {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .skill {
+            text-align: center;
+            padding: 20px 15px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .skill::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s;
+        }
+        
+        .skill:hover::before {
+            left: 100%;
+        }
+        
+        .skill:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .skill-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .skill-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .skill-desc {
+            font-size: 11px;
+            opacity: 0.8;
+            line-height: 1.3;
+        }
+        
+        @keyframes teacher-presence {
+            0%, 100% { 
+                transform: scale(1);
+                filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+            }
+            50% { 
+                transform: scale(1.03);
+                filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
+            }
+        }
+        
+        .classroom-elements {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .desk {
+            position: absolute;
+            width: 20px;
+            height: 15px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            animation: organize 4s ease-in-out infinite;
+        }
+        
+        .desk:nth-child(1) { top: 20%; left: 15%; animation-delay: 0s; }
+        .desk:nth-child(2) { top: 20%; left: 35%; animation-delay: 0.5s; }
+        .desk:nth-child(3) { top: 40%; left: 25%; animation-delay: 1s; }
+        .desk:nth-child(4) { top: 60%; right: 20%; animation-delay: 1.5s; }
+        .desk:nth-child(5) { bottom: 25%; left: 20%; animation-delay: 2s; }
+        
+        @keyframes organize {
+            0%, 100% {
+                opacity: 0.3;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1.1);
+            }
+        }
+        
+        .order-lines {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: flow-order 3s ease-in-out infinite;
+        }
+        
+        .line:nth-child(1) {
+            top: 30%;
+            left: 10%;
+            width: 30%;
+            animation-delay: 0s;
+        }
+        
+        .line:nth-child(2) {
+            top: 70%;
+            right: 15%;
+            width: 25%;
+            animation-delay: 1.5s;
+        }
+        
+        @keyframes flow-order {
+            0%, 100% {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            50% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="classroom-elements">
+        <div class="desk"></div>
+        <div class="desk"></div>
+        <div class="desk"></div>
+        <div class="desk"></div>
+        <div class="desk"></div>
+    </div>
+    
+    <div class="order-lines">
+        <div class="line"></div>
+        <div class="line"></div>
+    </div>
+    
+    <div class="container">
+        <div class="icon">👩‍🏫</div>
+        <h1 class="title">课堂管理与纪律维护</h1>
+        <p class="subtitle">掌握有效的课堂管理技巧<br>建立良好的师生关系和课堂秩序</p>
+        
+        <div class="management-skills">
+            <div class="skill">
+                <span class="skill-icon">📋</span>
+                <div class="skill-name">规则建立</div>
+                <div class="skill-desc">制定清晰合理的课堂规则</div>
+            </div>
+            <div class="skill">
+                <span class="skill-icon">👀</span>
+                <div class="skill-name">观察监控</div>
+                <div class="skill-desc">及时发现和处理课堂问题</div>
+            </div>
+            <div class="skill">
+                <span class="skill-icon">🎯</span>
+                <div class="skill-name">积极引导</div>
+                <div class="skill-desc">用正面方式引导学生行为</div>
+            </div>
+            <div class="skill">
+                <span class="skill-icon">🤝</span>
+                <div class="skill-name">关系建立</div>
+                <div class="skill-desc">建立互信互敬的师生关系</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

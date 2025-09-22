@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>清除菜单存储</title>
+</head>
+<body>
+    <h1>清除菜单本地存储</h1>
+    <button onclick="clearMenuStorage()">清除菜单存储数据</button>
+    <div id="result"></div>
+    
+    <script>
+        function clearMenuStorage() {
+            // 清除所有相关的本地存储
+            localStorage.removeItem('sidebar-menu-order');
+            localStorage.removeItem('submenu-order');
+            localStorage.removeItem('sidebar-collapsed');
+            localStorage.removeItem('menu-expand-state');
+            localStorage.removeItem('dynamic-menu-apps');
+            
+            document.getElementById('result').innerHTML = '<p style="color: green;">已清除所有菜单相关的本地存储数据！请刷新主页面。</p>';
+            
+            // 自动刷新主页面
+            setTimeout(() => {
+                if (window.opener) {
+                    window.opener.location.reload();
+                    window.close();
+                } else {
+                    window.location.href = 'http://localhost:5173';
+                }
+            }, 1000);
+        }
+        
+        // 显示当前存储的数据
+        window.onload = function() {
+            const menuOrder = localStorage.getItem('sidebar-menu-order');
+            const submenuOrder = localStorage.getItem('submenu-order');
+            const collapsed = localStorage.getItem('sidebar-collapsed');
+            const expandState = localStorage.getItem('menu-expand-state');
+            const dynamicApps = localStorage.getItem('dynamic-menu-apps');
+            
+            let info = '<h2>当前存储的数据：</h2>';
+            info += '<p><strong>sidebar-menu-order:</strong> ' + (menuOrder || '无') + '</p>';
+            info += '<p><strong>submenu-order:</strong> ' + (submenuOrder || '无') + '</p>';
+            info += '<p><strong>sidebar-collapsed:</strong> ' + (collapsed || '无') + '</p>';
+            info += '<p><strong>menu-expand-state:</strong> ' + (expandState || '无') + '</p>';
+            info += '<p><strong>dynamic-menu-apps:</strong> ' + (dynamicApps || '无') + '</p>';
+            
+            document.getElementById('result').innerHTML = info;
+        }
+    </script>
+</body>
+</html>

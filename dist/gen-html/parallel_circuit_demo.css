@@ -1,0 +1,611 @@
+/* 并联电路教学动画样式 - 完全重新设计 */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+header {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.main-content {
+    display: flex;
+    min-height: 600px;
+}
+
+.circuit-container {
+    flex: 2;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.circuit-status {
+    margin-bottom: 30px;
+}
+
+.status-indicator {
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #e74c3c;
+    color: white;
+}
+
+.status-indicator.on {
+    background: #27ae60;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* 电路图容器 */
+.circuit-diagram {
+    position: relative;
+    width: 800px;
+    height: 400px;
+    background: #f8f9fa;
+    border: 3px solid #dee2e6;
+    border-radius: 15px;
+    margin: 20px 0;
+}
+
+/* 电池样式 - 左上角 */
+.battery {
+    position: absolute;
+    top: 50px;
+    left: 50px;
+    width: 60px;
+    height: 40px;
+    background: #2c3e50;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.battery::after {
+    content: '';
+    position: absolute;
+    right: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 20px;
+    background: #34495e;
+    border-radius: 0 4px 4px 0;
+}
+
+.battery-positive, .battery-negative {
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    margin: 0 5px;
+}
+
+/* 开关样式 - 顶部中间 */
+.switch {
+    position: absolute;
+    top: 30px;
+    left: 350px;
+    width: 80px;
+    height: 40px;
+    background: #34495e;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.switch:hover {
+    background: #2c3e50;
+    transform: scale(1.05);
+}
+
+.switch-contact {
+    width: 60px;
+    height: 6px;
+    background: #e74c3c;
+    border-radius: 3px;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.switch.closed .switch-contact {
+    background: #27ae60;
+}
+
+.switch.open .switch-contact {
+    background: #e74c3c;
+    transform: rotate(30deg);
+}
+
+/* 连接点样式 */
+.junction {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #2c3e50;
+    border-radius: 50%;
+    z-index: 10;
+}
+
+#junctionTop {
+    top: 120px;
+    left: 350px;
+}
+
+#junctionBottom {
+    top: 280px;
+    left: 350px;
+}
+
+/* 电路线路样式 */
+.wire {
+    position: absolute;
+    background: #ff8c00;
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+
+.wire.active {
+    box-shadow: 0 0 10px #ff8c00;
+    animation: wireGlow 1s ease-in-out infinite alternate;
+}
+
+@keyframes wireGlow {
+    from { opacity: 0.8; }
+    to { opacity: 1; }
+}
+
+/* 电池到开关的线路 */
+.wire-battery-to-switch {
+    top: 68px;
+    left: 110px;
+    width: 240px;
+    height: 4px;
+}
+
+/* 开关到分叉点的线路 */
+.wire-switch-to-junction {
+    top: 70px;
+    left: 354px;
+    width: 4px;
+    height: 54px;
+}
+
+/* 分叉点到灯泡1的线路 */
+.wire-junction-to-bulb1 {
+    top: 122px;
+    left: 354px;
+    width: 166px;
+    height: 4px;
+}
+
+/* 分叉点到灯泡2的线路 - 先向下再向右 */
+.wire-junction-to-bulb2 {
+    top: 124px;
+    left: 354px;
+    width: 4px;
+    height: 156px;
+}
+
+/* 灯泡2水平连接线 */
+.wire-bulb2-horizontal {
+    top: 280px;
+    left: 354px;
+    width: 166px;
+    height: 4px;
+}
+
+/* 灯泡1返回线路 */
+.wire-bulb1-return {
+    top: 126px;
+    left: 554px;
+    width: 4px;
+    height: 154px;
+}
+
+/* 灯泡2返回线路 */
+.wire-bulb2-return {
+    top: 284px;
+    left: 554px;
+    width: 4px;
+    height: -4px;
+}
+
+/* 返回电池的线路 */
+.wire-return-to-battery {
+    top: 280px;
+    left: 50px;
+    width: 508px;
+    height: 4px;
+}
+
+/* 电池负极垂直连接线 */
+.wire-battery-negative {
+    top: 90px;
+    left: 50px;
+    width: 4px;
+    height: 190px;
+}
+
+/* 灯泡样式 */
+.bulb {
+    position: absolute;
+    width: 60px;
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 5;
+}
+
+.bulb-left {
+    top: 90px;
+    left: 520px;
+}
+
+.bulb-right {
+    top: 250px;
+    left: 520px;
+}
+
+.bulb-glass {
+    width: 40px;
+    height: 40px;
+    background: radial-gradient(circle, #fff9c4 0%, #f4e79d 100%);
+    border: 2px solid #ddd;
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.bulb.on .bulb-glass {
+    background: radial-gradient(circle, #ffeb3b 0%, #ffc107 100%);
+    box-shadow: 0 0 20px #ffeb3b;
+}
+
+.bulb-filament {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #999;
+    border-radius: 50%;
+    opacity: 0.6;
+}
+
+.bulb.on .bulb-filament {
+    border-color: #ff6f00;
+    opacity: 1;
+}
+
+.bulb-glow {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle, rgba(255, 235, 59, 0.3) 0%, transparent 70%);
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.bulb.on .bulb-glow {
+    opacity: 1;
+}
+
+.bulb-base {
+    width: 30px;
+    height: 20px;
+    background: #666;
+    border-radius: 0 0 8px 8px;
+    margin-top: 5px;
+}
+
+.bulb-label {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+    text-align: center;
+}
+
+/* 电流指示器样式 */
+.current-indicator {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #e74c3c;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.1s ease;
+    z-index: 3;
+    box-shadow: 0 0 4px rgba(231, 76, 60, 0.5);
+}
+
+.current-indicator.active {
+    opacity: 1;
+    animation: currentFlow 0.3s ease;
+}
+
+@keyframes currentFlow {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* 电池到开关的电流指示器 */
+.current-indicator.battery-to-switch[data-pos="1"] { top: 66px; left: 120px; }
+.current-indicator.battery-to-switch[data-pos="2"] { top: 66px; left: 135px; }
+.current-indicator.battery-to-switch[data-pos="3"] { top: 66px; left: 150px; }
+.current-indicator.battery-to-switch[data-pos="4"] { top: 66px; left: 165px; }
+.current-indicator.battery-to-switch[data-pos="5"] { top: 66px; left: 180px; }
+.current-indicator.battery-to-switch[data-pos="6"] { top: 66px; left: 195px; }
+.current-indicator.battery-to-switch[data-pos="7"] { top: 66px; left: 210px; }
+.current-indicator.battery-to-switch[data-pos="8"] { top: 66px; left: 225px; }
+.current-indicator.battery-to-switch[data-pos="9"] { top: 66px; left: 240px; }
+.current-indicator.battery-to-switch[data-pos="10"] { top: 66px; left: 255px; }
+.current-indicator.battery-to-switch[data-pos="11"] { top: 66px; left: 270px; }
+.current-indicator.battery-to-switch[data-pos="12"] { top: 66px; left: 285px; }
+.current-indicator.battery-to-switch[data-pos="13"] { top: 66px; left: 300px; }
+.current-indicator.battery-to-switch[data-pos="14"] { top: 66px; left: 315px; }
+.current-indicator.battery-to-switch[data-pos="15"] { top: 66px; left: 330px; }
+
+/* 开关到分叉点的电流指示器 */
+.current-indicator.switch-to-junction[data-pos="1"] { top: 80px; left: 352px; }
+.current-indicator.switch-to-junction[data-pos="2"] { top: 85px; left: 352px; }
+.current-indicator.switch-to-junction[data-pos="3"] { top: 90px; left: 352px; }
+.current-indicator.switch-to-junction[data-pos="4"] { top: 95px; left: 352px; }
+.current-indicator.switch-to-junction[data-pos="5"] { top: 100px; left: 352px; }
+.current-indicator.switch-to-junction[data-pos="6"] { top: 105px; left: 352px; }
+.current-indicator.switch-to-junction[data-pos="7"] { top: 110px; left: 352px; }
+.current-indicator.switch-to-junction[data-pos="8"] { top: 115px; left: 352px; }
+.current-indicator.switch-to-junction[data-pos="9"] { top: 120px; left: 352px; }
+.current-indicator.switch-to-junction[data-pos="10"] { top: 125px; left: 352px; }
+
+/* 分叉点到灯泡1的电流指示器 */
+.current-indicator.junction-to-bulb1[data-pos="1"] { top: 120px; left: 370px; }
+.current-indicator.junction-to-bulb1[data-pos="2"] { top: 120px; left: 385px; }
+.current-indicator.junction-to-bulb1[data-pos="3"] { top: 120px; left: 400px; }
+.current-indicator.junction-to-bulb1[data-pos="4"] { top: 120px; left: 415px; }
+.current-indicator.junction-to-bulb1[data-pos="5"] { top: 120px; left: 430px; }
+.current-indicator.junction-to-bulb1[data-pos="6"] { top: 120px; left: 445px; }
+.current-indicator.junction-to-bulb1[data-pos="7"] { top: 120px; left: 460px; }
+.current-indicator.junction-to-bulb1[data-pos="8"] { top: 120px; left: 475px; }
+.current-indicator.junction-to-bulb1[data-pos="9"] { top: 120px; left: 490px; }
+.current-indicator.junction-to-bulb1[data-pos="10"] { top: 120px; left: 505px; }
+
+/* 分叉点到灯泡2的电流指示器 - 垂直向下 */
+.current-indicator.junction-to-bulb2[data-pos="1"] { top: 135px; left: 352px; }
+.current-indicator.junction-to-bulb2[data-pos="2"] { top: 150px; left: 352px; }
+.current-indicator.junction-to-bulb2[data-pos="3"] { top: 165px; left: 352px; }
+.current-indicator.junction-to-bulb2[data-pos="4"] { top: 180px; left: 352px; }
+.current-indicator.junction-to-bulb2[data-pos="5"] { top: 195px; left: 352px; }
+.current-indicator.junction-to-bulb2[data-pos="6"] { top: 210px; left: 352px; }
+.current-indicator.junction-to-bulb2[data-pos="7"] { top: 225px; left: 352px; }
+.current-indicator.junction-to-bulb2[data-pos="8"] { top: 240px; left: 352px; }
+.current-indicator.junction-to-bulb2[data-pos="9"] { top: 255px; left: 352px; }
+.current-indicator.junction-to-bulb2[data-pos="10"] { top: 270px; left: 352px; }
+
+/* 灯泡2水平连接的电流指示器 */
+.current-indicator.bulb2-horizontal[data-pos="1"] { top: 278px; left: 370px; }
+.current-indicator.bulb2-horizontal[data-pos="2"] { top: 278px; left: 385px; }
+.current-indicator.bulb2-horizontal[data-pos="3"] { top: 278px; left: 400px; }
+.current-indicator.bulb2-horizontal[data-pos="4"] { top: 278px; left: 415px; }
+.current-indicator.bulb2-horizontal[data-pos="5"] { top: 278px; left: 430px; }
+.current-indicator.bulb2-horizontal[data-pos="6"] { top: 278px; left: 445px; }
+.current-indicator.bulb2-horizontal[data-pos="7"] { top: 278px; left: 460px; }
+.current-indicator.bulb2-horizontal[data-pos="8"] { top: 278px; left: 475px; }
+
+/* 灯泡1返回的电流指示器 */
+.current-indicator.bulb1-return[data-pos="1"] { top: 135px; left: 552px; }
+.current-indicator.bulb1-return[data-pos="2"] { top: 150px; left: 552px; }
+.current-indicator.bulb1-return[data-pos="3"] { top: 165px; left: 552px; }
+.current-indicator.bulb1-return[data-pos="4"] { top: 180px; left: 552px; }
+.current-indicator.bulb1-return[data-pos="5"] { top: 195px; left: 552px; }
+.current-indicator.bulb1-return[data-pos="6"] { top: 210px; left: 552px; }
+.current-indicator.bulb1-return[data-pos="7"] { top: 225px; left: 552px; }
+.current-indicator.bulb1-return[data-pos="8"] { top: 240px; left: 552px; }
+.current-indicator.bulb1-return[data-pos="9"] { top: 255px; left: 552px; }
+.current-indicator.bulb1-return[data-pos="10"] { top: 270px; left: 552px; }
+
+/* 灯泡2返回的电流指示器 */
+.current-indicator.bulb2-return[data-pos="1"] { top: 282px; left: 552px; }
+.current-indicator.bulb2-return[data-pos="2"] { top: 280px; left: 552px; }
+.current-indicator.bulb2-return[data-pos="3"] { top: 278px; left: 552px; }
+.current-indicator.bulb2-return[data-pos="4"] { top: 276px; left: 552px; }
+.current-indicator.bulb2-return[data-pos="5"] { top: 274px; left: 552px; }
+.current-indicator.bulb2-return[data-pos="6"] { top: 272px; left: 552px; }
+.current-indicator.bulb2-return[data-pos="7"] { top: 270px; left: 552px; }
+.current-indicator.bulb2-return[data-pos="8"] { top: 268px; left: 552px; }
+.current-indicator.bulb2-return[data-pos="9"] { top: 266px; left: 552px; }
+.current-indicator.bulb2-return[data-pos="10"] { top: 264px; left: 552px; }
+
+/* 返回电池的电流指示器 - 从右向左流动 */
+.current-indicator.return-to-battery[data-pos="1"] { top: 278px; left: 540px; }
+.current-indicator.return-to-battery[data-pos="2"] { top: 278px; left: 520px; }
+.current-indicator.return-to-battery[data-pos="3"] { top: 278px; left: 500px; }
+.current-indicator.return-to-battery[data-pos="4"] { top: 278px; left: 480px; }
+.current-indicator.return-to-battery[data-pos="5"] { top: 278px; left: 460px; }
+.current-indicator.return-to-battery[data-pos="6"] { top: 278px; left: 440px; }
+.current-indicator.return-to-battery[data-pos="7"] { top: 278px; left: 420px; }
+.current-indicator.return-to-battery[data-pos="8"] { top: 278px; left: 400px; }
+.current-indicator.return-to-battery[data-pos="9"] { top: 278px; left: 380px; }
+.current-indicator.return-to-battery[data-pos="10"] { top: 278px; left: 360px; }
+.current-indicator.return-to-battery[data-pos="11"] { top: 278px; left: 340px; }
+.current-indicator.return-to-battery[data-pos="12"] { top: 278px; left: 320px; }
+.current-indicator.return-to-battery[data-pos="13"] { top: 278px; left: 300px; }
+.current-indicator.return-to-battery[data-pos="14"] { top: 278px; left: 280px; }
+.current-indicator.return-to-battery[data-pos="15"] { top: 278px; left: 60px; }
+
+/* 电池负极垂直连接的电流指示器 - 从下向上流动 */
+.current-indicator.battery-negative[data-pos="1"] { top: 260px; left: 52px; }
+.current-indicator.battery-negative[data-pos="2"] { top: 240px; left: 52px; }
+.current-indicator.battery-negative[data-pos="3"] { top: 220px; left: 52px; }
+.current-indicator.battery-negative[data-pos="4"] { top: 200px; left: 52px; }
+.current-indicator.battery-negative[data-pos="5"] { top: 180px; left: 52px; }
+.current-indicator.battery-negative[data-pos="6"] { top: 160px; left: 52px; }
+.current-indicator.battery-negative[data-pos="7"] { top: 140px; left: 52px; }
+.current-indicator.battery-negative[data-pos="8"] { top: 120px; left: 52px; }
+.current-indicator.battery-negative[data-pos="9"] { top: 100px; left: 52px; }
+.current-indicator.battery-negative[data-pos="10"] { top: 90px; left: 52px; }
+
+/* 控制按钮 */
+.controls {
+    display: flex;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.toggle-btn, .reset-btn {
+    padding: 15px 30px;
+    border: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.toggle-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.toggle-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+.reset-btn {
+    background: #6c757d;
+    color: white;
+    padding: 15px 20px;
+}
+
+.reset-btn:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+/* 信息面板 */
+.info-panel {
+    flex: 1;
+    background: #f8f9fa;
+    padding: 40px;
+    border-left: 1px solid #dee2e6;
+}
+
+.info-section {
+    margin-bottom: 30px;
+}
+
+.info-section h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.info-section ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.info-section li {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #495057;
+    line-height: 1.5;
+}
+
+.info-section p {
+    color: #6c757d;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+    .main-content {
+        flex-direction: column;
+    }
+    
+    .circuit-diagram {
+        width: 100%;
+        max-width: 600px;
+        height: 300px;
+        transform: scale(0.8);
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        margin: 10px;
+    }
+    
+    header h1 {
+        font-size: 2rem;
+    }
+    
+    .circuit-container {
+        padding: 20px;
+    }
+    
+    .circuit-diagram {
+        transform: scale(0.6);
+    }
+}

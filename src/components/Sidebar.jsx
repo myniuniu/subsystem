@@ -45,7 +45,8 @@ import {
   Heart,
   TrendingUp,
   Library,
-  Edit
+  Edit,
+  Tag
 } from 'lucide-react'
 import './Sidebar.css'
 
@@ -353,11 +354,19 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
        color: '#fa8c16',
        type: 'single'
      },
+
     { 
        id: 'course-selection', 
        icon: BookOpen, 
        label: '选课模块', 
        color: '#13c2c2',
+       type: 'single'
+     },
+    { 
+       id: 'resource-annotation', 
+       icon: Tag, 
+       label: '资源标注', 
+       color: '#f759ab',
        type: 'single'
      },
 
