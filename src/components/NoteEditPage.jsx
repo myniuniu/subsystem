@@ -19,7 +19,8 @@ import {
   Modal,
   Checkbox,
   Popconfirm,
-  Dropdown
+  Dropdown,
+  Progress
 } from 'antd';
 import MaterialAddPage from './MaterialAddPage';
 import ExploreModal from './ExploreModal';
@@ -89,13 +90,13 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   const [videoUrl, setVideoUrl] = useState('');
   const [courseVideos, setCourseVideos] = useState(
     mode === 'create' ? [
-      { id: 4, title: '成都火锅制作教程', url: 'https://video.com/chengdu-hotpot', addTime: '刚刚' }
+      { id: 4, title: '成都火锅制作教程', url: 'https://video.com/chengdu-hotpot', addTime: '刚刚', progress: 0 }
     ] : mode === 'edit' ? [
-      { id: 101, title: '数据结构与算法基础', url: 'https://edu.example.com/course/data-structure', addTime: '2024-01-15 10:30', duration: '45分钟', instructor: '张教授' },
-      { id: 102, title: 'React前端开发实战', url: 'https://edu.example.com/course/react-dev', addTime: '2024-01-16 14:20', duration: '60分钟', instructor: '李老师' },
-      { id: 103, title: 'Python机器学习入门', url: 'https://edu.example.com/course/python-ml', addTime: '2024-01-17 09:15', duration: '75分钟', instructor: '王博士' },
-      { id: 104, title: '数据库设计与优化', url: 'https://edu.example.com/course/database-design', addTime: '2024-01-18 16:45', duration: '50分钟', instructor: '陈工程师' },
-      { id: 105, title: '云计算架构设计', url: 'https://edu.example.com/course/cloud-architecture', addTime: '2024-01-19 11:00', duration: '90分钟', instructor: '刘架构师' }
+      { id: 101, title: '数据结构与算法基础', url: 'https://edu.example.com/course/data-structure', addTime: '2024-01-15 10:30', duration: '45分钟', instructor: '张教授', progress: 75 },
+      { id: 102, title: 'React前端开发实战', url: 'https://edu.example.com/course/react-dev', addTime: '2024-01-16 14:20', duration: '60分钟', instructor: '李老师', progress: 45 },
+      { id: 103, title: 'Python机器学习入门', url: 'https://edu.example.com/course/python-ml', addTime: '2024-01-17 09:15', duration: '75分钟', instructor: '王博士', progress: 90 },
+      { id: 104, title: '数据库设计与优化', url: 'https://edu.example.com/course/database-design', addTime: '2024-01-18 16:45', duration: '50分钟', instructor: '陈工程师', progress: 20 },
+      { id: 105, title: '云计算架构设计', url: 'https://edu.example.com/course/cloud-architecture', addTime: '2024-01-19 11:00', duration: '90分钟', instructor: '刘架构师', progress: 100 }
     ] : note?.materials?.videos || []
   );
   
@@ -1294,7 +1295,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     <>
       <div style={{ display: 'flex', height: '100vh', background: '#f5f5f5' }}>
       {/* 左侧资料收集区域 */}
-      <div style={{ width: 320, background: '#fff', margin: '16px 0 16px 16px', borderRadius: '8px', overflow: 'hidden' }}>
+      <div style={{ flex: 2.5, background: '#fff', margin: '16px 0 16px 16px', borderRadius: '8px', overflow: 'hidden' }}>
           <div style={{ padding: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1633,6 +1634,24 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                             {video.duration && `时长：${video.duration} | `}
                             {video.addTime}
                           </Text>
+                          {/* 观看进度条 */}
+                          {video.progress !== undefined && (
+                            <div style={{ marginTop: 4 }}>
+                              <Progress 
+                                percent={video.progress} 
+                                size="small" 
+                                strokeColor={
+                                  video.progress === 100 ? '#52c41a' : 
+                                  video.progress >= 50 ? '#1890ff' : '#faad14'
+                                }
+                                showInfo={false}
+                                style={{ fontSize: 10 }}
+                              />
+                              <Text type="secondary" style={{ fontSize: 9 }}>
+                                观看进度 {video.progress}%
+                              </Text>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <Checkbox
@@ -1817,6 +1836,24 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                           <Text type="secondary" style={{ fontSize: 10 }} ellipsis>
                             {course.trainingType} · {course.duration}
                           </Text>
+                          {/* 观看进度条 */}
+                          {course.progress !== undefined && (
+                            <div style={{ marginTop: 4 }}>
+                              <Progress 
+                                percent={course.progress} 
+                                size="small" 
+                                strokeColor={
+                                  course.progress === 100 ? '#52c41a' : 
+                                  course.progress >= 50 ? '#1890ff' : '#faad14'
+                                }
+                                showInfo={false}
+                                style={{ fontSize: 10 }}
+                              />
+                              <Text type="secondary" style={{ fontSize: 9 }}>
+                                观看进度 {course.progress}%
+                              </Text>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <Checkbox
@@ -1833,7 +1870,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
       </div>
 
       {/* 中间问答区域 */}
-      <div style={{ flex: 1, margin: '16px', background: '#fff', borderRadius: '8px', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 5, margin: '16px', background: '#fff', borderRadius: '8px', display: 'flex', flexDirection: 'column' }}>
           <div style={{ padding: '20px', borderBottom: '1px solid #f0f0f0' }}>
             <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
               💬 智能问答
@@ -2055,7 +2092,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
         </div>
 
         {/* 右侧操作区域 */}
-        <div style={{ width: 320, background: '#fff', margin: '16px 16px 16px 0', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 2.5, background: '#fff', margin: '16px 16px 16px 0', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           {/* 上半部分 - 功能概览 */}
           <div style={{ padding: '20px', flex: 1 }}>
             <Title level={5} style={{ marginBottom: 16, color: '#1f1f1f' }}>
