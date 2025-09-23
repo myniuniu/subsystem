@@ -20,11 +20,16 @@ import {
   Checkbox,
   Popconfirm,
   Dropdown,
-  Popover
+  Popover,
+  Collapse,
+  Radio
 } from 'antd';
 import MaterialAddPage from './MaterialAddPage';
 import ExploreModal from './ExploreModal';
+import RuleAnnotationModal from './RuleAnnotationModal';
+import RuleManagementModal from './RuleManagementModal';
 import ResourceTreeView from './ResourceTreeView';
+import ruleScheduler from '../utils/ruleScheduler';
 import {
   ArrowLeftOutlined,
   SaveOutlined,
@@ -44,7 +49,9 @@ import {
   GlobalOutlined,
   MoreOutlined,
   EditOutlined,
-  TagOutlined
+  TagOutlined,
+  SettingOutlined,
+  ClockCircleOutlined
 } from '@ant-design/icons';
 import { Lightbulb } from 'lucide-react';
 
@@ -52,6 +59,7 @@ const { Content, Sider } = Layout;
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
+const { Panel } = Collapse;
 
 const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) => {
   // 资料收集相关状态
@@ -244,6 +252,11 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
   // 工具管理状态
   const [visibleTools, setVisibleTools] = useState(['training-plan', 'schedule', 'participants']); // 可见的工具
   
+  // 规则标注相关状态
+  const [showRuleAnnotationModal, setShowRuleAnnotationModal] = useState(false);
+  const [annotationRules, setAnnotationRules] = useState([]);
+  const [showRuleManagementModal, setShowRuleManagementModal] = useState(false);
+  
   // 探索弹窗相关状态
   const [showExploreModal, setShowExploreModal] = useState(false);
   
@@ -284,7 +297,55 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
   const [needTitle, setNeedTitle] = useState('');
   const [needContent, setNeedContent] = useState('');
 
-  // 初始化编辑数据
+  // 知识图谱相关状态
+  const [knowledgeGraphExpanded, setKnowledgeGraphExpanded] = useState(true);
+  const [selectedKnowledgeGraph, setSelectedKnowledgeGraph] = useState(null); // 新增：选中的知识图谱
+  const [previewModalVisible, setPreviewModalVisible] = useState(false); // 新增：预览弹窗状态
+  const [previewKnowledgeGraph, setPreviewKnowledgeGraph] = useState(null); // 新增：预览的知识图谱
+  const [knowledgeGraphData, setKnowledgeGraphData] = useState([
+    {
+      id: 1,
+      title: '教师专业发展知识图谱',
+      icon: '🎓',
+      knowledgePoints: ['核心素养', '教学设计', '课程标准', '评价体系'],
+      source: '教育部教师工作司',
+      updateTime: '2024-01-15'
+    },
+    {
+      id: 2,
+      title: '信息技术教育应用图谱',
+      icon: '💻',
+      knowledgePoints: ['数字化教学', '在线教育', '教育技术', 'AI辅助教学'],
+      source: '中央电化教育馆',
+      updateTime: '2024-01-12'
+    },
+    {
+      id: 3,
+      title: '学生心理发展知识网络',
+      icon: '🧠',
+      knowledgePoints: ['认知发展', '情感教育', '行为管理', '心理健康'],
+      source: '中国心理学会',
+      updateTime: '2024-01-10'
+    },
+    {
+      id: 4,
+      title: '课程改革理论体系',
+      icon: '📚',
+      knowledgePoints: ['课程理论', '教学方法', '学习评价', '教育创新'],
+      source: '课程教材研究所',
+      updateTime: '2024-01-08'
+    },
+    {
+      id: 5,
+      title: '教育质量评估框架',
+      icon: '📊',
+      knowledgePoints: ['质量标准', '评估方法', '数据分析', '改进策略'],
+      source: '教育质量监测中心',
+      updateTime: '2024-01-05'
+    }
+  ]);
+
+  // 初始化编辑数据和规则调度器
   useEffect(() => {
     if (selectedNeed && mode === 'edit') {
       setNeedTitle(selectedNeed.title || '');
@@ -303,6 +364,14 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
         setCourseVideos(selectedNeed.videos || []);
       }
     }
+
+    // 启动规则调度器
+    ruleScheduler.start();
+
+    // 组件卸载时停止调度器
+    return () => {
+      ruleScheduler.stop();
+    };
   }, [selectedNeed, mode]);
 
   // 处理标注按钮点击
@@ -384,9 +453,76 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
     setShowAnnotationModal(false);
   };
 
+  // 添加资源选择状态
+  const [selectedTreeResources, setSelectedTreeResources] = useState([]);
+  
   // 处理图谱/知识点标注按钮点击
   const handleKnowledgeAnnotation = () => {
-    setShowKnowledgeAnnotationModal(true);
+    // 验证是否选择了树形课程资源
+    if (!selectedTreeResources || selectedTreeResources.length === 0) {
+      message.warning('请先选择树形的课程资源');
+      return;
+    }
+    
+    // 验证是否选择了知识图谱
+    if (!selectedKnowledgeGraph) {
+      message.warning('请先选择知识图谱');
+      return;
+    }
+    
+    // 直接生成操作记录，不弹窗
+    const currentTime = new Date().toLocaleString();
+    const newRecord = {
+      id: Date.now(),
+      title: `图谱/知识点标注 - ${selectedKnowledgeGraph.title}`,
+      source: '知识图谱标注系统',
+      time: currentTime,
+      type: 'knowledge',
+      content: `
+        <h3 style="color: #52c41a; margin-bottom: 15px;">🕸️ 图谱/知识点标注记录</h3>
+        
+        <div style="margin-bottom: 20px; padding: 15px; background-color: #f6ffed; border-radius: 8px;">
+          <h4 style="color: #52c41a; margin-bottom: 10px;">📚 选中的课程资源</h4>
+          <div style="margin-left: 15px;">
+            ${selectedTreeResources.map(resource => `
+              <p><strong>资源名称：</strong>${resource.title || resource.name}</p>
+              <p><strong>资源类型：</strong>${resource.type || '课程资源'}</p>
+            `).join('')}
+          </div>
+        </div>
+        
+        <div style="margin-bottom: 20px; padding: 15px; background-color: #e6f7ff; border-radius: 8px;">
+          <h4 style="color: #1890ff; margin-bottom: 10px;">🗺️ 选中的知识图谱</h4>
+          <div style="margin-left: 15px;">
+            <p><strong>图谱名称：</strong>${selectedKnowledgeGraph?.title || '未选择'}</p>
+            <p><strong>图谱来源：</strong>${selectedKnowledgeGraph?.source || '未知'}</p>
+            <p><strong>更新时间：</strong>${selectedKnowledgeGraph?.updateTime || '未知'}</p>
+            <p><strong>知识点：</strong>${selectedKnowledgeGraph?.knowledgePoints?.join('、') || '无'}</p>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 20px; padding: 15px; background-color: #fff7e6; border-radius: 8px;">
+          <h4 style="color: #fa8c16; margin-bottom: 10px;">💡 标注说明</h4>
+          <p>成功将选中的课程资源与知识图谱进行关联标注。</p>
+          <p>标注时间：${currentTime}</p>
+          <p>关联资源：${selectedTreeResources.map(r => r.title || r.name).join('、')}</p>
+          <p>使用图谱：${selectedKnowledgeGraph?.title || '未选择'}</p>
+          <p>涉及知识点：${selectedKnowledgeGraph?.knowledgePoints?.join('、') || '无'}</p>
+        </div>
+      `,
+      selectedResources: [...selectedTreeResources],
+      knowledgeGraph: selectedKnowledgeGraph,
+      action: '图谱/知识点标注',
+      user: '当前用户'
+    };
+
+    // 将操作记录添加到对应的分类中
+    setOperationRecords(prev => ({
+      ...prev,
+      text: [newRecord, ...(prev.text || [])]
+    }));
+    
+    message.success(`成功完成图谱标注，操作记录已生成`);
   };
 
   // 处理知识点添加
@@ -420,6 +556,25 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
         <h3 style="color: #52c41a; margin-bottom: 15px;">🕸️ 图谱/知识点标注记录</h3>
         
         <div style="margin-bottom: 20px; padding: 15px; background-color: #f6ffed; border-radius: 8px;">
+          <h4 style="color: #52c41a; margin-bottom: 10px;">📚 选中的课程资源</h4>
+          <div style="margin-left: 15px;">
+            ${selectedTreeResources.map(resource => `
+              <p><strong>资源名称：</strong>${resource.title || resource.name}</p>
+              <p><strong>资源类型：</strong>${resource.type || '课程资源'}</p>
+            `).join('')}
+          </div>
+        </div>
+        
+        <div style="margin-bottom: 20px; padding: 15px; background-color: #e6f7ff; border-radius: 8px;">
+          <h4 style="color: #1890ff; margin-bottom: 10px;">🗺️ 选中的知识图谱</h4>
+          <div style="margin-left: 15px;">
+            <p><strong>图谱名称：</strong>${selectedKnowledgeGraph?.title || '未选择'}</p>
+            <p><strong>图谱来源：</strong>${selectedKnowledgeGraph?.source || '未知'}</p>
+            <p><strong>更新时间：</strong>${selectedKnowledgeGraph?.updateTime || '未知'}</p>
+          </div>
+        </div>
+        
+        <div style="margin-bottom: 20px; padding: 15px; background-color: #f6ffed; border-radius: 8px;">
           <h4 style="color: #52c41a; margin-bottom: 10px;">🧠 知识点详情</h4>
           <div style="margin-left: 15px;">
             <p><strong>标注时间：</strong>${new Date().toLocaleString()}</p>
@@ -435,9 +590,13 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
           <h4 style="color: #fa8c16; margin-bottom: 10px;">💡 标注说明</h4>
           <p>本次为资源添加了 ${knowledgePoints.length} 个知识点，这些知识点将构建知识图谱，帮助您更好地理解和关联相关概念。</p>
           <p>知识点内容：${knowledgePoints.join('、')}</p>
+          <p>关联资源：${selectedTreeResources.map(r => r.title || r.name).join('、')}</p>
+          <p>使用图谱：${selectedKnowledgeGraph.title}</p>
         </div>
       `,
       knowledgePoints: [...knowledgePoints],
+      selectedResources: [...selectedTreeResources],
+      knowledgeGraph: selectedKnowledgeGraph,
       action: '图谱/知识点标注',
       user: '当前用户'
     };
@@ -641,6 +800,79 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
   // 处理更多操作菜单点击
   const handleMoreAction = (action, record) => {
     switch (action) {
+      case 'advancedEdit':
+        // 高级编辑知识图谱
+        console.log('高级编辑知识图谱:', record);
+        Modal.confirm({
+          title: '高级编辑知识图谱',
+          width: 600,
+          content: (
+            <div style={{ padding: '20px 0' }}>
+              <div style={{ marginBottom: 16 }}>
+                <Text strong>当前知识图谱：</Text>
+                <div style={{ 
+                  padding: '12px', 
+                  background: '#f6f6f6', 
+                  borderRadius: '6px', 
+                  margin: '8px 0' 
+                }}>
+                  <div><Text strong>{record.title}</Text></div>
+                  <div><Text type="secondary">来源：{record.source}</Text></div>
+                  <div><Text type="secondary">时间：{record.time}</Text></div>
+                </div>
+              </div>
+              
+              <div style={{ marginBottom: 16 }}>
+                <Text strong>高级编辑选项：</Text>
+                <div style={{ marginTop: 8 }}>
+                  <div style={{ marginBottom: 8 }}>
+                    🔧 <Text>结构优化</Text> - 重新组织知识点关系
+                  </div>
+                  <div style={{ marginBottom: 8 }}>
+                    📊 <Text>数据增强</Text> - 补充相关概念和属性
+                  </div>
+                  <div style={{ marginBottom: 8 }}>
+                    🎯 <Text>关系映射</Text> - 建立更精确的概念连接
+                  </div>
+                  <div style={{ marginBottom: 8 }}>
+                    🔍 <Text>语义分析</Text> - 深度理解概念含义
+                  </div>
+                </div>
+              </div>
+              
+              <Text type="secondary" style={{ fontSize: '12px' }}>
+                高级编辑将使用AI技术对知识图谱进行深度优化和重构
+              </Text>
+            </div>
+          ),
+          okText: '开始高级编辑',
+          cancelText: '取消',
+          onOk: () => {
+            message.loading('正在进行高级编辑...', 2);
+            setTimeout(() => {
+              // 创建新的优化后的操作记录
+              const optimizedRecord = {
+                id: Date.now(),
+                title: `${record.title} (高级编辑版)`,
+                content: `经过AI高级编辑优化的知识图谱，包含：\n• 重新优化的概念结构\n• 增强的关系映射\n• 补充的语义信息\n• 改进的知识点连接`,
+                time: '刚刚',
+                source: '知识图谱高级编辑系统',
+                type: 'knowledge-graph',
+                tags: ['高级编辑', '优化版本', 'AI增强'],
+                originalRecord: record // 保存原始记录引用
+              };
+              
+              // 添加到操作记录
+              setOperationRecords(prev => ({
+                ...prev,
+                'knowledge-graph': [optimizedRecord, ...(prev['knowledge-graph'] || [])]
+              }));
+              
+              message.success(`知识图谱"${record.title}"高级编辑完成！`);
+            }, 2000);
+          }
+        });
+        break;
       case 'submit':
         // 提交培训方案
         message.loading('正在提交培训方案...', 1);
@@ -705,6 +937,23 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
       }
     ];
 
+    // 知识图谱类型添加高级编辑功能
+    if (record.type === 'knowledge-graph' || record.source === '知识图谱标注系统' || record.title?.includes('知识图谱')) {
+      return [
+        {
+          key: 'advancedEdit',
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>⚙️</span>
+              <span>高级编辑</span>
+            </div>
+          ),
+          onClick: () => handleMoreAction('advancedEdit', record)
+        },
+        ...commonItems
+      ];
+    }
+
     // 培训方案类型添加提交按钮
     if (record.type === 'training-plan') {
       return [
@@ -750,6 +999,98 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
     }
 
     return commonItems;
+  };
+
+  // 处理知识图谱点击
+  const handleKnowledgeGraphClick = (item) => {
+    console.log('点击知识图谱:', item);
+    
+    // 实现单选功能：如果点击的是已选中的项目，则取消选择；否则选择新项目
+    if (selectedKnowledgeGraph && selectedKnowledgeGraph.id === item.id) {
+      setSelectedKnowledgeGraph(null);
+      message.info('已取消选择知识图谱');
+    } else {
+      setSelectedKnowledgeGraph(item);
+      message.success(`已选择知识图谱：${item.title}`);
+    }
+  };
+
+  // 处理知识图谱预览
+  const handleKnowledgeGraphPreview = (item) => {
+    console.log('预览知识图谱:', item);
+    setPreviewKnowledgeGraph(item);
+    setPreviewModalVisible(true);
+  };
+
+  // 处理重命名
+  const handleRename = (item) => {
+    console.log('重命名知识图谱:', item);
+    Modal.confirm({
+      title: '重命名知识图谱',
+      content: (
+        <Input
+          defaultValue={item.title}
+          placeholder="请输入新名称"
+          id="rename-input"
+          style={{ marginTop: '10px' }}
+        />
+      ),
+      onOk() {
+        const newTitle = document.getElementById('rename-input').value;
+        if (newTitle && newTitle.trim()) {
+          setKnowledgeGraphData(prev => 
+            prev.map(kg => 
+              kg.id === item.id 
+                ? { ...kg, title: newTitle.trim() }
+                : kg
+            )
+          );
+          message.success('重命名成功');
+        }
+      }
+    });
+  };
+
+  // 处理删除
+  const handleDelete = (item) => {
+    console.log('删除知识图谱:', item);
+    Modal.confirm({
+      title: '确认删除',
+      content: `确定要删除知识图谱"${item.title}"吗？此操作不可撤销。`,
+      okText: '确认删除',
+      okType: 'danger',
+      cancelText: '取消',
+      onOk() {
+        setKnowledgeGraphData(prev => prev.filter(kg => kg.id !== item.id));
+        // 如果删除的是当前选中的项目，清除选择
+        if (selectedKnowledgeGraph && selectedKnowledgeGraph.id === item.id) {
+          setSelectedKnowledgeGraph(null);
+        }
+        message.success('删除成功');
+      }
+    });
+  };
+
+  // 处理转来源到知识图谱
+  const handleTransferToKnowledgeGraph = (message) => {
+    console.log('转来源到知识图谱:', message);
+    
+    // 生成新的知识图谱记录
+    const newKnowledgeItem = {
+      id: Date.now(),
+      title: `AI生成的知识图谱`,
+      description: message.content.substring(0, 100) + '...',
+      source: 'AI助手',
+      type: '知识图谱',
+      tags: ['AI生成', '知识图谱', '概念关系'],
+      time: new Date().toLocaleString(),
+      icon: '🧠'
+    };
+    
+    // 添加到知识图谱数据中
+    setKnowledgeGraphData(prev => [newKnowledgeItem, ...prev]);
+    
+    message.success('已成功转存到知识图谱来源');
   };
 
   // 处理记录点击打开
@@ -928,38 +1269,54 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
     setInputMessage('');
     setIsLoading(true);
     
-    // 模拟AI回复和资源推荐
-    setTimeout(() => {
-      const aiResponse = {
-        id: Date.now() + 1,
-        type: 'assistant',
-        content: `基于您上传的资料，我理解您的问题是："${inputMessage}"。根据现有资料分析，我建议...`,
-        timestamp: new Date().toISOString()
-      };
-      setMessages(prev => [...prev, aiResponse]);
-      
-      // 模拟资源推荐逻辑
-      const mockRecommendedResources = [];
-      const keywords = inputMessage.toLowerCase();
-      
-      // 根据关键词推荐相关资源
-      if (keywords.includes('心理') || keywords.includes('健康') || keywords.includes('情绪')) {
-        mockRecommendedResources.push({ id: 'sm_001' }); // 学生心理健康教育
-      }
-      if (keywords.includes('管理') || keywords.includes('班级') || keywords.includes('纪律')) {
-        mockRecommendedResources.push({ id: 'sm_002' }); // 班级管理实用手册
-      }
-      if (keywords.includes('激励') || keywords.includes('评价') || keywords.includes('策略')) {
-        mockRecommendedResources.push({ id: 'sm_003' }); // 学生激励与评价策略
-      }
-      
-      // 如果有推荐资源，触发推荐回调
-      if (mockRecommendedResources.length > 0) {
-        handleResourceRecommend(mockRecommendedResources);
-      }
-      
-      setIsLoading(false);
-    }, 1500);
+    // 根据选中的技能处理不同逻辑
+    if (selectedSkill && selectedSkill.key === 'knowledge-graph') {
+      // 知识图谱技能处理
+      setTimeout(() => {
+        const aiResponse = {
+          id: Date.now() + 1,
+          type: 'assistant',
+          content: `基于您的需求："${inputMessage}"，我为您生成了以下知识图谱：\n\n🔗 核心概念关系图\n📊 相关数据分析\n🎯 关键知识点连接\n\n这个知识图谱展示了主要概念之间的关联关系，帮助您更好地理解和掌握相关知识。`,
+          timestamp: new Date().toISOString(),
+          hasTransferAction: true // 标记此消息有转来源操作
+        };
+        setMessages(prev => [...prev, aiResponse]);
+        setIsLoading(false);
+      }, 2000);
+    } else {
+      // 原有的资源推荐逻辑
+      setTimeout(() => {
+        const aiResponse = {
+          id: Date.now() + 1,
+          type: 'assistant',
+          content: `基于您上传的资料，我理解您的问题是："${inputMessage}"。根据现有资料分析，我建议...`,
+          timestamp: new Date().toISOString()
+        };
+        setMessages(prev => [...prev, aiResponse]);
+        
+        // 模拟资源推荐逻辑
+        const mockRecommendedResources = [];
+        const keywords = inputMessage.toLowerCase();
+        
+        // 根据关键词推荐相关资源
+        if (keywords.includes('心理') || keywords.includes('健康') || keywords.includes('情绪')) {
+          mockRecommendedResources.push({ id: 'sm_001' }); // 学生心理健康教育
+        }
+        if (keywords.includes('管理') || keywords.includes('班级') || keywords.includes('纪律')) {
+          mockRecommendedResources.push({ id: 'sm_002' }); // 班级管理实用手册
+        }
+        if (keywords.includes('激励') || keywords.includes('评价') || keywords.includes('策略')) {
+          mockRecommendedResources.push({ id: 'sm_003' }); // 学生激励与评价策略
+        }
+        
+        // 如果有推荐资源，触发推荐回调
+        if (mockRecommendedResources.length > 0) {
+          handleResourceRecommend(mockRecommendedResources);
+        }
+        
+        setIsLoading(false);
+      }, 1500);
+    }
   };
 
   // 执行快捷操作
@@ -1222,6 +1579,271 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
     } else {
       message.info('暂无资料可生成智能需求');
     }
+  };
+
+  // 处理规则标注保存
+  const handleRuleAnnotationSave = (ruleData) => {
+    const newRule = {
+      id: Date.now(),
+      ...ruleData,
+      createdAt: new Date().toISOString(),
+      enabled: true,
+      executionCount: 0
+    };
+
+    setAnnotationRules(prev => [...prev, newRule]);
+    setShowRuleAnnotationModal(false);
+    
+    // 如果是定时执行，添加到调度器
+    if (ruleData.scheduleType === 'scheduled') {
+      ruleScheduler.addRule(newRule, executeRule);
+    }
+    
+    // 如果是实时执行，立即执行规则
+    if (ruleData.scheduleType === 'realtime') {
+      executeRule(newRule);
+    }
+    
+    message.success('规则创建成功');
+  };
+
+  // 执行规则标注
+  const executeRule = async (rule) => {
+    message.loading({ content: '正在执行规则...', key: 'execute' });
+    
+    try {
+      // 获取当前所有资源
+      const allResources = [
+        ...uploadedFiles.map(f => ({ ...f, type: 'file' })),
+        ...addedTexts.map(t => ({ ...t, type: 'text' })),
+        ...courseVideos.map(v => ({ ...v, type: 'video' })),
+        ...links.map(l => ({ ...l, type: 'link' })),
+        ...researchPapers.map(p => ({ ...p, type: 'paper' })),
+        ...surveys.map(s => ({ ...s, type: 'survey' })),
+        ...caseStudies.map(c => ({ ...c, type: 'case' }))
+      ];
+
+      let matchedResources = [];
+
+      // 根据规则类型执行匹配
+      if (rule.type === 'keyword' && rule.keywords?.length > 0) {
+        matchedResources = allResources.filter(resource => {
+          const searchText = `${resource.title || resource.name || ''} ${resource.description || ''} ${resource.content || ''}`.toLowerCase();
+          return rule.keywords.some(keyword => 
+            searchText.includes(keyword.toLowerCase())
+          );
+        });
+      } else if (rule.type === 'condition' && rule.conditions?.length > 0) {
+        matchedResources = allResources.filter(resource => {
+          return rule.conditions.every(condition => {
+            const fieldValue = resource[condition.field];
+            if (!fieldValue) return false;
+            
+            switch (condition.operator) {
+              case 'contains':
+                return fieldValue.toString().toLowerCase().includes(condition.value.toLowerCase());
+              case 'equals':
+                return fieldValue.toString() === condition.value;
+              case 'not_equals':
+                return fieldValue.toString() !== condition.value;
+              case 'greater_than':
+                return parseFloat(fieldValue) > parseFloat(condition.value);
+              case 'less_than':
+                return parseFloat(fieldValue) < parseFloat(condition.value);
+              default:
+                return false;
+            }
+          });
+        });
+      } else if (rule.type === 'hybrid') {
+        // 混合模式：同时满足关键词和条件
+        const keywordMatched = rule.keywords?.length > 0 ? allResources.filter(resource => {
+          const searchText = `${resource.title || resource.name || ''} ${resource.description || ''} ${resource.content || ''}`.toLowerCase();
+          return rule.keywords.some(keyword => 
+            searchText.includes(keyword.toLowerCase())
+          );
+        }) : allResources;
+
+        matchedResources = keywordMatched.filter(resource => {
+          if (!rule.conditions?.length) return true;
+          return rule.conditions.every(condition => {
+            const fieldValue = resource[condition.field];
+            if (!fieldValue) return false;
+            
+            switch (condition.operator) {
+              case 'contains':
+                return fieldValue.toString().toLowerCase().includes(condition.value.toLowerCase());
+              case 'equals':
+                return fieldValue.toString() === condition.value;
+              case 'not_equals':
+                return fieldValue.toString() !== condition.value;
+              case 'greater_than':
+                return parseFloat(fieldValue) > parseFloat(condition.value);
+              case 'less_than':
+                return parseFloat(fieldValue) < parseFloat(condition.value);
+              default:
+                return false;
+            }
+          });
+        });
+      }
+
+      // 执行标注动作
+      let taggedCount = 0;
+      if (rule.actions?.autoTag && rule.actions?.tags?.length > 0) {
+        matchedResources.forEach(resource => {
+          // 为匹配的资源添加标签
+          const existingTags = resource.tags || [];
+          const newTags = rule.actions.tags.filter(tag => !existingTags.includes(tag));
+          
+          if (newTags.length > 0) {
+            resource.tags = [...existingTags, ...newTags];
+            taggedCount++;
+          }
+        });
+      }
+
+      // 生成操作记录
+      const operationRecord = {
+        id: Date.now(),
+        title: `规则标注执行 - ${rule.name}`,
+        source: '规则标注系统',
+        time: new Date().toLocaleString(),
+        type: 'rule',
+        content: `
+          <h3 style="color: #1890ff; margin-bottom: 15px;">⚙️ 规则标注执行记录</h3>
+          
+          <div style="margin-bottom: 20px; padding: 15px; background-color: #e6f7ff; border-radius: 8px;">
+            <h4 style="color: #1890ff; margin-bottom: 10px;">📋 规则信息</h4>
+            <p><strong>规则名称：</strong>${rule.name}</p>
+            <p><strong>规则类型：</strong>${rule.type === 'keyword' ? '关键词匹配' : rule.type === 'condition' ? '条件筛选' : '混合模式'}</p>
+            <p><strong>执行时间：</strong>${new Date().toLocaleString()}</p>
+            <p><strong>执行方式：</strong>${rule.scheduleType === 'manual' ? '手动执行' : rule.scheduleType === 'scheduled' ? '定时执行' : '实时执行'}</p>
+          </div>
+          
+          <div style="margin-bottom: 20px; padding: 15px; background-color: #f6ffed; border-radius: 8px;">
+            <h4 style="color: #52c41a; margin-bottom: 10px;">📊 执行结果</h4>
+            <p><strong>处理资源数：</strong>${allResources.length}</p>
+            <p><strong>匹配资源数：</strong>${matchedResources.length}</p>
+            <p><strong>成功标注数：</strong>${taggedCount}</p>
+            <p><strong>执行状态：</strong><span style="color: #52c41a;">成功</span></p>
+          </div>
+          
+          ${matchedResources.length > 0 ? `
+          <div style="margin-bottom: 20px; padding: 15px; background-color: #fff7e6; border-radius: 8px;">
+            <h4 style="color: #fa8c16; margin-bottom: 10px;">🎯 匹配资源</h4>
+            ${matchedResources.slice(0, 5).map(resource => `
+              <div style="margin: 8px 0; padding: 8px; background: white; border-radius: 4px; border-left: 3px solid #fa8c16;">
+                <strong>${resource.title || resource.name}</strong>
+                <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                  类型: ${resource.type} | 标签: ${(resource.tags || []).join(', ') || '无'}
+                </div>
+              </div>
+            `).join('')}
+            ${matchedResources.length > 5 ? `<p style="color: #666; font-style: italic;">... 还有 ${matchedResources.length - 5} 个资源</p>` : ''}
+          </div>
+          ` : ''}
+          
+          <div style="margin-bottom: 20px; padding: 15px; background-color: #f0f0f0; border-radius: 8px;">
+            <h4 style="color: #666; margin-bottom: 10px;">🔧 规则配置</h4>
+            ${rule.keywords?.length > 0 ? `<p><strong>关键词：</strong>${rule.keywords.join(', ')}</p>` : ''}
+            ${rule.conditions?.length > 0 ? `<p><strong>筛选条件：</strong>${rule.conditions.map(c => `${c.field} ${c.operator} ${c.value}`).join(', ')}</p>` : ''}
+            ${rule.actions?.tags?.length > 0 ? `<p><strong>自动标签：</strong>${rule.actions.tags.join(', ')}</p>` : ''}
+          </div>
+        `,
+        rule: rule,
+        matchedResources: matchedResources,
+        executionResult: {
+          success: true,
+          processedCount: allResources.length,
+          matchedCount: matchedResources.length,
+          taggedCount: taggedCount,
+          executedAt: new Date().toISOString()
+        }
+      };
+
+      // 添加到操作记录
+      setOperationRecords(prev => ({
+        ...prev,
+        text: [operationRecord, ...(prev.text || [])]
+      }));
+
+      // 更新规则执行统计
+      const updatedRules = annotationRules.map(r => 
+        r.id === rule.id 
+          ? { 
+              ...r, 
+              lastExecuted: new Date().toISOString(),
+              executionCount: (r.executionCount || 0) + 1,
+              lastResult: {
+                success: true,
+                processedCount: allResources.length,
+                matchedCount: matchedResources.length,
+                taggedCount: taggedCount,
+                executedAt: new Date().toISOString()
+              }
+            }
+          : r
+      );
+      setAnnotationRules(updatedRules);
+
+      message.success({ 
+        content: `规则执行完成！处理 ${allResources.length} 个资源，匹配 ${matchedResources.length} 个，标注 ${taggedCount} 个`, 
+        key: 'execute' 
+      });
+
+    } catch (error) {
+      console.error('规则执行失败:', error);
+      message.error({ content: '规则执行失败', key: 'execute' });
+    }
+  };
+
+  // 处理规则管理
+  const handleRuleManagement = () => {
+    setShowRuleManagementModal(true);
+  };
+
+  // 更新规则列表
+  const handleRuleUpdate = (updatedRules) => {
+    // 比较新旧规则，处理调度器更新
+    const oldRules = annotationRules;
+    const newRules = updatedRules;
+    
+    // 找出被删除的规则
+    const deletedRules = oldRules.filter(oldRule => 
+      !newRules.find(newRule => newRule.id === oldRule.id)
+    );
+    
+    // 找出被修改的规则
+    const modifiedRules = newRules.filter(newRule => {
+      const oldRule = oldRules.find(old => old.id === newRule.id);
+      return oldRule && (
+        oldRule.enabled !== newRule.enabled ||
+        oldRule.scheduleType !== newRule.scheduleType ||
+        oldRule.interval !== newRule.interval
+      );
+    });
+    
+    // 从调度器中移除被删除的规则
+    deletedRules.forEach(rule => {
+      if (rule.scheduleType === 'scheduled') {
+        ruleScheduler.removeRule(rule.id);
+      }
+    });
+    
+    // 更新调度器中的规则
+    modifiedRules.forEach(rule => {
+      if (rule.scheduleType === 'scheduled') {
+        if (rule.enabled) {
+          ruleScheduler.updateRule(rule.id, rule);
+        } else {
+          ruleScheduler.removeRule(rule.id);
+        }
+      }
+    });
+    
+    setAnnotationRules(updatedRules);
+    message.success('规则更新成功');
   };
 
   // 渲染文件预览内容
@@ -1589,107 +2211,297 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
               >
                 探索
               </Button>
+              <Button 
+                type="default" 
+                icon={<SettingOutlined />}
+                style={{ flex: 1 }}
+                onClick={() => setShowRuleAnnotationModal(true)}
+              >
+                规则标注
+              </Button>
             </div>
             
             <Divider style={{ margin: '16px 0' }} />
             
-            {/* 培训课程资源树 */}
-            <ResourceTreeView 
-              style={{ height: 'calc(100vh - 280px)' }}
-              onResourceSelect={(selectedKeys, selectedResources) => {
-                // 处理资源选择
-                console.log('选中的资源:', selectedKeys, selectedResources);
-              }}
-              recommendedResources={recommendedResources}
-            />
+            {/* 资源记录区域 - 上下分区布局 */}
+            <div style={{ height: 'calc(100vh - 280px)', display: 'flex', flexDirection: 'column' }}>
+              {/* 上方区域 - 树形菜单区域 (70%) */}
+              <div style={{ flex: 7, borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>
+                <div style={{ marginBottom: '8px' }}>
+                  <Text strong style={{ fontSize: '14px', color: '#1f1f1f' }}>📁 培训课程资源</Text>
+                </div>
+                <ResourceTreeView 
+                  style={{ height: '100%' }}
+                  onResourceSelect={(selectedResources) => {
+                    // 处理资源选择
+                    console.log('选中的资源:', selectedResources);
+                    setSelectedTreeResources(selectedResources);
+                  }}
+                  recommendedResources={recommendedResources}
+                />
+              </div>
+              
+              {/* 下方区域 - 知识图谱来源数据区域 (30%) */}
+              <div style={{ flex: 3, paddingTop: '8px' }}>
+                <Collapse 
+                  defaultActiveKey={['1']} 
+                  ghost
+                  size="small"
+                  style={{ 
+                    backgroundColor: 'transparent',
+                    border: 'none'
+                  }}
+                >
+                  <Panel 
+                    header={
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Text strong style={{ fontSize: '14px', color: '#1f1f1f' }}>
+                          🕸️ 知识图谱来源
+                        </Text>
+                        {selectedKnowledgeGraph && (
+                          <Text style={{ fontSize: '12px', color: '#1890ff' }}>
+                            已选择: {selectedKnowledgeGraph.title}
+                          </Text>
+                        )}
+                      </div>
+                    } 
+                    key="1"
+                    style={{
+                      backgroundColor: '#fafafa',
+                      borderRadius: '6px',
+                      border: '1px solid #f0f0f0',
+                      marginBottom: 0
+                    }}
+                  >
+                    <div style={{ 
+                      height: '100%',
+                      maxHeight: 'calc(30vh - 60px)',
+                      overflowY: 'auto',
+                      padding: '8px 0'
+                    }}>
+                      {/* 知识图谱数据列表 */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {knowledgeGraphData.map(item => (
+                          <Card 
+                            key={item.id}
+                            size="small"
+                            hoverable
+                            style={{ 
+                              borderRadius: '4px',
+                              border: selectedKnowledgeGraph && selectedKnowledgeGraph.id === item.id 
+                                ? '2px solid #1890ff' 
+                                : '1px solid #e8e8e8',
+                              backgroundColor: selectedKnowledgeGraph && selectedKnowledgeGraph.id === item.id 
+                                ? '#f6ffed' 
+                                : 'white',
+                              cursor: 'pointer',
+                              transition: 'all 0.3s ease',
+                              position: 'relative'
+                            }}
+                            onMouseEnter={(e) => {
+                              const hoverActions = e.currentTarget.querySelector('.hover-actions');
+                              if (hoverActions) hoverActions.style.opacity = '1';
+                            }}
+                            onMouseLeave={(e) => {
+                              const hoverActions = e.currentTarget.querySelector('.hover-actions');
+                              if (hoverActions) hoverActions.style.opacity = '0';
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <div style={{ fontSize: '16px' }}>{item.icon}</div>
+                              <div 
+                                style={{ flex: 1, minWidth: 0 }}
+                                onClick={() => handleKnowledgeGraphPreview(item)}
+                              >
+                                <Text 
+                                  style={{ 
+                                    fontSize: '12px', 
+                                    fontWeight: 500,
+                                    display: 'block',
+                                    marginBottom: '2px'
+                                  }}
+                                  ellipsis={{ tooltip: item.title }}
+                                >
+                                  {item.title}
+                                </Text>
+                                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                                  {(item.knowledgePoints || []).slice(0, 2).map((point, index) => (
+                                    <Tag 
+                                      key={index}
+                                      size="small" 
+                                      style={{ 
+                                        fontSize: '10px', 
+                                        margin: 0,
+                                        padding: '0 4px',
+                                        lineHeight: '16px'
+                                      }}
+                                    >
+                                      {point}
+                                    </Tag>
+                                  ))}
+                                  {(item.knowledgePoints || []).length > 2 && (
+                                    <Text style={{ fontSize: '10px', color: '#999' }}>
+                                      +{item.knowledgePoints.length - 2}
+                                    </Text>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              {/* 右侧单选框 */}
+                              <Radio
+                                checked={selectedKnowledgeGraph && selectedKnowledgeGraph.id === item.id}
+                                onChange={() => handleKnowledgeGraphClick(item)}
+                                style={{ marginRight: '8px' }}
+                              />
+                              
+                              {/* 悬停操作按钮 */}
+                              <div 
+                                className="hover-actions"
+                                style={{
+                                  position: 'absolute',
+                                  right: '40px',
+                                  top: '50%',
+                                  transform: 'translateY(-50%)',
+                                  display: 'flex',
+                                  gap: '4px',
+                                  opacity: '0',
+                                  transition: 'opacity 0.2s ease',
+                                  background: 'white',
+                                  padding: '2px',
+                                  borderRadius: '4px',
+                                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                                }}
+                              >
+                                <Button
+                                  type="text"
+                                  size="small"
+                                  icon={<span style={{ fontSize: '12px' }}>✏️</span>}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRename(item);
+                                  }}
+                                  style={{ padding: '2px 4px', height: '24px' }}
+                                />
+                                <Button
+                                  type="text"
+                                  size="small"
+                                  icon={<span style={{ fontSize: '12px' }}>🗑️</span>}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete(item);
+                                  }}
+                                  style={{ padding: '2px 4px', height: '24px' }}
+                                />
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                      
+                      {knowledgeGraphData.length === 0 && (
+                        <div style={{ 
+                          textAlign: 'center', 
+                          color: '#999', 
+                          padding: '20px 0',
+                          fontSize: '12px'
+                        }}>
+                          暂无知识图谱数据
+                        </div>
+                      )}
+                    </div>
+                  </Panel>
+                </Collapse>
+              </div>
+            </div>
           </div>
         </div>
 
       {/* 中间问答区域 */}
-      <div style={{ flex: 5, margin: '16px', background: '#fff', borderRadius: '8px', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: '20px', borderBottom: '1px solid #f0f0f0' }}>
+      <div style={{ flex: 5, margin: '16px', background: '#fff', borderRadius: '8px', display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 200px)' }}>
+          <div style={{ padding: '20px', borderBottom: '1px solid #f0f0f0', flexShrink: 0 }}>
             <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
               💬 智能问答
             </Title>
           </div>
           
-          {/* 摘要区域 */}
-          <div style={{ padding: '20px', borderBottom: '1px solid #f0f0f0', backgroundColor: '#fafafa' }}>
-            <div style={{ marginBottom: '12px' }}>
-              <Text strong style={{ color: '#1890ff' }}>📋 针对所有来源的摘要</Text>
-            </div>
-            <Card size="small" style={{ marginBottom: '16px', backgroundColor: '#fff' }}>
-               <Paragraph style={{ margin: 0, fontSize: '14px', lineHeight: '1.6' }}>
-                 收集的资料全面覆盖了教师专业发展与培训的各个维度，包括专业发展指导手册、现代教育技术应用资料、核心素养课程设计指南等理论文献；教师培训平台、教育技术研究网站等在线资源；培训需求分析、信息技术能力提升方案、差异化教学策略等实践方案；现代教学方法、技术整合、学生心理发展等专业视频；以及相关的实证研究论文、调研报告和成功案例分析。这些材料从理论基础、实践指导、技术应用、案例借鉴等多个角度，为教师专业发展和培训体系建设提供了系统性的参考依据和实施指导。
-               </Paragraph>
-             </Card>
-            
 
-          </div>
           
           {/* 消息列表 */}
-          <div style={{ flex: 1, padding: '20px', overflowY: 'auto', maxHeight: 'calc(100vh - 500px)' }}>
-            {messages.map(msg => (
-              <div key={msg.id} style={{ marginBottom: 16 }}>
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: msg.type === 'user' ? 'flex-end' : 'flex-start',
-                  alignItems: 'flex-start',
-                  gap: 8
-                }}>
-                  {msg.type === 'assistant' && (
-                    <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#1890ff' }} />
-                  )}
-                  <div style={{
-                    maxWidth: '70%'
-                  }}>
-                    <div style={{
-                      padding: '12px 16px',
-                      borderRadius: '12px',
-                      backgroundColor: msg.type === 'user' ? '#1890ff' : '#f6f6f6',
-                      color: msg.type === 'user' ? '#fff' : '#333'
+          <div style={{ flex: 1, padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', justifyContent: messages.length === 0 ? 'center' : 'flex-start' }}>
+            {messages.length === 0 ? (
+              <div style={{ textAlign: 'center', color: '#999' }}>
+                <RobotOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
+                <div>开始与AI对话</div>
+                <div style={{ fontSize: '12px', marginTop: '8px' }}>您可以询问关于资料的任何问题</div>
+              </div>
+            ) : (
+              <>
+                {messages.map(msg => (
+                  <div key={msg.id} style={{ marginBottom: 16 }}>
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: msg.type === 'user' ? 'flex-end' : 'flex-start',
+                      alignItems: 'flex-start',
+                      gap: 8
                     }}>
-                      <Text style={{ color: 'inherit' }}>{msg.content}</Text>
-                    </div>
-                    {msg.type === 'assistant' && (
-                      <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'flex-start' }}>
-                        <Button
-                          size="small"
-                          type="text"
-                          icon={<SaveOutlined />}
-                          onClick={() => handleSaveToNote(msg.content)}
-                          style={{
-                            fontSize: '12px',
-                            color: '#666',
-                            padding: '4px 8px',
-                            height: 'auto'
-                          }}
-                        >
-                          保存到需求
-                        </Button>
+                      {msg.type === 'assistant' && (
+                        <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#1890ff' }} />
+                      )}
+                      <div style={{
+                        maxWidth: '70%'
+                      }}>
+                        <div style={{
+                          padding: '12px 16px',
+                          borderRadius: '12px',
+                          backgroundColor: msg.type === 'user' ? '#1890ff' : '#f6f6f6',
+                          color: msg.type === 'user' ? '#fff' : '#333'
+                        }}>
+                          <Text style={{ color: 'inherit' }}>{msg.content}</Text>
+                        </div>
+                        {msg.type === 'assistant' && (
+                          <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'flex-start', gap: '8px' }}>
+                            {/* 转来源操作图标 - 仅在知识图谱技能回复时显示 */}
+                            {msg.hasTransferAction && (
+                              <Button
+                                size="small"
+                                type="text"
+                                icon={<ShareAltOutlined />}
+                                onClick={() => handleTransferToKnowledgeGraph(msg)}
+                                style={{
+                                  fontSize: '12px',
+                                  color: '#666',
+                                  padding: '4px 8px',
+                                  height: 'auto'
+                                }}
+                              >
+                                转来源
+                              </Button>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    )}
+                      {msg.type === 'user' && (
+                        <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#52c41a' }} />
+                      )}
+                    </div>
                   </div>
-                  {msg.type === 'user' && (
-                    <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#52c41a' }} />
-                  )}
-                </div>
-              </div>
-            ))}
-            {isLoading && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#1890ff' }} />
-                <div style={{ padding: '12px 16px', backgroundColor: '#f6f6f6', borderRadius: '12px' }}>
-                  <Text>正在思考中...</Text>
-                </div>
-              </div>
+                ))}
+                {isLoading && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#1890ff' }} />
+                    <div style={{ padding: '12px 16px', backgroundColor: '#f6f6f6', borderRadius: '12px' }}>
+                      <Text>正在思考中...</Text>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
           
 
           
           {/* 输入区域 */}
-          <div style={{ padding: '20px', borderTop: '1px solid #f0f0f0' }}>
+          <div style={{ padding: '20px', borderTop: '1px solid #f0f0f0', flexShrink: 0 }}>
             {/* 选中资料数量提示 - 浮动显示 */}
             {selectedMaterials.length > 0 && (
               <div style={{ 
@@ -1914,6 +2726,29 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
                     fontWeight: 500, 
                     color: '#52c41a' 
                   }}>图谱/知识点标注</Text>
+                </div>
+              </Card>
+              
+              <Card 
+                size="small" 
+                hoverable
+                onClick={() => setShowRuleAnnotationModal(true)}
+                style={{ 
+                  background: 'linear-gradient(135deg, #fff2e6 0%, #ffd591 100%)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div style={{ padding: '6px 0' }}>
+                  <div style={{ fontSize: '20px', marginBottom: '6px' }}>⚙️</div>
+                  <Text style={{ 
+                    fontSize: '11px', 
+                    fontWeight: 500, 
+                    color: '#fa8c16' 
+                  }}>规则标注</Text>
                 </div>
               </Card>
             </div>
@@ -2557,11 +3392,213 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
             color: '#52c41a'
           }}>
             🧠 提示：知识点将用于构建知识图谱，建议使用准确的概念或术语名称
+        </div>
+      </div>
+    </Modal>
+
+    {/* 知识图谱预览弹窗 */}
+    <Modal
+      title={
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '20px' }}>{previewKnowledgeGraph?.icon}</span>
+          <span>知识图谱预览 - {previewKnowledgeGraph?.title}</span>
+        </div>
+      }
+      open={previewModalVisible}
+      onCancel={() => setPreviewModalVisible(false)}
+      width={800}
+      footer={[
+        <Button key="close" onClick={() => setPreviewModalVisible(false)}>
+          关闭
+        </Button>,
+        <Button 
+          key="advanced-edit" 
+          icon={<EditOutlined />}
+          onClick={() => {
+            message.info('正在打开高级编辑器...');
+            // 这里可以添加跳转到高级编辑页面的逻辑
+            console.log('打开高级编辑器，编辑图谱:', previewKnowledgeGraph);
+          }}
+        >
+          高级编辑
+        </Button>,
+        <Button 
+          key="select" 
+          type="primary" 
+          onClick={() => {
+            handleKnowledgeGraphClick(previewKnowledgeGraph);
+            setPreviewModalVisible(false);
+          }}
+        >
+          选择此图谱
+        </Button>
+      ]}
+    >
+      {previewKnowledgeGraph && (
+        <div style={{ padding: '20px 0' }}>
+          {/* 基本信息 */}
+          <div style={{ marginBottom: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div>
+                <Text strong style={{ fontSize: '16px' }}>{previewKnowledgeGraph.title}</Text>
+                <div style={{ marginTop: '8px', color: '#666' }}>
+                  <Text>来源：{previewKnowledgeGraph.source}</Text>
+                  <Divider type="vertical" />
+                  <Text>更新时间：{previewKnowledgeGraph.updateTime}</Text>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 知识点网络 */}
+          <div style={{ marginBottom: '24px' }}>
+            <Text strong style={{ fontSize: '14px', marginBottom: '12px', display: 'block' }}>
+              🔗 知识点网络
+            </Text>
+            <div style={{ 
+              background: '#f8f9fa', 
+              border: '1px solid #e9ecef', 
+              borderRadius: '8px', 
+              padding: '16px',
+              minHeight: '200px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              {/* 模拟知识图谱可视化 */}
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(2, 1fr)', 
+                gap: '20px',
+                width: '100%',
+                maxWidth: '400px'
+              }}>
+                {previewKnowledgeGraph.knowledgePoints?.map((point, index) => (
+                  <div 
+                    key={index}
+                    style={{
+                      background: '#1890ff',
+                      color: 'white',
+                      padding: '12px 16px',
+                      borderRadius: '20px',
+                      textAlign: 'center',
+                      fontSize: '12px',
+                      fontWeight: '500',
+                      position: 'relative'
+                    }}
+                  >
+                    {point}
+                    {/* 连接线效果 */}
+                    {index < previewKnowledgeGraph.knowledgePoints.length - 1 && (
+                      <div style={{
+                        position: 'absolute',
+                        right: '-10px',
+                        top: '50%',
+                        width: '20px',
+                        height: '2px',
+                        background: '#d9d9d9',
+                        transform: 'translateY(-50%)'
+                      }} />
+                    )}
+                  </div>
+                ))}
+              </div>
+              
+              <div style={{ 
+                marginTop: '20px', 
+                color: '#666', 
+                fontSize: '12px',
+                textAlign: 'center'
+              }}>
+                💡 这是知识图谱的简化预览，实际图谱包含更多关联关系
+              </div>
+            </div>
+          </div>
+
+          {/* 统计信息 */}
+          <div style={{ 
+            background: '#fafafa', 
+            border: '1px solid #f0f0f0', 
+            borderRadius: '6px', 
+            padding: '16px' 
+          }}>
+            <Text strong style={{ fontSize: '14px', marginBottom: '12px', display: 'block' }}>
+              📊 图谱统计
+            </Text>
+            <Row gutter={16}>
+              <Col span={8}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#1890ff' }}>
+                    {previewKnowledgeGraph.knowledgePoints?.length || 0}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>知识点数量</div>
+                </div>
+              </Col>
+              <Col span={8}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#52c41a' }}>
+                    {Math.floor(Math.random() * 50) + 20}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>关联关系</div>
+                </div>
+              </Col>
+              <Col span={8}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#fa8c16' }}>
+                    {Math.floor(Math.random() * 10) + 5}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>知识层级</div>
+                </div>
+              </Col>
+            </Row>
           </div>
         </div>
-      </Modal>
-    </>
-  );
+      )}
+    </Modal>
+
+    {/* 规则标注弹窗 */}
+    <Modal
+      title={
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <SettingOutlined style={{ color: '#1890ff' }} />
+          <span>规则标注设置</span>
+        </div>
+      }
+      open={showRuleAnnotationModal}
+      onCancel={() => setShowRuleAnnotationModal(false)}
+      width={800}
+      footer={null}
+    >
+      <RuleAnnotationModal 
+        onClose={() => setShowRuleAnnotationModal(false)}
+        onSave={handleRuleAnnotationSave}
+        onRuleManage={handleRuleManagement}
+        existingRules={annotationRules}
+      />
+    </Modal>
+
+    {/* 规则管理弹窗 */}
+    <Modal
+      title={
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <ClockCircleOutlined style={{ color: '#52c41a' }} />
+          <span>规则管理</span>
+        </div>
+      }
+      open={showRuleManagementModal}
+      onCancel={() => setShowRuleManagementModal(false)}
+      width={1000}
+      footer={null}
+    >
+      <RuleManagementModal 
+        rules={annotationRules}
+        onRuleUpdate={handleRuleUpdate}
+        onClose={() => setShowRuleManagementModal(false)}
+      />
+    </Modal>
+  </>
+);
 };
 
 export default ResourceAnnotationPage;
