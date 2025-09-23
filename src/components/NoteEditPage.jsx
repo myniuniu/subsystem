@@ -24,6 +24,7 @@ import {
 } from 'antd';
 import MaterialAddPage from './MaterialAddPage';
 import ExploreModal from './ExploreModal';
+import VideoPlayer from './VideoPlayer';
 import courseSelectionService from '../services/courseSelectionService';
 import {
   ArrowLeftOutlined,
@@ -154,6 +155,10 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   const [smartNotes, setSmartNotes] = useState(note?.smartNotes || []);
   const [showSmartNotesModal, setShowSmartNotesModal] = useState(false);
   const [selectedNote, setSelectedNote] = useState(null);
+
+  // 视频播放器相关状态
+  const [showVideoPlayer, setShowVideoPlayer] = useState(false);
+  const [currentVideo, setCurrentVideo] = useState(null);
 
   // 场景模拟相关状态
   const [scenarioModalVisible, setScenarioModalVisible] = useState(false);
@@ -1027,7 +1032,14 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   };
 
   const handleViewMaterial = (material, type) => {
-    // 生成单个资料的智能笔记
+    // 如果是视频类型，打开视频播放器
+    if (type === 'video') {
+      setCurrentVideo(material);
+      setShowVideoPlayer(true);
+      return;
+    }
+    
+    // 其他类型生成单个资料的智能笔记
     const smartNote = generateSmartNote(material, type);
     setSmartNotes([smartNote]);
     setShowSmartNotesModal(true);
@@ -2844,6 +2856,26 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
         visible={showExploreModal}
         onClose={() => setShowExploreModal(false)}
         onExplore={handleExplore}
+      />
+
+      {/* 视频播放器 */}
+      <VideoPlayer
+        visible={showVideoPlayer}
+        onClose={() => {
+          setShowVideoPlayer(false);
+          setCurrentVideo(null);
+        }}
+        videoData={currentVideo}
+        onProgressUpdate={(videoId, progress) => {
+          // 更新视频观看进度
+          setCourseVideos(prev => 
+            prev.map(video => 
+              video.id === videoId 
+                ? { ...video, progress } 
+                : video
+            )
+          );
+        }}
       />
 
       {/* 场景模拟弹窗 */}
