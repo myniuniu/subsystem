@@ -28,7 +28,7 @@ import MaterialAddPage from './MaterialAddPage';
 import ExploreModal from './ExploreModal';
 import RuleAnnotationModal from './RuleAnnotationModal';
 import RuleManagementModal from './RuleManagementModal';
-import ResourceTreeView from './ResourceTreeView';
+import StudentAnnotationTree from './StudentAnnotationTree';
 import ruleScheduler from '../utils/ruleScheduler';
 import {
   ArrowLeftOutlined,
@@ -121,10 +121,7 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
   const [annotationTags, setAnnotationTags] = useState([]);
   const [currentTag, setCurrentTag] = useState('');
   
-  // 图谱/知识点标注相关状态
-  const [showKnowledgeAnnotationModal, setShowKnowledgeAnnotationModal] = useState(false);
-  const [knowledgePoints, setKnowledgePoints] = useState([]);
-  const [currentKnowledgePoint, setCurrentKnowledgePoint] = useState('');
+
 
   // 研究论文相关状态
   const [researchPapers, setResearchPapers] = useState([
@@ -298,53 +295,7 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
   const [needTitle, setNeedTitle] = useState('');
   const [needContent, setNeedContent] = useState('');
 
-  // 知识图谱相关状态
-  const [knowledgeGraphExpanded, setKnowledgeGraphExpanded] = useState(true);
-  const [selectedKnowledgeGraph, setSelectedKnowledgeGraph] = useState(null); // 新增：选中的知识图谱
-  const [previewModalVisible, setPreviewModalVisible] = useState(false); // 新增：预览弹窗状态
-  const [previewKnowledgeGraph, setPreviewKnowledgeGraph] = useState(null); // 新增：预览的知识图谱
-  const [knowledgeGraphData, setKnowledgeGraphData] = useState([
-    {
-      id: 1,
-      title: '教师专业发展知识图谱',
-      icon: '🎓',
-      knowledgePoints: ['核心素养', '教学设计', '课程标准', '评价体系'],
-      source: '教育部教师工作司',
-      updateTime: '2024-01-15'
-    },
-    {
-      id: 2,
-      title: '信息技术教育应用图谱',
-      icon: '💻',
-      knowledgePoints: ['数字化教学', '在线教育', '教育技术', 'AI辅助教学'],
-      source: '中央电化教育馆',
-      updateTime: '2024-01-12'
-    },
-    {
-      id: 3,
-      title: '学生心理发展知识网络',
-      icon: '🧠',
-      knowledgePoints: ['认知发展', '情感教育', '行为管理', '心理健康'],
-      source: '中国心理学会',
-      updateTime: '2024-01-10'
-    },
-    {
-      id: 4,
-      title: '课程改革理论体系',
-      icon: '📚',
-      knowledgePoints: ['课程理论', '教学方法', '学习评价', '教育创新'],
-      source: '课程教材研究所',
-      updateTime: '2024-01-08'
-    },
-    {
-      id: 5,
-      title: '教育质量评估框架',
-      icon: '📊',
-      knowledgePoints: ['质量标准', '评估方法', '数据分析', '改进策略'],
-      source: '教育质量监测中心',
-      updateTime: '2024-01-05'
-    }
-  ]);
+
 
   // 初始化编辑数据和规则调度器
   useEffect(() => {
@@ -403,12 +354,12 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
     // 添加操作记录
     const newRecord = {
       id: Date.now(),
-      title: `标签标注 - ${annotationTags.join(', ')}`,
-        source: '标签标注系统',
+      title: `人员标注 - ${annotationTags.join(', ')}`,
+        source: '人员标注系统',
       time: new Date().toLocaleString(),
       type: 'annotation',
       content: `
-        <h3 style="color: #1890ff; margin-bottom: 15px;">🏷️ 标签标注记录</h3>
+        <h3 style="color: #1890ff; margin-bottom: 15px;">🏷️ 人员标注记录</h3>
         
         <div style="margin-bottom: 20px; padding: 15px; background-color: #f6ffed; border-radius: 8px;">
           <h4 style="color: #52c41a; margin-bottom: 10px;">📝 标注详情</h4>
@@ -429,7 +380,7 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
         </div>
       `,
       tags: [...annotationTags],
-      action: '标签标注',
+      action: '人员标注',
       user: '当前用户'
     };
 
@@ -457,171 +408,10 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
   // 添加资源选择状态
   const [selectedTreeResources, setSelectedTreeResources] = useState([]);
   
-  // 处理图谱/知识点标注按钮点击
-  const handleKnowledgeAnnotation = () => {
-    // 验证是否选择了树形课程资源
-    if (!selectedTreeResources || selectedTreeResources.length === 0) {
-      message.warning('请先选择树形的课程资源');
-      return;
-    }
-    
-    // 验证是否选择了知识图谱
-    if (!selectedKnowledgeGraph) {
-      message.warning('请先选择知识图谱');
-      return;
-    }
-    
-    // 直接生成操作记录，不弹窗
-    const currentTime = new Date().toLocaleString();
-    const newRecord = {
-      id: Date.now(),
-      title: `图谱/知识点标注 - ${selectedKnowledgeGraph.title}`,
-      source: '知识图谱标注系统',
-      time: currentTime,
-      type: 'knowledge',
-      content: `
-        <h3 style="color: #52c41a; margin-bottom: 15px;">🕸️ 图谱/知识点标注记录</h3>
-        
-        <div style="margin-bottom: 20px; padding: 15px; background-color: #f6ffed; border-radius: 8px;">
-          <h4 style="color: #52c41a; margin-bottom: 10px;">📚 选中的课程资源</h4>
-          <div style="margin-left: 15px;">
-            ${selectedTreeResources.map(resource => `
-              <p><strong>资源名称：</strong>${resource.title || resource.name}</p>
-              <p><strong>资源类型：</strong>${resource.type || '课程资源'}</p>
-            `).join('')}
-          </div>
-        </div>
-        
-        <div style="margin-bottom: 20px; padding: 15px; background-color: #e6f7ff; border-radius: 8px;">
-          <h4 style="color: #1890ff; margin-bottom: 10px;">🗺️ 选中的知识图谱</h4>
-          <div style="margin-left: 15px;">
-            <p><strong>图谱名称：</strong>${selectedKnowledgeGraph?.title || '未选择'}</p>
-            <p><strong>图谱来源：</strong>${selectedKnowledgeGraph?.source || '未知'}</p>
-            <p><strong>更新时间：</strong>${selectedKnowledgeGraph?.updateTime || '未知'}</p>
-            <p><strong>知识点：</strong>${selectedKnowledgeGraph?.knowledgePoints?.join('、') || '无'}</p>
-          </div>
-        </div>
+  // 添加人员选择状态 - 支持多选
+  const [selectedTreePersonnel, setSelectedTreePersonnel] = useState([]);
+  
 
-        <div style="margin-bottom: 20px; padding: 15px; background-color: #fff7e6; border-radius: 8px;">
-          <h4 style="color: #fa8c16; margin-bottom: 10px;">💡 标注说明</h4>
-          <p>成功将选中的课程资源与知识图谱进行关联标注。</p>
-          <p>标注时间：${currentTime}</p>
-          <p>关联资源：${selectedTreeResources.map(r => r.title || r.name).join('、')}</p>
-          <p>使用图谱：${selectedKnowledgeGraph?.title || '未选择'}</p>
-          <p>涉及知识点：${selectedKnowledgeGraph?.knowledgePoints?.join('、') || '无'}</p>
-        </div>
-      `,
-      selectedResources: [...selectedTreeResources],
-      knowledgeGraph: selectedKnowledgeGraph,
-      action: '图谱/知识点标注',
-      user: '当前用户'
-    };
-
-    // 将操作记录添加到对应的分类中
-    setOperationRecords(prev => ({
-      ...prev,
-      text: [newRecord, ...(prev.text || [])]
-    }));
-    
-    message.success(`成功完成图谱标注，操作记录已生成`);
-  };
-
-  // 处理知识点添加
-  const handleAddKnowledgePoint = () => {
-    if (currentKnowledgePoint.trim() && !knowledgePoints.includes(currentKnowledgePoint.trim())) {
-      setKnowledgePoints([...knowledgePoints, currentKnowledgePoint.trim()]);
-      setCurrentKnowledgePoint('');
-    }
-  };
-
-  // 处理知识点删除
-  const handleRemoveKnowledgePoint = (pointToRemove) => {
-    setKnowledgePoints(knowledgePoints.filter(point => point !== pointToRemove));
-  };
-
-  // 处理图谱/知识点标注确认
-  const handleKnowledgeAnnotationConfirm = () => {
-    if (knowledgePoints.length === 0) {
-      message.warning('请至少添加一个知识点');
-      return;
-    }
-
-    // 添加操作记录
-    const newRecord = {
-      id: Date.now(),
-      title: `图谱/知识点标注 - ${knowledgePoints.join(', ')}`,
-      source: '知识图谱标注系统',
-      time: new Date().toLocaleString(),
-      type: 'knowledge',
-      content: `
-        <h3 style="color: #52c41a; margin-bottom: 15px;">🕸️ 图谱/知识点标注记录</h3>
-        
-        <div style="margin-bottom: 20px; padding: 15px; background-color: #f6ffed; border-radius: 8px;">
-          <h4 style="color: #52c41a; margin-bottom: 10px;">📚 选中的课程资源</h4>
-          <div style="margin-left: 15px;">
-            ${selectedTreeResources.map(resource => `
-              <p><strong>资源名称：</strong>${resource.title || resource.name}</p>
-              <p><strong>资源类型：</strong>${resource.type || '课程资源'}</p>
-            `).join('')}
-          </div>
-        </div>
-        
-        <div style="margin-bottom: 20px; padding: 15px; background-color: #e6f7ff; border-radius: 8px;">
-          <h4 style="color: #1890ff; margin-bottom: 10px;">🗺️ 选中的知识图谱</h4>
-          <div style="margin-left: 15px;">
-            <p><strong>图谱名称：</strong>${selectedKnowledgeGraph?.title || '未选择'}</p>
-            <p><strong>图谱来源：</strong>${selectedKnowledgeGraph?.source || '未知'}</p>
-            <p><strong>更新时间：</strong>${selectedKnowledgeGraph?.updateTime || '未知'}</p>
-          </div>
-        </div>
-        
-        <div style="margin-bottom: 20px; padding: 15px; background-color: #f6ffed; border-radius: 8px;">
-          <h4 style="color: #52c41a; margin-bottom: 10px;">🧠 知识点详情</h4>
-          <div style="margin-left: 15px;">
-            <p><strong>标注时间：</strong>${new Date().toLocaleString()}</p>
-            <p><strong>标注用户：</strong>当前用户</p>
-            <p><strong>添加知识点：</strong></p>
-            <div style="margin: 10px 0;">
-              ${knowledgePoints.map(point => `<span style="display: inline-block; background: #52c41a; color: white; padding: 4px 8px; border-radius: 12px; margin: 2px 4px; font-size: 12px;">${point}</span>`).join('')}
-            </div>
-          </div>
-        </div>
-
-        <div style="margin-bottom: 20px; padding: 15px; background-color: #fff7e6; border-radius: 8px;">
-          <h4 style="color: #fa8c16; margin-bottom: 10px;">💡 标注说明</h4>
-          <p>本次为资源添加了 ${knowledgePoints.length} 个知识点，这些知识点将构建知识图谱，帮助您更好地理解和关联相关概念。</p>
-          <p>知识点内容：${knowledgePoints.join('、')}</p>
-          <p>关联资源：${selectedTreeResources.map(r => r.title || r.name).join('、')}</p>
-          <p>使用图谱：${selectedKnowledgeGraph.title}</p>
-        </div>
-      `,
-      knowledgePoints: [...knowledgePoints],
-      selectedResources: [...selectedTreeResources],
-      knowledgeGraph: selectedKnowledgeGraph,
-      action: '图谱/知识点标注',
-      user: '当前用户'
-    };
-
-    // 将操作记录添加到对应的分类中（使用 'text' 分类存储标注记录）
-    setOperationRecords(prev => ({
-      ...prev,
-      text: [newRecord, ...(prev.text || [])]
-    }));
-    
-    // 重置状态
-    setKnowledgePoints([]);
-    setCurrentKnowledgePoint('');
-    setShowKnowledgeAnnotationModal(false);
-    
-    message.success(`成功添加 ${knowledgePoints.length} 个知识点，操作记录已生成`);
-  };
-
-  // 处理图谱/知识点标注取消
-  const handleKnowledgeAnnotationCancel = () => {
-    setKnowledgePoints([]);
-    setCurrentKnowledgePoint('');
-    setShowKnowledgeAnnotationModal(false);
-  };
 
   // 保存需求
   const handleSaveNeed = () => {
@@ -1002,97 +792,7 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
     return commonItems;
   };
 
-  // 处理知识图谱点击
-  const handleKnowledgeGraphClick = (item) => {
-    console.log('点击知识图谱:', item);
-    
-    // 实现单选功能：如果点击的是已选中的项目，则取消选择；否则选择新项目
-    if (selectedKnowledgeGraph && selectedKnowledgeGraph.id === item.id) {
-      setSelectedKnowledgeGraph(null);
-      message.info('已取消选择知识图谱');
-    } else {
-      setSelectedKnowledgeGraph(item);
-      message.success(`已选择知识图谱：${item.title}`);
-    }
-  };
 
-  // 处理知识图谱预览
-  const handleKnowledgeGraphPreview = (item) => {
-    console.log('预览知识图谱:', item);
-    setPreviewKnowledgeGraph(item);
-    setPreviewModalVisible(true);
-  };
-
-  // 处理重命名
-  const handleRename = (item) => {
-    console.log('重命名知识图谱:', item);
-    Modal.confirm({
-      title: '重命名知识图谱',
-      content: (
-        <Input
-          defaultValue={item.title}
-          placeholder="请输入新名称"
-          id="rename-input"
-          style={{ marginTop: '10px' }}
-        />
-      ),
-      onOk() {
-        const newTitle = document.getElementById('rename-input').value;
-        if (newTitle && newTitle.trim()) {
-          setKnowledgeGraphData(prev => 
-            prev.map(kg => 
-              kg.id === item.id 
-                ? { ...kg, title: newTitle.trim() }
-                : kg
-            )
-          );
-          message.success('重命名成功');
-        }
-      }
-    });
-  };
-
-  // 处理删除
-  const handleDelete = (item) => {
-    console.log('删除知识图谱:', item);
-    Modal.confirm({
-      title: '确认删除',
-      content: `确定要删除知识图谱"${item.title}"吗？此操作不可撤销。`,
-      okText: '确认删除',
-      okType: 'danger',
-      cancelText: '取消',
-      onOk() {
-        setKnowledgeGraphData(prev => prev.filter(kg => kg.id !== item.id));
-        // 如果删除的是当前选中的项目，清除选择
-        if (selectedKnowledgeGraph && selectedKnowledgeGraph.id === item.id) {
-          setSelectedKnowledgeGraph(null);
-        }
-        message.success('删除成功');
-      }
-    });
-  };
-
-  // 处理转来源到知识图谱
-  const handleTransferToKnowledgeGraph = (message) => {
-    console.log('转来源到知识图谱:', message);
-    
-    // 生成新的知识图谱记录
-    const newKnowledgeItem = {
-      id: Date.now(),
-      title: `AI生成的知识图谱`,
-      description: message.content.substring(0, 100) + '...',
-      source: 'AI助手',
-      type: '知识图谱',
-      tags: ['AI生成', '知识图谱', '概念关系'],
-      time: new Date().toLocaleString(),
-      icon: '🧠'
-    };
-    
-    // 添加到知识图谱数据中
-    setKnowledgeGraphData(prev => [newKnowledgeItem, ...prev]);
-    
-    message.success('已成功转存到知识图谱来源');
-  };
 
   // 处理记录点击打开
   const handleRecordClick = (record) => {
@@ -2229,191 +1929,20 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
               {/* 上方区域 - 树形菜单区域 (70%) */}
               <div style={{ flex: 7, borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>
                 <div style={{ marginBottom: '8px' }}>
-                  <Text strong style={{ fontSize: '14px', color: '#1f1f1f' }}>📁 培训课程资源</Text>
+                  <Text strong style={{ fontSize: '14px', color: '#1f1f1f' }}>👥 组织人员</Text>
                 </div>
-                <ResourceTreeView 
+                <StudentAnnotationTree 
                   style={{ height: '100%' }}
-                  onResourceSelect={(selectedResources) => {
-                    // 处理资源选择
-                    console.log('选中的资源:', selectedResources);
-                    setSelectedTreeResources(selectedResources);
+                  onPersonnelSelect={(selectedPersonnel) => {
+                    // 处理人员选择
+                    console.log('选中的人员:', selectedPersonnel);
+                    setSelectedTreePersonnel(selectedPersonnel);
                   }}
                   recommendedResources={recommendedResources}
                   isRefreshing={isRefreshingResourceTree}
                 />
               </div>
               
-              {/* 下方区域 - 知识图谱来源数据区域 (30%) */}
-              <div style={{ flex: 3, paddingTop: '8px' }}>
-                <Collapse 
-                  defaultActiveKey={['1']} 
-                  ghost
-                  size="small"
-                  style={{ 
-                    backgroundColor: 'transparent',
-                    border: 'none'
-                  }}
-                >
-                  <Panel 
-                    header={
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Text strong style={{ fontSize: '14px', color: '#1f1f1f' }}>
-                          🕸️ 知识图谱来源
-                        </Text>
-                        {selectedKnowledgeGraph && (
-                          <Text style={{ fontSize: '12px', color: '#1890ff' }}>
-                            已选择: {selectedKnowledgeGraph.title}
-                          </Text>
-                        )}
-                      </div>
-                    } 
-                    key="1"
-                    style={{
-                      backgroundColor: '#fafafa',
-                      borderRadius: '6px',
-                      border: '1px solid #f0f0f0',
-                      marginBottom: 0
-                    }}
-                  >
-                    <div style={{ 
-                      height: '100%',
-                      maxHeight: 'calc(30vh - 60px)',
-                      overflowY: 'auto',
-                      padding: '8px 0'
-                    }}>
-                      {/* 知识图谱数据列表 */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        {knowledgeGraphData.map(item => (
-                          <Card 
-                            key={item.id}
-                            size="small"
-                            hoverable
-                            style={{ 
-                              borderRadius: '4px',
-                              border: selectedKnowledgeGraph && selectedKnowledgeGraph.id === item.id 
-                                ? '2px solid #1890ff' 
-                                : '1px solid #e8e8e8',
-                              backgroundColor: selectedKnowledgeGraph && selectedKnowledgeGraph.id === item.id 
-                                ? '#f6ffed' 
-                                : 'white',
-                              cursor: 'pointer',
-                              transition: 'all 0.3s ease',
-                              position: 'relative'
-                            }}
-                            onMouseEnter={(e) => {
-                              const hoverActions = e.currentTarget.querySelector('.hover-actions');
-                              if (hoverActions) hoverActions.style.opacity = '1';
-                            }}
-                            onMouseLeave={(e) => {
-                              const hoverActions = e.currentTarget.querySelector('.hover-actions');
-                              if (hoverActions) hoverActions.style.opacity = '0';
-                            }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <div style={{ fontSize: '16px' }}>{item.icon}</div>
-                              <div 
-                                style={{ flex: 1, minWidth: 0 }}
-                                onClick={() => handleKnowledgeGraphPreview(item)}
-                              >
-                                <Text 
-                                  style={{ 
-                                    fontSize: '12px', 
-                                    fontWeight: 500,
-                                    display: 'block',
-                                    marginBottom: '2px'
-                                  }}
-                                  ellipsis={{ tooltip: item.title }}
-                                >
-                                  {item.title}
-                                </Text>
-                                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                                  {(item.knowledgePoints || []).slice(0, 2).map((point, index) => (
-                                    <Tag 
-                                      key={index}
-                                      size="small" 
-                                      style={{ 
-                                        fontSize: '10px', 
-                                        margin: 0,
-                                        padding: '0 4px',
-                                        lineHeight: '16px'
-                                      }}
-                                    >
-                                      {point}
-                                    </Tag>
-                                  ))}
-                                  {(item.knowledgePoints || []).length > 2 && (
-                                    <Text style={{ fontSize: '10px', color: '#999' }}>
-                                      +{item.knowledgePoints.length - 2}
-                                    </Text>
-                                  )}
-                                </div>
-                              </div>
-                              
-                              {/* 右侧单选框 */}
-                              <Radio
-                                checked={selectedKnowledgeGraph && selectedKnowledgeGraph.id === item.id}
-                                onChange={() => handleKnowledgeGraphClick(item)}
-                                style={{ marginRight: '8px' }}
-                              />
-                              
-                              {/* 悬停操作按钮 */}
-                              <div 
-                                className="hover-actions"
-                                style={{
-                                  position: 'absolute',
-                                  right: '40px',
-                                  top: '50%',
-                                  transform: 'translateY(-50%)',
-                                  display: 'flex',
-                                  gap: '4px',
-                                  opacity: '0',
-                                  transition: 'opacity 0.2s ease',
-                                  background: 'white',
-                                  padding: '2px',
-                                  borderRadius: '4px',
-                                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                                }}
-                              >
-                                <Button
-                                  type="text"
-                                  size="small"
-                                  icon={<span style={{ fontSize: '12px' }}>✏️</span>}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleRename(item);
-                                  }}
-                                  style={{ padding: '2px 4px', height: '24px' }}
-                                />
-                                <Button
-                                  type="text"
-                                  size="small"
-                                  icon={<span style={{ fontSize: '12px' }}>🗑️</span>}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDelete(item);
-                                  }}
-                                  style={{ padding: '2px 4px', height: '24px' }}
-                                />
-                              </div>
-                            </div>
-                          </Card>
-                        ))}
-                      </div>
-                      
-                      {knowledgeGraphData.length === 0 && (
-                        <div style={{ 
-                          textAlign: 'center', 
-                          color: '#999', 
-                          padding: '20px 0',
-                          fontSize: '12px'
-                        }}>
-                          暂无知识图谱数据
-                        </div>
-                      )}
-                    </div>
-                  </Panel>
-                </Collapse>
-              </div>
             </div>
           </div>
         </div>
@@ -2462,23 +1991,7 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
                         </div>
                         {msg.type === 'assistant' && (
                           <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'flex-start', gap: '8px' }}>
-                            {/* 转来源操作图标 - 仅在知识图谱技能回复时显示 */}
-                            {msg.hasTransferAction && (
-                              <Button
-                                size="small"
-                                type="text"
-                                icon={<ShareAltOutlined />}
-                                onClick={() => handleTransferToKnowledgeGraph(msg)}
-                                style={{
-                                  fontSize: '12px',
-                                  color: '#666',
-                                  padding: '4px 8px',
-                                  height: 'auto'
-                                }}
-                              >
-                                转来源
-                              </Button>
-                            )}
+                            {/* 转来源操作图标已移除 */}
                           </div>
                         )}
                       </div>
@@ -2684,7 +2197,7 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
             </Title>
             
             {/* 标注按钮 */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: 16 }}>
               <Card 
                 size="small" 
                 hoverable
@@ -2705,29 +2218,6 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
                     fontWeight: 500, 
                     color: '#1890ff' 
                   }}>手动标注</Text>
-                </div>
-              </Card>
-              
-              <Card 
-                size="small" 
-                hoverable
-                onClick={handleKnowledgeAnnotation}
-                style={{ 
-                  background: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
-                  border: 'none',
-                  borderRadius: '12px',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                <div style={{ padding: '6px 0' }}>
-                  <div style={{ fontSize: '20px', marginBottom: '6px' }}>🕸️</div>
-                  <Text style={{ 
-                    fontSize: '11px', 
-                    fontWeight: 500, 
-                    color: '#52c41a' 
-                  }}>图谱/知识点标注</Text>
                 </div>
               </Card>
               
@@ -3229,7 +2719,7 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
 
       {/* 标注弹窗 */}
       <Modal
-        title="📝 标签标注"
+        title="📝 人员标注"
         open={showAnnotationModal}
         onOk={handleAnnotationConfirm}
         onCancel={handleAnnotationCancel}
@@ -3312,252 +2802,9 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
         </div>
       </Modal>
 
-      {/* 图谱/知识点标注弹窗 */}
-      <Modal
-        title="🕸️ 图谱/知识点标注"
-        open={showKnowledgeAnnotationModal}
-        onOk={handleKnowledgeAnnotationConfirm}
-        onCancel={handleKnowledgeAnnotationCancel}
-        okText="确定"
-        cancelText="取消"
-        width={600}
-        style={{ top: 100 }}
-      >
-        <div style={{ padding: '20px 0' }}>
-          <div style={{ marginBottom: 20 }}>
-            <Text strong style={{ fontSize: 16, color: '#52c41a' }}>
-              为当前资源添加知识点
-            </Text>
-            <div style={{ marginTop: 8, color: '#666', fontSize: 14 }}>
-              知识点将构建知识图谱，帮助您更好地理解和关联相关概念
-            </div>
-          </div>
 
-          {/* 知识点输入区域 */}
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
-              <Input
-                placeholder="输入知识点名称，按回车或点击添加"
-                value={currentKnowledgePoint}
-                onChange={(e) => setCurrentKnowledgePoint(e.target.value)}
-                onPressEnter={handleAddKnowledgePoint}
-                style={{ flex: 1 }}
-                maxLength={30}
-              />
-              <Button 
-                type="primary" 
-                icon={<PlusOutlined />}
-                onClick={handleAddKnowledgePoint}
-                disabled={!currentKnowledgePoint.trim()}
-                style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
-              >
-                添加
-              </Button>
-            </div>
-            
-            {/* 已添加的知识点显示 */}
-            {knowledgePoints.length > 0 && (
-              <div>
-                <Text style={{ color: '#666', fontSize: 14, marginBottom: 8, display: 'block' }}>
-                  已添加的知识点 ({knowledgePoints.length}):
-                </Text>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  {knowledgePoints.map((point, index) => (
-                    <Tag
-                      key={index}
-                      closable
-                      onClose={() => handleRemoveKnowledgePoint(point)}
-                      color="green"
-                      style={{ 
-                        fontSize: 14, 
-                        padding: '4px 8px',
-                        borderRadius: 16,
-                        display: 'flex',
-                        alignItems: 'center'
-                      }}
-                    >
-                      {point}
-                    </Tag>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
 
-          {/* 提示信息 */}
-          <div style={{ 
-            backgroundColor: '#f6ffed', 
-            border: '1px solid #b7eb8f', 
-            borderRadius: 6, 
-            padding: 12,
-            fontSize: 14,
-            color: '#52c41a'
-          }}>
-            🧠 提示：知识点将用于构建知识图谱，建议使用准确的概念或术语名称
-        </div>
-      </div>
-    </Modal>
 
-    {/* 知识图谱预览弹窗 */}
-    <Modal
-      title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '20px' }}>{previewKnowledgeGraph?.icon}</span>
-          <span>知识图谱预览 - {previewKnowledgeGraph?.title}</span>
-        </div>
-      }
-      open={previewModalVisible}
-      onCancel={() => setPreviewModalVisible(false)}
-      width={800}
-      footer={[
-        <Button key="close" onClick={() => setPreviewModalVisible(false)}>
-          关闭
-        </Button>,
-        <Button 
-          key="advanced-edit" 
-          icon={<EditOutlined />}
-          onClick={() => {
-            message.info('正在打开高级编辑器...');
-            // 这里可以添加跳转到高级编辑页面的逻辑
-            console.log('打开高级编辑器，编辑图谱:', previewKnowledgeGraph);
-          }}
-        >
-          高级编辑
-        </Button>,
-        <Button 
-          key="select" 
-          type="primary" 
-          onClick={() => {
-            handleKnowledgeGraphClick(previewKnowledgeGraph);
-            setPreviewModalVisible(false);
-          }}
-        >
-          选择此图谱
-        </Button>
-      ]}
-    >
-      {previewKnowledgeGraph && (
-        <div style={{ padding: '20px 0' }}>
-          {/* 基本信息 */}
-          <div style={{ marginBottom: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <div>
-                <Text strong style={{ fontSize: '16px' }}>{previewKnowledgeGraph.title}</Text>
-                <div style={{ marginTop: '8px', color: '#666' }}>
-                  <Text>来源：{previewKnowledgeGraph.source}</Text>
-                  <Divider type="vertical" />
-                  <Text>更新时间：{previewKnowledgeGraph.updateTime}</Text>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 知识点网络 */}
-          <div style={{ marginBottom: '24px' }}>
-            <Text strong style={{ fontSize: '14px', marginBottom: '12px', display: 'block' }}>
-              🔗 知识点网络
-            </Text>
-            <div style={{ 
-              background: '#f8f9fa', 
-              border: '1px solid #e9ecef', 
-              borderRadius: '8px', 
-              padding: '16px',
-              minHeight: '200px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              {/* 模拟知识图谱可视化 */}
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(2, 1fr)', 
-                gap: '20px',
-                width: '100%',
-                maxWidth: '400px'
-              }}>
-                {previewKnowledgeGraph.knowledgePoints?.map((point, index) => (
-                  <div 
-                    key={index}
-                    style={{
-                      background: '#1890ff',
-                      color: 'white',
-                      padding: '12px 16px',
-                      borderRadius: '20px',
-                      textAlign: 'center',
-                      fontSize: '12px',
-                      fontWeight: '500',
-                      position: 'relative'
-                    }}
-                  >
-                    {point}
-                    {/* 连接线效果 */}
-                    {index < previewKnowledgeGraph.knowledgePoints.length - 1 && (
-                      <div style={{
-                        position: 'absolute',
-                        right: '-10px',
-                        top: '50%',
-                        width: '20px',
-                        height: '2px',
-                        background: '#d9d9d9',
-                        transform: 'translateY(-50%)'
-                      }} />
-                    )}
-                  </div>
-                ))}
-              </div>
-              
-              <div style={{ 
-                marginTop: '20px', 
-                color: '#666', 
-                fontSize: '12px',
-                textAlign: 'center'
-              }}>
-                💡 这是知识图谱的简化预览，实际图谱包含更多关联关系
-              </div>
-            </div>
-          </div>
-
-          {/* 统计信息 */}
-          <div style={{ 
-            background: '#fafafa', 
-            border: '1px solid #f0f0f0', 
-            borderRadius: '6px', 
-            padding: '16px' 
-          }}>
-            <Text strong style={{ fontSize: '14px', marginBottom: '12px', display: 'block' }}>
-              📊 图谱统计
-            </Text>
-            <Row gutter={16}>
-              <Col span={8}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#1890ff' }}>
-                    {previewKnowledgeGraph.knowledgePoints?.length || 0}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#666' }}>知识点数量</div>
-                </div>
-              </Col>
-              <Col span={8}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#52c41a' }}>
-                    {Math.floor(Math.random() * 50) + 20}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#666' }}>关联关系</div>
-                </div>
-              </Col>
-              <Col span={8}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#fa8c16' }}>
-                    {Math.floor(Math.random() * 10) + 5}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#666' }}>知识层级</div>
-                </div>
-              </Col>
-            </Row>
-          </div>
-        </div>
-      )}
-    </Modal>
 
     {/* 规则标注弹窗 */}
     <Modal

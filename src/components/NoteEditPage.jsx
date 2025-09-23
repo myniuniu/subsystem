@@ -90,6 +90,12 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   const [courseVideos, setCourseVideos] = useState(
     mode === 'create' ? [
       { id: 4, title: '成都火锅制作教程', url: 'https://video.com/chengdu-hotpot', addTime: '刚刚' }
+    ] : mode === 'edit' ? [
+      { id: 101, title: '数据结构与算法基础', url: 'https://edu.example.com/course/data-structure', addTime: '2024-01-15 10:30', duration: '45分钟', instructor: '张教授' },
+      { id: 102, title: 'React前端开发实战', url: 'https://edu.example.com/course/react-dev', addTime: '2024-01-16 14:20', duration: '60分钟', instructor: '李老师' },
+      { id: 103, title: 'Python机器学习入门', url: 'https://edu.example.com/course/python-ml', addTime: '2024-01-17 09:15', duration: '75分钟', instructor: '王博士' },
+      { id: 104, title: '数据库设计与优化', url: 'https://edu.example.com/course/database-design', addTime: '2024-01-18 16:45', duration: '50分钟', instructor: '陈工程师' },
+      { id: 105, title: '云计算架构设计', url: 'https://edu.example.com/course/cloud-architecture', addTime: '2024-01-19 11:00', duration: '90分钟', instructor: '刘架构师' }
     ] : note?.materials?.videos || []
   );
   
@@ -1623,7 +1629,9 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                           <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{video.title}</Text>
                           <br />
                           <Text type="secondary" style={{ fontSize: 10 }} ellipsis>
-                            {video.url}
+                            {video.instructor && `讲师：${video.instructor} | `}
+                            {video.duration && `时长：${video.duration} | `}
+                            {video.addTime}
                           </Text>
                         </div>
                       </div>

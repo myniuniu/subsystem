@@ -37,6 +37,7 @@ import TrainingNeeds from './components/TrainingNeeds'
 import NeedEditPage from './components/NeedEditPage'
 import ResourceAnnotation from './components/ResourceAnnotation'
 import ResourceAnnotationPage from './components/ResourceAnnotationPage'
+import StudentAnnotationPage from './components/StudentAnnotationPage'
 import CourseSelection from './components/CourseSelection'
 import CourseSelectionEditPage from './components/CourseSelectionEditPage'
 
@@ -374,6 +375,13 @@ function App() {
               />
             ) : currentView === 'resource-annotation' ? (
               <ResourceAnnotationPage 
+                onBack={() => handleViewChange('home')}
+                onViewChange={handleViewChange}
+                selectedNeed={pageState.selectedNeed}
+                mode={pageState.editorMode}
+              />
+            ) : currentView === 'student-annotation' ? (
+              <StudentAnnotationPage 
                 onBack={() => handleViewChange('home')}
                 onViewChange={handleViewChange}
                 selectedNeed={pageState.selectedNeed}

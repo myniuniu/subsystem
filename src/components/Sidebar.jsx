@@ -369,6 +369,13 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
        color: '#f759ab',
        type: 'single'
      },
+    { 
+       id: 'student-annotation', 
+       icon: Users, 
+       label: '学员标注', 
+       color: '#722ed1',
+       type: 'single'
+     },
 
     {
       id: 'teaching-management',

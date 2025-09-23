@@ -288,7 +288,7 @@ const RuleManagementModal = ({ rules, onRuleUpdate, onClose }) => {
         {rules.length === 0 ? (
           <Alert
             message="暂无规则"
-            description="您还没有创建任何规则，点击规则标注按钮开始创建第一个规则。"
+            description="您还没有创建任何规则，请先创建规则以开始使用规则管理功能。"
             type="info"
             showIcon
           />
