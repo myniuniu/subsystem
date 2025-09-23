@@ -234,6 +234,7 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
   const [isLoading, setIsLoading] = useState(false);
   const [recommendedResources, setRecommendedResources] = useState([]); // 新增：推荐的资源列表
   const [selectedSkill, setSelectedSkill] = useState(null); // 新增：选中的技能状态
+  const [isRefreshingResourceTree, setIsRefreshingResourceTree] = useState(false); // 资源树刷新状态
   
   // 快捷操作相关状态
   const [quickActions] = useState([
@@ -1251,7 +1252,16 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
   // 处理资源推荐回调
   const handleResourceRecommend = (resources) => {
     setRecommendedResources(resources);
-    message.success(`为您推荐了 ${resources.length} 个相关资源，已在左侧资源树中高亮显示`);
+    message.success(`为您推荐了 ${resources.length} 个相关资源，正在刷新资源树...`);
+    
+    // 触发资源树刷新动画
+    setIsRefreshingResourceTree(true);
+    
+    // 模拟2秒刷新时间
+    setTimeout(() => {
+      setIsRefreshingResourceTree(false);
+      message.success('资源树刷新完成，推荐资源已高亮显示');
+    }, 2000);
   };
 
   // 发送消息
@@ -1283,13 +1293,13 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
         setMessages(prev => [...prev, aiResponse]);
         setIsLoading(false);
       }, 2000);
-    } else {
-      // 原有的资源推荐逻辑
+    } else if (selectedSkill && selectedSkill.key === 'resource-recommend') {
+      // 资源推荐技能处理
       setTimeout(() => {
         const aiResponse = {
           id: Date.now() + 1,
           type: 'assistant',
-          content: `基于您上传的资料，我理解您的问题是："${inputMessage}"。根据现有资料分析，我建议...`,
+          content: `基于您的问题："${inputMessage}"，我正在为您推荐相关资源...`,
           timestamp: new Date().toISOString()
         };
         setMessages(prev => [...prev, aiResponse]);
@@ -1312,8 +1322,31 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
         // 如果有推荐资源，触发推荐回调
         if (mockRecommendedResources.length > 0) {
           handleResourceRecommend(mockRecommendedResources);
+        } else {
+          // 没有找到相关资源时的提示
+          setTimeout(() => {
+            const noResourceResponse = {
+              id: Date.now() + 2,
+              type: 'assistant',
+              content: `抱歉，暂时没有找到与"${inputMessage}"相关的资源。请尝试使用其他关键词，如"心理"、"管理"、"激励"等。`,
+              timestamp: new Date().toISOString()
+            };
+            setMessages(prev => [...prev, noResourceResponse]);
+          }, 500);
         }
         
+        setIsLoading(false);
+      }, 1500);
+    } else {
+      // 默认处理逻辑（没有选择技能时）
+      setTimeout(() => {
+        const aiResponse = {
+          id: Date.now() + 1,
+          type: 'assistant',
+          content: `基于您上传的资料，我理解您的问题是："${inputMessage}"。根据现有资料分析，我建议您可以选择相应的技能来获得更专业的帮助。`,
+          timestamp: new Date().toISOString()
+        };
+        setMessages(prev => [...prev, aiResponse]);
         setIsLoading(false);
       }, 1500);
     }
@@ -2191,40 +2224,8 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
                 )}
               </div>
             </div>
-            
-            {/* 操作按钮区域 */}
-            <div style={{ marginBottom: 24, display: 'flex', gap: 8 }}>
-              <Button 
-                type="primary" 
-                icon={<PlusOutlined />} 
-                style={{ flex: 1 }}
-                onClick={() => {
-                  setShowMaterialAddModal(true);
-                }}
-              >
-                添加
-              </Button>
-              <Button 
-                type="default" 
-                style={{ flex: 1 }}
-                onClick={() => setShowExploreModal(true)}
-              >
-                探索
-              </Button>
-              <Button 
-                type="default" 
-                icon={<SettingOutlined />}
-                style={{ flex: 1 }}
-                onClick={() => setShowRuleAnnotationModal(true)}
-              >
-                规则标注
-              </Button>
-            </div>
-            
-            <Divider style={{ margin: '16px 0' }} />
-            
             {/* 资源记录区域 - 上下分区布局 */}
-            <div style={{ height: 'calc(100vh - 280px)', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ height: 'calc(100vh - 240px)', display: 'flex', flexDirection: 'column' }}>
               {/* 上方区域 - 树形菜单区域 (70%) */}
               <div style={{ flex: 7, borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>
                 <div style={{ marginBottom: '8px' }}>
@@ -2238,6 +2239,7 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
                     setSelectedTreeResources(selectedResources);
                   }}
                   recommendedResources={recommendedResources}
+                  isRefreshing={isRefreshingResourceTree}
                 />
               </div>
               

@@ -73,7 +73,8 @@ const ResourceTreeView = ({
   showCheckbox = true,
   expandAll = false,
   searchable = true,
-  recommendedResources = [] // 新增：推荐的资源列表
+  recommendedResources = [], // 新增：推荐的资源列表
+  isRefreshing = false // 新增：刷新状态
 }) => {
   const [searchValue, setSearchValue] = useState('');
   const [expandedKeys, setExpandedKeys] = useState([]);
@@ -338,22 +339,64 @@ const ResourceTreeView = ({
         </div>
       )}
 
-      <Tree
-        checkable={showCheckbox}
-        onExpand={onExpand}
-        expandedKeys={expandedKeys}
-        autoExpandParent={autoExpandParent}
-        onCheck={onCheck}
-        checkedKeys={checkedKeys}
-        onSelect={onSelect}
-        selectedKeys={selectedKeys}
-        treeData={treeData}
-        showIcon
-        switcherIcon={({ expanded }) => 
-          expanded ? <DownOutlined /> : <RightOutlined />
-        }
-        className="resource-tree"
-      />
+      <div style={{ position: 'relative' }}>
+        {/* 刷新加载遮罩 */}
+        {isRefreshing && (
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(255, 255, 255, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10,
+            borderRadius: '8px'
+          }}>
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              padding: '16px 24px',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              fontSize: '14px',
+              color: '#1890ff',
+              fontWeight: '500'
+            }}>
+              <div style={{
+                width: '16px',
+                height: '16px',
+                border: '2px solid #e6f7ff',
+                borderTop: '2px solid #1890ff',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite'
+              }}></div>
+              正在刷新资源树...
+            </div>
+          </div>
+        )}
+        
+        <Tree
+          checkable={showCheckbox}
+          onExpand={onExpand}
+          expandedKeys={expandedKeys}
+          autoExpandParent={autoExpandParent}
+          onCheck={onCheck}
+          checkedKeys={checkedKeys}
+          onSelect={onSelect}
+          selectedKeys={selectedKeys}
+          treeData={treeData}
+          showIcon
+          switcherIcon={({ expanded }) => 
+            expanded ? <DownOutlined /> : <RightOutlined />
+          }
+          className={`resource-tree ${isRefreshing ? 'refreshing' : ''}`}
+        />
+      </div>
 
       <style jsx>{`
         .resource-tree-container {
@@ -403,6 +446,22 @@ const ResourceTreeView = ({
 
         .resource-tree {
           background: transparent;
+        }
+
+        .resource-tree.refreshing {
+          opacity: 0.7;
+          pointer-events: none;
+          position: relative;
+        }
+
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
 
         .resource-tree :global(.ant-tree-treenode) {
