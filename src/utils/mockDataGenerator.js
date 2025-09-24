@@ -165,6 +165,192 @@ class MockDataGenerator {
         updatedAt: new Date('2024-02-03')
       }
     ];
+
+    // 组织培训笔记数据（包含视频进度信息）
+    this.organizationalTrainingNotes = [
+      {
+        id: generateId(),
+        title: '【组织培训】新教师教学方法培训',
+        content: '# 新教师教学方法培训\n\n## 课程基本信息\n\n**课程名称：** 新教师教学方法培训\n**课程类型：** 组织培训\n**课程分类：** 教学方法\n**课程状态：** 🔄 进行中\n\n## 课程描述\n\n针对新入职教师的教学方法培训课程，帮助新教师快速掌握有效的教学策略和技巧。\n\n## 学习笔记\n\n*在此处记录学习心得和要点...*',
+        category: 'study',
+        tags: ['组织培训', '教学方法', '新教师', '培训'],
+        starred: false,
+        source: '组织培训',
+        courseId: 'org_001',
+        courseType: 'organizational_training',
+        videoInfo: {
+          type: 'multi_video',
+          totalVideos: 5,
+          totalDuration: 3600, // 60分钟
+          watchedDuration: 2160, // 36分钟，60%进度
+          overallProgress: 60,
+          videos: [
+            {
+              id: 'video_001',
+              title: '教学理论基础',
+              url: 'https://example.com/video1',
+              duration: 900, // 15分钟
+              progress: 100, // 已完成
+              instructor: '张教授'
+            },
+            {
+              id: 'video_002',
+              title: '教学方法介绍',
+              url: 'https://example.com/video2',
+              duration: 720, // 12分钟
+              progress: 100, // 已完成
+              instructor: '张教授'
+            },
+            {
+              id: 'video_003',
+              title: '课堂管理技巧',
+              url: 'https://example.com/video3',
+              duration: 600, // 10分钟
+              progress: 100, // 已完成
+              instructor: '张教授'
+            },
+            {
+              id: 'video_004',
+              title: '互动教学设计',
+              url: 'https://example.com/video4',
+              duration: 660, // 11分钟
+              progress: 50, // 进行中
+              instructor: '张教授'
+            },
+            {
+              id: 'video_005',
+              title: '教学效果评估',
+              url: 'https://example.com/video5',
+              duration: 720, // 12分钟
+              progress: 0, // 未开始
+              instructor: '张教授'
+            }
+          ]
+        },
+        createdAt: new Date('2024-01-15'),
+        updatedAt: new Date('2024-01-20')
+      },
+      {
+        id: generateId(),
+        title: '【组织培训】班级管理实务',
+        content: '# 班级管理实务\n\n## 课程基本信息\n\n**课程名称：** 班级管理实务\n**课程类型：** 组织培训\n**课程分类：** 学生管理\n**课程状态：** 🔄 进行中\n\n## 课程描述\n\n班级管理的实际操作技巧培训，帮助教师更好地管理班级。\n\n## 学习笔记\n\n*在此处记录学习心得和要点...*',
+        category: 'study',
+        tags: ['组织培训', '班级管理', '学生管理', '管理'],
+        starred: true,
+        source: '组织培训',
+        courseId: 'org_002',
+        courseType: 'organizational_training',
+        videoInfo: {
+          type: 'single_video',
+          url: 'https://example.com/class-management',
+          duration: 2700, // 45分钟
+          progress: 80, // 80%进度
+          instructor: '赵老师'
+        },
+        createdAt: new Date('2024-01-10'),
+        updatedAt: new Date('2024-01-18')
+      },
+      {
+        id: generateId(),
+        title: '【组织培训】教育技术应用实践',
+        content: '# 教育技术应用实践\n\n## 课程基本信息\n\n**课程名称：** 教育技术应用实践\n**课程类型：** 组织培训\n**课程分类：** 教育技术\n**课程状态：** ✅已完成\n\n## 课程描述\n\n现代教育技术在教学中的应用培训，提升教师数字化教学能力。\n\n## 学习笔记\n\n*在此处记录学习心得和要点...*',
+        category: 'study',
+        tags: ['组织培训', '教育技术', '数字化教学', '技术'],
+        starred: false,
+        source: '组织培训',
+        courseId: 'org_003',
+        courseType: 'organizational_training',
+        videoInfo: {
+          type: 'multi_video',
+          totalVideos: 3,
+          totalDuration: 5400, // 90分钟
+          watchedDuration: 5400, // 全部完成
+          overallProgress: 100,
+          videos: [
+            {
+              id: 'video_tech_001',
+              title: '数字化教学工具介绍',
+              url: 'https://example.com/tech1',
+              duration: 1800, // 30分钟
+              progress: 100,
+              instructor: '王工程师'
+            },
+            {
+              id: 'video_tech_002',
+              title: '在线教学平台使用',
+              url: 'https://example.com/tech2',
+              duration: 1800, // 30分钟
+              progress: 100,
+              instructor: '王工程师'
+            },
+            {
+              id: 'video_tech_003',
+              title: '多媒体教学资源制作',
+              url: 'https://example.com/tech3',
+              duration: 1800, // 30分钟
+              progress: 100,
+              instructor: '王工程师'
+            }
+          ]
+        },
+        createdAt: new Date('2024-01-05'),
+        updatedAt: new Date('2024-01-25')
+      },
+      {
+        id: generateId(),
+        title: '【组织培训】课程设计与开发',
+        content: '# 课程设计与开发\n\n## 课程基本信息\n\n**课程名称：** 课程设计与开发\n**课程类型：** 组织培训\n**课程分类：** 课程设计\n**课程状态：** 📅 待开课\n\n## 课程描述\n\n系统性的课程设计与开发培训，帮助教师提升课程设计能力。\n\n## 学习笔记\n\n*在此处记录学习心得和要点...*',
+        category: 'study',
+        tags: ['组织培训', '课程设计', '教学设计', '课程开发'],
+        starred: false,
+        source: '组织培训',
+        courseId: 'org_004',
+        courseType: 'organizational_training',
+        videoInfo: {
+          type: 'multi_video',
+          totalVideos: 4,
+          totalDuration: 4800, // 80分钟
+          watchedDuration: 1200, // 20分钟，25%进度
+          overallProgress: 25,
+          videos: [
+            {
+              id: 'video_design_001',
+              title: '课程设计理论',
+              url: 'https://example.com/design1',
+              duration: 1200, // 20分钟
+              progress: 100, // 已完成
+              instructor: '刘架构师'
+            },
+            {
+              id: 'video_design_002',
+              title: '学习目标设定',
+              url: 'https://example.com/design2',
+              duration: 1200, // 20分钟
+              progress: 0, // 未开始
+              instructor: '刘架构师'
+            },
+            {
+              id: 'video_design_003',
+              title: '教学活动设计',
+              url: 'https://example.com/design3',
+              duration: 1200, // 20分钟
+              progress: 0, // 未开始
+              instructor: '刘架构师'
+            },
+            {
+              id: 'video_design_004',
+              title: '评估与反馈',
+              url: 'https://example.com/design4',
+              duration: 1200, // 20分钟
+              progress: 0, // 未开始
+              instructor: '刘架构师'
+            }
+          ]
+        },
+        createdAt: new Date('2024-01-22'),
+        updatedAt: new Date('2024-01-22')
+      }
+    ];
   }
 
   // 生成所有模拟数据
@@ -214,7 +400,8 @@ class MockDataGenerator {
       ...this.studyNotes,
       ...this.workNotes,
       ...this.personalNotes,
-      ...this.ideas
+      ...this.ideas,
+      ...this.organizationalTrainingNotes // 添加组织培训笔记
     ];
 
     for (const note of allNotes) {
@@ -354,7 +541,9 @@ class MockDataGenerator {
       workNotes: this.workNotes.length,
       personalNotes: this.personalNotes.length,
       ideas: this.ideas.length,
-      total: this.studyNotes.length + this.workNotes.length + this.personalNotes.length + this.ideas.length
+      organizationalTrainingNotes: this.organizationalTrainingNotes.length,
+      total: this.studyNotes.length + this.workNotes.length + this.personalNotes.length + this.ideas.length + this.organizationalTrainingNotes.length,
+      count: this.studyNotes.length + this.workNotes.length + this.personalNotes.length + this.ideas.length + this.organizationalTrainingNotes.length
     };
   }
 }

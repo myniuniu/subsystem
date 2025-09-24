@@ -1485,7 +1485,14 @@ class NotesService {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         wordCount: this.getWordCount(noteData.content || ''),
-        readTime: this.calculateReadTime(noteData.content || '')
+        readTime: this.calculateReadTime(noteData.content || ''),
+        // 支持组织培训相关字段
+        source: noteData.source,
+        courseId: noteData.courseId,
+        courseType: noteData.courseType,
+        // 支持视频相关字段
+        videoInfo: noteData.videoInfo || null, // { url, duration, progress, type }
+        materials: noteData.materials || null  // 关联的资料信息
       };
       
       notes.unshift(newNote);
@@ -2082,7 +2089,10 @@ class NotesService {
             source: '组织培训',
             courseId: course.id,
             courseType: course.type,
-            starred: false
+            starred: false,
+            // 添加视频相关信息
+            videoInfo: this.extractVideoInfo(course),
+            materials: course.materials
           };
           
           const newNote = this.createNote(noteData);
@@ -2204,6 +2214,153 @@ ${course.participants && course.participants.length > 0 ? `## 参与人员\n\n${
     return [...new Set(tags)];
   }
 
+  // 提取课程中的视频信息
+  extractVideoInfo(course) {
+    try {
+      // 检查课程是否包含视频相关内容
+      if (course.materials && course.materials.videos && course.materials.videos.length > 0) {
+        const videos = course.materials.videos;
+        const totalDuration = videos.reduce((total, video) => {
+          const duration = this.parseDuration(video.duration || 0);
+          return total + duration;
+        }, 0);
+        
+        const watchedDuration = videos.reduce((total, video) => {
+          const duration = this.parseDuration(video.duration || 0);
+          const progress = video.progress || 0;
+          return total + (duration * progress / 100);
+        }, 0);
+        
+        const overallProgress = totalDuration > 0 ? Math.round((watchedDuration / totalDuration) * 100) : 0;
+        
+        return {
+          type: 'multi_video',
+          totalVideos: videos.length,
+          totalDuration: totalDuration,
+          watchedDuration: watchedDuration,
+          overallProgress: overallProgress,
+          videos: videos.map(video => ({
+            id: video.id,
+            title: video.title,
+            url: video.url,
+            duration: this.parseDuration(video.duration || 0),
+            progress: video.progress || 0,
+            instructor: video.instructor
+          }))
+        };
+      }
+      
+      // 检查课程是否为单个视频课程
+      if (course.videoUrl || course.video || (course.type && course.type.includes('video'))) {
+        return {
+          type: 'single_video',
+          url: course.videoUrl || course.video,
+          duration: this.parseDuration(course.duration || 0),
+          progress: course.progress || 0,
+          instructor: course.instructor
+        };
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('提取视频信息失败:', error);
+      return null;
+    }
+  }
+  
+  // 解析时长字符串为秒数
+  parseDuration(duration) {
+    if (typeof duration === 'number') {
+      return duration;
+    }
+    
+    if (typeof duration === 'string') {
+      // 支持格式: "30分钟", "1小时15分钟", "45min", "1h30m"
+      duration = duration.toLowerCase().replace(/分钟|小时/g, '');
+      
+      if (duration.includes('h') && duration.includes('m')) {
+        const parts = duration.match(/(\d+)h(\d+)m/);
+        if (parts) {
+          return parseInt(parts[1]) * 3600 + parseInt(parts[2]) * 60;
+        }
+      } else if (duration.includes('h')) {
+        const hours = parseInt(duration.replace('h', ''));
+        return hours * 3600;
+      } else if (duration.includes('min') || duration.includes('m')) {
+        const minutes = parseInt(duration.replace(/min|m/, ''));
+        return minutes * 60;
+      } else {
+        // 假设是分钟
+        const minutes = parseInt(duration);
+        return isNaN(minutes) ? 0 : minutes * 60;
+      }
+    }
+    
+    return 0;
+  }
+  
+  // 格式化时长显示
+  formatDuration(seconds) {
+    if (!seconds || seconds === 0) return '0分钟';
+    
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    
+    if (hours > 0) {
+      return `${hours}小时${minutes > 0 ? minutes + '分钟' : ''}`;
+    } else {
+      return `${minutes}分钟`;
+    }
+  }
+
+  // 更新视频播放进度
+  updateVideoProgress(noteId, videoId, progress) {
+    try {
+      const note = this.getNoteById(noteId);
+      if (!note || !note.videoInfo) {
+        return false;
+      }
+      
+      if (note.videoInfo.type === 'single_video') {
+        // 单个视频的进度更新
+        note.videoInfo.progress = Math.max(0, Math.min(100, progress));
+      } else if (note.videoInfo.type === 'multi_video' && note.videoInfo.videos) {
+        // 多个视频的进度更新
+        const videoIndex = note.videoInfo.videos.findIndex(v => v.id === videoId);
+        if (videoIndex !== -1) {
+          note.videoInfo.videos[videoIndex].progress = Math.max(0, Math.min(100, progress));
+          
+          // 重新计算整体进度
+          const totalDuration = note.videoInfo.videos.reduce((total, video) => total + video.duration, 0);
+          const watchedDuration = note.videoInfo.videos.reduce((total, video) => {
+            return total + (video.duration * video.progress / 100);
+          }, 0);
+          
+          note.videoInfo.watchedDuration = watchedDuration;
+          note.videoInfo.overallProgress = totalDuration > 0 ? Math.round((watchedDuration / totalDuration) * 100) : 0;
+        }
+      }
+      
+      // 保存更新
+      this.updateNote(noteId, { videoInfo: note.videoInfo });
+      return true;
+    } catch (error) {
+      console.error('更新视频进度失败:', error);
+      return false;
+    }
+  }
+  
+  // 获取视频类型的笔记
+  getVideoNotes() {
+    try {
+      const notes = this.getAllNotes();
+      return notes.filter(note => note.videoInfo && note.videoInfo.type);
+    } catch (error) {
+      console.error('获取视频笔记失败:', error);
+      return [];
+    }
+  }
+  
   // 获取来自组织培训的笔记
   getOrganizationalTrainingNotes() {
     try {

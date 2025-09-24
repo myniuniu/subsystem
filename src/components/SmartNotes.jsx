@@ -19,7 +19,8 @@ import {
   Typography,
   Divider,
   Avatar,
-  Popconfirm
+  Popconfirm,
+  Progress
 } from 'antd';
 import {
   PlusOutlined,
@@ -81,7 +82,7 @@ const SmartNotes = ({ onViewChange }) => {
   const [selectedNote, setSelectedNote] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('organizational_training');
   const [selectedTags, setSelectedTags] = useState([]);
   const [isEditorVisible, setIsEditorVisible] = useState(false);
   const [isCategoryManagerVisible, setIsCategoryManagerVisible] = useState(false);
@@ -154,10 +155,35 @@ const SmartNotes = ({ onViewChange }) => {
       notesService.initializeStorage();
       
       // 获取笔记数据
-      const notesData = notesService.getAllNotes();
+      let notesData = notesService.getAllNotes();
       console.log('=== 加载的笔记数据 ===');
       console.log('笔记总数:', notesData.length);
       console.log('笔记详情:', notesData);
+      
+      // 检查是否有组织培训笔记，如果没有则自动生成
+      const orgTrainingNotes = notesData.filter(note => 
+        note.courseType === 'organizational_training' || 
+        note.tags?.includes('组织培训') ||
+        note.category === 'organizational_training' ||
+        note.source === '组织培训'
+      );
+      
+      console.log('组织培训笔记数量:', orgTrainingNotes.length);
+      
+      if (orgTrainingNotes.length === 0) {
+        console.log('没有组织培训笔记，自动生成模拟数据...');
+        try {
+          const result = await mockDataGenerator.generateAllMockData();
+          if (result.success) {
+            // 重新获取数据
+            notesData = notesService.getAllNotes();
+            console.log('生成数据后重新加载，笔记总数:', notesData.length);
+            message.success(`已自动生成 ${result.count} 条组织培训模拟数据`);
+          }
+        } catch (error) {
+          console.error('自动生成数据失败:', error);
+        }
+      }
       
       // 按分类统计
       const categoryStats = {};
@@ -683,7 +709,13 @@ ${timelineData.map(note => {
     switch (type) {
       case 'summary':
         // 将摘要添加到笔记开头
-        const updatedContent = `## 智能摘要\n\n${data}\n\n---\n\n${aiSelectedNote.content}`;
+        const updatedContent = `## 智能摘要
+
+${data}
+
+---
+
+${aiSelectedNote.content}`;
         const summaryNote = { ...aiSelectedNote, content: updatedContent };
         handleSaveNote(summaryNote);
         break;
@@ -784,7 +816,15 @@ ${timelineData.map(note => {
                 >
                   <BookOutlined className="category-icon" />
                   <span className="category-label">🏢 组织培训</span>
-                  <span className="category-count">{stats.categories?.organizational_training || 0}</span>
+                  <span className="category-count">{(() => {
+                    const orgCount = notes.filter(note => 
+                      note.courseType === 'organizational_training' || 
+                      note.tags?.includes('组织培训') ||
+                      note.category === 'organizational_training' ||
+                      note.source === '组织培训'
+                    ).length;
+                    return orgCount;
+                  })()}</span>
                 </div>
                 
                 {/* 系统分类 */}
@@ -957,6 +997,60 @@ ${timelineData.map(note => {
                   生成模拟数据
                 </Button>
                 <Button 
+                  icon={<SyncOutlined />}
+                  onClick={() => {
+                    // 为现有组织培训笔记添加视频信息
+                    const updatedNotes = notes.map(note => {
+                      if ((note.source === '组织培训' || note.tags?.includes('组织培训')) && !note.videoInfo) {
+                        // 为现有笔记添加模拟视频信息
+                        const videoInfos = [
+                          {
+                            type: 'multi_video',
+                            totalVideos: 3,
+                            totalDuration: 3600,
+                            watchedDuration: 2400,
+                            overallProgress: 67,
+                            videos: [
+                              { id: 'v1', title: '理论基础', duration: 1200, progress: 100, instructor: '专家' },
+                              { id: 'v2', title: '实践操作', duration: 1200, progress: 100, instructor: '专家' },
+                              { id: 'v3', title: '案例分析', duration: 1200, progress: 0, instructor: '专家' }
+                            ]
+                          },
+                          {
+                            type: 'single_video',
+                            url: 'https://example.com/video',
+                            duration: 2700,
+                            progress: 85,
+                            instructor: '讲师'
+                          }
+                        ];
+                        
+                        const randomVideoInfo = videoInfos[Math.floor(Math.random() * videoInfos.length)];
+                        
+                        return {
+                          ...note,
+                          videoInfo: randomVideoInfo,
+                          source: '组织培训',
+                          courseType: 'organizational_training'
+                        };
+                      }
+                      return note;
+                    });
+                    
+                    // 批量更新笔记
+                    updatedNotes.forEach(note => {
+                      if (note.videoInfo) {
+                        notesService.updateNote(note.id, note);
+                      }
+                    });
+                    
+                    loadData();
+                    message.success('已为现有组织培训笔记添加视频进度信息');
+                  }}
+                >
+                  添加视频信息
+                </Button>
+                <Button 
                   type="primary" 
                   icon={<PlusOutlined />}
                   onClick={handleCreateNote}
@@ -1010,6 +1104,7 @@ ${timelineData.map(note => {
                     <Col xs={24} sm={12} lg={8} xl={6} key={note.id}>
                       <Card
                         className="note-card"
+                        data-source={note.source}
                         hoverable
                         actions={[
                           <Tooltip title="查看详情">
@@ -1074,6 +1169,79 @@ ${timelineData.map(note => {
                             <Tag key={tag} size="small">{tag}</Tag>
                           ))}
                         </div>
+                        
+                        {/* 视频进度条 - 仅在组织培训分类下显示 */}
+                        {(() => {
+                          const shouldShow = (selectedCategory === 'organizational_training' || note.source === '组织培训');
+                          const hasVideoInfo = !!note.videoInfo;
+                          
+                          // 调试信息
+                          if (selectedCategory === 'organizational_training') {
+                            console.log('笔记调试信息:', {
+                              title: note.title,
+                              selectedCategory,
+                              noteSource: note.source,
+                              shouldShow,
+                              hasVideoInfo,
+                              videoInfo: note.videoInfo
+                            });
+                          }
+                          
+                          if (shouldShow && hasVideoInfo) {
+                            return (
+                              <div className="video-progress-section" style={{ marginTop: 12, marginBottom: 8 }}>
+                                {note.videoInfo.type === 'single_video' ? (
+                                  <div className="single-video-progress">
+                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
+                                      <Text style={{ fontSize: 12, color: '#666', marginRight: 8 }}>
+                                        🎥 视频学习进度
+                                      </Text>
+                                      <Text style={{ fontSize: 11, color: '#999' }}>
+                                        {note.videoInfo.progress}%
+                                      </Text>
+                                    </div>
+                                    <Progress 
+                                      percent={note.videoInfo.progress} 
+                                      size="small" 
+                                      strokeColor={
+                                        note.videoInfo.progress === 100 ? '#52c41a' : 
+                                        note.videoInfo.progress >= 50 ? '#1890ff' : '#faad14'
+                                      }
+                                      showInfo={false}
+                                      style={{ marginBottom: 2 }}
+                                    />
+                                  </div>
+                                ) : note.videoInfo.type === 'multi_video' ? (
+                                  <div className="multi-video-progress">
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                                      <Text style={{ fontSize: 12, color: '#666' }}>
+                                        🎥 视频课程 ({note.videoInfo.totalVideos}个视频)
+                                      </Text>
+                                      <Text style={{ fontSize: 11, color: '#999' }}>
+                                        {note.videoInfo.overallProgress}%
+                                      </Text>
+                                    </div>
+                                    <Progress 
+                                      percent={note.videoInfo.overallProgress} 
+                                      size="small" 
+                                      strokeColor={
+                                        note.videoInfo.overallProgress === 100 ? '#52c41a' : 
+                                        note.videoInfo.overallProgress >= 50 ? '#1890ff' : '#faad14'
+                                      }
+                                      showInfo={false}
+                                      style={{ marginBottom: 2 }}
+                                    />
+                                    <Text style={{ fontSize: 10, color: '#aaa' }}>
+                                      已学习 {Math.round(note.videoInfo.watchedDuration / 60)}分钟 / 共 {Math.round(note.videoInfo.totalDuration / 60)}分钟
+                                    </Text>
+                                  </div>
+                                ) : null}
+                              </div>
+                            );
+                          }
+                          
+                          return null;
+                        })()}
                         
                         <div className="note-meta">
                           <Space split={<Divider type="vertical" />}>
