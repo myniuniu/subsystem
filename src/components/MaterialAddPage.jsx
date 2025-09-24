@@ -44,6 +44,9 @@ const MaterialAddPage = ({ visible, onClose }) => {
   const [pastedText, setPastedText] = useState('');
   const [showKnowledgeGraphForm, setShowKnowledgeGraphForm] = useState(false);
   const [showCapabilityModelForm, setShowCapabilityModelForm] = useState(false);
+  const [showMyCourseForm, setShowMyCourseForm] = useState(false);
+  const [showCourseVideoForm, setShowCourseVideoForm] = useState(false);
+  const [showMicroMajorForm, setShowMicroMajorForm] = useState(false);
 
   const handleFileUpload = (info) => {
     const { status } = info.file;
@@ -179,13 +182,55 @@ const MaterialAddPage = ({ visible, onClose }) => {
     setShowCapabilityModelForm(false);
   };
 
+  const handleMyCourseClick = () => {
+    setShowMyCourseForm(true);
+  };
+
+  const handleMyCourseSubmit = () => {
+    message.success('我的选课已成功添加！');
+    setShowMyCourseForm(false);
+    onClose();
+  };
+
+  const handleMyCourseCancel = () => {
+    setShowMyCourseForm(false);
+  };
+
+  const handleCourseVideoClick = () => {
+    setShowCourseVideoForm(true);
+  };
+
+  const handleCourseVideoSubmit = () => {
+    message.success('课程视频已成功添加！');
+    setShowCourseVideoForm(false);
+    onClose();
+  };
+
+  // 微专业相关处理函数
+  const handleMicroMajorClick = () => {
+    setShowMicroMajorForm(true);
+  };
+
+  const handleMicroMajorSubmit = () => {
+    message.success('微专业选择成功！');
+    setShowMicroMajorForm(false);
+  };
+
+  const handleCourseVideoCancel = () => {
+    setShowCourseVideoForm(false);
+  };
+
+  const handleMicroMajorCancel = () => {
+    setShowMicroMajorForm(false);
+  };
+
   return (
     <Modal
-      title={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm) ? null : "添加来源"}
+      title={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm) ? null : "添加来源"}
       open={visible}
       onCancel={onClose}
       width={1040}
-      footer={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm) ? null : [
+      footer={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm) ? null : [
         <Button key="cancel" onClick={onClose}>
           取消
         </Button>,
@@ -193,9 +238,9 @@ const MaterialAddPage = ({ visible, onClose }) => {
           保存资源
         </Button>
       ]}
-      centered={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm)}
-      closable={!(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm)}
-      bodyStyle={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm) ? { padding: 0 } : {}}
+      centered={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm)}
+      closable={!(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm)}
+      bodyStyle={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm) ? { padding: 0 } : {}}
     >
       {showTextForm ? (
         <div>
@@ -606,6 +651,461 @@ const MaterialAddPage = ({ visible, onClose }) => {
             </div>
           </div>
         </div>
+      ) : showKnowledgeGraphForm ? (
+        <div>
+          {/* 标题栏 */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            padding: '16px 20px',
+            borderBottom: '1px solid #e5e7eb'
+          }}>
+            <Button 
+              type="text" 
+              icon={<ArrowLeftOutlined />} 
+              onClick={handleKnowledgeGraphCancel}
+              style={{ 
+                marginRight: '12px',
+                padding: '4px',
+                minWidth: 'auto',
+                height: 'auto'
+              }}
+            />
+            <Title level={4} style={{ margin: 0, fontSize: '16px', fontWeight: 500, color: '#1f2937' }}>
+              知识图谱
+            </Title>
+          </div>
+          
+          {/* 内容区域 */}
+          <div style={{ padding: '24px 20px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <Text style={{ fontSize: '14px', color: '#6b7280' }}>
+                选择知识图谱作为智能笔记的来源，系统将基于图谱结构进行分析。
+              </Text>
+            </div>
+            
+            <div style={{ marginBottom: '24px' }}>
+              <Text strong style={{ fontSize: '14px', color: '#1f2937', display: 'block', marginBottom: '8px' }}>
+                可用的知识图谱
+              </Text>
+              <div style={{ 
+                border: '2px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '16px',
+                backgroundColor: '#f9fafb'
+              }}>
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 教师专业发展知识图谱
+                </Text>
+                <br />
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 学科知识体系图谱
+                </Text>
+                <br />
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 课程关联知识图谱
+                </Text>
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <Button
+                onClick={handleKnowledgeGraphCancel}
+                style={{
+                  height: '36px',
+                  paddingLeft: '16px',
+                  paddingRight: '16px',
+                  borderRadius: '18px',
+                  border: '1px solid #d1d5db',
+                  backgroundColor: 'white',
+                  color: '#374151',
+                  fontSize: '14px'
+                }}
+              >
+                取消
+              </Button>
+              <Button
+                type="primary"
+                onClick={handleKnowledgeGraphSubmit}
+                style={{
+                  height: '36px',
+                  paddingLeft: '16px',
+                  paddingRight: '16px',
+                  borderRadius: '18px',
+                  backgroundColor: '#52c41a',
+                  borderColor: '#52c41a',
+                  fontSize: '14px'
+                }}
+              >
+                选择图谱
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : showCapabilityModelForm ? (
+        <div>
+          {/* 标题栏 */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            padding: '16px 20px',
+            borderBottom: '1px solid #e5e7eb'
+          }}>
+            <Button 
+              type="text" 
+              icon={<ArrowLeftOutlined />} 
+              onClick={handleCapabilityModelCancel}
+              style={{ 
+                marginRight: '12px',
+                padding: '4px',
+                minWidth: 'auto',
+                height: 'auto'
+              }}
+            />
+            <Title level={4} style={{ margin: 0, fontSize: '16px', fontWeight: 500, color: '#1f2937' }}>
+              能力模型
+            </Title>
+          </div>
+          
+          {/* 内容区域 */}
+          <div style={{ padding: '24px 20px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <Text style={{ fontSize: '14px', color: '#6b7280' }}>
+                选择能力模型作为智能笔记的来源，系统将基于能力框架进行分析。
+              </Text>
+            </div>
+            
+            <div style={{ marginBottom: '24px' }}>
+              <Text strong style={{ fontSize: '14px', color: '#1f2937', display: 'block', marginBottom: '8px' }}>
+                可用的能力模型
+              </Text>
+              <div style={{ 
+                border: '2px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '16px',
+                backgroundColor: '#f9fafb'
+              }}>
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 教师专业能力模型
+                </Text>
+                <br />
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 学生核心素养模型
+                </Text>
+                <br />
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 课程设计能力模型
+                </Text>
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <Button
+                onClick={handleCapabilityModelCancel}
+                style={{
+                  height: '36px',
+                  paddingLeft: '16px',
+                  paddingRight: '16px',
+                  borderRadius: '18px',
+                  border: '1px solid #d1d5db',
+                  backgroundColor: 'white',
+                  color: '#374151',
+                  fontSize: '14px'
+                }}
+              >
+                取消
+              </Button>
+              <Button
+                type="primary"
+                onClick={handleCapabilityModelSubmit}
+                style={{
+                  height: '36px',
+                  paddingLeft: '16px',
+                  paddingRight: '16px',
+                  borderRadius: '18px',
+                  backgroundColor: '#fa8c16',
+                  borderColor: '#fa8c16',
+                  fontSize: '14px'
+                }}
+              >
+                选择模型
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : showMyCourseForm ? (
+        <div>
+          {/* 标题栏 */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            padding: '16px 20px',
+            borderBottom: '1px solid #e5e7eb'
+          }}>
+            <Button 
+              type="text" 
+              icon={<ArrowLeftOutlined />} 
+              onClick={handleMyCourseCancel}
+              style={{ 
+                marginRight: '12px',
+                padding: '4px',
+                minWidth: 'auto',
+                height: 'auto'
+              }}
+            />
+            <Title level={4} style={{ margin: 0, fontSize: '16px', fontWeight: 500, color: '#1f2937' }}>
+              我的选课
+            </Title>
+          </div>
+          
+          {/* 内容区域 */}
+          <div style={{ padding: '24px 20px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <Text style={{ fontSize: '14px', color: '#6b7280' }}>
+                从您的选课中选择课程内容作为智能笔记的来源。
+              </Text>
+            </div>
+            
+            <div style={{ marginBottom: '24px' }}>
+              <Text strong style={{ fontSize: '14px', color: '#1f2937', display: 'block', marginBottom: '8px' }}>
+                我的课程
+              </Text>
+              <div style={{ 
+                border: '2px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '16px',
+                backgroundColor: '#f9fafb'
+              }}>
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 教育心理学基础
+                </Text>
+                <br />
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 现代教学设计理论
+                </Text>
+                <br />
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 数字化教学工具应用
+                </Text>
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <Button
+                onClick={handleMyCourseCancel}
+                style={{
+                  height: '36px',
+                  paddingLeft: '16px',
+                  paddingRight: '16px',
+                  borderRadius: '18px',
+                  border: '1px solid #d1d5db',
+                  backgroundColor: 'white',
+                  color: '#374151',
+                  fontSize: '14px'
+                }}
+              >
+                取消
+              </Button>
+              <Button
+                type="primary"
+                onClick={handleMyCourseSubmit}
+                style={{
+                  height: '36px',
+                  paddingLeft: '16px',
+                  paddingRight: '16px',
+                  borderRadius: '18px',
+                  backgroundColor: '#722ed1',
+                  borderColor: '#722ed1',
+                  fontSize: '14px'
+                }}
+              >
+                选择课程
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : showCourseVideoForm ? (
+        <div>
+          {/* 标题栏 */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            padding: '16px 20px',
+            borderBottom: '1px solid #e5e7eb'
+          }}>
+            <Button 
+              type="text" 
+              icon={<ArrowLeftOutlined />} 
+              onClick={handleCourseVideoCancel}
+              style={{ 
+                marginRight: '12px',
+                padding: '4px',
+                minWidth: 'auto',
+                height: 'auto'
+              }}
+            />
+            <Title level={4} style={{ margin: 0, fontSize: '16px', fontWeight: 500, color: '#1f2937' }}>
+              课程视频
+            </Title>
+          </div>
+          
+          {/* 内容区域 */}
+          <div style={{ padding: '24px 20px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <Text style={{ fontSize: '14px', color: '#6b7280' }}>
+                选择课程视频作为智能笔记的来源，系统将提取视频内容进行分析。
+              </Text>
+            </div>
+            
+            <div style={{ marginBottom: '24px' }}>
+              <Text strong style={{ fontSize: '14px', color: '#1f2937', display: 'block', marginBottom: '8px' }}>
+                可用的课程视频
+              </Text>
+              <div style={{ 
+                border: '2px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '16px',
+                backgroundColor: '#f9fafb'
+              }}>
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 教学方法创新实践
+                </Text>
+                <br />
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 课堂管理技巧分享
+                </Text>
+                <br />
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 学生评价体系构建
+                </Text>
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <Button
+                onClick={handleCourseVideoCancel}
+                style={{
+                  height: '36px',
+                  paddingLeft: '16px',
+                  paddingRight: '16px',
+                  borderRadius: '18px',
+                  border: '1px solid #d1d5db',
+                  backgroundColor: 'white',
+                  color: '#374151',
+                  fontSize: '14px'
+                }}
+              >
+                取消
+              </Button>
+              <Button
+                type="primary"
+                onClick={handleCourseVideoSubmit}
+                style={{
+                  height: '36px',
+                  paddingLeft: '16px',
+                  paddingRight: '16px',
+                  borderRadius: '18px',
+                  backgroundColor: '#eb2f96',
+                  borderColor: '#eb2f96',
+                  fontSize: '14px'
+                }}
+              >
+                选择视频
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : showMicroMajorForm ? (
+        <div>
+          {/* 标题栏 */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            padding: '16px 20px',
+            borderBottom: '1px solid #e5e7eb'
+          }}>
+            <Button 
+              type="text" 
+              icon={<ArrowLeftOutlined />} 
+              onClick={handleMicroMajorCancel}
+              style={{ 
+                marginRight: '12px',
+                padding: '4px',
+                minWidth: 'auto',
+                height: 'auto'
+              }}
+            />
+            <Title level={4} style={{ margin: 0, fontSize: '16px', fontWeight: 500, color: '#1f2937' }}>
+              微专业
+            </Title>
+          </div>
+          
+          {/* 内容区域 */}
+          <div style={{ padding: '24px 20px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <Text style={{ fontSize: '14px', color: '#6b7280' }}>
+                选择微专业课程作为智能笔记的来源，系统将基于专业课程体系进行分析。
+              </Text>
+            </div>
+            
+            <div style={{ marginBottom: '24px' }}>
+              <Text strong style={{ fontSize: '14px', color: '#1f2937', display: 'block', marginBottom: '8px' }}>
+                可用的微专业
+              </Text>
+              <div style={{ 
+                border: '2px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '16px',
+                backgroundColor: '#f9fafb'
+              }}>
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 人工智能教育应用
+                </Text>
+                <br />
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 数字化教学设计
+                </Text>
+                <br />
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 教育数据分析
+                </Text>
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <Button
+                onClick={handleMicroMajorCancel}
+                style={{
+                  height: '36px',
+                  paddingLeft: '16px',
+                  paddingRight: '16px',
+                  borderRadius: '18px',
+                  border: '1px solid #d1d5db',
+                  backgroundColor: 'white',
+                  color: '#374151',
+                  fontSize: '14px'
+                }}
+              >
+                取消
+              </Button>
+              <Button
+                type="primary"
+                onClick={handleMicroMajorSubmit}
+                style={{
+                  height: '36px',
+                  paddingLeft: '16px',
+                  paddingRight: '16px',
+                  borderRadius: '18px',
+                  backgroundColor: '#13c2c2',
+                  borderColor: '#13c2c2',
+                  fontSize: '14px'
+                }}
+              >
+                选择专业
+              </Button>
+            </div>
+          </div>
+        </div>
       ) : (
       <div style={{ padding: '0' }}>
 
@@ -670,118 +1170,13 @@ const MaterialAddPage = ({ visible, onClose }) => {
             </Text>
           </div>
 
-          {/* 四个功能区域 - 两排两列 */}
+          {/* 七个功能区域 - 三排布局 */}
           <div style={{ 
             display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gridTemplateRows: '1fr 1fr',
+            gridTemplateColumns: '1fr 1fr 1fr',
             gap: '20px'
           }}>
-            {/* 第一排 */}
-            {/* 链接 */}
-            <Card 
-              hoverable
-              style={{ 
-                textAlign: 'center',
-                border: '1px solid #e8e8e8',
-                borderRadius: '8px',
-                cursor: 'pointer'
-              }}
-              bodyStyle={{ padding: '40px 24px' }}
-            >
-              <LinkOutlined style={{ 
-                fontSize: '40px', 
-                color: '#4285f4',
-                marginBottom: '20px'
-              }} />
-              <div style={{ marginBottom: '12px' }}>
-                <Text strong style={{ fontSize: '16px' }}>链接</Text>
-              </div>
-              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <Button 
-                  onClick={handleWebsiteClick}
-                  style={{ 
-                    padding: '4px 12px', 
-                    height: 'auto', 
-                    fontSize: '12px', 
-                    backgroundColor: '#f0f0f0',
-                    border: '1px solid #d9d9d9',
-                    borderRadius: '16px',
-                    color: '#666'
-                  }}
-                >
-                  网站
-                </Button>
-                <Button 
-                  onClick={handleBilibiliClick}
-                  style={{ 
-                    padding: '4px 12px', 
-                    height: 'auto', 
-                    fontSize: '12px', 
-                    backgroundColor: '#f0f0f0',
-                    border: '1px solid #d9d9d9',
-                    borderRadius: '16px',
-                    color: '#666'
-                  }}
-                >
-                  bilibili
-                </Button>
-                <Button 
-                  onClick={handleDouyinClick}
-                  style={{ 
-                    padding: '4px 12px', 
-                    height: 'auto', 
-                    fontSize: '12px', 
-                    backgroundColor: '#f0f0f0',
-                    border: '1px solid #d9d9d9',
-                    borderRadius: '16px',
-                    color: '#666'
-                  }}
-                >
-                  抖音
-                </Button>
-              </div>
-            </Card>
-
-            {/* 第二排 */}
-            {/* 粘贴文字 */}
-            <Card 
-              hoverable
-              style={{ 
-                textAlign: 'center',
-                border: '1px solid #e8e8e8',
-                borderRadius: '8px',
-                cursor: 'pointer'
-              }}
-              bodyStyle={{ padding: '40px 24px' }}
-              onClick={handleTextClick}
-            >
-              <FileTextOutlined style={{ 
-                fontSize: '40px', 
-                color: '#4285f4',
-                marginBottom: '20px'
-              }} />
-              <div style={{ marginBottom: '12px' }}>
-                <Text strong style={{ fontSize: '16px' }}>粘贴文字</Text>
-              </div>
-              <div>
-                <Button 
-                  onClick={handleTextClick}
-                  style={{ 
-                    padding: '4px 12px', 
-                    height: 'auto', 
-                    fontSize: '12px', 
-                    backgroundColor: '#f0f0f0',
-                    border: '1px solid #d9d9d9',
-                    borderRadius: '16px',
-                    color: '#666'
-                  }}
-                >
-                  复制的文字
-                </Button>
-              </div>
-            </Card>
-
+            {/* 第一排：知识图谱、能力模型、微专业 */}
             {/* 知识图谱 */}
             <Card 
               hoverable
@@ -857,6 +1252,226 @@ const MaterialAddPage = ({ visible, onClose }) => {
                 选择模型
               </Button>
             </Card>
+
+            {/* 微专业 */}
+            <Card 
+              hoverable
+              style={{ 
+                textAlign: 'center',
+                border: '1px solid #e8e8e8',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+              bodyStyle={{ padding: '40px 24px' }}
+              onClick={handleMicroMajorClick}
+            >
+              <GoogleOutlined style={{ 
+                fontSize: '40px', 
+                color: '#1890ff',
+                marginBottom: '20px'
+              }} />
+              <div style={{ marginBottom: '12px' }}>
+                <Text strong style={{ fontSize: '16px' }}>微专业</Text>
+              </div>
+              <Button 
+                type="primary"
+                size="small"
+                onClick={handleMicroMajorClick}
+                style={{
+                  backgroundColor: '#1890ff',
+                  borderColor: '#1890ff',
+                  borderRadius: '16px',
+                  fontSize: '12px',
+                  height: '28px',
+                  paddingLeft: '12px',
+                  paddingRight: '12px'
+                }}
+              >
+                选择专业
+              </Button>
+            </Card>
+
+            {/* 第二排：我的选课、课程视频、链接 */}
+            {/* 我的选课 */}
+            <Card 
+              hoverable
+              style={{ 
+                textAlign: 'center',
+                border: '1px solid #e8e8e8',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+              bodyStyle={{ padding: '40px 24px' }}
+              onClick={handleMyCourseClick}
+            >
+              <BookOutlined style={{ 
+                fontSize: '40px', 
+                color: '#722ed1',
+                marginBottom: '20px'
+              }} />
+              <div style={{ marginBottom: '12px' }}>
+                <Text strong style={{ fontSize: '16px' }}>我的选课</Text>
+              </div>
+              <Button 
+                type="primary"
+                size="small"
+                onClick={handleMyCourseClick}
+                style={{
+                  backgroundColor: '#722ed1',
+                  borderColor: '#722ed1',
+                  borderRadius: '16px',
+                  fontSize: '12px',
+                  height: '28px',
+                  paddingLeft: '12px',
+                  paddingRight: '12px'
+                }}
+              >
+                选择课程
+              </Button>
+            </Card>
+
+            {/* 课程视频 */}
+            <Card 
+              hoverable
+              style={{ 
+                textAlign: 'center',
+                border: '1px solid #e8e8e8',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+              bodyStyle={{ padding: '40px 24px' }}
+              onClick={handleCourseVideoClick}
+            >
+              <PlayCircleOutlined style={{ 
+                fontSize: '40px', 
+                color: '#eb2f96',
+                marginBottom: '20px'
+              }} />
+              <div style={{ marginBottom: '12px' }}>
+                <Text strong style={{ fontSize: '16px' }}>课程视频</Text>
+              </div>
+              <Button 
+                type="primary"
+                size="small"
+                onClick={handleCourseVideoClick}
+                style={{
+                  backgroundColor: '#eb2f96',
+                  borderColor: '#eb2f96',
+                  borderRadius: '16px',
+                  fontSize: '12px',
+                  height: '28px',
+                  paddingLeft: '12px',
+                  paddingRight: '12px'
+                }}
+              >
+                选择视频
+              </Button>
+            </Card>
+
+            {/* 链接 */}
+            <Card 
+              hoverable
+              style={{ 
+                textAlign: 'center',
+                border: '1px solid #e8e8e8',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+              bodyStyle={{ padding: '40px 24px' }}
+            >
+              <LinkOutlined style={{ 
+                fontSize: '40px', 
+                color: '#4285f4',
+                marginBottom: '20px'
+              }} />
+              <div style={{ marginBottom: '12px' }}>
+                <Text strong style={{ fontSize: '16px' }}>链接</Text>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <Button 
+                  onClick={handleWebsiteClick}
+                  style={{ 
+                    padding: '4px 12px', 
+                    height: 'auto', 
+                    fontSize: '12px', 
+                    backgroundColor: '#f0f0f0',
+                    border: '1px solid #d9d9d9',
+                    borderRadius: '16px',
+                    color: '#666'
+                  }}
+                >
+                  网站
+                </Button>
+                <Button 
+                  onClick={handleBilibiliClick}
+                  style={{ 
+                    padding: '4px 12px', 
+                    height: 'auto', 
+                    fontSize: '12px', 
+                    backgroundColor: '#f0f0f0',
+                    border: '1px solid #d9d9d9',
+                    borderRadius: '16px',
+                    color: '#666'
+                  }}
+                >
+                  bilibili
+                </Button>
+                <Button 
+                  onClick={handleDouyinClick}
+                  style={{ 
+                    padding: '4px 12px', 
+                    height: 'auto', 
+                    fontSize: '12px', 
+                    backgroundColor: '#f0f0f0',
+                    border: '1px solid #d9d9d9',
+                    borderRadius: '16px',
+                    color: '#666'
+                  }}
+                >
+                  抖音
+                </Button>
+              </div>
+            </Card>
+
+            {/* 第三排：粘贴文字（单独一行，居中显示） */}
+            <div style={{ gridColumn: '2 / 3' }}>
+              <Card 
+                hoverable
+                style={{ 
+                  textAlign: 'center',
+                  border: '1px solid #e8e8e8',
+                  borderRadius: '8px',
+                  cursor: 'pointer'
+                }}
+                bodyStyle={{ padding: '40px 24px' }}
+                onClick={handleTextClick}
+              >
+                <FileTextOutlined style={{ 
+                  fontSize: '40px', 
+                  color: '#4285f4',
+                  marginBottom: '20px'
+                }} />
+                <div style={{ marginBottom: '12px' }}>
+                  <Text strong style={{ fontSize: '16px' }}>粘贴文字</Text>
+                </div>
+                <div>
+                  <Button 
+                    onClick={handleTextClick}
+                    style={{ 
+                      padding: '4px 12px', 
+                      height: 'auto', 
+                      fontSize: '12px', 
+                      backgroundColor: '#f0f0f0',
+                      border: '1px solid #d9d9d9',
+                      borderRadius: '16px',
+                      color: '#666'
+                    }}
+                  >
+                    复制的文字
+                  </Button>
+                </div>
+              </Card>
+            </div>
           </div>
         </div>
 
