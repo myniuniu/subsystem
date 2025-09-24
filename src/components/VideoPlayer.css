@@ -21,6 +21,21 @@
   flex-direction: column;
 }
 
+/* 嵌入模式样式 */
+.video-player-container.embedded {
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.video-player-container.embedded .video-element {
+  border-radius: 8px;
+}
+
+.video-player-container.embedded .video-controls {
+  border-radius: 0 0 8px 8px;
+}
+
 .video-header {
   position: absolute;
   top: 0;

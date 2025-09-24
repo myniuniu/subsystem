@@ -176,6 +176,33 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
   const [currentVideo, setCurrentVideo] = useState(null);
 
+  // 嵌入式视频播放相关状态
+  const [selectedMaterial, setSelectedMaterial] = useState(null);
+  const [currentView, setCurrentView] = useState('materials'); // 'materials' 或 'video'
+  const [videoStartTime, setVideoStartTime] = useState(0);
+  const [currentSubtitle, setCurrentSubtitle] = useState('');
+  const [videoProgress, setVideoProgress] = useState(0);
+
+  // 悬停状态管理
+  const [hoveredItems, setHoveredItems] = useState({});
+
+  // 模拟字幕数据
+  const subtitleData = [
+    { start: 0, end: 15, text: '欢迎来到数据结构与算法基础课程，今天我们将学习数组和链表的基本概念。' },
+    { start: 15, end: 35, text: '首先，让我们回顾一下数据结构的定义。数据结构是计算机存储、组织数据的方式。' },
+    { start: 35, end: 55, text: '数组是最简单的数据结构之一，它由相同类型的元素组成，并且这些元素在内存中是连续存储的。' },
+    { start: 55, end: 75, text: '数组的主要优点是随机访问，可以通过索引在O(1)时间复杂度内访问任意元素。' },
+    { start: 75, end: 95, text: '但是数组也有缺点，比如在中间插入或删除元素需要移动其他元素，时间复杂度为O(n)。' },
+    { start: 95, end: 115, text: '接下来我们来看链表。链表是一种线性数据结构，元素通过指针连接。' },
+    { start: 115, end: 135, text: '链表的优点是插入和删除操作非常高效，只需要O(1)时间复杂度。' },
+    { start: 135, end: 155, text: '但链表不支持随机访问，访问第n个元素需要从Head开始遍历，时间复杂度为O(n)。' },
+    { start: 155, end: 175, text: '现在让我们通过一个实际例子来加深理解。假设我们要存储一个学生成绩列表。' },
+    { start: 175, end: 195, text: '如果使用数组，我们可以快速查找任意学生的成绩，但添加或删除学生会比较慢。' },
+    { start: 195, end: 215, text: '如果使用链表，添加或删除学生非常快，但查找特定学生成绩需要遍历。' },
+    { start: 215, end: 235, text: '总结一下，数组适合需要频繁随机访问的场景，而链表适合需要频繁插入删除的场景。' },
+    { start: 235, end: 250, text: '下节课我们将学习栈和队列，请大家做好预习准备。谢谢大家！' }
+  ];
+
   // 场景模拟相关状态
   const [scenarioModalVisible, setScenarioModalVisible] = useState(false);
   const [selectedScenarios, setSelectedScenarios] = useState([]);
@@ -184,6 +211,38 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   const [showNoteEditor, setShowNoteEditor] = useState(false);
   const [editingNote, setEditingNote] = useState(null);
   const [noteEditorContent, setNoteEditorContent] = useState('');
+
+  // 处理视频时间更新和字幕显示
+  const handleVideoTimeUpdate = (currentTime, duration) => {
+    setVideoProgress(duration > 0 ? (currentTime / duration) * 100 : 0);
+    
+    // 查找当前时间对应的字幕
+    const subtitle = subtitleData.find(sub => 
+      currentTime >= sub.start && currentTime <= sub.end
+    );
+    
+    if (subtitle) {
+      setCurrentSubtitle(subtitle.text);
+    } else {
+      setCurrentSubtitle('');
+    }
+  };
+
+  // 处理视频播放
+  const handlePlayVideo = (material) => {
+    setSelectedMaterial(material);
+    setCurrentView('video');
+    setVideoStartTime(0);
+    message.success(`正在播放视频：${material.title}`);
+  };
+
+  // 返回资料列表
+  const handleBackToMaterials = () => {
+    setCurrentView('materials');
+    setSelectedMaterial(null);
+    setCurrentSubtitle('');
+    setVideoProgress(0);
+  };
 
   // 时间格式正则表达式 (MM:SS 或 HH:MM:SS)
   const timeRegex = /\b(\d{1,2}):(\d{2})(?::(\d{2}))?\b/g;
@@ -1265,10 +1324,9 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   };
 
   const handleViewMaterial = (material, type) => {
-    // 如果是视频类型，打开视频播放器
+    // 如果是视频类型，打开嵌入式视频播放器
     if (type === 'video') {
-      setCurrentVideo(material);
-      setShowVideoPlayer(true);
+      handlePlayVideo(material);
       return;
     }
     
@@ -1539,9 +1597,11 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   return (
     <>
       <div style={{ display: 'flex', height: '100vh', background: '#f5f5f5' }}>
-      {/* 左侧资料收集区域 */}
-      <div style={{ flex: 2.5, background: '#fff', margin: '16px 0 16px 16px', borderRadius: '8px', overflow: 'hidden' }}>
-          <div style={{ padding: '20px' }}>
+      {/* 左侧区域：根据当前视图显示资料收集或视频播放 */}
+      <div style={{ flex: 2.5, background: '#fff', margin: '16px 0 16px 16px', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        {currentView === 'materials' ? (
+          // 资料收集模式
+          <div style={{ padding: '20px', flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
@@ -1571,7 +1631,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                   <Button 
                     type="text" 
                     icon={<ArrowLeftOutlined />} 
-                    onClick={handleBack}
+                    onClick={onBack}
                     style={{ color: '#666' }}
                   >
                     返回
@@ -1653,284 +1713,275 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
             {/* 统一的资料列表 */}
             <div style={{ height: 'calc(100vh - 280px)', overflowY: 'auto' }}>
               {/* 已上传文件 */}
-              {uploadedFiles.map(file => {
-                const [isHovered, setIsHovered] = React.useState(false);
-                return (
-                  <Card 
-                    key={`file-${file.id}`} 
-                    size="small" 
-                    style={{ 
-                      marginBottom: 8,
-                      border: selectedMaterials.includes(`file-${file.id}`) ? '2px solid #1890ff' : '1px solid #f0f0f0',
-                      backgroundColor: selectedMaterials.includes(`file-${file.id}`) ? '#f6ffed' : 'white'
-                    }}
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div 
-                        style={{ display: 'flex', alignItems: 'center', flex: 1, cursor: 'pointer' }}
-                        onClick={() => handleViewMaterial(file, 'file')}
-                      >
-                        {isHovered ? (
-                          <Dropdown
-                            menu={{
-                              items: [
-                                {
-                                  key: 'rename',
-                                  label: '重命名',
-                                  icon: <EditOutlined />,
-                                  onClick: () => {
-                                    const newName = prompt('请输入新的文件名:', file.name);
-                                    if (newName && newName.trim()) {
-                                      setUploadedFiles(prev => 
-                                        prev.map(f => 
-                                          f.id === file.id ? { ...f, name: newName.trim() } : f
+              {uploadedFiles.map(file => (
+                <Card 
+                  key={`file-${file.id}`} 
+                  size="small" 
+                  style={{ 
+                    marginBottom: 8,
+                    border: selectedMaterials.includes(`file-${file.id}`) ? '2px solid #1890ff' : '1px solid #f0f0f0',
+                    backgroundColor: selectedMaterials.includes(`file-${file.id}`) ? '#f6ffed' : 'white'
+                  }}
+                  onMouseEnter={() => setHoveredItems(prev => ({...prev, [`file-${file.id}`]: true}))}
+                  onMouseLeave={() => setHoveredItems(prev => ({...prev, [`file-${file.id}`]: false}))}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div 
+                      style={{ display: 'flex', alignItems: 'center', flex: 1, cursor: 'pointer' }}
+                      onClick={() => handleViewMaterial(file, 'file')}
+                    >
+                      {hoveredItems[`file-${file.id}`] ? (
+                        <Dropdown
+                          menu={{
+                            items: [
+                              {
+                                key: 'rename',
+                                label: '重命名',
+                                icon: <EditOutlined />,
+                                onClick: () => {
+                                  const newName = prompt('请输入新的文件名:', file.name);
+                                  if (newName && newName.trim()) {
+                                    setUploadedFiles(prev => 
+                                      prev.map(f => 
+                                        f.id === file.id ? { ...f, name: newName.trim() } : f
+                                      )
+                                    );
+                                    message.success('文件重命名成功');
+                                  }
+                                }
+                              },
+                              {
+                                key: 'delete',
+                                label: '删除',
+                                icon: <DeleteOutlined />,
+                                onClick: () => {
+                                  Modal.confirm({
+                                    title: '确认删除',
+                                    content: `确定要删除文件"${file.name}"吗？`,
+                                    okText: '确定',
+                                    cancelText: '取消',
+                                    onOk: () => handleDeleteFile(file.id)
+                                  });
+                                },
+                                danger: true
+                              }
+                            ]
+                          }}
+                          trigger={['click']}
+                        >
+                          <Button 
+                            type="text" 
+                            size="small" 
+                            icon={<MoreOutlined />}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ marginRight: 8 }}
+                          />
+                        </Dropdown>
+                      ) : (
+                        <FileTextOutlined style={{ fontSize: 16, color: '#1890ff', marginRight: 8 }} />
+                      )}
+                      <div style={{ flex: 1 }}>
+                        <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{file.name}</Text>
+                      </div>
+                    </div>
+                    <Checkbox
+                      checked={selectedMaterials.includes(`file-${file.id}`)}
+                      onChange={(e) => handleSelectMaterial(`file-${file.id}`, e.target.checked)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </Card>
+              ))}
+              
+              {/* 添加的文字 */}
+              {addedTexts.map(text => (
+                <Card 
+                  key={`text-${text.id}`} 
+                  size="small" 
+                  style={{ 
+                    marginBottom: 8,
+                    border: selectedMaterials.includes(`text-${text.id}`) ? '2px solid #1890ff' : '1px solid #f0f0f0',
+                    backgroundColor: selectedMaterials.includes(`text-${text.id}`) ? '#f6ffed' : 'white'
+                  }}
+                  onMouseEnter={() => setHoveredItems(prev => ({...prev, [`text-${text.id}`]: true}))}
+                  onMouseLeave={() => setHoveredItems(prev => ({...prev, [`text-${text.id}`]: false}))}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div 
+                      style={{ display: 'flex', alignItems: 'center', flex: 1, cursor: 'pointer' }}
+                      onClick={() => handleViewMaterial(text, 'text')}
+                    >
+                      {hoveredItems[`text-${text.id}`] ? (
+                         <Dropdown
+                           menu={{
+                             items: [
+                               {
+                                 key: 'rename',
+                                 label: '重命名',
+                                 icon: <EditOutlined />,
+                                 onClick: () => {
+                                    const newTitle = prompt('请输入新的标题:', text.title);
+                                    if (newTitle && newTitle.trim()) {
+                                      setAddedTexts(prev => 
+                                        prev.map(t => 
+                                          t.id === text.id ? { ...t, title: newTitle.trim() } : t
                                         )
                                       );
-                                      message.success('文件重命名成功');
+                                      message.success('文字重命名成功');
                                     }
                                   }
-                                },
-                                {
+                               },
+                               {
                                   key: 'delete',
                                   label: '删除',
                                   icon: <DeleteOutlined />,
                                   onClick: () => {
                                     Modal.confirm({
                                       title: '确认删除',
-                                      content: `确定要删除文件"${file.name}"吗？`,
+                                      content: `确定要删除文字"${text.title}"吗？`,
                                       okText: '确定',
                                       cancelText: '取消',
-                                      onOk: () => handleDeleteFile(file.id)
+                                      onOk: () => handleDeleteText(text.id)
                                     });
                                   },
                                   danger: true
                                 }
-                              ]
-                            }}
-                            trigger={['click']}
-                          >
-                            <Button 
-                              type="text" 
-                              size="small" 
-                              icon={<MoreOutlined />}
-                              onClick={(e) => e.stopPropagation()}
-                              style={{ marginRight: 8 }}
-                            />
-                          </Dropdown>
-                        ) : (
-                          <FileTextOutlined style={{ fontSize: 16, color: '#1890ff', marginRight: 8 }} />
-                        )}
-                        <div style={{ flex: 1 }}>
-                          <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{file.name}</Text>
-                        </div>
+                             ]
+                           }}
+                           trigger={['click']}
+                         >
+                          <Button 
+                            type="text" 
+                            size="small" 
+                            icon={<MoreOutlined />}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ marginRight: 8 }}
+                          />
+                        </Dropdown>
+                      ) : (
+                        <FileTextOutlined style={{ fontSize: 16, color: '#52c41a', marginRight: 8 }} />
+                      )}
+                      <div style={{ flex: 1 }}>
+                        <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{text.title}</Text>
+                        <br />
+                        <Text type="secondary" style={{ fontSize: 10 }} ellipsis>
+                          {text.content.length > 50 ? text.content.substring(0, 50) + '...' : text.content}
+                        </Text>
                       </div>
-                      <Checkbox
-                        checked={selectedMaterials.includes(`file-${file.id}`)}
-                        onChange={(e) => handleSelectMaterial(`file-${file.id}`, e.target.checked)}
-                        onClick={(e) => e.stopPropagation()}
-                      />
                     </div>
-                  </Card>
-                );
-              })}
-              
-              {/* 添加的文字 */}
-              {addedTexts.map(text => {
-                const [isHovered, setIsHovered] = React.useState(false);
-                return (
-                  <Card 
-                    key={`text-${text.id}`} 
-                    size="small" 
-                    style={{ 
-                      marginBottom: 8,
-                      border: selectedMaterials.includes(`text-${text.id}`) ? '2px solid #1890ff' : '1px solid #f0f0f0',
-                      backgroundColor: selectedMaterials.includes(`text-${text.id}`) ? '#f6ffed' : 'white'
-                    }}
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div 
-                        style={{ display: 'flex', alignItems: 'center', flex: 1, cursor: 'pointer' }}
-                        onClick={() => handleViewMaterial(text, 'text')}
-                      >
-                        {isHovered ? (
-                           <Dropdown
-                             menu={{
-                               items: [
-                                 {
-                                   key: 'rename',
-                                   label: '重命名',
-                                   icon: <EditOutlined />,
-                                   onClick: () => {
-                                      const newTitle = prompt('请输入新的标题:', text.title);
-                                      if (newTitle && newTitle.trim()) {
-                                        setAddedTexts(prev => 
-                                          prev.map(t => 
-                                            t.id === text.id ? { ...t, title: newTitle.trim() } : t
-                                          )
-                                        );
-                                        message.success('文字重命名成功');
-                                      }
-                                    }
-                                 },
-                                 {
-                                    key: 'delete',
-                                    label: '删除',
-                                    icon: <DeleteOutlined />,
-                                    onClick: () => {
-                                      Modal.confirm({
-                                        title: '确认删除',
-                                        content: `确定要删除文字"${text.title}"吗？`,
-                                        okText: '确定',
-                                        cancelText: '取消',
-                                        onOk: () => handleDeleteText(text.id)
-                                      });
-                                    },
-                                    danger: true
-                                  }
-                               ]
-                             }}
-                             trigger={['click']}
-                           >
-                            <Button 
-                              type="text" 
-                              size="small" 
-                              icon={<MoreOutlined />}
-                              onClick={(e) => e.stopPropagation()}
-                              style={{ marginRight: 8 }}
-                            />
-                          </Dropdown>
-                        ) : (
-                          <FileTextOutlined style={{ fontSize: 16, color: '#52c41a', marginRight: 8 }} />
-                        )}
-                        <div style={{ flex: 1 }}>
-                          <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{text.title}</Text>
-                          <br />
-                          <Text type="secondary" style={{ fontSize: 10 }} ellipsis>
-                            {text.content.length > 50 ? text.content.substring(0, 50) + '...' : text.content}
-                          </Text>
-                        </div>
-                      </div>
-                      <Checkbox
-                        checked={selectedMaterials.includes(`text-${text.id}`)}
-                        onChange={(e) => handleSelectMaterial(`text-${text.id}`, e.target.checked)}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </div>
-                  </Card>
-                );
-              })}
+                    <Checkbox
+                      checked={selectedMaterials.includes(`text-${text.id}`)}
+                      onChange={(e) => handleSelectMaterial(`text-${text.id}`, e.target.checked)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </Card>
+              ))}
               
               {/* 课程视频 */}
-              {courseVideos.map(video => {
-                const [isHovered, setIsHovered] = React.useState(false);
-                return (
-                  <Card 
-                    key={`video-${video.id}`} 
-                    size="small" 
-                    style={{ 
-                      marginBottom: 8,
-                      border: selectedMaterials.includes(`video-${video.id}`) ? '2px solid #1890ff' : '1px solid #f0f0f0',
-                      backgroundColor: selectedMaterials.includes(`video-${video.id}`) ? '#f6ffed' : 'white'
-                    }}
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div 
-                        style={{ display: 'flex', alignItems: 'center', flex: 1, cursor: 'pointer' }}
-                        onClick={() => handleViewMaterial(video, 'video')}
-                      >
-                        {isHovered ? (
-                           <Dropdown
-                             menu={{
-                               items: [
-                                 {
-                                   key: 'rename',
-                                   label: '重命名',
-                                   icon: <EditOutlined />,
-                                   onClick: () => {
-                                      const newTitle = prompt('请输入新的视频标题:', video.title);
-                                      if (newTitle && newTitle.trim()) {
-                                        setCourseVideos(prev => 
-                                          prev.map(v => 
-                                            v.id === video.id ? { ...v, title: newTitle.trim() } : v
-                                          )
-                                        );
-                                        message.success('视频重命名成功');
-                                      }
+              {courseVideos.map(video => (
+                <Card 
+                  key={`video-${video.id}`} 
+                  size="small" 
+                  style={{ 
+                    marginBottom: 8,
+                    border: selectedMaterials.includes(`video-${video.id}`) ? '2px solid #1890ff' : '1px solid #f0f0f0',
+                    backgroundColor: selectedMaterials.includes(`video-${video.id}`) ? '#f6ffed' : 'white'
+                  }}
+                  onMouseEnter={() => setHoveredItems(prev => ({...prev, [`video-${video.id}`]: true}))}
+                  onMouseLeave={() => setHoveredItems(prev => ({...prev, [`video-${video.id}`]: false}))}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div 
+                      style={{ display: 'flex', alignItems: 'center', flex: 1, cursor: 'pointer' }}
+                      onClick={() => handleViewMaterial(video, 'video')}
+                    >
+                      {hoveredItems[`video-${video.id}`] ? (
+                         <Dropdown
+                           menu={{
+                             items: [
+                               {
+                                 key: 'rename',
+                                 label: '重命名',
+                                 icon: <EditOutlined />,
+                                 onClick: () => {
+                                    const newTitle = prompt('请输入新的视频标题:', video.title);
+                                    if (newTitle && newTitle.trim()) {
+                                      setCourseVideos(prev => 
+                                        prev.map(v => 
+                                          v.id === video.id ? { ...v, title: newTitle.trim() } : v
+                                        )
+                                      );
+                                      message.success('视频重命名成功');
                                     }
-                                 },
-                                 {
-                                    key: 'delete',
-                                    label: '删除',
-                                    icon: <DeleteOutlined />,
-                                    onClick: () => {
-                                      Modal.confirm({
-                                        title: '确认删除',
-                                        content: `确定要删除视频"${video.title}"吗？`,
-                                        okText: '确定',
-                                        cancelText: '取消',
-                                        onOk: () => handleDeleteVideo(video.id)
-                                      });
-                                    },
-                                    danger: true
                                   }
-                               ]
-                             }}
-                             trigger={['click']}
-                           >
-                            <Button 
-                              type="text" 
-                              size="small" 
-                              icon={<MoreOutlined />}
-                              onClick={(e) => e.stopPropagation()}
-                              style={{ marginRight: 8 }}
-                            />
-                          </Dropdown>
-                        ) : (
-                          <div style={{ fontSize: 16, marginRight: 8 }}>🎥</div>
-                        )}
-                        <div style={{ flex: 1 }}>
-                          <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{video.title}</Text>
-                          <br />
-                          <Text type="secondary" style={{ fontSize: 10 }} ellipsis>
-                            {video.instructor && `讲师：${video.instructor} | `}
-                            {video.duration && `时长：${video.duration} | `}
-                            {video.addTime}
-                          </Text>
-                          {/* 观看进度条 */}
-                          {video.progress !== undefined && (
-                            <div style={{ marginTop: 4 }}>
-                              <Progress 
-                                percent={video.progress} 
-                                size="small" 
-                                strokeColor={
-                                  video.progress === 100 ? '#52c41a' : 
-                                  video.progress >= 50 ? '#1890ff' : '#faad14'
+                               },
+                               {
+                                  key: 'delete',
+                                  label: '删除',
+                                  icon: <DeleteOutlined />,
+                                  onClick: () => {
+                                    Modal.confirm({
+                                      title: '确认删除',
+                                      content: `确定要删除视频"${video.title}"吗？`,
+                                      okText: '确定',
+                                      cancelText: '取消',
+                                      onOk: () => handleDeleteVideo(video.id)
+                                    });
+                                  },
+                                  danger: true
                                 }
-                                showInfo={false}
-                                style={{ fontSize: 10 }}
-                              />
-                              <Text type="secondary" style={{ fontSize: 9 }}>
-                                观看进度 {video.progress}%
-                              </Text>
-                            </div>
-                          )}
-                        </div>
+                             ]
+                           }}
+                           trigger={['click']}
+                         >
+                          <Button 
+                            type="text" 
+                            size="small" 
+                            icon={<MoreOutlined />}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ marginRight: 8 }}
+                          />
+                        </Dropdown>
+                      ) : (
+                        <div style={{ fontSize: 16, marginRight: 8 }}>🎥</div>
+                      )}
+                      <div style={{ flex: 1 }}>
+                        <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{video.title}</Text>
+                        <br />
+                        <Text type="secondary" style={{ fontSize: 10 }} ellipsis>
+                          {video.instructor && `讲师：${video.instructor} | `}
+                          {video.duration && `时长：${video.duration} | `}
+                          {video.addTime}
+                        </Text>
+                        {/* 观看进度条 */}
+                        {video.progress !== undefined && (
+                          <div style={{ marginTop: 4 }}>
+                            <Progress 
+                              percent={video.progress} 
+                              size="small" 
+                              strokeColor={
+                                video.progress === 100 ? '#52c41a' : 
+                                video.progress >= 50 ? '#1890ff' : '#faad14'
+                              }
+                              showInfo={false}
+                              style={{ fontSize: 10 }}
+                            />
+                            <Text type="secondary" style={{ fontSize: 9 }}>
+                              观看进度 {video.progress}%
+                            </Text>
+                          </div>
+                        )}
                       </div>
-                      <Checkbox
-                        checked={selectedMaterials.includes(`video-${video.id}`)}
-                        onChange={(e) => handleSelectMaterial(`video-${video.id}`, e.target.checked)}
-                        onClick={(e) => e.stopPropagation()}
-                      />
                     </div>
-                  </Card>
-                );
-              })}
+                    <Checkbox
+                      checked={selectedMaterials.includes(`video-${video.id}`)}
+                      onChange={(e) => handleSelectMaterial(`video-${video.id}`, e.target.checked)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </Card>
+              ))}
               
               {/* 保存的链接 */}
               {links.map(link => {
@@ -2135,6 +2186,153 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
               })}
             </div>
           </div>
+        ) : (
+          // 视频播放模式：四层结构布局
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            {/* 标题栏 */}
+            <div style={{ 
+              padding: '16px 20px', 
+              borderBottom: '1px solid #f0f0f0',
+              background: 'linear-gradient(135deg, #1890ff 0%, #40a9ff 100%)',
+              color: 'white'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <Button 
+                    type="text" 
+                    icon={<ArrowLeftOutlined />} 
+                    onClick={handleBackToMaterials}
+                    style={{ color: 'white', padding: '4px 8px' }}
+                    size="small"
+                  />
+                  <div>
+                    <Text style={{ color: 'white', fontSize: '16px', fontWeight: 'bold' }}>
+                      {selectedMaterial?.title || '视频标题'}
+                    </Text>
+                    {selectedMaterial?.instructor && (
+                      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', marginTop: '2px' }}>
+                        📚 讲师：{selectedMaterial.instructor}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>
+                  {selectedMaterial?.duration && `时长：${selectedMaterial.duration}`}
+                </div>
+              </div>
+            </div>
+
+            {/* 摘要区域 */}
+            <div style={{ 
+              padding: '16px 20px', 
+              borderBottom: '1px solid #f0f0f0',
+              background: '#f8f9fa'
+            }}>
+              <Text style={{ fontSize: '14px', color: '#666', lineHeight: '1.6' }}>
+                📝 视频摘要：本视频主要介绍了{selectedMaterial?.title || '相关内容'}，包含了重要的学习要点和实际示例。适合初学者和进阶学习者观看。
+              </Text>
+            </div>
+
+            {/* 视频播放器区域 */}
+            <div style={{ 
+              flex: 1, 
+              padding: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: '#000'
+            }}>
+              {selectedMaterial && (
+                <VideoPlayer
+                  visible={false}
+                  videoData={{
+                    ...selectedMaterial,
+                    startTime: videoStartTime
+                  }}
+                  embedded={true}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    minHeight: '300px'
+                  }}
+                  onTimeUpdate={handleVideoTimeUpdate}
+                  onNoteCreated={(operationRecord) => {
+                    setOperationRecords(prev => ({
+                      ...prev,
+                      note: [operationRecord, ...prev.note]
+                    }));
+                  }}
+                />
+              )}
+            </div>
+
+            {/* 跟随字幕区域 */}
+            <div style={{ 
+              padding: '16px 20px', 
+              borderTop: '1px solid #f0f0f0',
+              background: '#fff',
+              minHeight: '80px',
+              maxHeight: '120px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                <Text style={{ fontSize: '14px', fontWeight: 'bold', color: '#1890ff' }}>
+                  💬 字幕
+                </Text>
+                <div style={{ 
+                  marginLeft: 'auto', 
+                  fontSize: '12px', 
+                  color: '#999',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <span>进度: {Math.round(videoProgress)}%</span>
+                  <div style={{
+                    width: '60px',
+                    height: '4px',
+                    background: '#f0f0f0',
+                    borderRadius: '2px',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{
+                      width: `${videoProgress}%`,
+                      height: '100%',
+                      background: '#1890ff',
+                      transition: 'width 0.3s ease'
+                    }} />
+                  </div>
+                </div>
+              </div>
+              <div style={{ 
+                padding: '12px 16px',
+                background: '#f8f9fa',
+                borderRadius: '8px',
+                border: '1px solid #e8e8e8',
+                minHeight: '40px',
+                display: 'flex',
+                alignItems: 'center'
+              }}>
+                {currentSubtitle ? (
+                  <Text style={{ 
+                    fontSize: '13px', 
+                    lineHeight: '1.5',
+                    color: '#333'
+                  }}>
+                    {currentSubtitle}
+                  </Text>
+                ) : (
+                  <Text style={{ 
+                    fontSize: '13px', 
+                    color: '#999',
+                    fontStyle: 'italic'
+                  }}>
+                    字幕将在视频播放时自动显示...
+                  </Text>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 中间问答区域 */}

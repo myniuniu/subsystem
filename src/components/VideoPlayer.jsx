@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Modal, Button, Slider, Space, message, Input, Typography } from 'antd';
 import { 
   PlayCircleOutlined, 
-  PauseCircleOutlined, 
+  PauseCircleOutlined,
+  PauseOutlined,
   SoundOutlined, 
   FullscreenOutlined,
   FullscreenExitOutlined,
@@ -14,7 +15,7 @@ import './VideoPlayer.css';
 const { TextArea } = Input;
 const { Text } = Typography;
 
-const VideoPlayer = ({ visible, onClose, videoData, onNoteCreated }) => {
+const VideoPlayer = ({ visible, onClose, videoData, onNoteCreated, embedded = false, style, onTimeUpdate }) => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -65,6 +66,11 @@ const VideoPlayer = ({ visible, onClose, videoData, onNoteCreated }) => {
       if (total > 0) {
         const newProgress = Math.round((current / total) * 100);
         setProgress(newProgress);
+        
+        // 调用父组件的时间更新回调（用于字幕显示等）
+        if (onTimeUpdate) {
+          onTimeUpdate(current, total);
+        }
         
         // 每10秒更新一次进度到父组件
         if (Math.floor(current) % 10 === 0 && onProgressUpdate) {
@@ -178,7 +184,12 @@ const VideoPlayer = ({ visible, onClose, videoData, onNoteCreated }) => {
       // 创建新的笔记记录
       const noteData = {
         title: `【视频标注】${videoData?.title || '视频笔记'}`,
-        content: `## 时刻标注\n\n**标注时间：** ${formatTime(currentTime)}\n**视频标题：** ${videoData?.title || '未知视频'}\n\n${annotationText}`,
+        content: `## 时刻标注
+
+**标注时间：** ${formatTime(currentTime)}
+**视频标题：** ${videoData?.title || '未知视频'}
+
+${annotationText}`,
         category: 'study',
         tags: ['视频标注', '时刻笔记'],
         source: '视频播放器',
@@ -222,6 +233,132 @@ const VideoPlayer = ({ visible, onClose, videoData, onNoteCreated }) => {
   };
 
   if (!videoData) return null;
+
+  // 嵌入模式直接渲染视频播放器
+  if (embedded) {
+    return (
+      <div 
+        className="video-player-container embedded"
+        style={style}
+        onMouseMove={() => setShowControls(true)}
+        onMouseLeave={() => isPlaying && setShowControls(false)}
+      >
+        {/* 视频播放器 */}
+        <video
+          ref={videoRef}
+          className="video-element"
+          src={getVideoUrl(videoData)}
+          onLoadedMetadata={handleLoadedMetadata}
+          onTimeUpdate={handleTimeUpdate}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+          onEnded={() => {
+            setIsPlaying(false);
+            setProgress(100);
+            if (onProgressUpdate) {
+              onProgressUpdate(videoData.id, 100);
+            }
+          }}
+          onClick={togglePlay}
+        />
+
+        {/* 播放控制条 */}
+        {showControls && (
+          <div className="video-controls">
+            {/* 进度条 */}
+            <div className="progress-container">
+              <Slider
+                value={progress}
+                onChange={handleSeek}
+                tooltip={{ formatter: null }}
+                className="progress-slider"
+              />
+            </div>
+
+            {/* 控制按钮 */}
+            <div className="controls-bar">
+              <Space>
+                {/* 播放/暂停 */}
+                <Button
+                  type="text"
+                  icon={isPlaying ? <PauseCircleOutlined /> : <PlayCircleOutlined />}
+                  onClick={togglePlay}
+                  style={{ color: 'white' }}
+                />
+
+                {/* 时间显示 */}
+                <Text style={{ color: 'white', fontSize: 12 }}>
+                  {formatTime(currentTime)} / {formatTime(duration)}
+                </Text>
+
+                {/* 时刻标注按钮 */}
+                <Button
+                  type="text"
+                  icon={<EditOutlined />}
+                  onClick={handleAnnotationClick}
+                  style={{ color: 'white' }}
+                  title="时刻标注"
+                />
+              </Space>
+
+              <Space>
+                {/* 音量控制 */}
+                <SoundOutlined style={{ color: 'white' }} />
+                <Slider
+                  value={volume * 100}
+                  onChange={handleVolumeChange}
+                  style={{ width: 80 }}
+                  tooltip={{ formatter: null }}
+                />
+
+                {/* 全屏按钮 */}
+                <Button
+                  type="text"
+                  icon={isFullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
+                  onClick={toggleFullscreen}
+                  style={{ color: 'white' }}
+                />
+              </Space>
+            </div>
+          </div>
+        )}
+
+        {/* 播放进度提示 */}
+        {progress > 0 && (
+          <div className="progress-indicator">
+            <Text style={{ color: 'white', fontSize: 12 }}>
+              观看进度：{progress}%
+            </Text>
+          </div>
+        )}
+
+        {/* 时刻标注对话框 */}
+        <Modal
+          title="时刻标注"
+          open={showAnnotationModal}
+          onOk={handleAnnotationConfirm}
+          onCancel={handleAnnotationCancel}
+          okText="确定"
+          cancelText="取消"
+          width={600}
+          destroyOnClose
+        >
+          <div style={{ marginBottom: 16 }}>
+            <p style={{ marginBottom: 8, color: '#666' }}>
+              当前时间：{formatTime(currentTime)} | 视频：{videoData?.title || '未知视频'}
+            </p>
+            <TextArea
+              value={annotationText}
+              onChange={(e) => setAnnotationText(e.target.value)}
+              placeholder="请输入您的标注内容..."
+              rows={6}
+              style={{ resize: 'vertical' }}
+            />
+          </div>
+        </Modal>
+      </div>
+    );
+  }
 
   return (
     <>
