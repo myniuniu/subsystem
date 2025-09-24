@@ -89,18 +89,28 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   // 课程视频相关状态
   const [videoTitle, setVideoTitle] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
-  const [courseVideos, setCourseVideos] = useState(
-    mode === 'create' ? [
-      { id: 4, title: '成都火锅制作教程', url: 'https://video.com/chengdu-hotpot', addTime: '刚刚', progress: 0 }
-    ] : note?.materials?.videos || [
-      // 编辑模式下如果没有实际数据，则提供默认测试数据
-      { id: 101, title: '数据结构与算法基础', url: 'https://edu.example.com/course/data-structure', addTime: '2024-01-15 10:30', duration: '45分钟', instructor: '张教授', progress: 75 },
-      { id: 102, title: 'React前端开发实战', url: 'https://edu.example.com/course/react-dev', addTime: '2024-01-16 14:20', duration: '60分钟', instructor: '李老师', progress: 45 },
-      { id: 103, title: 'Python机器学习入门', url: 'https://edu.example.com/course/python-ml', addTime: '2024-01-17 09:15', duration: '75分钟', instructor: '王博士', progress: 90 },
-      { id: 104, title: '数据库设计与优化', url: 'https://edu.example.com/course/database-design', addTime: '2024-01-18 16:45', duration: '50分钟', instructor: '陈工程师', progress: 20 },
-      { id: 105, title: '云计算架构设计', url: 'https://edu.example.com/course/cloud-architecture', addTime: '2024-01-19 11:00', duration: '90分钟', instructor: '刘架构师', progress: 100 }
-    ]
-  );
+  const [courseVideos, setCourseVideos] = useState(() => {
+    if (mode === 'create') {
+      return [
+        { id: 4, title: '成都火锅制作教程', url: 'https://video.com/chengdu-hotpot', addTime: '刚刚', progress: 0 }
+      ];
+    } else {
+      // 编辑模式下，如果有实际数据且不为空，使用实际数据；否则使用默认测试数据
+      const actualVideos = note?.materials?.videos;
+      if (actualVideos && actualVideos.length > 0) {
+        return actualVideos;
+      } else {
+        // 提供默认测试数据
+        return [
+          { id: 101, title: '数据结构与算法基础', url: 'https://edu.example.com/course/data-structure', addTime: '2024-01-15 10:30', duration: '45分钟', instructor: '张教授', progress: 75 },
+          { id: 102, title: 'React前端开发实战', url: 'https://edu.example.com/course/react-dev', addTime: '2024-01-16 14:20', duration: '60分钟', instructor: '李老师', progress: 45 },
+          { id: 103, title: 'Python机器学习入门', url: 'https://edu.example.com/course/python-ml', addTime: '2024-01-17 09:15', duration: '75分钟', instructor: '王博士', progress: 90 },
+          { id: 104, title: '数据库设计与优化', url: 'https://edu.example.com/course/database-design', addTime: '2024-01-18 16:45', duration: '50分钟', instructor: '陈工程师', progress: 20 },
+          { id: 105, title: '云计算架构设计', url: 'https://edu.example.com/course/cloud-architecture', addTime: '2024-01-19 11:00', duration: '90分钟', instructor: '刘架构师', progress: 100 }
+        ];
+      }
+    }
+  });
   
   // 我的选课相关状态
   const [selectedCourses, setSelectedCourses] = useState(
@@ -197,10 +207,32 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
       return;
     }
 
-    // 查找视频资料
-    const videoMaterial = materials.find(material => 
+    console.log('调试信息 - 当前笔记:', currentNote);
+    console.log('调试信息 - 查找videoId:', currentNote.videoId);
+    console.log('调试信息 - materials数组:', materials);
+    console.log('调试信息 - courseVideos数组:', courseVideos);
+
+    // 查找视频资料 - 扩展查找逻辑
+    let videoMaterial = materials.find(material => 
       material.type === 'video' && material.id === currentNote.videoId
     );
+
+    // 如果在materials中没找到，尝试在courseVideos中查找
+    if (!videoMaterial) {
+      videoMaterial = courseVideos.find(video => 
+        video.id === currentNote.videoId
+      );
+    }
+
+    // 如果还是没找到，尝试更宽泛的匹配
+    if (!videoMaterial) {
+      videoMaterial = [...courseVideos, ...materials].find(item => 
+        item.id === currentNote.videoId || 
+        (item.title && currentNote.title && item.title.includes(currentNote.title.replace('【视频标注】', '')))
+      );
+    }
+
+    console.log('调试信息 - 找到的视频资料:', videoMaterial);
 
     if (!videoMaterial) {
       message.warning('未找到关联的视频资料');
@@ -1491,9 +1523,9 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
             <Divider style={{ margin: '16px 0' }} />
             
             {/* 选择所有来源 */}
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
               justifyContent: 'space-between',
               padding: '8px 12px',
               backgroundColor: '#f8f9fa',
@@ -1501,7 +1533,30 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
               marginBottom: 12,
               border: '1px solid #e9ecef'
             }}>
-              <span style={{ color: '#495057', fontSize: '14px' }}>选择所有来源</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ color: '#495057', fontSize: '14px' }}>选择所有来源</span>
+                <Tooltip title="重新加载示例数据">
+                  <Button 
+                    type="text" 
+                    size="small"
+                    icon={<RobotOutlined />}
+                    onClick={() => {
+                      // 初始化视频课程数据
+                      setCourseVideos([
+                        { id: 101, title: '数据结构与算法基础', url: 'https://edu.example.com/course/data-structure', addTime: '2024-01-15 10:30', duration: '45分钟', instructor: '张教授', progress: 75 },
+                        { id: 102, title: 'React前端开发实战', url: 'https://edu.example.com/course/react-dev', addTime: '2024-01-16 14:20', duration: '60分钟', instructor: '李老师', progress: 45 },
+                        { id: 103, title: 'Python机器学习入门', url: 'https://edu.example.com/course/python-ml', addTime: '2024-01-17 09:15', duration: '75分钟', instructor: '王博士', progress: 90 },
+                        { id: 104, title: '数据库设计与优化', url: 'https://edu.example.com/course/database-design', addTime: '2024-01-18 16:45', duration: '50分钟', instructor: '陈工程师', progress: 20 },
+                        { id: 105, title: '云计算架构设计', url: 'https://edu.example.com/course/cloud-architecture', addTime: '2024-01-19 11:00', duration: '90分钟', instructor: '刘架构师', progress: 100 }
+                      ]);
+                      message.success('已重新加载5条视频课程记录');
+                    }}
+                    style={{ color: '#666' }}
+                  >
+                    初始化
+                  </Button>
+                </Tooltip>
+              </div>
               <Checkbox 
                 style={{ marginLeft: 'auto' }}
                 checked={selectedMaterials.length > 0 && selectedMaterials.length === (
