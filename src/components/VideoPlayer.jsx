@@ -1,29 +1,28 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Modal, Button, Progress, Slider, Space, Typography, message } from 'antd';
-import {
-  PlayCircleOutlined,
-  PauseOutlined,
-  SoundOutlined,
+import { Modal, Button, Slider, Space, message, Input, Typography } from 'antd';
+import { 
+  PlayCircleOutlined, 
+  PauseCircleOutlined, 
+  SoundOutlined, 
   FullscreenOutlined,
   FullscreenExitOutlined,
-  CloseOutlined
+  CloseOutlined,
+  EditOutlined
 } from '@ant-design/icons';
 import './VideoPlayer.css';
 
+const { TextArea } = Input;
 const { Text } = Typography;
 
-const VideoPlayer = ({ 
-  visible, 
-  onClose, 
-  videoData, 
-  onProgressUpdate 
-}) => {
+const VideoPlayer = ({ visible, onClose, videoData, onNoteCreated }) => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showAnnotationModal, setShowAnnotationModal] = useState(false);
+  const [annotationText, setAnnotationText] = useState('');
   const [showControls, setShowControls] = useState(true);
   const [progress, setProgress] = useState(0);
 
@@ -47,6 +46,11 @@ const VideoPlayer = ({
         const savedTime = (videoData.progress / 100) * videoRef.current.duration;
         videoRef.current.currentTime = savedTime;
         setCurrentTime(savedTime);
+      }
+      // 如果有起始时间（用于时刻标注跳转），跳转到对应位置
+      else if (videoData?.startTime !== undefined && videoData.startTime > 0) {
+        videoRef.current.currentTime = videoData.startTime;
+        setCurrentTime(videoData.startTime);
       }
     }
   };
@@ -147,16 +151,80 @@ const VideoPlayer = ({
 
   // 关闭播放器时保存进度
   const handleClose = () => {
-    if (onProgressUpdate && progress > 0) {
-      onProgressUpdate(videoData.id, progress);
+    // 暂停视频播放
+    if (videoRef.current && !videoRef.current.paused) {
+      videoRef.current.pause();
     }
     setIsPlaying(false);
     onClose();
   };
 
+  // 时刻标注按钮点击处理
+  const handleAnnotationClick = () => {
+    // 生成当前时间段的默认总结
+    const currentTimeFormatted = formatTime(currentTime);
+    const defaultSummary = `在 ${currentTimeFormatted} 时刻的内容总结：\n\n这是一个重要的学习要点，值得记录和回顾。`;
+    
+    setAnnotationText(defaultSummary);
+    setShowAnnotationModal(true);
+  };
+
+  // 确认创建时刻标注
+  const handleAnnotationConfirm = async () => {
+    try {
+      // 导入笔记服务
+      const { default: notesService } = await import('../services/notesService');
+      
+      // 创建新的笔记记录
+      const noteData = {
+        title: `【视频标注】${videoData?.title || '视频笔记'}`,
+        content: `## 时刻标注\n\n**标注时间：** ${formatTime(currentTime)}\n**视频标题：** ${videoData?.title || '未知视频'}\n\n${annotationText}`,
+        category: 'study',
+        tags: ['视频标注', '时刻笔记'],
+        source: '视频播放器',
+        videoId: videoData?.id,
+        annotationTime: currentTime,
+        starred: false
+      };
+      
+      const newNote = notesService.createNote(noteData);
+      
+      message.success('时刻标注已保存为笔记');
+      setShowAnnotationModal(false);
+      setAnnotationText('');
+      
+      // 如果有回调函数，通知父组件有新笔记创建
+      if (onNoteCreated) {
+        const operationRecord = {
+          id: Date.now(),
+          title: `【视频标注】${videoData?.title || '视频笔记'}`,
+          source: '视频播放器',
+          time: formatTime(currentTime),
+          type: 'note',
+          content: noteData.content,
+          videoId: videoData?.id,
+          annotationTime: currentTime
+        };
+        onNoteCreated(operationRecord);
+      }
+      
+      console.log('创建的时刻标注笔记:', newNote);
+    } catch (error) {
+      console.error('保存时刻标注失败:', error);
+      message.error('保存时刻标注失败，请重试');
+    }
+  };
+
+  // 取消时刻标注
+  const handleAnnotationCancel = () => {
+    setShowAnnotationModal(false);
+    setAnnotationText('');
+  };
+
   if (!videoData) return null;
 
   return (
+    <>
     <Modal
       title={null}
       open={visible}
@@ -231,6 +299,15 @@ const VideoPlayer = ({
                 <Text style={{ color: 'white', fontSize: 12 }}>
                   {formatTime(currentTime)} / {formatTime(duration)}
                 </Text>
+
+                {/* 时刻标注按钮 */}
+                <Button
+                  type="text"
+                  icon={<EditOutlined />}
+                  onClick={handleAnnotationClick}
+                  style={{ color: 'white' }}
+                  title="时刻标注"
+                />
               </Space>
 
               <Space>
@@ -265,6 +342,32 @@ const VideoPlayer = ({
         )}
       </div>
     </Modal>
+
+    {/* 时刻标注对话框 */}
+    <Modal
+      title="时刻标注"
+      open={showAnnotationModal}
+      onOk={handleAnnotationConfirm}
+      onCancel={handleAnnotationCancel}
+      okText="确定"
+      cancelText="取消"
+      width={600}
+      destroyOnClose
+    >
+      <div style={{ marginBottom: 16 }}>
+        <p style={{ marginBottom: 8, color: '#666' }}>
+          当前时间：{formatTime(currentTime)} | 视频：{videoData?.title || '未知视频'}
+        </p>
+        <TextArea
+          value={annotationText}
+          onChange={(e) => setAnnotationText(e.target.value)}
+          placeholder="请输入您的标注内容..."
+          rows={6}
+          style={{ resize: 'vertical' }}
+        />
+      </div>
+    </Modal>
+    </>
   );
 };
 

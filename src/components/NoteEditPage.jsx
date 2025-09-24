@@ -92,19 +92,23 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   const [courseVideos, setCourseVideos] = useState(
     mode === 'create' ? [
       { id: 4, title: '成都火锅制作教程', url: 'https://video.com/chengdu-hotpot', addTime: '刚刚', progress: 0 }
-    ] : mode === 'edit' ? [
+    ] : note?.materials?.videos || [
+      // 编辑模式下如果没有实际数据，则提供默认测试数据
       { id: 101, title: '数据结构与算法基础', url: 'https://edu.example.com/course/data-structure', addTime: '2024-01-15 10:30', duration: '45分钟', instructor: '张教授', progress: 75 },
       { id: 102, title: 'React前端开发实战', url: 'https://edu.example.com/course/react-dev', addTime: '2024-01-16 14:20', duration: '60分钟', instructor: '李老师', progress: 45 },
       { id: 103, title: 'Python机器学习入门', url: 'https://edu.example.com/course/python-ml', addTime: '2024-01-17 09:15', duration: '75分钟', instructor: '王博士', progress: 90 },
       { id: 104, title: '数据库设计与优化', url: 'https://edu.example.com/course/database-design', addTime: '2024-01-18 16:45', duration: '50分钟', instructor: '陈工程师', progress: 20 },
       { id: 105, title: '云计算架构设计', url: 'https://edu.example.com/course/cloud-architecture', addTime: '2024-01-19 11:00', duration: '90分钟', instructor: '刘架构师', progress: 100 }
-    ] : note?.materials?.videos || []
+    ]
   );
   
   // 我的选课相关状态
   const [selectedCourses, setSelectedCourses] = useState(
     note?.materials?.courses || []
   );
+  
+  // 合并所有资料为materials数组
+  const materials = [...uploadedFiles, ...addedTexts, ...courseVideos, ...links, ...selectedCourses];
   
   // 问答区域相关状态
   const [messages, setMessages] = useState(note?.messages || []);
@@ -138,7 +142,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     webcode: [],
     file: [],
     text: [],
-    link: []
+    link: [],
+    note: [] // 新增笔记类型
   });
 
   // 内容查看弹窗状态
@@ -163,6 +168,65 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   // 场景模拟相关状态
   const [scenarioModalVisible, setScenarioModalVisible] = useState(false);
   const [selectedScenarios, setSelectedScenarios] = useState([]);
+
+  // 富文本编辑器相关状态
+  const [showNoteEditor, setShowNoteEditor] = useState(false);
+  const [editingNote, setEditingNote] = useState(null);
+  const [noteEditorContent, setNoteEditorContent] = useState('');
+
+  // 时间格式正则表达式 (MM:SS 或 HH:MM:SS)
+  const timeRegex = /\b(\d{1,2}):(\d{2})(?::(\d{2}))?\b/g;
+
+  // 将时间文本转换为超链接
+  const convertTimeToLinks = (content) => {
+    return content.replace(timeRegex, (match, minutes, seconds, hours) => {
+      const totalSeconds = hours ? 
+        parseInt(hours) * 3600 + parseInt(minutes) * 60 + parseInt(seconds) :
+        parseInt(minutes) * 60 + parseInt(seconds);
+      
+      return `<a href="#" onclick="handleTimeClick(${totalSeconds})" style="color: #1890ff; text-decoration: underline; cursor: pointer;">${match}</a>`;
+    });
+  };
+
+  // 处理时间超链接点击事件
+  const handleTimeClick = (timeInSeconds) => {
+    // 查找当前笔记关联的视频
+    const currentNote = editingNote;
+    if (!currentNote || !currentNote.videoId) {
+      message.warning('当前笔记未关联视频，无法跳转');
+      return;
+    }
+
+    // 查找视频资料
+    const videoMaterial = materials.find(material => 
+      material.type === 'video' && material.id === currentNote.videoId
+    );
+
+    if (!videoMaterial) {
+      message.warning('未找到关联的视频资料');
+      return;
+    }
+
+    // 关闭编辑器并跳转到视频播放
+    setShowNoteEditor(false);
+    setEditingNote(null);
+    setNoteEditorContent('');
+    
+    // 设置视频播放参数
+    setSelectedMaterial(videoMaterial);
+    setVideoStartTime(timeInSeconds);
+    setCurrentView('video');
+    
+    message.success(`正在跳转到视频 ${Math.floor(timeInSeconds / 60)}:${(timeInSeconds % 60).toString().padStart(2, '0')}`);
+  };
+
+  // 全局暴露handleTimeClick函数
+  React.useEffect(() => {
+    window.handleTimeClick = handleTimeClick;
+    return () => {
+      delete window.handleTimeClick;
+    };
+  }, [editingNote, materials]);
 
   // 根据资源推荐场景模拟
   const getRecommendedScenarios = () => {
@@ -343,12 +407,13 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
       title: '新建笔记',
       source: '手动创建',
       time: '刚刚',
-      type: 'report'
+      type: 'note',
+      content: '<p>请在此处编写您的笔记内容...</p>'
     };
     
     setOperationRecords(prev => ({
       ...prev,
-      report: [newNote, ...prev.report]
+      note: [newNote, ...prev.note]
     }));
     
     message.success('新建笔记已添加到操作记录');
@@ -462,12 +527,33 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
       scenario: '场景模拟',
       'training-plan': '培训方案',
       schedule: '课表',
-      participants: '参训人员清单'
+      participants: '参训人员清单',
+      note: '笔记'
     };
 
     // 如果是场景模拟，显示弹窗
     if (operationType === 'scenario') {
       setScenarioModalVisible(true);
+      return;
+    }
+
+    // 如果是笔记类型，创建可编辑的笔记
+    if (operationType === 'note') {
+      const newRecord = {
+        id: Date.now(),
+        title: '新建笔记',
+        source: '手动创建',
+        time: '刚刚',
+        type: 'note',
+        content: '<p>请在此处编写您的笔记内容...</p>'
+      };
+
+      setOperationRecords(prev => ({
+        ...prev,
+        note: [newRecord, ...prev.note]
+      }));
+
+      message.success('新建笔记已添加到操作记录');
       return;
     }
 
@@ -587,9 +673,43 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     return commonItems;
   };
 
+  // 处理时间超链接点击，跳转到视频对应时间点
+  const handleRecordTimeClick = (record) => {
+    if (record.videoId && record.annotationTime !== undefined) {
+      // 查找对应的视频资料
+      const videoMaterial = [...courseVideos, ...materials].find(
+        material => material.id === record.videoId || 
+        (material.type === 'video' && material.title === record.title?.replace('【视频标注】', ''))
+      );
+      
+      if (videoMaterial) {
+        // 设置视频数据并打开播放器
+        setCurrentVideo({
+          ...videoMaterial,
+          startTime: record.annotationTime // 设置起始播放时间
+        });
+        setShowVideoPlayer(true);
+        message.success(`正在跳转到视频 ${Math.floor(record.annotationTime / 60)}:${String(Math.floor(record.annotationTime % 60)).padStart(2, '0')} 时刻`);
+      } else {
+        message.warning('未找到对应的视频文件');
+      }
+    }
+  };
+
   // 处理记录点击打开
   const handleRecordClick = (record) => {
     setCurrentRecord(record);
+    
+    // 如果是笔记类型，打开富文本编辑器
+    if (record.type === 'note') {
+      setEditingNote(record);
+      const initialContent = record.content || '<p>请在此处编写您的笔记内容...</p>';
+      // 立即应用时间超链接转换
+      const contentWithLinks = convertTimeToLinks(initialContent);
+      setNoteEditorContent(contentWithLinks);
+      setShowNoteEditor(true);
+      return;
+    }
     
     // 根据记录类型生成不同的内容
     switch (record.type) {
@@ -2324,6 +2444,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                       case 'ppt': return '📽️';
                       case 'webcode': return '💻';
                       case 'scenario': return '🎭';
+                      case 'note': return '📝';
                       case 'file': return '📄';
                       case 'text': return '📝';
                       case 'link': return '🔗';
@@ -2363,12 +2484,9 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                         >
                           {record.title}
                         </Text>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
                           <Text style={{ fontSize: '10px', color: '#999' }}>
                             {record.source}
-                          </Text>
-                          <Text style={{ fontSize: '10px', color: '#999' }}>
-                            {record.time}
                           </Text>
                         </div>
                       </div>
@@ -2377,6 +2495,18 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                           type="text" 
                           size="small" 
                           icon={<div style={{ fontSize: '12px' }}>▶</div>}
+                          style={{ padding: '2px 4px', height: 'auto', minWidth: 'auto' }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRecordClick(record);
+                          }}
+                        />
+                      )}
+                      {record.type === 'note' && (
+                        <Button 
+                          type="text" 
+                          size="small" 
+                          icon={<EditOutlined style={{ fontSize: '12px' }} />}
                           style={{ padding: '2px 4px', height: 'auto', minWidth: 'auto' }}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -2866,6 +2996,13 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
           setCurrentVideo(null);
         }}
         videoData={currentVideo}
+        onNoteCreated={(operationRecord) => {
+          // 添加操作记录到操作记录区
+          setOperationRecords(prev => ({
+            ...prev,
+            note: [operationRecord, ...prev.note]
+          }));
+        }}
         onProgressUpdate={(videoId, progress) => {
           // 更新视频观看进度
           setCourseVideos(prev => 
@@ -3023,6 +3160,136 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
               </div>
             </Card>
           ))}
+        </div>
+      </Modal>
+
+      {/* 富文本编辑器模态框 */}
+      <Modal
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '16px' }}>📝</span>
+            <span>编辑笔记</span>
+          </div>
+        }
+        open={showNoteEditor}
+        onCancel={() => {
+          setShowNoteEditor(false);
+          setEditingNote(null);
+          setNoteEditorContent('');
+        }}
+        width={800}
+        footer={[
+          <Button key="cancel" onClick={() => {
+            setShowNoteEditor(false);
+            setEditingNote(null);
+            setNoteEditorContent('');
+          }}>
+            取消
+          </Button>,
+          <Button 
+            key="save" 
+            type="primary" 
+            onClick={() => {
+              if (!noteEditorContent.trim() || noteEditorContent === '<p></p>') {
+                message.warning('请输入笔记内容');
+                return;
+              }
+
+              // 更新操作记录中的笔记内容
+              setOperationRecords(prev => ({
+                ...prev,
+                note: prev.note.map(note => 
+                  note.id === editingNote.id 
+                    ? { ...note, content: noteEditorContent }
+                    : note
+                )
+              }));
+
+              message.success('笔记已保存');
+              setShowNoteEditor(false);
+              setEditingNote(null);
+              setNoteEditorContent('');
+            }}
+          >
+            保存
+          </Button>
+        ]}
+      >
+        <div style={{ marginBottom: '16px' }}>
+          <div style={{ 
+            border: '1px solid #d9d9d9', 
+            borderRadius: '6px',
+            minHeight: '300px',
+            padding: '12px'
+          }}>
+            <div 
+              contentEditable
+              style={{
+                minHeight: '280px',
+                outline: 'none',
+                lineHeight: '1.6',
+                fontSize: '14px'
+              }}
+              dangerouslySetInnerHTML={{ __html: noteEditorContent }}
+              onInput={(e) => {
+                const rawContent = e.target.innerHTML;
+                const contentWithLinks = convertTimeToLinks(rawContent);
+                setNoteEditorContent(contentWithLinks);
+                // 如果内容发生了变化（添加了超链接），更新显示
+                if (rawContent !== contentWithLinks) {
+                  e.target.innerHTML = contentWithLinks;
+                  // 保持光标位置
+                  const selection = window.getSelection();
+                  const range = document.createRange();
+                  range.selectNodeContents(e.target);
+                  range.collapse(false);
+                  selection.removeAllRanges();
+                  selection.addRange(range);
+                }
+              }}
+              onBlur={(e) => {
+                const rawContent = e.target.innerHTML;
+                const contentWithLinks = convertTimeToLinks(rawContent);
+                setNoteEditorContent(contentWithLinks);
+              }}
+            />
+          </div>
+          <div style={{ 
+            marginTop: '8px', 
+            fontSize: '12px', 
+            color: '#999',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <span>支持富文本编辑，可以设置文字样式、添加链接等</span>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <Button 
+                size="small" 
+                onClick={() => {
+                  document.execCommand('bold');
+                }}
+              >
+                <strong>B</strong>
+              </Button>
+              <Button 
+                size="small" 
+                onClick={() => {
+                  document.execCommand('italic');
+                }}
+              >
+                <em>I</em>
+              </Button>
+              <Button 
+                size="small" 
+                onClick={() => {
+                  document.execCommand('underline');
+                }}
+              >
+                <u>U</u>
+              </Button>
+            </div>
+          </div>
         </div>
       </Modal>
     </>
