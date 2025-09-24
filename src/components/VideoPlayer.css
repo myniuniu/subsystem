@@ -16,20 +16,25 @@
   position: relative;
   background: #000;
   width: 100%;
-  height: 70vh;
+  height: auto;
+  min-height: 200px;
   display: flex;
   flex-direction: column;
-}
-
-/* 嵌入模式样式 */
-.video-player-container.embedded {
-  height: 100%;
   border-radius: 8px;
   overflow: hidden;
 }
 
-.video-player-container.embedded .video-element {
+/* 嵌入模式样式 */
+.video-player-container.embedded {
+  height: auto;
+  min-height: 200px;
   border-radius: 8px;
+  overflow: hidden;
+  background: transparent;
+}
+
+.video-player-container.embedded .video-element {
+  border-radius: 8px 8px 0 0;
 }
 
 .video-player-container.embedded .video-controls {
@@ -49,9 +54,12 @@
 
 .video-element {
   width: 100%;
-  height: 100%;
+  height: auto;
+  max-height: 400px;
   object-fit: contain;
   cursor: pointer;
+  display: block;
+  background: #000;
 }
 
 .video-controls {
@@ -158,7 +166,11 @@
   }
   
   .video-player-container {
-    height: 50vh;
+    min-height: 150px;
+  }
+  
+  .video-element {
+    max-height: 250px;
   }
   
   .video-header {

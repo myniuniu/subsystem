@@ -2235,12 +2235,11 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
 
             {/* 视频播放器区域 */}
             <div style={{ 
-              flex: 1, 
-              padding: '20px',
+              padding: '0',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: '#000'
+              background: 'transparent'
             }}>
               {selectedMaterial && (
                 <VideoPlayer
@@ -2251,9 +2250,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                   }}
                   embedded={true}
                   style={{
-                    width: '100%',
-                    height: '100%',
-                    minHeight: '300px'
+                    width: '100%'
                   }}
                   onTimeUpdate={handleVideoTimeUpdate}
                   onNoteCreated={(operationRecord) => {
