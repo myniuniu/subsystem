@@ -213,10 +213,165 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   const [scenarioModalVisible, setScenarioModalVisible] = useState(false);
   const [selectedScenarios, setSelectedScenarios] = useState([]);
 
+  // 添加工具相关状态
+  const [addToolModalVisible, setAddToolModalVisible] = useState(false);
+  const [availableTools, setAvailableTools] = useState([]);
+  const [selectedTools, setSelectedTools] = useState([]);
+  const [toolCategories, setToolCategories] = useState([]);
+  const [selectedToolCategory, setSelectedToolCategory] = useState('all');
+
   // 富文本编辑器相关状态
   const [showNoteEditor, setShowNoteEditor] = useState(false);
   const [editingNote, setEditingNote] = useState(null);
   const [noteEditorContent, setNoteEditorContent] = useState('');
+
+  // 初始化可用工具数据
+  const initializeAvailableTools = () => {
+    const tools = [
+      // 数据分析工具
+      {
+        id: 'data_visualization',
+        name: '数据可视化',
+        icon: '📈',
+        category: 'data_analysis',
+        description: '创建互动式数据图表和可视化报告',
+        tags: ['数据', '图表', '分析']
+      },
+      {
+        id: 'statistical_analysis',
+        name: '统计分析',
+        icon: '📉',
+        category: 'data_analysis',
+        description: '进行高级统计分析和数据挖掘',
+        tags: ['统计', '分析', '数据挖掘']
+      },
+      {
+        id: 'survey_tool',
+        name: '问卷调查',
+        icon: '📋',
+        category: 'data_analysis',
+        description: '设计和发布在线问卷，收集和分析数据',
+        tags: ['问卷', '调查', '数据收集']
+      },
+      // 协作工具
+      {
+        id: 'team_collaboration',
+        name: '团队协作',
+        icon: '🤝',
+        category: 'collaboration',
+        description: '实时协作编辑和项目管理平台',
+        tags: ['协作', '团队', '项目管理']
+      },
+      {
+        id: 'video_conference',
+        name: '视频会议',
+        icon: '📹',
+        category: 'collaboration',
+        description: '高清视频通话和在线会议工具',
+        tags: ['视频', '会议', '通话']
+      },
+      {
+        id: 'whiteboard',
+        name: '在线白板',
+        icon: '🎨',
+        category: 'collaboration',
+        description: '多人实时协作的数字白板',
+        tags: ['白板', '绘图', '头脑风暴']
+      },
+      // 学习工具
+      {
+        id: 'flashcard',
+        name: '闪卡记忆',
+        icon: '🃏',
+        category: 'learning',
+        description: '创建和管理智能闪卡记忆卡片',
+        tags: ['记忆', '学习', '闪卡']
+      },
+      {
+        id: 'quiz_maker',
+        name: '测验制作',
+        icon: '❓',
+        category: 'learning',
+        description: '制作互动性测验和考试',
+        tags: ['测验', '考试', '互动']
+      },
+      {
+        id: 'progress_tracker',
+        name: '学习进度',
+        icon: '📈',
+        category: 'learning',
+        description: '跟踪和分析学习进度和成果',
+        tags: ['进度', '跟踪', '分析']
+      },
+      // 创作工具
+      {
+        id: 'content_generator',
+        name: '内容生成',
+        icon: '✍️',
+        category: 'creation',
+        description: 'AI驱动的内容创作和编辑工具',
+        tags: ['AI', '内容', '创作']
+      },
+      {
+        id: 'design_tool',
+        name: '设计工具',
+        icon: '🎨',
+        category: 'creation',
+        description: '在线图形设计和编辑平台',
+        tags: ['设计', '图形', '编辑']
+      },
+      {
+        id: 'presentation_maker',
+        name: '演示制作',
+        icon: '📄',
+        category: 'creation',
+        description: '创建专业的演示文稿和幻灯片',
+        tags: ['演示', '幻灯片', 'PPT']
+      },
+      // 实用工具
+      {
+        id: 'calendar_scheduler',
+        name: '日程管理',
+        icon: '📅',
+        category: 'productivity',
+        description: '智能日程安排和时间管理',
+        tags: ['日程', '时间管理', '安排']
+      },
+      {
+        id: 'task_manager',
+        name: '任务管理',
+        icon: '✅',
+        category: 'productivity',
+        description: '高效的任务跟踪和管理系统',
+        tags: ['任务', '管理', 'GTD']
+      },
+      {
+        id: 'note_organizer',
+        name: '笔记整理',
+        icon: '📁',
+        category: 'productivity',
+        description: '智能笔记分类和管理工具',
+        tags: ['笔记', '整理', '分类']
+      }
+    ];
+    
+    const categories = [
+      { value: 'all', label: '全部工具', icon: '🛠️' },
+      { value: 'data_analysis', label: '数据分析', icon: '📈' },
+      { value: 'collaboration', label: '协作工具', icon: '🤝' },
+      { value: 'learning', label: '学习工具', icon: '📚' },
+      { value: 'creation', label: '创作工具', icon: '✍️' },
+      { value: 'productivity', label: '实用工具', icon: '⚙️' }
+    ];
+    
+    setAvailableTools(tools);
+    setToolCategories(categories);
+  };
+
+  // 初始化时调用
+  useEffect(() => {
+    initializeAvailableTools();
+  }, []);
 
   // 右侧栏显示状态
   const [rightPanelView, setRightPanelView] = useState('operations'); // 'operations' 或 'noteEditor'
@@ -690,6 +845,58 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     message.success('新建组织学习笔记已添加到操作记录');
   };
 
+  // 处理添加工具功能
+  const handleAddTool = () => {
+    setAddToolModalVisible(true);
+  };
+
+  // 过滤工具
+  const getFilteredTools = () => {
+    if (selectedToolCategory === 'all') {
+      return availableTools;
+    }
+    return availableTools.filter(tool => tool.category === selectedToolCategory);
+  };
+
+  // 处理工具选择
+  const handleToolSelect = (tool) => {
+    const isSelected = selectedTools.find(t => t.id === tool.id);
+    if (isSelected) {
+      setSelectedTools(prev => prev.filter(t => t.id !== tool.id));
+    } else {
+      setSelectedTools(prev => [...prev, tool]);
+    }
+  };
+
+  // 确认添加工具
+  const handleConfirmAddTools = () => {
+    if (selectedTools.length === 0) {
+      message.warning('请至少选择一个工具');
+      return;
+    }
+
+    // 将选中的工具添加到操作记录
+    const newRecords = selectedTools.map(tool => ({
+      id: Date.now() + Math.random(),
+      title: `工具：${tool.name}`,
+      source: '工具库',
+      time: '刚刚',
+      type: 'tool',
+      content: tool.description,
+      toolData: tool
+    }));
+
+    setOperationRecords(prev => ({
+      ...prev,
+      tool: [...(prev.tool || []), ...newRecords]
+    }));
+
+    message.success(`已添加${selectedTools.length}个工具到操作记录`);
+    setAddToolModalVisible(false);
+    setSelectedTools([]);
+    setSelectedToolCategory('all');
+  };
+
   // 生成基于实际来源的摘要内容
   const generateSummaryContent = () => {
     const allSources = [];
@@ -750,11 +957,11 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
       'google-drive': [
         {
           id: Date.now() + 2,
-          title: `Google云端硬盘中的"${query}"相关文档`,
+          title: `学习公社中的"${query}"相关文档`,
           url: `https://drive.google.com/search?q=${encodeURIComponent(query)}`,
-          content: `从Google云端硬盘中找到的关于"${query}"的文档...`,
+          content: `从学习公社中找到的关于"${query}"的文档...`,
           addTime: '刚刚',
-          source: 'Google云端硬盘'
+          source: '学习公社'
         }
       ]
     };
@@ -780,7 +987,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
         source: r.source
       })), ...prev]);
       
-      message.success(`成功从${source === 'web' ? 'Web' : 'Google云端硬盘'}探索到${results.length}条相关资源`);
+      message.success(`成功从${source === 'web' ? 'Web' : '学习公社'}探索到${results.length}条相关资源`);
     } else {
       message.info('未找到相关资源，请尝试其他关键词');
     }
@@ -3026,6 +3233,30 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                    }}>场景模拟</Text>
                  </div>
               </Card>
+
+              {/* 添加工具 */}
+              <Card 
+                size="small" 
+                hoverable
+                onClick={handleAddTool}
+                style={{ 
+                  background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div style={{ padding: '6px 0' }}>
+                   <div style={{ fontSize: '20px', marginBottom: '6px' }}>🛠️</div>
+                   <Text style={{ 
+                     fontSize: '11px', 
+                     fontWeight: 500, 
+                     color: '#2e7d32' 
+                   }}>添加工具</Text>
+                 </div>
+              </Card>
               
 
             </div>
@@ -3050,6 +3281,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                       case 'link': return '🔗';
                       case 'course': return '📚';
                       case 'study-result': return '🏆'; // 研修成果类型
+                      case 'tool': return '🛠️'; // 工具类型
                       default: return '📄';
                     }
                   };
@@ -4211,6 +4443,137 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
           onClick={handleClickOutside}
         />
       )}
+
+      {/* 添加工具模态框 */}
+      <Modal
+        title="添加工具"
+        open={addToolModalVisible}
+        onCancel={() => {
+          setAddToolModalVisible(false);
+          setSelectedTools([]);
+          setSelectedToolCategory('all');
+        }}
+        width={900}
+        footer={[
+          <Button key="cancel" onClick={() => {
+            setAddToolModalVisible(false);
+            setSelectedTools([]);
+            setSelectedToolCategory('all');
+          }}>
+            取消
+          </Button>,
+          <Button 
+            key="confirm" 
+            type="primary" 
+            onClick={handleConfirmAddTools}
+            disabled={selectedTools.length === 0}
+          >
+            确认添加 ({selectedTools.length})
+          </Button>
+        ]}
+      >
+        <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+          {/* 工具分类选择 */}
+          <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Text strong>工具分类：</Text>
+            <Select
+              value={selectedToolCategory}
+              onChange={setSelectedToolCategory}
+              style={{ width: 200 }}
+            >
+              {toolCategories.map(category => (
+                <Option key={category.value} value={category.value}>
+                  {category.icon} {category.label}
+                </Option>
+              ))}
+            </Select>
+            <div style={{ marginLeft: 'auto', color: '#666', fontSize: '14px' }}>
+              已选中 {selectedTools.length} 个工具
+            </div>
+          </div>
+
+          {/* 工具列表 */}
+          <Row gutter={[16, 16]}>
+            {getFilteredTools().map(tool => {
+              const isSelected = selectedTools.find(t => t.id === tool.id);
+              return (
+                <Col xs={24} sm={12} lg={8} key={tool.id}>
+                  <Card
+                    size="small"
+                    hoverable
+                    onClick={() => handleToolSelect(tool)}
+                    style={{ 
+                      cursor: 'pointer',
+                      border: isSelected ? '2px solid #1890ff' : '1px solid #f0f0f0',
+                      background: isSelected ? '#f6ffed' : '#fff',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                      <div style={{ fontSize: '32px', flexShrink: 0 }}>
+                        {tool.icon}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ 
+                          fontSize: '14px', 
+                          fontWeight: 'bold', 
+                          marginBottom: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between'
+                        }}>
+                          <span>{tool.name}</span>
+                          {isSelected && (
+                            <div style={{
+                              background: '#52c41a',
+                              color: 'white',
+                              borderRadius: '50%',
+                              width: '20px',
+                              height: '20px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '12px'
+                            }}>
+                              ✓
+                            </div>
+                          )}
+                        </div>
+                        <div style={{ 
+                          fontSize: '12px', 
+                          color: '#666', 
+                          lineHeight: '1.4',
+                          marginBottom: '8px'
+                        }}>
+                          {tool.description}
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                          {tool.tags.map(tag => (
+                            <Tag key={tag} size="small" color="blue">
+                              {tag}
+                            </Tag>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </Col>
+              );
+            })}
+          </Row>
+
+          {getFilteredTools().length === 0 && (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '40px 20px',
+              color: '#999'
+            }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
+              <div>该分类下暂无工具</div>
+            </div>
+          )}
+        </div>
+      </Modal>
 
       {/* 富文本编辑器模态框 */}
       <Modal

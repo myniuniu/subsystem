@@ -173,7 +173,7 @@ const ExploreModal = ({ visible, onClose, onExplore }) => {
                 <span className="source-text">Web</span>
               </Radio>
               <Radio value="google-drive" className="source-radio">
-                <span className="source-text">Google 云端硬盘</span>
+                <span className="source-text">学习公社</span>
               </Radio>
             </Radio.Group>
           </div>
