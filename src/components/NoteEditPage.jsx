@@ -560,13 +560,21 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     setSelectedMaterial(material);
     setCurrentView('video');
     setVideoStartTime(0);
+    
+    // 将当前播放的视频设置为选中状态
+    const materialId = `video-${material.id}`;
+    if (!selectedMaterials.includes(materialId)) {
+      setSelectedMaterials(prev => [...prev, materialId]);
+    }
+    
     message.success(`正在播放视频：${material.title}`);
   };
 
   // 返回资料列表
   const handleBackToMaterials = () => {
     setCurrentView('materials');
-    setSelectedMaterial(null);
+    // 保持当前视频的选中状态，不清除 selectedMaterial
+    // setSelectedMaterial(null); // 注释掉这行，保持选中状态
     setCurrentSubtitle('');
     setVideoProgress(0);
   };
