@@ -1055,19 +1055,19 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   };
 
   // 保存AI回复到笔记
-  const handleSaveToNote = (content) => {
+  const handleSaveToNote = (content, userQuestion) => {
     const newRecord = {
       id: Date.now(),
-      title: `AI问答笔记 - ${new Date().toLocaleString()}`,
+      title: userQuestion || `AI问答笔记 - ${new Date().toLocaleString()}`,
       source: 'AI智能问答',
       time: '刚刚',
-      type: 'report',
+      type: 'note',
       content: content
     };
 
     setOperationRecords(prev => ({
       ...prev,
-      report: [newRecord, ...prev.report]
+      note: [newRecord, ...prev.note]
     }));
 
     message.success('AI回复已保存到笔记');
@@ -2860,53 +2860,59 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
           
           {/* 消息列表 */}
           <div style={{ flex: 1, padding: '20px', overflowY: 'auto', maxHeight: 'calc(100vh - 500px)' }}>
-            {messages.map(msg => (
-              <div key={msg.id} style={{ marginBottom: 16 }}>
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: msg.type === 'user' ? 'flex-end' : 'flex-start',
-                  alignItems: 'flex-start',
-                  gap: 8
-                }}>
-                  {msg.type === 'assistant' && (
-                    <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#1890ff' }} />
-                  )}
-                  <div style={{
-                    maxWidth: '70%'
+            {messages.map((msg, index) => {
+              // 查找对应的用户问题
+              const correspondingUserMessage = msg.type === 'assistant' ? 
+                messages.slice(0, index).reverse().find(m => m.type === 'user') : null;
+              
+              return (
+                <div key={msg.id} style={{ marginBottom: 16 }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: msg.type === 'user' ? 'flex-end' : 'flex-start',
+                    alignItems: 'flex-start',
+                    gap: 8
                   }}>
-                    <div style={{
-                      padding: '12px 16px',
-                      borderRadius: '12px',
-                      backgroundColor: msg.type === 'user' ? '#1890ff' : '#f6f6f6',
-                      color: msg.type === 'user' ? '#fff' : '#333'
-                    }}>
-                      <Text style={{ color: 'inherit' }}>{msg.content}</Text>
-                    </div>
                     {msg.type === 'assistant' && (
-                      <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'flex-start' }}>
-                        <Button
-                          size="small"
-                          type="text"
-                          icon={<SaveOutlined />}
-                          onClick={() => handleSaveToNote(msg.content)}
-                          style={{
-                            fontSize: '12px',
-                            color: '#666',
-                            padding: '4px 8px',
-                            height: 'auto'
-                          }}
-                        >
-                          保存到笔记
-                        </Button>
+                      <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#1890ff' }} />
+                    )}
+                    <div style={{
+                      maxWidth: '70%'
+                    }}>
+                      <div style={{
+                        padding: '12px 16px',
+                        borderRadius: '12px',
+                        backgroundColor: msg.type === 'user' ? '#1890ff' : '#f6f6f6',
+                        color: msg.type === 'user' ? '#fff' : '#333'
+                      }}>
+                        <Text style={{ color: 'inherit' }}>{msg.content}</Text>
                       </div>
+                      {msg.type === 'assistant' && (
+                        <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'flex-start' }}>
+                          <Button
+                            size="small"
+                            type="text"
+                            icon={<SaveOutlined />}
+                            onClick={() => handleSaveToNote(msg.content, correspondingUserMessage?.content)}
+                            style={{
+                              fontSize: '12px',
+                              color: '#666',
+                              padding: '4px 8px',
+                              height: 'auto'
+                            }}
+                          >
+                            保存到笔记
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    {msg.type === 'user' && (
+                      <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#52c41a' }} />
                     )}
                   </div>
-                  {msg.type === 'user' && (
-                    <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#52c41a' }} />
-                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {isLoading && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#1890ff' }} />
@@ -3264,7 +3270,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
           
           {/* 下半部分 - 操作记录 */}
           <div style={{ padding: '20px', borderTop: '1px solid #f0f0f0', flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <div style={{ flex: 1, overflowY: 'auto', maxHeight: '300px', marginBottom: '12px' }}>
+            <div style={{ flex: 1, overflowY: 'auto', marginBottom: '12px' }}>
               {Object.values(operationRecords).flat().map(record => {
                 const getIcon = (type) => {
                     switch(type) {
