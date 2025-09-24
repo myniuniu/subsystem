@@ -176,6 +176,12 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
   const [currentVideo, setCurrentVideo] = useState(null);
 
+  // 字幕选择菜单相关状态
+  const [subtitleMenuVisible, setSubtitleMenuVisible] = useState(false);
+  const [subtitleMenuPosition, setSubtitleMenuPosition] = useState({ x: 0, y: 0 });
+  const [selectedSubtitleText, setSelectedSubtitleText] = useState('');
+  const [selectedSubtitleTime, setSelectedSubtitleTime] = useState(0);
+
   // 嵌入式视频播放相关状态
   const [selectedMaterial, setSelectedMaterial] = useState(null);
   const [currentView, setCurrentView] = useState('materials'); // 'materials' 或 'video'
@@ -231,6 +237,111 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     } else {
       setCurrentSubtitle('');
     }
+  };
+
+  // 处理字幕文字选中
+  const handleSubtitleTextSelection = (e, subtitle) => {
+    const selection = window.getSelection();
+    const selectedText = selection.toString().trim();
+    
+    if (selectedText && selectedText.length > 0) {
+      const rect = selection.getRangeAt(0).getBoundingClientRect();
+      setSelectedSubtitleText(selectedText);
+      setSelectedSubtitleTime(subtitle.start);
+      setSubtitleMenuPosition({
+        x: rect.left + rect.width / 2,
+        y: rect.top - 10
+      });
+      setSubtitleMenuVisible(true);
+    }
+  };
+
+  // 处理一键摘取
+  const handleQuickExtract = () => {
+    const newNote = {
+      id: Date.now(),
+      title: `【视频摘取】${selectedSubtitleText.length > 20 ? selectedSubtitleText.substring(0, 20) + '...' : selectedSubtitleText}`,
+      source: `视频摘取 - ${selectedMaterial?.title || '视频'}`,
+      time: '刚刚',
+      type: 'note',
+      content: `<p><strong>摘取内容：</strong>${selectedSubtitleText}</p><p><strong>时间点：</strong>${Math.floor(selectedSubtitleTime / 60)}:${(selectedSubtitleTime % 60).toString().padStart(2, '0')}</p><p><strong>来源：</strong>${selectedMaterial?.title || '视频'}</p>`,
+      videoId: selectedMaterial?.id,
+      annotationTime: selectedSubtitleTime
+    };
+    
+    setOperationRecords(prev => ({
+      ...prev,
+      note: [newNote, ...prev.note]
+    }));
+    
+    setSubtitleMenuVisible(false);
+    message.success('内容已成功摘取到笔记');
+  };
+
+  // 处理标记操作
+  const handleMarkSubtitle = (markType) => {
+    const markColors = {
+      blue: '#1890ff',
+      pink: '#eb2f96', 
+      yellow: '#faad14',
+      gray: '#8c8c8c'
+    };
+    
+    const markNames = {
+      blue: '重要',
+      pink: '疑问',
+      yellow: '精彩',
+      gray: '备注'
+    };
+    
+    const newNote = {
+      id: Date.now(),
+      title: `【${markNames[markType]}标记】${selectedSubtitleText.length > 15 ? selectedSubtitleText.substring(0, 15) + '...' : selectedSubtitleText}`,
+      source: `${markNames[markType]}标记 - ${selectedMaterial?.title || '视频'}`,
+      time: '刚刚',
+      type: 'note',
+      content: `<p style="background-color: ${markColors[markType]}20; padding: 8px; border-left: 4px solid ${markColors[markType]}; border-radius: 4px;"><strong>【${markNames[markType]}标记】</strong>${selectedSubtitleText}</p><p><strong>时间点：</strong>${Math.floor(selectedSubtitleTime / 60)}:${(selectedSubtitleTime % 60).toString().padStart(2, '0')}</p><p><strong>来源：</strong>${selectedMaterial?.title || '视频'}</p>`,
+      videoId: selectedMaterial?.id,
+      annotationTime: selectedSubtitleTime,
+      markType: markType,
+      markColor: markColors[markType]
+    };
+    
+    setOperationRecords(prev => ({
+      ...prev,
+      note: [newNote, ...prev.note]
+    }));
+    
+    setSubtitleMenuVisible(false);
+    message.success(`已成功添加${markNames[markType]}标记`);
+  };
+
+  // 处理播放音频
+  const handlePlayAudio = () => {
+    // 模拟音频播放功能
+    const newRecord = {
+      id: Date.now(),
+      title: `音频片段：${selectedSubtitleText.length > 20 ? selectedSubtitleText.substring(0, 20) + '...' : selectedSubtitleText}`,
+      source: `音频提取 - ${selectedMaterial?.title || '视频'}`,
+      time: '刚刚',
+      type: 'audio',
+      content: selectedSubtitleText,
+      startTime: selectedSubtitleTime,
+      endTime: selectedSubtitleTime + 10 // 默认10秒片段
+    };
+    
+    setOperationRecords(prev => ({
+      ...prev,
+      audio: [newRecord, ...prev.audio]
+    }));
+    
+    setSubtitleMenuVisible(false);
+    message.success('音频片段已生成');
+  };
+
+  // 点击其他区域隐藏菜单
+  const handleClickOutside = () => {
+    setSubtitleMenuVisible(false);
   };
 
   // 处理视频播放
@@ -1601,6 +1712,13 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
 
   return (
     <>
+      <style>
+        {`
+          .subtitle-menu-item:hover {
+            background: #f8f9fa !important;
+          }
+        `}
+      </style>
       <div style={{ display: 'flex', height: 'calc(100vh - 64px)', background: '#f5f5f5' }}>
       {/* 左侧区域：根据当前视图显示资料收集或视频播放 */}
       <div style={{ 
@@ -2365,7 +2483,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                         borderRadius: '8px',
                         border: isActive ? '1px solid #1890ff' : '1px solid #e8e8e8',
                         transition: 'all 0.3s ease',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        userSelect: 'text' // 允许文字选中
                       }}
                       onClick={() => {
                         // 点击跳转到对应时间点
@@ -2374,6 +2493,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                           // 这里可以添加实际的视频跳转逻辑
                         }
                       }}
+                      onMouseUp={(e) => handleSubtitleTextSelection(e, subtitle)}
                       >
                         <Text style={{ 
                           fontSize: '13px', 
@@ -3766,6 +3886,270 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
           ))}
         </div>
       </Modal>
+
+      {/* 字幕选择菜单 */}
+      {subtitleMenuVisible && (
+        <div
+          style={{
+            position: 'fixed',
+            left: subtitleMenuPosition.x - 150,
+            top: subtitleMenuPosition.y - 200,
+            width: '300px',
+            background: '#fff',
+            borderRadius: '12px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+            border: '1px solid #f0f0f0',
+            zIndex: 1000,
+            overflow: 'hidden'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* 菜单头部 */}
+          <div style={{
+            padding: '16px 20px',
+            background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+            borderBottom: '1px solid #f0f0f0'
+          }}>
+            <Text style={{ 
+              fontSize: '14px', 
+              color: '#0369a1',
+              fontWeight: '500',
+              display: 'block',
+              marginBottom: '4px'
+            }}>
+              已选中内容
+            </Text>
+            <Text style={{ 
+              fontSize: '12px', 
+              color: '#666',
+              lineHeight: '1.4',
+              display: 'block',
+              wordBreak: 'break-all'
+            }}>
+              "{selectedSubtitleText}"
+            </Text>
+          </div>
+
+          {/* 菜单选项 */}
+          <div style={{ padding: '8px' }}>
+            {/* 一键摘取 */}
+            <div 
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px 16px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                marginBottom: '4px'
+              }}
+              className="subtitle-menu-item"
+              onMouseEnter={(e) => {
+                e.target.style.background = '#f8f9fa';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'transparent';
+              }}
+              onClick={handleQuickExtract}
+            >
+              <div style={{ fontSize: '20px' }}>📋</div>
+              <Text style={{ fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                一键摘取
+              </Text>
+            </div>
+
+            {/* 标记选项 */}
+            <div 
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px 16px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                marginBottom: '4px'
+              }}
+              className="subtitle-menu-item"
+              onMouseEnter={(e) => {
+                e.target.style.background = '#f8f9fa';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'transparent';
+              }}
+            >
+              <div style={{ fontSize: '20px' }}>📌</div>
+              <Text style={{ fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                标记
+              </Text>
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+                {/* 蓝色标记 - 重要 */}
+                <div
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    background: '#1890ff',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    transition: 'transform 0.2s ease'
+                  }}
+                  title="重要"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMarkSubtitle('blue');
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'scale(1.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'scale(1)';
+                  }}
+                >
+                  !
+                </div>
+                {/* 粉色标记 - 疑问 */}
+                <div
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    background: '#eb2f96',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    transition: 'transform 0.2s ease'
+                  }}
+                  title="疑问"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMarkSubtitle('pink');
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'scale(1.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'scale(1)';
+                  }}
+                >
+                  ?
+                </div>
+                {/* 黄色标记 - 精彩 */}
+                <div
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    background: '#faad14',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    transition: 'transform 0.2s ease'
+                  }}
+                  title="精彩"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMarkSubtitle('yellow');
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'scale(1.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'scale(1)';
+                  }}
+                >
+                  ☆
+                </div>
+                {/* 灰色标记 - 备注 */}
+                <div
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    background: '#8c8c8c',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    transition: 'transform 0.2s ease'
+                  }}
+                  title="备注"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMarkSubtitle('gray');
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'scale(1.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'scale(1)';
+                  }}
+                >
+                  ●
+                </div>
+              </div>
+            </div>
+
+            {/* 播放音频 */}
+            <div 
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px 16px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+              className="subtitle-menu-item"
+              onMouseEnter={(e) => {
+                e.target.style.background = '#f8f9fa';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'transparent';
+              }}
+              onClick={handlePlayAudio}
+            >
+              <div style={{ fontSize: '20px' }}>▶️</div>
+              <Text style={{ fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                播放音频
+              </Text>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 全局点击事件监听器 */}
+      {subtitleMenuVisible && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 999
+          }}
+          onClick={handleClickOutside}
+        />
+      )}
 
       {/* 富文本编辑器模态框 */}
       <Modal
