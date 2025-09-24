@@ -1599,7 +1599,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
       <div style={{ display: 'flex', height: 'calc(100vh - 64px)', background: '#f5f5f5' }}>
       {/* 左侧区域：根据当前视图显示资料收集或视频播放 */}
       <div style={{ 
-        flex: currentView === 'video' ? 5 : 2.5, 
+        flex: currentView === 'video' ? 4 : 2.5, 
         background: '#fff', 
         margin: '16px 0 16px 16px', 
         borderRadius: '8px', 
@@ -2403,7 +2403,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
 
       {/* 中间问答区域 */}
       <div style={{ 
-        flex: currentView === 'video' ? 2.5 : 5, 
+        flex: currentView === 'video' ? 3 : 5, 
         margin: '16px', 
         background: '#fff', 
         borderRadius: '8px', 
@@ -2633,7 +2633,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
 
         {/* 右侧操作区域 */}
         <div style={{ 
-          flex: currentView === 'video' ? 2.5 : 2.5, 
+          flex: currentView === 'video' ? 3 : 2.5, 
           background: '#fff', 
           margin: '16px 16px 16px 0', 
           borderRadius: '8px', 
