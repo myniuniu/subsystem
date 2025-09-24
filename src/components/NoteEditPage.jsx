@@ -212,6 +212,11 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   const [editingNote, setEditingNote] = useState(null);
   const [noteEditorContent, setNoteEditorContent] = useState('');
 
+  // 右侧栏显示状态
+  const [rightPanelView, setRightPanelView] = useState('operations'); // 'operations' 或 'noteEditor'
+  const [rightPanelEditingNote, setRightPanelEditingNote] = useState(null);
+  const [rightPanelNoteContent, setRightPanelNoteContent] = useState('');
+
   // 处理视频时间更新和字幕显示
   const handleVideoTimeUpdate = (currentTime, duration) => {
     setVideoProgress(duration > 0 ? (currentTime / duration) * 100 : 0);
@@ -872,14 +877,14 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   const handleRecordClick = (record) => {
     setCurrentRecord(record);
     
-    // 如果是笔记类型，打开富文本编辑器
+    // 如果是笔记类型，在右侧栏打开编辑器
     if (record.type === 'note') {
-      setEditingNote(record);
+      setRightPanelEditingNote(record);
       const initialContent = record.content || '<p>请在此处编写您的笔记内容...</p>';
       // 立即应用时间超链接转换
       const contentWithLinks = convertTimeToLinks(initialContent);
-      setNoteEditorContent(contentWithLinks);
-      setShowNoteEditor(true);
+      setRightPanelNoteContent(contentWithLinks);
+      setRightPanelView('noteEditor');
       return;
     }
     
@@ -2642,6 +2647,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
           flexDirection: 'column',
           transition: 'flex 0.3s ease'
         }}>
+          {rightPanelView === 'operations' ? (
+          <>
           {/* 上半部分 - 功能概览 */}
           <div style={{ padding: '20px', flex: 1 }}>
             <Title level={5} style={{ marginBottom: 16, color: '#1f1f1f' }}>
@@ -3002,6 +3009,158 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
               </Button>
             </div>
           </div>
+          </>
+          ) : (
+          // 右侧栏笔记编辑器
+          <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '100%' }}>
+            {/* 编辑器头部 */}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              marginBottom: '16px',
+              paddingBottom: '12px',
+              borderBottom: '1px solid #f0f0f0'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '16px' }}>📝</span>
+                <Text style={{ fontSize: '16px', fontWeight: 'bold' }}>编辑笔记</Text>
+              </div>
+              <Button 
+                type="text" 
+                icon={<ArrowLeftOutlined />}
+                onClick={() => {
+                  setRightPanelView('operations');
+                  setRightPanelEditingNote(null);
+                  setRightPanelNoteContent('');
+                }}
+                style={{ color: '#666' }}
+              >
+                返回
+              </Button>
+            </div>
+
+            {/* 编辑器内容区域 */}
+            <div style={{ 
+              flex: 1,
+              border: '1px solid #d9d9d9', 
+              borderRadius: '6px',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden'
+            }}>
+              {/* 工具栏 */}
+              <div style={{ 
+                padding: '8px 12px',
+                borderBottom: '1px solid #f0f0f0',
+                background: '#fafafa',
+                display: 'flex',
+                gap: '8px',
+                alignItems: 'center'
+              }}>
+                <Button 
+                  size="small" 
+                  onClick={() => document.execCommand('bold')}
+                  style={{ minWidth: '28px' }}
+                >
+                  <strong>B</strong>
+                </Button>
+                <Button 
+                  size="small" 
+                  onClick={() => document.execCommand('italic')}
+                  style={{ minWidth: '28px' }}
+                >
+                  <em>I</em>
+                </Button>
+                <Button 
+                  size="small" 
+                  onClick={() => document.execCommand('underline')}
+                  style={{ minWidth: '28px' }}
+                >
+                  <u>U</u>
+                </Button>
+                <div style={{ marginLeft: 'auto', fontSize: '12px', color: '#999' }}>
+                  支持富文本编辑
+                </div>
+              </div>
+
+              {/* 编辑器 */}
+              <div style={{ flex: 1, padding: '12px' }}>
+                <div 
+                  contentEditable
+                  style={{
+                    minHeight: '300px',
+                    outline: 'none',
+                    lineHeight: '1.6',
+                    fontSize: '14px',
+                    color: '#333'
+                  }}
+                  dangerouslySetInnerHTML={{ __html: rightPanelNoteContent }}
+                  onInput={(e) => {
+                    const rawContent = e.target.innerHTML;
+                    const contentWithLinks = convertTimeToLinks(rawContent);
+                    setRightPanelNoteContent(contentWithLinks);
+                    // 如果内容发生了变化（添加了超链接），更新显示
+                    if (rawContent !== contentWithLinks) {
+                      e.target.innerHTML = contentWithLinks;
+                      // 保持光标位置
+                      const selection = window.getSelection();
+                      const range = document.createRange();
+                      range.selectNodeContents(e.target);
+                      range.collapse(false);
+                      selection.removeAllRanges();
+                      selection.addRange(range);
+                    }
+                  }}
+                  onBlur={(e) => {
+                    const rawContent = e.target.innerHTML;
+                    const contentWithLinks = convertTimeToLinks(rawContent);
+                    setRightPanelNoteContent(contentWithLinks);
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* 保存按钮 */}
+            <div style={{ marginTop: '16px', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <Button 
+                onClick={() => {
+                  setRightPanelView('operations');
+                  setRightPanelEditingNote(null);
+                  setRightPanelNoteContent('');
+                }}
+              >
+                取消
+              </Button>
+              <Button 
+                type="primary" 
+                onClick={() => {
+                  if (!rightPanelNoteContent.trim() || rightPanelNoteContent === '<p></p>') {
+                    message.warning('请输入笔记内容');
+                    return;
+                  }
+
+                  // 更新操作记录中的笔记内容
+                  setOperationRecords(prev => ({
+                    ...prev,
+                    note: prev.note.map(note => 
+                      note.id === rightPanelEditingNote.id 
+                        ? { ...note, content: rightPanelNoteContent }
+                        : note
+                    )
+                  }));
+
+                  message.success('笔记已保存');
+                  setRightPanelView('operations');
+                  setRightPanelEditingNote(null);
+                  setRightPanelNoteContent('');
+                }}
+              >
+                保存
+              </Button>
+            </div>
+          </div>
+          )}
         </div>
       </div>
 
