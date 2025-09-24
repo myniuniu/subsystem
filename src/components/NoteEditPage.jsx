@@ -258,13 +258,38 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
 
   // 处理一键摘取
   const handleQuickExtract = () => {
+    const timeText = `${Math.floor(selectedSubtitleTime / 60)}:${(selectedSubtitleTime % 60).toString().padStart(2, '0')}`;
+    
+    // 如果右侧栏正在编辑笔记，则添加到当前编辑的笔记中
+    if (rightPanelView === 'noteEditor' && rightPanelEditingNote) {
+      const extractContent = `<p><strong>📝 [${timeText}]</strong> ${selectedSubtitleText}</p>`;
+      const updatedContent = rightPanelNoteContent + extractContent;
+      setRightPanelNoteContent(updatedContent);
+      
+      setSubtitleMenuVisible(false);
+      message.success('内容已添加到当前笔记');
+      return;
+    }
+    
+    // 如果弹窗编辑器正在使用，则添加到弹窗编辑器中
+    if (showNoteEditor && editingNote) {
+      const extractContent = `<p><strong>📝 [${timeText}]</strong> ${selectedSubtitleText}</p>`;
+      const updatedContent = noteEditorContent + extractContent;
+      setNoteEditorContent(updatedContent);
+      
+      setSubtitleMenuVisible(false);
+      message.success('内容已添加到当前笔记');
+      return;
+    }
+    
+    // 如果没有打开的笔记编辑器，则创建新笔记
     const newNote = {
       id: Date.now(),
       title: `【视频摘取】${selectedSubtitleText.length > 20 ? selectedSubtitleText.substring(0, 20) + '...' : selectedSubtitleText}`,
       source: `视频摘取 - ${selectedMaterial?.title || '视频'}`,
       time: '刚刚',
       type: 'note',
-      content: `<p><strong>摘取内容：</strong>${selectedSubtitleText}</p><p><strong>时间点：</strong>${Math.floor(selectedSubtitleTime / 60)}:${(selectedSubtitleTime % 60).toString().padStart(2, '0')}</p><p><strong>来源：</strong>${selectedMaterial?.title || '视频'}</p>`,
+      content: `<p><strong>摘取内容：</strong>${selectedSubtitleText}</p><p><strong>时间点：</strong>${timeText}</p><p><strong>来源：</strong>${selectedMaterial?.title || '视频'}</p>`,
       videoId: selectedMaterial?.id,
       annotationTime: selectedSubtitleTime
     };
@@ -275,7 +300,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     }));
     
     setSubtitleMenuVisible(false);
-    message.success('内容已成功摘取到笔记');
+    message.success('内容已摘取到新笔记');
   };
 
   // 处理标记操作
@@ -294,13 +319,44 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
       gray: '备注'
     };
     
+    const timeText = `${Math.floor(selectedSubtitleTime / 60)}:${(selectedSubtitleTime % 60).toString().padStart(2, '0')}`;
+    const markIcon = {
+      blue: '❗',
+      pink: '❓', 
+      yellow: '⭐',
+      gray: '📝'
+    };
+    
+    // 如果右侧栏正在编辑笔记，则添加到当前编辑的笔记中
+    if (rightPanelView === 'noteEditor' && rightPanelEditingNote) {
+      const markContent = `<p style="background-color: ${markColors[markType]}20; padding: 8px; border-left: 4px solid ${markColors[markType]}; border-radius: 4px; margin: 8px 0;"><strong>${markIcon[markType]} [${timeText}] ${markNames[markType]}：</strong>${selectedSubtitleText}</p>`;
+      const updatedContent = rightPanelNoteContent + markContent;
+      setRightPanelNoteContent(updatedContent);
+      
+      setSubtitleMenuVisible(false);
+      message.success(`${markNames[markType]}标记已添加到当前笔记`);
+      return;
+    }
+    
+    // 如果弹窗编辑器正在使用，则添加到弹窗编辑器中
+    if (showNoteEditor && editingNote) {
+      const markContent = `<p style="background-color: ${markColors[markType]}20; padding: 8px; border-left: 4px solid ${markColors[markType]}; border-radius: 4px; margin: 8px 0;"><strong>${markIcon[markType]} [${timeText}] ${markNames[markType]}：</strong>${selectedSubtitleText}</p>`;
+      const updatedContent = noteEditorContent + markContent;
+      setNoteEditorContent(updatedContent);
+      
+      setSubtitleMenuVisible(false);
+      message.success(`${markNames[markType]}标记已添加到当前笔记`);
+      return;
+    }
+    
+    // 如果没有打开的笔记编辑器，则创建新笔记
     const newNote = {
       id: Date.now(),
       title: `【${markNames[markType]}标记】${selectedSubtitleText.length > 15 ? selectedSubtitleText.substring(0, 15) + '...' : selectedSubtitleText}`,
       source: `${markNames[markType]}标记 - ${selectedMaterial?.title || '视频'}`,
       time: '刚刚',
       type: 'note',
-      content: `<p style="background-color: ${markColors[markType]}20; padding: 8px; border-left: 4px solid ${markColors[markType]}; border-radius: 4px;"><strong>【${markNames[markType]}标记】</strong>${selectedSubtitleText}</p><p><strong>时间点：</strong>${Math.floor(selectedSubtitleTime / 60)}:${(selectedSubtitleTime % 60).toString().padStart(2, '0')}</p><p><strong>来源：</strong>${selectedMaterial?.title || '视频'}</p>`,
+      content: `<p style="background-color: ${markColors[markType]}20; padding: 8px; border-left: 4px solid ${markColors[markType]}; border-radius: 4px;"><strong>【${markNames[markType]}标记】</strong>${selectedSubtitleText}</p><p><strong>时间点：</strong>${timeText}</p><p><strong>来源：</strong>${selectedMaterial?.title || '视频'}</p>`,
       videoId: selectedMaterial?.id,
       annotationTime: selectedSubtitleTime,
       markType: markType,
@@ -2977,7 +3033,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
           
           {/* 下半部分 - 操作记录 */}
           <div style={{ padding: '20px', borderTop: '1px solid #f0f0f0', flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <div style={{ flex: 1, overflowY: 'auto', maxHeight: '300px' }}>
+            <div style={{ flex: 1, overflowY: 'auto', maxHeight: '300px', marginBottom: '12px' }}>
               {Object.values(operationRecords).flat().map(record => {
                 const getIcon = (type) => {
                     switch(type) {
@@ -3111,8 +3167,13 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
               )}
             </div>
             
-            {/* 新建笔记按钮 */}
-            <div style={{ marginTop: '12px', textAlign: 'center' }}>
+            {/* 新建笔记按钮 - 固定在底部 */}
+            <div style={{ 
+              marginTop: 'auto',
+              paddingTop: '12px',
+              borderTop: '1px solid #f0f0f0',
+              textAlign: 'center'
+            }}>
               <Button 
                 type="primary" 
                 icon={<PlusOutlined />}
