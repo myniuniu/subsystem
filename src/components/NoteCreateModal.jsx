@@ -67,7 +67,10 @@ const NoteCreateModal = ({ visible, onCancel, onSave, notes = [], categories = [
     { value: 'research', label: '研究笔记', icon: '🔬' },
     { value: 'personal', label: '个人笔记', icon: '👤' },
     { value: 'ideas', label: '想法灵感', icon: '💡' },
-    { value: 'meeting', label: '会议记录', icon: '🤝' }
+    { value: 'meeting', label: '会议记录', icon: '🤝' },
+    { value: 'knowledge_graph', label: '知识图谱', icon: '🕸️' },
+    { value: 'capability_model', label: '能力模型', icon: '🎯' },
+    { value: 'micro_major', label: '微专业', icon: '🎓' }
   ];
 
   // 富文本编辑器配置

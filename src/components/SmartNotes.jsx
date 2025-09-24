@@ -49,7 +49,10 @@ import {
   PieChartOutlined,
   LineChartOutlined,
   DownOutlined,
-  SyncOutlined
+  SyncOutlined,
+  NodeIndexOutlined,
+  RadarChartOutlined,
+  ExperimentOutlined
 } from '@ant-design/icons';
 import NoteEditor from './NoteEditor';
 import CategoryTagManager from './CategoryTagManager';
@@ -97,13 +100,16 @@ const SmartNotes = ({ onViewChange }) => {
 
   // 笔记分类
   const categories = [
-    { value: 'all', label: '全部笔记', icon: '📝' },
-    { value: 'work', label: '工作笔记', icon: '💼' },
-    { value: 'study', label: '学习笔记', icon: '📚' },
-    { value: 'research', label: '研究笔记', icon: '🔬' },
-    { value: 'personal', label: '个人笔记', icon: '👤' },
-    { value: 'ideas', label: '想法灵感', icon: '💡' },
-    { value: 'meeting', label: '会议记录', icon: '🤝' }
+    { value: 'all', label: '全部笔记', icon: '📝', type: 'system' },
+    { value: 'work', label: '工作笔记', icon: '💼', type: 'system' },
+    { value: 'study', label: '学习笔记', icon: '📚', type: 'system' },
+    { value: 'research', label: '研究笔记', icon: '🔬', type: 'system' },
+    { value: 'personal', label: '个人笔记', icon: '👤', type: 'system' },
+    { value: 'ideas', label: '想法灵感', icon: '💡', type: 'system' },
+    { value: 'meeting', label: '会议记录', icon: '🤝', type: 'system' },
+    { value: 'knowledge_graph', label: '知识图谱', icon: 'NodeIndexOutlined', type: 'fixed' },
+    { value: 'capability_model', label: '能力模型', icon: 'RadarChartOutlined', type: 'fixed' },
+    { value: 'micro_specialization', label: '微专业', icon: 'ExperimentOutlined', type: 'fixed' }
   ];
 
   // 常用标签
@@ -141,28 +147,40 @@ const SmartNotes = ({ onViewChange }) => {
     try {
       setLoading(true);
       
-      // 检查localStorage数据
+      // 调试信息：检查localStorage数据
       checkLocalStorageData();
       
-      const [notesData, categoriesData, tagsData, statsData] = await Promise.all([
-        Promise.resolve(notesService.getAllNotes()),
-        Promise.resolve(notesService.getCategories()),
-        Promise.resolve(notesService.getTags()),
-        Promise.resolve(notesService.getNotesStats())
-      ]);
+      // 初始化存储
+      notesService.initializeStorage();
       
-      // 调试信息
-      console.log('=== 数据加载调试信息 ===');
-      console.log('笔记数据:', notesData.length, notesData);
-      console.log('分类数据:', categoriesData.length, categoriesData);
-      console.log('标签数据:', tagsData.length, tagsData);
-      console.log('统计数据:', statsData);
-      console.log('========================');
+      // 获取笔记数据
+      const notesData = notesService.getAllNotes();
+      console.log('=== 加载的笔记数据 ===');
+      console.log('笔记总数:', notesData.length);
+      console.log('笔记详情:', notesData);
+      
+      // 按分类统计
+      const categoryStats = {};
+      notesData.forEach(note => {
+        categoryStats[note.category] = (categoryStats[note.category] || 0) + 1;
+      });
+      console.log('分类统计:', categoryStats);
       
       setNotes(notesData);
+      
+      // 获取分类和标签
+      const categoriesData = notesService.getCategories();
+      const tagsData = notesService.getTags();
+      
       setNoteCategories(categoriesData);
       setTags(tagsData);
+      
+      // 获取统计信息
+      const statsData = notesService.getNotesStats();
+      console.log('=== 统计数据 ===');
+      console.log('统计信息:', statsData);
       setStats(statsData);
+      
       setFilteredNotes(notesData);
     } catch (error) {
       console.error('加载数据失败:', error);
@@ -769,38 +787,121 @@ ${timelineData.map(note => {
                   <span className="category-count">{stats.categories?.organizational_training || 0}</span>
                 </div>
                 
-                {/* 其他分类 */}
-                {categories.map(category => {
-                  // 跳过组织培训分类，因为已经固定显示在上面
-                  if (category.value === 'organizational_training') {
-                    return null;
-                  }
-                  
-                  const iconMap = {
-                    FileTextOutlined,
-                    FolderOpenOutlined,
-                    BookOutlined,
-                    UserOutlined,
-                    BulbOutlined,
-                    StarOutlined
-                  };
-                  const IconComponent = iconMap[category.icon] || FileTextOutlined;
-                  const count = stats.categories?.[category.value] || 0;
-                  
-                  return (
-                    <div
-                      key={category.value}
-                      className={`category-item ${
-                        selectedCategory === category.value ? 'active' : ''
-                      }`}
-                      onClick={() => setSelectedCategory(category.value)}
-                    >
-                      <IconComponent className="category-icon" />
-                      <span className="category-label">{category.label}</span>
-                      <span className="category-count">{count}</span>
-                    </div>
-                  );
-                })}
+                {/* 系统分类 */}
+                <div className="category-group">
+                  <div className="category-group-title">系统分类</div>
+                  {categories.filter(category => 
+                    category.value !== 'organizational_training' && 
+                    (!category.type || category.type === 'system')
+                  ).map(category => {
+                    const iconMap = {
+                      FileTextOutlined,
+                      FolderOpenOutlined,
+                      BookOutlined,
+                      UserOutlined,
+                      BulbOutlined,
+                      StarOutlined,
+                      NodeIndexOutlined,
+                      RadarChartOutlined,
+                      ExperimentOutlined
+                    };
+                    
+                    // 对于新分类，直接使用emoji图标
+                    const isEmojiIcon = category.icon && category.icon.length <= 2;
+                    const IconComponent = isEmojiIcon ? null : (iconMap[category.icon] || FileTextOutlined);
+                    const count = stats.categories?.[category.value] || 0;
+                    
+                    return (
+                      <div
+                        key={category.value}
+                        className={`category-item ${
+                          selectedCategory === category.value ? 'active' : ''
+                        }`}
+                        onClick={() => setSelectedCategory(category.value)}
+                      >
+                        {isEmojiIcon ? (
+                          <span className="category-icon">{category.icon}</span>
+                        ) : (
+                          <IconComponent className="category-icon" />
+                        )}
+                        <span className="category-label">{category.label}</span>
+                        <span className="category-count">{count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* 专业分类 */}
+                <div className="category-group">
+                  <div className="category-group-title">专业分类</div>
+                  {categories.filter(category => category.type === 'fixed').map(category => {
+                    const iconMap = {
+                      FileTextOutlined,
+                      FolderOpenOutlined,
+                      BookOutlined,
+                      UserOutlined,
+                      BulbOutlined,
+                      StarOutlined,
+                      NodeIndexOutlined,
+                      RadarChartOutlined,
+                      ExperimentOutlined
+                    };
+                    
+                    const IconComponent = iconMap[category.icon] || FileTextOutlined;
+                    const count = stats.categories?.[category.value] || 0;
+                    
+                    return (
+                      <div
+                        key={category.value}
+                        className={`category-item fixed-category ${
+                          selectedCategory === category.value ? 'active' : ''
+                        }`}
+                        onClick={() => setSelectedCategory(category.value)}
+                      >
+                        <IconComponent className="category-icon" />
+                        <span className="category-label">{category.label}</span>
+                        <span className="category-count">{count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* 自定义分类 */}
+                {categories.filter(category => category.type === 'custom').length > 0 && (
+                  <div className="category-group">
+                    <div className="category-group-title">自定义分类</div>
+                    {categories.filter(category => category.type === 'custom').map(category => {
+                      const iconMap = {
+                        FileTextOutlined,
+                        FolderOpenOutlined,
+                        BookOutlined,
+                        UserOutlined,
+                        BulbOutlined,
+                        StarOutlined,
+                        NodeIndexOutlined,
+                        RadarChartOutlined,
+                        ExperimentOutlined
+                      };
+                      
+                      const IconComponent = iconMap[category.icon] || FileTextOutlined;
+                      const count = stats.categories?.[category.value] || 0;
+                      
+                      return (
+                        <div
+                          key={category.value}
+                          className={`category-item custom-category ${
+                            selectedCategory === category.value ? 'active' : ''
+                          }`}
+                          onClick={() => setSelectedCategory(category.value)}
+                        >
+                          <IconComponent className="category-icon" />
+                          <span className="category-label">{category.label}</span>
+                          <span className="category-count">{count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
 
