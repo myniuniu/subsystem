@@ -1596,9 +1596,18 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
 
   return (
     <>
-      <div style={{ display: 'flex', height: '100vh', background: '#f5f5f5' }}>
+      <div style={{ display: 'flex', height: 'calc(100vh - 64px)', background: '#f5f5f5' }}>
       {/* 左侧区域：根据当前视图显示资料收集或视频播放 */}
-      <div style={{ flex: 2.5, background: '#fff', margin: '16px 0 16px 16px', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ 
+        flex: currentView === 'video' ? 5 : 2.5, 
+        background: '#fff', 
+        margin: '16px 0 16px 16px', 
+        borderRadius: '8px', 
+        overflow: 'hidden', 
+        display: 'flex', 
+        flexDirection: 'column',
+        transition: 'flex 0.3s ease'
+      }}>
         {currentView === 'materials' ? (
           // 资料收集模式
           <div style={{ padding: '20px', flex: 1 }}>
@@ -2268,13 +2277,18 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
               padding: '16px 20px', 
               borderTop: '1px solid #f0f0f0',
               background: '#fff',
-              minHeight: '80px',
-              maxHeight: '120px'
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              overflowY: 'auto'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                <Text style={{ fontSize: '14px', fontWeight: 'bold', color: '#1890ff' }}>
-                  💬 字幕
-                </Text>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '16px' }}>📄</span>
+                  <Text style={{ fontSize: '14px', fontWeight: 'bold', color: '#1890ff' }}>
+                    原文
+                  </Text>
+                </div>
                 <div style={{ 
                   marginLeft: 'auto', 
                   fontSize: '12px', 
@@ -2300,40 +2314,103 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                   </div>
                 </div>
               </div>
+              
+              {/* 字幕时间轴列表 */}
               <div style={{ 
-                padding: '12px 16px',
-                background: '#f8f9fa',
-                borderRadius: '8px',
-                border: '1px solid #e8e8e8',
-                minHeight: '40px',
-                display: 'flex',
-                alignItems: 'center'
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '12px',
+                flex: 1,
+                overflowY: 'auto',
+                paddingRight: '4px'
               }}>
-                {currentSubtitle ? (
-                  <Text style={{ 
-                    fontSize: '13px', 
-                    lineHeight: '1.5',
-                    color: '#333'
-                  }}>
-                    {currentSubtitle}
-                  </Text>
-                ) : (
-                  <Text style={{ 
-                    fontSize: '13px', 
-                    color: '#999',
-                    fontStyle: 'italic'
-                  }}>
-                    字幕将在视频播放时自动显示...
-                  </Text>
-                )}
+                {subtitleData.map((subtitle, index) => {
+                  const isActive = currentSubtitle === subtitle.text;
+                  const formatTime = (seconds) => {
+                    const mins = Math.floor(seconds / 60);
+                    const secs = Math.floor(seconds % 60);
+                    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                  };
+                  
+                  return (
+                    <div key={index} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                      {/* 时间轴标记 */}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '60px' }}>
+                        <div style={{
+                          width: '8px',
+                          height: '8px',
+                          borderRadius: '50%',
+                          background: isActive ? '#1890ff' : '#d9d9d9',
+                          marginBottom: '4px'
+                        }} />
+                        <Text style={{ 
+                          fontSize: '12px', 
+                          color: isActive ? '#1890ff' : '#999',
+                          fontWeight: isActive ? 'bold' : 'normal'
+                        }}>
+                          {formatTime(subtitle.start)}
+                        </Text>
+                      </div>
+                      
+                      {/* 字幕内容 */}
+                      <div style={{ 
+                        flex: 1,
+                        padding: '12px 16px',
+                        background: isActive ? '#e6f3ff' : '#f8f9fa',
+                        borderRadius: '8px',
+                        border: isActive ? '1px solid #1890ff' : '1px solid #e8e8e8',
+                        transition: 'all 0.3s ease',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => {
+                        // 点击跳转到对应时间点
+                        if (selectedMaterial) {
+                          setVideoStartTime(subtitle.start);
+                          // 这里可以添加实际的视频跳转逻辑
+                        }
+                      }}
+                      >
+                        <Text style={{ 
+                          fontSize: '13px', 
+                          lineHeight: '1.5',
+                          color: isActive ? '#1890ff' : '#333',
+                          fontWeight: isActive ? '500' : 'normal'
+                        }}>
+                          {subtitle.text}
+                        </Text>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
+              
+              {/* 当前播放状态提示 */}
+              {!currentSubtitle && (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '20px',
+                  color: '#999',
+                  fontSize: '13px',
+                  fontStyle: 'italic'
+                }}>
+                  字幕将在视频播放时自动跟随显示...
+                </div>
+              )}
             </div>
           </div>
         )}
       </div>
 
       {/* 中间问答区域 */}
-      <div style={{ flex: 5, margin: '16px', background: '#fff', borderRadius: '8px', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ 
+        flex: currentView === 'video' ? 2.5 : 5, 
+        margin: '16px', 
+        background: '#fff', 
+        borderRadius: '8px', 
+        display: 'flex', 
+        flexDirection: 'column',
+        transition: 'flex 0.3s ease'
+      }}>
           <div style={{ padding: '20px', borderBottom: '1px solid #f0f0f0' }}>
             <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
               💬 智能问答
@@ -2555,7 +2632,16 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
         </div>
 
         {/* 右侧操作区域 */}
-        <div style={{ flex: 2.5, background: '#fff', margin: '16px 16px 16px 0', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ 
+          flex: currentView === 'video' ? 2.5 : 2.5, 
+          background: '#fff', 
+          margin: '16px 16px 16px 0', 
+          borderRadius: '8px', 
+          overflow: 'hidden', 
+          display: 'flex', 
+          flexDirection: 'column',
+          transition: 'flex 0.3s ease'
+        }}>
           {/* 上半部分 - 功能概览 */}
           <div style={{ padding: '20px', flex: 1 }}>
             <Title level={5} style={{ marginBottom: 16, color: '#1f1f1f' }}>
