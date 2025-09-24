@@ -40,6 +40,7 @@ import ResourceAnnotationPage from './components/ResourceAnnotationPage'
 import StudentAnnotationPage from './components/StudentAnnotationPage'
 import CourseSelection from './components/CourseSelection'
 import CourseSelectionEditPage from './components/CourseSelectionEditPage'
+import LearningSquare from './components/LearningSquare'
 
 import './App.css'
 
@@ -406,6 +407,8 @@ function App() {
                 selectedNeed={pageState.selectedNeed}
                 mode={pageState.editorMode}
               />
+            ) : currentView === 'learning-square' ? (
+              <LearningSquare />
             ) : (
               <MainContent 
                 currentView={currentView}

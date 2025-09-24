@@ -108,6 +108,7 @@ const SmartNotes = ({ onViewChange }) => {
     { value: 'personal', label: '个人笔记', icon: '👤', type: 'system' },
     { value: 'ideas', label: '想法灵感', icon: '💡', type: 'system' },
     { value: 'meeting', label: '会议记录', icon: '🤝', type: 'system' },
+    { value: 'learning_square', label: '学习广场', icon: '🎓', type: 'system' },
     { value: 'knowledge_graph', label: '知识图谱', icon: 'NodeIndexOutlined', type: 'fixed' },
     { value: 'capability_model', label: '能力模型', icon: 'RadarChartOutlined', type: 'fixed' },
     { value: 'micro_specialization', label: '微专业', icon: 'ExperimentOutlined', type: 'fixed' }
@@ -232,6 +233,13 @@ const SmartNotes = ({ onViewChange }) => {
           note.courseType === 'organizational_training' || 
           note.tags?.includes('组织培训') ||
           note.category === 'organizational_training'
+        );
+      } else if (selectedCategory === 'learning_square') {
+        // 筛选学习广场相关的笔记
+        filtered = filtered.filter(note => 
+          note.category === 'learning_square' ||
+          note.tags?.includes('学习广场') ||
+          note.source === '学习广场'
         );
       } else {
         filtered = filtered.filter(note => note.category === selectedCategory);
@@ -849,7 +857,22 @@ ${aiSelectedNote.content}`;
                     // 对于新分类，直接使用emoji图标
                     const isEmojiIcon = category.icon && category.icon.length <= 2;
                     const IconComponent = isEmojiIcon ? null : (iconMap[category.icon] || FileTextOutlined);
-                    const count = stats.categories?.[category.value] || 0;
+                    
+                    // 实时计算分类计数
+                    let count = 0;
+                    if (category.value === 'all') {
+                      count = notes.length;
+                    } else if (category.value === 'starred') {
+                      count = notes.filter(note => note.starred).length;
+                    } else if (category.value === 'learning_square') {
+                      count = notes.filter(note => 
+                        note.category === 'learning_square' ||
+                        note.tags?.includes('学习广场') ||
+                        note.source === '学习广场'
+                      ).length;
+                    } else {
+                      count = notes.filter(note => note.category === category.value).length;
+                    }
                     
                     return (
                       <div
@@ -888,7 +911,8 @@ ${aiSelectedNote.content}`;
                     };
                     
                     const IconComponent = iconMap[category.icon] || FileTextOutlined;
-                    const count = stats.categories?.[category.value] || 0;
+                    // 实时计算专业分类计数
+                    const count = notes.filter(note => note.category === category.value).length;
                     
                     return (
                       <div
@@ -924,7 +948,8 @@ ${aiSelectedNote.content}`;
                       };
                       
                       const IconComponent = iconMap[category.icon] || FileTextOutlined;
-                      const count = stats.categories?.[category.value] || 0;
+                      // 实时计算自定义分类计数
+                      const count = notes.filter(note => note.category === category.value).length;
                       
                       return (
                         <div
@@ -998,57 +1023,63 @@ ${aiSelectedNote.content}`;
                 </Button>
                 <Button 
                   icon={<SyncOutlined />}
-                  onClick={() => {
-                    // 为现有组织培训笔记添加视频信息
-                    const updatedNotes = notes.map(note => {
-                      if ((note.source === '组织培训' || note.tags?.includes('组织培训')) && !note.videoInfo) {
-                        // 为现有笔记添加模拟视频信息
-                        const videoInfos = [
-                          {
-                            type: 'multi_video',
-                            totalVideos: 3,
-                            totalDuration: 3600,
-                            watchedDuration: 2400,
-                            overallProgress: 67,
-                            videos: [
-                              { id: 'v1', title: '理论基础', duration: 1200, progress: 100, instructor: '专家' },
-                              { id: 'v2', title: '实践操作', duration: 1200, progress: 100, instructor: '专家' },
-                              { id: 'v3', title: '案例分析', duration: 1200, progress: 0, instructor: '专家' }
-                            ]
-                          },
-                          {
-                            type: 'single_video',
-                            url: 'https://example.com/video',
-                            duration: 2700,
-                            progress: 85,
-                            instructor: '讲师'
-                          }
-                        ];
-                        
-                        const randomVideoInfo = videoInfos[Math.floor(Math.random() * videoInfos.length)];
-                        
-                        return {
-                          ...note,
-                          videoInfo: randomVideoInfo,
-                          source: '组织培训',
-                          courseType: 'organizational_training'
-                        };
-                      }
-                      return note;
-                    });
-                    
-                    // 批量更新笔记
-                    updatedNotes.forEach(note => {
-                      if (note.videoInfo) {
-                        notesService.updateNote(note.id, note);
-                      }
-                    });
-                    
-                    loadData();
-                    message.success('已为现有组织培训笔记添加视频进度信息');
+                  onClick={async () => {
+                    try {
+                      console.log('=== 添加学习时间数据 ===');
+                      
+                      // 获取现有笔记
+                      let allNotes = notesService.getAllNotes();
+                      console.log('当前笔记总数:', allNotes.length);
+                      
+                      // 筛选组织培训笔记
+                      const orgTrainingNotes = allNotes.filter(note => 
+                        note.courseType === 'organizational_training' || 
+                        note.tags?.includes('组织培训') ||
+                        note.category === 'organizational_training' ||
+                        note.source === '组织培训' ||
+                        note.title?.includes('【组织培训】')
+                      );
+                      
+                      console.log('组织培训笔记数量:', orgTrainingNotes.length);
+                      console.log('组织培训笔记详情:', orgTrainingNotes);
+                      
+                      // 为没有学习时间的笔记添加时间数据
+                      const learningTimes = [
+                        { startTime: '12/26 09:00', endTime: '12/26 17:00', duration: '8小时' },
+                        { startTime: '12/25 14:00', endTime: '12/25 18:00', duration: '4小时' },
+                        { startTime: '12/20 09:30', endTime: '12/20 16:30', duration: '7小时' },
+                        { startTime: '12/30 10:00', endTime: '12/30 15:00', duration: '5小时' },
+                        { startTime: '12/28 13:00', endTime: '12/28 16:00', duration: '3小时' }
+                      ];
+                      
+                      let updatedCount = 0;
+                      orgTrainingNotes.forEach((note, index) => {
+                        if (!note.learningSchedule) {
+                          const timeData = learningTimes[index % learningTimes.length];
+                          const updatedNote = {
+                            ...note,
+                            learningSchedule: timeData,
+                            source: '组织培训',
+                            courseType: 'organizational_training'
+                          };
+                          
+                          console.log(`为笔记 "${note.title}" 添加学习时间:`, timeData);
+                          notesService.updateNote(note.id, updatedNote);
+                          updatedCount++;
+                        }
+                      });
+                      
+                      // 重新加载数据
+                      await loadData();
+                      console.log(`成功为 ${updatedCount} 个笔记添加了学习时间数据`);
+                      message.success(`已为 ${updatedCount} 个组织培训笔记添加学习时间`);
+                    } catch (error) {
+                      console.error('添加学习时间失败:', error);
+                      message.error('添加学习时间失败');
+                    }
                   }}
                 >
-                  添加视频信息
+                  添加学习时间
                 </Button>
                 <Button 
                   type="primary" 
@@ -1236,6 +1267,64 @@ ${aiSelectedNote.content}`;
                                     </Text>
                                   </div>
                                 ) : null}
+                              </div>
+                            );
+                          }
+                          
+                          return null;
+                        })()}
+                        
+                        {/* 组织学习时间显示 */}
+                        {(() => {
+                          // 更宽松的筛选条件，只要符合任意一个条件即可
+                          const isOrgTraining = (
+                            selectedCategory === 'organizational_training' ||
+                            note.source === '组织培训' ||
+                            note.tags?.includes('组织培训') ||
+                            note.category === 'organizational_training' ||
+                            note.courseType === 'organizational_training' ||
+                            note.title?.includes('【组织培训】')
+                          );
+                          
+                          const hasLearningSchedule = !!note.learningSchedule;
+                          
+                          // 调试信息
+                          console.log('学习时间显示调试:', {
+                            title: note.title,
+                            selectedCategory,
+                            isOrgTraining,
+                            hasLearningSchedule,
+                            learningSchedule: note.learningSchedule,
+                            noteSource: note.source,
+                            noteTags: note.tags,
+                            noteCategory: note.category,
+                            courseType: note.courseType
+                          });
+                          
+                          if (isOrgTraining && hasLearningSchedule) {
+                            return (
+                              <div style={{
+                                marginTop: 8,
+                                marginBottom: 8,
+                                padding: '6px 10px',
+                                background: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+                                borderRadius: '6px',
+                                border: '1px solid #91d5ff'
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
+                                  <span style={{ fontSize: '12px' }}>🕒</span>
+                                  <Text style={{ fontSize: '11px', color: '#1890ff', fontWeight: 'bold' }}>学习时间</Text>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '10px' }}>
+                                  <div>
+                                    <Text style={{ color: '#52c41a', fontWeight: 'bold', fontSize: '10px' }}>开始：</Text>
+                                    <Text style={{ color: '#52c41a', fontSize: '10px' }}>{note.learningSchedule.startTime}</Text>
+                                  </div>
+                                  <div>
+                                    <Text style={{ color: '#f5222d', fontWeight: 'bold', fontSize: '10px' }}>结束：</Text>
+                                    <Text style={{ color: '#f5222d', fontSize: '10px' }}>{note.learningSchedule.endTime}</Text>
+                                  </div>
+                                </div>
                               </div>
                             );
                           }

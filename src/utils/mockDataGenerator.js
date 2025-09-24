@@ -228,7 +228,13 @@ class MockDataGenerator {
           ]
         },
         createdAt: new Date('2024-01-15'),
-        updatedAt: new Date('2024-01-20')
+        updatedAt: new Date('2024-01-20'),
+        // 模拟学习时间信息
+        learningSchedule: {
+          startTime: '12/26 09:00',
+          endTime: '12/26 17:00',
+          duration: '8小时'
+        }
       },
       {
         id: generateId(),
@@ -248,7 +254,13 @@ class MockDataGenerator {
           instructor: '赵老师'
         },
         createdAt: new Date('2024-01-10'),
-        updatedAt: new Date('2024-01-18')
+        updatedAt: new Date('2024-01-18'),
+        // 模拟学习时间信息
+        learningSchedule: {
+          startTime: '12/25 14:00',
+          endTime: '12/25 18:00',
+          duration: '4小时'
+        }
       },
       {
         id: generateId(),
@@ -294,7 +306,13 @@ class MockDataGenerator {
           ]
         },
         createdAt: new Date('2024-01-05'),
-        updatedAt: new Date('2024-01-25')
+        updatedAt: new Date('2024-01-25'),
+        // 模拟学习时间信息
+        learningSchedule: {
+          startTime: '12/20 09:30',
+          endTime: '12/20 16:30',
+          duration: '7小时'
+        }
       },
       {
         id: generateId(),
@@ -348,7 +366,13 @@ class MockDataGenerator {
           ]
         },
         createdAt: new Date('2024-01-22'),
-        updatedAt: new Date('2024-01-22')
+        updatedAt: new Date('2024-01-22'),
+        // 模拟学习时间信息
+        learningSchedule: {
+          startTime: '12/30 10:00',
+          endTime: '12/30 15:00',
+          duration: '5小时'
+        }
       }
     ];
   }

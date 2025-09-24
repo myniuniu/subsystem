@@ -46,7 +46,8 @@ import {
   TrendingUp,
   Library,
   Tag,
-  Edit
+  Edit,
+  GraduationCap
 } from 'lucide-react'
 import './Sidebar.css'
 
@@ -332,6 +333,13 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       label: '个人工作台', 
       color: '#667eea',
       type: 'single' // 单级菜单
+    },
+    { 
+      id: 'learning-square', 
+      icon: GraduationCap, 
+      label: '学习广场', 
+      color: '#52c41a',
+      type: 'single'
     },
     { 
       id: 'ai-assistant', 

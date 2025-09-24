@@ -153,7 +153,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     file: [],
     text: [],
     link: [],
-    note: [] // 新增笔记类型
+    note: [], // 笔记类型
+    'study-result': [] // 研修成果类型
   });
 
   // 内容查看弹窗状态
@@ -436,11 +437,18 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   const handleCreateNewNote = () => {
     const newNote = {
       id: Date.now(),
-      title: '新建笔记',
-      source: '手动创建',
+      title: '新建组织学习笔记',
+      source: '组织培训',
       time: '刚刚',
       type: 'note',
-      content: '<p>请在此处编写您的笔记内容...</p>'
+      content: '<p>请在此处编写您的学习笔记内容...</p>',
+      tags: ['组织培训'],
+      // 模拟的学习时间信息
+      learningSchedule: {
+        startTime: '12/25 14:00',
+        endTime: '12/25 17:00',
+        duration: '3小时'
+      }
     };
     
     setOperationRecords(prev => ({
@@ -448,7 +456,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
       note: [newNote, ...prev.note]
     }));
     
-    message.success('新建笔记已添加到操作记录');
+    message.success('新建组织学习笔记已添加到操作记录');
   };
 
   // 生成基于实际来源的摘要内容
@@ -630,6 +638,46 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   // 处理更多操作菜单点击
   const handleMoreAction = (action, record) => {
     switch (action) {
+      case 'markStudyResult':
+        // 标记研修成果 - 直接标记，不弹对话框
+        setOperationRecords(prev => ({
+          ...prev,
+          note: prev.note.map(note => 
+            note.id === record.id 
+              ? { 
+                  ...note, 
+                  isStudyResult: true,
+                  studyResultInfo: {
+                    markTime: new Date().toISOString(),
+                    resultType: '学习成果',
+                    importance: 'high'
+                  },
+                  tags: [...(note.tags || []), '研修成果']
+                }
+              : note
+          )
+        }));
+        
+        message.success(`笔记"${record.title}"已标记为研修成果！`);
+        break;
+      case 'unmarkStudyResult':
+        // 取消研修成果标记
+        setOperationRecords(prev => ({
+          ...prev,
+          note: prev.note.map(note => 
+            note.id === record.id 
+              ? { 
+                  ...note, 
+                  isStudyResult: false,
+                  studyResultInfo: undefined,
+                  tags: (note.tags || []).filter(tag => tag !== '研修成果')
+                }
+              : note
+          )
+        }));
+        
+        message.success(`已取消笔记"${record.title}"的研修成果标记`);
+        break;
       case 'convertToSource':
         // 将操作记录转换为资料来源
         const newMaterial = {
@@ -652,7 +700,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
           setAddedTexts(prev => [newMaterial, ...prev]);
         }
         
-        message.success(`已将"${record.title}"转换为来源并保存到资料`);
+        message.success(`已将“${record.title}”转换为来源并保存到资料`);
         break;
       case 'delete':
         // 从操作记录中删除该记录
@@ -663,7 +711,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
           });
           return newRecords;
         });
-        message.success(`已删除"${record.title}"`);
+        message.success(`已删除“${record.title}”`);
         break;
       default:
         break;
@@ -681,9 +729,39 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
             <span>删除</span>
           </div>
         ),
-        onClick: () => handleMoreAction('delete', record)
+        onClick: ({ domEvent }) => {
+          domEvent?.stopPropagation();
+          handleMoreAction('delete', record);
+        }
       }
     ];
+
+    // 笔记类型添加标记研修成果选项
+    if (record.type === 'note') {
+      return [
+        {
+          key: record.isStudyResult ? 'unmarkStudyResult' : 'markStudyResult',
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>
+                {record.isStudyResult ? '❌' : '🏆'}
+              </span>
+              <span>
+                {record.isStudyResult ? '取消研修成果' : '标记研修成果'}
+              </span>
+            </div>
+          ),
+          onClick: ({ domEvent }) => {
+            domEvent?.stopPropagation();
+            handleMoreAction(
+              record.isStudyResult ? 'unmarkStudyResult' : 'markStudyResult', 
+              record
+            );
+          }
+        },
+        ...commonItems
+      ];
+    }
 
     // 报告类型添加额外选项
     if (record.type === 'report') {
@@ -696,7 +774,10 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
               <span>转换为来源</span>
             </div>
           ),
-          onClick: () => handleMoreAction('convertToSource', record)
+          onClick: ({ domEvent }) => {
+            domEvent?.stopPropagation();
+            handleMoreAction('convertToSource', record);
+          }
         },
         ...commonItems
       ];
@@ -2504,6 +2585,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                       case 'text': return '📝';
                       case 'link': return '🔗';
                       case 'course': return '📚';
+                      case 'study-result': return '🏆'; // 研修成果类型
                       default: return '📄';
                     }
                   };
@@ -2516,11 +2598,38 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                     style={{ 
                       marginBottom: '8px',
                       borderRadius: '8px',
-                      border: '1px solid #f0f0f0',
-                      cursor: 'pointer'
+                      border: record.isStudyResult 
+                        ? '2px solid #f59e0b' 
+                        : '1px solid #f0f0f0',
+                      cursor: 'pointer',
+                      background: record.isStudyResult 
+                        ? 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)' 
+                        : '#fff',
+                      boxShadow: record.isStudyResult 
+                        ? '0 4px 12px rgba(245, 158, 11, 0.15)' 
+                        : '0 1px 3px rgba(0, 0, 0, 0.1)',
+                      position: 'relative'
                     }}
                     onClick={() => handleRecordClick(record)}
                   >
+                    {/* 研修成果标记 */}
+                    {record.isStudyResult && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '-2px',
+                        right: '-2px',
+                        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                        color: 'white',
+                        fontSize: '10px',
+                        padding: '2px 6px',
+                        borderRadius: '0 6px 0 8px',
+                        fontWeight: 'bold',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                        zIndex: 1
+                      }}>
+                        🏆 研修成果
+                      </div>
+                    )}
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                       <div style={{ fontSize: '16px', marginTop: '2px' }}>
                         {getIcon(record.type)}

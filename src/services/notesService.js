@@ -2410,6 +2410,180 @@ ${course.participants && course.participants.length > 0 ? `## 参与人员\n\n${
       };
     }
   }
+
+  /**
+   * 从学习广场课程创建笔记
+   * @param {Object} course - 课程信息
+   * @returns {Object} 创建的笔记
+   */
+  createNoteFromCourse(course) {
+    const noteId = this.generateId();
+    const currentTime = new Date().toISOString();
+    
+    // 模拟视频数据（基于课程信息）
+    const videoData = this.generateVideoDataFromCourse(course);
+    
+    const note = {
+      id: noteId,
+      title: `【学习广场】${course.title}`,
+      content: this.generateLearningSquareCourseContent(course),
+      category: 'learning_square',
+      tags: ['学习广场', course.level || '中级', '课程学习'],
+      starred: false,
+      source: '学习广场',
+      courseId: course.id,
+      courseType: 'learning_square',
+      instructor: course.instructor,
+      originalPrice: course.originalPrice,
+      currentPrice: course.price,
+      rating: course.rating,
+      students: course.students,
+      duration: course.duration,
+      level: course.level,
+      description: course.description,
+      // 视频数据作为来源数据
+      videoInfo: videoData,
+      learningProgress: {
+        startTime: currentTime,
+        currentProgress: 0,
+        totalSections: videoData.type === 'multi_video' ? videoData.totalVideos : 1,
+        completedSections: 0,
+        lastAccessTime: currentTime
+      },
+      createdAt: currentTime,
+      updatedAt: currentTime,
+      wordCount: 0
+    };
+    
+    const notes = this.getAllNotes();
+    notes.unshift(note);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+    
+    // 更新标签列表
+    this.updateTagsList(note.tags);
+    
+    return note;
+  }
+  
+  /**
+   * 基于课程信息生成视频数据
+   * @param {Object} course - 课程信息
+   * @returns {Object} 视频数据
+   */
+  generateVideoDataFromCourse(course) {
+    // 根据课程类型和时长生成不同的视频结构
+    const totalMinutes = parseInt(course.duration) || 30;
+    
+    if (totalMinutes > 40) {
+      // 长课程，分成多个视频
+      const videoCount = Math.ceil(totalMinutes / 15); // 每15分钟一个视频
+      const avgDuration = Math.floor((totalMinutes * 60) / videoCount);
+      
+      const videos = [];
+      for (let i = 0; i < videoCount; i++) {
+        videos.push({
+          id: `${course.id}_video_${i + 1}`,
+          title: `第${i + 1}讲 - ${this.getVideoTitle(course.title, i, videoCount)}`,
+          url: `https://example.com/course/${course.id}/video/${i + 1}`,
+          duration: avgDuration + Math.floor(Math.random() * 300 - 150), // 加上一些随机性
+          progress: 0,
+          instructor: course.instructor
+        });
+      }
+      
+      return {
+        type: 'multi_video',
+        totalVideos: videoCount,
+        totalDuration: totalMinutes * 60,
+        watchedDuration: 0,
+        overallProgress: 0,
+        videos: videos
+      };
+    } else {
+      // 短课程，单个视频
+      return {
+        type: 'single_video',
+        url: `https://example.com/course/${course.id}/video`,
+        duration: totalMinutes * 60,
+        progress: 0,
+        instructor: course.instructor
+      };
+    }
+  }
+  
+  /**
+   * 生成视频标题
+   * @param {string} courseTitle - 课程标题
+   * @param {number} index - 视频索引
+   * @param {number} total - 总视频数
+   * @returns {string} 视频标题
+   */
+  getVideoTitle(courseTitle, index, total) {
+    const titles = {
+      'Python': ['基础语法', '数据结构', '函数与模块', '实战项目'],
+      '机器学习': ['算法原理', '数据预处理', '模型训练', '效果评估'],
+      'React': ['组件基础', '状态管理', '路由配置', '项目实战'],
+      'UI/UX': ['设计原则', '用户研究', '原型设计', '交互设计'],
+      'JavaScript': ['基础语法', 'DOM操作', '异步编程', '框架应用'],
+      'HTML': ['标签基础', '表单处理', '语义化标签', '响应式设计']
+    };
+    
+    // 对课程标题进行匹配
+    for (const [key, videoTitles] of Object.entries(titles)) {
+      if (courseTitle.includes(key)) {
+        return videoTitles[index % videoTitles.length] || `内容${index + 1}`;
+      }
+    }
+    
+    return `内容${index + 1}`;
+  }
+  
+  /**
+   * 生成学习广场课程笔记内容
+   * @param {Object} course - 课程信息
+   * @returns {string} 笔记内容
+   */
+  generateLearningSquareCourseContent(course) {
+    return `# ${course.title}
+
+## 课程信息
+
+**讲师：** ${course.instructor}
+**难度：** ${course.level}
+**时长：** ${course.duration}
+**评分：** ${course.rating}/5.0
+**学员数：** ${course.students?.toLocaleString()}人
+**价格：** ￥${course.price}${course.originalPrice ? ` (原价￥${course.originalPrice})` : ''}
+
+## 课程描述
+
+${course.description}
+
+## 学习笔记
+
+*请在此处记录您的学习心得和要点...*
+
+## 学习进度
+
+- [ ] 开始学习
+- [ ] 完成第一阶段
+- [ ] 完成第二阶段
+- [ ] 完成全部课程
+
+## 重点内容
+
+*请在学习过程中记录重点内容...*
+
+## 实战练习
+
+*请在此处记录实战练习的经验和成果...*
+
+---
+
+**数据来源：** 学习广场  
+**同步时间：** ${new Date().toLocaleString()}  
+**课程 ID：** ${course.id}`;
+  }
 }
 
 // 创建单例实例
