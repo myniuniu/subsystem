@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科学演示中心 - 交互式教学科学演示平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6', // 科学蓝
+                        secondary: '#10B981', // 实验绿
+                        accent: '#F59E0B', // 发现橙
+                        neutral: '#64748B', // 中性灰
+                        danger: '#EF4444', // 警示红
+                        purple: '#8B5CF6', // 物理紫
+                        teal: '#14B8A6', // 化学青
+                        emerald: '#059669', // 生物绿
+                        orange: '#EA580C', // 数学橙
+                        blue: '#0EA5E9', // 地理蓝
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .card-hover {
+                transition: all 0.3s ease;
+            }
+            .card-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+            .progress-step {
+                transition: all 0.5s ease;
+            }
+            .demo-appear {
+                animation: fadeIn 0.5s ease forwards;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .gradient-bg {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 min-h-screen">
+    <!-- 导航栏 -->
+    <nav id="main-nav" class="bg-white shadow-md fixed w-full z-10 transition-all duration-300">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-flask text-primary text-2xl"></i>
+                <span class="text-xl font-bold text-primary">科学演示中心</span>
+            </div>
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="#" class="text-gray-600 hover:text-primary transition-colors duration-200" id="nav-home">首页</a>
+                <a href="#" class="text-gray-600 hover:text-primary transition-colors duration-200" id="nav-demos">演示库</a>
+                <a href="#" class="text-gray-600 hover:text-primary transition-colors duration-200" id="nav-resources">学习资源</a>
+                <a href="#" class="text-gray-600 hover:text-primary transition-colors duration-200" id="nav-progress">我的进度</a>
+                <a href="#" class="text-gray-600 hover:text-primary transition-colors duration-200" id="nav-back" onclick="window.close(); return false;">返回</a>
+            </div>
+            <button class="md:hidden text-gray-600 focus:outline-none" id="mobile-menu-button">
+                <i class="fa fa-bars text-xl"></i>
+            </button>
+        </div>
+        <!-- 移动端菜单 -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg absolute w-full">
+            <div class="container mx-auto px-4 py-2 flex flex-col space-y-3">
+                <a href="#" class="text-gray-600 hover:text-primary py-2 transition-colors duration-200">首页</a>
+                <a href="#" class="text-gray-600 hover:text-primary py-2 transition-colors duration-200">演示库</a>
+                <a href="#" class="text-gray-600 hover:text-primary py-2 transition-colors duration-200">学习资源</a>
+                <a href="#" class="text-gray-600 hover:text-primary py-2 transition-colors duration-200">我的进度</a>
+                <a href="#" class="text-gray-600 hover:text-primary py-2 transition-colors duration-200" onclick="window.close(); return false;">返回</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容区域 -->
+    <main class="pt-16">
+        <!-- 首页 -->
+        <section id="home-screen" class="container mx-auto px-4 py-10">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-10">
+                <div class="md:w-1/2 space-y-6">
+                    <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-gray-800 leading-tight">
+                        探索科学的<br><span class="text-primary">奇妙世界</span>
+                    </h1>
+                    <p class="text-lg text-gray-600 leading-relaxed">
+                        通过交互式3D演示和虚拟实验，深入理解物理、化学、生物、数学和地理的核心概念，让抽象的科学知识变得生动有趣。
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                        <button id="start-demo-btn" class="bg-primary hover:bg-primary/90 text-white font-medium py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center">
+                            <i class="fa fa-play-circle mr-2"></i> 开始探索
+                        </button>
+                        <button id="learn-more-btn" class="bg-white border-2 border-primary text-primary hover:bg-primary/5 font-medium py-3 px-8 rounded-lg transition-all duration-300 flex items-center justify-center">
+                            <i class="fa fa-info-circle mr-2"></i> 了解更多
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-4 pt-6">
+                        <div class="flex -space-x-2">
+                            <img src="https://picsum.photos/id/1011/100" alt="用户头像" class="w-10 h-10 rounded-full border-2 border-white">
+                            <img src="https://picsum.photos/id/1012/100" alt="用户头像" class="w-10 h-10 rounded-full border-2 border-white">
+                            <img src="https://picsum.photos/id/1013/100" alt="用户头像" class="w-10 h-10 rounded-full border-2 border-white">
+                            <div class="w-10 h-10 rounded-full bg-primary/10 border-2 border-white flex items-center justify-center text-primary text-sm font-medium">
+                                +156
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600">已有159位教师正在使用</p>
+                    </div>
+                </div>
+                <div class="md:w-1/2 relative">
+                    <div class="relative z-10 rounded-xl overflow-hidden shadow-2xl transform rotate-2 transition-transform hover:rotate-0 duration-500">
+                        <img src="https://picsum.photos/id/60/600/400" alt="科学演示场景" class="w-full h-auto">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
+                            <div class="p-6 text-white">
+                                <h3 class="text-xl font-bold">3D交互演示</h3>
+                                <p>体验沉浸式的科学学习环境</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute top-10 -right-5 w-32 h-32 bg-secondary/20 rounded-full -z-10"></div>
+                    <div class="absolute -bottom-5 -left-5 w-40 h-40 bg-accent/20 rounded-full -z-10"></div>
+                </div>
+            </div>
+
+            <!-- 特点介绍 -->
+            <div class="py-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-lg card-hover">
+                    <div class="w-14 h-14 bg-primary/10 rounded-lg flex items-center justify-center mb-5">
+                        <i class="fa fa-cube text-primary text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">3D可视化</h3>
+                    <p class="text-gray-600">通过三维模型和动画，直观展示复杂的科学概念和现象，让抽象知识变得具体可感。</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg card-hover">
+                    <div class="w-14 h-14 bg-secondary/10 rounded-lg flex items-center justify-center mb-5">
+                        <i class="fa fa-cogs text-secondary text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">交互实验</h3>
+                    <p class="text-gray-600">实时调节参数，观察变化过程，通过动手操作加深对科学原理的理解和记忆。</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg card-hover">
+                    <div class="w-14 h-14 bg-accent/10 rounded-lg flex items-center justify-center mb-5">
+                        <i class="fa fa-graduation-cap text-accent text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">多学科覆盖</h3>
+                    <p class="text-gray-600">涵盖物理、化学、生物、数学、地理五大学科，提供全面的科学教育支持。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 演示选择界面 -->
+        <section id="demos-screen" class="container mx-auto px-4 py-10 hidden">
+            <div class="mb-10">
+                <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-800 mb-4">选择科学演示</h2>
+                <p class="text-gray-600 max-w-3xl">从以下学科中选择，每个演示都包含丰富的交互功能和3D可视化效果。通过实际操作，深入理解科学原理。</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- 物理演示卡片 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover demo-card" data-demo="physics">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="https://picsum.photos/id/62/600/400" alt="物理演示" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                        <div class="absolute top-4 left-4">
+                            <span class="bg-purple text-white text-xs font-medium px-2.5 py-0.5 rounded">物理</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-3">
+                            <i class="fa fa-atom text-purple mr-2"></i>
+                            <span class="text-sm text-gray-500">运动学 · 力学 · 电磁学</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">物理运动演示</h3>
+                        <p class="text-gray-600 text-sm mb-4">探索物体运动规律，观察力的作用效果，理解牛顿定律和能量守恒原理。</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <span class="ml-2 text-sm text-gray-500">5.0</span>
+                            </div>
+                            <button class="text-purple hover:text-purple/80 font-medium text-sm flex items-center" onclick="openDemo('physics')">
+                                体验 <i class="fa fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 化学演示卡片 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover demo-card" data-demo="chemistry">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="https://picsum.photos/id/63/600/400" alt="化学演示" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                        <div class="absolute top-4 left-4">
+                            <span class="bg-teal text-white text-xs font-medium px-2.5 py-0.5 rounded">化学</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-3">
+                            <i class="fa fa-flask text-teal mr-2"></i>
+                            <span class="text-sm text-gray-500">分子结构 · 化学反应 · 元素周期表</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">化学反应演示</h3>
+                        <p class="text-gray-600 text-sm mb-4">观察分子间相互作用，理解化学键形成过程，探索化学反应机理。</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star-half-o text-accent"></i>
+                                <span class="ml-2 text-sm text-gray-500">4.8</span>
+                            </div>
+                            <button class="text-teal hover:text-teal/80 font-medium text-sm flex items-center" onclick="openDemo('chemistry')">
+                                体验 <i class="fa fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 生物演示卡片 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover demo-card" data-demo="biology">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="https://picsum.photos/id/64/600/400" alt="生物演示" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                        <div class="absolute top-4 left-4">
+                            <span class="bg-emerald text-white text-xs font-medium px-2.5 py-0.5 rounded">生物</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-3">
+                            <i class="fa fa-leaf text-emerald mr-2"></i>
+                            <span class="text-sm text-gray-500">细胞结构 · 生化过程 · 遗传学</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">生物结构演示</h3>
+                        <p class="text-gray-600 text-sm mb-4">深入细胞内部，观察生命活动过程，理解生物体的结构与功能关系。</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <span class="ml-2 text-sm text-gray-500">4.9</span>
+                            </div>
+                            <button class="text-emerald hover:text-emerald/80 font-medium text-sm flex items-center" onclick="openDemo('biology')">
+                                体验 <i class="fa fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 数学演示卡片 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover demo-card" data-demo="math">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="https://picsum.photos/id/65/600/400" alt="数学演示" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                        <div class="absolute top-4 left-4">
+                            <span class="bg-orange text-white text-xs font-medium px-2.5 py-0.5 rounded">数学</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-3">
+                            <i class="fa fa-calculator text-orange mr-2"></i>
+                            <span class="text-sm text-gray-500">几何 · 函数 · 统计</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">数学概念演示</h3>
+                        <p class="text-gray-600 text-sm mb-4">可视化数学概念，动态展示函数变化，通过图形理解抽象的数学原理。</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star-half-o text-accent"></i>
+                                <span class="ml-2 text-sm text-gray-500">4.7</span>
+                            </div>
+                            <button class="text-orange hover:text-orange/80 font-medium text-sm flex items-center" onclick="openDemo('math')">
+                                体验 <i class="fa fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 地理演示卡片 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover demo-card" data-demo="geography">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="https://picsum.photos/id/66/600/400" alt="地理演示" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                        <div class="absolute top-4 left-4">
+                            <span class="bg-blue text-white text-xs font-medium px-2.5 py-0.5 rounded">地理</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-3">
+                            <i class="fa fa-globe text-blue mr-2"></i>
+                            <span class="text-sm text-gray-500">地球结构 · 气候 · 地质</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">地理现象演示</h3>
+                        <p class="text-gray-600 text-sm mb-4">探索地球奥秘，观察地质变化过程，理解气候形成机制和地理现象。</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <span class="ml-2 text-sm text-gray-500">4.9</span>
+                            </div>
+                            <button class="text-blue hover:text-blue/80 font-medium text-sm flex items-center" onclick="openDemo('geography')">
+                                体验 <i class="fa fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 综合实验卡片 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover demo-card" data-demo="integrated">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="https://picsum.photos/id/67/600/400" alt="综合实验" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                        <div class="absolute top-4 left-4">
+                            <span class="bg-primary text-white text-xs font-medium px-2.5 py-0.5 rounded">综合</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-3">
+                            <i class="fa fa-puzzle-piece text-primary mr-2"></i>
+                            <span class="text-sm text-gray-500">跨学科 · 综合应用 · 创新实验</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">综合科学实验</h3>
+                        <p class="text-gray-600 text-sm mb-4">结合多学科知识，进行综合性实验，培养科学思维和创新能力。</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star text-accent"></i>
+                                <i class="fa fa-star-o text-accent"></i>
+                                <span class="ml-2 text-sm text-gray-500">4.2</span>
+                            </div>
+                            <button class="text-primary hover:text-primary/80 font-medium text-sm flex items-center" onclick="openDemo('integrated')">
+                                体验 <i class="fa fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 学习资源界面 -->
+        <section id="resources-screen" class="container mx-auto px-4 py-10 hidden">
+            <div class="mb-10">
+                <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-800 mb-4">科学学习资源中心</h2>
+                <p class="text-gray-600 max-w-3xl">这里提供丰富的科学教育资源，包括理论知识、实验指导、教学案例等，帮助您更好地理解和应用科学知识。</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- 左侧：资源分类 -->
+                <div>
+                    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fa fa-folder-open text-primary mr-2"></i> 资源分类
+                        </h3>
+                        <div class="space-y-2">
+                            <button class="resource-category w-full text-left p-3 rounded-lg bg-primary/10 text-primary font-medium flex items-center">
+                                <i class="fa fa-book mr-3 w-5 text-center"></i>
+                                理论知识库
+                            </button>
+                            <button class="resource-category w-full text-left p-3 rounded-lg hover:bg-gray-50 text-gray-700 font-medium flex items-center transition-colors">
+                                <i class="fa fa-flask mr-3 w-5 text-center"></i>
+                                实验指导
+                            </button>
+                            <button class="resource-category w-full text-left p-3 rounded-lg hover:bg-gray-50 text-gray-700 font-medium flex items-center transition-colors">
+                                <i class="fa fa-graduation-cap mr-3 w-5 text-center"></i>
+                                教学案例
+                            </button>
+                            <button class="resource-category w-full text-left p-3 rounded-lg hover:bg-gray-50 text-gray-700 font-medium flex items-center transition-colors">
+                                <i class="fa fa-video-camera mr-3 w-5 text-center"></i>
+                                视频教程
+                            </button>
+                            <button class="resource-category w-full text-left p-3 rounded-lg hover:bg-gray-50 text-gray-700 font-medium flex items-center transition-colors">
+                                <i class="fa fa-question-circle mr-3 w-5 text-center"></i>
+                                常见问题
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 右侧：资源内容 -->
+                <div>
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fa fa-book text-primary mr-2"></i> 理论知识库
+                        </h3>
+                        <div class="space-y-4" id="resource-content">
+                            <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-medium text-gray-800 hover:text-primary transition-colors cursor-pointer">物理学基础概念</h4>
+                                        <p class="text-sm text-gray-600 mt-1">涵盖力学、热学、电磁学、光学等基础物理概念和原理</p>
+                                    </div>
+                                    <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">PDF</span>
+                                </div>
+                                <div class="flex items-center mt-3 text-sm text-gray-500">
+                                    <span class="flex items-center mr-4"><i class="fa fa-download mr-1"></i> 245次</span>
+                                    <span class="flex items-center"><i class="fa fa-calendar mr-1"></i> 2024-01-15</span>
+                                </div>
+                            </div>
+                            
+                            <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-medium text-gray-800 hover:text-primary transition-colors cursor-pointer">化学反应机理详解</h4>
+                                        <p class="text-sm text-gray-600 mt-1">深入解析化学反应过程，包括反应动力学和热力学原理</p>
+                                    </div>
+                                    <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">PDF</span>
+                                </div>
+                                <div class="flex items-center mt-3 text-sm text-gray-500">
+                                    <span class="flex items-center mr-4"><i class="fa fa-download mr-1"></i> 189次</span>
+                                    <span class="flex items-center"><i class="fa fa-calendar mr-1"></i> 2024-01-12</span>
+                                </div>
+                            </div>
+                            
+                            <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-medium text-gray-800 hover:text-primary transition-colors cursor-pointer">生物细胞结构与功能</h4>
+                                        <p class="text-sm text-gray-600 mt-1">详细介绍细胞的各种结构组成及其生理功能</p>
+                                    </div>
+                                    <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">PDF</span>
+                                </div>
+                                <div class="flex items-center mt-3 text-sm text-gray-500">
+                                    <span class="flex items-center mr-4"><i class="fa fa-download mr-1"></i> 167次</span>
+                                    <span class="flex items-center"><i class="fa fa-calendar mr-1"></i> 2024-01-10</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 我的进度界面 -->
+        <section id="progress-screen" class="container mx-auto px-4 py-10 hidden">
+            <div class="mb-10">
+                <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-800 mb-4">我的学习进度</h2>
+                <p class="text-gray-600 max-w-3xl">跟踪您的学习进展，查看完成的演示和获得的成就。</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- 个人信息卡片 -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="flex items-center mb-5">
+                        <img src="https://picsum.photos/id/1015/200" alt="个人头像" class="w-16 h-16 rounded-full mr-4">
+                        <div>
+                            <h3 class="font-bold text-xl text-gray-800">科学探索者</h3>
+                            <p class="text-gray-600 text-sm">加入时间：2024-01-01</p>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-gray-100 pt-5">
+                        <h4 class="font-medium text-gray-800 mb-3">总体进度</h4>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm text-gray-600">已完成演示</span>
+                                    <span class="text-sm font-medium text-primary">3/6</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full" style="width: 50%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm text-gray-600">平均得分</span>
+                                    <span class="text-sm font-medium text-primary">85分</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-secondary h-2 rounded-full" style="width: 85%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 学科进度 -->
+                <div class="md:col-span-2 bg-white rounded-xl shadow-md p-6">
+                    <h3 class="text-xl font-bold mb-4">各学科进度</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="p-4 border border-gray-200 rounded-lg">
+                            <div class="flex items-center mb-2">
+                                <i class="fa fa-atom text-purple mr-2"></i>
+                                <span class="font-medium">物理</span>
+                                <span class="ml-auto text-sm text-green-600">已完成</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-purple h-2 rounded-full" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-4 border border-gray-200 rounded-lg">
+                            <div class="flex items-center mb-2">
+                                <i class="fa fa-flask text-teal mr-2"></i>
+                                <span class="font-medium">化学</span>
+                                <span class="ml-auto text-sm text-green-600">已完成</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-teal h-2 rounded-full" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-4 border border-gray-200 rounded-lg">
+                            <div class="flex items-center mb-2">
+                                <i class="fa fa-leaf text-emerald mr-2"></i>
+                                <span class="font-medium">生物</span>
+                                <span class="ml-auto text-sm text-green-600">已完成</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-emerald h-2 rounded-full" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-4 border border-gray-200 rounded-lg">
+                            <div class="flex items-center mb-2">
+                                <i class="fa fa-calculator text-orange mr-2"></i>
+                                <span class="font-medium">数学</span>
+                                <span class="ml-auto text-sm text-yellow-600">进行中</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-orange h-2 rounded-full" style="width: 60%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-4 border border-gray-200 rounded-lg">
+                            <div class="flex items-center mb-2">
+                                <i class="fa fa-globe text-blue mr-2"></i>
+                                <span class="font-medium">地理</span>
+                                <span class="ml-auto text-sm text-gray-500">未开始</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-blue h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-4 border border-gray-200 rounded-lg">
+                            <div class="flex items-center mb-2">
+                                <i class="fa fa-puzzle-piece text-primary mr-2"></i>
+                                <span class="font-medium">综合</span>
+                                <span class="ml-auto text-sm text-gray-500">未开始</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 页面导航功能
+        const screens = {
+            'home': document.getElementById('home-screen'),
+            'demos': document.getElementById('demos-screen'),
+            'resources': document.getElementById('resources-screen'),
+            'progress': document.getElementById('progress-screen')
+        };
+
+        function showScreen(screenName) {
+            Object.values(screens).forEach(screen => screen.classList.add('hidden'));
+            if (screens[screenName]) {
+                screens[screenName].classList.remove('hidden');
+            }
+        }
+
+        // 导航事件监听
+        document.getElementById('nav-home').addEventListener('click', (e) => {
+            e.preventDefault();
+            showScreen('home');
+        });
+
+        document.getElementById('nav-demos').addEventListener('click', (e) => {
+            e.preventDefault();
+            showScreen('demos');
+        });
+
+        document.getElementById('nav-resources').addEventListener('click', (e) => {
+            e.preventDefault();
+            showScreen('resources');
+        });
+
+        document.getElementById('nav-progress').addEventListener('click', (e) => {
+            e.preventDefault();
+            showScreen('progress');
+        });
+
+        // 开始探索按钮
+        document.getElementById('start-demo-btn').addEventListener('click', () => {
+            showScreen('demos');
+        });
+
+        // 了解更多按钮
+        document.getElementById('learn-more-btn').addEventListener('click', () => {
+            showScreen('resources');
+        });
+
+        // 移动端菜单切换
+        document.getElementById('mobile-menu-button').addEventListener('click', () => {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // 打开演示功能
+        function openDemo(demoType) {
+            const demoUrls = {
+                'physics': '/gen-html/physics_demo.html',
+                'chemistry': '/gen-html/chemistry_demo.html',
+                'biology': '/gen-html/biology_demo.html',
+                'math': '/gen-html/math_demo.html',
+                'geography': '/gen-html/geography_demo.html',
+                'integrated': '/gen-html/physics_demo.html' // 暂时使用物理演示
+            };
+            
+            if (demoUrls[demoType]) {
+                window.open(demoUrls[demoType], '_blank');
+            }
+        }
+
+        // 资源分类切换
+        document.querySelectorAll('.resource-category').forEach(button => {
+            button.addEventListener('click', function() {
+                // 移除所有活跃状态
+                document.querySelectorAll('.resource-category').forEach(btn => {
+                    btn.classList.remove('bg-primary/10', 'text-primary');
+                    btn.classList.add('hover:bg-gray-50', 'text-gray-700');
+                });
+                
+                // 添加当前按钮的活跃状态
+                this.classList.add('bg-primary/10', 'text-primary');
+                this.classList.remove('hover:bg-gray-50', 'text-gray-700');
+            });
+        });
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 默认显示首页
+            showScreen('home');
+        });
+    </script>
+</body>
+</html>

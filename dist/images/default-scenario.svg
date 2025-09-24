@@ -1,0 +1,68 @@
+<svg width="400" height="200" viewBox="0 0 400 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景渐变 -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f0f9ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e0f2fe;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0ea5e9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0284c7;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="400" height="200" fill="url(#bgGradient)" rx="8"/>
+  
+  <!-- 装饰性网格 -->
+  <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#e2e8f0" stroke-width="0.5" opacity="0.3"/>
+    </pattern>
+  </defs>
+  <rect width="400" height="200" fill="url(#grid)"/>
+  
+  <!-- 主图标 -->
+  <g transform="translate(200, 100)">
+    <!-- 场景图标背景圆 -->
+    <circle cx="0" cy="0" r="35" fill="url(#iconGradient)" opacity="0.1"/>
+    <circle cx="0" cy="0" r="28" fill="url(#iconGradient)" opacity="0.2"/>
+    
+    <!-- 场景图标 -->
+    <g transform="translate(-12, -12)">
+      <!-- 显示器/屏幕 -->
+      <rect x="2" y="4" width="20" height="14" rx="2" fill="url(#iconGradient)" stroke="#0284c7" stroke-width="1.5"/>
+      <rect x="4" y="6" width="16" height="10" fill="#ffffff" opacity="0.9"/>
+      
+      <!-- 屏幕内容线条 -->
+      <line x1="6" y1="8" x2="18" y2="8" stroke="#0ea5e9" stroke-width="1" opacity="0.7"/>
+      <line x1="6" y1="10" x2="16" y2="10" stroke="#0ea5e9" stroke-width="1" opacity="0.5"/>
+      <line x1="6" y1="12" x2="14" y2="12" stroke="#0ea5e9" stroke-width="1" opacity="0.3"/>
+      
+      <!-- 支架 -->
+      <rect x="10" y="18" width="4" height="3" fill="#64748b"/>
+      <rect x="8" y="21" width="8" height="1" fill="#64748b"/>
+    </g>
+  </g>
+  
+  <!-- 装饰元素 -->
+  <g opacity="0.4">
+    <!-- 左上角装饰 -->
+    <circle cx="50" cy="40" r="3" fill="#0ea5e9"/>
+    <circle cx="70" cy="30" r="2" fill="#06b6d4"/>
+    <circle cx="90" cy="50" r="1.5" fill="#0891b2"/>
+    
+    <!-- 右下角装饰 -->
+    <circle cx="350" cy="160" r="2.5" fill="#0ea5e9"/>
+    <circle cx="330" cy="170" r="2" fill="#06b6d4"/>
+    <circle cx="310" cy="150" r="1.5" fill="#0891b2"/>
+  </g>
+  
+  <!-- 文字标签 -->
+  <text x="200" y="160" text-anchor="middle" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="500">
+    默认场景
+  </text>
+  <text x="200" y="175" text-anchor="middle" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">
+    Default Scenario
+  </text>
+</svg>

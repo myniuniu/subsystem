@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生心理危机识别与干预</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .container {
+            text-align: center;
+            color: white;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: caring-pulse 2.5s ease-in-out infinite;
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .intervention-steps {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .step {
+            text-align: center;
+            padding: 20px 15px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+        }
+        
+        .step:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .step-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .step-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .step-desc {
+            font-size: 11px;
+            opacity: 0.8;
+            line-height: 1.3;
+        }
+        
+        @keyframes caring-pulse {
+            0%, 100% { 
+                transform: scale(1);
+                filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.4));
+            }
+            50% { 
+                transform: scale(1.05);
+                filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.6));
+            }
+        }
+        
+        .alert-signals {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .signal {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: alert-blink 3s ease-in-out infinite;
+        }
+        
+        .signal:nth-child(1) {
+            top: 20%;
+            left: 15%;
+            animation-delay: 0s;
+        }
+        
+        .signal:nth-child(2) {
+            top: 35%;
+            right: 20%;
+            animation-delay: 1s;
+        }
+        
+        .signal:nth-child(3) {
+            bottom: 30%;
+            left: 25%;
+            animation-delay: 2s;
+        }
+        
+        @keyframes alert-blink {
+            0%, 100% {
+                opacity: 0.3;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.3);
+            }
+        }
+        
+        .support-network {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .support-line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+            animation: support-flow 4s ease-in-out infinite;
+        }
+        
+        .support-line:nth-child(1) {
+            top: 25%;
+            left: 10%;
+            width: 35%;
+            transform: rotate(20deg);
+            animation-delay: 0s;
+        }
+        
+        .support-line:nth-child(2) {
+            top: 65%;
+            right: 15%;
+            width: 30%;
+            transform: rotate(-25deg);
+            animation-delay: 2s;
+        }
+        
+        @keyframes support-flow {
+            0%, 100% {
+                opacity: 0;
+                transform: rotate(20deg) translateX(-20px);
+            }
+            50% {
+                opacity: 1;
+                transform: rotate(20deg) translateX(0);
+            }
+        }
+        
+        .care-symbols {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .care-symbol {
+            position: absolute;
+            font-size: 20px;
+            animation: gentle-care 5s ease-in-out infinite;
+        }
+        
+        .care-symbol:nth-child(1) {
+            top: 15%;
+            left: 10%;
+            animation-delay: 0s;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .care-symbol:nth-child(2) {
+            top: 70%;
+            right: 15%;
+            animation-delay: 2.5s;
+            color: rgba(255, 182, 193, 0.8);
+        }
+        
+        .care-symbol:nth-child(3) {
+            bottom: 25%;
+            left: 20%;
+            animation-delay: 1.2s;
+            color: rgba(173, 216, 230, 0.8);
+        }
+        
+        @keyframes gentle-care {
+            0%, 100% {
+                transform: translateY(0px) scale(1);
+                opacity: 0.7;
+            }
+            50% {
+                transform: translateY(-8px) scale(1.1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="alert-signals">
+        <div class="signal"></div>
+        <div class="signal"></div>
+        <div class="signal"></div>
+    </div>
+    
+    <div class="support-network">
+        <div class="support-line"></div>
+        <div class="support-line"></div>
+    </div>
+    
+    <div class="care-symbols">
+        <div class="care-symbol">💙</div>
+        <div class="care-symbol">🤲</div>
+        <div class="care-symbol">🌟</div>
+    </div>
+    
+    <div class="container">
+        <div class="icon">🚨💝</div>
+        <h1 class="title">学生心理危机识别与干预</h1>
+        <p class="subtitle">及时识别心理危机信号<br>提供专业的心理急救支持</p>
+        
+        <div class="intervention-steps">
+            <div class="step">
+                <span class="step-icon">👁️</span>
+                <div class="step-name">早期识别</div>
+                <div class="step-desc">观察学生行为和情绪变化</div>
+            </div>
+            <div class="step">
+                <span class="step-icon">🤝</span>
+                <div class="step-name">建立信任</div>
+                <div class="step-desc">与学生建立安全的沟通关系</div>
+            </div>
+            <div class="step">
+                <span class="step-icon">🩺</span>
+                <div class="step-name">专业评估</div>
+                <div class="step-desc">评估危机程度和风险等级</div>
+            </div>
+            <div class="step">
+                <span class="step-icon">🏥</span>
+                <div class="step-name">及时转介</div>
+                <div class="step-desc">联系专业机构进行干预</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

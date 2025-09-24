@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>化学实验演示教学</title>
+    <link rel="stylesheet" href="chemistry_demo.css">
+</head>
+<body>
+    <div class="demo-container">
+        <!-- 头部标题 -->
+        <header class="demo-header">
+            <h1>化学实验演示教学</h1>
+            <p>AI智能中心 - 交互式化学实验可视化平台</p>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <div class="main-content">
+            <!-- 左侧控制面板 -->
+            <div class="control-panel">
+                <!-- 实验选择 -->
+                <div class="panel-section">
+                    <h3>实验选择</h3>
+                    <select id="experimentType" class="control-select">
+                        <option value="acid_base">酸碱中和反应</option>
+                        <option value="precipitation">沉淀反应</option>
+                        <option value="redox">氧化还原反应</option>
+                        <option value="gas_evolution">气体产生反应</option>
+                        <option value="crystallization">结晶过程</option>
+                        <option value="titration">滴定实验</option>
+                    </select>
+                </div>
+
+                <!-- 反应物配置 -->
+                <div class="panel-section">
+                    <h3>反应物配置</h3>
+                    <div class="reactant-config">
+                        <div class="reactant-item">
+                            <label>反应物A:</label>
+                            <select id="reactantA">
+                                <option value="HCl">盐酸 (HCl)</option>
+                                <option value="NaOH">氢氧化钠 (NaOH)</option>
+                                <option value="AgNO3">硝酸银 (AgNO₃)</option>
+                                <option value="NaCl">氯化钠 (NaCl)</option>
+                            </select>
+                            <div class="concentration-control">
+                                <label>浓度:</label>
+                                <input type="range" id="concentrationA" min="0.1" max="2.0" step="0.1" value="1.0">
+                                <span id="concentrationAValue">1.0 mol/L</span>
+                            </div>
+                        </div>
+                        
+                        <div class="reactant-item">
+                            <label>反应物B:</label>
+                            <select id="reactantB">
+                                <option value="NaOH">氢氧化钠 (NaOH)</option>
+                                <option value="HCl">盐酸 (HCl)</option>
+                                <option value="NaCl">氯化钠 (NaCl)</option>
+                                <option value="AgNO3">硝酸银 (AgNO₃)</option>
+                            </select>
+                            <div class="concentration-control">
+                                <label>浓度:</label>
+                                <input type="range" id="concentrationB" min="0.1" max="2.0" step="0.1" value="1.0">
+                                <span id="concentrationBValue">1.0 mol/L</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 实验条件 -->
+                <div class="panel-section">
+                    <h3>实验条件</h3>
+                    <div class="condition-control">
+                        <label>温度:</label>
+                        <input type="range" id="temperature" min="0" max="100" step="5" value="25">
+                        <span id="temperatureValue">25°C</span>
+                    </div>
+                    <div class="condition-control">
+                        <label>pH值:</label>
+                        <input type="range" id="pH" min="0" max="14" step="0.1" value="7.0">
+                        <span id="pHValue">7.0</span>
+                    </div>
+                    <div class="condition-control">
+                        <label>反应速率:</label>
+                        <input type="range" id="reactionRate" min="0.1" max="3.0" step="0.1" value="1.0">
+                        <span id="reactionRateValue">1.0x</span>
+                    </div>
+                </div>
+
+                <!-- 控制按钮 -->
+                <div class="panel-section">
+                    <h3>实验控制</h3>
+                    <div class="control-buttons">
+                        <button id="startBtn" class="btn btn-primary">开始反应</button>
+                        <button id="pauseBtn" class="btn btn-secondary">暂停</button>
+                        <button id="resetBtn" class="btn btn-warning">重置</button>
+                        <button id="stepBtn" class="btn btn-info">单步执行</button>
+                    </div>
+                </div>
+
+                <!-- 数据显示 -->
+                <div class="panel-section">
+                    <h3>实时数据</h3>
+                    <div class="data-display">
+                        <div class="data-item">
+                            <label>反应进度:</label>
+                            <span id="progress">0%</span>
+                        </div>
+                        <div class="data-item">
+                            <label>产物浓度:</label>
+                            <span id="productConcentration">0.00 mol/L</span>
+                        </div>
+                        <div class="data-item">
+                            <label>反应时间:</label>
+                            <span id="reactionTime">0.0 s</span>
+                        </div>
+                        <div class="data-item">
+                            <label>热量变化:</label>
+                            <span id="heatChange">0 kJ/mol</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 学习目标 -->
+                <div class="panel-section">
+                    <h3>学习目标</h3>
+                    <ul class="learning-objectives">
+                        <li>理解化学反应的基本原理</li>
+                        <li>观察反应过程中的现象变化</li>
+                        <li>掌握反应条件对反应速率的影响</li>
+                        <li>学习化学计量关系的应用</li>
+                        <li>培养实验观察和分析能力</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 右侧可视化区域 -->
+            <div class="visualization-area">
+                <!-- 实验装置 -->
+                <div class="apparatus-container">
+                    <h3>实验装置</h3>
+                    <div class="apparatus-view">
+                        <canvas id="chemistryCanvas" width="600" height="400"></canvas>
+                        <div class="apparatus-controls">
+                            <button id="zoomIn" class="zoom-btn">放大</button>
+                            <button id="zoomOut" class="zoom-btn">缩小</button>
+                            <button id="resetView" class="zoom-btn">重置视图</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 分子模型 -->
+                <div class="molecular-model">
+                    <h3>分子模型</h3>
+                    <div class="molecule-display">
+                        <div class="molecule-viewer" id="moleculeViewer">
+                            <div class="molecule-container">
+                                <div class="reactant-molecules">
+                                    <div class="molecule" data-type="HCl">
+                                        <span class="atom h">H</span>
+                                        <span class="bond">-</span>
+                                        <span class="atom cl">Cl</span>
+                                    </div>
+                                    <div class="molecule" data-type="NaOH">
+                                        <span class="atom na">Na</span>
+                                        <span class="bond">-</span>
+                                        <span class="atom o">O</span>
+                                        <span class="bond">-</span>
+                                        <span class="atom h">H</span>
+                                    </div>
+                                </div>
+                                <div class="reaction-arrow">→</div>
+                                <div class="product-molecules">
+                                    <div class="molecule" data-type="NaCl">
+                                        <span class="atom na">Na</span>
+                                        <span class="bond">-</span>
+                                        <span class="atom cl">Cl</span>
+                                    </div>
+                                    <div class="molecule" data-type="H2O">
+                                        <span class="atom h">H</span>
+                                        <span class="bond">-</span>
+                                        <span class="atom o">O</span>
+                                        <span class="bond">-</span>
+                                        <span class="atom h">H</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 反应方程式 -->
+                <div class="reaction-equation">
+                    <h3>反应方程式</h3>
+                    <div class="equation-display">
+                        <div id="chemicalEquation" class="equation">
+                            HCl + NaOH → NaCl + H₂O
+                        </div>
+                        <div class="equation-info">
+                            <span class="reaction-type">酸碱中和反应</span>
+                            <span class="energy-change">ΔH = -57.3 kJ/mol</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部实验步骤 -->
+        <div class="experiment-steps">
+            <h3>实验步骤</h3>
+            <div class="steps-container">
+                <div class="step" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>准备反应物</h4>
+                        <p>选择反应物类型并设置浓度</p>
+                    </div>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>设置实验条件</h4>
+                        <p>调节温度、pH值等反应条件</p>
+                    </div>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>开始反应</h4>
+                        <p>启动反应并观察现象变化</p>
+                    </div>
+                </div>
+                <div class="step" data-step="4">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4>数据分析</h4>
+                        <p>记录实验数据并分析结果</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 理论知识 -->
+        <div class="theory-section">
+            <h3>相关理论</h3>
+            <div class="theory-content">
+                <div class="theory-item">
+                    <h4>化学反应原理</h4>
+                    <p>化学反应是原子重新组合形成新物质的过程，遵循质量守恒定律和能量守恒定律。</p>
+                </div>
+                <div class="theory-item">
+                    <h4>反应速率理论</h4>
+                    <p>反应速率受温度、浓度、催化剂等因素影响，可用碰撞理论和过渡态理论解释。</p>
+                </div>
+                <div class="theory-item">
+                    <h4>化学平衡</h4>
+                    <p>可逆反应达到平衡时，正反应速率等于逆反应速率，平衡常数只与温度有关。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="chemistry_demo.js"></script>
+</body>
+</html>

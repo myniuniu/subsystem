@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>特殊需要学生融合教育</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .container {
+            text-align: center;
+            color: #2c3e50;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: inclusion-embrace 3s ease-in-out infinite;
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.8;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .inclusion-strategies {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .strategy {
+            text-align: center;
+            padding: 20px 15px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .strategy::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #a8edea, #fed6e3);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .strategy:hover::after {
+            transform: scaleX(1);
+        }
+        
+        .strategy:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .strategy-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .strategy-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .strategy-desc {
+            font-size: 11px;
+            opacity: 0.7;
+            line-height: 1.3;
+        }
+        
+        @keyframes inclusion-embrace {
+            0%, 100% { 
+                transform: scale(1);
+                filter: drop-shadow(0 0 15px rgba(168, 237, 234, 0.4));
+            }
+            50% { 
+                transform: scale(1.05);
+                filter: drop-shadow(0 0 25px rgba(254, 214, 227, 0.6));
+            }
+        }
+        
+        .diversity-hearts {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .heart {
+            position: absolute;
+            font-size: 20px;
+            animation: heart-float 5s ease-in-out infinite;
+        }
+        
+        .heart:nth-child(1) {
+            top: 15%;
+            left: 10%;
+            animation-delay: 0s;
+            color: rgba(168, 237, 234, 0.8);
+        }
+        
+        .heart:nth-child(2) {
+            top: 25%;
+            right: 15%;
+            animation-delay: 1.5s;
+            color: rgba(254, 214, 227, 0.8);
+        }
+        
+        .heart:nth-child(3) {
+            bottom: 30%;
+            left: 20%;
+            animation-delay: 3s;
+            color: rgba(168, 237, 234, 0.6);
+        }
+        
+        .heart:nth-child(4) {
+            bottom: 20%;
+            right: 25%;
+            animation-delay: 4.5s;
+            color: rgba(254, 214, 227, 0.7);
+        }
+        
+        @keyframes heart-float {
+            0%, 100% {
+                transform: translateY(0px) scale(1);
+                opacity: 0.8;
+            }
+            50% {
+                transform: translateY(-12px) scale(1.1);
+                opacity: 1;
+            }
+        }
+        
+        .support-circles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .support-circle {
+            position: absolute;
+            border: 2px solid rgba(168, 237, 234, 0.4);
+            border-radius: 50%;
+            animation: support-expand 6s ease-in-out infinite;
+        }
+        
+        .support-circle:nth-child(1) {
+            width: 70px;
+            height: 70px;
+            top: 20%;
+            left: 15%;
+            animation-delay: 0s;
+        }
+        
+        .support-circle:nth-child(2) {
+            width: 90px;
+            height: 90px;
+            top: 55%;
+            right: 20%;
+            animation-delay: 3s;
+            border-color: rgba(254, 214, 227, 0.4);
+        }
+        
+        .support-circle:nth-child(3) {
+            width: 50px;
+            height: 50px;
+            bottom: 25%;
+            left: 25%;
+            animation-delay: 1.5s;
+        }
+        
+        @keyframes support-expand {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.4;
+            }
+            50% {
+                transform: scale(1.3);
+                opacity: 0.7;
+            }
+        }
+        
+        .inclusion-bridges {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .bridge {
+            position: absolute;
+            height: 3px;
+            background: linear-gradient(90deg, rgba(168, 237, 234, 0.3), rgba(254, 214, 227, 0.5), rgba(168, 237, 234, 0.3));
+            border-radius: 2px;
+            animation: bridge-connect 7s ease-in-out infinite;
+        }
+        
+        .bridge:nth-child(1) {
+            top: 40%;
+            left: 20%;
+            width: 60%;
+            transform: rotate(20deg);
+            animation-delay: 0s;
+        }
+        
+        .bridge:nth-child(2) {
+            top: 60%;
+            right: 25%;
+            width: 50%;
+            transform: rotate(-15deg);
+            animation-delay: 3.5s;
+        }
+        
+        @keyframes bridge-connect {
+            0%, 100% {
+                opacity: 0.3;
+                transform: rotate(20deg) scaleX(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: rotate(20deg) scaleX(1.1);
+            }
+        }
+        
+        .unity-stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .star {
+            position: absolute;
+            font-size: 16px;
+            animation: star-twinkle 4s ease-in-out infinite;
+        }
+        
+        .star:nth-child(1) {
+            top: 10%;
+            left: 25%;
+            animation-delay: 0s;
+            color: rgba(168, 237, 234, 0.9);
+        }
+        
+        .star:nth-child(2) {
+            top: 35%;
+            right: 10%;
+            animation-delay: 2s;
+            color: rgba(254, 214, 227, 0.9);
+        }
+        
+        .star:nth-child(3) {
+            bottom: 15%;
+            left: 15%;
+            animation-delay: 1s;
+            color: rgba(168, 237, 234, 0.7);
+        }
+        
+        @keyframes star-twinkle {
+            0%, 100% {
+                opacity: 0.7;
+                transform: scale(1) rotate(0deg);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.2) rotate(180deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="diversity-hearts">
+        <div class="heart">💖</div>
+        <div class="heart">💝</div>
+        <div class="heart">💗</div>
+        <div class="heart">💕</div>
+    </div>
+    
+    <div class="support-circles">
+        <div class="support-circle"></div>
+        <div class="support-circle"></div>
+        <div class="support-circle"></div>
+    </div>
+    
+    <div class="inclusion-bridges">
+        <div class="bridge"></div>
+        <div class="bridge"></div>
+    </div>
+    
+    <div class="unity-stars">
+        <div class="star">⭐</div>
+        <div class="star">✨</div>
+        <div class="star">🌟</div>
+    </div>
+    
+    <div class="container">
+        <div class="icon">🤗🌈</div>
+        <h1 class="title">特殊需要学生融合教育</h1>
+        <p class="subtitle">创建包容性学习环境<br>让每个孩子都能茁壮成长</p>
+        
+        <div class="inclusion-strategies">
+            <div class="strategy">
+                <span class="strategy-icon">🎯</span>
+                <div class="strategy-name">个别化支持</div>
+                <div class="strategy-desc">制定个性化教育计划</div>
+            </div>
+            <div class="strategy">
+                <span class="strategy-icon">🤝</span>
+                <div class="strategy-name">同伴互助</div>
+                <div class="strategy-desc">促进学生间相互支持</div>
+            </div>
+            <div class="strategy">
+                <span class="strategy-icon">🌈</span>
+                <div class="strategy-name">多元教学</div>
+                <div class="strategy-desc">采用多样化教学方法</div>
+            </div>
+            <div class="strategy">
+                <span class="strategy-icon">💝</span>
+                <div class="strategy-name">情感关怀</div>
+                <div class="strategy-desc">提供温暖的情感支持</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

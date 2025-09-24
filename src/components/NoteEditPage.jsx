@@ -19,10 +19,13 @@ import {
   Modal,
   Checkbox,
   Popconfirm,
-  Dropdown
+  Dropdown,
+  Progress
 } from 'antd';
 import MaterialAddPage from './MaterialAddPage';
 import ExploreModal from './ExploreModal';
+import VideoPlayer from './VideoPlayer';
+import courseSelectionService from '../services/courseSelectionService';
 import {
   ArrowLeftOutlined,
   SaveOutlined,
@@ -43,7 +46,6 @@ import {
   MoreOutlined,
   EditOutlined
 } from '@ant-design/icons';
-import courseSelectionService from '../services/courseSelectionService';
 
 const { Content, Sider } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -89,7 +91,13 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   const [videoUrl, setVideoUrl] = useState('');
   const [courseVideos, setCourseVideos] = useState(
     mode === 'create' ? [
-      { id: 4, title: '成都火锅制作教程', url: 'https://video.com/chengdu-hotpot', addTime: '刚刚' }
+      { id: 4, title: '成都火锅制作教程', url: 'https://video.com/chengdu-hotpot', addTime: '刚刚', progress: 0 }
+    ] : mode === 'edit' ? [
+      { id: 101, title: '数据结构与算法基础', url: 'https://edu.example.com/course/data-structure', addTime: '2024-01-15 10:30', duration: '45分钟', instructor: '张教授', progress: 75 },
+      { id: 102, title: 'React前端开发实战', url: 'https://edu.example.com/course/react-dev', addTime: '2024-01-16 14:20', duration: '60分钟', instructor: '李老师', progress: 45 },
+      { id: 103, title: 'Python机器学习入门', url: 'https://edu.example.com/course/python-ml', addTime: '2024-01-17 09:15', duration: '75分钟', instructor: '王博士', progress: 90 },
+      { id: 104, title: '数据库设计与优化', url: 'https://edu.example.com/course/database-design', addTime: '2024-01-18 16:45', duration: '50分钟', instructor: '陈工程师', progress: 20 },
+      { id: 105, title: '云计算架构设计', url: 'https://edu.example.com/course/cloud-architecture', addTime: '2024-01-19 11:00', duration: '90分钟', instructor: '刘架构师', progress: 100 }
     ] : note?.materials?.videos || []
   );
   
@@ -147,6 +155,186 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   const [smartNotes, setSmartNotes] = useState(note?.smartNotes || []);
   const [showSmartNotesModal, setShowSmartNotesModal] = useState(false);
   const [selectedNote, setSelectedNote] = useState(null);
+
+  // 视频播放器相关状态
+  const [showVideoPlayer, setShowVideoPlayer] = useState(false);
+  const [currentVideo, setCurrentVideo] = useState(null);
+
+  // 场景模拟相关状态
+  const [scenarioModalVisible, setScenarioModalVisible] = useState(false);
+  const [selectedScenarios, setSelectedScenarios] = useState([]);
+
+  // 根据资源推荐场景模拟
+  const getRecommendedScenarios = () => {
+    // 分析当前资料内容，生成推荐场景
+    const scenarios = [];
+    
+    // 基于文档资料推荐
+    if (uploadedFiles.some(file => file.name.includes('火锅') || file.name.includes('美食'))) {
+      scenarios.push({
+        id: 'cooking-scenario',
+        title: '餐饮服务场景模拟',
+        description: '模拟餐厅服务流程，包括点餐、制作、上菜等环节的实际操作',
+        icon: '🍽️',
+        tags: ['餐饮服务', '客户接待', '流程管理'],
+        applicableScenes: ['餐厅培训', '服务标准化', '客户体验优化']
+      });
+      
+      scenarios.push({
+        id: 'cooking-training',
+        title: '烹饪技能培训',
+        description: '通过实际操作演练，掌握火锅制作的关键技巧和标准流程',
+        icon: '👨‍🍳',
+        tags: ['技能培训', '标准化操作', '质量控制'],
+        applicableScenes: ['厨师培训', '新员工入职', '技能考核']
+      });
+    }
+    
+    // 基于网站链接推荐
+    if (links.some(link => link.title.includes('美食') || link.url.includes('food'))) {
+      scenarios.push({
+        id: 'marketing-scenario',
+        title: '美食营销推广模拟',
+        description: '模拟美食产品的线上线下营销推广活动，包括社交媒体运营、活动策划等',
+        icon: '📱',
+        tags: ['营销推广', '社交媒体', '品牌建设'],
+        applicableScenes: ['市场推广', '品牌宣传', '客户获取']
+      });
+    }
+    
+    // 基于文本内容推荐
+    if (addedTexts.some(text => text.content.includes('小吃') || text.content.includes('美食'))) {
+      scenarios.push({
+        id: 'cultural-experience',
+        title: '文化体验场景',
+        description: '设计沉浸式的地方美食文化体验活动，让参与者深入了解美食背后的文化内涵',
+        icon: '🏮',
+        tags: ['文化传承', '体验设计', '教育培训'],
+        applicableScenes: ['文化教育', '旅游体验', '团队建设']
+      });
+    }
+    
+    // 基于视频资源推荐
+    if (courseVideos.some(video => video.title.includes('教程') || video.title.includes('制作'))) {
+      scenarios.push({
+        id: 'skill-assessment',
+        title: '技能评估与认证',
+        description: '建立标准化的技能评估体系，通过实际操作考核员工的专业技能水平',
+        icon: '🏆',
+        tags: ['技能评估', '认证体系', '标准化'],
+        applicableScenes: ['员工考核', '技能认证', '培训效果评估']
+      });
+    }
+    
+    // 通用场景推荐
+    scenarios.push({
+      id: 'team-collaboration',
+      title: '团队协作训练',
+      description: '通过模拟真实工作场景，提升团队成员之间的协作能力和沟通效率',
+      icon: '🤝',
+      tags: ['团队协作', '沟通技巧', '效率提升'],
+      applicableScenes: ['团队建设', '新员工融入', '跨部门协作']
+    });
+    
+    scenarios.push({
+      id: 'customer-service',
+      title: '客户服务场景',
+      description: '模拟各种客户服务情况，训练员工的应变能力和服务技巧',
+      icon: '💬',
+      tags: ['客户服务', '应变能力', '服务质量'],
+      applicableScenes: ['客服培训', '投诉处理', '服务标准化']
+    });
+    
+    scenarios.push({
+      id: 'crisis-management',
+      title: '应急处理演练',
+      description: '模拟突发情况和紧急事件，训练员工的应急处理能力和危机管理技巧',
+      icon: '🚨',
+      tags: ['应急处理', '危机管理', '安全培训'],
+      applicableScenes: ['安全培训', '应急演练', '风险管控']
+    });
+    
+    return scenarios;
+  };
+
+  // AI自动创建场景模拟
+  const createNewScenario = () => {
+    // 基于当前资料内容智能生成场景
+    const scenarioTemplates = [
+      {
+        title: '实战操作演练',
+        description: '基于您的资料内容，设计实际操作场景，让学员在模拟环境中练习关键技能',
+        icon: '⚡',
+        tags: ['实战演练', '技能训练', '操作规范'],
+        applicableScenes: ['技能培训', '标准化操作', '质量控制']
+      },
+      {
+        title: '问题解决训练',
+        description: '模拟常见问题和挑战情况，训练学员的分析判断和解决问题的能力',
+        icon: '🧩',
+        tags: ['问题解决', '逻辑思维', '应变能力'],
+        applicableScenes: ['能力提升', '思维训练', '实际应用']
+      },
+      {
+        title: '团队协作场景',
+        description: '设计需要多人配合的工作场景，提升团队协作和沟通协调能力',
+        icon: '👥',
+        tags: ['团队协作', '沟通技巧', '协调配合'],
+        applicableScenes: ['团队建设', '协作训练', '沟通提升']
+      },
+      {
+        title: '客户互动模拟',
+        description: '模拟与客户的各种互动场景，提升服务意识和客户满意度',
+        icon: '🤝',
+        tags: ['客户服务', '沟通技巧', '服务质量'],
+        applicableScenes: ['服务培训', '客户关系', '满意度提升']
+      },
+      {
+        title: '创新思维训练',
+        description: '通过开放性场景设计，激发学员的创新思维和创造力',
+        icon: '💡',
+        tags: ['创新思维', '创造力', '思维拓展'],
+        applicableScenes: ['创新培训', '思维开发', '能力拓展']
+      }
+    ];
+
+    // 随机选择一个模板并个性化
+    const randomTemplate = scenarioTemplates[Math.floor(Math.random() * scenarioTemplates.length)];
+    
+    // 基于当前资料内容进行个性化调整
+    let personalizedTitle = randomTemplate.title;
+    let personalizedDescription = randomTemplate.description;
+    
+    // 根据上传的文件内容调整
+    if (uploadedFiles.length > 0) {
+      const fileKeywords = uploadedFiles.map(file => file.name).join('');
+      if (fileKeywords.includes('火锅') || fileKeywords.includes('美食')) {
+        personalizedTitle = `餐饮${randomTemplate.title}`;
+        personalizedDescription = personalizedDescription.replace('您的资料内容', '餐饮行业相关内容');
+      } else if (fileKeywords.includes('培训') || fileKeywords.includes('教学')) {
+        personalizedTitle = `培训${randomTemplate.title}`;
+        personalizedDescription = personalizedDescription.replace('您的资料内容', '培训教学相关内容');
+      }
+    }
+    
+    // 根据文本内容调整
+    if (addedTexts.length > 0) {
+      const textKeywords = addedTexts.map(text => text.content).join('');
+      if (textKeywords.includes('管理') || textKeywords.includes('运营')) {
+        personalizedTitle = `管理${randomTemplate.title}`;
+        personalizedDescription = personalizedDescription.replace('学员', '管理人员');
+      }
+    }
+
+    return {
+      id: `ai-created-${Date.now()}`,
+      title: personalizedTitle,
+      description: personalizedDescription,
+      icon: randomTemplate.icon,
+      tags: [...randomTemplate.tags, 'AI生成'],
+      applicableScenes: randomTemplate.applicableScenes
+    };
+  };
 
   // 新建笔记功能
   const handleCreateNewNote = () => {
@@ -271,10 +459,17 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
       report: '分析报告',
       ppt: 'PPT演示',
       webcode: '网页代码',
+      scenario: '场景模拟',
       'training-plan': '培训方案',
       schedule: '课表',
       participants: '参训人员清单'
     };
+
+    // 如果是场景模拟，显示弹窗
+    if (operationType === 'scenario') {
+      setScenarioModalVisible(true);
+      return;
+    }
 
     // 计算所有资料的总数
     const totalMaterials = uploadedFiles.length + addedTexts.length + courseVideos.length + links.length;
@@ -837,7 +1032,14 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   };
 
   const handleViewMaterial = (material, type) => {
-    // 生成单个资料的智能笔记
+    // 如果是视频类型，打开视频播放器
+    if (type === 'video') {
+      setCurrentVideo(material);
+      setShowVideoPlayer(true);
+      return;
+    }
+    
+    // 其他类型生成单个资料的智能笔记
     const smartNote = generateSmartNote(material, type);
     setSmartNotes([smartNote]);
     setShowSmartNotesModal(true);
@@ -1105,7 +1307,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     <>
       <div style={{ display: 'flex', height: '100vh', background: '#f5f5f5' }}>
       {/* 左侧资料收集区域 */}
-      <div style={{ width: 320, background: '#fff', margin: '16px 0 16px 16px', borderRadius: '8px', overflow: 'hidden' }}>
+      <div style={{ flex: 2.5, background: '#fff', margin: '16px 0 16px 16px', borderRadius: '8px', overflow: 'hidden' }}>
           <div style={{ padding: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1440,8 +1642,28 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                           <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{video.title}</Text>
                           <br />
                           <Text type="secondary" style={{ fontSize: 10 }} ellipsis>
-                            {video.url}
+                            {video.instructor && `讲师：${video.instructor} | `}
+                            {video.duration && `时长：${video.duration} | `}
+                            {video.addTime}
                           </Text>
+                          {/* 观看进度条 */}
+                          {video.progress !== undefined && (
+                            <div style={{ marginTop: 4 }}>
+                              <Progress 
+                                percent={video.progress} 
+                                size="small" 
+                                strokeColor={
+                                  video.progress === 100 ? '#52c41a' : 
+                                  video.progress >= 50 ? '#1890ff' : '#faad14'
+                                }
+                                showInfo={false}
+                                style={{ fontSize: 10 }}
+                              />
+                              <Text type="secondary" style={{ fontSize: 9 }}>
+                                观看进度 {video.progress}%
+                              </Text>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <Checkbox
@@ -1626,6 +1848,24 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                           <Text type="secondary" style={{ fontSize: 10 }} ellipsis>
                             {course.trainingType} · {course.duration}
                           </Text>
+                          {/* 观看进度条 */}
+                          {course.progress !== undefined && (
+                            <div style={{ marginTop: 4 }}>
+                              <Progress 
+                                percent={course.progress} 
+                                size="small" 
+                                strokeColor={
+                                  course.progress === 100 ? '#52c41a' : 
+                                  course.progress >= 50 ? '#1890ff' : '#faad14'
+                                }
+                                showInfo={false}
+                                style={{ fontSize: 10 }}
+                              />
+                              <Text type="secondary" style={{ fontSize: 9 }}>
+                                观看进度 {course.progress}%
+                              </Text>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <Checkbox
@@ -1642,7 +1882,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
       </div>
 
       {/* 中间问答区域 */}
-      <div style={{ flex: 1, margin: '16px', background: '#fff', borderRadius: '8px', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 5, margin: '16px', background: '#fff', borderRadius: '8px', display: 'flex', flexDirection: 'column' }}>
           <div style={{ padding: '20px', borderBottom: '1px solid #f0f0f0' }}>
             <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
               💬 智能问答
@@ -1864,7 +2104,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
         </div>
 
         {/* 右侧操作区域 */}
-        <div style={{ width: 320, background: '#fff', margin: '16px 16px 16px 0', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 2.5, background: '#fff', margin: '16px 16px 16px 0', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           {/* 上半部分 - 功能概览 */}
           <div style={{ padding: '20px', flex: 1 }}>
             <Title level={5} style={{ marginBottom: 16, color: '#1f1f1f' }}>
@@ -2043,11 +2283,11 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                  </div>
               </Card>
               
-              {/* 网页代码 */}
+              {/* 场景模拟 */}
               <Card 
                 size="small" 
                 hoverable
-                onClick={() => handleOperationClick('webcode')}
+                onClick={() => handleOperationClick('scenario')}
                 style={{ 
                   background: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)',
                   border: 'none',
@@ -2058,12 +2298,12 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                 }}
               >
                 <div style={{ padding: '6px 0' }}>
-                   <div style={{ fontSize: '20px', marginBottom: '6px' }}>💻</div>
+                   <div style={{ fontSize: '20px', marginBottom: '6px' }}>🎭</div>
                    <Text style={{ 
                      fontSize: '11px', 
                      fontWeight: 500, 
                      color: '#7b1fa2' 
-                   }}>网页代码</Text>
+                   }}>场景模拟</Text>
                  </div>
               </Card>
               
@@ -2083,6 +2323,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                       case 'report': return '📊';
                       case 'ppt': return '📽️';
                       case 'webcode': return '💻';
+                      case 'scenario': return '🎭';
                       case 'file': return '📄';
                       case 'text': return '📝';
                       case 'link': return '🔗';
@@ -2616,6 +2857,174 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
         onClose={() => setShowExploreModal(false)}
         onExplore={handleExplore}
       />
+
+      {/* 视频播放器 */}
+      <VideoPlayer
+        visible={showVideoPlayer}
+        onClose={() => {
+          setShowVideoPlayer(false);
+          setCurrentVideo(null);
+        }}
+        videoData={currentVideo}
+        onProgressUpdate={(videoId, progress) => {
+          // 更新视频观看进度
+          setCourseVideos(prev => 
+            prev.map(video => 
+              video.id === videoId 
+                ? { ...video, progress } 
+                : video
+            )
+          );
+        }}
+      />
+
+      {/* 场景模拟弹窗 */}
+      <Modal
+        title="场景模拟推荐"
+        open={scenarioModalVisible}
+        onCancel={() => setScenarioModalVisible(false)}
+        width={800}
+        footer={[
+          <Button key="cancel" onClick={() => setScenarioModalVisible(false)}>
+            取消
+          </Button>,
+          <Button 
+            key="confirm" 
+            type="primary" 
+            onClick={() => {
+              if (selectedScenarios.length === 0) {
+                message.warning('请至少选择一个场景模拟');
+                return;
+              }
+              
+              // 将选中的场景模拟添加到操作记录
+              const newRecords = selectedScenarios.map(scenario => ({
+                id: Date.now() + Math.random(),
+                title: `场景模拟：${scenario.title}`,
+                source: '智能推荐',
+                time: '刚刚',
+                type: 'scenario',
+                content: scenario.description
+              }));
+
+              setOperationRecords(prev => ({
+                ...prev,
+                scenario: [...newRecords, ...(prev.scenario || [])]
+              }));
+
+              message.success(`已添加${selectedScenarios.length}个场景模拟到操作记录`);
+              setScenarioModalVisible(false);
+              setSelectedScenarios([]);
+            }}
+          >
+            确认添加 ({selectedScenarios.length})
+          </Button>
+        ]}
+      >
+        <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+          <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ color: '#666', fontSize: '14px' }}>
+              基于您的资料内容，为您推荐以下场景模拟：
+            </div>
+            <Button 
+               type="primary" 
+               icon={<PlusOutlined />}
+               size="small"
+               style={{ 
+                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                 border: 'none',
+                 borderRadius: '6px',
+                 boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)'
+               }}
+               onClick={() => {
+                 // 添加加载状态
+                 const loadingMessage = message.loading('AI正在为您创建场景...', 0);
+                 
+                 // 模拟AI思考时间
+                 setTimeout(() => {
+                   loadingMessage();
+                   
+                   // AI自动创建场景的逻辑
+                   const newScenario = createNewScenario();
+                   
+                   // 将新创建的场景添加到操作记录
+                   const newRecord = {
+                     id: Date.now() + Math.random(),
+                     title: `场景模拟：${newScenario.title}`,
+                     source: 'AI自动创建',
+                     time: '刚刚',
+                     type: 'scenario',
+                     content: newScenario.description
+                   };
+
+                   setOperationRecords(prev => ({
+                     ...prev,
+                     scenario: [newRecord, ...(prev.scenario || [])]
+                   }));
+
+                   message.success({
+                     content: (
+                       <div>
+                         <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
+                           🎉 AI已为您创建场景模拟
+                         </div>
+                         <div style={{ fontSize: '12px', color: '#666' }}>
+                           {newScenario.title}
+                         </div>
+                       </div>
+                     ),
+                     duration: 3
+                   });
+                 }, 1500);
+               }}
+             >
+              新建场景
+            </Button>
+          </div>
+          
+          {getRecommendedScenarios().map(scenario => (
+            <Card
+              key={scenario.id}
+              size="small"
+              style={{ 
+                marginBottom: '12px',
+                border: selectedScenarios.find(s => s.id === scenario.id) ? '2px solid #1890ff' : '1px solid #d9d9d9',
+                cursor: 'pointer'
+              }}
+              onClick={() => {
+                const isSelected = selectedScenarios.find(s => s.id === scenario.id);
+                if (isSelected) {
+                  setSelectedScenarios(prev => prev.filter(s => s.id !== scenario.id));
+                } else {
+                  setSelectedScenarios(prev => [...prev, scenario]);
+                }
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                <div style={{ fontSize: '24px', marginRight: '12px' }}>{scenario.icon}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{scenario.title}</div>
+                  <div style={{ color: '#666', fontSize: '13px', marginBottom: '8px' }}>
+                    {scenario.description}
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                    {scenario.tags.map(tag => (
+                      <Tag key={tag} size="small" color="blue">{tag}</Tag>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: '8px', fontSize: '12px', color: '#999' }}>
+                    适用场景：{scenario.applicableScenes.join('、')}
+                  </div>
+                </div>
+                <Checkbox 
+                  checked={!!selectedScenarios.find(s => s.id === scenario.id)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+            </Card>
+          ))}
+        </div>
+      </Modal>
     </>
   );
 };

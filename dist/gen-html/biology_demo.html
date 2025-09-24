@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生物实验演示教学</title>
+    <link rel="stylesheet" href="biology_demo.css">
+</head>
+<body>
+    <div class="demo-container">
+        <!-- 头部标题 -->
+        <header class="demo-header">
+            <h1>生物实验演示教学</h1>
+            <p>AI智能中心 - 交互式生物实验可视化平台</p>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <div class="main-content">
+            <!-- 左侧控制面板 -->
+            <div class="control-panel">
+                <!-- 实验选择 -->
+                <div class="panel-section">
+                    <h3>实验选择</h3>
+                    <select id="experimentType" class="control-select">
+                        <option value="cell_division">细胞分裂过程</option>
+                        <option value="photosynthesis">光合作用</option>
+                        <option value="respiration">细胞呼吸</option>
+                        <option value="dna_replication">DNA复制</option>
+                        <option value="protein_synthesis">蛋白质合成</option>
+                        <option value="enzyme_activity">酶活性实验</option>
+                        <option value="osmosis">渗透作用</option>
+                        <option value="genetics">遗传学实验</option>
+                    </select>
+                </div>
+
+                <!-- 实验参数 -->
+                <div class="panel-section">
+                    <h3>实验参数</h3>
+                    <div class="parameter-control">
+                        <label>温度:</label>
+                        <input type="range" id="temperature" min="0" max="50" step="1" value="25">
+                        <span id="temperatureValue">25°C</span>
+                    </div>
+                    <div class="parameter-control">
+                        <label>pH值:</label>
+                        <input type="range" id="pH" min="4" max="10" step="0.1" value="7.0">
+                        <span id="pHValue">7.0</span>
+                    </div>
+                    <div class="parameter-control">
+                        <label>光照强度:</label>
+                        <input type="range" id="lightIntensity" min="0" max="100" step="5" value="50">
+                        <span id="lightIntensityValue">50%</span>
+                    </div>
+                    <div class="parameter-control">
+                        <label>CO₂浓度:</label>
+                        <input type="range" id="co2Concentration" min="0" max="1000" step="10" value="400">
+                        <span id="co2ConcentrationValue">400 ppm</span>
+                    </div>
+                </div>
+
+                <!-- 显微镜控制 -->
+                <div class="panel-section">
+                    <h3>显微镜控制</h3>
+                    <div class="microscope-controls">
+                        <div class="magnification-control">
+                            <label>放大倍数:</label>
+                            <select id="magnification">
+                                <option value="40">40x</option>
+                                <option value="100" selected>100x</option>
+                                <option value="400">400x</option>
+                                <option value="1000">1000x</option>
+                            </select>
+                        </div>
+                        <div class="focus-control">
+                            <label>焦距调节:</label>
+                            <input type="range" id="focus" min="0" max="100" step="1" value="50">
+                            <span id="focusValue">50%</span>
+                        </div>
+                        <div class="brightness-control">
+                            <label>亮度:</label>
+                            <input type="range" id="brightness" min="0" max="100" step="5" value="70">
+                            <span id="brightnessValue">70%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 时间控制 -->
+                <div class="panel-section">
+                    <h3>时间控制</h3>
+                    <div class="time-controls">
+                        <div class="speed-control">
+                            <label>播放速度:</label>
+                            <input type="range" id="playbackSpeed" min="0.1" max="5.0" step="0.1" value="1.0">
+                            <span id="speedValue">1.0x</span>
+                        </div>
+                        <div class="time-display">
+                            <label>实验时间:</label>
+                            <span id="experimentTime">0:00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 控制按钮 -->
+                <div class="panel-section">
+                    <h3>实验控制</h3>
+                    <div class="control-buttons">
+                        <button id="startBtn" class="btn btn-primary">开始实验</button>
+                        <button id="pauseBtn" class="btn btn-secondary">暂停</button>
+                        <button id="resetBtn" class="btn btn-warning">重置</button>
+                        <button id="captureBtn" class="btn btn-info">截图</button>
+                    </div>
+                </div>
+
+                <!-- 数据记录 -->
+                <div class="panel-section">
+                    <h3>实验数据</h3>
+                    <div class="data-display">
+                        <div class="data-item">
+                            <label>细胞数量:</label>
+                            <span id="cellCount">0</span>
+                        </div>
+                        <div class="data-item">
+                            <label>分裂阶段:</label>
+                            <span id="divisionPhase">间期</span>
+                        </div>
+                        <div class="data-item">
+                            <label>ATP产量:</label>
+                            <span id="atpProduction">0 mol</span>
+                        </div>
+                        <div class="data-item">
+                            <label>O₂产生量:</label>
+                            <span id="oxygenProduction">0 mL</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 学习目标 -->
+                <div class="panel-section">
+                    <h3>学习目标</h3>
+                    <ul class="learning-objectives">
+                        <li>观察细胞的基本结构和功能</li>
+                        <li>理解生物代谢过程机制</li>
+                        <li>掌握显微镜的使用方法</li>
+                        <li>学习实验数据的记录和分析</li>
+                        <li>培养科学观察和思维能力</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 右侧可视化区域 -->
+            <div class="visualization-area">
+                <!-- 显微镜视野 -->
+                <div class="microscope-view">
+                    <h3>显微镜视野</h3>
+                    <div class="microscope-container">
+                        <div class="microscope-eyepiece">
+                            <canvas id="microscopeCanvas" width="400" height="400"></canvas>
+                            <div class="crosshair"></div>
+                            <div class="scale-bar">
+                                <div class="scale-line"></div>
+                                <span class="scale-text">10μm</span>
+                            </div>
+                        </div>
+                        <div class="microscope-controls-bottom">
+                            <button id="moveLeft" class="move-btn">←</button>
+                            <button id="moveUp" class="move-btn">↑</button>
+                            <button id="moveDown" class="move-btn">↓</button>
+                            <button id="moveRight" class="move-btn">→</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3D分子模型 -->
+                <div class="molecular-model">
+                    <h3>分子结构模型</h3>
+                    <div class="model-container">
+                        <div id="moleculeViewer" class="molecule-viewer">
+                            <div class="molecule-display">
+                                <!-- DNA双螺旋结构 -->
+                                <div class="dna-helix" id="dnaHelix">
+                                    <div class="helix-strand strand1"></div>
+                                    <div class="helix-strand strand2"></div>
+                                    <div class="base-pairs">
+                                        <div class="base-pair">A-T</div>
+                                        <div class="base-pair">G-C</div>
+                                        <div class="base-pair">C-G</div>
+                                        <div class="base-pair">T-A</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 蛋白质结构 -->
+                                <div class="protein-structure" id="proteinStructure">
+                                    <div class="alpha-helix"></div>
+                                    <div class="beta-sheet"></div>
+                                    <div class="random-coil"></div>
+                                </div>
+                                
+                                <!-- 酶分子 -->
+                                <div class="enzyme-model" id="enzymeModel">
+                                    <div class="active-site"></div>
+                                    <div class="substrate"></div>
+                                    <div class="product"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="model-controls">
+                            <button id="rotateMolecule" class="model-btn">旋转</button>
+                            <button id="zoomMolecule" class="model-btn">缩放</button>
+                            <button id="resetMolecule" class="model-btn">重置</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 生化过程图 -->
+                <div class="biochemical-process">
+                    <h3>生化过程示意图</h3>
+                    <div class="process-diagram">
+                        <canvas id="processCanvas" width="500" height="300"></canvas>
+                        <div class="process-legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #e74c3c;"></div>
+                                <span>反应物</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #27ae60;"></div>
+                                <span>产物</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #3498db;"></div>
+                                <span>酶</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #f39c12;"></div>
+                                <span>ATP</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部实验步骤 -->
+        <div class="experiment-steps">
+            <h3>实验步骤</h3>
+            <div class="steps-container">
+                <div class="step" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>准备样本</h4>
+                        <p>制备生物样本并调节显微镜</p>
+                    </div>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>设置参数</h4>
+                        <p>调节实验条件和环境参数</p>
+                    </div>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>开始观察</h4>
+                        <p>启动实验并记录观察结果</p>
+                    </div>
+                </div>
+                <div class="step" data-step="4">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4>数据分析</h4>
+                        <p>分析实验数据并得出结论</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 理论知识 -->
+        <div class="theory-section">
+            <h3>相关理论</h3>
+            <div class="theory-content">
+                <div class="theory-item">
+                    <h4>细胞理论</h4>
+                    <p>细胞是生物体结构和功能的基本单位，所有生物都由细胞组成，细胞只能由细胞分裂产生。</p>
+                </div>
+                <div class="theory-item">
+                    <h4>酶催化原理</h4>
+                    <p>酶通过降低反应活化能来催化生化反应，具有高效性和专一性特点。</p>
+                </div>
+                <div class="theory-item">
+                    <h4>遗传信息传递</h4>
+                    <p>遗传信息从DNA到RNA再到蛋白质的传递过程，遵循中心法则。</p>
+                </div>
+                <div class="theory-item">
+                    <h4>能量代谢</h4>
+                    <p>细胞通过呼吸作用和光合作用进行能量转换，维持生命活动。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="biology_demo.js"></script>
+</body>
+</html>
