@@ -26,9 +26,12 @@ import MaterialAddPage from './MaterialAddPage';
 import ExploreModal from './ExploreModal';
 import VideoPlayer from './VideoPlayer';
 import CapabilityMindMap from './CapabilityMindMap.jsx';
+import KnowledgeGraphMindMap from './KnowledgeGraphMindMap.jsx';
 import courseSelectionService from '../services/courseSelectionService';
 import { generateCapabilityMap } from '../data/capabilityMapData.js';
+import { generateKnowledgeGraph } from '../data/knowledgeGraphData.js';
 import { CAPABILITY_CATEGORIES } from '../types/capabilityModel.js';
+import { KNOWLEDGE_GRAPH_CATEGORIES } from '../types/knowledgeGraph.js';
 import {
   ArrowLeftOutlined,
   SaveOutlined,
@@ -390,6 +393,12 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   const [selectedCapabilityCategory, setSelectedCapabilityCategory] = useState('all');
   const [showCapabilityMapModal, setShowCapabilityMapModal] = useState(false);
 
+  // 知识图谱相关状态
+  const [knowledgeGraph, setKnowledgeGraph] = useState(null);
+  const [knowledgeResources, setKnowledgeResources] = useState([]);
+  const [selectedKnowledgeCategory, setSelectedKnowledgeCategory] = useState('all');
+  const [showKnowledgeGraphModal, setShowKnowledgeGraphModal] = useState(false);
+
   // 能力分类选项
   const capabilityCategories = [
     { id: 'all', name: '全部能力' },
@@ -399,11 +408,26 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     }))
   ];
 
-  // 初始化能力地图数据
+  // 知识图谱分类选项
+  const knowledgeCategories = [
+    { id: 'all', name: '全部领域' },
+    ...Object.keys(KNOWLEDGE_GRAPH_CATEGORIES).map(key => ({
+      id: key,
+      name: KNOWLEDGE_GRAPH_CATEGORIES[key].name
+    }))
+  ];
+
+  // 初始化能力地图和知识图谱数据
   useEffect(() => {
+    // 初始化能力地图
     const { map, videos } = generateCapabilityMap();
     setCapabilityMap(map);
     setCapabilityVideos(videos);
+    
+    // 初始化知识图谱
+    const { graph, resources } = generateKnowledgeGraph();
+    setKnowledgeGraph(graph);
+    setKnowledgeResources(resources);
   }, []);
 
   // 处理视频时间更新和字幕显示
@@ -601,13 +625,11 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   // 处理能力节点点击
   const handleCapabilityNodeClick = (node) => {
     console.log('点击能力节点:', node);
-    // 可以在这里实现更多交互逻辑，比如显示节点详情或跳转到相关资源
   };
 
   // 处理能力视频点击
   const handleCapabilityVideoClick = (video) => {
     console.log('点击能力视频:', video);
-    // 将能力视频转换为课程视频格式
     const courseVideo = {
       id: video.id,
       title: video.title,
@@ -619,9 +641,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
       type: 'capability_video'
     };
     
-    // 添加到课程视频列表
     setCourseVideos(prev => {
-      // 检查是否已存在
       const exists = prev.find(v => v.id === video.id);
       if (exists) {
         message.info('该视频已在来源列表中');
@@ -631,8 +651,78 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
       return [courseVideo, ...prev];
     });
     
-    // 关闭地图模式弹窗
     setShowCapabilityMapModal(false);
+  };
+
+  // 处理知识节点点击
+  const handleKnowledgeNodeClick = (node) => {
+    console.log('点击知识节点:', node);
+  };
+
+  // 处理知识资源点击
+  const handleKnowledgeResourceClick = (resource) => {
+    console.log('点击知识资源:', resource);
+    
+    // 根据资源类型添加到相应的列表
+    if (resource.type === 'video' || resource.type === 'course') {
+      const courseVideo = {
+        id: resource.id,
+        title: resource.title,
+        url: resource.url || '#',
+        duration: '45分钟', // 默认时长
+        instructor: resource.author,
+        addTime: '刚刚',
+        progress: 0,
+        type: 'knowledge_resource'
+      };
+      
+      setCourseVideos(prev => {
+        const exists = prev.find(v => v.id === resource.id);
+        if (exists) {
+          message.info('该资源已在来源列表中');
+          return prev;
+        }
+        message.success(`已添加知识资源：${resource.title}`);
+        return [courseVideo, ...prev];
+      });
+    } else if (resource.type === 'document') {
+      const textContent = {
+        id: resource.id,
+        title: resource.title,
+        content: resource.description || '知识资源内容',
+        addTime: '刚刚',
+        source: resource.author
+      };
+      
+      setAddedTexts(prev => {
+        const exists = prev.find(t => t.id === resource.id);
+        if (exists) {
+          message.info('该资源已在来源列表中');
+          return prev;
+        }
+        message.success(`已添加知识资源：${resource.title}`);
+        return [textContent, ...prev];
+      });
+    } else if (resource.type === 'link') {
+      const linkContent = {
+        id: resource.id,
+        url: resource.url || '#',
+        title: resource.title,
+        addTime: '刚刚'
+      };
+      
+      setLinks(prev => {
+        const exists = prev.find(l => l.id === resource.id);
+        if (exists) {
+          message.info('该资源已在来源列表中');
+          return prev;
+        }
+        message.success(`已添加知识资源：${resource.title}`);
+        return [linkContent, ...prev];
+      });
+    }
+    
+    setShowKnowledgeGraphModal(false);
   };
 
   // 返回资料列表
@@ -2058,7 +2148,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
       <div style={{ display: 'flex', height: 'calc(100vh - 64px)', background: '#f5f5f5' }}>
       {/* 左侧区域：根据当前视图显示资料收集或视频播放 */}
       <div style={{ 
-        flex: currentView === 'video' ? 4 : 2.5, 
+        flex: currentView === 'video' ? 4 : (viewMode === 'map' ? 4 : 2.5), 
         background: '#fff', 
         margin: '16px 0 16px 16px', 
         borderRadius: '8px', 
@@ -2178,69 +2268,107 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
               />
             </div>
 
-            {/* 能力模型地图模式切换 */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '8px 12px',
-              backgroundColor: '#fff7e6',
-              borderRadius: '6px',
-              marginBottom: 12,
-              border: '1px solid #ffd591'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ color: '#d48806', fontSize: '14px' }}>能力模型分类</span>
-                <Tooltip title="查看能力地图">
+            {/* 知识图谱地图模式切换 - 仅在卡片模式下显示 */}
+            {viewMode === 'card' && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 12px',
+                backgroundColor: '#f0f9ff',
+                borderRadius: '6px',
+                marginBottom: 12,
+                border: '1px solid #bae7ff'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ color: '#1890ff', fontSize: '14px' }}>知识图谱分类</span>
+                  <Tooltip title="查看知识图谱">
+                    <Button 
+                      type="text" 
+                      size="small"
+                      icon={<NodeIndexOutlined />}
+                      onClick={() => setShowKnowledgeGraphModal(true)}
+                      style={{ color: '#1890ff' }}
+                    >
+                      地图模式
+                    </Button>
+                  </Tooltip>
+                </div>
+                <div style={{ display: 'flex', gap: 4 }}>
                   <Button 
-                    type="text" 
                     size="small"
-                    icon={<NodeIndexOutlined />}
-                    onClick={() => setShowCapabilityMapModal(true)}
-                    style={{ color: '#d48806' }}
+                    type="primary"
+                    icon={<Grid size={14} />}
+                    style={{ fontSize: '12px', height: '24px' }}
                   >
-                    地图模式
+                    卡片
                   </Button>
-                </Tooltip>
+                  <Button 
+                    size="small"
+                    type="default"
+                    icon={<Map size={14} />}
+                    onClick={() => {
+                      setViewMode('map');
+                      setSelectedCapabilityCategory('all');
+                      setSelectedKnowledgeCategory('EDUCATION');
+                    }}
+                    style={{ fontSize: '12px', height: '24px' }}
+                  >
+                    地图
+                  </Button>
+                </div>
               </div>
-              <div style={{ display: 'flex', gap: 4 }}>
-                <Button 
-                  size="small"
-                  type={viewMode === 'card' ? 'primary' : 'default'}
-                  icon={<Grid size={14} />}
-                  onClick={() => setViewMode('card')}
-                  style={{ fontSize: '12px', height: '24px' }}
-                >
-                  卡片
-                </Button>
-                <Button 
-                  size="small"
-                  type={viewMode === 'map' ? 'primary' : 'default'}
-                  icon={<Map size={14} />}
-                  onClick={() => setViewMode('map')}
-                  style={{ fontSize: '12px', height: '24px' }}
-                >
-                  地图
-                </Button>
-              </div>
-            </div>
+            )}
             
             {/* 统一的资料列表 */}
             <div style={{ height: 'calc(100vh - 280px)', overflowY: 'auto' }}>
               {viewMode === 'map' ? (
-                /* 地图模式 - 显示能力模型思维导图 */
+                /* 地图模式 - 根据当前分类显示对应的思维导图 */
                 <div style={{ 
                   height: 'calc(100vh - 320px)', 
                   width: '100%',
                   position: 'relative'
                 }}>
-                  {capabilityMap ? (
+                  {/* 返回按钮 */}
+                  <div style={{ 
+                    position: 'absolute',
+                    top: '10px',
+                    left: '10px',
+                    zIndex: 100
+                  }}>
+                    <Button 
+                      size="small"
+                      icon={<ArrowLeftOutlined />}
+                      onClick={() => {
+                        setViewMode('card');
+                        setSelectedCapabilityCategory('all');
+                        setSelectedKnowledgeCategory('all');
+                      }}
+                      style={{ 
+                        background: 'rgba(255, 255, 255, 0.9)',
+                        border: '1px solid #d9d9d9',
+                        borderRadius: '6px'
+                      }}
+                    >
+                      返回卡片模式
+                    </Button>
+                  </div>
+
+                  {/* 根据当前激活的分类显示相应的地图 */}
+                  {selectedCapabilityCategory !== 'all' && capabilityMap ? (
                     <CapabilityMindMap
                       capabilityMap={capabilityMap}
                       videos={capabilityVideos}
                       onNodeClick={handleCapabilityNodeClick}
                       onVideoClick={handleCapabilityVideoClick}
                       selectedCategory={selectedCapabilityCategory}
+                    />
+                  ) : selectedKnowledgeCategory !== 'all' && knowledgeGraph ? (
+                    <KnowledgeGraphMindMap
+                      knowledgeGraph={knowledgeGraph}
+                      selectedCategory={selectedKnowledgeCategory}
+                      onNodeClick={handleKnowledgeNodeClick}
+                      onResourceClick={handleKnowledgeResourceClick}
                     />
                   ) : (
                     <div style={{ 
@@ -2251,7 +2379,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                       height: '100%'
                     }}>
                       <div style={{ fontSize: '48px', marginBottom: '16px' }}>🗺️</div>
-                      <Text style={{ color: '#999' }}>正在加载能力地图...</Text>
+                      <Text style={{ color: '#999' }}>请在上方分类中切换到地图模式</Text>
                     </div>
                   )}
                 </div>
@@ -2944,7 +3072,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
 
       {/* 中间问答区域 */}
       <div style={{ 
-        flex: currentView === 'video' ? 3 : 5, 
+        flex: currentView === 'video' ? 3 : (viewMode === 'map' ? 3 : 5), 
         margin: '16px', 
         background: '#fff', 
         borderRadius: '8px', 
@@ -3180,7 +3308,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
 
         {/* 右侧操作区域 */}
         <div style={{ 
-          flex: currentView === 'video' ? 3 : 2.5, 
+          flex: currentView === 'video' ? 3 : (viewMode === 'map' ? 3 : 2.5), 
           background: '#fff', 
           margin: '16px 16px 16px 0', 
           borderRadius: '8px', 
@@ -4910,6 +5038,57 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
             }}>
               <div style={{ fontSize: '48px', marginBottom: '16px' }}>🗺️</div>
               <div style={{ fontSize: '16px', marginBottom: '8px' }}>正在加载能力地图...</div>
+              <div style={{ fontSize: '12px' }}>请稍候</div>
+            </div>
+          )}
+        </div>
+      </Modal>
+
+      {/* 知识图谱地图模式弹窗 */}
+      <Modal
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ fontSize: '24px' }}>🧊</div>
+            <div>
+              <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#1890ff' }}>
+                知识图谱地图
+              </div>
+              <div style={{ fontSize: '12px', color: '#666', fontWeight: 'normal' }}>
+                探索知识节点与学习资源的关联关系
+              </div>
+            </div>
+          </div>
+        }
+        open={showKnowledgeGraphModal}
+        onCancel={() => setShowKnowledgeGraphModal(false)}
+        width={1000}
+        style={{ top: 20 }}
+        footer={[
+          <Button key="close" onClick={() => setShowKnowledgeGraphModal(false)}>
+            关闭
+          </Button>
+        ]}
+      >
+        <div style={{ height: '70vh', overflow: 'hidden' }}>
+          {knowledgeGraph ? (
+            <KnowledgeGraphMindMap
+              knowledgeGraph={knowledgeGraph}
+              selectedCategory={selectedKnowledgeCategory}
+              onNodeClick={handleKnowledgeNodeClick}
+              onResourceClick={handleKnowledgeResourceClick}
+              style={{ height: '100%' }}
+            />
+          ) : (
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              height: '100%',
+              color: '#999'
+            }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🧊</div>
+              <div style={{ fontSize: '16px', marginBottom: '8px' }}>正在加载知识图谱...</div>
               <div style={{ fontSize: '12px' }}>请稍候</div>
             </div>
           )}
