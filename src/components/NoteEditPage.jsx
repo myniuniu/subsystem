@@ -51,8 +51,7 @@ import {
   GlobalOutlined,
   MoreOutlined,
   EditOutlined,
-  NodeIndexOutlined,
-  CalendarOutlined
+  NodeIndexOutlined
 } from '@ant-design/icons';
 import { Grid, Map } from 'lucide-react';
 
@@ -120,109 +119,6 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
       }
     }
   });
-  
-  // 直播课相关状态
-  const [liveStreams, setLiveStreams] = useState(() => {
-    if (mode === 'create') {
-      return [];
-    } else {
-      // 模拟直播课数据
-      const now = new Date();
-      const future = new Date(now.getTime() + 2 * 60 * 60 * 1000); // 2小时后
-      const past = new Date(now.getTime() - 2 * 60 * 60 * 1000); // 2小时前
-      
-      return [
-        {
-          id: 201,
-          title: '《现代教学设计与评价》专题讲座',
-          instructor: '李教授',
-          platform: '腾讯会议',
-          startTime: future.toISOString(),
-          duration: '90分钟',
-          status: 'upcoming', // 即将开始
-          url: 'https://meeting.tencent.com/dm/123456',
-          description: '探讨现代教学设计理念与实践方法，分享最新的教学评价体系',
-          participants: 156,
-          addTime: '2024-01-20 09:00'
-        },
-        {
-          id: 202,
-          title: '《数字化教学工具应用实战》在线培训',
-          instructor: '王博士',
-          platform: 'Zoom',
-          startTime: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(), // 明天
-          duration: '120分钟',
-          status: 'upcoming',
-          url: 'https://zoom.us/j/987654321',
-          description: 'hands-on培训，学习各种数字化教学工具的实际应用',
-          participants: 89,
-          addTime: '2024-01-20 10:30'
-        },
-        {
-          id: 203,
-          title: '《课程思政融入专业课教学》研讨会',
-          instructor: '张教授',
-          platform: '钉钉直播',
-          startTime: past.toISOString(),
-          duration: '75分钟',
-          status: 'completed', // 已结束，显示为回放
-          url: 'https://dingtalk.com/live/replay/456789',
-          description: '深入探讨如何将思政元素自然融入专业课程教学中',
-          participants: 234,
-          addTime: '2024-01-19 14:00',
-          recordingUrl: 'https://dingtalk.com/recording/456789'
-        }
-      ];
-    }
-  });
-  
-  // 检查直播状态的辅助函数
-  const getLiveStreamStatus = (stream) => {
-    const now = new Date();
-    const startTime = new Date(stream.startTime);
-    const endTime = new Date(startTime.getTime() + parseDuration(stream.duration));
-    
-    if (stream.status === 'completed') {
-      return 'replay'; // 直播回放
-    }
-    
-    if (now < startTime) {
-      const timeDiff = startTime.getTime() - now.getTime();
-      const hours = Math.floor(timeDiff / (1000 * 60 * 60));
-      const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-      
-      if (hours > 0) {
-        return `${hours}小时${minutes}分钟后开始`;
-      } else {
-        return `${minutes}分钟后开始`;
-      }
-    }
-    
-    if (now >= startTime && now <= endTime) {
-      return 'live'; // 正在直播
-    }
-    
-    return 'ended'; // 已结束
-  };
-  
-  // 解析时长的辅助函数
-  const parseDuration = (duration) => {
-    const match = duration.match(/(\d+)分钟/);
-    if (match) {
-      return parseInt(match[1]) * 60 * 1000; // 转换为毫秒
-    }
-    return 60 * 60 * 1000; // 默认1小时
-  };
-
-  // 格式化直播时间的辅助函数
-  const formatLiveTime = (timeString) => {
-    const date = new Date(timeString);
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    return `${month}月${day}日 ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-  };
   
   // 我的选课相关状态
   const [selectedCourses, setSelectedCourses] = useState(
@@ -1941,7 +1837,6 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
         ...uploadedFiles.map(file => `file-${file.id}`),
         ...addedTexts.map(text => `text-${text.id}`),
         ...courseVideos.map(video => `video-${video.id}`),
-        ...liveStreams.map(stream => `live-${stream.id}`),
         ...links.map(link => `link-${link.id}`),
         ...organizationalCourses.map(course => `course-${course.id}`)
       ];
@@ -1965,9 +1860,6 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
           break;
         case 'video':
           setCourseVideos(prev => prev.filter(video => video.id !== numId));
-          break;
-        case 'live':
-          setLiveStreams(prev => prev.filter(stream => stream.id !== numId));
           break;
         case 'link':
           setLinks(prev => prev.filter(link => link.id !== numId));
@@ -2169,138 +2061,6 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     );
   };
 
-  // 直播课预览函数
-  const renderLivePreview = (stream) => {
-    const liveStatus = getLiveStreamStatus(stream);
-    const isLive = liveStatus === 'live';
-    const isReplay = liveStatus === 'replay';
-    const isUpcoming = !isLive && !isReplay && liveStatus !== 'ended';
-    
-    return (
-      <div>
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
-            <h3 style={{ margin: 0, marginRight: '12px' }}>{stream.title}</h3>
-            {/* 状态标签 */}
-            {isLive && (
-              <Tag color="red" size="large" style={{ fontSize: '12px' }}>
-                🔴 直播中
-              </Tag>
-            )}
-            {isReplay && (
-              <Tag color="green" size="large" style={{ fontSize: '12px' }}>
-                📺 回放
-              </Tag>
-            )}
-            {isUpcoming && (
-              <Tag color="orange" size="large" style={{ fontSize: '12px' }}>
-                ⏰ 即将开始
-              </Tag>
-            )}
-          </div>
-          
-          {/* 基本信息 */}
-          <div style={{ 
-            backgroundColor: '#f8f9fa', 
-            padding: '16px', 
-            borderRadius: '8px',
-            marginBottom: '16px'
-          }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div>
-                <Text strong>讲师：</Text>
-                <Text>{stream.instructor}</Text>
-              </div>
-              <div>
-                <Text strong>平台：</Text>
-                <Text>{stream.platform}</Text>
-              </div>
-              <div>
-                <Text strong>时长：</Text>
-                <Text>{stream.duration}</Text>
-              </div>
-              <div>
-                <Text strong>参与人数：</Text>
-                <Text>{stream.participants}人</Text>
-              </div>
-            </div>
-            
-            {/* 时间信息 */}
-            <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'white', borderRadius: '6px' }}>
-              {isLive ? (
-                <div style={{ color: '#ff4d4f', fontWeight: 'bold', fontSize: '14px' }}>
-                  🔴 直播正在进行中
-                </div>
-              ) : isReplay ? (
-                <div style={{ color: '#52c41a', fontSize: '14px' }}>
-                  📺 直播已结束，可观看回放
-                </div>
-              ) : isUpcoming ? (
-                <div style={{ color: '#faad14', fontWeight: 'bold', fontSize: '14px' }}>
-                  ⏰ 将于 {formatLiveTime(stream.startTime)} 开始 • {liveStatus}
-                </div>
-              ) : (
-                <div style={{ color: '#999', fontSize: '14px' }}>
-                  直播时间：{formatLiveTime(stream.startTime)}
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* 描述信息 */}
-          {stream.description && (
-            <div style={{ marginBottom: '16px' }}>
-              <Text strong>课程描述：</Text>
-              <div style={{ 
-                marginTop: '8px', 
-                padding: '12px', 
-                backgroundColor: '#f6f8fa', 
-                borderRadius: '6px',
-                borderLeft: '4px solid #1890ff'
-              }}>
-                <Text>{stream.description}</Text>
-              </div>
-            </div>
-          )}
-          
-          {/* 操作按钮 */}
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <Button 
-              type="primary" 
-              icon={isLive ? <PlayCircleOutlined /> : isReplay ? <PlayCircleOutlined /> : <CalendarOutlined />}
-              onClick={() => window.open(stream.url, '_blank')}
-              style={{
-                backgroundColor: isLive ? '#ff4d4f' : isReplay ? '#52c41a' : '#1890ff',
-                borderColor: isLive ? '#ff4d4f' : isReplay ? '#52c41a' : '#1890ff'
-              }}
-            >
-              {isLive ? '进入直播间' : isReplay ? '观看回放' : '预约直播'}
-            </Button>
-            
-            {stream.recordingUrl && (
-              <Button 
-                icon={<DownloadOutlined />}
-                onClick={() => window.open(stream.recordingUrl, '_blank')}
-              >
-                下载录像
-              </Button>
-            )}
-            
-            <Button 
-              icon={<ShareAltOutlined />}
-              onClick={() => {
-                navigator.clipboard.writeText(stream.url);
-                message.success('链接已复制到剪贴板');
-              }}
-            >
-              分享链接
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   // 渲染链接预览内容
   const renderLinkPreview = (link) => {
     return (
@@ -2368,7 +2128,6 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     ...uploadedFiles.map(file => `file-${file.id}`),
     ...addedTexts.map(text => `text-${text.id}`),
     ...courseVideos.map(video => `video-${video.id}`),
-    ...liveStreams.map(stream => `live-${stream.id}`),
     ...links.map(link => `link-${link.id}`)
   ];
   const isAllSelected = allMaterials.length > 0 && selectedMaterials.length === allMaterials.length;
@@ -2508,10 +2267,10 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
               <Checkbox 
                 style={{ marginLeft: 'auto' }}
                 checked={selectedMaterials.length > 0 && selectedMaterials.length === (
-                  uploadedFiles.length + addedTexts.length + courseVideos.length + liveStreams.length + links.length + organizationalCourses.length
+                  uploadedFiles.length + addedTexts.length + courseVideos.length + links.length + organizationalCourses.length
                 )}
                 indeterminate={selectedMaterials.length > 0 && selectedMaterials.length < (
-                  uploadedFiles.length + addedTexts.length + courseVideos.length + liveStreams.length + links.length + organizationalCourses.length
+                  uploadedFiles.length + addedTexts.length + courseVideos.length + links.length + organizationalCourses.length
                 )}
                 onChange={(e) => handleSelectAll(e.target.checked)}
               />
@@ -2921,111 +2680,6 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                   </div>
                 </Card>
               ))}
-              
-              {/* 直播课列表 */}
-              {liveStreams.map(stream => {
-                const [isHovered, setIsHovered] = React.useState(false);
-                const liveStatus = getLiveStreamStatus(stream);
-                const isLive = liveStatus === 'live';
-                const isReplay = liveStatus === 'replay';
-                const isUpcoming = !isLive && !isReplay && liveStatus !== 'ended';
-                
-                return (
-                  <Card 
-                    key={`live-${stream.id}`} 
-                    size="small" 
-                    style={{ 
-                      marginBottom: 8,
-                      border: selectedMaterials.includes(`live-${stream.id}`) ? '2px solid #1890ff' : 
-                             isLive ? '2px solid #ff4d4f' : 
-                             isUpcoming ? '2px solid #faad14' : '1px solid #f0f0f0',
-                      backgroundColor: selectedMaterials.includes(`live-${stream.id}`) ? '#f6ffed' : 
-                                      isLive ? '#fff2f0' : 
-                                      isUpcoming ? '#fffbe6' : 'white',
-                      boxShadow: isLive ? '0 2px 8px rgba(255, 77, 79, 0.2)' : 
-                                isUpcoming ? '0 2px 8px rgba(250, 173, 20, 0.2)' : 'none'
-                    }}
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div 
-                        style={{ display: 'flex', alignItems: 'center', flex: 1, cursor: 'pointer' }}
-                        onClick={() => handleViewMaterial(stream, 'live')}
-                      >
-                        {/* 直播状态图标 */}
-                        <div style={{ fontSize: 16, marginRight: 8 }}>
-                          {isLive && <span style={{ color: '#ff4d4f' }}>🔴</span>}
-                          {isReplay && <span style={{ color: '#52c41a' }}>📺</span>}
-                          {isUpcoming && <span style={{ color: '#faad14' }}>⏰</span>}
-                          {liveStatus === 'ended' && <span style={{ color: '#d9d9d9' }}>📺</span>}
-                        </div>
-                        
-                        <div style={{ flex: 1 }}>
-                          {/* 标题和状态 */}
-                          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
-                            <Text ellipsis style={{ fontSize: 12, fontWeight: 500, marginRight: 8 }}>
-                              {stream.title}
-                            </Text>
-                            {/* 状态标签 */}
-                            {isLive && (
-                              <Tag color="red" size="small" style={{ margin: 0, fontSize: '8px', lineHeight: '12px' }}>
-                                直播中
-                              </Tag>
-                            )}
-                            {isReplay && (
-                              <Tag color="green" size="small" style={{ margin: 0, fontSize: '8px', lineHeight: '12px' }}>
-                                回放
-                              </Tag>
-                            )}
-                            {isUpcoming && (
-                              <Tag color="orange" size="small" style={{ margin: 0, fontSize: '8px', lineHeight: '12px' }}>
-                                即将开始
-                              </Tag>
-                            )}
-                          </div>
-                          
-                          {/* 详细信息 */}
-                          <div style={{ fontSize: 10, color: '#666', lineHeight: 1.2 }}>
-                            <div>
-                              讲师：{stream.instructor} | 平台：{stream.platform}
-                            </div>
-                            <div style={{ marginTop: 2 }}>
-                              {isLive ? (
-                                <span style={{ color: '#ff4d4f', fontWeight: 'bold' }}>
-                                  正在直播中 • {stream.duration}
-                                </span>
-                              ) : isReplay ? (
-                                <span style={{ color: '#52c41a' }}>
-                                  直播回放 • {stream.duration}
-                                </span>
-                              ) : isUpcoming ? (
-                                <span style={{ color: '#faad14', fontWeight: 'bold' }}>
-                                  {formatLiveTime(stream.startTime)} 开始 • {liveStatus}
-                                </span>
-                              ) : (
-                                <span>
-                                  {formatLiveTime(stream.startTime)} • {stream.duration}
-                                </span>
-                              )}
-                            </div>
-                            {stream.participants && (
-                              <div style={{ marginTop: 2, color: '#999' }}>
-                                {stream.participants}人参与
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <Checkbox
-                        checked={selectedMaterials.includes(`live-${stream.id}`)}
-                        onChange={(e) => handleSelectMaterial(`live-${stream.id}`, e.target.checked)}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </div>
-                  </Card>
-                );
-              })}
               
               {/* 保存的链接 */}
               {links.map(link => {
@@ -4425,62 +4079,42 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
            {/* 选课列表 */}
            <div style={{ marginBottom: 16 }}>
              {courseSelectionService.getAllCourses().length > 0 ? (
-               <div style={{ 
-                 display: 'grid',
-                 gridTemplateColumns: 'repeat(4, 1fr)',
-                 gap: '12px',
-                 maxHeight: 220,
-                 overflowY: 'auto'
-               }}>
-                 {courseSelectionService.getAllCourses().slice(0, 8).map((course, index) => (
+               <div style={{ maxHeight: 200, overflowY: 'auto' }}>
+                 {courseSelectionService.getAllCourses().map((course, index) => (
                    <Card 
                      key={index}
                      size="small" 
                      hoverable
                      style={{ 
+                       marginBottom: 8,
                        borderRadius: 8,
                        border: '1px solid #f0f0f0',
-                       cursor: 'pointer',
-                       height: '100px'
+                       cursor: 'pointer'
                      }}
-                     bodyStyle={{ padding: '8px' }}
                      onClick={() => handleAddCourse(course)}
                    >
-                     <div style={{ 
-                       display: 'flex', 
-                       flexDirection: 'column', 
-                       alignItems: 'center', 
-                       textAlign: 'center',
-                       height: '100%',
-                       justifyContent: 'space-between'
-                     }}>
-                       <div style={{ fontSize: 16, marginBottom: 4 }}>📚</div>
-                       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                       <div style={{ fontSize: 20 }}>📚</div>
+                       <div style={{ flex: 1 }}>
                          <Text 
                            style={{ 
-                             fontSize: 12, 
+                             fontSize: 14, 
                              fontWeight: 500, 
                              color: '#1f1f1f',
                              display: 'block',
-                             marginBottom: 2,
-                             lineHeight: 1.2,
-                             overflow: 'hidden',
-                             textOverflow: 'ellipsis',
-                             whiteSpace: 'nowrap'
+                             marginBottom: 4
                            }}
-                           title={course.title}
                          >
                            {course.title}
                          </Text>
-                         <Text style={{ fontSize: 10, color: '#999', lineHeight: 1 }}>
-                           {course.instructor}
+                         <Text style={{ fontSize: 12, color: '#999' }}>
+                           {course.instructor} • {course.duration}
                          </Text>
                        </div>
                        <Button 
                          type="primary" 
                          size="small"
                          icon={<PlusOutlined />}
-                         style={{ fontSize: '10px', height: '20px', padding: '0 6px' }}
                          onClick={(e) => {
                            e.stopPropagation();
                            handleAddCourse(course);
@@ -4539,7 +4173,6 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
           <div style={{ maxHeight: '70vh', overflowY: 'auto' }}>
             {previewType === 'file' && renderFilePreview(previewData)}
             {previewType === 'video' && renderVideoPreview(previewData)}
-            {previewType === 'live' && renderLivePreview(previewData)}
             {previewType === 'link' && renderLinkPreview(previewData)}
             {previewType === 'text' && renderTextPreview(previewData)}
           </div>

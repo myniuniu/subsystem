@@ -23,8 +23,7 @@ import {
   BookOutlined,
   PlusOutlined,
   ApartmentOutlined,
-  NodeIndexOutlined,
-  VideoCameraOutlined
+  NodeIndexOutlined
 } from '@ant-design/icons';
 import courseSelectionService from '../services/courseSelectionService';
 
@@ -47,8 +46,8 @@ const MaterialAddPage = ({ visible, onClose }) => {
   const [showCapabilityModelForm, setShowCapabilityModelForm] = useState(false);
   const [showMyCourseForm, setShowMyCourseForm] = useState(false);
   const [showCourseVideoForm, setShowCourseVideoForm] = useState(false);
-  const [showLiveStreamForm, setShowLiveStreamForm] = useState(false);
   const [showMicroMajorForm, setShowMicroMajorForm] = useState(false);
+  const [showLiveCourseForm, setShowLiveCourseForm] = useState(false);
 
   const handleFileUpload = (info) => {
     const { status } = info.file;
@@ -222,32 +221,32 @@ const MaterialAddPage = ({ visible, onClose }) => {
     setShowCourseVideoForm(false);
   };
 
-  // 直播相关处理函数
-  const handleLiveStreamClick = () => {
-    setShowLiveStreamForm(true);
-  };
-
-  const handleLiveStreamSubmit = () => {
-    message.success('直播链接已成功添加！');
-    setShowLiveStreamForm(false);
-    onClose();
-  };
-
-  const handleLiveStreamCancel = () => {
-    setShowLiveStreamForm(false);
-  };
-
   const handleMicroMajorCancel = () => {
     setShowMicroMajorForm(false);
   };
 
+  // 直播课相关处理函数
+  const handleLiveCourseClick = () => {
+    setShowLiveCourseForm(true);
+  };
+
+  const handleLiveCourseSubmit = () => {
+    message.success('直播课选择成功！');
+    setShowLiveCourseForm(false);
+    onClose();
+  };
+
+  const handleLiveCourseCancel = () => {
+    setShowLiveCourseForm(false);
+  };
+
   return (
     <Modal
-      title={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm) ? null : "添加来源"}
+      title={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm) ? null : "添加来源"}
       open={visible}
       onCancel={onClose}
       width={1040}
-      footer={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm) ? null : [
+      footer={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm) ? null : [
         <Button key="cancel" onClick={onClose}>
           取消
         </Button>,
@@ -255,9 +254,9 @@ const MaterialAddPage = ({ visible, onClose }) => {
           保存资源
         </Button>
       ]}
-      centered={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm)}
-      closable={!(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm)}
-      bodyStyle={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm) ? { padding: 0 } : {}}
+      centered={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm)}
+      closable={!(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm)}
+      bodyStyle={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm) ? { padding: 0 } : {}}
     >
       {showTextForm ? (
         <div>
@@ -1123,7 +1122,7 @@ const MaterialAddPage = ({ visible, onClose }) => {
             </div>
           </div>
         </div>
-      ) : showLiveStreamForm ? (
+      ) : showLiveCourseForm ? (
         <div>
           {/* 标题栏 */}
           <div style={{ 
@@ -1135,7 +1134,7 @@ const MaterialAddPage = ({ visible, onClose }) => {
             <Button 
               type="text" 
               icon={<ArrowLeftOutlined />} 
-              onClick={handleLiveStreamCancel}
+              onClick={handleLiveCourseCancel}
               style={{ 
                 marginRight: '12px',
                 padding: '4px',
@@ -1144,7 +1143,7 @@ const MaterialAddPage = ({ visible, onClose }) => {
               }}
             />
             <Title level={4} style={{ margin: 0, fontSize: '16px', fontWeight: 500, color: '#1f2937' }}>
-              直播
+              直播课
             </Title>
           </div>
           
@@ -1152,13 +1151,13 @@ const MaterialAddPage = ({ visible, onClose }) => {
           <div style={{ padding: '24px 20px' }}>
             <div style={{ marginBottom: '16px' }}>
               <Text style={{ fontSize: '14px', color: '#6b7280' }}>
-                添加直播链接作为智能笔记的来源，系统将实时分析直播内容。
+                选择直播课程作为智能笔记的来源，系统将基于直播课程内容进行分析。
               </Text>
             </div>
             
             <div style={{ marginBottom: '24px' }}>
               <Text strong style={{ fontSize: '14px', color: '#1f2937', display: 'block', marginBottom: '8px' }}>
-                支持的直播平台
+                可用的直播课程
               </Text>
               <div style={{ 
                 border: '2px solid #e5e7eb',
@@ -1167,26 +1166,22 @@ const MaterialAddPage = ({ visible, onClose }) => {
                 backgroundColor: '#f9fafb'
               }}>
                 <Text style={{ color: '#6b7280', fontSize: '14px' }}>
-                  • 腾讯会议直播
+                  • 实时教学方法研讨
                 </Text>
                 <br />
                 <Text style={{ color: '#6b7280', fontSize: '14px' }}>
-                  • 钉钉直播
+                  • 在线课堂互动技巧
                 </Text>
                 <br />
                 <Text style={{ color: '#6b7280', fontSize: '14px' }}>
-                  • Zoom直播
-                </Text>
-                <br />
-                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
-                  • B站直播
+                  • 数字化教学实践分享
                 </Text>
               </div>
             </div>
             
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
               <Button
-                onClick={handleLiveStreamCancel}
+                onClick={handleLiveCourseCancel}
                 style={{
                   height: '36px',
                   paddingLeft: '16px',
@@ -1202,18 +1197,18 @@ const MaterialAddPage = ({ visible, onClose }) => {
               </Button>
               <Button
                 type="primary"
-                onClick={handleLiveStreamSubmit}
+                onClick={handleLiveCourseSubmit}
                 style={{
                   height: '36px',
                   paddingLeft: '16px',
                   paddingRight: '16px',
                   borderRadius: '18px',
-                  backgroundColor: '#f5222d',
-                  borderColor: '#f5222d',
+                  backgroundColor: '#fa541c',
+                  borderColor: '#fa541c',
                   fontSize: '14px'
                 }}
               >
-                选择直播
+                选择直播课
               </Button>
             </div>
           </div>
@@ -1282,10 +1277,11 @@ const MaterialAddPage = ({ visible, onClose }) => {
             </Text>
           </div>
 
-          {/* 八个功能区域 - 4x2布局：第一排四个，第二排四个 */}
+          {/* 八个功能区域 - 两排布局，每排四个 */}
           <div style={{ 
             display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
+            gridTemplateColumns: '1fr 1fr 1fr 1fr',
+            gridTemplateRows: '1fr 1fr',
             gap: '20px'
           }}>
             {/* 第一排：知识图谱、能力模型、微专业、我的选课 */}
@@ -1441,7 +1437,7 @@ const MaterialAddPage = ({ visible, onClose }) => {
               </Button>
             </Card>
 
-            {/* 第二排：课程视频、直播、链接、粘贴文字 */}
+            {/* 第二排：课程视频、直播课、链接、粘贴文字 */}
             {/* 课程视频 */}
             <Card 
               hoverable
@@ -1480,7 +1476,7 @@ const MaterialAddPage = ({ visible, onClose }) => {
               </Button>
             </Card>
 
-            {/* 直播 */}
+            {/* 直播课 */}
             <Card 
               hoverable
               style={{ 
@@ -1490,23 +1486,23 @@ const MaterialAddPage = ({ visible, onClose }) => {
                 cursor: 'pointer'
               }}
               bodyStyle={{ padding: '40px 24px' }}
-              onClick={handleLiveStreamClick}
+              onClick={handleLiveCourseClick}
             >
-              <VideoCameraOutlined style={{ 
+              <PlayCircleOutlined style={{ 
                 fontSize: '40px', 
-                color: '#f5222d',
+                color: '#fa541c',
                 marginBottom: '20px'
               }} />
               <div style={{ marginBottom: '12px' }}>
-                <Text strong style={{ fontSize: '16px' }}>直播</Text>
+                <Text strong style={{ fontSize: '16px' }}>直播课</Text>
               </div>
               <Button 
                 type="primary"
                 size="small"
-                onClick={handleLiveStreamClick}
+                onClick={handleLiveCourseClick}
                 style={{
-                  backgroundColor: '#f5222d',
-                  borderColor: '#f5222d',
+                  backgroundColor: '#fa541c',
+                  borderColor: '#fa541c',
                   borderRadius: '16px',
                   fontSize: '12px',
                   height: '28px',
@@ -1514,7 +1510,7 @@ const MaterialAddPage = ({ visible, onClose }) => {
                   paddingRight: '12px'
                 }}
               >
-                选择直播
+                选择直播课
               </Button>
             </Card>
 
