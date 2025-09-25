@@ -536,7 +536,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     
     // 如果右侧栏正在编辑主题，则添加到当前编辑的主题中
     if (rightPanelView === 'noteEditor' && rightPanelEditingNote) {
-      const markContent = `<p style="background-color: ${markColors[markType]}20; padding: 8px; border-left: 4px solid ${markColors[markType]}; border-radius: 4px; margin: 8px 0;"><strong>${markIcon[markType]} [${timeText}] ${markNames[markType]}：</strong>${selectedSubtitleText}</p>`;
+      const markContent = `<div style="background-color: ${markColors[markType]}20; padding: 8px; border-left: 4px solid ${markColors[markType]}; border-radius: 4px; margin: 8px 0;"><strong>${markIcon[markType]} [${timeText}] ${markNames[markType]}：</strong>${selectedSubtitleText}</div>`;
       const updatedContent = rightPanelNoteContent + markContent;
       setRightPanelNoteContent(updatedContent);
       
@@ -547,7 +547,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     
     // 如果弹窗编辑器正在使用，则添加到弹窗编辑器中
     if (showNoteEditor && editingNote) {
-      const markContent = `<p style="background-color: ${markColors[markType]}20; padding: 8px; border-left: 4px solid ${markColors[markType]}; border-radius: 4px; margin: 8px 0;"><strong>${markIcon[markType]} [${timeText}] ${markNames[markType]}：</strong>${selectedSubtitleText}</p>`;
+      const markContent = `<div style="background-color: ${markColors[markType]}20; padding: 8px; border-left: 4px solid ${markColors[markType]}; border-radius: 4px; margin: 8px 0;"><strong>${markIcon[markType]} [${timeText}] ${markNames[markType]}：</strong>${selectedSubtitleText}</div>`;
       const updatedContent = noteEditorContent + markContent;
       setNoteEditorContent(updatedContent);
       
@@ -2953,6 +2953,22 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                     width: '100%'
                   }}
                   onTimeUpdate={handleVideoTimeUpdate}
+                  currentEditorState={{
+                    isEditing: rightPanelView === 'noteEditor' || (showNoteEditor && editingNote),
+                    noteTitle: rightPanelView === 'noteEditor' 
+                      ? rightPanelEditingNote?.title || '当前笔记'
+                      : editingNote?.title || '当前笔记',
+                    onContentUpdate: (content) => {
+                      // 根据当前编辑器类型更新内容
+                      if (rightPanelView === 'noteEditor' && rightPanelEditingNote) {
+                        // 右侧面板编辑器
+                        setRightPanelNoteContent(prev => prev + content);
+                      } else if (showNoteEditor && editingNote) {
+                        // 弹窗编辑器
+                        setNoteEditorContent(prev => prev + content);
+                      }
+                    }
+                  }}
                   onNoteCreated={(operationRecord) => {
                     setOperationRecords(prev => ({
                       ...prev,
@@ -3826,14 +3842,17 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                     setRightPanelNoteContent(contentWithLinks);
                     // 如果内容发生了变化（添加了超链接），更新显示
                     if (rawContent !== contentWithLinks) {
-                      e.target.innerHTML = contentWithLinks;
-                      // 保持光标位置
-                      const selection = window.getSelection();
-                      const range = document.createRange();
-                      range.selectNodeContents(e.target);
-                      range.collapse(false);
-                      selection.removeAllRanges();
-                      selection.addRange(range);
+                      // 延迟更新，避免光标位置问题
+                      setTimeout(() => {
+                        e.target.innerHTML = contentWithLinks;
+                        // 保持光标位置在末尾
+                        const selection = window.getSelection();
+                        const range = document.createRange();
+                        range.selectNodeContents(e.target);
+                        range.collapse(false);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                      }, 0);
                     }
                   }}
                   onBlur={(e) => {
@@ -4324,6 +4343,22 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
           setCurrentVideo(null);
         }}
         videoData={currentVideo}
+        currentEditorState={{
+          isEditing: rightPanelView === 'noteEditor' || (showNoteEditor && editingNote),
+          noteTitle: rightPanelView === 'noteEditor' 
+            ? rightPanelEditingNote?.title || '当前笔记'
+            : editingNote?.title || '当前笔记',
+          onContentUpdate: (content) => {
+            // 根据当前编辑器类型更新内容
+            if (rightPanelView === 'noteEditor' && rightPanelEditingNote) {
+              // 右侧面板编辑器
+              setRightPanelNoteContent(prev => prev + content);
+            } else if (showNoteEditor && editingNote) {
+              // 弹窗编辑器
+              setNoteEditorContent(prev => prev + content);
+            }
+          }
+        }}
         onNoteCreated={(operationRecord) => {
           // 添加操作记录到操作记录区
           setOperationRecords(prev => ({
