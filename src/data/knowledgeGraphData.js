@@ -355,6 +355,21 @@ export const generateKnowledgeGraph = () => {
       { id: 'science-business', from: 'science-root', to: 'business-root', type: 'application', label: '研究成果应用' },
       { id: 'business-edu', from: 'business-root', to: 'education-root', type: 'management', label: '教育管理' },
       
+      // 教育学科内部的丰富关系
+      // 融合关系（粉色线）
+      { id: 'pedagogy-tech', from: 'pedagogy', to: 'educational-tech', type: 'integration', label: '教学技术融合' },
+      { id: 'tech-assessment', from: 'educational-tech', to: 'assessment', type: 'integration', label: '技术驱动评价' },
+      { id: 'pedagogy-assessment', from: 'pedagogy', to: 'assessment', type: 'integration', label: '教学评价一体化' },
+      
+      // 方法论关系（蓝色线）
+      { id: 'root-pedagogy', from: 'education-root', to: 'pedagogy', type: 'methodology', label: '教学方法理论' },
+      { id: 'root-tech', from: 'education-root', to: 'educational-tech', type: 'methodology', label: '技术应用方法' },
+      { id: 'assessment-pedagogy', from: 'assessment', to: 'pedagogy', type: 'methodology', label: '评价指导教学' },
+      
+      // 应用关系（浅蓝色线）
+      { id: 'root-assessment', from: 'education-root', to: 'assessment', type: 'application', label: '教育质量保障' },
+      { id: 'tech-pedagogy', from: 'educational-tech', to: 'pedagogy', type: 'application', label: '技术强化教学' },
+      
       // 具体知识点间的连接
       { id: 'edtech-ai', from: 'educational-tech', to: 'ai-ml', type: 'application', label: 'AI教育应用' },
       { id: 'programming-data', from: 'programming', to: 'data-science', type: 'foundation', label: '编程基础' },

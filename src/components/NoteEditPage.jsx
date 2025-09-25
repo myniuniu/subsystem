@@ -2321,13 +2321,20 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
             )}
             
             {/* 统一的资料列表 */}
-            <div style={{ height: 'calc(100vh - 280px)', overflowY: 'auto' }}>
+            <div style={{ 
+              height: currentView === 'materials' ? (viewMode === 'map' ? 'calc(100vh - 200px)' : 'calc(100vh - 280px)') : 'auto', 
+              overflowY: currentView === 'materials' ? 'auto' : 'visible',
+              flex: currentView === 'materials' && viewMode === 'map' ? 1 : 'none'
+            }}>
               {viewMode === 'map' ? (
                 /* 地图模式 - 根据当前分类显示对应的思维导图 */
                 <div style={{ 
-                  height: 'calc(100vh - 320px)', 
+                  height: '100%',
+                  minHeight: '600px',
                   width: '100%',
-                  position: 'relative'
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column'
                 }}>
                   {/* 返回按钮 */}
                   <div style={{ 
@@ -2354,34 +2361,43 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                     </Button>
                   </div>
 
-                  {/* 根据当前激活的分类显示相应的地图 */}
-                  {selectedCapabilityCategory !== 'all' && capabilityMap ? (
-                    <CapabilityMindMap
-                      capabilityMap={capabilityMap}
-                      videos={capabilityVideos}
-                      onNodeClick={handleCapabilityNodeClick}
-                      onVideoClick={handleCapabilityVideoClick}
-                      selectedCategory={selectedCapabilityCategory}
-                    />
-                  ) : selectedKnowledgeCategory !== 'all' && knowledgeGraph ? (
-                    <KnowledgeGraphMindMap
-                      knowledgeGraph={knowledgeGraph}
-                      selectedCategory={selectedKnowledgeCategory}
-                      onNodeClick={handleKnowledgeNodeClick}
-                      onResourceClick={handleKnowledgeResourceClick}
-                    />
-                  ) : (
-                    <div style={{ 
-                      display: 'flex', 
-                      flexDirection: 'column', 
-                      alignItems: 'center', 
-                      justifyContent: 'center',
-                      height: '100%'
-                    }}>
-                      <div style={{ fontSize: '48px', marginBottom: '16px' }}>🗺️</div>
-                      <Text style={{ color: '#999' }}>请在上方分类中切换到地图模式</Text>
-                    </div>
-                  )}
+                  {/* 思维导图容器 */}
+                  <div style={{
+                    flex: 1,
+                    width: '100%',
+                    height: '100%',
+                    minHeight: '500px'
+                  }}>
+                    {/* 根据当前激活的分类显示相应的地图 */}
+                    {selectedCapabilityCategory !== 'all' && capabilityMap ? (
+                      <CapabilityMindMap
+                        capabilityMap={capabilityMap}
+                        videos={capabilityVideos}
+                        onNodeClick={handleCapabilityNodeClick}
+                        onVideoClick={handleCapabilityVideoClick}
+                        selectedCategory={selectedCapabilityCategory}
+                      />
+                    ) : selectedKnowledgeCategory !== 'all' && knowledgeGraph ? (
+                      <KnowledgeGraphMindMap
+                        knowledgeGraph={knowledgeGraph}
+                        selectedCategory={selectedKnowledgeCategory}
+                        onNodeClick={handleKnowledgeNodeClick}
+                        onResourceClick={handleKnowledgeResourceClick}
+                      />
+                    ) : (
+                      <div style={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        height: '100%',
+                        minHeight: '400px'
+                      }}>
+                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🗺️</div>
+                        <Text style={{ color: '#999' }}>请在上方分类中切换到地图模式</Text>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : (
                 /* 卡片模式 - 显示传统资料列表 */

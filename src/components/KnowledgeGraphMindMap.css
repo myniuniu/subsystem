@@ -27,38 +27,14 @@
   transform: scale(1.05);
 }
 
-/* 重要性指示器动画 */
+/* 重要性指示器 - 移除跳动动画 */
 .importance-indicator {
-  animation: importancePulse 2s infinite;
+  /* 移除动画效果 */
 }
 
-@keyframes importancePulse {
-  0% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.2);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* 资源数量指示器 */
+/* 资源数量指示器 - 移除跳动动画 */
 .resource-count-indicator {
-  animation: resourceBounce 3s infinite;
-}
-
-@keyframes resourceBounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-2px);
-  }
+  /* 移除动画效果 */
 }
 
 /* 知识节点详情面板 */
