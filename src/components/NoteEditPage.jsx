@@ -990,7 +990,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     };
   };
 
-  // 新建主题功能
+  // 新建笔记功能
   const handleCreateNewNote = () => {
     const newNote = {
       id: Date.now(),
@@ -1190,7 +1190,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     if (operationType === 'note') {
       const newRecord = {
         id: Date.now(),
-        title: '新建主题',
+        title: '新建笔记',
         source: '手动创建',
         time: '刚刚',
         type: 'note',
@@ -1202,7 +1202,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
         note: [newRecord, ...prev.note]
       }));
 
-      message.success('新建主题已添加到操作记录');
+      message.success('新建笔记已添加到操作记录');
       return;
     }
 
@@ -3726,7 +3726,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
               )}
             </div>
             
-            {/* 新建主题按钮 - 固定在底部 */}
+            {/* 新建笔记按钮 - 固定在底部 */}
             <div style={{ 
               marginTop: 'auto',
               paddingTop: '12px',
@@ -3745,7 +3745,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                   paddingRight: '12px'
                 }}
               >
-                新建主题
+                新建笔记
               </Button>
             </div>
           </div>

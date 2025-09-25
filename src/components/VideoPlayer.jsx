@@ -37,6 +37,8 @@ const VideoPlayer = ({
   const [showControls, setShowControls] = useState(true);
   const [progress, setProgress] = useState(0);
   const [capturedScreenshot, setCapturedScreenshot] = useState(null);
+  const [videoLoading, setVideoLoading] = useState(true);
+  const [videoError, setVideoError] = useState(false);
 
   // 控制条自动隐藏
   useEffect(() => {
@@ -53,6 +55,8 @@ const VideoPlayer = ({
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
       setDuration(videoRef.current.duration);
+      setVideoLoading(false);
+      setVideoError(false);
       // 如果有保存的进度，跳转到对应位置
       if (videoData?.progress && videoData.progress > 0) {
         const savedTime = (videoData.progress / 100) * videoRef.current.duration;
@@ -65,6 +69,20 @@ const VideoPlayer = ({
         setCurrentTime(videoData.startTime);
       }
     }
+  };
+
+  // 视频加载错误处理
+  const handleVideoError = (e) => {
+    console.error('视频加载失败:', e);
+    setVideoLoading(false);
+    setVideoError(true);
+    message.error('视频加载失败，请检查网络连接或视频源');
+  };
+
+  // 视频开始加载
+  const handleLoadStart = () => {
+    setVideoLoading(true);
+    setVideoError(false);
   };
 
   // 时间更新
@@ -153,17 +171,27 @@ const VideoPlayer = ({
     if (videoData.url && videoData.url.includes('bilibili.com')) {
       // 这里应该调用B站API获取真实播放地址
       // 暂时返回示例视频
-      return 'https://www.w3schools.com/html/mov_bbb.mp4';
+      return 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
     }
     
     // 如果是YouTube链接（实际项目中需要YouTube API）
     if (videoData.url && videoData.url.includes('youtube.com')) {
       // 这里应该调用YouTube API获取真实播放地址
-      return 'https://www.w3schools.com/html/mov_bbb.mp4';
+      return 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4';
     }
     
-    // 默认示例视频
-    return 'https://www.w3schools.com/html/mov_bbb.mp4';
+    // 提供多个备用视频源
+    const videoSources = [
+      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4'
+    ];
+    
+    // 根据视频ID选择不同的视频源
+    const videoIndex = (videoData.id || 0) % videoSources.length;
+    return videoSources[videoIndex];
   };
 
   // 关闭播放器时保存进度
@@ -449,24 +477,95 @@ ${annotationText}
         onMouseLeave={() => isPlaying && setShowControls(false)}
       >
         {/* 视频播放器 */}
-        <video
-          ref={videoRef}
-          className="video-element"
-          src={getVideoUrl(videoData)}
-          crossOrigin="anonymous"
-          onLoadedMetadata={handleLoadedMetadata}
-          onTimeUpdate={handleTimeUpdate}
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-          onEnded={() => {
-            setIsPlaying(false);
-            setProgress(100);
-            if (onProgressUpdate) {
-              onProgressUpdate(videoData.id, 100);
-            }
-          }}
-          onClick={togglePlay}
-        />
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+          <video
+            ref={videoRef}
+            className="video-element"
+            src={getVideoUrl(videoData)}
+            crossOrigin="anonymous"
+            onLoadStart={handleLoadStart}
+            onLoadedMetadata={handleLoadedMetadata}
+            onTimeUpdate={handleTimeUpdate}
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+            onError={handleVideoError}
+            onEnded={() => {
+              setIsPlaying(false);
+              setProgress(100);
+              if (onProgressUpdate) {
+                onProgressUpdate(videoData.id, 100);
+              }
+            }}
+            onClick={togglePlay}
+            style={{ display: videoLoading || videoError ? 'none' : 'block' }}
+          />
+          
+          {/* 加载状态 */}
+          {videoLoading && (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              background: '#000',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'column',
+              color: 'white'
+            }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                border: '3px solid rgba(255, 255, 255, 0.3)',
+                borderTop: '3px solid #1890ff',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+                marginBottom: '12px'
+              }} />
+              <p style={{ margin: 0, fontSize: '14px' }}>加载中...</p>
+            </div>
+          )}
+          
+          {/* 错误状态 */}
+          {videoError && (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              background: '#000',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'column',
+              color: 'white'
+            }}>
+              <div style={{
+                fontSize: '32px',
+                marginBottom: '12px',
+                opacity: 0.6
+              }}>⚠️</div>
+              <p style={{ margin: 0, fontSize: '14px' }}>加载失败</p>
+              <Button 
+                type="primary" 
+                size="small"
+                onClick={() => {
+                  setVideoError(false);
+                  setVideoLoading(true);
+                  if (videoRef.current) {
+                    videoRef.current.load();
+                  }
+                }}
+                style={{ marginTop: '8px', fontSize: '12px' }}
+              >
+                重试
+              </Button>
+            </div>
+          )}
+        </div>
 
         {/* 播放控制条 */}
         {showControls && (
@@ -626,24 +725,98 @@ ${annotationText}
         </div>
 
         {/* 视频播放器 */}
-        <video
-          ref={videoRef}
-          className="video-element"
-          src={getVideoUrl(videoData)}
-          crossOrigin="anonymous"
-          onLoadedMetadata={handleLoadedMetadata}
-          onTimeUpdate={handleTimeUpdate}
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-          onEnded={() => {
-            setIsPlaying(false);
-            setProgress(100);
-            if (onProgressUpdate) {
-              onProgressUpdate(videoData.id, 100);
-            }
-          }}
-          onClick={togglePlay}
-        />
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+          <video
+            ref={videoRef}
+            className="video-element"
+            src={getVideoUrl(videoData)}
+            crossOrigin="anonymous"
+            onLoadStart={handleLoadStart}
+            onLoadedMetadata={handleLoadedMetadata}
+            onTimeUpdate={handleTimeUpdate}
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+            onError={handleVideoError}
+            onEnded={() => {
+              setIsPlaying(false);
+              setProgress(100);
+              if (onProgressUpdate) {
+                onProgressUpdate(videoData.id, 100);
+              }
+            }}
+            onClick={togglePlay}
+            style={{ display: videoLoading || videoError ? 'none' : 'block' }}
+          />
+          
+          {/* 加载状态 */}
+          {videoLoading && (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              background: '#000',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'column',
+              color: 'white'
+            }}>
+              <div style={{
+                width: '60px',
+                height: '60px',
+                border: '4px solid rgba(255, 255, 255, 0.3)',
+                borderTop: '4px solid #1890ff',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+                marginBottom: '16px'
+              }} />
+              <p style={{ margin: 0, fontSize: '16px' }}>视频加载中...</p>
+              <p style={{ margin: '8px 0 0 0', fontSize: '14px', opacity: 0.7 }}>{videoData?.title || '视频'}</p>
+            </div>
+          )}
+          
+          {/* 错误状态 */}
+          {videoError && (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              background: '#000',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'column',
+              color: 'white'
+            }}>
+              <div style={{
+                fontSize: '48px',
+                marginBottom: '16px',
+                opacity: 0.6
+              }}>⚠️</div>
+              <p style={{ margin: 0, fontSize: '16px' }}>视频加载失败</p>
+              <p style={{ margin: '8px 0', fontSize: '14px', opacity: 0.7 }}>请检查网络连接或视频源</p>
+              <Button 
+                type="primary" 
+                size="small"
+                onClick={() => {
+                  setVideoError(false);
+                  setVideoLoading(true);
+                  // 重新加载视频
+                  if (videoRef.current) {
+                    videoRef.current.load();
+                  }
+                }}
+                style={{ marginTop: '12px' }}
+              >
+                重试加载
+              </Button>
+            </div>
+          )}
+        </div>
 
         {/* 播放控制条 */}
         {showControls && (

@@ -351,7 +351,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
     { 
        id: 'smart-notes', 
        icon: Edit, 
-       label: '源宝袋', 
+       label: '小黑屋', 
        color: '#52c41a',
        type: 'single'
      },
