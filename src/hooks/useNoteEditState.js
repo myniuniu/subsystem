@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { generateCapabilityMap } from '../data/capabilityMapData.js';
 import { generateKnowledgeGraph } from '../data/knowledgeGraphData.js';
 import { CAPABILITY_CATEGORIES } from '../types/capabilityModel.js';
 import { KNOWLEDGE_GRAPH_CATEGORIES } from '../types/knowledgeGraph.js';
+import { DEFAULT_COURSE_VIDEOS } from '../constants/noteEditConstants.js';
 
 // 模拟字幕数据
 const subtitleData = [
@@ -62,22 +63,13 @@ export const useNoteEditState = (note, mode) => {
   const [videoUrl, setVideoUrl] = useState('');
   const [courseVideos, setCourseVideos] = useState(() => {
     if (mode === 'create') {
-      return [
-        { id: 4, title: '成都火锅制作教程', url: 'https://video.com/chengdu-hotpot', addTime: '刚刚', progress: 0 }
-      ];
+      return DEFAULT_COURSE_VIDEOS;
     } else {
       const actualVideos = note?.materials?.videos;
       if (actualVideos && actualVideos.length > 0) {
         return actualVideos;
       } else {
-        return [
-          { id: 101, title: '数据结构与算法基础', url: 'https://edu.example.com/course/data-structure', addTime: '2024-01-15 10:30', duration: '45分钟', instructor: '张教授', progress: 75 },
-          { id: 102, title: 'React前端开发实战', url: 'https://edu.example.com/course/react-dev', addTime: '2024-01-16 14:20', duration: '60分钟', instructor: '李老师', progress: 45 },
-          { id: 103, title: 'Python机器学习入门', url: 'https://edu.example.com/course/python-ml', addTime: '2024-01-17 09:15', duration: '75分钟', instructor: '王博士', progress: 90 },
-          { id: 104, title: '数据库设计与优化', url: 'https://edu.example.com/course/database-design', addTime: '2024-01-18 16:45', duration: '50分钟', instructor: '陈工程师', progress: 20 },
-          { id: 105, title: '云计算架构设计', url: 'https://edu.example.com/course/cloud-architecture', addTime: '2024-01-19 11:00', duration: '90分钟', instructor: '刘架构师', progress: 100 },
-          { id: 203, title: '《课程思政融入专业课教学》研讨会 - 直播回放', url: 'https://dingtalk.com/recording/456789', addTime: '2024-01-19 16:00', duration: '75分钟', instructor: '张教授', progress: 0, type: 'live_replay', platform: '钉钉直播', originalLiveDate: '2024-01-19 14:00' }
-        ];
+        return DEFAULT_COURSE_VIDEOS;
       }
     }
   });
@@ -120,7 +112,16 @@ export const useNoteEditState = (note, mode) => {
     file: [],
     text: [],
     link: [],
-    note: [],
+    note: [
+      {
+        id: 1,
+        title: '学习笔记示例',
+        source: '示例笔记',
+        time: '刚刚',
+        type: 'note',
+        content: '<p>这是一个示例笔记，您可以点击编辑来修改内容。</p>'
+      }
+    ],
     'study-result': []
   });
 

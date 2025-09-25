@@ -140,6 +140,12 @@ const OperationPanel = ({ state, handlers }) => {
     return commonItems;
   };
 
+  console.log('OperationPanel state:', {
+    rightPanelView,
+    rightPanelEditingNote,
+    rightPanelNoteContent
+  });
+
   if (rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR) {
     // 右侧栏笔记编辑器
     return (

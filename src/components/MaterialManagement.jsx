@@ -34,6 +34,7 @@ import {
   MoreOutlined,
   EyeOutlined,
   PlayCircleOutlined,
+  ClockCircleOutlined,
   RobotOutlined,
   NodeIndexOutlined
 } from '@ant-design/icons';
@@ -450,7 +451,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode }) => {
                 icon={<RobotOutlined />}
                 onClick={() => {
                   setCourseVideos(DEFAULT_COURSE_VIDEOS);
-                  message.success('已重新加载5条视频课程记录');
+                  message.success('已重新加载7条视频课程记录（包含直播课回放和预约）');
                 }}
                 style={{ color: '#666' }}
               >
@@ -553,13 +554,45 @@ const MaterialManagement = ({ state, handlers, onBack, mode }) => {
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
-                          <PlayCircleOutlined style={{ color: '#1890ff', marginRight: 8, fontSize: 16 }} />
+                          {video.type === 'live_replay' ? (
+                            <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>
+                              <PlayCircleOutlined style={{ color: '#ff4d4f', marginRight: 4, fontSize: 16 }} />
+                              <span style={{ 
+                                background: '#ff4d4f', 
+                                color: 'white', 
+                                fontSize: '8px', 
+                                padding: '1px 4px', 
+                                borderRadius: '2px',
+                                marginRight: 4
+                              }}>LIVE</span>
+                            </div>
+                          ) : video.type === 'live_scheduled' ? (
+                            <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>
+                              <ClockCircleOutlined style={{ color: '#faad14', marginRight: 4, fontSize: 16 }} />
+                              <span style={{ 
+                                background: '#faad14', 
+                                color: 'white', 
+                                fontSize: '8px', 
+                                padding: '1px 4px', 
+                                borderRadius: '2px',
+                                marginRight: 4
+                              }}>预约</span>
+                            </div>
+                          ) : (
+                            <PlayCircleOutlined style={{ color: '#1890ff', marginRight: 8, fontSize: 16 }} />
+                          )}
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
                               {video.title}
                             </Text>
                             <Text type="secondary" style={{ fontSize: 10 }}>
-                              {video.addTime} • {video.instructor || '未知讲师'}
+                              {video.type === 'live_replay' ? (
+                                `回放 • ${video.liveDate} • ${video.instructor || '未知讲师'} • ${video.audience || 0}人观看`
+                              ) : video.type === 'live_scheduled' ? (
+                                `预约直播 • ${video.scheduleDate} • ${video.instructor || '未知讲师'} • ${video.registered || 0}/${video.maxAudience || 0}人`
+                              ) : (
+                                `${video.addTime} • ${video.instructor || '未知讲师'}`
+                              )}
                             </Text>
                           </div>
                         </div>

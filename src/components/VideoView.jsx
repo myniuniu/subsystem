@@ -276,7 +276,9 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
         alignItems: 'center',
         justifyContent: 'center',
         background: 'transparent',
-        flex: isWidescreenMode ? 1 : 'auto'
+        flex: isWidescreenMode ? 1 : '0 0 auto',
+        minHeight: isWidescreenMode ? 'auto' : '180px',
+        maxHeight: isWidescreenMode ? 'auto' : '280px'
       }}>
         {selectedMaterial && (
           <VideoPlayer
@@ -317,10 +319,11 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
           padding: '16px 20px', 
           borderTop: '1px solid #f0f0f0',
           background: '#fff',
-          flex: 1,
+          flex: 3,
           display: 'flex',
           flexDirection: 'column',
-          overflowY: 'auto'
+          overflowY: 'auto',
+          minHeight: '500px'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

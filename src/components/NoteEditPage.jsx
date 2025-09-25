@@ -5,6 +5,7 @@ import {
   Typography,
   message,
   Modal,
+  Card,
   Checkbox,
   Row,
   Col,
@@ -120,6 +121,13 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
       setSelectedMaterial(material);
       setCurrentView(VIEW_MODES.VIDEO);
       setVideoStartTime(0);
+      
+      // 自动选中当前播放的视频记录
+      const videoId = `video-${material.id}`;
+      if (!state.selectedMaterials.includes(videoId)) {
+        state.setSelectedMaterials(prev => [...prev, videoId]);
+      }
+      
       message.success(`正在播放视频：${material.title}`);
     },
     onViewMaterial: (material, type) => {
@@ -449,6 +457,52 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
           </>
         )}
       </div>
+      
+      {/* 添加工具弹窗 */}
+      <Modal
+        title="添加工具"
+        open={addToolModalVisible}
+        onCancel={() => setAddToolModalVisible(false)}
+        footer={null}
+        width={600}
+        centered
+      >
+        <div style={{ padding: '20px 0' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+            {[
+              { key: 'audio', icon: '🎵', title: '音频概览' },
+              { key: 'video', icon: '📹', title: '视频概览' },
+              { key: 'mindmap', icon: '🧠', title: '思维导图' },
+              { key: 'report', icon: '📊', title: '报告' },
+              { key: 'ppt', icon: '📽️', title: 'PPT概览' },
+              { key: 'webcode', icon: '💻', title: '网页代码' }
+            ].map(tool => (
+              <Card
+                key={tool.key}
+                size="small"
+                hoverable
+                onClick={() => {
+                  console.log('添加工具:', tool.title);
+                  message.success(`已添加${tool.title}工具`);
+                  setAddToolModalVisible(false);
+                }}
+                style={{
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  borderRadius: '8px',
+                  border: '1px solid #e8e8e8',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div style={{ padding: '20px 16px' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>{tool.icon}</div>
+                  <Text style={{ fontSize: '14px', fontWeight: 500 }}>{tool.title}</Text>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </Modal>
     </>
   );
 };
