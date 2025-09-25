@@ -114,7 +114,9 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
           { id: 102, title: 'React前端开发实战', url: 'https://edu.example.com/course/react-dev', addTime: '2024-01-16 14:20', duration: '60分钟', instructor: '李老师', progress: 45 },
           { id: 103, title: 'Python机器学习入门', url: 'https://edu.example.com/course/python-ml', addTime: '2024-01-17 09:15', duration: '75分钟', instructor: '王博士', progress: 90 },
           { id: 104, title: '数据库设计与优化', url: 'https://edu.example.com/course/database-design', addTime: '2024-01-18 16:45', duration: '50分钟', instructor: '陈工程师', progress: 20 },
-          { id: 105, title: '云计算架构设计', url: 'https://edu.example.com/course/cloud-architecture', addTime: '2024-01-19 11:00', duration: '90分钟', instructor: '刘架构师', progress: 100 }
+          { id: 105, title: '云计算架构设计', url: 'https://edu.example.com/course/cloud-architecture', addTime: '2024-01-19 11:00', duration: '90分钟', instructor: '刘架构师', progress: 100 },
+          // 直播回放记录
+          { id: 203, title: '《课程思政融入专业课教学》研讨会 - 直播回放', url: 'https://dingtalk.com/recording/456789', addTime: '2024-01-19 16:00', duration: '75分钟', instructor: '张教授', progress: 0, type: 'live_replay', platform: '钉钉直播', originalLiveDate: '2024-01-19 14:00' }
         ];
       }
     }
@@ -196,6 +198,42 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   const [videoStartTime, setVideoStartTime] = useState(0);
   const [currentSubtitle, setCurrentSubtitle] = useState('');
   const [videoProgress, setVideoProgress] = useState(0);
+
+  // 直播流状态管理
+  const [liveStreams, setLiveStreams] = useState([
+    {
+      id: 'live_001',
+      title: '《课程思政融入专业课教学》研讨会',
+      instructor: '张教授',
+      startTime: '2025-01-25 14:00', // 设置为当前时间前后，确保处于直播中状态
+      endTime: '2025-01-25 16:00',
+      url: 'https://dingtalk.com/live/123456',
+      platform: '钉钉直播',
+      participants: 156,
+      status: 'live' // 'pending', 'live', 'ended'
+    }
+  ]);
+
+  // 获取直播流状态函数
+  const getLiveStreamStatus = (stream) => {
+    // 为了演示直播功能，这里暂时返回'live'状态
+    // 实际使用时可以恢复下面的时间判断逻辑
+    return 'live';
+    
+    /*
+    const now = new Date();
+    const startTime = new Date(stream.startTime);
+    const endTime = new Date(stream.endTime);
+    
+    if (now < startTime) {
+      return 'pending';
+    } else if (now >= startTime && now <= endTime) {
+      return 'live';
+    } else {
+      return 'ended';
+    }
+    */
+  };
 
   // 悬停状态管理
   const [hoveredItems, setHoveredItems] = useState({});
@@ -2146,14 +2184,80 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
 
   return (
     <>
+      {/* 直播中提示条 */}
+      {liveStreams.some(stream => getLiveStreamStatus(stream) === 'live') && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000,
+          background: 'linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%)',
+          color: 'white',
+          padding: '12px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          animation: 'pulse 2s infinite'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ 
+              width: 8, 
+              height: 8, 
+              borderRadius: '50%', 
+              background: 'white',
+              animation: 'blink 1.5s infinite'
+            }} />
+            <span style={{ fontSize: 14, fontWeight: 500 }}>
+              🎥 现在有直播课正在进行中！
+            </span>
+            <Button 
+              type="default"
+              size="small"
+              onClick={() => {
+                const liveStream = liveStreams.find(stream => getLiveStreamStatus(stream) === 'live');
+                if (liveStream?.url) {
+                  window.open(liveStream.url, '_blank');
+                }
+              }}
+              style={{
+                background: 'rgba(255,255,255,0.2)',
+                border: '1px solid rgba(255,255,255,0.3)',
+                color: 'white',
+                fontSize: 12,
+                height: 28
+              }}
+            >
+              点击进入直播间
+            </Button>
+          </div>
+        </div>
+      )}
+      
       <style>
         {`
           .subtitle-menu-item:hover {
             background: #f8f9fa !important;
           }
+          @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.8; }
+            100% { opacity: 1; }
+          }
+          @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+          }
         `}
       </style>
-      <div style={{ display: 'flex', height: 'calc(100vh - 64px)', background: '#f5f5f5' }}>
+      <div style={{ 
+        display: 'flex', 
+        height: 'calc(100vh - 64px)', 
+        background: '#f5f5f5',
+        marginTop: liveStreams.some(stream => getLiveStreamStatus(stream) === 'live') ? '52px' : '0px',
+        transition: 'margin-top 0.3s ease'
+      }}>
       {/* 左侧区域：根据当前视图显示资料收集或视频播放 */}
       <div style={{ 
         flex: currentView === 'video' ? 4 : (viewMode === 'map' ? 4 : 2.5), 
@@ -2642,15 +2746,21 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                           />
                         </Dropdown>
                       ) : (
-                        <div style={{ fontSize: 16, marginRight: 8 }}>🎥</div>
+                        <div style={{ fontSize: 16, marginRight: 8 }}>
+                          {video.type === 'live_replay' ? '📺' : '🎥'}
+                        </div>
                       )}
                       <div style={{ flex: 1 }}>
-                        <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{video.title}</Text>
+                        <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>
+                          {video.title}
+                          {video.type === 'live_replay' && <Tag size="small" color="orange" style={{ marginLeft: 4 }}>回放</Tag>}
+                        </Text>
                         <br />
                         <Text type="secondary" style={{ fontSize: 10 }} ellipsis>
                           {video.instructor && `讲师：${video.instructor} | `}
                           {video.duration && `时长：${video.duration} | `}
-                          {video.addTime}
+                          {video.type === 'live_replay' && video.platform && `平台：${video.platform} | `}
+                          {video.type === 'live_replay' && video.originalLiveDate ? `直播时间：${video.originalLiveDate}` : video.addTime}
                         </Text>
                         {/* 观看进度条 */}
                         {video.progress !== undefined && (
