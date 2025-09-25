@@ -23,7 +23,8 @@ import {
   BookOutlined,
   PlusOutlined,
   ApartmentOutlined,
-  NodeIndexOutlined
+  NodeIndexOutlined,
+  VideoCameraOutlined
 } from '@ant-design/icons';
 import courseSelectionService from '../services/courseSelectionService';
 
@@ -46,6 +47,7 @@ const MaterialAddPage = ({ visible, onClose }) => {
   const [showCapabilityModelForm, setShowCapabilityModelForm] = useState(false);
   const [showMyCourseForm, setShowMyCourseForm] = useState(false);
   const [showCourseVideoForm, setShowCourseVideoForm] = useState(false);
+  const [showLiveStreamForm, setShowLiveStreamForm] = useState(false);
   const [showMicroMajorForm, setShowMicroMajorForm] = useState(false);
 
   const handleFileUpload = (info) => {
@@ -218,6 +220,21 @@ const MaterialAddPage = ({ visible, onClose }) => {
 
   const handleCourseVideoCancel = () => {
     setShowCourseVideoForm(false);
+  };
+
+  // 直播相关处理函数
+  const handleLiveStreamClick = () => {
+    setShowLiveStreamForm(true);
+  };
+
+  const handleLiveStreamSubmit = () => {
+    message.success('直播链接已成功添加！');
+    setShowLiveStreamForm(false);
+    onClose();
+  };
+
+  const handleLiveStreamCancel = () => {
+    setShowLiveStreamForm(false);
   };
 
   const handleMicroMajorCancel = () => {
@@ -1106,6 +1123,101 @@ const MaterialAddPage = ({ visible, onClose }) => {
             </div>
           </div>
         </div>
+      ) : showLiveStreamForm ? (
+        <div>
+          {/* 标题栏 */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            padding: '16px 20px',
+            borderBottom: '1px solid #e5e7eb'
+          }}>
+            <Button 
+              type="text" 
+              icon={<ArrowLeftOutlined />} 
+              onClick={handleLiveStreamCancel}
+              style={{ 
+                marginRight: '12px',
+                padding: '4px',
+                minWidth: 'auto',
+                height: 'auto'
+              }}
+            />
+            <Title level={4} style={{ margin: 0, fontSize: '16px', fontWeight: 500, color: '#1f2937' }}>
+              直播
+            </Title>
+          </div>
+          
+          {/* 内容区域 */}
+          <div style={{ padding: '24px 20px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <Text style={{ fontSize: '14px', color: '#6b7280' }}>
+                添加直播链接作为智能笔记的来源，系统将实时分析直播内容。
+              </Text>
+            </div>
+            
+            <div style={{ marginBottom: '24px' }}>
+              <Text strong style={{ fontSize: '14px', color: '#1f2937', display: 'block', marginBottom: '8px' }}>
+                支持的直播平台
+              </Text>
+              <div style={{ 
+                border: '2px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '16px',
+                backgroundColor: '#f9fafb'
+              }}>
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 腾讯会议直播
+                </Text>
+                <br />
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 钉钉直播
+                </Text>
+                <br />
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • Zoom直播
+                </Text>
+                <br />
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • B站直播
+                </Text>
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <Button
+                onClick={handleLiveStreamCancel}
+                style={{
+                  height: '36px',
+                  paddingLeft: '16px',
+                  paddingRight: '16px',
+                  borderRadius: '18px',
+                  border: '1px solid #d1d5db',
+                  backgroundColor: 'white',
+                  color: '#374151',
+                  fontSize: '14px'
+                }}
+              >
+                取消
+              </Button>
+              <Button
+                type="primary"
+                onClick={handleLiveStreamSubmit}
+                style={{
+                  height: '36px',
+                  paddingLeft: '16px',
+                  paddingRight: '16px',
+                  borderRadius: '18px',
+                  backgroundColor: '#f5222d',
+                  borderColor: '#f5222d',
+                  fontSize: '14px'
+                }}
+              >
+                选择直播
+              </Button>
+            </div>
+          </div>
+        </div>
       ) : (
       <div style={{ padding: '0' }}>
 
@@ -1170,13 +1282,13 @@ const MaterialAddPage = ({ visible, onClose }) => {
             </Text>
           </div>
 
-          {/* 七个功能区域 - 三排布局 */}
+          {/* 八个功能区域 - 4x2布局：第一排四个，第二排四个 */}
           <div style={{ 
             display: 'grid',
-            gridTemplateColumns: '1fr 1fr 1fr',
+            gridTemplateColumns: 'repeat(4, 1fr)',
             gap: '20px'
           }}>
-            {/* 第一排：知识图谱、能力模型、微专业 */}
+            {/* 第一排：知识图谱、能力模型、微专业、我的选课 */}
             {/* 知识图谱 */}
             <Card 
               hoverable
@@ -1291,7 +1403,6 @@ const MaterialAddPage = ({ visible, onClose }) => {
               </Button>
             </Card>
 
-            {/* 第二排：我的选课、课程视频、链接 */}
             {/* 我的选课 */}
             <Card 
               hoverable
@@ -1330,6 +1441,7 @@ const MaterialAddPage = ({ visible, onClose }) => {
               </Button>
             </Card>
 
+            {/* 第二排：课程视频、直播、链接、粘贴文字 */}
             {/* 课程视频 */}
             <Card 
               hoverable
@@ -1365,6 +1477,44 @@ const MaterialAddPage = ({ visible, onClose }) => {
                 }}
               >
                 选择视频
+              </Button>
+            </Card>
+
+            {/* 直播 */}
+            <Card 
+              hoverable
+              style={{ 
+                textAlign: 'center',
+                border: '1px solid #e8e8e8',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+              bodyStyle={{ padding: '40px 24px' }}
+              onClick={handleLiveStreamClick}
+            >
+              <VideoCameraOutlined style={{ 
+                fontSize: '40px', 
+                color: '#f5222d',
+                marginBottom: '20px'
+              }} />
+              <div style={{ marginBottom: '12px' }}>
+                <Text strong style={{ fontSize: '16px' }}>直播</Text>
+              </div>
+              <Button 
+                type="primary"
+                size="small"
+                onClick={handleLiveStreamClick}
+                style={{
+                  backgroundColor: '#f5222d',
+                  borderColor: '#f5222d',
+                  borderRadius: '16px',
+                  fontSize: '12px',
+                  height: '28px',
+                  paddingLeft: '12px',
+                  paddingRight: '12px'
+                }}
+              >
+                选择直播
               </Button>
             </Card>
 
@@ -1433,45 +1583,43 @@ const MaterialAddPage = ({ visible, onClose }) => {
               </div>
             </Card>
 
-            {/* 第三排：粘贴文字（单独一行，居中显示） */}
-            <div style={{ gridColumn: '2 / 3' }}>
-              <Card 
-                hoverable
-                style={{ 
-                  textAlign: 'center',
-                  border: '1px solid #e8e8e8',
-                  borderRadius: '8px',
-                  cursor: 'pointer'
-                }}
-                bodyStyle={{ padding: '40px 24px' }}
-                onClick={handleTextClick}
-              >
-                <FileTextOutlined style={{ 
-                  fontSize: '40px', 
-                  color: '#4285f4',
-                  marginBottom: '20px'
-                }} />
-                <div style={{ marginBottom: '12px' }}>
-                  <Text strong style={{ fontSize: '16px' }}>粘贴文字</Text>
-                </div>
-                <div>
-                  <Button 
-                    onClick={handleTextClick}
-                    style={{ 
-                      padding: '4px 12px', 
-                      height: 'auto', 
-                      fontSize: '12px', 
-                      backgroundColor: '#f0f0f0',
-                      border: '1px solid #d9d9d9',
-                      borderRadius: '16px',
-                      color: '#666'
-                    }}
-                  >
-                    复制的文字
-                  </Button>
-                </div>
-              </Card>
-            </div>
+            {/* 粘贴文字 */}
+            <Card 
+              hoverable
+              style={{ 
+                textAlign: 'center',
+                border: '1px solid #e8e8e8',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+              bodyStyle={{ padding: '40px 24px' }}
+              onClick={handleTextClick}
+            >
+              <FileTextOutlined style={{ 
+                fontSize: '40px', 
+                color: '#4285f4',
+                marginBottom: '20px'
+              }} />
+              <div style={{ marginBottom: '12px' }}>
+                <Text strong style={{ fontSize: '16px' }}>粘贴文字</Text>
+              </div>
+              <div>
+                <Button 
+                  onClick={handleTextClick}
+                  style={{ 
+                    padding: '4px 12px', 
+                    height: 'auto', 
+                    fontSize: '12px', 
+                    backgroundColor: '#f0f0f0',
+                    border: '1px solid #d9d9d9',
+                    borderRadius: '16px',
+                    color: '#666'
+                  }}
+                >
+                  复制的文字
+                </Button>
+              </div>
+            </Card>
           </div>
         </div>
 

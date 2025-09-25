@@ -9,7 +9,9 @@ import {
   FullscreenExitOutlined,
   CloseOutlined,
   EditOutlined,
-  CameraOutlined
+  CameraOutlined,
+  ExpandOutlined,
+  CompressOutlined
 } from '@ant-design/icons';
 import './VideoPlayer.css';
 
@@ -24,7 +26,8 @@ const VideoPlayer = ({
   embedded = false, 
   style, 
   onTimeUpdate,
-  currentEditorState = null // 新增参数：当前编辑器状态
+  currentEditorState = null, // 新增参数：当前编辑器状态
+  onWideScreenToggle // 新增参数：宽屏模式切换回调
 }) => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -32,6 +35,7 @@ const VideoPlayer = ({
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isWideScreen, setIsWideScreen] = useState(false); // 新增：宽屏模式状态
   const [showAnnotationModal, setShowAnnotationModal] = useState(false);
   const [annotationText, setAnnotationText] = useState('');
   const [showControls, setShowControls] = useState(true);
@@ -40,16 +44,139 @@ const VideoPlayer = ({
   const [videoLoading, setVideoLoading] = useState(true);
   const [videoError, setVideoError] = useState(false);
 
-  // 控制条自动隐藏
+  // 宽屏模式键盘事件处理
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape' && isWideScreen) {
+        toggleWideScreen();
+      }
+    };
+
+    if (embedded && isWideScreen) {
+      document.addEventListener('keydown', handleKeyDown);
+      
+      // 使用更强力的方式防止页面滚动
+      document.body.classList.add('wide-screen-mode');
+      document.documentElement.classList.add('wide-screen-mode');
+      
+      // 也为root元素添加样式
+      const rootElement = document.getElementById('root');
+      if (rootElement) {
+        rootElement.classList.add('wide-screen-mode');
+      }
+      
+      // 保存原始样式
+      const originalBodyStyle = {
+        overflow: document.body.style.overflow,
+        position: document.body.style.position,
+        width: document.body.style.width,
+        height: document.body.style.height,
+        top: document.body.style.top,
+        left: document.body.style.left,
+        margin: document.body.style.margin,
+        padding: document.body.style.padding
+      };
+      
+      const originalHtmlStyle = {
+        overflow: document.documentElement.style.overflow,
+        margin: document.documentElement.style.margin,
+        padding: document.documentElement.style.padding
+      };
+      
+      // 设置样式作为双重保障
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100vw';
+      document.body.style.height = '100vh';
+      document.body.style.top = '0';
+      document.body.style.left = '0';
+      document.body.style.margin = '0';
+      document.body.style.padding = '0';
+      document.documentElement.style.margin = '0';
+      document.documentElement.style.padding = '0';
+      
+      // 禁用滚动事件
+      const preventScroll = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      };
+      
+      document.addEventListener('scroll', preventScroll, { passive: false });
+      document.addEventListener('wheel', preventScroll, { passive: false });
+      document.addEventListener('touchmove', preventScroll, { passive: false });
+      
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+        document.removeEventListener('scroll', preventScroll);
+        document.removeEventListener('wheel', preventScroll);
+        document.removeEventListener('touchmove', preventScroll);
+        
+        document.body.classList.remove('wide-screen-mode');
+        document.documentElement.classList.remove('wide-screen-mode');
+        const rootElement = document.getElementById('root');
+        if (rootElement) {
+          rootElement.classList.remove('wide-screen-mode');
+        }
+        
+        // 恢复原始样式
+        Object.assign(document.body.style, originalBodyStyle);
+        Object.assign(document.documentElement.style, originalHtmlStyle);
+      };
+    } else {
+      // 恢复正常滚动
+      document.body.classList.remove('wide-screen-mode');
+      document.documentElement.classList.remove('wide-screen-mode');
+      const rootElement = document.getElementById('root');
+      if (rootElement) {
+        rootElement.classList.remove('wide-screen-mode');
+      }
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.margin = '';
+      document.body.style.padding = '';
+      document.documentElement.style.margin = '';
+      document.documentElement.style.padding = '';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.classList.remove('wide-screen-mode');
+      document.documentElement.classList.remove('wide-screen-mode');
+      const rootElement = document.getElementById('root');
+      if (rootElement) {
+        rootElement.classList.remove('wide-screen-mode');
+      }
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.margin = '';
+      document.body.style.padding = '';
+      document.documentElement.style.margin = '';
+      document.documentElement.style.padding = '';
+    };
+  }, [isWideScreen, embedded]);
+
+  // 控制条自动隐藏 - 在宽屏模式下不隐藏
   useEffect(() => {
     let timer;
-    if (isPlaying && showControls) {
+    if (isPlaying && showControls && !isWideScreen) { // 宽屏模式下不自动隐藏
       timer = setTimeout(() => {
         setShowControls(false);
       }, 3000);
     }
     return () => clearTimeout(timer);
-  }, [isPlaying, showControls]);
+  }, [isPlaying, showControls, isWideScreen]); // 添加 isWideScreen 依赖
 
   // 视频加载完成
   const handleLoadedMetadata = () => {
@@ -148,6 +275,26 @@ const VideoPlayer = ({
     } else {
       document.exitFullscreen();
       setIsFullscreen(false);
+    }
+  };
+
+  // 宽屏模式切换
+  const toggleWideScreen = () => {
+    console.log('宽屏模式按钮被点击，当前状态:', isWideScreen);
+    const newWideScreenState = !isWideScreen;
+    setIsWideScreen(newWideScreenState);
+    
+    // 在宽屏模式下始终显示控制条
+    if (newWideScreenState) {
+      setShowControls(true);
+    }
+    
+    console.log('宽屏模式切换到:', newWideScreenState);
+    if (onWideScreenToggle) {
+      onWideScreenToggle(newWideScreenState);
+      console.log('回调函数已调用');
+    } else {
+      console.log('没有回调函数');
     }
   };
 
@@ -448,13 +595,59 @@ ${annotationText}
   if (embedded) {
     return (
       <div 
-        className="video-player-container embedded"
-        style={style}
+        className={`video-player-container embedded ${isWideScreen ? 'wide-screen-embedded' : ''}`}
+        style={{
+          ...style,
+          position: isWideScreen ? 'fixed' : 'relative',
+          top: isWideScreen ? '0' : 'auto',
+          left: isWideScreen ? '0' : 'auto',
+          width: isWideScreen ? '100vw' : '100%',
+          height: isWideScreen ? '100vh' : 'auto',
+          zIndex: isWideScreen ? 10000 : 'auto',
+          background: isWideScreen ? '#000' : 'transparent',
+          overflow: isWideScreen ? 'hidden' : 'visible',
+          margin: isWideScreen ? '0' : 'auto',
+          padding: isWideScreen ? '0' : 'auto'
+        }}
         onMouseMove={() => setShowControls(true)}
         onMouseLeave={() => isPlaying && setShowControls(false)}
       >
+        {/* 寽屏模式退出按钮 */}
+        {isWideScreen && (
+          <Button
+            type="text"
+            icon={<CloseOutlined />}
+            onClick={toggleWideScreen}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              color: 'white',
+              background: 'rgba(0, 0, 0, 0.5)',
+              border: 'none',
+              borderRadius: '50%',
+              width: '40px',
+              height: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '16px',
+              zIndex: 1000
+            }}
+            title="退出寽屏模式 (ESC)"
+          />
+        )}
+        
         {/* 视频播放器 */}
-        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+        <div style={{ 
+          position: 'relative', 
+          width: '100%', 
+          flex: '1', /* 使用flex:1占据剩余空间 */
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center',
+          minHeight: 0 /* 允许内容缩小 */
+        }}>
           <video
             ref={videoRef}
             className="video-element"
@@ -602,6 +795,23 @@ ${annotationText}
                   tooltip={{ formatter: null }}
                 />
 
+                {/* 宽屏模式按钮 */}
+                <Button
+                  type="text"
+                  icon={isWideScreen ? <CompressOutlined /> : <ExpandOutlined />}
+                  onClick={(e) => {
+                    console.log('宽屏按钮点击事件触发');
+                    e.stopPropagation();
+                    toggleWideScreen();
+                  }}
+                  style={{ 
+                    color: 'white',
+                    background: isWideScreen ? 'rgba(24, 144, 255, 0.3)' : 'transparent',
+                    border: isWideScreen ? '1px solid #1890ff' : 'none'
+                  }}
+                  title={isWideScreen ? '退出宽屏模式' : '宽屏模式'}
+                />
+
                 {/* 全屏按钮 */}
                 <Button
                   type="text"
@@ -679,10 +889,14 @@ ${annotationText}
       open={visible}
       onCancel={handleClose}
       footer={null}
-      width="80%"
+      width={isWideScreen ? "95%" : "80%"}
       style={{ top: 20 }}
-      className="video-player-modal"
+      className={`video-player-modal ${isWideScreen ? 'wide-screen' : ''}`}
       closeIcon={<CloseOutlined style={{ color: 'white', fontSize: 16 }} />}
+      centered={false}
+      destroyOnClose={false}
+      mask={isWideScreen ? false : true}
+      maskClosable={!isWideScreen}
     >
       <div 
         className="video-player-container"
@@ -797,7 +1011,21 @@ ${annotationText}
 
         {/* 播放控制条 */}
         {showControls && (
-          <div className="video-controls">
+          <div 
+            className="video-controls"
+            style={isWideScreen ? {
+              position: 'relative',
+              width: '100%',
+              zIndex: 10001,
+              background: 'rgba(0,0,0,0.8)',
+              padding: '20px',
+              borderRadius: '8px',
+              marginTop: '20px',
+              display: 'block',
+              visibility: 'visible',
+              opacity: 1
+            } : {}}
+          >
             {/* 进度条 */}
             <div className="progress-container">
               <Slider
@@ -851,6 +1079,15 @@ ${annotationText}
                   onChange={handleVolumeChange}
                   style={{ width: 80 }}
                   tooltip={{ formatter: null }}
+                />
+
+                {/* 宽屏模式按钮 */}
+                <Button
+                  type="text"
+                  icon={isWideScreen ? <CompressOutlined /> : <ExpandOutlined />}
+                  onClick={toggleWideScreen}
+                  style={{ color: 'white' }}
+                  title={isWideScreen ? '退出宽屏模式' : '宽屏模式'}
                 />
 
                 {/* 全屏按钮 */}
