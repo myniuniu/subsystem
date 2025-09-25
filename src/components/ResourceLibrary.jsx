@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, BookOpen, Video, FileText, Download, Star, Eye, Clock, Tag, ChevronRight, ArrowLeft, Play } from 'lucide-react';
+import { Search, Filter, BookOpen, Video, FileText, Download, Star, Eye, Clock, Tag, ChevronRight, ArrowLeft, Play, Grid, Map } from 'lucide-react';
 import './ResourceLibrary.css';
 import resourceLibraryService from '../services/resourceLibraryService.js';
 import { generateMockResourceData } from '../data/resourceLibraryMockData.js';
+import { generateCapabilityMap } from '../data/capabilityMapData.js';
+import CapabilityMindMap from './CapabilityMindMap.jsx';
+import { CAPABILITY_CATEGORIES } from '../types/capabilityModel.js';
 import {
   ResourceType,
   ResourceCategory,
@@ -24,6 +27,10 @@ const ResourceLibrary = ({ onBack }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statistics, setStatistics] = useState(null);
+  const [viewMode, setViewMode] = useState('card'); // 'card' 或 'map'
+  const [capabilityMap, setCapabilityMap] = useState(null);
+  const [capabilityVideos, setCapabilityVideos] = useState([]);
+  const [selectedCapabilityCategory, setSelectedCapabilityCategory] = useState('all');
 
   // 初始化数据
   useEffect(() => {
@@ -35,6 +42,11 @@ const ResourceLibrary = ({ onBack }) => {
     try {
       // 生成模拟数据
       const mockData = generateMockResourceData();
+      
+      // 生成能力地图数据
+      const { map, videos } = generateCapabilityMap();
+      setCapabilityMap(map);
+      setCapabilityVideos(videos);
       
       // 更新服务中的数据
       resourceLibraryService.storage.resources = mockData.resources;
@@ -102,6 +114,44 @@ const ResourceLibrary = ({ onBack }) => {
       name: audience
     }))
   ];
+
+  // 能力分类选项
+  const capabilityCategories = [
+    { id: 'all', name: '全部能力' },
+    ...Object.keys(CAPABILITY_CATEGORIES).map(key => ({
+      id: key,
+      name: CAPABILITY_CATEGORIES[key].name
+    }))
+  ];
+
+  // 处理能力节点点击
+  const handleCapabilityNodeClick = (node) => {
+    console.log('点击能力节点:', node);
+    // 可以在这里实现更多交互逻辑，比如显示节点详情或跳转到相关资源
+  };
+
+  // 处理能力视频点击
+  const handleCapabilityVideoClick = (video) => {
+    console.log('点击能力视频:', video);
+    // 可以在这里实现视频播放或跳转到视频详情页
+    // 暂时转换为资源详情
+    const resourceData = {
+      id: video.id,
+      title: video.title,
+      description: video.description,
+      type: 'video',
+      duration: video.duration,
+      author: video.author,
+      tags: video.tags || [],
+      difficulty: video.difficulty,
+      stats: {
+        views: Math.floor(Math.random() * 1000) + 100,
+        rating: (Math.random() * 2 + 3).toFixed(1),
+        downloads: Math.floor(Math.random() * 200) + 50
+      }
+    };
+    setSelectedResource(resourceData);
+  };
 
   // 过滤资源
   const filteredResources = resources.filter(resource => {
@@ -402,6 +452,24 @@ const ResourceLibrary = ({ onBack }) => {
           </h1>
         </div>
         
+        {/* 视图模式切换 */}
+        <div className="view-mode-toggle">
+          <button 
+            className={`mode-btn ${viewMode === 'card' ? 'active' : ''}`}
+            onClick={() => setViewMode('card')}
+          >
+            <Grid size={18} />
+            卡片模式
+          </button>
+          <button 
+            className={`mode-btn ${viewMode === 'map' ? 'active' : ''}`}
+            onClick={() => setViewMode('map')}
+          >
+            <Map size={18} />
+            地图模式
+          </button>
+        </div>
+        
         {/* 搜索栏 */}
         <div className="search-section">
           <div className="search-bar">
@@ -468,188 +536,219 @@ const ResourceLibrary = ({ onBack }) => {
       
       {/* 内容区域 */}
       <div className="library-content">
-        <div className="content-grid">
-          {/* 资源列表 */}
-          <div className="resources-section">
-            <div className="section-header">
-              <h2>资源列表</h2>
-              <span className="result-count">共 {filteredResources.length} 个资源</span>
-            </div>
-            
-            <div className="resources-grid">
-              {filteredResources.map((resource, index) => (
-                <div 
-                  key={resource.id} 
-                  className="resource-card"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                  onClick={() => viewResource(resource)}
-                >
-                  <div className="card-header">
-                    <div className="resource-type">
-                    <span className="type-icon">{getTypeIcon(resource.resourceType || resource.type)}</span>
-                    <span className="type-name">{getTypeName(resource.resourceType || resource.type)}</span>
-                  </div>
-                    
-                    <button 
-                      className={`favorite-btn ${favorites.includes(resource.id) ? 'favorited' : ''}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(resource.id);
-                      }}
-                    >
-                      <Star size={16} fill={favorites.includes(resource.id) ? 'currentColor' : 'none'} />
-                    </button>
-                  </div>
-                  
-                  <h3 className="resource-title">{resource.title}</h3>
-                  <p className="resource-description">{resource.description}</p>
-                  
-                  <div className="resource-meta">
-                    <div className="meta-item">
-                      <Clock size={14} />
-                      <span>{resource.duration || resource.readTime}</span>
+        {viewMode === 'card' ? (
+          <div className="content-grid">
+            {/* 资源列表 */}
+            <div className="resources-section">
+              <div className="section-header">
+                <h2>资源列表</h2>
+                <span className="result-count">共 {filteredResources.length} 个资源</span>
+              </div>
+              
+              <div className="resources-grid">
+                {filteredResources.map((resource, index) => (
+                  <div 
+                    key={resource.id} 
+                    className="resource-card"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                    onClick={() => viewResource(resource)}
+                  >
+                    <div className="card-header">
+                      <div className="resource-type">
+                      <span className="type-icon">{getTypeIcon(resource.resourceType || resource.type)}</span>
+                      <span className="type-name">{getTypeName(resource.resourceType || resource.type)}</span>
                     </div>
-                    <div className="meta-item">
-                      <Eye size={14} />
-                      <span>{resource.stats?.views || resource.views}</span>
-                    </div>
-                    <div className="meta-item">
-                      <Star size={14} />
-                      <span>{resource.stats?.rating || resource.rating}</span>
-                    </div>
-                    {resource.difficulty && (
-                      <div className="meta-item difficulty">
-                        <span 
-                          className="difficulty-badge"
-                          style={{ backgroundColor: getDifficultyColor(resource.difficulty) }}
-                        >
-                          {getDifficultyText(resource.difficulty)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="resource-tags">
-                    {resource.tags.slice(0, 3).map((tag, tagIndex) => (
-                      <span key={tagIndex} className="tag">{tag}</span>
-                    ))}
-                    {resource.tags.length > 3 && (
-                      <span className="tag more">+{resource.tags.length - 3}</span>
-                    )}
-                  </div>
-                  
-                  <div className="card-footer">
-                    <span className="author">{resource.author?.name || resource.author}</span>
-                    <div className="card-actions">
+                      
                       <button 
-                        className="download-btn-small"
-                        onClick={(e) => downloadResource(resource, e)}
-                        title="下载资源"
+                        className={`favorite-btn ${favorites.includes(resource.id) ? 'favorited' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(resource.id);
+                        }}
                       >
-                        <Download size={14} />
-                        <span>{resource.stats?.downloads || 0}</span>
+                        <Star size={16} fill={favorites.includes(resource.id) ? 'currentColor' : 'none'} />
                       </button>
-                      <ChevronRight size={16} />
+                    </div>
+                    
+                    <h3 className="resource-title">{resource.title}</h3>
+                    <p className="resource-description">{resource.description}</p>
+                    
+                    <div className="resource-meta">
+                      <div className="meta-item">
+                        <Clock size={14} />
+                        <span>{resource.duration || resource.readTime}</span>
+                      </div>
+                      <div className="meta-item">
+                        <Eye size={14} />
+                        <span>{resource.stats?.views || resource.views}</span>
+                      </div>
+                      <div className="meta-item">
+                        <Star size={14} />
+                        <span>{resource.stats?.rating || resource.rating}</span>
+                      </div>
+                      {resource.difficulty && (
+                        <div className="meta-item difficulty">
+                          <span 
+                            className="difficulty-badge"
+                            style={{ backgroundColor: getDifficultyColor(resource.difficulty) }}
+                          >
+                            {getDifficultyText(resource.difficulty)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="resource-tags">
+                      {resource.tags.slice(0, 3).map((tag, tagIndex) => (
+                        <span key={tagIndex} className="tag">{tag}</span>
+                      ))}
+                      {resource.tags.length > 3 && (
+                        <span className="tag more">+{resource.tags.length - 3}</span>
+                      )}
+                    </div>
+                    
+                    <div className="card-footer">
+                      <span className="author">{resource.author?.name || resource.author}</span>
+                      <div className="card-actions">
+                        <button 
+                          className="download-btn-small"
+                          onClick={(e) => downloadResource(resource, e)}
+                          title="下载资源"
+                        >
+                          <Download size={14} />
+                          <span>{resource.stats?.downloads || 0}</span>
+                        </button>
+                        <ChevronRight size={16} />
+                      </div>
                     </div>
                   </div>
+                ))}
+              </div>
+              
+              {filteredResources.length === 0 && (
+                <div className="no-results">
+                  <div className="no-results-icon">
+                    <Search size={48} />
+                  </div>
+                  <h3>未找到相关资源</h3>
+                  <p>尝试调整搜索条件或浏览其他分类</p>
                 </div>
-              ))}
+              )}
             </div>
             
-            {filteredResources.length === 0 && (
-              <div className="no-results">
-                <div className="no-results-icon">
-                  <Search size={48} />
+            {/* 侧边栏 */}
+            <div className="sidebar">
+              {/* 我的收藏 */}
+              {favorites.length > 0 && (
+                <div className="sidebar-section">
+                  <h3 className="sidebar-title">
+                    <Star size={18} />
+                    我的收藏
+                  </h3>
+                  <div className="favorite-list">
+                    {resources
+                      .filter(r => favorites.includes(r.id))
+                      .slice(0, 5)
+                      .map(resource => (
+                        <div 
+                          key={resource.id} 
+                          className="favorite-item"
+                          onClick={() => viewResource(resource)}
+                        >
+                          <span className="type-icon">{getTypeIcon(resource.type)}</span>
+                          <span className="title">{resource.title}</span>
+                        </div>
+                      ))
+                    }
+                  </div>
                 </div>
-                <h3>未找到相关资源</h3>
-                <p>尝试调整搜索条件或浏览其他分类</p>
-              </div>
-            )}
-          </div>
-          
-          {/* 侧边栏 */}
-          <div className="sidebar">
-            {/* 我的收藏 */}
-            {favorites.length > 0 && (
+              )}
+              
+              {/* 最近浏览 */}
+              {viewHistory.length > 0 && (
+                <div className="sidebar-section">
+                  <h3 className="sidebar-title">
+                    <Clock size={18} />
+                    最近浏览
+                  </h3>
+                  <div className="history-list">
+                    {viewHistory
+                      .map(id => resources.find(r => r.id === id))
+                      .filter(Boolean)
+                      .slice(0, 5)
+                      .map(resource => (
+                        <div 
+                          key={resource.id} 
+                          className="history-item"
+                          onClick={() => viewResource(resource)}
+                        >
+                          <span className="type-icon">{getTypeIcon(resource.type)}</span>
+                          <span className="title">{resource.title}</span>
+                        </div>
+                      ))
+                    }
+                  </div>
+                </div>
+              )}
+              
+              {/* 热门资源 */}
               <div className="sidebar-section">
                 <h3 className="sidebar-title">
-                  <Star size={18} />
-                  我的收藏
+                  <Eye size={18} />
+                  热门资源
                 </h3>
-                <div className="favorite-list">
+                <div className="popular-list">
                   {resources
-                    .filter(r => favorites.includes(r.id))
+                    .sort((a, b) => b.views - a.views)
                     .slice(0, 5)
                     .map(resource => (
                       <div 
                         key={resource.id} 
-                        className="favorite-item"
+                        className="popular-item"
                         onClick={() => viewResource(resource)}
                       >
                         <span className="type-icon">{getTypeIcon(resource.type)}</span>
-                        <span className="title">{resource.title}</span>
+                        <div className="item-info">
+                          <span className="title">{resource.title}</span>
+                          <span className="views">{resource.views} 次浏览</span>
+                        </div>
                       </div>
                     ))
                   }
                 </div>
-              </div>
-            )}
-            
-            {/* 最近浏览 */}
-            {viewHistory.length > 0 && (
-              <div className="sidebar-section">
-                <h3 className="sidebar-title">
-                  <Clock size={18} />
-                  最近浏览
-                </h3>
-                <div className="history-list">
-                  {viewHistory
-                    .map(id => resources.find(r => r.id === id))
-                    .filter(Boolean)
-                    .slice(0, 5)
-                    .map(resource => (
-                      <div 
-                        key={resource.id} 
-                        className="history-item"
-                        onClick={() => viewResource(resource)}
-                      >
-                        <span className="type-icon">{getTypeIcon(resource.type)}</span>
-                        <span className="title">{resource.title}</span>
-                      </div>
-                    ))
-                  }
-                </div>
-              </div>
-            )}
-            
-            {/* 热门资源 */}
-            <div className="sidebar-section">
-              <h3 className="sidebar-title">
-                <Eye size={18} />
-                热门资源
-              </h3>
-              <div className="popular-list">
-                {resources
-                  .sort((a, b) => b.views - a.views)
-                  .slice(0, 5)
-                  .map(resource => (
-                    <div 
-                      key={resource.id} 
-                      className="popular-item"
-                      onClick={() => viewResource(resource)}
-                    >
-                      <span className="type-icon">{getTypeIcon(resource.type)}</span>
-                      <div className="item-info">
-                        <span className="title">{resource.title}</span>
-                        <span className="views">{resource.views} 次浏览</span>
-                      </div>
-                    </div>
-                  ))
-                }
               </div>
             </div>
           </div>
-        </div>
+        ) : (
+          /* 地图模式 */
+          <div className="map-mode-container">
+            <div className="map-controls">
+              <h2>能力地图</h2>
+              <div className="capability-filters">
+                {capabilityCategories.map(category => (
+                  <button
+                    key={category.id}
+                    className={`capability-filter-btn ${selectedCapabilityCategory === category.id ? 'active' : ''}`}
+                    onClick={() => setSelectedCapabilityCategory(category.id)}
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="mindmap-container">
+              {capabilityMap && (
+                <CapabilityMindMap
+                  capabilityMap={capabilityMap}
+                  selectedCategory={selectedCapabilityCategory}
+                  onNodeClick={handleCapabilityNodeClick}
+                  onVideoClick={handleCapabilityVideoClick}
+                />
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

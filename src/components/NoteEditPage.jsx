@@ -25,7 +25,10 @@ import {
 import MaterialAddPage from './MaterialAddPage';
 import ExploreModal from './ExploreModal';
 import VideoPlayer from './VideoPlayer';
+import CapabilityMindMap from './CapabilityMindMap.jsx';
 import courseSelectionService from '../services/courseSelectionService';
+import { generateCapabilityMap } from '../data/capabilityMapData.js';
+import { CAPABILITY_CATEGORIES } from '../types/capabilityModel.js';
 import {
   ArrowLeftOutlined,
   SaveOutlined,
@@ -44,8 +47,10 @@ import {
   PlayCircleOutlined,
   GlobalOutlined,
   MoreOutlined,
-  EditOutlined
+  EditOutlined,
+  NodeIndexOutlined
 } from '@ant-design/icons';
+import { Grid, Map } from 'lucide-react';
 
 const { Content, Sider } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -378,6 +383,29 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   const [rightPanelEditingNote, setRightPanelEditingNote] = useState(null);
   const [rightPanelNoteContent, setRightPanelNoteContent] = useState('');
 
+  // 能力模型相关状态
+  const [capabilityMap, setCapabilityMap] = useState(null);
+  const [capabilityVideos, setCapabilityVideos] = useState([]);
+  const [viewMode, setViewMode] = useState('card'); // 'card' 或 'map'
+  const [selectedCapabilityCategory, setSelectedCapabilityCategory] = useState('all');
+  const [showCapabilityMapModal, setShowCapabilityMapModal] = useState(false);
+
+  // 能力分类选项
+  const capabilityCategories = [
+    { id: 'all', name: '全部能力' },
+    ...Object.keys(CAPABILITY_CATEGORIES).map(key => ({
+      id: key,
+      name: CAPABILITY_CATEGORIES[key].name
+    }))
+  ];
+
+  // 初始化能力地图数据
+  useEffect(() => {
+    const { map, videos } = generateCapabilityMap();
+    setCapabilityMap(map);
+    setCapabilityVideos(videos);
+  }, []);
+
   // 处理视频时间更新和字幕显示
   const handleVideoTimeUpdate = (currentTime, duration) => {
     setVideoProgress(duration > 0 ? (currentTime / duration) * 100 : 0);
@@ -568,6 +596,43 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     }
     
     message.success(`正在播放视频：${material.title}`);
+  };
+
+  // 处理能力节点点击
+  const handleCapabilityNodeClick = (node) => {
+    console.log('点击能力节点:', node);
+    // 可以在这里实现更多交互逻辑，比如显示节点详情或跳转到相关资源
+  };
+
+  // 处理能力视频点击
+  const handleCapabilityVideoClick = (video) => {
+    console.log('点击能力视频:', video);
+    // 将能力视频转换为课程视频格式
+    const courseVideo = {
+      id: video.id,
+      title: video.title,
+      url: video.url || '#',
+      duration: video.duration,
+      instructor: video.author,
+      addTime: '刚刚',
+      progress: 0,
+      type: 'capability_video'
+    };
+    
+    // 添加到课程视频列表
+    setCourseVideos(prev => {
+      // 检查是否已存在
+      const exists = prev.find(v => v.id === video.id);
+      if (exists) {
+        message.info('该视频已在来源列表中');
+        return prev;
+      }
+      message.success(`已添加能力视频：${video.title}`);
+      return [courseVideo, ...prev];
+    });
+    
+    // 关闭地图模式弹窗
+    setShowCapabilityMapModal(false);
   };
 
   // 返回资料列表
@@ -2112,9 +2177,87 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                 onChange={(e) => handleSelectAll(e.target.checked)}
               />
             </div>
+
+            {/* 能力模型地图模式切换 */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '8px 12px',
+              backgroundColor: '#fff7e6',
+              borderRadius: '6px',
+              marginBottom: 12,
+              border: '1px solid #ffd591'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ color: '#d48806', fontSize: '14px' }}>能力模型分类</span>
+                <Tooltip title="查看能力地图">
+                  <Button 
+                    type="text" 
+                    size="small"
+                    icon={<NodeIndexOutlined />}
+                    onClick={() => setShowCapabilityMapModal(true)}
+                    style={{ color: '#d48806' }}
+                  >
+                    地图模式
+                  </Button>
+                </Tooltip>
+              </div>
+              <div style={{ display: 'flex', gap: 4 }}>
+                <Button 
+                  size="small"
+                  type={viewMode === 'card' ? 'primary' : 'default'}
+                  icon={<Grid size={14} />}
+                  onClick={() => setViewMode('card')}
+                  style={{ fontSize: '12px', height: '24px' }}
+                >
+                  卡片
+                </Button>
+                <Button 
+                  size="small"
+                  type={viewMode === 'map' ? 'primary' : 'default'}
+                  icon={<Map size={14} />}
+                  onClick={() => setViewMode('map')}
+                  style={{ fontSize: '12px', height: '24px' }}
+                >
+                  地图
+                </Button>
+              </div>
+            </div>
             
             {/* 统一的资料列表 */}
             <div style={{ height: 'calc(100vh - 280px)', overflowY: 'auto' }}>
+              {viewMode === 'map' ? (
+                /* 地图模式 - 显示能力模型思维导图 */
+                <div style={{ 
+                  height: 'calc(100vh - 320px)', 
+                  width: '100%',
+                  position: 'relative'
+                }}>
+                  {capabilityMap ? (
+                    <CapabilityMindMap
+                      capabilityMap={capabilityMap}
+                      videos={capabilityVideos}
+                      onNodeClick={handleCapabilityNodeClick}
+                      onVideoClick={handleCapabilityVideoClick}
+                      selectedCategory={selectedCapabilityCategory}
+                    />
+                  ) : (
+                    <div style={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      height: '100%'
+                    }}>
+                      <div style={{ fontSize: '48px', marginBottom: '16px' }}>🗺️</div>
+                      <Text style={{ color: '#999' }}>正在加载能力地图...</Text>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* 卡片模式 - 显示传统资料列表 */
+                <>
               {/* 已上传文件 */}
               {uploadedFiles.map(file => (
                 <Card 
@@ -2587,6 +2730,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                   </Card>
                 );
               })}
+                </>
+              )}
             </div>
           </div>
         ) : (
@@ -4718,6 +4863,59 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
           </div>
         </div>
       </Modal>
+
+      {/* 能力模型地图模式弹窗 */}
+      <Modal
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ fontSize: '24px' }}>🗺️</div>
+            <div>
+              <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#1890ff' }}>
+                能力模型地图
+              </div>
+              <div style={{ fontSize: '12px', color: '#666', fontWeight: 'normal' }}>
+                探索能力节点与课程视频的关联关系
+              </div>
+            </div>
+          </div>
+        }
+        open={showCapabilityMapModal}
+        onCancel={() => setShowCapabilityMapModal(false)}
+        width={1000}
+        style={{ top: 20 }}
+        footer={[
+          <Button key="close" onClick={() => setShowCapabilityMapModal(false)}>
+            关闭
+          </Button>
+        ]}
+      >
+        <div style={{ height: '70vh', overflow: 'hidden' }}>
+          {capabilityMap ? (
+            <CapabilityMindMap
+              capabilityMap={capabilityMap}
+              videos={capabilityVideos}
+              onNodeClick={handleCapabilityNodeClick}
+              onVideoClick={handleCapabilityVideoClick}
+              selectedCategory={selectedCapabilityCategory}
+              style={{ height: '100%' }}
+            />
+          ) : (
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              height: '100%',
+              color: '#999'
+            }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🗺️</div>
+              <div style={{ fontSize: '16px', marginBottom: '8px' }}>正在加载能力地图...</div>
+              <div style={{ fontSize: '12px' }}>请稍候</div>
+            </div>
+          )}
+        </div>
+      </Modal>
+
     </>
   );
 };

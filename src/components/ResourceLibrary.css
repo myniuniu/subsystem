@@ -52,6 +52,42 @@
   margin: 0;
 }
 
+/* 视图模式切换 */
+.view-mode-toggle {
+  display: flex;
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 20px;
+}
+
+.mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: #6c757d;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  justify-content: center;
+}
+
+.mode-btn:hover {
+  color: #495057;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.mode-btn.active {
+  background: white;
+  color: #667eea;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
 /* 搜索区域 */
 .search-section {
   display: flex;
@@ -701,5 +737,92 @@
   
   .detail-title {
     font-size: 1.8rem;
+  }
+}
+
+/* 地图模式样式 */
+.map-mode-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 600px;
+}
+
+.map-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f1f3f4;
+}
+
+.map-controls h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0;
+}
+
+.capability-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.capability-filter-btn {
+  padding: 8px 16px;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 20px;
+  color: #4a5568;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.capability-filter-btn:hover {
+  border-color: #667eea;
+  background: #f7faff;
+  transform: translateY(-1px);
+}
+
+.capability-filter-btn.active {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.mindmap-container {
+  flex: 1;
+  position: relative;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+/* 移动端地图模式优化 */
+@media (max-width: 768px) {
+  .map-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .capability-filters {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .capability-filter-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .mindmap-container {
+    min-height: 500px;
   }
 }
