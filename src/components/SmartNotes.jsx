@@ -101,11 +101,11 @@ const SmartNotes = ({ onViewChange }) => {
 
   // 笔记分类
   const categories = [
-    { value: 'all', label: '全部笔记', icon: '📝', type: 'system' },
-    { value: 'work', label: '工作笔记', icon: '💼', type: 'system' },
-    { value: 'study', label: '学习笔记', icon: '📚', type: 'system' },
-    { value: 'research', label: '研究笔记', icon: '🔬', type: 'system' },
-    { value: 'personal', label: '个人笔记', icon: '👤', type: 'system' },
+    { value: 'all', label: '全部主题', icon: '📝', type: 'system' },
+    { value: 'work', label: '工作主题', icon: '💼', type: 'system' },
+    { value: 'study', label: '学习主题', icon: '📚', type: 'system' },
+    { value: 'research', label: '研究主题', icon: '🔬', type: 'system' },
+    { value: 'personal', label: '个人主题', icon: '👤', type: 'system' },
     { value: 'ideas', label: '想法灵感', icon: '💡', type: 'system' },
     { value: 'meeting', label: '会议记录', icon: '🤝', type: 'system' },
     { value: 'learning_square', label: '学习广场', icon: '🎓', type: 'system' },
@@ -978,7 +978,7 @@ ${aiSelectedNote.content}`;
         <Content className="notes-content">
           <div className="content-header">
             <div className="header-left">
-              <Title level={3}>我的主题</Title>
+              <Title level={3}>小黑屋-沉浸式学习空间</Title>
               <Text type="secondary">
                 共 {filteredNotes.length} 个主题
                 {selectedCategory !== 'all' && (

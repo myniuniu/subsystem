@@ -61,11 +61,11 @@ const NoteCreateModal = ({ visible, onCancel, onSave, notes = [], categories = [
 
   // 默认分类
   const defaultCategories = [
-    { value: 'all', label: '全部笔记', icon: '📝' },
-    { value: 'work', label: '工作笔记', icon: '💼' },
-    { value: 'study', label: '学习笔记', icon: '📚' },
-    { value: 'research', label: '研究笔记', icon: '🔬' },
-    { value: 'personal', label: '个人笔记', icon: '👤' },
+    { value: 'all', label: '全部主题', icon: '📝' },
+    { value: 'work', label: '工作主题', icon: '💼' },
+    { value: 'study', label: '学习主题', icon: '📚' },
+    { value: 'research', label: '研究主题', icon: '🔬' },
+    { value: 'personal', label: '个人主题', icon: '👤' },
     { value: 'ideas', label: '想法灵感', icon: '💡' },
     { value: 'meeting', label: '会议记录', icon: '🤝' },
     { value: 'knowledge_graph', label: '知识图谱', icon: '🕸️' },
@@ -122,7 +122,7 @@ const NoteCreateModal = ({ visible, onCancel, onSave, notes = [], categories = [
     setFilteredNotes(filtered);
   }, [notes, searchTerm, selectedCategory]);
 
-  // 选择笔记
+  // 选择主题
   const handleSelectNote = (note) => {
     setSelectedNote(note);
     setNoteTitle(note.title);
@@ -145,10 +145,10 @@ const NoteCreateModal = ({ visible, onCancel, onSave, notes = [], categories = [
     setIsEditing(true);
   };
 
-  // 保存笔记
+  // 保存主题
   const handleSaveNote = async () => {
     if (!noteTitle.trim()) {
-      message.error('请输入笔记标题');
+      message.error('请输入主题标题');
       return;
     }
 
@@ -169,7 +169,7 @@ const NoteCreateModal = ({ visible, onCancel, onSave, notes = [], categories = [
 
       await onSave(noteData);
       setIsEditing(false);
-      message.success(selectedNote ? '笔记更新成功' : '笔记创建成功');
+      message.success(selectedNote ? '主题更新成功' : '主题创建成功');
     } catch (error) {
       console.error('保存失败:', error);
       message.error('保存失败，请重试');
@@ -228,7 +228,7 @@ const NoteCreateModal = ({ visible, onCancel, onSave, notes = [], categories = [
       destroyOnHidden
     >
       <Layout className="modal-layout">
-        {/* 左侧笔记列表 */}
+        {/* 左侧主题列表 */}
         <Sider width={350} className="notes-sidebar">
           <div className="sidebar-header">
             <Button 
@@ -270,7 +270,7 @@ const NoteCreateModal = ({ visible, onCancel, onSave, notes = [], categories = [
 
             <Divider style={{ margin: '12px 0' }} />
 
-            {/* 笔记列表 */}
+            {/* 主题列表 */}
             <div className="notes-list">
               {filteredNotes.length === 0 ? (
                 <div className="empty-notes">
@@ -444,8 +444,8 @@ const NoteCreateModal = ({ visible, onCancel, onSave, notes = [], categories = [
             <div className="empty-editor">
               <div className="empty-content">
                 <FolderOpenOutlined className="empty-icon" />
-                <Title level={4} type="secondary">选择一个笔记开始编辑</Title>
-                <Text type="secondary">或者创建一个新的笔记</Text>
+                <Title level={4} type="secondary">选择一个主题开始编辑</Title>
+                <Text type="secondary">或者创建一个新的主题</Text>
                 <Button 
                   type="primary" 
                   icon={<PlusOutlined />}

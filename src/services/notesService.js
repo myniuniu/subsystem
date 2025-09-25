@@ -9,15 +9,15 @@ const TAGS_KEY = 'smart_notes_tags';
 
 // 默认分类
 const DEFAULT_CATEGORIES = [
-  { id: 'all', name: '全部笔记', icon: 'FileTextOutlined', color: '#1890ff', type: 'system' },
-  { id: 'work', name: '工作笔记', icon: 'BriefcaseOutlined', color: '#52c41a', type: 'system' },
-  { id: 'study', name: '学习笔记', icon: 'BookOutlined', color: '#722ed1', type: 'system' },
-  { id: 'personal', name: '个人笔记', icon: 'UserOutlined', color: '#fa8c16', type: 'system' },
+  { id: 'all', name: '全部主题', icon: 'FileTextOutlined', color: '#1890ff', type: 'system' },
+  { id: 'work', name: '工作主题', icon: 'BriefcaseOutlined', color: '#52c41a', type: 'system' },
+  { id: 'study', name: '学习主题', icon: 'BookOutlined', color: '#722ed1', type: 'system' },
+  { id: 'personal', name: '个人主题', icon: 'UserOutlined', color: '#fa8c16', type: 'system' },
   { id: 'ideas', name: '想法灵感', icon: 'BulbOutlined', color: '#eb2f96', type: 'system' },
   { id: 'knowledge_graph', name: '知识图谱', icon: 'NodeIndexOutlined', color: '#13c2c2', type: 'fixed' },
   { id: 'capability_model', name: '能力模型', icon: 'RadarChartOutlined', color: '#f759ab', type: 'fixed' },
   { id: 'micro_major', name: '微专业', icon: 'ExperimentOutlined', color: '#597ef7', type: 'fixed' },
-  { id: 'starred', name: '收藏笔记', icon: 'StarOutlined', color: '#faad14', type: 'system' }
+  { id: 'starred', name: '收藏主题', icon: 'StarOutlined', color: '#faad14', type: 'system' }
 ];
 
 // 默认标签

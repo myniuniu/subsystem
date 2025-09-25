@@ -451,7 +451,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
     { 
       id: 'docs-center', 
       icon: FileText, 
-      label: '文档中心', 
+      label: '云盘', 
       color: '#a18cd1',
       type: 'single'
     },

@@ -167,31 +167,8 @@ const VideoPlayer = ({
       return videoData.videoUrl;
     }
     
-    // 如果是B站链接，提取视频ID（实际项目中需要B站API）
-    if (videoData.url && videoData.url.includes('bilibili.com')) {
-      // 这里应该调用B站API获取真实播放地址
-      // 暂时返回示例视频
-      return 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
-    }
-    
-    // 如果是YouTube链接（实际项目中需要YouTube API）
-    if (videoData.url && videoData.url.includes('youtube.com')) {
-      // 这里应该调用YouTube API获取真实播放地址
-      return 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4';
-    }
-    
-    // 提供多个备用视频源
-    const videoSources = [
-      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4'
-    ];
-    
-    // 根据视频ID选择不同的视频源
-    const videoIndex = (videoData.id || 0) % videoSources.length;
-    return videoSources[videoIndex];
+    // 使用本地视频文件
+    return '/assets/demo1.mp4';
   };
 
   // 关闭播放器时保存进度

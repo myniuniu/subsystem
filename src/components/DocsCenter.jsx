@@ -956,7 +956,7 @@ const DocsCenter = () => {
         <Header className="docs-header">
           <div className="header-title">
             <FileTextOutlined className="header-icon" />
-            <Title level={2} style={{ color: '#262626', margin: 0 }}>文档中心</Title>
+            <Title level={2} style={{ color: '#262626', margin: 0 }}>云盘</Title>
           </div>
           <div className="header-actions">
             <Space size="large">
