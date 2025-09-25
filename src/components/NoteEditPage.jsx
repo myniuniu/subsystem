@@ -281,6 +281,22 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
         ...prev,
         note: [operationRecord, ...prev.note]
       }));
+    },
+    
+    onToggleWidescreen: () => {
+      // 切换宽屏模式
+      const newMode = !state.isWidescreenMode;
+      state.setIsWidescreenMode(newMode);
+      
+      if (newMode) {
+        // 进入宽屏模式
+        setCurrentView(VIEW_MODES.WIDESCREEN_VIDEO);
+        message.success('已开启宽屏模式');
+      } else {
+        // 退出宽屏模式
+        setCurrentView(VIEW_MODES.VIDEO);
+        message.success('已退出宽屏模式');
+      }
     }
   };
 
@@ -364,54 +380,74 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
         transition: 'margin-top 0.3s ease, height 0.3s ease',
         overflow: 'hidden'
       }}>
-        {/* 左侧区域：根据当前视图显示资料收集或视频播放 */}
-        {currentView === VIEW_MODES.MATERIALS ? (
-          <MaterialManagement 
-            state={state}
-            handlers={materialHandlers}
-            onBack={onBack}
-            mode={mode}
-          />
-        ) : (
+        {/* 宽屏模式：视频播放器占满整个宽度 */}
+        {currentView === VIEW_MODES.WIDESCREEN_VIDEO ? (
           <div style={{ 
-            flex: 4, 
+            flex: 1, 
             background: '#fff', 
-            margin: '16px 0 16px 16px', 
+            margin: '16px', 
             borderRadius: '8px', 
             overflow: 'hidden', 
             display: 'flex', 
-            flexDirection: 'column',
-            transition: 'flex 0.3s ease'
+            flexDirection: 'column'
           }}>
             <VideoView 
               state={state}
               handlers={videoHandlers}
             />
           </div>
+        ) : (
+          <>
+            {/* 左侧区域：根据当前视图显示资料收集或视频播放 */}
+            {currentView === VIEW_MODES.MATERIALS ? (
+              <MaterialManagement 
+                state={state}
+                handlers={materialHandlers}
+                onBack={onBack}
+                mode={mode}
+              />
+            ) : (
+              <div style={{ 
+                flex: 4, 
+                background: '#fff', 
+                margin: '16px 0 16px 16px', 
+                borderRadius: '8px', 
+                overflow: 'hidden', 
+                display: 'flex', 
+                flexDirection: 'column',
+                transition: 'flex 0.3s ease'
+              }}>
+                <VideoView 
+                  state={state}
+                  handlers={videoHandlers}
+                />
+              </div>
+            )}
+
+            {/* 中间问答区域 */}
+            <AIChat 
+              state={state}
+              handlers={aiChatHandlers}
+            />
+
+            {/* 右侧操作区域 */}
+            <div style={{ 
+              flex: currentView === VIEW_MODES.VIDEO ? 3 : (state.viewMode === VIEW_MODES.MAP ? 3 : 2.5), 
+              background: '#fff', 
+              margin: '16px 16px 16px 0', 
+              borderRadius: '8px', 
+              overflow: 'hidden', 
+              display: 'flex', 
+              flexDirection: 'column',
+              transition: 'flex 0.3s ease'
+            }}>
+              <OperationPanel 
+                state={state}
+                handlers={operationHandlers}
+              />
+            </div>
+          </>
         )}
-
-        {/* 中间问答区域 */}
-        <AIChat 
-          state={state}
-          handlers={aiChatHandlers}
-        />
-
-        {/* 右侧操作区域 */}
-        <div style={{ 
-          flex: currentView === VIEW_MODES.VIDEO ? 3 : (state.viewMode === VIEW_MODES.MAP ? 3 : 2.5), 
-          background: '#fff', 
-          margin: '16px 16px 16px 0', 
-          borderRadius: '8px', 
-          overflow: 'hidden', 
-          display: 'flex', 
-          flexDirection: 'column',
-          transition: 'flex 0.3s ease'
-        }}>
-          <OperationPanel 
-            state={state}
-            handlers={operationHandlers}
-          />
-        </div>
       </div>
     </>
   );

@@ -24,7 +24,9 @@ const VideoPlayer = ({
   embedded = false, 
   style, 
   onTimeUpdate,
-  currentEditorState = null // 新增参数：当前编辑器状态
+  currentEditorState = null, // 新增参数：当前编辑器状态
+  isWidescreenMode = false, // 新增参数：是否为宽屏模式
+  onToggleWidescreen = null // 新增参数：宽屏模式切换回调
 }) => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -602,13 +604,27 @@ ${annotationText}
                   tooltip={{ formatter: null }}
                 />
 
-                {/* 全屏按钮 */}
-                <Button
-                  type="text"
-                  icon={isFullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
-                  onClick={toggleFullscreen}
-                  style={{ color: 'white' }}
-                />
+                {/* 宽屏模式按钮 */}
+                {embedded && onToggleWidescreen && (
+                  <Button
+                    type="text"
+                    icon={isWidescreenMode ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
+                    onClick={onToggleWidescreen}
+                    style={{ color: 'white' }}
+                    title={isWidescreenMode ? '退出宽屏模式' : '开启宽屏模式'}
+                  />
+                )}
+
+                {/* 全屏按钮 - 非嵌入模式下显示 */}
+                {!embedded && (
+                  <Button
+                    type="text"
+                    icon={isFullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
+                    onClick={toggleFullscreen}
+                    style={{ color: 'white' }}
+                    title={isFullscreen ? '退出全屏' : '进入全屏'}
+                  />
+                )}
               </Space>
             </div>
           </div>
@@ -853,13 +869,27 @@ ${annotationText}
                   tooltip={{ formatter: null }}
                 />
 
-                {/* 全屏按钮 */}
-                <Button
-                  type="text"
-                  icon={isFullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
-                  onClick={toggleFullscreen}
-                  style={{ color: 'white' }}
-                />
+                {/* 宽屏模式按钮 */}
+                {embedded && onToggleWidescreen && (
+                  <Button
+                    type="text"
+                    icon={isWidescreenMode ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
+                    onClick={onToggleWidescreen}
+                    style={{ color: 'white' }}
+                    title={isWidescreenMode ? '退出宽屏模式' : '开启宽屏模式'}
+                  />
+                )}
+
+                {/* 全屏按钮 - 非嵌入模式下显示 */}
+                {!embedded && (
+                  <Button
+                    type="text"
+                    icon={isFullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
+                    onClick={toggleFullscreen}
+                    style={{ color: 'white' }}
+                    title={isFullscreen ? '退出全屏' : '进入全屏'}
+                  />
+                )}
               </Space>
             </div>
           </div>

@@ -208,6 +208,9 @@ export const useNoteEditState = (note, mode) => {
   const [selectedKnowledgeCategory, setSelectedKnowledgeCategory] = useState('all');
   const [showKnowledgeGraphModal, setShowKnowledgeGraphModal] = useState(false);
 
+  // 播放器宽屏模式状态
+  const [isWidescreenMode, setIsWidescreenMode] = useState(false);
+
   // 能力分类选项
   const capabilityCategories = [
     { id: 'all', name: '全部能力' },
@@ -411,6 +414,10 @@ export const useNoteEditState = (note, mode) => {
     setShowKnowledgeGraphModal,
     capabilityCategories,
     knowledgeCategories,
+
+    // 播放器宽屏模式状态
+    isWidescreenMode,
+    setIsWidescreenMode,
 
     // 常量数据
     subtitleData

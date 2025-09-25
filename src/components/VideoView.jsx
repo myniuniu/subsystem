@@ -7,13 +7,15 @@ import {
 } from 'antd';
 import VideoPlayer from './VideoPlayer';
 import {
-  ArrowLeftOutlined
+  ArrowLeftOutlined,
+  FullscreenOutlined,
+  FullscreenExitOutlined
 } from '@ant-design/icons';
 import { formatTime, convertTimeToLinks } from '../utils/noteEditUtils';
 
 const { Text } = Typography;
 
-const VideoView = ({ state, handlers }) => {
+const VideoView = ({ state, handlers, isWidescreen = false }) => {
   const {
     selectedMaterial,
     videoStartTime,
@@ -37,13 +39,16 @@ const VideoView = ({ state, handlers }) => {
     noteEditorContent,
     setNoteEditorContent,
     operationRecords,
-    setOperationRecords
+    setOperationRecords,
+    currentView,
+    isWidescreenMode
   } = state;
 
   const {
     onBackToMaterials,
     onVideoTimeUpdate,
-    onNoteCreated
+    onNoteCreated,
+    onToggleWidescreen
   } = handlers;
 
   // 处理字幕文字选中
@@ -243,22 +248,26 @@ const VideoView = ({ state, handlers }) => {
               )}
             </div>
           </div>
-          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>
-            {selectedMaterial?.duration && `时长：${selectedMaterial.duration}`}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>
+              {selectedMaterial?.duration && `时长：${selectedMaterial.duration}`}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 摘要区域 */}
-      <div style={{ 
-        padding: '16px 20px', 
-        borderBottom: '1px solid #f0f0f0',
-        background: '#f8f9fa'
-      }}>
-        <Text style={{ fontSize: '14px', color: '#666', lineHeight: '1.6' }}>
-          📝 视频摘要：本视频主要介绍了{selectedMaterial?.title || '相关内容'}，包含了重要的学习要点和实际示例。适合初学者和进阶学习者观看。
-        </Text>
-      </div>
+      {/* 摘要区域 - 宽屏模式下隐藏 */}
+      {!isWidescreenMode && (
+        <div style={{ 
+          padding: '16px 20px', 
+          borderBottom: '1px solid #f0f0f0',
+          background: '#f8f9fa'
+        }}>
+          <Text style={{ fontSize: '14px', color: '#666', lineHeight: '1.6' }}>
+            📝 视频摘要：本视频主要介绍了{selectedMaterial?.title || '相关内容'}，包含了重要的学习要点和实际示例。适合初学者和进阶学习者观看。
+          </Text>
+        </div>
+      )}
 
       {/* 视频播放器区域 */}
       <div style={{ 
@@ -266,7 +275,8 @@ const VideoView = ({ state, handlers }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'transparent'
+        background: 'transparent',
+        flex: isWidescreenMode ? 1 : 'auto'
       }}>
         {selectedMaterial && (
           <VideoPlayer
@@ -277,9 +287,12 @@ const VideoView = ({ state, handlers }) => {
             }}
             embedded={true}
             style={{
-              width: '100%'
+              width: '100%',
+              height: isWidescreenMode ? '100%' : 'auto'
             }}
             onTimeUpdate={onVideoTimeUpdate}
+            isWidescreenMode={isWidescreenMode}
+            onToggleWidescreen={onToggleWidescreen}
             currentEditorState={{
               isEditing: rightPanelView === 'noteEditor' || (showNoteEditor && editingNote),
               noteTitle: rightPanelView === 'noteEditor' 
@@ -298,127 +311,129 @@ const VideoView = ({ state, handlers }) => {
         )}
       </div>
 
-      {/* 跟随字幕区域 */}
-      <div style={{ 
-        padding: '16px 20px', 
-        borderTop: '1px solid #f0f0f0',
-        background: '#fff',
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        overflowY: 'auto'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '16px' }}>📄</span>
-            <Text style={{ fontSize: '14px', fontWeight: 'bold', color: '#1890ff' }}>
-              原文
-            </Text>
-          </div>
-          <div style={{ 
-            marginLeft: 'auto', 
-            fontSize: '12px', 
-            color: '#999',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <span>进度: {Math.round(videoProgress)}%</span>
-            <div style={{
-              width: '60px',
-              height: '4px',
-              background: '#f0f0f0',
-              borderRadius: '2px',
-              overflow: 'hidden'
+      {/* 跟随字幕区域 - 宽屏模式下隐藏 */}
+      {!isWidescreenMode && (
+        <div style={{ 
+          padding: '16px 20px', 
+          borderTop: '1px solid #f0f0f0',
+          background: '#fff',
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflowY: 'auto'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>📄</span>
+              <Text style={{ fontSize: '14px', fontWeight: 'bold', color: '#1890ff' }}>
+                原文
+              </Text>
+            </div>
+            <div style={{ 
+              marginLeft: 'auto', 
+              fontSize: '12px', 
+              color: '#999',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
             }}>
+              <span>进度: {Math.round(videoProgress)}%</span>
               <div style={{
-                width: `${videoProgress}%`,
-                height: '100%',
-                background: '#1890ff',
-                transition: 'width 0.3s ease'
-              }} />
+                width: '60px',
+                height: '4px',
+                background: '#f0f0f0',
+                borderRadius: '2px',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  width: `${videoProgress}%`,
+                  height: '100%',
+                  background: '#1890ff',
+                  transition: 'width 0.3s ease'
+                }} />
+              </div>
             </div>
           </div>
-        </div>
-        
-        {/* 字幕时间轴列表 */}
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          gap: '12px',
-          flex: 1,
-          overflowY: 'auto',
-          paddingRight: '4px'
-        }}>
-          {subtitleData.map((subtitle, index) => {
-            const isActive = currentSubtitle === subtitle.text;
-            
-            return (
-              <div key={index} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                {/* 时间轴标记 */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '60px' }}>
-                  <div style={{
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
-                    background: isActive ? '#1890ff' : '#d9d9d9',
-                    marginBottom: '4px'
-                  }} />
-                  <Text style={{ 
-                    fontSize: '12px', 
-                    color: isActive ? '#1890ff' : '#999',
-                    fontWeight: isActive ? 'bold' : 'normal'
-                  }}>
-                    {formatTime(subtitle.start)}
-                  </Text>
-                </div>
-                
-                {/* 字幕内容 */}
-                <div style={{ 
-                  flex: 1,
-                  padding: '12px 16px',
-                  background: isActive ? '#e6f3ff' : '#f8f9fa',
-                  borderRadius: '8px',
-                  border: isActive ? '1px solid #1890ff' : '1px solid #e8e8e8',
-                  transition: 'all 0.3s ease',
-                  cursor: 'pointer',
-                  userSelect: 'text'
-                }}
-                onClick={() => {
-                  // 点击跳转到对应时间点
-                  if (selectedMaterial) {
-                    // 这里可以添加实际的视频跳转逻辑
-                  }
-                }}
-                onMouseUp={(e) => handleSubtitleTextSelection(e, subtitle)}
-                >
-                  <Text style={{ 
-                    fontSize: '13px', 
-                    lineHeight: '1.5',
-                    color: isActive ? '#1890ff' : '#333',
-                    fontWeight: isActive ? '500' : 'normal'
-                  }}>
-                    {subtitle.text}
-                  </Text>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        
-        {/* 当前播放状态提示 */}
-        {!currentSubtitle && (
-          <div style={{
-            textAlign: 'center',
-            padding: '20px',
-            color: '#999',
-            fontSize: '13px',
-            fontStyle: 'italic'
+          
+          {/* 字幕时间轴列表 */}
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '12px',
+            flex: 1,
+            overflowY: 'auto',
+            paddingRight: '4px'
           }}>
-            字幕将在视频播放时自动跟随显示...
+            {subtitleData.map((subtitle, index) => {
+              const isActive = currentSubtitle === subtitle.text;
+              
+              return (
+                <div key={index} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                  {/* 时间轴标记 */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '60px' }}>
+                    <div style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: isActive ? '#1890ff' : '#d9d9d9',
+                      marginBottom: '4px'
+                    }} />
+                    <Text style={{ 
+                      fontSize: '12px', 
+                      color: isActive ? '#1890ff' : '#999',
+                      fontWeight: isActive ? 'bold' : 'normal'
+                    }}>
+                      {formatTime(subtitle.start)}
+                    </Text>
+                  </div>
+                  
+                  {/* 字幕内容 */}
+                  <div style={{ 
+                    flex: 1,
+                    padding: '12px 16px',
+                    background: isActive ? '#e6f3ff' : '#f8f9fa',
+                    borderRadius: '8px',
+                    border: isActive ? '1px solid #1890ff' : '1px solid #e8e8e8',
+                    transition: 'all 0.3s ease',
+                    cursor: 'pointer',
+                    userSelect: 'text'
+                  }}
+                  onClick={() => {
+                    // 点击跳转到对应时间点
+                    if (selectedMaterial) {
+                      // 这里可以添加实际的视频跳转逻辑
+                    }
+                  }}
+                  onMouseUp={(e) => handleSubtitleTextSelection(e, subtitle)}
+                  >
+                    <Text style={{ 
+                      fontSize: '13px', 
+                      lineHeight: '1.5',
+                      color: isActive ? '#1890ff' : '#333',
+                      fontWeight: isActive ? '500' : 'normal'
+                    }}>
+                      {subtitle.text}
+                    </Text>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        )}
-      </div>
+          
+          {/* 当前播放状态提示 */}
+          {!currentSubtitle && (
+            <div style={{
+              textAlign: 'center',
+              padding: '20px',
+              color: '#999',
+              fontSize: '13px',
+              fontStyle: 'italic'
+            }}>
+              字幕将在视频播放时自动跟随显示...
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 字幕选择菜单 */}
       {subtitleMenuVisible && (
