@@ -2253,10 +2253,13 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
       </style>
       <div style={{ 
         display: 'flex', 
-        height: 'calc(100vh - 64px)', 
+        height: liveStreams.some(stream => getLiveStreamStatus(stream) === 'live') 
+          ? 'calc(100vh - 64px - 52px)' // 减去导航栏和直播提示条的高度
+          : 'calc(100vh - 64px)', 
         background: '#f5f5f5',
         marginTop: liveStreams.some(stream => getLiveStreamStatus(stream) === 'live') ? '52px' : '0px',
-        transition: 'margin-top 0.3s ease'
+        transition: 'margin-top 0.3s ease, height 0.3s ease',
+        overflow: 'hidden' // 防止整体页面出现滚动条
       }}>
       {/* 左侧区域：根据当前视图显示资料收集或视频播放 */}
       <div style={{ 
@@ -2434,7 +2437,17 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
             
             {/* 统一的资料列表 */}
             <div style={{ 
-              height: currentView === 'materials' ? (viewMode === 'map' ? 'calc(100vh - 200px)' : 'calc(100vh - 280px)') : 'auto', 
+              height: currentView === 'materials' ? (
+                viewMode === 'map' ? (
+                  liveStreams.some(stream => getLiveStreamStatus(stream) === 'live') 
+                    ? 'calc(100vh - 252px)' // 直播中时减去额外的52px
+                    : 'calc(100vh - 200px)'
+                ) : (
+                  liveStreams.some(stream => getLiveStreamStatus(stream) === 'live')
+                    ? 'calc(100vh - 332px)' // 直播中时减去额外的52px
+                    : 'calc(100vh - 280px)'
+                )
+              ) : 'auto', 
               overflowY: currentView === 'materials' ? 'auto' : 'visible',
               flex: currentView === 'materials' && viewMode === 'map' ? 1 : 'none'
             }}>
