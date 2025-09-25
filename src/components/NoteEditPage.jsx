@@ -679,11 +679,18 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
       setCourseVideos(prev => {
         const exists = prev.find(v => v.id === resource.id);
         if (exists) {
-          message.info('该资源已在来源列表中');
+          // 如果已存在，直接播放
+          handlePlayVideo(exists);
           return prev;
         }
+        // 添加新视频并播放
+        const newVideos = [courseVideo, ...prev];
+        // 延迟播放，确保视频已添加到列表中
+        setTimeout(() => {
+          handlePlayVideo(courseVideo);
+        }, 100);
         message.success(`已添加知识资源：${resource.title}`);
-        return [courseVideo, ...prev];
+        return newVideos;
       });
     } else if (resource.type === 'document') {
       const textContent = {
@@ -722,7 +729,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
       });
     }
     
-    setShowKnowledgeGraphModal(false);
+    // 如果是在地图模式下，可以选择保持地图模式或自动切换到视频播放
+    // 这里我们保持地图模式，但会在右侧显示视频播放
   };
 
   // 返回资料列表
