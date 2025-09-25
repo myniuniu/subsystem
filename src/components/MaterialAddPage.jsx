@@ -30,7 +30,7 @@ import courseSelectionService from '../services/courseSelectionService';
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 
-const MaterialAddPage = ({ visible, onClose }) => {
+const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledgeGraphAdded }) => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [linkUrl, setLinkUrl] = useState('');
   const [textContent, setTextContent] = useState('');
@@ -162,6 +162,7 @@ const MaterialAddPage = ({ visible, onClose }) => {
   const handleKnowledgeGraphSubmit = () => {
     message.success('知识图谱已成功添加！');
     setShowKnowledgeGraphForm(false);
+    onKnowledgeGraphAdded?.(); // 通知父组件添加了知识图谱
     onClose();
   };
 
@@ -176,6 +177,7 @@ const MaterialAddPage = ({ visible, onClose }) => {
   const handleCapabilityModelSubmit = () => {
     message.success('能力模型已成功添加！');
     setShowCapabilityModelForm(false);
+    onCapabilityModelAdded?.(); // 通知父组件添加了能力模型
     onClose();
   };
 
