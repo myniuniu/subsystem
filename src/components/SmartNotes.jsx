@@ -281,7 +281,7 @@ const SmartNotes = ({ onViewChange }) => {
     setEditMode('create');
   };
 
-  // 编辑笔记
+  // 编辑主题
   const handleEditNote = (note) => {
     setSelectedNote(note);
     setEditingNote(note);
@@ -978,9 +978,9 @@ ${aiSelectedNote.content}`;
         <Content className="notes-content">
           <div className="content-header">
             <div className="header-left">
-              <Title level={3}>我的笔记</Title>
+              <Title level={3}>我的主题</Title>
               <Text type="secondary">
-                共 {filteredNotes.length} 条笔记
+                共 {filteredNotes.length} 个主题
                 {selectedCategory !== 'all' && (
                   <span> · {getCategoryInfo(selectedCategory).label}</span>
                 )}
@@ -1086,7 +1086,7 @@ ${aiSelectedNote.content}`;
                   icon={<PlusOutlined />}
                   onClick={handleCreateNote}
                 >
-                  新建笔记
+                  新建主题
                 </Button>
                 <Button 
                   className="sync-course-btn"
@@ -1120,11 +1120,11 @@ ${aiSelectedNote.content}`;
               </div>
             ) : filteredNotes.length === 0 ? (
               <Empty
-                description="暂无笔记"
+                description="暂无主题"
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
               >
                 <Button type="primary" onClick={handleCreateNote}>
-                  创建第一条笔记
+                  创建第一个主题
                 </Button>
               </Empty>
             ) : (
@@ -1160,7 +1160,7 @@ ${aiSelectedNote.content}`;
                             )}
                           </Tooltip>,
                           <Popconfirm
-                            title="确定要删除这篇笔记吗？"
+                            title="确定要删除这个主题吗？"
                             onConfirm={() => handleDeleteNote(note.id)}
                             okText="确定"
                             cancelText="取消"
@@ -1402,7 +1402,7 @@ ${aiSelectedNote.content}`;
         onImportComplete={handleImportComplete}
       />
 
-      {/* 新建笔记弹窗 */}
+      {/* 新建主题弹窗 */}
       <NoteCreateModal
         visible={noteCreateModalVisible}
         onCancel={() => setNoteCreateModalVisible(false)}

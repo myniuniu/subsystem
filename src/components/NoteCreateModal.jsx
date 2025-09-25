@@ -131,7 +131,7 @@ const NoteCreateModal = ({ visible, onCancel, onSave, notes = [], categories = [
     setIsEditing(false);
   };
 
-  // 新建笔记
+  // 新建主题
   const handleCreateNew = () => {
     setSelectedNote(null);
     setNoteTitle('');
@@ -140,7 +140,7 @@ const NoteCreateModal = ({ visible, onCancel, onSave, notes = [], categories = [
     setIsEditing(true);
   };
 
-  // 编辑笔记
+  // 编辑主题
   const handleEditNote = () => {
     setIsEditing(true);
   };
@@ -218,7 +218,7 @@ const NoteCreateModal = ({ visible, onCancel, onSave, notes = [], categories = [
 
   return (
     <Modal
-      title="智能笔记编辑器"
+      title="智能主题编辑器"
       open={visible}
       onCancel={onCancel}
       width={1200}
@@ -237,14 +237,14 @@ const NoteCreateModal = ({ visible, onCancel, onSave, notes = [], categories = [
               onClick={handleCreateNew}
               block
             >
-              新建笔记
+              新建主题
             </Button>
           </div>
 
           <div className="sidebar-content">
             {/* 搜索框 */}
             <Search
-              placeholder="搜索笔记..."
+              placeholder="搜索主题..."
               allowClear
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -274,7 +274,7 @@ const NoteCreateModal = ({ visible, onCancel, onSave, notes = [], categories = [
             <div className="notes-list">
               {filteredNotes.length === 0 ? (
                 <div className="empty-notes">
-                  <Text type="secondary">暂无笔记</Text>
+                  <Text type="secondary">暂无主题</Text>
                 </div>
               ) : (
                 <List
@@ -346,7 +346,7 @@ const NoteCreateModal = ({ visible, onCancel, onSave, notes = [], categories = [
                     <Input
                       value={noteTitle}
                       onChange={(e) => setNoteTitle(e.target.value)}
-                      placeholder="请输入笔记标题"
+                      placeholder="请输入主题标题"
                       className="title-input"
                       size="large"
                     />
@@ -452,7 +452,7 @@ const NoteCreateModal = ({ visible, onCancel, onSave, notes = [], categories = [
                   onClick={handleCreateNew}
                   style={{ marginTop: 16 }}
                 >
-                  新建笔记
+                  新建主题
                 </Button>
               </div>
             </div>

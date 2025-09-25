@@ -415,7 +415,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   const handleQuickExtract = () => {
     const timeText = `${Math.floor(selectedSubtitleTime / 60)}:${(selectedSubtitleTime % 60).toString().padStart(2, '0')}`;
     
-    // 如果右侧栏正在编辑笔记，则添加到当前编辑的笔记中
+    // 如果右侧栏正在编辑主题，则添加到当前编辑的主题中
     if (rightPanelView === 'noteEditor' && rightPanelEditingNote) {
       const extractContent = `<p><strong>📝 [${timeText}]</strong> ${selectedSubtitleText}</p>`;
       const updatedContent = rightPanelNoteContent + extractContent;
@@ -482,7 +482,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
       gray: '📝'
     };
     
-    // 如果右侧栏正在编辑笔记，则添加到当前编辑的笔记中
+    // 如果右侧栏正在编辑主题，则添加到当前编辑的主题中
     if (rightPanelView === 'noteEditor' && rightPanelEditingNote) {
       const markContent = `<p style="background-color: ${markColors[markType]}20; padding: 8px; border-left: 4px solid ${markColors[markType]}; border-radius: 4px; margin: 8px 0;"><strong>${markIcon[markType]} [${timeText}] ${markNames[markType]}：</strong>${selectedSubtitleText}</p>`;
       const updatedContent = rightPanelNoteContent + markContent;
@@ -827,7 +827,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     };
   };
 
-  // 新建笔记功能
+  // 新建主题功能
   const handleCreateNewNote = () => {
     const newNote = {
       id: Date.now(),
@@ -1027,7 +1027,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     if (operationType === 'note') {
       const newRecord = {
         id: Date.now(),
-        title: '新建笔记',
+        title: '新建主题',
         source: '手动创建',
         time: '刚刚',
         type: 'note',
@@ -1039,7 +1039,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
         note: [newRecord, ...prev.note]
       }));
 
-      message.success('新建笔记已添加到操作记录');
+      message.success('新建主题已添加到操作记录');
       return;
     }
 
@@ -2008,7 +2008,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
-                  {mode === 'create' ? '📚 资料收集' : mode === 'edit' ? '📝 编辑笔记' : '👁️ 查看笔记'}
+                  {mode === 'create' ? '📚 资料收集' : mode === 'edit' ? '📝 编辑主题' : '👁️ 查看主题'}
                 </Title>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -3413,7 +3413,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
               )}
             </div>
             
-            {/* 新建笔记按钮 - 固定在底部 */}
+            {/* 新建主题按钮 - 固定在底部 */}
             <div style={{ 
               marginTop: 'auto',
               paddingTop: '12px',
@@ -3432,7 +3432,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                   paddingRight: '12px'
                 }}
               >
-                新建笔记
+                新建主题
               </Button>
             </div>
           </div>
@@ -3451,7 +3451,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '16px' }}>📝</span>
-                <Text style={{ fontSize: '16px', fontWeight: 'bold' }}>编辑笔记</Text>
+                <Text style={{ fontSize: '16px', fontWeight: 'bold' }}>编辑主题</Text>
               </div>
               <Button 
                 type="text" 
@@ -4594,7 +4594,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '16px' }}>📝</span>
-            <span>编辑笔记</span>
+            <span>编辑主题</span>
           </div>
         }
         open={showNoteEditor}

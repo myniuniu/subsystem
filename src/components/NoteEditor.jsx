@@ -218,9 +218,9 @@ const NoteEditor = ({
   const modalTitle = (
     <div className="editor-header">
       <Space>
-        {mode === 'create' && '创建笔记'}
-        {mode === 'edit' && '编辑笔记'}
-        {mode === 'view' && '查看笔记'}
+        {mode === 'create' && '创建主题'}
+        {mode === 'edit' && '编辑主题'}
+        {mode === 'view' && '查看主题'}
         {mode !== 'view' && (
           <Tooltip title={previewMode ? '编辑模式' : '预览模式'}>
             <Button
@@ -269,7 +269,7 @@ const NoteEditor = ({
       {/* 自定义头部 */}
       <div className="custom-modal-header">
         <div className="header-content">
-          <h3 className="header-title">编辑笔记</h3>
+          <h3 className="header-title">编辑主题</h3>
           <div className="header-info">
             <span>字数: {wordCount} 预计阅读: {Math.max(1, Math.ceil(wordCount / 250))} 分钟</span>
           </div>
@@ -285,10 +285,10 @@ const NoteEditor = ({
         <Form.Item
           name="title"
           label={<span className="form-label">标题</span>}
-          rules={[{ required: true, message: '请输入笔记标题' }]}
+          rules={[{ required: true, message: '请输入主题标题' }]}
         >
           <Input
-            placeholder="请输入笔记标题"
+            placeholder="请输入主题标题"
             disabled={mode === 'view'}
             size="large"
             className="title-input"
@@ -413,7 +413,7 @@ const NoteEditor = ({
         <Form.Item
           name="content"
           label={<span className="form-label">内容</span>}
-          rules={[{ required: true, message: '请输入笔记内容' }]}
+          rules={[{ required: true, message: '请输入主题内容' }]}
         >
           {previewMode ? (
             <div className="content-preview">
