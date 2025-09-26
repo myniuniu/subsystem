@@ -240,7 +240,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
 
       setOperationRecords(prev => ({
         ...prev,
-        [operationType]: [newRecord, ...prev[operationType]]
+        [operationType]: [newRecord, ...(prev[operationType] || [])]
       }));
 
       message.success(`${operationTitles[operationType]}已生成并添加到操作记录`);
@@ -299,7 +299,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
         case MORE_MENU_ACTIONS.MARK_STUDY_RESULT:
           setOperationRecords(prev => ({
             ...prev,
-            note: prev.note.map(note => 
+            note: (prev.note || []).map(note => 
               note.id === record.id 
                 ? { 
                     ...note, 
@@ -320,7 +320,9 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
           setOperationRecords(prev => {
             const newRecords = { ...prev };
             Object.keys(newRecords).forEach(type => {
-              newRecords[type] = newRecords[type].filter(r => r.id !== record.id);
+              if (Array.isArray(newRecords[type])) {
+                newRecords[type] = newRecords[type].filter(r => r.id !== record.id);
+              }
             });
             return newRecords;
           });
@@ -356,7 +358,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     onNoteCreated: (operationRecord) => {
       setOperationRecords(prev => ({
         ...prev,
-        note: [operationRecord, ...prev.note]
+        note: [operationRecord, ...(prev.note || [])]
       }));
     },
     

@@ -102,29 +102,48 @@ export const useNoteEditState = (note, mode) => {
   const [showExploreModal, setShowExploreModal] = useState(false);
 
   // 操作记录状态
-  const [operationRecords, setOperationRecords] = useState(note?.operationRecords || {
-    audio: [],
-    video: [],
-    mindmap: [],
-    report: [],
-    ppt: [],
-    webcode: [],
-    scenario: [], // 不再在这里放置模拟数据，使用真实的场景数据
-    file: [],
-    text: [],
-    link: [],
-    note: [
-      {
-        id: 1,
-        title: '学习笔记示例',
-        source: '示例笔记',
-        time: '刚刚',
-        type: 'note',
-        content: '<p>这是一个示例笔记，您可以点击编辑来修改内容。</p>'
-      }
-    ],
-    'study-result': []
-  });
+  const getDefaultOperationRecords = () => {
+    const defaultRecords = {
+      audio: [],
+      video: [],
+      mindmap: [],
+      report: [],
+      ppt: [],
+      webcode: [],
+      scenario: [], // 不再在这里放置模拟数据，使用真实的场景数据
+      file: [],
+      text: [],
+      link: [],
+      note: [
+        {
+          id: 1,
+          title: '学习笔记示例',
+          source: '示例笔记',
+          time: '刚刚',
+          type: 'note',
+          content: '<p>这是一个示例笔记，您可以点击编辑来修改内容。</p>'
+        }
+      ],
+      'study-result': [],
+      question: [], // 添加试题操作类型
+      'exam-paper': [] // 添加试卷操作类型
+    };
+    
+    // 如果有传入的operationRecords，合并并确保每个字段都是数组
+    if (note?.operationRecords) {
+      const merged = { ...defaultRecords };
+      Object.keys(note.operationRecords).forEach(key => {
+        if (Array.isArray(note.operationRecords[key])) {
+          merged[key] = note.operationRecords[key];
+        }
+      });
+      return merged;
+    }
+    
+    return defaultRecords;
+  };
+  
+  const [operationRecords, setOperationRecords] = useState(getDefaultOperationRecords());
 
   // 内容查看弹窗状态
   const [showContentModal, setShowContentModal] = useState(false);
