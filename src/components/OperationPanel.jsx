@@ -63,19 +63,20 @@ if (typeof document !== 'undefined') {
 }
 
 // 可拖拽的工具卡片组件
-const DraggableOperationCard = ({ card, index, onMove, onRemove, onClick }) => {
+const DraggableOperationCard = ({ card, index, onMove, onRemove, onClick, isEditMode }) => {
   const [{ isDragging }, drag] = useDrag({
     type: 'operation',
     item: { index, key: card.key },
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
+    canDrag: isEditMode, // 只有在编辑模式下才能拖拽
   });
 
   const [, drop] = useDrop({
     accept: 'operation',
     hover: (draggedItem) => {
-      if (draggedItem.index !== index) {
+      if (isEditMode && draggedItem.index !== index) {
         onMove(draggedItem.index, index);
         draggedItem.index = index;
       }
@@ -84,29 +85,30 @@ const DraggableOperationCard = ({ card, index, onMove, onRemove, onClick }) => {
 
   return (
     <div 
-      ref={(node) => drag(drop(node))}
+      ref={(node) => isEditMode ? drag(drop(node)) : node}
       style={{ 
         position: 'relative',
         opacity: isDragging ? 0.5 : 1,
-        cursor: 'move'
+        cursor: isEditMode ? 'move' : 'pointer'
       }}
     >
       <Card 
         key={card.key}
         size="small" 
         hoverable
-        onClick={onClick}
+        onClick={!isEditMode ? onClick : undefined} // 非编辑模式下才能点击
         style={{ 
           background: card.gradient,
-          border: 'none',
+          border: isEditMode ? '2px dashed #1890ff' : 'none',
           borderRadius: '12px',
           textAlign: 'center',
-          cursor: 'move',
+          cursor: isEditMode ? 'move' : 'pointer',
           transition: 'all 0.2s ease',
           height: '100%',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          opacity: isEditMode ? 0.8 : 1
         }}
       >
         <div style={{ padding: '6px 0' }}>
@@ -119,8 +121,8 @@ const DraggableOperationCard = ({ card, index, onMove, onRemove, onClick }) => {
         </div>
       </Card>
       
-      {/* 移除按钮 - 除了"添加工具"按钮外都显示 */}
-      {card.key !== 'addTool' && (
+      {/* 移除按钮 - 只有在编辑模式下才显示，且除了"添加工具"按钮外都显示 */}
+      {isEditMode && card.key !== 'addTool' && (
         <Button
           type="text"
           size="small"
@@ -165,6 +167,7 @@ const OperationPanel = ({ state, handlers }) => {
     );
   });
   const [showCardSelector, setShowCardSelector] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false); // 新增编辑模式状态
   
   // 使用useEffect确保初始化正确
   useEffect(() => {
@@ -477,9 +480,38 @@ const OperationPanel = ({ state, handlers }) => {
     <DndProvider backend={HTML5Backend}>
       {/* 上半部分 - 功能概览 */}
       <div style={{ padding: '20px', flex: 1 }}>
-        <Title level={5} style={{ marginBottom: 16, color: '#1f1f1f' }}>
-          🛠️ 操作面板
-        </Title>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
+            🛠️ 操作面板
+          </Title>
+          <Button
+            type={isEditMode ? 'primary' : 'default'}
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => setIsEditMode(!isEditMode)}
+            style={{
+              borderRadius: '6px',
+              fontSize: '12px'
+            }}
+          >
+            {isEditMode ? '完成编辑' : '编辑'}
+          </Button>
+        </div>
+        
+        {/* 编辑模式提示 */}
+        {isEditMode && (
+          <div style={{
+            background: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+            border: '1px solid #91d5ff',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            marginBottom: '12px',
+            fontSize: '12px',
+            color: '#1890ff'
+          }}>
+            📝 编辑模式：可以拖拽排序、添加和移除工具
+          </div>
+        )}
         
         {/* 功能卡片网格 - 3x3网格，最多9个 */}
         <div style={{ 
@@ -497,13 +529,15 @@ const OperationPanel = ({ state, handlers }) => {
               onMove={moveCardPosition}
               onRemove={handleRemoveCard}
               onClick={() => handleCardClick(card)}
+              isEditMode={isEditMode}
             />
           ))}
 
-          {/* "更多"按钮 - 在第9个位置显示 */}
-          <Dropdown
-            open={showCardSelector}
-            onOpenChange={setShowCardSelector}
+          {/* "更多"按钮 - 在第9个位置显示，只有在编辑模式下才显示 */}
+          {isEditMode && (
+            <Dropdown
+              open={showCardSelector}
+              onOpenChange={setShowCardSelector}
             menu={{
               items: [
                 // 添加分组标题
@@ -685,6 +719,7 @@ const OperationPanel = ({ state, handlers }) => {
               </div>
             </Card>
           </Dropdown>
+          )}
           
           {/* 空位显示 - 只在少于9个工具时显示 */}
           {/* 工具栏已满提示 */}
