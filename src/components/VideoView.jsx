@@ -86,28 +86,72 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
   };
 
   // 处理一键摘取
-  const handleQuickExtract = () => {
+  const handleQuickExtract = async () => {
     const timeText = formatTime(selectedSubtitleTime);
+    
+    // 获取当前视频截图
+    let screenshotDataUrl = null;
+    try {
+      const videoElement = document.querySelector('video');
+      if (videoElement && videoElement.readyState >= 2) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = videoElement.videoWidth || 640;
+        canvas.height = videoElement.videoHeight || 360;
+        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+        screenshotDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        console.log('一键摘取时成功截取视频帧');
+      } else {
+        console.warn('无法获取视频元素或视频未加载完成，使用占位符截图');
+        // 生成占位符截图
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 640;
+        canvas.height = 360;
+        
+        ctx.fillStyle = '#f0f0f0';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#999';
+        ctx.font = '20px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${timeText} 时刻截图`, canvas.width / 2, canvas.height / 2 - 10);
+        ctx.fillText(selectedMaterial?.title || '视频', canvas.width / 2, canvas.height / 2 + 20);
+        
+        screenshotDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      }
+    } catch (error) {
+      console.error('摘取截图失败:', error);
+    }
+    
+    // 创建带截图的摘取内容
+    let extractContent = `<div style="background-color: #f8f9fa; padding: 12px; border-left: 4px solid #1890ff; border-radius: 8px; margin: 12px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">`;
+    extractContent += `<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;"><strong style="color: #1890ff; font-size: 14px;">📝 [${timeText}] 视频摘取</strong></div>`;
+    extractContent += `<div style="font-size: 14px; line-height: 1.6; margin-bottom: 8px; background: rgba(255,255,255,0.8); padding: 8px; border-radius: 4px;">${selectedSubtitleText}</div>`;
+    
+    if (screenshotDataUrl) {
+      extractContent += `<div style="margin: 8px 0;"><div style="font-size: 12px; color: #666; margin-bottom: 4px;">📸 视频截图 (${timeText}):</div><img src="${screenshotDataUrl}" alt="${timeText}时刻截图" style="max-width: 100%; height: auto; border-radius: 4px; border: 1px solid #e0e0e0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" /></div>`;
+    }
+    
+    extractContent += `<div style="font-size: 12px; color: #999; margin-top: 8px; border-top: 1px solid #eee; padding-top: 6px;">📺 来源：${selectedMaterial?.title || '视频'}</div>`;
+    extractContent += `</div>`;
     
     // 如果右侧栏正在编辑主题，则添加到当前编辑的主题中
     if (rightPanelView === 'noteEditor' && rightPanelEditingNote) {
-      const extractContent = `<p><strong>📝 [${timeText}]</strong> ${selectedSubtitleText}</p>`;
       const updatedContent = rightPanelNoteContent + extractContent;
       setRightPanelNoteContent(updatedContent);
       
       setSubtitleMenuVisible(false);
-      message.success('内容已添加到当前笔记');
+      message.success('内容已添加到当前笔记（含截图）');
       return;
     }
     
     // 如果弹窗编辑器正在使用，则添加到弹窗编辑器中
     if (showNoteEditor && editingNote) {
-      const extractContent = `<p><strong>📝 [${timeText}]</strong> ${selectedSubtitleText}</p>`;
       const updatedContent = noteEditorContent + extractContent;
       setNoteEditorContent(updatedContent);
       
       setSubtitleMenuVisible(false);
-      message.success('内容已添加到当前笔记');
+      message.success('内容已添加到当前笔记（含截图）');
       return;
     }
     
@@ -118,9 +162,12 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
       source: `视频摘取 - ${selectedMaterial?.title || '视频'}`,
       time: '刚刚',
       type: 'note',
-      content: `<p><strong>摘取内容：</strong>${selectedSubtitleText}</p><p><strong>时间点：</strong>${timeText}</p><p><strong>来源：</strong>${selectedMaterial?.title || '视频'}</p>`,
+      content: extractContent,
       videoId: selectedMaterial?.id,
-      annotationTime: selectedSubtitleTime
+      annotationTime: selectedSubtitleTime,
+      hasScreenshot: !!screenshotDataUrl,
+      screenshot: screenshotDataUrl,
+      subtitleText: selectedSubtitleText
     };
     
     if (onNoteCreated) {
@@ -133,11 +180,11 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
     }
     
     setSubtitleMenuVisible(false);
-    message.success('内容已摘取到新笔记');
+    message.success('内容已摘取到新笔记（含截图）');
   };
 
   // 处理标记操作
-  const handleMarkSubtitle = (markType) => {
+  const handleMarkSubtitle = async (markType) => {
     const markColors = {
       blue: '#1890ff',
       pink: '#eb2f96', 
@@ -160,25 +207,87 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
       gray: '📝'
     };
     
+    // 获取当前视频截图
+    let screenshotDataUrl = null;
+    try {
+      // 尝试从VideoPlayer组件中获取视频元素进行截图
+      const videoElement = document.querySelector('video');
+      if (videoElement && videoElement.readyState >= 2) {
+        // 创建canvas元素
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 设置canvas尺寸为视频尺寸
+        canvas.width = videoElement.videoWidth || 640;
+        canvas.height = videoElement.videoHeight || 360;
+        
+        // 将当前视频帧绘制到canvas
+        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+        
+        // 转换为base64图片数据
+        screenshotDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        
+        console.log('字幕标记时成功截取视频帧');
+      } else {
+        console.warn('无法获取视频元素或视频未加载完成，使用占位符截图');
+        // 生成占位符截图
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 640;
+        canvas.height = 360;
+        
+        // 绘制占位符
+        ctx.fillStyle = '#f0f0f0';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#999';
+        ctx.font = '20px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${timeText} 时刻截图`, canvas.width / 2, canvas.height / 2 - 10);
+        ctx.fillText(selectedMaterial?.title || '视频', canvas.width / 2, canvas.height / 2 + 20);
+        
+        screenshotDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      }
+    } catch (error) {
+      console.error('截图失败:', error);
+      screenshotDataUrl = null;
+    }
+    
+    // 创建带截图的标记内容
+    let markContent = `<div style="background-color: ${markColors[markType]}20; padding: 12px; border-left: 4px solid ${markColors[markType]}; border-radius: 8px; margin: 12px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">`;
+    
+    // 添加标记头部信息
+    markContent += `<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;"><strong style="color: ${markColors[markType]}; font-size: 14px;">${markIcon[markType]} [${timeText}] ${markNames[markType]}标记</strong></div>`;
+    
+    // 添加选中的字幕内容
+    markContent += `<div style="font-size: 14px; line-height: 1.6; margin-bottom: 8px; background: rgba(255,255,255,0.8); padding: 8px; border-radius: 4px;">"${selectedSubtitleText}"</div>`;
+    
+    // 如果有截图，添加截图
+    if (screenshotDataUrl) {
+      markContent += `<div style="margin: 8px 0;"><div style="font-size: 12px; color: #666; margin-bottom: 4px;">📸 视频截图 (${timeText}):</div><img src="${screenshotDataUrl}" alt="${timeText}时刻截图" style="max-width: 100%; height: auto; border-radius: 4px; border: 1px solid #e0e0e0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" /></div>`;
+    }
+    
+    // 添加来源信息
+    markContent += `<div style="font-size: 12px; color: #999; margin-top: 8px; border-top: 1px solid #eee; padding-top: 6px;">📺 来源：${selectedMaterial?.title || '视频'}</div>`;
+    
+    markContent += `</div>`;
+    
     // 如果右侧栏正在编辑主题，则添加到当前编辑的主题中
     if (rightPanelView === 'noteEditor' && rightPanelEditingNote) {
-      const markContent = `<div style="background-color: ${markColors[markType]}20; padding: 8px; border-left: 4px solid ${markColors[markType]}; border-radius: 4px; margin: 8px 0;"><strong>${markIcon[markType]} [${timeText}] ${markNames[markType]}：</strong>${selectedSubtitleText}</div>`;
       const updatedContent = rightPanelNoteContent + markContent;
       setRightPanelNoteContent(updatedContent);
       
       setSubtitleMenuVisible(false);
-      message.success(`${markNames[markType]}标记已添加到当前笔记`);
+      message.success(`${markNames[markType]}标记已添加到当前笔记（含截图）`);
       return;
     }
     
     // 如果弹窗编辑器正在使用，则添加到弹窗编辑器中
     if (showNoteEditor && editingNote) {
-      const markContent = `<div style="background-color: ${markColors[markType]}20; padding: 8px; border-left: 4px solid ${markColors[markType]}; border-radius: 4px; margin: 8px 0;"><strong>${markIcon[markType]} [${timeText}] ${markNames[markType]}：</strong>${selectedSubtitleText}</div>`;
       const updatedContent = noteEditorContent + markContent;
       setNoteEditorContent(updatedContent);
       
       setSubtitleMenuVisible(false);
-      message.success(`${markNames[markType]}标记已添加到当前笔记`);
+      message.success(`${markNames[markType]}标记已添加到当前笔记（含截图）`);
       return;
     }
     
@@ -189,11 +298,14 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
       source: `${markNames[markType]}标记 - ${selectedMaterial?.title || '视频'}`,
       time: '刚刚',
       type: 'note',
-      content: `<p style="background-color: ${markColors[markType]}20; padding: 8px; border-left: 4px solid ${markColors[markType]}; border-radius: 4px;"><strong>【${markNames[markType]}标记】</strong>${selectedSubtitleText}</p><p><strong>时间点：</strong>${timeText}</p><p><strong>来源：</strong>${selectedMaterial?.title || '视频'}</p>`,
+      content: markContent,
       videoId: selectedMaterial?.id,
       annotationTime: selectedSubtitleTime,
       markType: markType,
-      markColor: markColors[markType]
+      markColor: markColors[markType],
+      hasScreenshot: !!screenshotDataUrl,
+      screenshot: screenshotDataUrl,
+      subtitleText: selectedSubtitleText // 保存原始字幕文本
     };
     
     if (onNoteCreated) {
@@ -206,7 +318,7 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
     }
     
     setSubtitleMenuVisible(false);
-    message.success(`已成功添加${markNames[markType]}标记`);
+    message.success(`已成功添加${markNames[markType]}标记（含截图和字幕内容）`);
   };
 
   // 处理播放音频
@@ -542,9 +654,14 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
               onClick={handleQuickExtract}
             >
               <div style={{ fontSize: '20px' }}>📋</div>
-              <Text style={{ fontSize: '14px', fontWeight: '500', color: '#333' }}>
-                一键摘取
-              </Text>
+              <div style={{ flex: 1 }}>
+                <Text style={{ fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                  一键摘取
+                </Text>
+                <div style={{ fontSize: '12px', color: '#8c8c8c', marginTop: '2px' }}>
+                  📸 自动包含当前时刻截图
+                </div>
+              </div>
             </div>
 
             {/* 标记选项 */}
@@ -568,17 +685,22 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
               }}
             >
               <div style={{ fontSize: '20px' }}>📌</div>
-              <Text style={{ fontSize: '14px', fontWeight: '500', color: '#333' }}>
-                标记
-              </Text>
+              <div style={{ flex: 1 }}>
+                <Text style={{ fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                  标记
+                </Text>
+                <div style={{ fontSize: '12px', color: '#8c8c8c', marginTop: '2px' }}>
+                  📸 选择标记类型，自动截图保存
+                </div>
+              </div>
               <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
                 {/* 标记颜色按钮 */}
                 {['blue', 'pink', 'yellow', 'gray'].map(color => (
                   <div
                     key={color}
                     style={{
-                      width: '24px',
-                      height: '24px',
+                      width: '28px',
+                      height: '28px',
                       borderRadius: '50%',
                       background: color === 'blue' ? '#1890ff' : color === 'pink' ? '#eb2f96' : color === 'yellow' ? '#faad14' : '#8c8c8c',
                       cursor: 'pointer',
@@ -586,20 +708,23 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
                       alignItems: 'center',
                       justifyContent: 'center',
                       color: 'white',
-                      fontSize: '12px',
+                      fontSize: '13px',
                       fontWeight: 'bold',
-                      transition: 'transform 0.2s ease'
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                     }}
-                    title={color === 'blue' ? '重要' : color === 'pink' ? '疑问' : color === 'yellow' ? '精彩' : '备注'}
+                    title={`${color === 'blue' ? '重要' : color === 'pink' ? '疑问' : color === 'yellow' ? '精彩' : '备注'}标记（含截图）`}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleMarkSubtitle(color);
                     }}
                     onMouseEnter={(e) => {
-                      e.target.style.transform = 'scale(1.1)';
+                      e.target.style.transform = 'scale(1.15) translateY(-1px)';
+                      e.target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
                     }}
                     onMouseLeave={(e) => {
-                      e.target.style.transform = 'scale(1)';
+                      e.target.style.transform = 'scale(1) translateY(0)';
+                      e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
                     }}
                   >
                     {color === 'blue' ? '!' : color === 'pink' ? '?' : color === 'yellow' ? '☆' : '●'}
