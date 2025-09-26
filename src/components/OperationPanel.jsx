@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Button,
   Typography,
@@ -11,8 +12,11 @@ import {
 import {
   PlusOutlined,
   EditOutlined,
-  ArrowLeftOutlined
+  ArrowLeftOutlined,
+  DeleteOutlined
 } from '@ant-design/icons';
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import { 
   OPERATION_CARDS, 
   REPORT_DROPDOWN_ITEMS,
@@ -24,7 +28,106 @@ import { getOperationIcon } from '../utils/noteEditUtils';
 
 const { Title, Text } = Typography;
 
+// 可拖拽的工具卡片组件
+const DraggableOperationCard = ({ card, index, onMove, onRemove, onClick }) => {
+  const [{ isDragging }, drag] = useDrag({
+    type: 'operation',
+    item: { index, key: card.key },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
+  const [, drop] = useDrop({
+    accept: 'operation',
+    hover: (draggedItem) => {
+      if (draggedItem.index !== index) {
+        onMove(draggedItem.index, index);
+        draggedItem.index = index;
+      }
+    },
+  });
+
+  return (
+    <div 
+      ref={(node) => drag(drop(node))}
+      style={{ 
+        position: 'relative',
+        opacity: isDragging ? 0.5 : 1,
+        cursor: 'move'
+      }}
+    >
+      <Card 
+        key={card.key}
+        size="small" 
+        hoverable
+        onClick={onClick}
+        style={{ 
+          background: card.gradient,
+          border: 'none',
+          borderRadius: '12px',
+          textAlign: 'center',
+          cursor: 'move',
+          transition: 'all 0.2s ease',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        <div style={{ padding: '6px 0' }}>
+          <div style={{ fontSize: '20px', marginBottom: '6px' }}>{card.icon}</div>
+          <Text style={{ 
+            fontSize: '11px', 
+            fontWeight: 500, 
+            color: card.color 
+          }}>{card.title}</Text>
+        </div>
+      </Card>
+      
+      {/* 移除按钮 - 除了"添加工具"按钮外都显示 */}
+      {card.key !== 'addTool' && (
+        <Button
+          type="text"
+          size="small"
+          icon={<DeleteOutlined />}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove(card.key);
+          }}
+          style={{
+            position: 'absolute',
+            top: '-5px',
+            right: '-5px',
+            width: '20px',
+            height: '20px',
+            borderRadius: '50%',
+            backgroundColor: '#ff4d4f',
+            color: 'white',
+            fontSize: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 0,
+            minWidth: 'auto',
+            opacity: 0.8,
+            transition: 'opacity 0.2s'
+          }}
+          onMouseEnter={(e) => e.target.style.opacity = '1'}
+          onMouseLeave={(e) => e.target.style.opacity = '0.8'}
+        />
+      )}
+    </div>
+  );
+};
+
 const OperationPanel = ({ state, handlers }) => {
+  // 状态管理
+  const [visibleCards, setVisibleCards] = useState(
+    OPERATION_CARDS.filter(card => card.key !== 'addTool').slice(0, 8) // 默认显示前8个工具
+  );
+  const [showCardSelector, setShowCardSelector] = useState(false);
+  
   const {
     operationRecords,
     setOperationRecords,
@@ -47,6 +150,45 @@ const OperationPanel = ({ state, handlers }) => {
     onRecordClick,
     onMoreAction
   } = handlers;
+
+  // 拖拽排序处理函数
+  const moveCardPosition = (fromIndex, toIndex) => {
+    const updatedCards = [...visibleCards];
+    const [movedCard] = updatedCards.splice(fromIndex, 1);
+    updatedCards.splice(toIndex, 0, movedCard);
+    setVisibleCards(updatedCards);
+    message.success('工具位置已调整');
+  };
+
+  // 添加工具到可见列表
+  const handleAddCard = (cardKey) => {
+    const cardToAdd = OPERATION_CARDS.find(card => card.key === cardKey);
+    if (cardToAdd && !visibleCards.some(card => card.key === cardKey) && visibleCards.length < 8) {
+      setVisibleCards(prev => [...prev, cardToAdd]);
+      message.success(`已添加${cardToAdd.title}工具`);
+    }
+    setShowCardSelector(false);
+  };
+
+  // 从可见列表移除工具
+  const handleRemoveCard = (cardKey) => {
+    if (visibleCards.length > 1) {
+      const removedCard = visibleCards.find(card => card.key === cardKey);
+      setVisibleCards(prev => prev.filter(card => card.key !== cardKey));
+      message.success(`已移除${removedCard?.title}工具`);
+    } else {
+      message.warning('至少需要保留1个工具');
+    }
+  };
+
+  // 处理工具点击
+  const handleCardClick = (card) => {
+    if (card.key === OPERATION_TYPES.SCENARIO) {
+      onScenarioClick();
+    } else {
+      onOperationClick(card.key);
+    }
+  };
 
   // 新建笔记功能
   const handleCreateNewNote = () => {
@@ -161,7 +303,7 @@ const OperationPanel = ({ state, handlers }) => {
           borderBottom: '1px solid #f0f0f0'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '16px' }}>📝</span>
+            <span style={{ fontSize: '16px' }}>笔</span>
             <Text style={{ fontSize: '16px', fontWeight: 'bold' }}>编辑主题</Text>
           </div>
           <Button 
@@ -284,122 +426,116 @@ const OperationPanel = ({ state, handlers }) => {
   }
 
   return (
-    <>
+    <DndProvider backend={HTML5Backend}>
       {/* 上半部分 - 功能概览 */}
       <div style={{ padding: '20px', flex: 1 }}>
         <Title level={5} style={{ marginBottom: 16, color: '#1f1f1f' }}>
           🛠️ 操作面板
         </Title>
         
-        {/* 功能卡片网格 */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: 16 }}>
-          {OPERATION_CARDS.map(card => {
-            if (card.key === 'addTool') {
-              return (
-                <Card 
-                  key={card.key}
-                  size="small" 
-                  hoverable
-                  onClick={onAddTool}
-                  style={{ 
-                    background: card.gradient,
-                    border: 'none',
-                    borderRadius: '12px',
-                    textAlign: 'center',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <div style={{ padding: '6px 0' }}>
-                    <div style={{ fontSize: '20px', marginBottom: '6px' }}>{card.icon}</div>
-                    <Text style={{ 
-                      fontSize: '11px', 
-                      fontWeight: 500, 
-                      color: card.color 
-                    }}>{card.title}</Text>
-                  </div>
-                </Card>
-              );
-            }
+        {/* 功能卡片网格 - 3x3网格，最多9个 */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: '1fr 1fr 1fr', 
+          gap: '8px', 
+          marginBottom: 16 
+        }}>
+          {/* 渲染可见的工具 */}
+          {visibleCards.slice(0, 8).map((card, index) => (
+            <DraggableOperationCard
+              key={card.key}
+              card={card}
+              index={index}
+              onMove={moveCardPosition}
+              onRemove={handleRemoveCard}
+              onClick={() => handleCardClick(card)}
+            />
+          ))}
 
-            if (card.key === OPERATION_TYPES.REPORT) {
-              return (
-                <Dropdown
-                  key={card.key}
-                  menu={{
-                    items: REPORT_DROPDOWN_ITEMS.map(item => ({
-                      key: item.key,
-                      label: (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '16px' }}>{item.icon}</span>
-                          <span>{item.label}</span>
-                        </div>
-                      ),
-                      onClick: () => message.info(`${item.label}功能开发中`)
-                    }))
-                  }}
-                  trigger={['hover']}
-                  placement="bottomLeft"
-                  overlayClassName="report-dropdown"
-                >
-                  <Card 
-                    size="small" 
-                    hoverable
-                    onClick={() => onOperationClick(card.key)}
-                    style={{ 
-                      background: card.gradient,
-                      border: 'none',
-                      borderRadius: '12px',
-                      textAlign: 'center',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    <div style={{ padding: '6px 0' }}>
-                      <div style={{ fontSize: '20px', marginBottom: '6px' }}>{card.icon}</div>
-                      <Text style={{ 
-                        fontSize: '11px', 
-                        fontWeight: 500, 
-                        color: card.color 
-                      }}>{card.title}</Text>
-                    </div>
-                  </Card>
-                </Dropdown>
-              );
-            }
-
-            return (
+          {/* "更多"按钮 - 在第9个位置显示 */}
+          {visibleCards.length < 8 && (
+            <Dropdown
+              open={showCardSelector}
+              onOpenChange={setShowCardSelector}
+              menu={{
+                items: OPERATION_CARDS
+                  .filter(card => card.key !== 'addTool' && !visibleCards.some(vc => vc.key === card.key))
+                  .map(card => ({
+                    key: card.key,
+                    label: (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '16px' }}>{card.icon}</span>
+                        <span>{card.title}</span>
+                      </div>
+                    ),
+                    onClick: () => handleAddCard(card.key)
+                  }))
+              }}
+              trigger={['click']}
+              placement="topLeft"
+            >
               <Card 
-                key={card.key}
                 size="small" 
                 hoverable
-                onClick={() => {
-                  if (card.key === OPERATION_TYPES.SCENARIO) {
-                    onScenarioClick();
-                  } else {
-                    onOperationClick(card.key);
-                  }
-                }}
                 style={{ 
-                  background: card.gradient,
-                  border: 'none',
+                  background: 'linear-gradient(135deg, #f0f8ff 0%, #e6f7ff 100%)',
+                  border: '2px dashed #1890ff',
                   borderRadius: '12px',
                   textAlign: 'center',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}
               >
                 <div style={{ padding: '6px 0' }}>
-                  <div style={{ fontSize: '20px', marginBottom: '6px' }}>{card.icon}</div>
+                  <div style={{ fontSize: '20px', marginBottom: '6px' }}>🛠️</div>
                   <Text style={{ 
                     fontSize: '11px', 
                     fontWeight: 500, 
-                    color: card.color 
-                  }}>{card.title}</Text>
+                    color: '#1890ff' 
+                  }}>更多</Text>
                 </div>
               </Card>
-            );
-          })}
+            </Dropdown>
+          )}
+          
+          {/* 空位显示 */}
+          {Array.from({ length: Math.max(0, 9 - visibleCards.length - (visibleCards.length < 8 ? 1 : 0)) }, (_, index) => (
+            <div 
+              key={`empty-${index}`}
+              style={{
+                border: '2px dashed #d9d9d9',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#999',
+                fontSize: '12px',
+                minHeight: '60px'
+              }}
+            >
+              空位
+            </div>
+          ))}
+          
+          {/* 工具栏已满提示 */}
+          {visibleCards.length >= 8 && (
+            <div style={{
+              textAlign: 'center',
+              padding: '10px',
+              color: '#999',
+              fontSize: '12px',
+              border: '1px dashed #d9d9d9',
+              borderRadius: '12px',
+              background: '#fafafa',
+              gridColumn: 'span 3'
+            }}>
+              💼 工具栏已满（最多8个工具）
+            </div>
+          )}
         </div>
       </div>
       
@@ -571,7 +707,7 @@ const OperationPanel = ({ state, handlers }) => {
           </Button>
         </div>
       </div>
-    </>
+    </DndProvider>
   );
 };
 

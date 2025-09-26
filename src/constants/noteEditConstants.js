@@ -16,7 +16,9 @@ export const OPERATION_TYPES = {
   LINK: 'link',
   COURSE: 'course',
   STUDY_RESULT: 'study-result',
-  TOOL: 'tool'
+  TOOL: 'tool',
+  QUESTION: 'question',
+  EXAM_PAPER: 'exam-paper'
 };
 
 // 操作按钮标题映射
@@ -31,7 +33,9 @@ export const OPERATION_TITLES = {
   [OPERATION_TYPES.TRAINING_PLAN]: '培训方案',
   [OPERATION_TYPES.SCHEDULE]: '课表',
   [OPERATION_TYPES.PARTICIPANTS]: '参训人员清单',
-  [OPERATION_TYPES.NOTE]: '笔记'
+  [OPERATION_TYPES.NOTE]: '笔记',
+  [OPERATION_TYPES.QUESTION]: '试题',
+  [OPERATION_TYPES.EXAM_PAPER]: '试卷'
 };
 
 // 材料类型图标映射
@@ -41,16 +45,18 @@ export const MATERIAL_ICONS = {
   video: '🎥',
   link: '🔗',
   course: '📚',
-  [OPERATION_TYPES.AUDIO]: '🎵',
-  [OPERATION_TYPES.VIDEO]: '📹',
-  [OPERATION_TYPES.MINDMAP]: '🧠',
-  [OPERATION_TYPES.REPORT]: '📊',
-  [OPERATION_TYPES.PPT]: '📽️',
+  [OPERATION_TYPES.AUDIO]: '音',
+  [OPERATION_TYPES.VIDEO]: '视',
+  [OPERATION_TYPES.MINDMAP]: '思',
+  [OPERATION_TYPES.REPORT]: '报',
+  [OPERATION_TYPES.PPT]: 'PPT',
   [OPERATION_TYPES.WEBCODE]: '💻',
-  [OPERATION_TYPES.SCENARIO]: '🎭',
-  [OPERATION_TYPES.NOTE]: '📝',
+  [OPERATION_TYPES.SCENARIO]: '场',
+  [OPERATION_TYPES.NOTE]: '笔',
   [OPERATION_TYPES.STUDY_RESULT]: '🏆',
-  [OPERATION_TYPES.TOOL]: '🛠️'
+  [OPERATION_TYPES.TOOL]: '🛠️',
+  [OPERATION_TYPES.QUESTION]: '试',
+  [OPERATION_TYPES.EXAM_PAPER]: '卷'
 };
 
 // 网站类型常量
@@ -182,44 +188,58 @@ export const OPERATION_CARDS = [
   {
     key: OPERATION_TYPES.AUDIO,
     title: '音频概览',
-    icon: '🎵',
+    icon: '音',
     gradient: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
     color: '#1565c0'
   },
   {
     key: OPERATION_TYPES.VIDEO,
     title: '视频概览',
-    icon: '📹',
+    icon: '视',
     gradient: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
     color: '#2e7d32'
   },
   {
     key: OPERATION_TYPES.MINDMAP,
     title: '思维导图',
-    icon: '🧠',
+    icon: '思',
     gradient: 'linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%)',
     color: '#c2185b'
   },
   {
     key: OPERATION_TYPES.REPORT,
     title: '报告',
-    icon: '📊',
+    icon: '报',
     gradient: 'linear-gradient(135deg, #fff3e0 0%, #ffcc80 100%)',
     color: '#ef6c00'
   },
   {
     key: OPERATION_TYPES.PPT,
     title: 'PPT概览',
-    icon: '📽️',
+    icon: 'PPT',
     gradient: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)',
     color: '#d32f2f'
   },
   {
     key: OPERATION_TYPES.SCENARIO,
     title: '场景模拟',
-    icon: '🎭',
+    icon: '场',
     gradient: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)',
     color: '#7b1fa2'
+  },
+  {
+    key: OPERATION_TYPES.QUESTION,
+    title: '试题',
+    icon: '试',
+    gradient: 'linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%)',
+    color: '#00695c'
+  },
+  {
+    key: OPERATION_TYPES.EXAM_PAPER,
+    title: '试卷',
+    icon: '卷',
+    gradient: 'linear-gradient(135deg, #fdf8e1 0%, #f9e79f 100%)',
+    color: '#b7950b'
   },
   {
     key: 'addTool',

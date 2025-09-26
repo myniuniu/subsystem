@@ -497,7 +497,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                   justifyContent: 'space-between'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '16px' }}>🎭</span>
+                    <span style={{ fontSize: '16px' }}>场</span>
                     <Text strong style={{ color: '#1890ff' }}>
                       场景模拟：{selectedScenarios[0].title}
                     </Text>
@@ -553,7 +553,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                 justifyContent: 'center',
                 height: '400px'
               }}>
-                <span style={{ fontSize: '48px', marginBottom: '16px' }}>🎭</span>
+                <span style={{ fontSize: '48px', marginBottom: '16px' }}>场</span>
                 <Text style={{ fontSize: '16px' }}>未选择场景</Text>
               </div>
             )}
@@ -915,7 +915,34 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                       key={scenario.id}
                       hoverable
                       onClick={() => {
-                        setSelectedScenarios([scenario]);
+                        // 创建场景选择的操作记录
+                        const scenarioRecord = {
+                          id: `scenario-${Date.now()}`,
+                          title: scenario.title,
+                          description: scenario.description,
+                          category: scenario.category,
+                          difficulty: scenario.difficulty,
+                          duration: scenario.duration,
+                          author: scenario.author,
+                          tags: scenario.tags || [],
+                          views: scenario.views || 0,
+                          rating: scenario.rating || 0,
+                          thumbnail: scenario.thumbnail,
+                          learningObjectives: scenario.learningObjectives,
+                          source: '场景库选择',
+                          time: '刚刚',
+                          type: 'scenario',
+                          status: 'selected',
+                          createTime: new Date().toISOString()
+                        };
+                        
+                        // 添加到操作记录
+                        setOperationRecords(prev => ({
+                          ...prev,
+                          scenario: [scenarioRecord, ...prev.scenario]
+                        }));
+                        
+                        setSelectedScenarios([scenarioRecord]);
                         message.success(`已选择场景：${scenario.title}`);
                         setScenarioModalVisible(false);
                         
@@ -1111,7 +1138,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
               </div>
             ) : (
               <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
-                <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎭</div>
+                <div style={{ fontSize: '48px', marginBottom: '16px' }}>场</div>
                 <Text style={{ fontSize: '16px' }}>暂无可用的场景模拟</Text>
                 <br />
                 <Text style={{ fontSize: '14px', color: '#ccc' }}>请先在“场景模拟”模块中创建一些场景</Text>

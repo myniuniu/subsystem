@@ -21,6 +21,8 @@ import {
   Popconfirm,
   Dropdown
 } from 'antd';
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import MaterialAddPage from './MaterialAddPage';
 import ExploreModal from './ExploreModal';
 import {
@@ -50,6 +52,96 @@ const { Content, Sider } = Layout;
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
+
+// 可拖拽的工具卡片组件
+const DraggableToolCard = ({ toolType, index, config, onMove, onRemove, onClick }) => {
+  const [{ isDragging }, drag] = useDrag({
+    type: 'tool',
+    item: { index, toolType },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
+  const [, drop] = useDrop({
+    accept: 'tool',
+    hover: (draggedItem) => {
+      if (draggedItem.index !== index) {
+        onMove(draggedItem.index, index);
+        draggedItem.index = index;
+      }
+    },
+  });
+
+  return (
+    <div 
+      ref={(node) => drag(drop(node))}
+      style={{ 
+        position: 'relative',
+        opacity: isDragging ? 0.5 : 1,
+        cursor: 'move'
+      }}
+    >
+      <Card 
+        size="small" 
+        hoverable
+        onClick={onClick}
+        style={{ 
+          background: config.gradient,
+          border: 'none',
+          borderRadius: '12px',
+          textAlign: 'center',
+          cursor: 'move',
+          transition: 'all 0.2s ease',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        <div style={{ padding: '6px 0' }}>
+          <div style={{ fontSize: '20px', marginBottom: '6px' }}>{config.icon}</div>
+          <Text style={{ 
+            fontSize: '11px', 
+            fontWeight: 500, 
+            color: config.color 
+          }}>{config.title}</Text>
+        </div>
+      </Card>
+      
+      {/* 移除按钮 */}
+      <Button
+        type="text"
+        size="small"
+        icon={<DeleteOutlined />}
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove(toolType);
+        }}
+        style={{
+          position: 'absolute',
+          top: '-5px',
+          right: '-5px',
+          width: '20px',
+          height: '20px',
+          borderRadius: '50%',
+          backgroundColor: '#ff4d4f',
+          color: 'white',
+          fontSize: '10px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 0,
+          minWidth: 'auto',
+          opacity: 0.8,
+          transition: 'opacity 0.2s'
+        }}
+        onMouseEnter={(e) => e.target.style.opacity = '1'}
+        onMouseLeave={(e) => e.target.style.opacity = '0.8'}
+      />
+    </div>
+  );
+};
 
 const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) => {
   // 资料收集相关状态
@@ -229,6 +321,16 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
   
   // 工具管理状态
   const [visibleTools, setVisibleTools] = useState(['training-plan', 'schedule', 'participants']); // 可见的工具
+  const [showToolSelector, setShowToolSelector] = useState(false); // 工具选择器显示状态
+  
+  // 拖拽排序处理函数
+  const moveToolPosition = (fromIndex, toIndex) => {
+    const updatedTools = [...visibleTools];
+    const [movedTool] = updatedTools.splice(fromIndex, 1);
+    updatedTools.splice(toIndex, 0, movedTool);
+    setVisibleTools(updatedTools);
+    message.success('工具位置已调整');
+  };
   
   // 探索弹窗相关状态
   const [showExploreModal, setShowExploreModal] = useState(false);
@@ -727,13 +829,16 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
       webcode: '网页代码',
       'training-plan': '培训方案',
       schedule: '课表',
-      participants: '参训人员清单'
+      participants: '参训人员清单',
+      question: '试题',
+      'exam-paper': '试卷'
     };
     
-    if (!visibleTools.includes(toolType)) {
+    if (!visibleTools.includes(toolType) && visibleTools.length < 9) {
       setVisibleTools(prev => [...prev, toolType]);
       message.success(`已添加${operationTitles[toolType]}工具`);
     }
+    setShowToolSelector(false);
   };
 
   const handleRemoveTool = (toolType) => {
@@ -746,11 +851,17 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
       webcode: '网页代码',
       'training-plan': '培训方案',
       schedule: '课表',
-      participants: '参训人员清单'
+      participants: '参训人员清单',
+      question: '试题',
+      'exam-paper': '试卷'
     };
     
-    setVisibleTools(prev => prev.filter(tool => tool !== toolType));
-    message.success(`已移除${operationTitles[toolType]}工具`);
+    if (visibleTools.length > 1) {
+      setVisibleTools(prev => prev.filter(tool => tool !== toolType));
+      message.success(`已移除${operationTitles[toolType]}工具`);
+    } else {
+      message.warning('至少需要保留1个工具');
+    }
   };
 
   // 操作按钮点击处理函数
@@ -1708,7 +1819,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
   };
 
   return (
-    <>
+    <DndProvider backend={HTML5Backend}>
       <div style={{ display: 'flex', height: '100vh', background: '#f5f5f5' }}>
       {/* 左侧资料收集区域 */}
       <div style={{ flex: 2.5, background: '#fff', margin: '16px 0 16px 16px', borderRadius: '8px', overflow: 'hidden' }}>
@@ -2582,8 +2693,8 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
             
             {/* 功能卡片网格 */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: 16 }}>
-              {/* 渲染可见的工具 */}
-              {visibleTools.map(toolType => {
+              {/* 渲染可见的可拖拽工具 */}
+              {visibleTools.map((toolType, index) => {
                 const toolConfig = {
                   'audio': { icon: '🎵', title: '音频概览', gradient: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)', color: '#1565c0' },
                   'video': { icon: '📹', title: '视频概览', gradient: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)', color: '#2e7d32' },
@@ -2593,67 +2704,28 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
                   'webcode': { icon: '💻', title: '网页代码', gradient: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)', color: '#7b1fa2' },
                   'training-plan': { icon: '📋', title: '培训方案', gradient: 'linear-gradient(135deg, #e8f5e8 0%, #a5d6a7 100%)', color: '#388e3c' },
                   'schedule': { icon: '📅', title: '课表', gradient: 'linear-gradient(135deg, #fff8e1 0%, #ffcc02 100%)', color: '#f57c00' },
-                  'participants': { icon: '👥', title: '参训人员', gradient: 'linear-gradient(135deg, #e3f2fd 0%, #90caf9 100%)', color: '#1976d2' }
+                  'participants': { icon: '👥', title: '参训人员', gradient: 'linear-gradient(135deg, #e3f2fd 0%, #90caf9 100%)', color: '#1976d2' },
+                  'question': { icon: '❓', title: '试题', gradient: 'linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%)', color: '#0277bd' },
+                  'exam-paper': { icon: '📃', title: '试卷', gradient: 'linear-gradient(135deg, #f1f8e9 0%, #c5e1a5 100%)', color: '#558b2f' }
                 };
 
                 const config = toolConfig[toolType];
                 if (!config) return null;
 
                 return (
-                  <div key={toolType} style={{ position: 'relative' }}>
-                    <Card 
-                      size="small" 
-                      hoverable
-                      onClick={() => handleOperationClick(toolType)}
-                      style={{ 
-                        background: config.gradient,
-                        border: 'none',
-                        borderRadius: '12px',
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      <div style={{ padding: '6px 0' }}>
-                        <div style={{ fontSize: '20px', marginBottom: '6px' }}>{config.icon}</div>
-                        <Text style={{ 
-                          fontSize: '11px', 
-                          fontWeight: 500, 
-                          color: config.color 
-                        }}>{config.title}</Text>
-                      </div>
-                    </Card>
-                    {/* 移除按钮 */}
-                    <Button
-                      type="text"
-                      size="small"
-                      icon={<DeleteOutlined />}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveTool(toolType);
-                      }}
-                      style={{
-                        position: 'absolute',
-                        top: '-8px',
-                        right: '-8px',
-                        width: '20px',
-                        height: '20px',
-                        borderRadius: '50%',
-                        backgroundColor: '#ff4d4f',
-                        color: 'white',
-                        border: 'none',
-                        fontSize: '10px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 10
-                      }}
-                    />
-                  </div>
+                  <DraggableToolCard
+                    key={toolType}
+                    toolType={toolType}
+                    index={index}
+                    config={config}
+                    onMove={moveToolPosition}
+                    onRemove={handleRemoveTool}
+                    onClick={() => handleOperationClick(toolType)}
+                  />
                 );
               })}
 
-              {/* 添加工具按钮 */}
+              {/* 更多工具按钮 */}
               <Dropdown
                 menu={{
                   items: [
@@ -2662,7 +2734,9 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
                     { key: 'mindmap', label: '🧠 思维导图', disabled: visibleTools.includes('mindmap') },
                     { key: 'report', label: '📊 报告', disabled: visibleTools.includes('report') },
                     { key: 'ppt', label: '📽️ PPT概览', disabled: visibleTools.includes('ppt') },
-                    { key: 'webcode', label: '💻 网页代码', disabled: visibleTools.includes('webcode') }
+                    { key: 'webcode', label: '💻 网页代码', disabled: visibleTools.includes('webcode') },
+                    { key: 'question', label: '❓ 试题', disabled: visibleTools.includes('question') },
+                    { key: 'exam-paper', label: '📃 试卷', disabled: visibleTools.includes('exam-paper') }
                   ],
                   onClick: ({ key }) => handleAddTool(key)
                 }}
@@ -2687,7 +2761,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
                       fontSize: '11px', 
                       fontWeight: 500, 
                       color: '#666' 
-                    }}>添加工具</Text>
+                    }}>更多</Text>
                   </div>
                 </Card>
               </Dropdown>
@@ -2738,15 +2812,17 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
               {Object.values(operationRecords).flat().map(record => {
                 const getIcon = (type) => {
                     switch(type) {
-                      case 'audio': return '🎵';
-                      case 'video': return '📹';
-                      case 'mindmap': return '🧠';
-                      case 'report': return '📊';
-                      case 'ppt': return '📽️';
+                      case 'audio': return '音';
+                      case 'video': return '视';
+                      case 'mindmap': return '思';
+                      case 'report': return '报';
+                      case 'ppt': return 'PPT';
                       case 'webcode': return '💻';
                       case 'file': return '📄';
                       case 'text': return '📝';
                       case 'link': return '🔗';
+                      case 'scenario': return '场';
+                      case 'note': return '笔';
                       default: return '📄';
                     }
                   };
@@ -3257,7 +3333,7 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
           </div>
         )}
       </Modal>
-    </>
+    </DndProvider>
   );
 };
 

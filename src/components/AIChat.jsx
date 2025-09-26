@@ -175,7 +175,7 @@ const AIChat = ({ state, handlers }) => {
           </Button>
           <Button 
             size="small" 
-            icon={<span>🎵</span>}
+            icon={<span>音频</span>}
             onClick={() => handleOperationClick('audio')}
             style={{ borderRadius: '16px' }}
           >
@@ -183,7 +183,7 @@ const AIChat = ({ state, handlers }) => {
           </Button>
           <Button 
             size="small" 
-            icon={<span>🧠</span>}
+            icon={<span>导图</span>}
             onClick={() => handleOperationClick('mindmap')}
             style={{ borderRadius: '16px' }}
           >

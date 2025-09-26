@@ -118,7 +118,7 @@ const CourseSelection = ({ onViewChange, pageState }) => {
 
   // 选课分类 - 基于组织培训和自主学习两大类别
   const categories = [
-    { value: 'all', label: '全部课程', icon: '📝' },
+    { value: 'all', label: '全部课程', icon: '文档' },
     { value: 'organizational_training', label: '组织培训', icon: '🏢', description: '基于培训选课的组织安排课程' },
     { value: 'self_learning', label: '自主学习', icon: '📚', description: '个人主动选择的学习课程' }
   ];
@@ -127,7 +127,7 @@ const CourseSelection = ({ onViewChange, pageState }) => {
   const organizationalCategories = [
     { value: 'teaching_methods', label: '教学方法', icon: '📚', parent: 'organizational_training' },
     { value: 'student_management', label: '学生管理', icon: '👥', parent: 'organizational_training' },
-    { value: 'educational_tech', label: '教育技术', icon: '💻', parent: 'organizational_training' },
+    { value: 'educational_tech', label: '教育技术', icon: '技术', parent: 'organizational_training' },
     { value: 'curriculum_design', label: '课程设计', icon: '📋', parent: 'organizational_training' },
     { value: 'policy_compliance', label: '政策合规', icon: '⚖️', parent: 'organizational_training' }
   ];

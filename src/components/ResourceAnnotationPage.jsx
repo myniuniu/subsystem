@@ -855,7 +855,11 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
               const optimizedRecord = {
                 id: Date.now(),
                 title: `${record.title} (高级编辑版)`,
-                content: `经过AI高级编辑优化的知识图谱，包含：\n• 重新优化的概念结构\n• 增强的关系映射\n• 补充的语义信息\n• 改进的知识点连接`,
+                content: `经过AI高级编辑优化的知识图谱，包含：
+• 重新优化的概念结构
+• 增强的关系映射
+• 补充的语义信息
+• 改进的知识点连接`,
                 time: '刚刚',
                 source: '知识图谱高级编辑系统',
                 type: 'knowledge-graph',
@@ -1286,7 +1290,13 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
         const aiResponse = {
           id: Date.now() + 1,
           type: 'assistant',
-          content: `基于您的需求："${inputMessage}"，我为您生成了以下知识图谱：\n\n🔗 核心概念关系图\n📊 相关数据分析\n🎯 关键知识点连接\n\n这个知识图谱展示了主要概念之间的关联关系，帮助您更好地理解和掌握相关知识。`,
+          content: `基于您的需求："${inputMessage}"，我为您生成了以下知识图谱：
+
+🔗 核心概念关系图
+📊 相关数据分析
+🎯 关键知识点连接
+
+这个知识图谱展示了主要概念之间的关联关系，帮助您更好地理解和掌握相关知识。`,
           timestamp: new Date().toISOString(),
           hasTransferAction: true // 标记此消息有转来源操作
         };
@@ -2762,15 +2772,17 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
               {Object.values(operationRecords).flat().map(record => {
                 const getIcon = (type) => {
                     switch(type) {
-                      case 'audio': return '🎵';
-                      case 'video': return '📹';
-                      case 'mindmap': return '🧠';
-                      case 'report': return '📊';
-                      case 'ppt': return '📽️';
+                      case 'audio': return '音';
+                      case 'video': return '视';
+                      case 'mindmap': return '思';
+                      case 'report': return '报';
+                      case 'ppt': return 'PPT';
                       case 'webcode': return '💻';
                       case 'file': return '📄';
                       case 'text': return '📝';
                       case 'link': return '🔗';
+                      case 'scenario': return '场';
+                      case 'note': return '笔';
                       default: return '📄';
                     }
                   };
