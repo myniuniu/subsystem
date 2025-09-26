@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Button,
   Typography,
@@ -26,6 +26,41 @@ import {
 import { getOperationIcon } from '../utils/noteEditUtils';
 
 const { Title, Text } = Typography;
+
+// 添加自定义样式
+const customStyles = `
+  .custom-more-tools-dropdown .ant-dropdown-menu {
+    padding: 4px;
+    border-radius: 12px;
+  }
+  
+  .custom-more-tools-dropdown .ant-dropdown-menu-item {
+    padding: 8px 12px;
+    margin: 4px 0;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  }
+  
+  .custom-more-tools-dropdown .ant-dropdown-menu-item:hover {
+    background: linear-gradient(135deg, #f8faff 0%, #eef4ff 100%);
+    transform: translateX(4px);
+    box-shadow: 0 4px 8px rgba(24, 144, 255, 0.1);
+  }
+  
+  .custom-more-tools-dropdown .ant-dropdown-menu-item:hover .tool-icon {
+    transform: scale(1.1);
+  }
+`;
+
+// 将样式注入到页面
+if (typeof document !== 'undefined') {
+  const styleElement = document.createElement('style');
+  styleElement.textContent = customStyles;
+  if (!document.head.querySelector('[data-component="operation-panel-styles"]')) {
+    styleElement.setAttribute('data-component', 'operation-panel-styles');
+    document.head.appendChild(styleElement);
+  }
+}
 
 // 可拖拽的工具卡片组件
 const DraggableOperationCard = ({ card, index, onMove, onRemove, onClick }) => {
@@ -121,11 +156,25 @@ const DraggableOperationCard = ({ card, index, onMove, onRemove, onClick }) => {
 };
 
 const OperationPanel = ({ state, handlers }) => {
-  // 状态管理
-  const [visibleCards, setVisibleCards] = useState(
-    OPERATION_CARDS.filter(card => card.key !== 'addTool').slice(0, 9) // 默认显示前9个工具
-  );
+  // 状态管理 - 确保试题和试卷不在默认显示列表中
+  const [visibleCards, setVisibleCards] = useState(() => {
+    return OPERATION_CARDS.filter(card => 
+      card.key !== 'addTool' && 
+      card.key !== 'question' && 
+      card.key !== 'exam-paper'
+    );
+  });
   const [showCardSelector, setShowCardSelector] = useState(false);
+  
+  // 使用useEffect确保初始化正确
+  useEffect(() => {
+    const defaultCards = OPERATION_CARDS.filter(card => 
+      card.key !== 'addTool' && 
+      card.key !== 'question' && 
+      card.key !== 'exam-paper'
+    );
+    setVisibleCards(defaultCards);
+  }, []);
   
   const {
     operationRecords,
@@ -456,45 +505,183 @@ const OperationPanel = ({ state, handlers }) => {
             open={showCardSelector}
             onOpenChange={setShowCardSelector}
             menu={{
-              items: OPERATION_CARDS
-                .filter(card => card.key !== 'addTool' && !visibleCards.some(vc => vc.key === card.key))
-                .map(card => ({
-                  key: card.key,
+              items: [
+                // 添加分组标题
+                {
+                  type: 'group',
                   label: (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '16px' }}>{card.icon}</span>
-                      <span>{card.title}</span>
+                    <div style={{
+                      padding: '8px 4px 4px 4px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      color: '#8c8c8c',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      borderBottom: '1px solid #f0f0f0',
+                      marginBottom: '4px'
+                    }}>
+                      🛠️ 选择更多工具
                     </div>
                   ),
-                  onClick: () => handleAddCard(card.key)
-                }))
+                  children: OPERATION_CARDS
+                    .filter(card => card.key !== 'addTool' && !visibleCards.some(vc => vc.key === card.key))
+                    .map(card => ({
+                      key: card.key,
+                      label: (
+                        <div style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '12px',
+                          padding: '8px 4px',
+                          borderRadius: '8px',
+                          transition: 'all 0.2s ease'
+                        }}>
+                          <div style={{ 
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '8px',
+                            background: card.gradient,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            color: card.color,
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                            transition: 'transform 0.2s ease'
+                          }}
+                          className="tool-icon"
+                          >
+                            {card.icon}
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ 
+                              fontSize: '14px', 
+                              fontWeight: 500, 
+                              color: '#1f1f1f',
+                              marginBottom: '2px'
+                            }}>
+                              {card.title}
+                            </div>
+                            <div style={{ 
+                              fontSize: '12px', 
+                              color: '#8c8c8c'
+                            }}>
+                              点击添加到工具栏
+                            </div>
+                          </div>
+                        </div>
+                      ),
+                      onClick: () => handleAddCard(card.key)
+                    }))
+                }
+              ].filter(item => {
+                // 如果没有可添加的工具，显示提示信息
+                const availableTools = OPERATION_CARDS.filter(card => card.key !== 'addTool' && !visibleCards.some(vc => vc.key === card.key));
+                if (availableTools.length === 0) {
+                  return false;
+                }
+                return true;
+              }).concat(OPERATION_CARDS.filter(card => card.key !== 'addTool' && !visibleCards.some(vc => vc.key === card.key)).length === 0 ? [{
+                key: 'no-tools',
+                label: (
+                  <div style={{
+                    textAlign: 'center',
+                    padding: '20px 16px',
+                    color: '#8c8c8c',
+                    fontSize: '14px'
+                  }}>
+                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>🎉</div>
+                    <div>所有工具已添加完成</div>
+                    <div style={{ fontSize: '12px', marginTop: '4px' }}>
+                      您可以移除现有工具来添加其他工具
+                    </div>
+                  </div>
+                ),
+                disabled: true
+              }] : [])
             }}
             trigger={['click']}
             placement="topLeft"
+            overlayStyle={{
+              minWidth: '300px',
+              borderRadius: '16px',
+              boxShadow: '0 12px 28px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.08)',
+              padding: '12px 8px',
+              border: '1px solid #f0f0f0',
+              backgroundColor: '#ffffff'
+            }}
+            overlayClassName="custom-more-tools-dropdown"
           >
             <Card 
               size="small" 
               hoverable
               style={{ 
-                background: 'linear-gradient(135deg, #f0f8ff 0%, #e6f7ff 100%)',
+                background: 'linear-gradient(135deg, #f8faff 0%, #eef4ff 100%)',
                 border: '2px dashed #1890ff',
                 borderRadius: '12px',
                 textAlign: 'center',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
+                transition: 'all 0.3s ease',
                 height: '100%',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 8px 16px rgba(24, 144, 255, 0.15)';
+                e.target.style.borderColor = '#0050b3';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = 'none';
+                e.target.style.borderColor = '#1890ff';
               }}
             >
-              <div style={{ padding: '6px 0' }}>
-                <div style={{ fontSize: '20px', marginBottom: '6px' }}>🛠️</div>
+              {/* 背景装饰 */}
+              <div style={{
+                position: 'absolute',
+                top: '-10px',
+                right: '-10px',
+                width: '30px',
+                height: '30px',
+                background: 'linear-gradient(135deg, #1890ff20, #40a9ff20)',
+                borderRadius: '50%',
+                opacity: 0.6
+              }} />
+              <div style={{
+                position: 'absolute',
+                bottom: '-5px',
+                left: '-5px',
+                width: '20px',
+                height: '20px',
+                background: 'linear-gradient(135deg, #1890ff15, #40a9ff15)',
+                borderRadius: '50%',
+                opacity: 0.4
+              }} />
+              
+              <div style={{ padding: '8px 0', position: 'relative', zIndex: 1 }}>
+                <div style={{ 
+                  fontSize: '22px', 
+                  marginBottom: '4px',
+                  background: 'linear-gradient(135deg, #1890ff, #40a9ff)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  filter: 'drop-shadow(0 1px 2px rgba(24, 144, 255, 0.3))'
+                }}>
+                  ⚡
+                </div>
                 <Text style={{ 
                   fontSize: '11px', 
-                  fontWeight: 500, 
-                  color: '#1890ff' 
-                }}>更多</Text>
+                  fontWeight: 600, 
+                  color: '#1890ff',
+                  textShadow: '0 1px 2px rgba(24, 144, 255, 0.1)'
+                }}>
+                  更多工具
+                </Text>
               </div>
             </Card>
           </Dropdown>
