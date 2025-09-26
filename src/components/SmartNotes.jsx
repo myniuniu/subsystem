@@ -978,7 +978,7 @@ ${aiSelectedNote.content}`;
         <Content className="notes-content">
           <div className="content-header">
             <div className="header-left">
-              <Title level={3}>小黑屋-沉浸式学习空间</Title>
+              <Title level={3}>小黑屋-沉浸式AI学习空间</Title>
               <Text type="secondary">
                 共 {filteredNotes.length} 个主题
                 {selectedCategory !== 'all' && (

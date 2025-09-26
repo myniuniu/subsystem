@@ -23,7 +23,8 @@ import {
   BookOutlined,
   PlusOutlined,
   ApartmentOutlined,
-  NodeIndexOutlined
+  NodeIndexOutlined,
+  CloudOutlined
 } from '@ant-design/icons';
 import courseSelectionService from '../services/courseSelectionService';
 
@@ -48,6 +49,7 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
   const [showCourseVideoForm, setShowCourseVideoForm] = useState(false);
   const [showMicroMajorForm, setShowMicroMajorForm] = useState(false);
   const [showLiveCourseForm, setShowLiveCourseForm] = useState(false);
+  const [showCloudDiskForm, setShowCloudDiskForm] = useState(false);
 
   const handleFileUpload = (info) => {
     const { status } = info.file;
@@ -242,13 +244,28 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
     setShowLiveCourseForm(false);
   };
 
+  // 云盘相关处理函数
+  const handleCloudDiskClick = () => {
+    setShowCloudDiskForm(true);
+  };
+
+  const handleCloudDiskSubmit = () => {
+    message.success('云盘文件选择成功！');
+    setShowCloudDiskForm(false);
+    onClose();
+  };
+
+  const handleCloudDiskCancel = () => {
+    setShowCloudDiskForm(false);
+  };
+
   return (
     <Modal
-      title={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm) ? null : "添加来源"}
+      title={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm) ? null : "添加来源"}
       open={visible}
       onCancel={onClose}
       width={1040}
-      footer={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm) ? null : [
+      footer={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm) ? null : [
         <Button key="cancel" onClick={onClose}>
           取消
         </Button>,
@@ -256,9 +273,9 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
           保存资源
         </Button>
       ]}
-      centered={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm)}
-      closable={!(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm)}
-      bodyStyle={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm) ? { padding: 0 } : {}}
+      centered={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm)}
+      closable={!(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm)}
+      bodyStyle={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm) ? { padding: 0 } : {}}
     >
       {showTextForm ? (
         <div>
@@ -1215,6 +1232,101 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
             </div>
           </div>
         </div>
+      ) : showCloudDiskForm ? (
+        <div>
+          {/* 标题栏 */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            padding: '16px 20px',
+            borderBottom: '1px solid #e5e7eb'
+          }}>
+            <Button 
+              type="text" 
+              icon={<ArrowLeftOutlined />} 
+              onClick={handleCloudDiskCancel}
+              style={{ 
+                marginRight: '12px',
+                padding: '4px',
+                minWidth: 'auto',
+                height: 'auto'
+              }}
+            />
+            <Title level={4} style={{ margin: 0, fontSize: '16px', fontWeight: 500, color: '#1f2937' }}>
+              云盘
+            </Title>
+          </div>
+          
+          {/* 内容区域 */}
+          <div style={{ padding: '24px 20px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <Text style={{ fontSize: '14px', color: '#6b7280' }}>
+                选择云盘中的文件作为智能笔记的来源，系统将基于文件内容进行分析。
+              </Text>
+            </div>
+            
+            <div style={{ marginBottom: '24px' }}>
+              <Text strong style={{ fontSize: '14px', color: '#1f2937', display: 'block', marginBottom: '8px' }}>
+                可用的云盘文件
+              </Text>
+              <div style={{ 
+                border: '2px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '16px',
+                backgroundColor: '#f9fafb'
+              }}>
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 教育教学材料.pdf
+                </Text>
+                <br />
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 课程设计文档.docx
+                </Text>
+                <br />
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 研究报告资料.pptx
+                </Text>
+                <br />
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 会议纪要文档.txt
+                </Text>
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <Button
+                onClick={handleCloudDiskCancel}
+                style={{
+                  height: '36px',
+                  paddingLeft: '16px',
+                  paddingRight: '16px',
+                  borderRadius: '18px',
+                  border: '1px solid #d1d5db',
+                  backgroundColor: 'white',
+                  color: '#374151',
+                  fontSize: '14px'
+                }}
+              >
+                取消
+              </Button>
+              <Button
+                type="primary"
+                onClick={handleCloudDiskSubmit}
+                style={{
+                  height: '36px',
+                  paddingLeft: '16px',
+                  paddingRight: '16px',
+                  borderRadius: '18px',
+                  backgroundColor: '#52c41a',
+                  borderColor: '#52c41a',
+                  fontSize: '14px'
+                }}
+              >
+                选择云盘文件
+              </Button>
+            </div>
+          </div>
+        </div>
       ) : (
       <div style={{ padding: '0' }}>
 
@@ -1513,6 +1625,44 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                 }}
               >
                 选择直播课
+              </Button>
+            </Card>
+
+            {/* 云盘 */}
+            <Card 
+              hoverable
+              style={{ 
+                textAlign: 'center',
+                border: '1px solid #e8e8e8',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+              bodyStyle={{ padding: '40px 24px' }}
+              onClick={handleCloudDiskClick}
+            >
+              <CloudOutlined style={{ 
+                fontSize: '40px', 
+                color: '#52c41a',
+                marginBottom: '20px'
+              }} />
+              <div style={{ marginBottom: '12px' }}>
+                <Text strong style={{ fontSize: '16px' }}>云盘</Text>
+              </div>
+              <Button 
+                type="primary"
+                size="small"
+                onClick={handleCloudDiskClick}
+                style={{
+                  backgroundColor: '#52c41a',
+                  borderColor: '#52c41a',
+                  borderRadius: '16px',
+                  fontSize: '12px',
+                  height: '28px',
+                  paddingLeft: '12px',
+                  paddingRight: '12px'
+                }}
+              >
+                选择文件
               </Button>
             </Card>
 
