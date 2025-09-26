@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { generateCapabilityMap } from '../data/capabilityMapData.js';
 import { generateKnowledgeGraph } from '../data/knowledgeGraphData.js';
 import { CAPABILITY_CATEGORIES } from '../types/capabilityModel.js';
@@ -30,12 +29,12 @@ export const useNoteEditState = (note, mode) => {
       { id: 1, name: '成都火锅制作工艺.pdf', type: 'application/pdf', uploadTime: '刚刚' }
     ] : note?.materials?.files || []
   );
-  
+
   // 组织培训课程来源状态
   const [organizationalCourses, setOrganizationalCourses] = useState(
     note?.organizationalCourses || []
   );
-  
+
   // 多选功能状态
   const [selectedMaterials, setSelectedMaterials] = useState([]);
   const [showMaterialDetail, setShowMaterialDetail] = useState(false);
@@ -58,7 +57,7 @@ export const useNoteEditState = (note, mode) => {
       { id: 3, title: '成都小吃介绍', content: '成都是著名的美食之都，拥有麻婆豆腐、回锅肉、担担面、龙抄手等众多特色小吃...', addTime: '刚刚' }
     ] : note?.materials?.texts || []
   );
-  
+
   // 课程视频相关状态
   const [videoTitle, setVideoTitle] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
@@ -74,17 +73,17 @@ export const useNoteEditState = (note, mode) => {
       }
     }
   });
-  
+
   // 我的选课相关状态
   const [selectedCourses, setSelectedCourses] = useState(
     note?.materials?.courses || []
   );
-  
+
   // 问答区域相关状态
   const [messages, setMessages] = useState(note?.messages || []);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // 快捷操作相关状态
   const [quickActions] = useState([
     { key: 'summarize', label: '内容总结', icon: '📄' },
@@ -92,16 +91,16 @@ export const useNoteEditState = (note, mode) => {
     { key: 'translate', label: '翻译', icon: '🔄' },
     { key: 'analyze', label: '深度分析', icon: '🤖' }
   ]);
-  
+
   // 操作结果相关状态
   const [operationResults, setOperationResults] = useState(note?.operationResults || []);
-  
+
   // 操作面板相关状态
   const [selectedOperation, setSelectedOperation] = useState('audio');
-  
+
   // 探索弹窗相关状态
   const [showExploreModal, setShowExploreModal] = useState(false);
-  
+
   // 操作记录状态
   const [operationRecords, setOperationRecords] = useState(note?.operationRecords || {
     audio: [],
@@ -136,7 +135,7 @@ export const useNoteEditState = (note, mode) => {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewType, setPreviewType] = useState('');
   const [previewData, setPreviewData] = useState(null);
-  
+
   // 智能笔记相关状态
   const [smartNotes, setSmartNotes] = useState(note?.smartNotes || []);
   const [showSmartNotesModal, setShowSmartNotesModal] = useState(false);
@@ -237,11 +236,11 @@ export const useNoteEditState = (note, mode) => {
     const { map, videos } = generateCapabilityMap();
     setCapabilityMap(map);
     setCapabilityVideos(videos);
-    
+
     const { graph, resources } = generateKnowledgeGraph();
     setKnowledgeGraph(graph);
     setKnowledgeResources(resources);
-    
+
     // 如果是编辑模式且有note数据，根据note的类型设置地图模式
     if (mode === 'edit' && note) {
       if (note.category === 'capability_model' || note.type === 'capability_model') {
