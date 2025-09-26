@@ -65,7 +65,8 @@ export const VIEW_MODES = {
   VIDEO: 'video',
   WIDESCREEN_VIDEO: 'widescreen_video',
   CARD: 'card',
-  MAP: 'map'
+  MAP: 'map',
+  SCENARIO_VIEW: 'scenario_view'
 };
 
 // 右侧面板视图常量

@@ -450,7 +450,7 @@ ${annotationText}
   if (embedded) {
     return (
       <div 
-        className="video-player-container embedded"
+        className={`video-player-container embedded${isWidescreenMode ? ' widescreen' : ''}`}
         style={style}
         onMouseMove={() => setShowControls(true)}
         onMouseLeave={() => isPlaying && setShowControls(false)}
@@ -476,7 +476,15 @@ ${annotationText}
               }
             }}
             onClick={togglePlay}
-            style={{ display: videoLoading || videoError ? 'none' : 'block' }}
+            style={{ 
+              display: videoLoading || videoError ? 'none' : 'block',
+              ...(isWidescreenMode ? {
+                width: '100%',
+                height: '100vh',
+                maxHeight: 'none',
+                objectFit: 'contain'
+              } : {})
+            }}
           />
           
           {/* 加载状态 */}

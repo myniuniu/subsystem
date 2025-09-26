@@ -33,6 +33,36 @@
   background: transparent;
 }
 
+/* 宽屏模式样式 */
+.video-player-container.embedded.widescreen {
+  height: 100vh;
+  width: 100%;
+  min-height: 100vh;
+  border-radius: 0;
+  background: #000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.video-player-container.embedded.widescreen .video-element {
+  height: 100vh;
+  width: 100%;
+  max-height: none;
+  border-radius: 0;
+  object-fit: contain;
+}
+
+.video-player-container.embedded.widescreen .video-controls {
+  border-radius: 0;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
 .video-player-container.embedded .video-element {
   border-radius: 8px 8px 0 0;
 }

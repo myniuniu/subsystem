@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Button,
   Typography,
@@ -50,6 +50,23 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
     onNoteCreated,
     onToggleWidescreen
   } = handlers;
+
+  // 宽屏模式下禁用body滚动
+  useEffect(() => {
+    if (isWidescreenMode) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.height = '100vh';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.height = '';
+    }
+    
+    // 清理函数
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.height = '';
+    };
+  }, [isWidescreenMode]);
 
   // 处理字幕文字选中
   const handleSubtitleTextSelection = (e, subtitle) => {
@@ -220,41 +237,55 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* 标题栏 */}
-      <div style={{ 
-        padding: '16px 20px', 
-        borderBottom: '1px solid #f0f0f0',
-        background: 'linear-gradient(135deg, #1890ff 0%, #40a9ff 100%)',
-        color: 'white'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <Button 
-              type="text" 
-              icon={<ArrowLeftOutlined />} 
-              onClick={onBackToMaterials}
-              style={{ color: 'white', padding: '4px 8px' }}
-              size="small"
-            />
-            <div>
-              <Text style={{ color: 'white', fontSize: '16px', fontWeight: 'bold' }}>
-                {selectedMaterial?.title || '视频标题'}
-              </Text>
-              {selectedMaterial?.instructor && (
-                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', marginTop: '2px' }}>
-                  📚 讲师：{selectedMaterial.instructor}
-                </div>
-              )}
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      height: isWidescreenMode ? '100vh' : '100%',
+      width: isWidescreenMode ? '100%' : '100%',
+      background: isWidescreenMode ? '#000' : 'inherit',
+      overflow: 'hidden',
+      position: isWidescreenMode ? 'fixed' : 'static',
+      top: isWidescreenMode ? 0 : 'auto',
+      left: isWidescreenMode ? 0 : 'auto',
+      right: isWidescreenMode ? 0 : 'auto',
+      zIndex: isWidescreenMode ? 1000 : 'auto'
+    }}>
+      {/* 标题栏 - 宽屏模式下隐藏 */}
+      {!isWidescreenMode && (
+        <div style={{ 
+          padding: '16px 20px', 
+          borderBottom: '1px solid #f0f0f0',
+          background: 'linear-gradient(135deg, #1890ff 0%, #40a9ff 100%)',
+          color: 'white'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <Button 
+                type="text" 
+                icon={<ArrowLeftOutlined />} 
+                onClick={onBackToMaterials}
+                style={{ color: 'white', padding: '4px 8px' }}
+                size="small"
+              />
+              <div>
+                <Text style={{ color: 'white', fontSize: '16px', fontWeight: 'bold' }}>
+                  {selectedMaterial?.title || '视频标题'}
+                </Text>
+                {selectedMaterial?.instructor && (
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', marginTop: '2px' }}>
+                    📚 讲师：{selectedMaterial.instructor}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>
-              {selectedMaterial?.duration && `时长：${selectedMaterial.duration}`}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>
+                {selectedMaterial?.duration && `时长：${selectedMaterial.duration}`}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* 摘要区域 - 宽屏模式下隐藏 */}
       {!isWidescreenMode && (
@@ -272,13 +303,17 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
       {/* 视频播放器区域 */}
       <div style={{ 
         padding: '0',
+        margin: '0',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'transparent',
+        background: isWidescreenMode ? '#000' : 'transparent',
         flex: isWidescreenMode ? 1 : '0 0 auto',
-        minHeight: isWidescreenMode ? 'auto' : '180px',
-        maxHeight: isWidescreenMode ? 'auto' : '280px'
+        minHeight: isWidescreenMode ? '100vh' : '180px',
+        maxHeight: isWidescreenMode ? '100vh' : '280px',
+        height: isWidescreenMode ? '100vh' : 'auto',
+        width: '100%',
+        overflow: 'hidden'
       }}>
         {selectedMaterial && (
           <VideoPlayer
@@ -290,7 +325,9 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
             embedded={true}
             style={{
               width: '100%',
-              height: isWidescreenMode ? '100%' : 'auto'
+              height: isWidescreenMode ? '100vh' : 'auto',
+              maxWidth: '100%',
+              maxHeight: '100%'
             }}
             onTimeUpdate={onVideoTimeUpdate}
             isWidescreenMode={isWidescreenMode}

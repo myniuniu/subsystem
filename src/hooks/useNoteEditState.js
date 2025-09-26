@@ -3,7 +3,7 @@ import { generateCapabilityMap } from '../data/capabilityMapData.js';
 import { generateKnowledgeGraph } from '../data/knowledgeGraphData.js';
 import { CAPABILITY_CATEGORIES } from '../types/capabilityModel.js';
 import { KNOWLEDGE_GRAPH_CATEGORIES } from '../types/knowledgeGraph.js';
-import { DEFAULT_COURSE_VIDEOS } from '../constants/noteEditConstants.js';
+import { DEFAULT_COURSE_VIDEOS, VIEW_MODES } from '../constants/noteEditConstants.js';
 
 // 模拟字幕数据
 const subtitleData = [
@@ -109,6 +109,7 @@ export const useNoteEditState = (note, mode) => {
     report: [],
     ppt: [],
     webcode: [],
+    scenario: [], // 不再在这里放置模拟数据，使用真实的场景数据
     file: [],
     text: [],
     link: [],
@@ -152,7 +153,7 @@ export const useNoteEditState = (note, mode) => {
 
   // 嵌入式视频播放相关状态
   const [selectedMaterial, setSelectedMaterial] = useState(null);
-  const [currentView, setCurrentView] = useState('materials');
+  const [currentView, setCurrentView] = useState(VIEW_MODES.MATERIALS); // 使用常量而不是字符串
   const [videoStartTime, setVideoStartTime] = useState(0);
   const [currentSubtitle, setCurrentSubtitle] = useState('');
   const [videoProgress, setVideoProgress] = useState(0);

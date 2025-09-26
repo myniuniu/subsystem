@@ -5,7 +5,8 @@ import {
   message,
   Card,
   Dropdown,
-  Modal
+  Modal,
+  Progress
 } from 'antd';
 import {
   PlusOutlined,
@@ -447,7 +448,7 @@ const OperationPanel = ({ state, handlers }) => {
               )}
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                 <div style={{ fontSize: '16px', marginTop: '2px' }}>
-                  {getOperationIcon(record.type)}
+                  {record.isAIGenerated ? '🤖' : getOperationIcon(record.type)}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <Text 
@@ -463,6 +464,36 @@ const OperationPanel = ({ state, handlers }) => {
                   >
                     {record.title}
                   </Text>
+                  
+                  {/* AI创建场景进度显示 */}
+                  {record.status === 'creating' && record.progress !== undefined && (
+                    <div style={{ marginBottom: '4px' }}>
+                      <Progress 
+                        percent={record.progress} 
+                        size="small" 
+                        status="active"
+                        strokeColor={{
+                          '0%': '#667eea',
+                          '100%': '#764ba2',
+                        }}
+                        showInfo={false}
+                        style={{ marginBottom: '2px' }}
+                      />
+                      <Text style={{ fontSize: '10px', color: '#667eea', fontWeight: 500 }}>
+                        AI正在生成场景... {record.progress}%
+                      </Text>
+                    </div>
+                  )}
+                  
+                  {/* 完成状态显示 */}
+                  {record.status === 'completed' && record.isAIGenerated && (
+                    <div style={{ marginBottom: '4px' }}>
+                      <Text style={{ fontSize: '10px', color: '#52c41a', fontWeight: 500 }}>
+                        🎉 AI场景生成完成
+                      </Text>
+                    </div>
+                  )}
+                  
                   <div>
                     <Text style={{ fontSize: '10px', color: '#999' }}>
                       {record.source}
