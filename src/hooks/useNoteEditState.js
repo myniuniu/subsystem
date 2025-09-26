@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { generateCapabilityMap } from '../data/capabilityMapData.js';
 import { generateKnowledgeGraph } from '../data/knowledgeGraphData.js';
 import { CAPABILITY_CATEGORIES } from '../types/capabilityModel.js';
