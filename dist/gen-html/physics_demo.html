@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>物理实验演示教学</title>
+    <link rel="stylesheet" href="physics_demo.css">
+</head>
+<body>
+    <div class="container">
+        <header class="demo-header">
+            <h1>⚛️ 物理实验演示教学</h1>
+            <p>通过3D可视化展示物理实验过程，包含力学、电磁学、光学等实验的动态演示</p>
+        </header>
+
+        <div class="experiment-area">
+            <div class="controls-panel">
+                <div class="control-group">
+                    <h3>🔬 实验选择</h3>
+                    <div class="experiment-selector">
+                        <select id="experimentType">
+                            <option value="mechanics">力学实验</option>
+                            <option value="electromagnetics">电磁学实验</option>
+                            <option value="optics">光学实验</option>
+                            <option value="thermodynamics">热力学实验</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>📏 参数调节</h3>
+                    <div class="parameter-controls">
+                        <div class="parameter-control">
+                            <label>质量 (kg)</label>
+                            <div class="input-group">
+                                <input type="range" id="mass" min="0.1" max="10" value="1" step="0.1">
+                                <span id="massValue">1.0 kg</span>
+                            </div>
+                        </div>
+                        <div class="parameter-control">
+                            <label>力 (N)</label>
+                            <div class="input-group">
+                                <input type="range" id="force" min="0" max="50" value="10" step="0.5">
+                                <span id="forceValue">10.0 N</span>
+                            </div>
+                        </div>
+                        <div class="parameter-control">
+                            <label>角度 (°)</label>
+                            <div class="input-group">
+                                <input type="range" id="angle" min="0" max="90" value="30" step="1">
+                                <span id="angleValue">30°</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>🎮 控制面板</h3>
+                    <div class="control-buttons">
+                        <button id="startBtn" class="control-btn primary">开始实验</button>
+                        <button id="pauseBtn" class="control-btn">暂停</button>
+                        <button id="resetBtn" class="control-btn">重置</button>
+                        <button id="stepBtn" class="control-btn">单步执行</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>📊 数据显示</h3>
+                    <div class="data-display">
+                        <div class="data-item">
+                            <span class="label">速度:</span>
+                            <span id="velocity">0.0 m/s</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="label">加速度:</span>
+                            <span id="acceleration">0.0 m/s²</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="label">位移:</span>
+                            <span id="displacement">0.0 m</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="label">时间:</span>
+                            <span id="time">0.0 s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>🎯 学习目标</h3>
+                    <div class="learning-objectives">
+                        <ul>
+                            <li>理解牛顿运动定律</li>
+                            <li>观察力与运动的关系</li>
+                            <li>掌握物理量的计算</li>
+                            <li>培养实验观察能力</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="visualization-area">
+                <div class="scene-container">
+                    <canvas id="physicsCanvas" width="800" height="600"></canvas>
+                    <div class="scene-overlay">
+                        <div class="coordinate-system">
+                            <div class="axis x-axis">X</div>
+                            <div class="axis y-axis">Y</div>
+                        </div>
+                        <div class="measurement-tools">
+                            <div class="ruler" id="ruler"></div>
+                            <div class="protractor" id="protractor"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="experiment-steps">
+                    <h3>🔄 实验步骤</h3>
+                    <div class="steps-container">
+                        <div class="step active" data-step="1">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>设置初始条件</h4>
+                                <p>调节物体质量、施加力的大小和方向</p>
+                            </div>
+                        </div>
+                        <div class="step" data-step="2">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>开始实验</h4>
+                                <p>点击开始按钮，观察物体运动</p>
+                            </div>
+                        </div>
+                        <div class="step" data-step="3">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h4>数据分析</h4>
+                                <p>记录并分析实验数据</p>
+                            </div>
+                        </div>
+                        <div class="step" data-step="4">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <h4>得出结论</h4>
+                                <p>总结实验结果，验证物理定律</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3>📚 理论知识</h3>
+            <div class="theory-content">
+                <div class="formula-box">
+                    <h4>牛顿第二定律</h4>
+                    <div class="formula">F = ma</div>
+                    <p>物体的加速度与作用力成正比，与物体质量成反比</p>
+                </div>
+                <div class="concept-explanation">
+                    <h4>关键概念</h4>
+                    <ul>
+                        <li><strong>力(F):</strong> 改变物体运动状态的原因</li>
+                        <li><strong>质量(m):</strong> 物体惯性的量度</li>
+                        <li><strong>加速度(a):</strong> 速度变化的快慢</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="physics_demo.js"></script>
+</body>
+</html>

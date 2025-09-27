@@ -54,7 +54,10 @@ import {
   NodeIndexOutlined,
   RadarChartOutlined,
   ExperimentOutlined,
-  ShareAltOutlined
+  ShareAltOutlined,
+  PlayCircleOutlined,
+  AppstoreOutlined,
+  UnorderedListOutlined
 } from '@ant-design/icons';
 import NoteEditor from './NoteEditor';
 import CategoryTagManager from './CategoryTagManager';
@@ -68,6 +71,7 @@ import notesService from '../services/notesService';
 import courseSelectionService from '../services/courseSelectionService';
 import themeShareService from '../services/themeShareService';
 import mockDataGenerator from '../utils/mockDataGenerator';
+import { TRAINING_STATUS, getTrainingStatusInfo } from '../utils/trainingStatusUtils';
 import './SmartNotes.css';
 
 const { Content, Sider } = Layout;
@@ -87,6 +91,8 @@ const SmartNotes = ({ onViewChange }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('organizational_training');
   const [selectedTags, setSelectedTags] = useState([]);
+  const [showInProgressOnly, setShowInProgressOnly] = useState(true); // 默认只显示进行中的项目
+  const [viewMode, setViewMode] = useState('card'); // 'card' 或 'learning-center'
   const [isEditorVisible, setIsEditorVisible] = useState(false);
   const [isCategoryManagerVisible, setIsCategoryManagerVisible] = useState(false);
   const [isAIAssistantVisible, setIsAIAssistantVisible] = useState(false);
@@ -237,8 +243,17 @@ const SmartNotes = ({ onViewChange }) => {
         filtered = filtered.filter(note => 
           note.courseType === 'organizational_training' || 
           note.tags?.includes('组织培训') ||
-          note.category === 'organizational_training'
+          note.category === 'organizational_training' ||
+          note.source === '组织培训'
         );
+        
+        // 在组织培训分类下，默认只显示进行中的项目
+        if (showInProgressOnly) {
+          filtered = filtered.filter(note => {
+            const statusInfo = getTrainingStatusInfo(note);
+            return statusInfo && statusInfo.status === TRAINING_STATUS.IN_PROGRESS;
+          });
+        }
       } else if (selectedCategory === 'learning_square') {
         // 筛选学习广场相关的笔记
         filtered = filtered.filter(note => 
@@ -269,7 +284,7 @@ const SmartNotes = ({ onViewChange }) => {
     }
 
     setFilteredNotes(filtered);
-  }, [notes, selectedCategory, selectedTags, searchTerm]);
+  }, [notes, selectedCategory, selectedTags, searchTerm, showInProgressOnly]);
 
   // 创建新笔记
   const handleCreateNote = () => {
@@ -836,13 +851,18 @@ ${aiSelectedNote.content}`;
                   <BookOutlined className="category-icon" />
                   <span className="category-label">🏢 组织培训</span>
                   <span className="category-count">{(() => {
-                    const orgCount = notes.filter(note => 
+                    const orgTrainingNotes = notes.filter(note => 
                       note.courseType === 'organizational_training' || 
                       note.tags?.includes('组织培训') ||
                       note.category === 'organizational_training' ||
                       note.source === '组织培训'
-                    ).length;
-                    return orgCount;
+                    );
+                    // 只显示进行中的数量
+                    const inProgressCount = orgTrainingNotes.filter(note => {
+                      const statusInfo = getTrainingStatusInfo(note);
+                      return statusInfo && statusInfo.status === TRAINING_STATUS.IN_PROGRESS;
+                    }).length;
+                    return inProgressCount;
                   })()}</span>
                 </div>
                 
@@ -990,12 +1010,37 @@ ${aiSelectedNote.content}`;
           <div className="content-header">
             <div className="header-left">
               <Title level={3}>小黑屋-沉浸式AI学习空间</Title>
-              <Text type="secondary">
-                共 {filteredNotes.length} 个主题
-                {selectedCategory !== 'all' && (
-                  <span> · {getCategoryInfo(selectedCategory).label}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <Text type="secondary">
+                  共 {filteredNotes.length} 个主题
+                  {selectedCategory !== 'all' && (
+                    <span> · {getCategoryInfo(selectedCategory).label}</span>
+                  )}
+                </Text>
+                
+                {/* 布局切换控件 - 当组织培训数量较少时显示 */}
+                {selectedCategory === 'organizational_training' && filteredNotes.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Text style={{ fontSize: '12px', color: '#666' }}>布局:</Text>
+                    <Button.Group size="small">
+                      <Button 
+                        size="small"
+                        type={viewMode === 'card' ? 'primary' : 'default'}
+                        icon={<AppstoreOutlined />}
+                        onClick={() => setViewMode('card')}
+                        title="卡片布局"
+                      />
+                      <Button 
+                        size="small"
+                        type={viewMode === 'learning-center' ? 'primary' : 'default'}
+                        icon={<UnorderedListOutlined />}
+                        onClick={() => setViewMode('learning-center')}
+                        title="学习中心布局"
+                      />
+                    </Button.Group>
+                  </div>
                 )}
-              </Text>
+              </div>
             </div>
             
             <div className="header-actions">
@@ -1094,6 +1139,173 @@ ${aiSelectedNote.content}`;
                   创建第一个主题
                 </Button>
               </Empty>
+            ) : viewMode === 'learning-center' && selectedCategory === 'organizational_training' ? (
+              // 学习中心布局 - 当组织培训数量较少时显示
+              <div className="learning-center-layout">
+                {filteredNotes.map(note => {
+                  const trainingStatus = getTrainingStatusInfo(note);
+                  
+                  return (
+                    <div key={note.id} className="learning-center-card" style={{
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      borderRadius: '16px',
+                      padding: '24px',
+                      marginBottom: '20px',
+                      color: 'white',
+                      boxShadow: '0 8px 32px rgba(102, 126, 234, 0.3)',
+                      cursor: 'pointer'
+                    }} onClick={() => handleEditNote(note)}>
+                      
+                      {/* 头部区域 */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                        <div style={{ flex: 1 }}>
+                          <h3 style={{ color: 'white', fontSize: '18px', fontWeight: 'bold', margin: '0 0 8px 0' }}>
+                            {note.title}
+                          </h3>
+                          
+                          {trainingStatus && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                              <div style={{
+                                background: 'rgba(255, 255, 255, 0.2)',
+                                padding: '4px 12px',
+                                borderRadius: '20px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                              }}>
+                                <span style={{ fontSize: '12px' }}>{trainingStatus.statusConfig.icon}</span>
+                                <Text style={{ color: 'white', fontSize: '12px', fontWeight: 'bold' }}>
+                                  {trainingStatus.statusConfig.label}
+                                </Text>
+                              </div>
+                              
+                              {trainingStatus.isInProgress && trainingStatus.remainingDays > 0 && (
+                                <div style={{
+                                  background: 'rgba(245, 34, 45, 0.9)',
+                                  padding: '4px 12px',
+                                  borderRadius: '20px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
+                                }}>
+                                  <span style={{ fontSize: '10px' }}>⏰</span>
+                                  <Text style={{ color: 'white', fontSize: '11px', fontWeight: 'bold' }}>
+                                    剩余{trainingStatus.remainingDays}天
+                                  </Text>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <Button 
+                          type="primary" 
+                          ghost 
+                          size="small"
+                          icon={<PlayCircleOutlined />}
+                          onClick={(e) => { e.stopPropagation(); handleViewNote(note); }}
+                          style={{ borderColor: 'rgba(255,255,255,0.8)', color: 'white' }}
+                        >
+                          继续学习
+                        </Button>
+                      </div>
+                      
+                      {/* 进度区域 */}
+                      {trainingStatus && trainingStatus.isInProgress && (
+                        <div style={{
+                          background: 'rgba(255, 255, 255, 0.15)',
+                          borderRadius: '12px',
+                          padding: '16px',
+                          marginBottom: '16px'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                            <Text style={{ color: 'white', fontSize: '14px', fontWeight: 'bold' }}>学习进度</Text>
+                            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: '12px' }}>
+                              {trainingStatus.currentProgress}% 完成
+                            </Text>
+                          </div>
+                          
+                          <Progress 
+                            percent={trainingStatus.currentProgress} 
+                            strokeColor={{
+                              '0%': '#ffd700',
+                              '50%': '#87ceeb',
+                              '100%': '#98fb98'
+                            }}
+                            trailColor="rgba(255,255,255,0.2)"
+                            showInfo={false}
+                            style={{ marginBottom: '12px' }}
+                          />
+                          
+                          {trainingStatus.dailyLearningTime.dailyMinutes > 0 && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ fontSize: '12px' }}>📖</span>
+                              <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: '12px' }}>
+                                建议每日学习: {trainingStatus.dailyLearningTime.formattedTime}
+                              </Text>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* 快捷操作区域 */}
+                      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                        <Button 
+                          size="small" 
+                          style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white' }}
+                          onClick={(e) => { e.stopPropagation(); handleEditNote(note); }}
+                        >
+                          📝 编辑笔记
+                        </Button>
+                        
+                        <Button 
+                          size="small" 
+                          style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white' }}
+                          onClick={(e) => { e.stopPropagation(); handleShareTheme(note); }}
+                        >
+                          🔗 分享主题
+                        </Button>
+                        
+                        <Button 
+                          size="small" 
+                          style={{ 
+                            background: note.starred ? 'rgba(255,215,0,0.3)' : 'rgba(255,255,255,0.2)', 
+                            border: 'none', 
+                            color: 'white'
+                          }}
+                          onClick={(e) => { e.stopPropagation(); handleToggleStar(note.id); }}
+                        >
+                          {note.starred ? '⭐ 已收藏' : '☆ 收藏'}
+                        </Button>
+                      </div>
+                      
+                      {/* 学习建议卡片 */}
+                      {trainingStatus && trainingStatus.isInProgress && (
+                        <div style={{
+                          background: 'rgba(255, 255, 255, 0.1)',
+                          borderRadius: '8px',
+                          padding: '12px',
+                          marginTop: '16px',
+                          border: '1px solid rgba(255,255,255,0.2)'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                            <span style={{ fontSize: '14px' }}>💡</span>
+                            <Text style={{ color: 'white', fontSize: '13px', fontWeight: 'bold' }}>学习建议</Text>
+                          </div>
+                          <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: '12px', lineHeight: '1.5' }}>
+                            {trainingStatus.remainingDays <= 7 
+                              ? '培训即将结束，建议加快学习进度，确保按时完成所有课程内容。'
+                              : trainingStatus.currentProgress < 50
+                              ? '当前进度较慢，建议每天增加学习时间，保持学习节奏。'
+                              : '学习进度良好，继续保持当前的学习节奏，注意巩固已学知识。'
+                            }
+                          </Text>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             ) : (
               <Row gutter={[16, 16]}>
                 {filteredNotes.map(note => {
@@ -1146,6 +1358,44 @@ ${aiSelectedNote.content}`;
                             <Text type="secondary" className="category-text">
                               {categoryInfo.label}
                             </Text>
+                            
+                            {/* 组织培训状态显示 */}
+                            {(() => {
+                              const isOrgTraining = (
+                                selectedCategory === 'organizational_training' ||
+                                note.source === '组织培训' ||
+                                note.tags?.includes('组织培训') ||
+                                note.category === 'organizational_training' ||
+                                note.courseType === 'organizational_training' ||
+                                note.title?.includes('【组织培训】')
+                              );
+                              
+                              if (isOrgTraining) {
+                                try {
+                                  const trainingStatus = getTrainingStatusInfo(note);
+                                  
+                                  if (trainingStatus) {
+                                    const { statusConfig, isInProgress, remainingDays } = trainingStatus;
+                                    return (
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '8px' }}>
+                                        <span style={{ fontSize: '10px' }}>{statusConfig.icon}</span>
+                                        <Text style={{ fontSize: '10px', color: statusConfig.color, fontWeight: 'bold' }}>
+                                          {statusConfig.label}
+                                        </Text>
+                                        {isInProgress && remainingDays > 0 && (
+                                          <Text style={{ fontSize: '9px', color: '#f5222d', fontWeight: 'bold' }}>
+                                            剩余{remainingDays}天
+                                          </Text>
+                                        )}
+                                      </div>
+                                    );
+                                  }
+                                } catch (error) {
+                                  console.error('获取培训状态失败:', error);
+                                }
+                              }
+                              return null;
+                            })()} 
                           </div>
                           {note.starred && (
                             <StarFilled className="star-badge" />
@@ -1301,16 +1551,7 @@ ${aiSelectedNote.content}`;
                           return null;
                         })()}
                         
-                        <div className="note-meta">
-                          <Space split={<Divider type="vertical" />}>
-                            <Text type="secondary" className="meta-item">
-                              <ClockCircleOutlined /> {note.updatedAt}
-                            </Text>
-                            <Text type="secondary" className="meta-item">
-                              {note.wordCount} 字
-                            </Text>
-                          </Space>
-                        </div>
+                        {/* 移除note-meta部分（时间和字数信息） */}
                       </Card>
                     </Col>
                   );

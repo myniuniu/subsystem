@@ -126,7 +126,8 @@ export const useNoteEditState = (note, mode) => {
       ],
       'study-result': [],
       question: [], // 添加试题操作类型
-      'exam-paper': [] // 添加试卷操作类型
+      'exam-paper': [], // 添加试卷操作类型
+      'learning-plan': [] // 添加学习计划操作类型
     };
     
     // 如果有传入的operationRecords，合并并确保每个字段都是数组
@@ -219,6 +220,10 @@ export const useNoteEditState = (note, mode) => {
   // 试题查看状态
   const [rightPanelQuestionRecord, setRightPanelQuestionRecord] = useState(null);
   const [rightPanelQuestionContent, setRightPanelQuestionContent] = useState('');
+  
+  // 学习计划查看状态
+  const [rightPanelLearningPlanRecord, setRightPanelLearningPlanRecord] = useState(null);
+  const [rightPanelLearningPlanContent, setRightPanelLearningPlanContent] = useState('');
 
   // 能力模型相关状态
   const [capabilityMap, setCapabilityMap] = useState(null);
@@ -423,6 +428,12 @@ export const useNoteEditState = (note, mode) => {
     setRightPanelQuestionRecord,
     rightPanelQuestionContent,
     setRightPanelQuestionContent,
+    
+    // 学习计划查看状态
+    rightPanelLearningPlanRecord,
+    setRightPanelLearningPlanRecord,
+    rightPanelLearningPlanContent,
+    setRightPanelLearningPlanContent,
 
     // 能力模型和知识图谱状态
     capabilityMap,

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数学演示教学</title>
+    <link rel="stylesheet" href="math_demo.css">
+</head>
+<body>
+    <div class="demo-container">
+        <!-- 头部标题 -->
+        <header class="demo-header">
+            <h1>数学演示教学</h1>
+            <p>AI智能中心 - 交互式数学可视化平台</p>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <div class="main-content">
+            <!-- 左侧控制面板 -->
+            <div class="control-panel">
+                <!-- 数学主题选择 -->
+                <div class="panel-section">
+                    <h3>数学主题</h3>
+                    <select id="mathTopic" class="control-select">
+                        <option value="functions">函数图像</option>
+                        <option value="geometry">几何图形</option>
+                        <option value="calculus">微积分</option>
+                        <option value="statistics">统计概率</option>
+                        <option value="algebra">代数方程</option>
+                        <option value="trigonometry">三角函数</option>
+                        <option value="vectors">向量运算</option>
+                        <option value="matrices">矩阵变换</option>
+                    </select>
+                </div>
+
+                <!-- 函数参数 -->
+                <div class="panel-section">
+                    <h3>函数参数</h3>
+                    <div class="function-input">
+                        <label>函数表达式:</label>
+                        <input type="text" id="functionExpression" value="sin(x)" placeholder="输入函数表达式">
+                        <button id="plotFunction" class="btn btn-small">绘制</button>
+                    </div>
+                    <div class="parameter-controls">
+                        <div class="parameter-control">
+                            <label>参数 a:</label>
+                            <input type="range" id="paramA" min="-5" max="5" step="0.1" value="1">
+                            <span id="paramAValue">1.0</span>
+                        </div>
+                        <div class="parameter-control">
+                            <label>参数 b:</label>
+                            <input type="range" id="paramB" min="-5" max="5" step="0.1" value="0">
+                            <span id="paramBValue">0.0</span>
+                        </div>
+                        <div class="parameter-control">
+                            <label>参数 c:</label>
+                            <input type="range" id="paramC" min="-5" max="5" step="0.1" value="0">
+                            <span id="paramCValue">0.0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 坐标系设置 -->
+                <div class="panel-section">
+                    <h3>坐标系设置</h3>
+                    <div class="axis-controls">
+                        <div class="range-control">
+                            <label>X轴范围:</label>
+                            <input type="number" id="xMin" value="-10" step="0.5">
+                            <span>到</span>
+                            <input type="number" id="xMax" value="10" step="0.5">
+                        </div>
+                        <div class="range-control">
+                            <label>Y轴范围:</label>
+                            <input type="number" id="yMin" value="-10" step="0.5">
+                            <span>到</span>
+                            <input type="number" id="yMax" value="10" step="0.5">
+                        </div>
+                        <div class="grid-control">
+                            <label>
+                                <input type="checkbox" id="showGrid" checked>
+                                显示网格
+                            </label>
+                        </div>
+                        <div class="grid-control">
+                            <label>
+                                <input type="checkbox" id="showAxes" checked>
+                                显示坐标轴
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 几何图形 -->
+                <div class="panel-section">
+                    <h3>几何图形</h3>
+                    <div class="geometry-controls">
+                        <select id="geometryType">
+                            <option value="circle">圆形</option>
+                            <option value="triangle">三角形</option>
+                            <option value="rectangle">矩形</option>
+                            <option value="polygon">多边形</option>
+                            <option value="ellipse">椭圆</option>
+                        </select>
+                        <div class="geometry-params">
+                            <div class="param-control">
+                                <label>半径/边长:</label>
+                                <input type="range" id="geometrySize" min="1" max="8" step="0.1" value="3">
+                                <span id="geometrySizeValue">3.0</span>
+                            </div>
+                            <div class="param-control">
+                                <label>旋转角度:</label>
+                                <input type="range" id="geometryRotation" min="0" max="360" step="1" value="0">
+                                <span id="geometryRotationValue">0°</span>
+                            </div>
+                        </div>
+                        <button id="addGeometry" class="btn btn-primary">添加图形</button>
+                    </div>
+                </div>
+
+                <!-- 动画控制 -->
+                <div class="panel-section">
+                    <h3>动画控制</h3>
+                    <div class="animation-controls">
+                        <div class="speed-control">
+                            <label>动画速度:</label>
+                            <input type="range" id="animationSpeed" min="0.1" max="3.0" step="0.1" value="1.0">
+                            <span id="speedValue">1.0x</span>
+                        </div>
+                        <div class="control-buttons">
+                            <button id="playAnimation" class="btn btn-success">播放</button>
+                            <button id="pauseAnimation" class="btn btn-warning">暂停</button>
+                            <button id="resetAnimation" class="btn btn-secondary">重置</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 计算工具 -->
+                <div class="panel-section">
+                    <h3>计算工具</h3>
+                    <div class="calculation-tools">
+                        <div class="calc-input">
+                            <label>计算表达式:</label>
+                            <input type="text" id="calcExpression" placeholder="例: 2*x^2 + 3*x - 1">
+                            <button id="calculate" class="btn btn-info">计算</button>
+                        </div>
+                        <div class="calc-result">
+                            <label>结果:</label>
+                            <span id="calcResult">-</span>
+                        </div>
+                        <div class="derivative-tool">
+                            <button id="calcDerivative" class="btn btn-small">求导</button>
+                            <button id="calcIntegral" class="btn btn-small">积分</button>
+                            <button id="findRoots" class="btn btn-small">求根</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 数据显示 -->
+                <div class="panel-section">
+                    <h3>数学数据</h3>
+                    <div class="data-display">
+                        <div class="data-item">
+                            <label>当前点坐标:</label>
+                            <span id="currentPoint">(0, 0)</span>
+                        </div>
+                        <div class="data-item">
+                            <label>函数值:</label>
+                            <span id="functionValue">0</span>
+                        </div>
+                        <div class="data-item">
+                            <label>导数值:</label>
+                            <span id="derivativeValue">0</span>
+                        </div>
+                        <div class="data-item">
+                            <label>积分值:</label>
+                            <span id="integralValue">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 学习目标 -->
+                <div class="panel-section">
+                    <h3>学习目标</h3>
+                    <ul class="learning-objectives">
+                        <li>理解函数的图像特征和性质</li>
+                        <li>掌握几何图形的基本概念</li>
+                        <li>学习微积分的基本思想</li>
+                        <li>培养数学建模和分析能力</li>
+                        <li>提高数学可视化理解能力</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 右侧可视化区域 -->
+            <div class="visualization-area">
+                <!-- 主绘图区域 -->
+                <div class="main-plot">
+                    <h3>数学图形绘制区</h3>
+                    <div class="plot-container">
+                        <canvas id="mathCanvas" width="600" height="500"></canvas>
+                        <div class="plot-tools">
+                            <button id="zoomIn" class="tool-btn">放大</button>
+                            <button id="zoomOut" class="tool-btn">缩小</button>
+                            <button id="resetView" class="tool-btn">重置视图</button>
+                            <button id="exportImage" class="tool-btn">导出图片</button>
+                        </div>
+                        <div class="coordinate-display">
+                            <span>鼠标位置: <span id="mouseCoords">(0, 0)</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3D图形显示 -->
+                <div class="visualization-3d">
+                    <h3>3D数学图形</h3>
+                    <div class="visualization-3d-container">
+                        <canvas id="math3DCanvas" width="400" height="300"></canvas>
+                        <div class="visualization-3d-controls">
+                            <div class="rotation-controls">
+                                <label>X轴旋转:</label>
+                                <input type="range" id="rotationX" min="0" max="360" step="1" value="45">
+                                <span id="rotationXValue">45°</span>
+                            </div>
+                            <div class="rotation-controls">
+                                <label>Y轴旋转:</label>
+                                <input type="range" id="rotationY" min="0" max="360" step="1" value="45">
+                                <span id="rotationYValue">45°</span>
+                            </div>
+                            <div class="rotation-controls">
+                                <label>Z轴旋转:</label>
+                                <input type="range" id="rotationZ" min="0" max="360" step="1" value="0">
+                                <span id="rotationZValue">0°</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 统计图表 -->
+                <div class="statistics-chart">
+                    <h3>统计图表</h3>
+                    <div class="chart-container">
+                        <canvas id="statisticsCanvas" width="400" height="250"></canvas>
+                        <div class="chart-controls">
+                            <select id="chartType">
+                                <option value="histogram">直方图</option>
+                                <option value="scatter">散点图</option>
+                                <option value="line">折线图</option>
+                                <option value="pie">饼图</option>
+                                <option value="box">箱线图</option>
+                            </select>
+                            <button id="generateData" class="btn btn-small">生成数据</button>
+                            <button id="updateChart" class="btn btn-small">更新图表</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部实验步骤 -->
+        <div class="experiment-steps">
+            <h3>学习步骤</h3>
+            <div class="steps-container">
+                <div class="step" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>选择主题</h4>
+                        <p>选择要学习的数学主题和概念</p>
+                    </div>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>设置参数</h4>
+                        <p>调节函数参数和坐标系设置</p>
+                    </div>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>可视化观察</h4>
+                        <p>观察图形变化和数学规律</p>
+                    </div>
+                </div>
+                <div class="step" data-step="4">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4>深入分析</h4>
+                        <p>使用计算工具进行深入分析</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 理论知识 -->
+        <div class="theory-section">
+            <h3>数学理论</h3>
+            <div class="theory-content">
+                <div class="theory-item">
+                    <h4>函数概念</h4>
+                    <p>函数是描述两个变量之间对应关系的数学概念，是数学分析的基础。</p>
+                </div>
+                <div class="theory-item">
+                    <h4>几何直观</h4>
+                    <p>几何图形帮助我们直观理解抽象的数学概念和关系。</p>
+                </div>
+                <div class="theory-item">
+                    <h4>微积分思想</h4>
+                    <p>微积分研究变化率和累积量，是现代数学和科学的重要工具。</p>
+                </div>
+                <div class="theory-item">
+                    <h4>数学建模</h4>
+                    <p>用数学语言描述现实世界的问题，是数学应用的重要方法。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="math_demo.js"></script>
+</body>
+</html>

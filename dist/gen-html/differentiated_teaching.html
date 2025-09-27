@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>差异化教学策略实施</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .container {
+            text-align: center;
+            color: white;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: adaptive-learning 3s ease-in-out infinite;
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .teaching-strategies {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .strategy {
+            text-align: center;
+            padding: 20px 15px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+        }
+        
+        .strategy:hover {
+            transform: translateY(-3px) scale(1.02);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .strategy-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .strategy-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .strategy-desc {
+            font-size: 11px;
+            opacity: 0.8;
+            line-height: 1.3;
+        }
+        
+        @keyframes adaptive-learning {
+            0%, 100% { 
+                transform: scale(1) rotate(0deg);
+            }
+            33% { 
+                transform: scale(1.05) rotate(2deg);
+            }
+            66% { 
+                transform: scale(1.05) rotate(-2deg);
+            }
+        }
+        
+        .learning-paths {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .path {
+            position: absolute;
+            width: 3px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), transparent);
+            border-radius: 2px;
+            animation: path-flow 4s ease-in-out infinite;
+        }
+        
+        .path:nth-child(1) {
+            height: 60px;
+            top: 15%;
+            left: 20%;
+            animation-delay: 0s;
+        }
+        
+        .path:nth-child(2) {
+            height: 80px;
+            top: 25%;
+            left: 50%;
+            animation-delay: 1s;
+        }
+        
+        .path:nth-child(3) {
+            height: 70px;
+            top: 45%;
+            right: 25%;
+            animation-delay: 2s;
+        }
+        
+        @keyframes path-flow {
+            0%, 100% {
+                opacity: 0.3;
+                transform: scaleY(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scaleY(1.2);
+            }
+        }
+        
+        .student-types {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .student {
+            position: absolute;
+            font-size: 24px;
+            animation: student-diversity 5s ease-in-out infinite;
+        }
+        
+        .student:nth-child(1) {
+            top: 20%;
+            left: 15%;
+            animation-delay: 0s;
+        }
+        
+        .student:nth-child(2) {
+            top: 30%;
+            right: 20%;
+            animation-delay: 1.5s;
+        }
+        
+        .student:nth-child(3) {
+            bottom: 30%;
+            left: 25%;
+            animation-delay: 3s;
+        }
+        
+        .student:nth-child(4) {
+            bottom: 20%;
+            right: 30%;
+            animation-delay: 4.5s;
+        }
+        
+        @keyframes student-diversity {
+            0%, 100% {
+                opacity: 0.4;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.1);
+            }
+        }
+        
+        .connection-web {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .connection {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: connect 6s ease-in-out infinite;
+        }
+        
+        .connection:nth-child(1) {
+            top: 25%;
+            left: 20%;
+            width: 40%;
+            transform: rotate(15deg);
+            animation-delay: 0s;
+        }
+        
+        .connection:nth-child(2) {
+            top: 60%;
+            right: 20%;
+            width: 35%;
+            transform: rotate(-20deg);
+            animation-delay: 3s;
+        }
+        
+        @keyframes connect {
+            0%, 100% {
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="learning-paths">
+        <div class="path"></div>
+        <div class="path"></div>
+        <div class="path"></div>
+    </div>
+    
+    <div class="student-types">
+        <div class="student">👦</div>
+        <div class="student">👧</div>
+        <div class="student">🧒</div>
+        <div class="student">👶</div>
+    </div>
+    
+    <div class="connection-web">
+        <div class="connection"></div>
+        <div class="connection"></div>
+    </div>
+    
+    <div class="container">
+        <div class="icon">🎯📚</div>
+        <h1 class="title">差异化教学策略实施</h1>
+        <p class="subtitle">因材施教，让每个学生<br>都能得到适合的教育</p>
+        
+        <div class="teaching-strategies">
+            <div class="strategy">
+                <span class="strategy-icon">🔍</span>
+                <div class="strategy-name">学情分析</div>
+                <div class="strategy-desc">深入了解学生的学习特点</div>
+            </div>
+            <div class="strategy">
+                <span class="strategy-icon">🎨</span>
+                <div class="strategy-name">多元方法</div>
+                <div class="strategy-desc">运用多种教学方法和手段</div>
+            </div>
+            <div class="strategy">
+                <span class="strategy-icon">📊</span>
+                <div class="strategy-name">分层设计</div>
+                <div class="strategy-desc">设计不同层次的学习任务</div>
+            </div>
+            <div class="strategy">
+                <span class="strategy-icon">⚡</span>
+                <div class="strategy-name">灵活调整</div>
+                <div class="strategy-desc">根据反馈及时调整策略</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

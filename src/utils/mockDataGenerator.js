@@ -229,11 +229,11 @@ class MockDataGenerator {
         },
         createdAt: new Date('2024-01-15'),
         updatedAt: new Date('2024-01-20'),
-        // 模拟学习时间信息
+        // 模拟学习时间信息 - 进行中的培训
         learningSchedule: {
-          startTime: '12/26 09:00',
-          endTime: '12/26 17:00',
-          duration: '8小时'
+          startTime: '9/25 09:00',
+          endTime: '9/30 17:00',
+          duration: '5天'
         }
       },
       {
@@ -255,11 +255,11 @@ class MockDataGenerator {
         },
         createdAt: new Date('2024-01-10'),
         updatedAt: new Date('2024-01-18'),
-        // 模拟学习时间信息
+        // 模拟学习时间信息 - 进行中的培训
         learningSchedule: {
-          startTime: '12/25 14:00',
-          endTime: '12/25 18:00',
-          duration: '4小时'
+          startTime: '9/26 14:00',
+          endTime: '9/29 18:00',
+          duration: '3天'
         }
       },
       {
@@ -307,11 +307,11 @@ class MockDataGenerator {
         },
         createdAt: new Date('2024-01-05'),
         updatedAt: new Date('2024-01-25'),
-        // 模拟学习时间信息
+        // 模拟学习时间信息 - 已结束的培训
         learningSchedule: {
-          startTime: '12/20 09:30',
-          endTime: '12/20 16:30',
-          duration: '7小时'
+          startTime: '9/15 09:30',
+          endTime: '9/22 16:30',
+          duration: '7天'
         }
       },
       {
@@ -367,11 +367,113 @@ class MockDataGenerator {
         },
         createdAt: new Date('2024-01-22'),
         updatedAt: new Date('2024-01-22'),
-        // 模拟学习时间信息
+        // 模拟学习时间信息 - 未开始的培训
         learningSchedule: {
-          startTime: '12/30 10:00',
-          endTime: '12/30 15:00',
-          duration: '5小时'
+          startTime: '10/5 10:00',
+          endTime: '10/12 15:00',
+          duration: '7天'
+        }
+      },
+      {
+        id: generateId(),
+        title: '【组织培训】心理健康指导与危机干预',
+        content: '# 心理健康指导与危机干预\n\n## 课程基本信息\n\n**课程名称：** 心理健康指导与危机干预\n**课程类型：** 组织培训\n**课程分类：** 心理健康\n**课程状态：** 🔄 进行中\n\n## 课程描述\n\n针对教师的心理健康指导和危机干预能力培训。\n\n## 学习笔记\n\n*在此处记录学习心得和要点...*',
+        category: 'study',
+        tags: ['组织培训', '心理健康', '危机干预', '辅导'],
+        starred: false,
+        source: '组织培训',
+        courseId: 'org_005',
+        courseType: 'organizational_training',
+        videoInfo: {
+          type: 'multi_video',
+          totalVideos: 6,
+          totalDuration: 7200, // 120分钟
+          watchedDuration: 1800, // 30分钟，25%进度
+          overallProgress: 25,
+          videos: [
+            {
+              id: 'video_psych_001',
+              title: '心理健康基础理论',
+              url: 'https://example.com/psych1',
+              duration: 1200, // 20分钟
+              progress: 100,
+              instructor: '李博士'
+            },
+            {
+              id: 'video_psych_002',
+              title: '危机识别与评估',
+              url: 'https://example.com/psych2',
+              duration: 1200, // 20分钟
+              progress: 50,
+              instructor: '李博士'
+            },
+            {
+              id: 'video_psych_003',
+              title: '干预技能与方法',
+              url: 'https://example.com/psych3',
+              duration: 1200, // 20分钟
+              progress: 0,
+              instructor: '李博士'
+            },
+            {
+              id: 'video_psych_004',
+              title: '案例分析与实操',
+              url: 'https://example.com/psych4',
+              duration: 1200, // 20分钟
+              progress: 0,
+              instructor: '李博士'
+            },
+            {
+              id: 'video_psych_005',
+              title: '心理辅导技巧',
+              url: 'https://example.com/psych5',
+              duration: 1200, // 20分钟
+              progress: 0,
+              instructor: '李博士'
+            },
+            {
+              id: 'video_psych_006',
+              title: '专业伦理与边界',
+              url: 'https://example.com/psych6',
+              duration: 1200, // 20分钟
+              progress: 0,
+              instructor: '李博士'
+            }
+          ]
+        },
+        createdAt: new Date('2024-01-28'),
+        updatedAt: new Date('2024-01-28'),
+        // 模拟学习时间信息 - 进行中的培训，剩余时间较短
+        learningSchedule: {
+          startTime: '9/27 14:00',
+          endTime: '9/30 18:00',
+          duration: '3天'
+        }
+      },
+      {
+        id: generateId(),
+        title: '【组织培训】信息技术与教学创新',
+        content: '# 信息技术与教学创新\n\n## 课程基本信息\n\n**课程名称：** 信息技术与教学创新\n**课程类型：** 组织培训\n**课程分类：** 技术创新\n**课程状态：** 📅 未开始\n\n## 课程描述\n\n探索信息技术在教学中的创新应用，提升数字化教学能力。\n\n## 学习笔记\n\n*在此处记录学习心得和要点...*',
+        category: 'study',
+        tags: ['组织培训', '信息技术', '教学创新', '数字化'],
+        starred: true,
+        source: '组织培训',
+        courseId: 'org_006',
+        courseType: 'organizational_training',
+        videoInfo: {
+          type: 'single_video',
+          url: 'https://example.com/tech-innovation',
+          duration: 3600, // 60分钟
+          progress: 0, // 未开始
+          instructor: '王工程师'
+        },
+        createdAt: new Date('2024-01-20'),
+        updatedAt: new Date('2024-01-20'),
+        // 模拟学习时间信息 - 未开始的培训
+        learningSchedule: {
+          startTime: '10/8 09:00',
+          endTime: '10/15 17:00',
+          duration: '7天'
         }
       }
     ];

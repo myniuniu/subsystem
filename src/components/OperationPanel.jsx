@@ -6,16 +6,25 @@ import {
   Card,
   Dropdown,
   Modal,
-  Progress
+  Progress,
+  Row,
+  Col,
+  Statistic,
+  List,
+  Tag
 } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
   ArrowLeftOutlined,
-  DeleteOutlined
+  DeleteOutlined,
+  PlayCircleOutlined,
+  FileTextOutlined,
+  CalendarOutlined
 } from '@ant-design/icons';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import dayjs from 'dayjs';
 import { 
   OPERATION_CARDS, 
   REPORT_DROPDOWN_ITEMS,
@@ -26,6 +35,8 @@ import {
 import { getOperationIcon } from '../utils/noteEditUtils';
 import QuestionConfigModal from './QuestionConfigModal';
 import ThemeSelectModal from './ThemeSelectModal';
+import LearningPlanModal from './LearningPlanModal';
+import LearningPlanCalendar from './LearningPlanCalendar';
 
 const { Title, Text } = Typography;
 
@@ -176,6 +187,10 @@ const OperationPanel = ({ state, handlers }) => {
     setRightPanelQuestionRecord,
     rightPanelQuestionContent,
     setRightPanelQuestionContent,
+    rightPanelLearningPlanRecord,
+    setRightPanelLearningPlanRecord,
+    rightPanelLearningPlanContent,
+    setRightPanelLearningPlanContent,
     uploadedFiles,
     addedTexts,
     courseVideos,
@@ -190,28 +205,32 @@ const OperationPanel = ({ state, handlers }) => {
     onMoreAction
   } = handlers;
 
-  // 状态管理 - 确保试卷不在默认显示列表中，知识图谱和试题默认显示
+  // 状态管理 - 确保试卷不在默认显示列表中，知识图谱和试题默认显示，学习计划优先显示
   const [visibleCards, setVisibleCards] = useState(() => {
     const defaultCards = OPERATION_CARDS.filter(card => 
       card.key !== 'addTool' && 
       card.key !== 'exam-paper'
     );
-    // 确保知识图谱在第一位，试题在第二位
+    // 确保知识图谱在第一位，试题在第二位，学习计划在第三位
     const knowledgeGraphCard = defaultCards.find(card => card.key === 'knowledge-graph');
     const questionCard = defaultCards.find(card => card.key === 'question');
+    const learningPlanCard = defaultCards.find(card => card.key === 'learning-plan');
     const otherCards = defaultCards.filter(card => 
       card.key !== 'knowledge-graph' && 
-      card.key !== 'question'
+      card.key !== 'question' &&
+      card.key !== 'learning-plan'
     );
     const orderedCards = [];
     if (knowledgeGraphCard) orderedCards.push(knowledgeGraphCard);
     if (questionCard) orderedCards.push(questionCard);
+    if (learningPlanCard) orderedCards.push(learningPlanCard);
     orderedCards.push(...otherCards);
     return orderedCards;
   });
   const [showCardSelector, setShowCardSelector] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false); // 新增编辑模式状态
   const [questionConfigVisible, setQuestionConfigVisible] = useState(false); // 试题配置弹窗状态
+  const [learningPlanModalVisible, setLearningPlanModalVisible] = useState(false); // 学习计划弹窗状态
   
   // 练习模式相关状态 - 移到组件顶层以遵守React Hooks规则
   const [practiceMode, setPracticeMode] = useState(false);
@@ -224,6 +243,10 @@ const OperationPanel = ({ state, handlers }) => {
   const [showThemeSelectModal, setShowThemeSelectModal] = useState(false);
   const [currentRecord, setCurrentRecord] = useState(null);
   const [currentActionType, setCurrentActionType] = useState(null); // 'copy' 或 'move'
+  
+  // 学习计划查看器状态 - 移到组件顶层以遵守React Hooks规则
+  const [planViewMode, setPlanViewMode] = useState('summary'); // 'summary', 'calendar'
+  const [selectedDate, setSelectedDate] = useState(dayjs());
   
   // 当切换视图时重置练习状态
   useEffect(() => {
@@ -242,16 +265,19 @@ const OperationPanel = ({ state, handlers }) => {
       card.key !== 'addTool' && 
       card.key !== 'exam-paper'
     );
-    // 确保知识图谱在第一位，试题在第二位
+    // 确保知识图谱在第一位，试题在第二位，学习计划在第三位
     const knowledgeGraphCard = defaultCards.find(card => card.key === 'knowledge-graph');
     const questionCard = defaultCards.find(card => card.key === 'question');
+    const learningPlanCard = defaultCards.find(card => card.key === 'learning-plan');
     const otherCards = defaultCards.filter(card => 
       card.key !== 'knowledge-graph' && 
-      card.key !== 'question'
+      card.key !== 'question' &&
+      card.key !== 'learning-plan'
     );
     const orderedCards = [];
     if (knowledgeGraphCard) orderedCards.push(knowledgeGraphCard);
     if (questionCard) orderedCards.push(questionCard);
+    if (learningPlanCard) orderedCards.push(learningPlanCard);
     orderedCards.push(...otherCards);
     setVisibleCards(orderedCards);
   }, []);
@@ -293,6 +319,9 @@ const OperationPanel = ({ state, handlers }) => {
     } else if (card.key === OPERATION_TYPES.QUESTION) {
       // 试题工具弹出配置窗口
       setQuestionConfigVisible(true);
+    } else if (card.key === OPERATION_TYPES.LEARNING_PLAN) {
+      // 学习计划工具弹出配置窗口
+      setLearningPlanModalVisible(true);
     } else {
       onOperationClick(card.key);
     }
@@ -383,6 +412,96 @@ const OperationPanel = ({ state, handlers }) => {
       ...prev,
       question: [operationRecord, ...(prev.question || [])]
     }));
+  };
+
+
+
+  // 处理学习计划配置确认
+  const handleLearningPlanConfirm = (planData) => {
+    const { analysis, plan, habits, customContent } = planData;
+    
+    // 生成学习计划内容
+    let planContent = `📊 **课程分析结果**\n`;
+    planContent += `- 总课程：${analysis.totalCourses}门\n`;
+    planContent += `- 总学时：${analysis.totalHours}小时\n`;
+    planContent += `- 完成进度：${Math.round((analysis.progress.completed / analysis.totalCourses) * 100)}%\n\n`;
+    
+    planContent += `📋 **学习计划**\n`;
+    planContent += `- 计划周期：${plan.duration}\n`;
+    planContent += `- 每周学时：${plan.weeklyHours}小时\n`;
+    if (plan.schedule) {
+      planContent += `- 时间安排：${plan.schedule}\n`;
+    }
+    planContent += `\n`;
+    
+    if (plan.phases) {
+      planContent += `**学习路径：**\n`;
+      plan.phases.forEach((phase, index) => {
+        planContent += `${index + 1}. ${phase.phase}\n`;
+        phase.tasks.forEach(task => {
+          planContent += `   - ${task}\n`;
+        });
+        planContent += `   🎯 ${phase.milestone}\n\n`;
+      });
+    }
+    
+    if (habits.length > 0) {
+      const habitLabels = habits.map(h => {
+        const habitMap = {
+          'morning': '早晨学习',
+          'evening': '晚间学习', 
+          'weekend': '周末集中',
+          'fragmented': '碎片化学习',
+          'intensive': '密集学习',
+          'gradual': '循序渐进'
+        };
+        return habitMap[h];
+      }).filter(Boolean);
+      
+      planContent += `🏃 **学习习惯：** ${habitLabels.join('、')}\n\n`;
+    }
+    
+    if (plan.recommendations) {
+      planContent += `💡 **个性化建议：**\n`;
+      plan.recommendations.forEach(rec => {
+        planContent += `- ${rec}\n`;
+      });
+      planContent += `\n`;
+    }
+    
+    if (customContent) {
+      planContent += `✏️ **补充说明：**\n${customContent}\n\n`;
+    }
+    
+    planContent += `---\n💫 *学习计划已生成，祝您学习顺利！*`;
+    
+    // 创建操作记录
+    const record = {
+      id: Date.now(),
+      title: '智能学习计划',
+      source: `基于${analysis.totalCourses}门课程分析生成`,
+      time: '刚刚',
+      type: OPERATION_TYPES.LEARNING_PLAN,
+      content: planContent,
+      metadata: {
+        analysis,
+        plan,
+        habits,
+        customContent
+      },
+      isAIGenerated: true
+    };
+    
+    // 添加到操作记录
+    setOperationRecords(prev => ({
+      ...prev,
+      'learning-plan': [record, ...(prev['learning-plan'] || [])]
+    }));
+    
+    setLearningPlanModalVisible(false);
+    
+    // 显示成功提示
+    message.success('学习计划已生成！');
   };
 
   // 新建笔记功能
@@ -1105,6 +1224,278 @@ const OperationPanel = ({ state, handlers }) => {
     );
   }
 
+  if (rightPanelView === RIGHT_PANEL_VIEWS.LEARNING_PLAN_VIEWER) {
+    // 右侧栏学习计划查看器
+    
+    // 从 metadata中获取学习计划数据  
+    const planData = rightPanelLearningPlanRecord?.metadata;
+    const analysis = planData?.analysis;
+    const plan = planData?.plan;
+    const habits = planData?.habits || [];
+    const customContent = planData?.customContent;
+    
+    return (
+      <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '100%' }}>
+        {/* 查看器头部 */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          marginBottom: '16px',
+          paddingBottom: '12px',
+          borderBottom: '1px solid #f0f0f0'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '16px' }}>🎯</span>
+            <Text style={{ fontSize: '16px', fontWeight: 'bold' }}>
+              学习计划查看器
+            </Text>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* 视图切换按钮 */}
+            <Button.Group size="small">
+              <Button 
+                type={planViewMode === 'summary' ? 'primary' : 'default'}
+                onClick={() => setPlanViewMode('summary')}
+                icon={<FileTextOutlined />}
+              >
+                概览
+              </Button>
+              <Button 
+                type={planViewMode === 'calendar' ? 'primary' : 'default'}
+                onClick={() => setPlanViewMode('calendar')}
+                icon={<CalendarOutlined />}
+              >
+                日历
+              </Button>
+            </Button.Group>
+            
+            <Button 
+              type="text" 
+              icon={<ArrowLeftOutlined />}
+              onClick={() => {
+                setRightPanelView(RIGHT_PANEL_VIEWS.OPERATIONS);
+                setRightPanelLearningPlanRecord(null);
+                setRightPanelLearningPlanContent('');
+              }}
+              style={{ color: '#666' }}
+            >
+              返回
+            </Button>
+          </div>
+        </div>
+
+        {/* 学习计划信息 */}
+        {rightPanelLearningPlanRecord && (
+          <div style={{
+            background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
+            padding: '12px',
+            borderRadius: '8px',
+            marginBottom: '16px',
+            border: '1px solid #4caf50'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <span style={{ color: '#2e7d32', fontWeight: 'bold' }}>{rightPanelLearningPlanRecord.title}</span>
+            </div>
+            <div style={{ fontSize: '12px', color: '#666', display: 'flex', gap: '12px' }}>
+              <span>{rightPanelLearningPlanRecord.source}</span>
+              <span>{rightPanelLearningPlanRecord.time}</span>
+              {analysis && (
+                <span>基于{analysis.totalCourses}门课程分析</span>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* 学习计划内容显示区域 */}
+        <div style={{ 
+          flex: 1,
+          border: '1px solid #d9d9d9', 
+          borderRadius: '8px',
+          background: '#fff',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          {planViewMode === 'summary' ? (
+            // 概览模式
+            <div>
+              {/* 如果有结构化数据，优先显示结构化内容 */}
+              {planData && analysis && plan ? (
+                <div style={{ padding: '16px', overflow: 'auto', height: '100%' }}>
+                  {/* 课程分析统计 */}
+                  <div style={{ marginBottom: '24px' }}>
+                    <h4 style={{ color: '#1890ff', marginBottom: '12px' }}>📊 课程分析结果</h4>
+                    <Row gutter={[12, 12]}>
+                      <Col span={8}>
+                        <Card size="small" style={{ textAlign: 'center' }}>
+                          <Statistic title="总课程" value={analysis.totalCourses} suffix="门" />
+                        </Card>
+                      </Col>
+                      <Col span={8}>
+                        <Card size="small" style={{ textAlign: 'center' }}>
+                          <Statistic title="总学时" value={analysis.totalHours} suffix="小时" />
+                        </Card>
+                      </Col>
+                      <Col span={8}>
+                        <Card size="small" style={{ textAlign: 'center' }}>
+                          <Statistic 
+                            title="完成进度" 
+                            value={Math.round((analysis.progress.completed / analysis.totalCourses) * 100)} 
+                            suffix="%" 
+                          />
+                        </Card>
+                      </Col>
+                    </Row>
+                  </div>
+                  
+                  {/* 学习计划统计 */}
+                  <div style={{ marginBottom: '24px' }}>
+                    <h4 style={{ color: '#52c41a', marginBottom: '12px' }}>📋 学习计划</h4>
+                    <Row gutter={[12, 12]}>
+                      <Col span={8}>
+                        <Card size="small" style={{ textAlign: 'center' }}>
+                          <Statistic title="计划周期" value={plan.duration} />
+                        </Card>
+                      </Col>
+                      <Col span={8}>
+                        <Card size="small" style={{ textAlign: 'center' }}>
+                          <Statistic title="每周学时" value={plan.weeklyHours} suffix="小时" />
+                        </Card>
+                      </Col>
+                      <Col span={8}>
+                        <Card size="small" style={{ textAlign: 'center' }}>
+                          <Statistic title="学习阶段" value={plan.phases?.length || 0} suffix="个" />
+                        </Card>
+                      </Col>
+                    </Row>
+                    
+                    {plan.schedule && (
+                      <Card size="small" style={{ marginTop: '12px' }}>
+                        <strong>时间安排：</strong> {plan.schedule}
+                      </Card>
+                    )}
+                  </div>
+                  
+                  {/* 学习路径规划 */}
+                  {plan.phases && plan.phases.length > 0 && (
+                    <div style={{ marginBottom: '24px' }}>
+                      <h4 style={{ color: '#722ed1', marginBottom: '12px' }}>🚀 学习路径规划</h4>
+                      {plan.phases.map((phase, index) => (
+                        <Card 
+                          key={index} 
+                          size="small" 
+                          title={phase.phase}
+                          style={{ marginBottom: '12px' }}
+                        >
+                          <List
+                            size="small"
+                            dataSource={phase.tasks}
+                            renderItem={task => (
+                              <List.Item>
+                                <PlayCircleOutlined style={{ marginRight: 8, color: '#1890ff' }} />
+                                {task}
+                              </List.Item>
+                            )}
+                          />
+                          <div style={{ 
+                            marginTop: '8px', 
+                            padding: '8px', 
+                            background: '#f6ffed', 
+                            borderRadius: '4px',
+                            fontStyle: 'italic', 
+                            color: '#52c41a' 
+                          }}>
+                            🎯 {phase.milestone}
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* 学习习惯 */}
+                  {habits.length > 0 && (
+                    <div style={{ marginBottom: '24px' }}>
+                      <h4 style={{ color: '#fa8c16', marginBottom: '12px' }}>🏃 学习习惯</h4>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                        {habits.map(habit => {
+                          const habitMap = {
+                            'morning': '早晨学习',
+                            'evening': '晚间学习', 
+                            'weekend': '周末集中',
+                            'fragmented': '碎片化学习',
+                            'intensive': '密集学习',
+                            'gradual': '循序渐进'
+                          };
+                          return (
+                            <Tag key={habit} color="orange">{habitMap[habit]}</Tag>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* 个性化建议 */}
+                  {plan.recommendations && plan.recommendations.length > 0 && (
+                    <div style={{ marginBottom: '24px' }}>
+                      <h4 style={{ color: '#eb2f96', marginBottom: '12px' }}>💡 个性化建议</h4>
+                      <List
+                        size="small"
+                        dataSource={plan.recommendations}
+                        renderItem={rec => (
+                          <List.Item>
+                            <FileTextOutlined style={{ marginRight: 8, color: '#eb2f96' }} />
+                            {rec}
+                          </List.Item>
+                        )}
+                      />
+                    </div>
+                  )}
+                  
+                  {/* 补充说明 */}
+                  {customContent && (
+                    <div style={{ marginBottom: '16px' }}>
+                      <h4 style={{ color: '#666', marginBottom: '12px' }}>✏️ 补充说明</h4>
+                      <Card size="small" style={{ background: '#fafafa' }}>
+                        <Text>{customContent}</Text>
+                      </Card>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                // 显示原始内容
+                <div 
+                  style={{ 
+                    padding: '16px',
+                    overflow: 'auto',
+                    height: '100%',
+                    lineHeight: '1.6',
+                    fontSize: '14px',
+                    color: '#333'
+                  }}
+                  dangerouslySetInnerHTML={{
+                    __html: rightPanelLearningPlanContent || '暂无学习计划内容'
+                  }}
+                />
+              )}
+            </div>
+          ) : (
+            // 日历模式
+            <LearningPlanCalendar
+              planData={planData}
+              analysis={analysis}
+              plan={plan}
+              habits={habits}
+              selectedDate={selectedDate}
+              onDateChange={setSelectedDate}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <DndProvider backend={HTML5Backend}>
       {/* 上半部分 - 功能概览 */}
@@ -1564,6 +1955,13 @@ const OperationPanel = ({ state, handlers }) => {
         onClose={() => setQuestionConfigVisible(false)}
         onConfirm={handleQuestionConfigConfirm}
         materialCount={uploadedFiles.length + addedTexts.length + courseVideos.length + links.length}
+      />
+      
+      {/* 学习计划配置弹窗 */}
+      <LearningPlanModal
+        visible={learningPlanModalVisible}
+        onCancel={() => setLearningPlanModalVisible(false)}
+        onConfirm={handleLearningPlanConfirm}
       />
       
       {/* 主题选择模态框 */}

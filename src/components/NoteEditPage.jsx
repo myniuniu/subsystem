@@ -293,6 +293,33 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
         return;
       }
       
+      if (record.type === 'learning-plan') {
+        console.log('学习计划记录点击，record.content存在:', !!record.content);
+        console.log('record.metadata存在:', !!record.metadata);
+        
+        // 设置学习计划查看状态并在右侧面板显示
+        state.setRightPanelLearningPlanRecord(record);
+        
+        if (record.content) {
+          state.setRightPanelLearningPlanContent(record.content);
+        } else {
+          // 如果没有content，生成默认内容
+          const defaultContent = `
+            <div style="padding: 20px; text-align: center;">
+              <h3>🎯 ${record.title}</h3>
+              <p style="color: #666;">智能学习计划已生成</p>
+              <p style="color: #999; font-size: 14px;">${record.source} • ${record.time}</p>
+            </div>
+          `;
+          state.setRightPanelLearningPlanContent(defaultContent);
+        }
+        
+        // 切换到学习计划查看视图
+        state.setRightPanelView(RIGHT_PANEL_VIEWS.LEARNING_PLAN_VIEWER);
+        console.log('在右侧面板显示学习计划内容:', record.title);
+        return;
+      }
+      
       // 其他有内容的记录类型
       if (record.content) {
         setCurrentRecord(record);
