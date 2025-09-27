@@ -1475,6 +1475,36 @@ class NotesService {
   createNote(noteData) {
     try {
       const notes = this.getAllNotes();
+      
+      // 检查是否为组织培训类型，如果是且没有学习时间，则添加默认学习时间
+      const isOrganizationalTraining = (
+        noteData.courseType === 'organizational_training' ||
+        noteData.source === '组织培训' ||
+        (noteData.tags && noteData.tags.includes('组织培训')) ||
+        noteData.category === 'organizational_training' ||
+        (noteData.title && noteData.title.includes('【组织培训】'))
+      );
+      
+      // 为组织培训笔记生成默认学习时间
+      let defaultLearningSchedule = null;
+      if (isOrganizationalTraining && !noteData.learningSchedule) {
+        // 生成随机的学习时间
+        const startHour = 9 + Math.floor(Math.random() * 8); // 9-16点开始
+        const duration = 2 + Math.floor(Math.random() * 6); // 2-7小时持续时间
+        const endHour = Math.min(startHour + duration, 18); // 最晚18点结束
+        
+        // 随机选择未来7天内的日期
+        const today = new Date();
+        const futureDate = new Date(today.getTime() + Math.floor(Math.random() * 7) * 24 * 60 * 60 * 1000);
+        const dateStr = `${futureDate.getMonth() + 1}/${futureDate.getDate()}`;
+        
+        defaultLearningSchedule = {
+          startTime: `${dateStr} ${startHour.toString().padStart(2, '0')}:00`,
+          endTime: `${dateStr} ${endHour.toString().padStart(2, '0')}:00`,
+          duration: `${endHour - startHour}小时`
+        };
+      }
+      
       const newNote = {
         id: this.generateId(),
         title: noteData.title || '无标题笔记',
@@ -1492,7 +1522,9 @@ class NotesService {
         courseType: noteData.courseType,
         // 支持视频相关字段
         videoInfo: noteData.videoInfo || null, // { url, duration, progress, type }
-        materials: noteData.materials || null  // 关联的资料信息
+        materials: noteData.materials || null,  // 关联的资料信息
+        // 添加学习时间（如果是组织培训且没有提供）
+        learningSchedule: noteData.learningSchedule || defaultLearningSchedule
       };
       
       notes.unshift(newNote);

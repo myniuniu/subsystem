@@ -351,12 +351,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
-              {mode === 'create' ? '📚 资料收集' : mode === 'edit' ? '📝 编辑主题' : '👁️ 查看主题'}
-              {(mode === 'edit' || mode === 'view') && note?.title && (
-                <span style={{ fontWeight: 'normal', marginLeft: 8, color: '#666' }}>
-                  - {note.title}
-                </span>
-              )}
+              {note?.title || '未命名主题'}
             </Title>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

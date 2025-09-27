@@ -1008,6 +1008,7 @@ ${aiSelectedNote.content}`;
                       console.log('生成前检查localStorage:');
                       checkLocalStorageData();
                       
+                      // 1. 生成模拟数据
                       console.log('开始调用 mockDataGenerator.generateAllMockData()');
                       const result = await mockDataGenerator.generateAllMockData();
                       console.log('生成结果:', result);
@@ -1019,7 +1020,39 @@ ${aiSelectedNote.content}`;
                         console.log('开始重新加载数据...');
                         await loadData();
                         console.log('数据重新加载完成');
-                        message.success(`已自动生成 ${result.count} 条组织培训模拟数据`);
+                        
+                        // 2. 同步组织培训课程
+                        console.log('开始同步组织培训课程...');
+                        try {
+                          // 获取所有组织培训课程
+                          const allCourses = courseSelectionService.getAllCourses();
+                          const organizationalCourses = allCourses.filter(course => 
+                            course.type === 'organizational_training'
+                          );
+                          
+                          if (organizationalCourses.length > 0) {
+                            // 使用智能笔记服务的同步功能
+                            const syncResult = notesService.syncOrganizationalCourses(organizationalCourses);
+                            
+                            if (syncResult.success) {
+                              // 重新加载数据
+                              await loadData();
+                              
+                              if (syncResult.syncedCount > 0) {
+                                message.success(`已生成 ${result.count} 条模拟数据并同步 ${syncResult.syncedCount} 条组织培训课程`);
+                              } else {
+                                message.success(`已生成 ${result.count} 条模拟数据，所有组织培训课程已同步`);
+                              }
+                            } else {
+                              message.success(`已生成 ${result.count} 条模拟数据，同步组织培训失败：${syncResult.error}`);
+                            }
+                          } else {
+                            message.success(`已生成 ${result.count} 条模拟数据`);
+                          }
+                        } catch (syncError) {
+                          console.error('同步组织培训课程失败:', syncError);
+                          message.success(`已生成 ${result.count} 条模拟数据，同步组织培训课程失败`);
+                        }
                       } else {
                         console.error('生成失败:', result.error);
                         message.error('生成模拟数据失败');
@@ -1033,88 +1066,11 @@ ${aiSelectedNote.content}`;
                   生成模拟数据
                 </Button>
                 <Button 
-                  icon={<SyncOutlined />}
-                  onClick={async () => {
-                    try {
-                      console.log('=== 添加学习时间数据 ===');
-                      
-                      // 获取现有笔记
-                      let allNotes = notesService.getAllNotes();
-                      console.log('当前笔记总数:', allNotes.length);
-                      
-                      // 筛选组织培训笔记
-                      const orgTrainingNotes = allNotes.filter(note => 
-                        note.courseType === 'organizational_training' || 
-                        note.tags?.includes('组织培训') ||
-                        note.category === 'organizational_training' ||
-                        note.source === '组织培训' ||
-                        note.title?.includes('【组织培训】')
-                      );
-                      
-                      console.log('组织培训笔记数量:', orgTrainingNotes.length);
-                      console.log('组织培训笔记详情:', orgTrainingNotes);
-                      
-                      // 为没有学习时间的笔记添加时间数据
-                      const learningTimes = [
-                        { startTime: '12/26 09:00', endTime: '12/26 17:00', duration: '8小时' },
-                        { startTime: '12/25 14:00', endTime: '12/25 18:00', duration: '4小时' },
-                        { startTime: '12/20 09:30', endTime: '12/20 16:30', duration: '7小时' },
-                        { startTime: '12/30 10:00', endTime: '12/30 15:00', duration: '5小时' },
-                        { startTime: '12/28 13:00', endTime: '12/28 16:00', duration: '3小时' }
-                      ];
-                      
-                      let updatedCount = 0;
-                      orgTrainingNotes.forEach((note, index) => {
-                        if (!note.learningSchedule) {
-                          const timeData = learningTimes[index % learningTimes.length];
-                          const updatedNote = {
-                            ...note,
-                            learningSchedule: timeData,
-                            source: '组织培训',
-                            courseType: 'organizational_training'
-                          };
-                          
-                          console.log(`为笔记 "${note.title}" 添加学习时间:`, timeData);
-                          notesService.updateNote(note.id, updatedNote);
-                          updatedCount++;
-                        }
-                      });
-                      
-                      // 重新加载数据
-                      await loadData();
-                      console.log(`成功为 ${updatedCount} 个笔记添加了学习时间数据`);
-                      message.success(`已为 ${updatedCount} 个组织培训笔记添加学习时间`);
-                    } catch (error) {
-                      console.error('添加学习时间失败:', error);
-                      message.error('添加学习时间失败');
-                    }
-                  }}
-                >
-                  添加学习时间
-                </Button>
-                <Button 
                   type="primary" 
                   icon={<PlusOutlined />}
                   onClick={handleCreateNote}
                 >
                   新建主题
-                </Button>
-                <Button 
-                  className="sync-course-btn"
-                  icon={<SyncOutlined />}
-                  onClick={handleSyncCourseSelection}
-                  size="large"
-                >
-                  同步选课
-                </Button>
-                <Button 
-                  className="sync-org-training-btn"
-                  icon={<SyncOutlined />}
-                  onClick={handleSyncOrganizationalTraining}
-                  size="large"
-                  type="default"
-                >
-                  同步组织培训
                 </Button>
               </Space>
             </div>
@@ -1148,25 +1104,27 @@ ${aiSelectedNote.content}`;
                         className="note-card"
                         data-source={note.source}
                         hoverable
+                        onClick={() => handleEditNote(note)}
+                        style={{ cursor: 'pointer' }}
                         actions={[
                           <Tooltip title="查看详情">
-                            <EyeOutlined onClick={() => handleViewNote(note)} />
+                            <EyeOutlined onClick={(e) => { e.stopPropagation(); handleViewNote(note); }} />
                           </Tooltip>,
                           <Tooltip title="编辑">
-                            <EditOutlined onClick={() => handleEditNote(note)} />
+                            <EditOutlined onClick={(e) => { e.stopPropagation(); handleEditNote(note); }} />
                           </Tooltip>,
                           <Tooltip title="分享主题">
-                            <ShareAltOutlined onClick={() => handleShareTheme(note)} />
+                            <ShareAltOutlined onClick={(e) => { e.stopPropagation(); handleShareTheme(note); }} />
                           </Tooltip>,
                           <Tooltip title={note.starred ? '取消收藏' : '收藏'}>
                             {note.starred ? (
                               <StarFilled 
                                 className="star-filled"
-                                onClick={() => handleToggleStar(note.id)} 
+                                onClick={(e) => { e.stopPropagation(); handleToggleStar(note.id); }} 
                               />
                             ) : (
                               <StarOutlined 
-                                onClick={() => handleToggleStar(note.id)} 
+                                onClick={(e) => { e.stopPropagation(); handleToggleStar(note.id); }} 
                               />
                             )}
                           </Tooltip>,
@@ -1177,7 +1135,7 @@ ${aiSelectedNote.content}`;
                             cancelText="取消"
                           >
                             <Tooltip title="删除">
-                              <DeleteOutlined />
+                              <DeleteOutlined onClick={(e) => e.stopPropagation()} />
                             </Tooltip>
                           </Popconfirm>
                         ]}

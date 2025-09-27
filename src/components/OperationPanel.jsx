@@ -533,8 +533,10 @@ const OperationPanel = ({ state, handlers }) => {
           borderBottom: '1px solid #f0f0f0'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '16px' }}>笔</span>
-            <Text style={{ fontSize: '16px', fontWeight: 'bold' }}>编辑主题</Text>
+            <span style={{ fontSize: '16px' }}>📝</span>
+            <Text style={{ fontSize: '16px', fontWeight: 'bold' }}>
+              {rightPanelEditingNote?.title || '未命名主题'}
+            </Text>
           </div>
           <Button 
             type="text" 
