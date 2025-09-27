@@ -119,35 +119,20 @@ const ScenarioView = ({
             background: '#f5f5f5'
           }}>
             {/* 直接显示iframe，保持原有交互功能 */}
-            {selectedScenarios.length > 0 ? (
-              <iframe 
-                src={selectedScenarios[0].thumbnail}
-                title={selectedScenarios[0].title}
-                style={{ 
-                  width: '100%', 
-                  height: '100%', 
-                  border: 'none',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0
-                }}
-                onLoad={() => console.log('iframe已加载:', selectedScenarios[0].thumbnail)}
-                onError={() => console.error('iframe加载失败:', selectedScenarios[0].thumbnail)}
-              />
-            ) : (
-              <div style={{ 
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100%',
-                color: '#999'
-              }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '64px', marginBottom: '16px' }}>场</div>
-                  <div style={{ fontSize: '16px' }}>未选择场景</div>
-                </div>
-              </div>
-            )}
+            <iframe 
+              src={selectedScenarios[0].thumbnail}
+              title={selectedScenarios[0].title}
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                border: 'none',
+                position: 'absolute',
+                top: 0,
+                left: 0
+              }}
+              onLoad={() => console.log('iframe已加载:', selectedScenarios[0].thumbnail)}
+              onError={() => console.error('iframe加载失败:', selectedScenarios[0].thumbnail)}
+            />
           </div>
         </>
       ) : (
