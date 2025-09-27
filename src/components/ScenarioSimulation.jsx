@@ -8,6 +8,7 @@ import {
   Select
 } from 'antd';
 import scenarioService from '../services/scenarioService';
+import { generateScenarioThumbnail } from '../utils/scenarioThumbnailUtils';
 
 const { Title, Text } = Typography;
 
@@ -29,6 +30,9 @@ const ScenarioSimulation = ({
   const [availableScenarios, setAvailableScenarios] = React.useState([]);
   const [scenarioLoading, setScenarioLoading] = React.useState(false);
   const [scenarioCategories, setScenarioCategories] = React.useState([]);
+  // 图片缓存状态
+  const [imageCache, setImageCache] = React.useState(new Map());
+  const [imageLoading, setImageLoading] = React.useState(new Set());
   
   // 加载场景数据
   const loadScenarios = React.useCallback(async () => {
@@ -50,10 +54,92 @@ const ScenarioSimulation = ({
     }
   }, []);
   
+  // 生成默认缩略图
+  const generateDefaultThumbnail = React.useCallback((scenarioId) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 400;
+    canvas.height = 300;
+    const ctx = canvas.getContext('2d');
+    
+    // 渐变背景
+    const gradient = ctx.createLinearGradient(0, 0, 400, 300);
+    gradient.addColorStop(0, '#f0f9ff');
+    gradient.addColorStop(1, '#e0f2fe');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 400, 300);
+    
+    // 场景图标
+    ctx.fillStyle = '#0ea5e9';
+    ctx.font = 'bold 48px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('场', 200, 120);
+    
+    // 场景文字
+    ctx.fillStyle = '#0369a1';
+    ctx.font = '16px Arial';
+    ctx.fillText('场景模拟', 200, 180);
+    
+    // ID 文字
+    ctx.fillStyle = '#64748b';
+    ctx.font = '12px Arial';
+    ctx.fillText(`ID: ${scenarioId}`, 200, 220);
+    
+    return canvas.toDataURL('image/jpeg', 0.8);
+  }, []);
+
+  // 图片下载和缓存函数
+  const downloadAndCacheImage = React.useCallback(async (url, scenarioId, title, category = 'default') => {
+    if (imageCache.has(scenarioId)) {
+      return imageCache.get(scenarioId);
+    }
+
+    if (imageLoading.has(scenarioId)) {
+      return null;
+    }
+
+    setImageLoading(prev => new Set([...prev, scenarioId]));
+
+    try {
+      // 使用新的缩略图生成工具
+      const imageDataUrl = generateScenarioThumbnail(scenarioId, title, category);
+      
+      // 缓存结果
+      setImageCache(prev => new Map([...prev, [scenarioId, imageDataUrl]]));
+      return imageDataUrl;
+      
+    } catch (error) {
+      console.error('图片生成失败:', error);
+      // 生成默认缩略图
+      const defaultImage = generateDefaultThumbnail(scenarioId);
+      setImageCache(prev => new Map([...prev, [scenarioId, defaultImage]]));
+      return defaultImage;
+    } finally {
+      setImageLoading(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(scenarioId);
+        return newSet;
+      });
+    }
+  }, [imageCache, imageLoading, generateDefaultThumbnail]);
+  
   // 组件加载时获取场景数据
   React.useEffect(() => {
     loadScenarios();
   }, [loadScenarios]);
+
+  // 为每个场景触发图片下载
+  React.useEffect(() => {
+    if (availableScenarios.length > 0) {
+      availableScenarios.forEach(scenario => {
+        if (scenario.thumbnail && 
+            scenario.id && 
+            !imageCache.has(scenario.id) && 
+            !imageLoading.has(scenario.id)) {
+          downloadAndCacheImage(scenario.thumbnail, scenario.id, scenario.title, scenario.category);
+        }
+      });
+    }
+  }, [availableScenarios, imageCache, imageLoading, downloadAndCacheImage]);
 
   // AI创建场景处理函数
   const handleAICreateScenario = () => {
@@ -117,8 +203,8 @@ const ScenarioSimulation = ({
           source: 'AI智能助手',
           time: '刚刚',
           type: 'scenario',
-          status: 'creating', // 创建中状态
-          progress: 0, // 初始进度
+          status: 'creating',
+          progress: 0,
           description: 'AI正在分析您的学习资料并智能生成个性化场景模拟...',
           isAIGenerated: true,
           materialCount: totalMaterials
@@ -135,13 +221,12 @@ const ScenarioSimulation = ({
         // 模拟AI创建进度
         let currentProgress = 0;
         const progressInterval = setInterval(() => {
-          currentProgress += Math.random() * 15 + 5; // 每次增加5-20%
+          currentProgress += Math.random() * 15 + 5;
           
           if (currentProgress >= 100) {
             currentProgress = 100;
             clearInterval(progressInterval);
             
-            // 创建完成，更新记录状态
             setTimeout(() => {
               const completedScenario = {
                 id: `ai-${Date.now()}`,
@@ -166,7 +251,6 @@ const ScenarioSimulation = ({
                 materialCount: totalMaterials
               };
               
-              // 更新操作记录，将创建中的记录替换为完成的记录
               setOperationRecords(prev => ({
                 ...prev,
                 scenario: prev.scenario.map(record => 
@@ -174,13 +258,11 @@ const ScenarioSimulation = ({
                 )
               }));
               
-              // 同时添加到可用场景列表
               setAvailableScenarios(prev => [completedScenario, ...prev]);
               
               message.success('🎉 AI场景创建完成！您可以在操作记录中查看和运行新场景');
             }, 500);
           } else {
-            // 更新进度
             setOperationRecords(prev => ({
               ...prev,
               scenario: prev.scenario.map(record => 
@@ -190,14 +272,13 @@ const ScenarioSimulation = ({
               )
             }));
           }
-        }, 300); // 每300ms更新一次进度
+        }, 300);
       }
     });
   };
 
   // 场景选择处理函数
   const handleScenarioSelect = (scenario) => {
-    // 创建场景选择的操作记录
     const scenarioRecord = {
       id: `scenario-${Date.now()}`,
       title: scenario.title,
@@ -218,7 +299,6 @@ const ScenarioSimulation = ({
       createTime: new Date().toISOString()
     };
     
-    // 添加到操作记录
     setOperationRecords(prev => ({
       ...prev,
       scenario: [scenarioRecord, ...prev.scenario]
@@ -228,13 +308,11 @@ const ScenarioSimulation = ({
     message.success(`已选择场景：${scenario.title}`);
     setScenarioModalVisible(false);
     
-    // 显示场景详情
     showScenarioDetails(scenario);
   };
 
   // 显示场景详情
   const showScenarioDetails = (scenario) => {
-    // 难度级别映射
     const difficultyMap = {
       'easy': '初级',
       'medium': '中级', 
@@ -242,7 +320,6 @@ const ScenarioSimulation = ({
     };
     const difficultyText = difficultyMap[scenario.difficulty] || scenario.difficulty;
     
-    // 分类映射
     const categoryMap = {
       'psychology': '学生心理',
       'family': '家庭教育',
@@ -266,17 +343,28 @@ const ScenarioSimulation = ({
               marginBottom: '16px',
               border: '1px solid #d9d9d9',
               borderRadius: '6px',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: '#f5f5f5'
             }}>
-              <iframe 
-                src={scenario.thumbnail}
-                title={scenario.title}
-                style={{ 
-                  width: '100%', 
-                  height: '100%', 
-                  border: 'none'
-                }}
-              />
+              {imageCache.has(scenario.id) ? (
+                <img 
+                  src={imageCache.get(scenario.id)}
+                  alt={scenario.title}
+                  style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    objectFit: 'cover'
+                  }}
+                />
+              ) : (
+                <div style={{ textAlign: 'center', color: '#999' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>场</div>
+                  <div>加载中...</div>
+                </div>
+              )}
             </div>
             <p style={{ marginBottom: '12px', color: '#666', lineHeight: '1.6' }}>
               <strong>描述：</strong>{scenario.description}
@@ -336,7 +424,6 @@ const ScenarioSimulation = ({
       ),
       okText: '运行场景',
       onOk: () => {
-        // 在新窗口中打开场景
         if (scenario.thumbnail) {
           window.open(scenario.thumbnail, '_blank');
           message.success('场景已在新窗口中打开');
@@ -349,7 +436,6 @@ const ScenarioSimulation = ({
 
   // 渲染场景卡片
   const renderScenarioCard = (scenario) => {
-    // 难度级别映射
     const difficultyMap = {
       'easy': '初级',
       'medium': '中级', 
@@ -357,7 +443,6 @@ const ScenarioSimulation = ({
     };
     const difficultyText = difficultyMap[scenario.difficulty] || scenario.difficulty;
     
-    // 分类映射
     const categoryMap = {
       'psychology': '学生心理',
       'family': '家庭教育',
@@ -388,20 +473,37 @@ const ScenarioSimulation = ({
             border: '1px solid #d9d9d9',
             borderRadius: '6px',
             overflow: 'hidden',
-            flexShrink: 0
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#f5f5f5'
           }}>
-            <iframe 
-              src={scenario.thumbnail}
-              title={scenario.title}
-              style={{ 
-                width: '100%', 
-                height: '100%', 
-                border: 'none',
-                pointerEvents: 'none',
-                transform: 'scale(0.8)',
-                transformOrigin: 'top left'
-              }}
-            />
+            {imageCache.has(scenario.id) ? (
+              <img 
+                src={imageCache.get(scenario.id)}
+                alt={scenario.title}
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'cover'
+                }}
+              />
+            ) : (
+              <div style={{ textAlign: 'center', color: '#999', fontSize: '12px' }}>
+                {imageLoading.has(scenario.id) ? (
+                  <div>
+                    <div style={{ fontSize: '20px', marginBottom: '4px' }}>⏳</div>
+                    <div>加载中</div>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{ fontSize: '20px', marginBottom: '4px' }}>场</div>
+                    <div>缩略图</div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           
           {/* 中间内容 */}
