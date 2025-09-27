@@ -401,92 +401,104 @@ const QuestionConfigModal = ({
                           style={{ 
                             width: '100%', 
                             margin: '0',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.08)'
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
                           }}
                           hoverable
-                          bodyStyle={{ padding: '12px 16px' }}
+                          bodyStyle={{ padding: '8px 12px' }}
                         >
                           <div style={{ 
                             display: 'flex', 
                             justifyContent: 'space-between', 
-                            alignItems: 'flex-start',
+                            alignItems: 'center',
                             width: '100%',
                             gap: '12px'
                           }}>
-                            <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
-                              <div style={{ 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                gap: '6px', 
-                                marginBottom: '4px',
-                                flexWrap: 'wrap'
+                            <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <Text strong style={{ 
+                                fontSize: '13px',
+                                color: '#262626',
+                                lineHeight: '1.3',
+                                whiteSpace: 'nowrap'
                               }}>
-                                <Text strong style={{ 
-                                  fontSize: '14px',
-                                  color: '#262626',
-                                  lineHeight: '1.4'
-                                }}>
-                                  {item.title}
-                                </Text>
-                                <Tag 
-                                  size="small" 
-                                  color="purple"
-                                  style={{ 
-                                    fontSize: '11px',
-                                    lineHeight: '1.2',
-                                    padding: '2px 6px'
-                                  }}
-                                >
-                                  {item.category}
-                                </Tag>
-                              </div>
+                                {item.title}
+                              </Text>
+                              <Tag 
+                                size="small" 
+                                color="blue"
+                                style={{ 
+                                  fontSize: '10px',
+                                  lineHeight: '1.2',
+                                  padding: '1px 4px',
+                                  margin: 0
+                                }}
+                              >
+                                {item.category}
+                              </Tag>
+                            </div>
+                            
+                            <div style={{ 
+                              flex: 1,
+                              minWidth: 0,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px'
+                            }}>
                               <Text 
                                 type="secondary"
                                 style={{ 
-                                  fontSize: '12px', 
-                                  display: 'block',
-                                  marginBottom: '6px',
-                                  lineHeight: '1.4',
-                                  color: '#666',
-                                  wordBreak: 'break-word'
+                                  fontSize: '11px', 
+                                  lineHeight: '1.3',
+                                  color: '#999',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                  flex: 1
                                 }}
                               >
                                 {item.description}
                               </Text>
+                              
                               <div style={{ 
                                 display: 'flex',
-                                flexWrap: 'wrap',
                                 gap: '3px',
-                                alignItems: 'center'
+                                alignItems: 'center',
+                                flexShrink: 0
                               }}>
-                                {item.tags.map(tag => (
+                                {item.tags.slice(0, 2).map(tag => (
                                   <Tag 
                                     key={tag} 
                                     size="small" 
-                                    color="blue"
+                                    color="geekblue"
                                     style={{ 
-                                      fontSize: '11px',
+                                      fontSize: '10px',
                                       lineHeight: '1.2',
-                                      margin: 0
+                                      margin: 0,
+                                      padding: '1px 4px'
                                     }}
                                   >
                                     {tag}
                                   </Tag>
                                 ))}
+                                {item.tags.length > 2 && (
+                                  <Text style={{ fontSize: '10px', color: '#ccc' }}>+{item.tags.length - 2}</Text>
+                                )}
                               </div>
                             </div>
+                            
                             <div style={{ 
                               flexShrink: 0,
                               display: 'flex',
-                              alignItems: 'flex-start'
+                              alignItems: 'center'
                             }}>
                               <Tag 
                                 color={getDifficultyColor(item.difficulty)} 
                                 style={{ 
-                                  fontSize: '11px',
+                                  fontSize: '10px',
                                   fontWeight: '500',
-                                  minWidth: '40px',
-                                  textAlign: 'center'
+                                  minWidth: '32px',
+                                  textAlign: 'center',
+                                  margin: 0,
+                                  padding: '2px 6px'
                                 }}
                               >
                                 {item.difficulty}
