@@ -465,6 +465,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
                 handlers={materialHandlers}
                 onBack={onBack}
                 mode={mode}
+                note={note}
               />
             ) : (
               <div style={{ 
@@ -485,14 +486,26 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
             )}
 
             {/* 中间问答区域 */}
-            <AIChat 
-              state={state}
-              handlers={aiChatHandlers}
-            />
+            <div style={{
+              flex: state.rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR ? 3.5 : 5,
+              transition: 'flex 0.3s ease'
+            }}>
+              <AIChat 
+                state={state}
+                handlers={aiChatHandlers}
+              />
+            </div>
 
             {/* 右侧操作区域 */}
             <div style={{ 
-              flex: currentView === VIEW_MODES.VIDEO ? 3 : (state.viewMode === VIEW_MODES.MAP ? 3 : 2.5), 
+              flex: (() => {
+                // 笔记编辑状态时进一步增加右侧宽度
+                if (state.rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR) {
+                  const baseRatio = currentView === VIEW_MODES.VIDEO ? 3 : (state.viewMode === VIEW_MODES.MAP ? 3 : 2.5);
+                  return baseRatio * 1.5; // 增加50%，比之前的20%更宽
+                }
+                return currentView === VIEW_MODES.VIDEO ? 3 : (state.viewMode === VIEW_MODES.MAP ? 3 : 2.5);
+              })(), 
               background: '#fff', 
               margin: '16px 16px 16px 0', 
               borderRadius: '8px', 

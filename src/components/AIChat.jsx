@@ -131,7 +131,9 @@ const AIChat = ({ state, handlers }) => {
       borderRadius: '8px', 
       display: 'flex', 
       flexDirection: 'column',
-      transition: 'flex 0.3s ease'
+      transition: 'flex 0.3s ease',
+      position: 'relative',
+      height: '100%'
     }}>
       <div style={{ padding: '20px', borderBottom: '1px solid #f0f0f0' }}>
         <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
@@ -193,7 +195,13 @@ const AIChat = ({ state, handlers }) => {
       </div>
       
       {/* 消息列表 */}
-      <div style={{ flex: 1, padding: '20px', overflowY: 'auto', maxHeight: 'calc(100vh - 500px)' }}>
+      <div style={{ 
+        flex: 1, 
+        padding: '20px', 
+        overflowY: 'auto', 
+        paddingBottom: '140px',
+        minHeight: 0
+      }}>
         {messages.map((msg, index) => {
           // 查找对应的用户问题
           const correspondingUserMessage = msg.type === 'assistant' ? 
@@ -257,75 +265,88 @@ const AIChat = ({ state, handlers }) => {
         )}
       </div>
       
-      {/* 常见问题按钮 */}
-      <div style={{ padding: '16px 20px 0 20px', borderTop: '1px solid #f0f0f0' }}>
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', overflow: 'hidden' }}>
-          {COMMON_QUESTIONS.map(question => (
-            <Button 
-              key={question.key}
-              size="small" 
-              style={{ 
-                borderRadius: '16px', 
-                fontSize: '11px',
-                flex: '1 1 0',
-                minWidth: 0,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
-              }}
-              onClick={() => setInputMessage(question.message)}
-              title={question.text}
-            >
-              {question.text}
-            </Button>
-          ))}
+      {/* 底部固定区域 */}
+      <div style={{ 
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        borderTop: '1px solid #f0f0f0',
+        backgroundColor: '#fff',
+        zIndex: 10,
+        borderBottomLeftRadius: '8px',
+        borderBottomRightRadius: '8px'
+      }}>
+        {/* 常见问题按钮 */}
+        <div style={{ padding: '16px 20px 0 20px' }}>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', overflow: 'hidden' }}>
+            {COMMON_QUESTIONS.map(question => (
+              <Button 
+                key={question.key}
+                size="small" 
+                style={{ 
+                  borderRadius: '16px', 
+                  fontSize: '11px',
+                  flex: '1 1 0',
+                  minWidth: 0,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+                onClick={() => setInputMessage(question.message)}
+                title={question.text}
+              >
+                {question.text}
+              </Button>
+            ))}
+          </div>
         </div>
-      </div>
-      
-      {/* 输入区域 */}
-      <div style={{ padding: '20px', borderTop: '1px solid #f0f0f0' }}>
-        <Space.Compact style={{ width: '100%', position: 'relative' }}>
-          {/* 选中资料数量提示 - 浮动显示 */}
-          {selectedMaterials.length > 0 && (
-            <div style={{ 
-              position: 'absolute',
-              top: '-24px',
-              left: '0',
-              padding: '2px 8px', 
-              backgroundColor: '#f6ffed', 
-              border: '1px solid #b7eb8f', 
-              borderRadius: '12px',
-              fontSize: '10px',
-              color: '#52c41a',
-              zIndex: 10,
-              whiteSpace: 'nowrap'
-            }}>
-              📋 {selectedMaterials.length}个资料
-            </div>
-          )}
-          <Input.TextArea
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            placeholder={selectedMaterials.length > 0 ? `基于已选择的 ${selectedMaterials.length} 个资料，请输入您的问题...` : "请先选择资料后再输入问题..."}
-            autoSize={{ minRows: 1, maxRows: 3 }}
-            disabled={selectedMaterials.length === 0}
-            onPressEnter={(e) => {
-              if (!e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
-              }
-            }}
-          />
-          <Button 
-            type="primary" 
-            icon={<SendOutlined />}
-            onClick={handleSendMessage}
-            loading={isLoading}
-            disabled={!inputMessage.trim() || selectedMaterials.length === 0}
-          >
-            发送
-          </Button>
-        </Space.Compact>
+        
+        {/* 输入区域 */}
+        <div style={{ padding: '0 20px 20px 20px' }}>
+          <Space.Compact style={{ width: '100%', position: 'relative' }}>
+            {/* 选中资料数量提示 - 浮动显示 */}
+            {selectedMaterials.length > 0 && (
+              <div style={{ 
+                position: 'absolute',
+                top: '-24px',
+                left: '0',
+                padding: '2px 8px', 
+                backgroundColor: '#f6ffed', 
+                border: '1px solid #b7eb8f', 
+                borderRadius: '12px',
+                fontSize: '10px',
+                color: '#52c41a',
+                zIndex: 10,
+                whiteSpace: 'nowrap'
+              }}>
+                📋 {selectedMaterials.length}个资料
+              </div>
+            )}
+            <Input.TextArea
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              placeholder={selectedMaterials.length > 0 ? `基于已选择的 ${selectedMaterials.length} 个资料，请输入您的问题...` : "请先选择资料后再输入问题..."}
+              autoSize={{ minRows: 1, maxRows: 3 }}
+              disabled={selectedMaterials.length === 0}
+              onPressEnter={(e) => {
+                if (!e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+            />
+            <Button 
+              type="primary" 
+              icon={<SendOutlined />}
+              onClick={handleSendMessage}
+              loading={isLoading}
+              disabled={!inputMessage.trim() || selectedMaterials.length === 0}
+            >
+              发送
+            </Button>
+          </Space.Compact>
+        </div>
       </div>
     </div>
   );
