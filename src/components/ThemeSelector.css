@@ -12,6 +12,20 @@
   color: #fff !important;
 }
 
+.theme-share-button {
+  color: #fff !important;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.theme-share-button:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+}
+
 .theme-selector-dropdown .ant-dropdown-menu {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);

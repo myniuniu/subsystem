@@ -53,7 +53,8 @@ import {
   SyncOutlined,
   NodeIndexOutlined,
   RadarChartOutlined,
-  ExperimentOutlined
+  ExperimentOutlined,
+  ShareAltOutlined
 } from '@ant-design/icons';
 import NoteEditor from './NoteEditor';
 import CategoryTagManager from './CategoryTagManager';
@@ -62,8 +63,10 @@ import AdvancedSearch from './AdvancedSearch';
 import ImportExport from './ImportExport';
 import NoteCreateModal from './NoteCreateModal';
 import NoteEditPage from './NoteEditPage';
+import ThemeShareModal from './ThemeShareModal';
 import notesService from '../services/notesService';
 import courseSelectionService from '../services/courseSelectionService';
+import themeShareService from '../services/themeShareService';
 import mockDataGenerator from '../utils/mockDataGenerator';
 import './SmartNotes.css';
 
@@ -88,6 +91,8 @@ const SmartNotes = ({ onViewChange }) => {
   const [isCategoryManagerVisible, setIsCategoryManagerVisible] = useState(false);
   const [isAIAssistantVisible, setIsAIAssistantVisible] = useState(false);
   const [aiSelectedNote, setAISelectedNote] = useState(null);
+  const [isShareModalVisible, setIsShareModalVisible] = useState(false);
+  const [shareSelectedNote, setShareSelectedNote] = useState(null);
   const [advancedSearchVisible, setAdvancedSearchVisible] = useState(false);
   const [importExportVisible, setImportExportVisible] = useState(false);
   const [noteCreateModalVisible, setNoteCreateModalVisible] = useState(false);
@@ -409,6 +414,12 @@ const SmartNotes = ({ onViewChange }) => {
   const handleOpenAIAssistant = (note = null) => {
     setAISelectedNote(note || selectedNote);
     setIsAIAssistantVisible(true);
+  };
+
+  // 分享主题功能
+  const handleShareTheme = (note = null) => {
+    setShareSelectedNote(note || selectedNote);
+    setIsShareModalVisible(true);
   };
 
   // 同步组织培训课程功能
@@ -1008,7 +1019,7 @@ ${aiSelectedNote.content}`;
                         console.log('开始重新加载数据...');
                         await loadData();
                         console.log('数据重新加载完成');
-                        message.success(`成功生成 ${result.count} 条模拟数据`);
+                        message.success(`已自动生成 ${result.count} 条组织培训模拟数据`);
                       } else {
                         console.error('生成失败:', result.error);
                         message.error('生成模拟数据失败');
@@ -1144,8 +1155,8 @@ ${aiSelectedNote.content}`;
                           <Tooltip title="编辑">
                             <EditOutlined onClick={() => handleEditNote(note)} />
                           </Tooltip>,
-                          <Tooltip title="AI助手">
-                            <RobotOutlined onClick={() => handleOpenAIAssistant(note)} />
+                          <Tooltip title="分享主题">
+                            <ShareAltOutlined onClick={() => handleShareTheme(note)} />
                           </Tooltip>,
                           <Tooltip title={note.starred ? '取消收藏' : '收藏'}>
                             {note.starred ? (
@@ -1410,6 +1421,135 @@ ${aiSelectedNote.content}`;
         notes={notes}
         categories={noteCategories}
         tags={tags}
+      />
+
+      {/* 主题分享弹窗 */}
+      <ThemeShareModal
+        visible={isShareModalVisible}
+        onCancel={() => {
+          setIsShareModalVisible(false);
+          setShareSelectedNote(null);
+        }}
+        theme={shareSelectedNote ? {
+          id: shareSelectedNote.id,
+          name: shareSelectedNote.title,
+          colors: {
+            primary: '#1890ff',
+            textPrimary: '#262626',
+            background: '#ffffff'
+          }
+        } : null}
+        sourceData={{
+          files: [
+            { id: 1, name: '教师专业发展指导手册.pdf', type: 'application/pdf', uploadTime: '刚刚' },
+            { id: 2, name: '现代教育技术应用培训资料.pdf', type: 'application/pdf', uploadTime: '2分钟前' },
+            { id: 3, name: '核心素养导向的课程设计指南.pdf', type: 'application/pdf', uploadTime: '5分钟前' }
+          ],
+          links: [
+            { id: 1, url: 'https://teacher-training.edu.cn', title: '教师培训资源平台', addTime: '刚刚' },
+            { id: 2, url: 'https://education-tech.org', title: '教育技术发展研究网', addTime: '3分钟前' },
+            { id: 3, url: 'https://core-competency.edu', title: '核心素养教育资源库', addTime: '8分钟前' }
+          ],
+          texts: [
+            { 
+              id: 1, 
+              title: '教师培训需求分析', 
+              content: '在教育改革不断深化、教育技术飞速发展的当下，传统的教学模式和教师知识结构已难以完全适配新时代教育教学的要求...', 
+              addTime: '刚刚' 
+            },
+            { 
+              id: 2, 
+              title: '教师信息技术能力提升方案', 
+              content: '随着信息技术在教育领域的深度融合，教师的信息技术应用能力已成为影响教学质量的关键因素...', 
+              addTime: '10分钟前' 
+            }
+          ],
+          videos: [
+            { id: 1, title: '现代教学方法与技巧', url: 'https://edu-video.com/modern-teaching', addTime: '刚刚' },
+            { id: 2, title: '信息技术与课程整合', url: 'https://edu-video.com/tech-integration', addTime: '5分钟前' },
+            { id: 3, title: '学生心理发展与教育', url: 'https://edu-video.com/student-psychology', addTime: '12分钟前' }
+          ]
+        }}
+        operationRecords={{
+          audio: [
+            { id: 1, title: '基于7个资料生成音频概览', source: '7个来源', time: '刚刚', type: 'audio' },
+            { id: 11, title: '基于5个资料生成音频概览', source: '5个来源', time: '5分钟前', type: 'audio' }
+          ],
+          video: [
+            { id: 2, title: '基于7个资料生成视频概览', source: '7个来源', time: '2分钟前', type: 'video' },
+            { id: 12, title: '基于3个资料生成视频概览', source: '3个来源', time: '8分钟前', type: 'video' }
+          ],
+          ppt: [
+            { id: 13, title: '基于7个资料生成PPT演示', source: '7个来源', time: '3分钟前', type: 'ppt' },
+            { id: 14, title: '基于4个资料生成PPT演示', source: '4个来源', time: '12分钟前', type: 'ppt' }
+          ],
+          mindmap: [
+            { id: 3, title: '基于教师培训资料生成思维导图', source: '多个来源', time: '5分钟前', type: 'mindmap' },
+            { id: 15, title: '基于课程设计资料生成思维导图', source: '6个来源', time: '15分钟前', type: 'mindmap' }
+          ],
+          report: [
+            { id: 4, title: '教师培训需求分析报告', source: '调研数据', time: '10分钟前', type: 'report' },
+            { id: 5, title: '信息技术能力评估报告', source: '测评结果', time: '15分钟前', type: 'report' },
+            { id: 16, title: '学生学习效果分析报告', source: '学习数据', time: '25分钟前', type: 'report' }
+          ],
+          'training-plan': [
+            { id: 6, title: '教师专业发展培训方案', source: '需求分析', time: '20分钟前', type: 'training-plan' },
+            { id: 17, title: '新教师入职培训方案', source: '培训需求', time: '30分钟前', type: 'training-plan' }
+          ],
+          scenario: [
+            { 
+              id: 18, 
+              title: '[AI生成] 智能场景：基于7个资料的个性化', 
+              source: 'AI智能助手', 
+              time: '刚刚', 
+              type: 'scenario',
+              isAIGenerated: true,
+              status: 'completed',
+              description: 'AI场景生成完成'
+            },
+            { 
+              id: 19, 
+              title: '[AI生成] 智能场景：课堂互动设计', 
+              source: 'AI智能助手', 
+              time: '6分钟前', 
+              type: 'scenario',
+              isAIGenerated: true,
+              status: 'completed',
+              description: 'AI场景生成完成'
+            }
+          ],
+          text: [
+            { id: 7, title: '手动标注记录 - 核心素养', source: '手动标注', time: '刚刚', type: 'text' },
+            { id: 8, title: '规则标注执行 - 教学方法分类', source: '规则标注系统', time: '5分钟前', type: 'text' },
+            { id: 20, title: '手动标注记录 - 学习目标', source: '手动标注', time: '18分钟前', type: 'text' }
+          ],
+          note: [
+            { 
+              id: 21, 
+              title: '学习笔记示例', 
+              source: '示例笔记', 
+              time: '刚刚', 
+              type: 'note',
+              content: '<p>这是一个关于教学设计的学习笔记，包含了重要的理论知识和实践经验。</p>'
+            },
+            { 
+              id: 22, 
+              title: '课程反思笔记', 
+              source: '个人笔记', 
+              time: '10分钟前', 
+              type: 'note',
+              content: '<p>本次课程的教学反思和改进建议。</p>'
+            }
+          ],
+          webcode: [
+            { id: 23, title: '基于5个资料生成网页代码', source: '5个来源', time: '22分钟前', type: 'webcode' }
+          ]
+        }}
+        onShareSuccess={(type, result) => {
+          setIsShareModalVisible(false);
+          setShareSelectedNote(null);
+          message.success('主题分享成功！');
+        }}
       />
     </div>
   );

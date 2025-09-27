@@ -5,6 +5,120 @@
   overflow-y: auto;
 }
 
+/* 自定义滚动条样式 */
+.learning-square ::-webkit-scrollbar {
+  width: 6px;
+}
+
+.learning-square ::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.learning-square ::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.learning-square ::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 卡片悬停效果 */
+.learning-square .ant-card:hover {
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important;
+}
+
+/* 标签页样式优化 */
+.learning-square .ant-tabs-tab {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.learning-square .ant-tabs-tab-active {
+  color: #1890ff !important;
+}
+
+/* 统计卡片样式 */
+.learning-square .ant-statistic-title {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+.learning-square .ant-statistic-content {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* 课程卡片封面动画 */
+.learning-square .course-cover {
+  transition: all 0.3s ease;
+}
+
+.learning-square .course-cover:hover {
+  transform: scale(1.05);
+}
+
+/* 主题卡片封面渐变优化 */
+.learning-square .theme-cover {
+  position: relative;
+  overflow: hidden;
+}
+
+.learning-square .theme-cover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.1) 75%);
+  background-size: 20px 20px;
+  animation: move 2s linear infinite;
+}
+
+@keyframes move {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 20px 20px;
+  }
+}
+
+/* 按钮样式优化 */
+.learning-square .ant-btn-text {
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.learning-square .ant-btn-text:hover {
+  background: rgba(24, 144, 255, 0.1);
+  color: #1890ff;
+}
+
+/* 评分样式 */
+.learning-square .ant-rate {
+  color: #faad14;
+}
+
+/* 标签样式 */
+.learning-square .ant-tag {
+  border-radius: 12px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border: none;
+}
+
+/* 头像样式 */
+.learning-square .ant-avatar {
+  font-weight: bold;
+  font-size: 12px;
+}
+
 /* 头部搜索区域 */
 .search-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

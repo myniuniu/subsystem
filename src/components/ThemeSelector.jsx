@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Dropdown, Button, Space, Avatar } from 'antd';
-import { BgColorsOutlined, CheckOutlined } from '@ant-design/icons';
+import { BgColorsOutlined, CheckOutlined, ShareAltOutlined } from '@ant-design/icons';
 import { themes, getCurrentTheme, setTheme, getThemeList } from '../utils/themeManager';
+import ThemeShareModal from './ThemeShareModal';
 import './ThemeSelector.css';
 
 const ThemeSelector = ({ onThemeChange }) => {
   const [currentTheme, setCurrentTheme] = useState(getCurrentTheme());
+  const [shareModalVisible, setShareModalVisible] = useState(false);
 
   useEffect(() => {
     // 监听主题变更事件
@@ -24,6 +26,15 @@ const ThemeSelector = ({ onThemeChange }) => {
     if (setTheme(themeName)) {
       setCurrentTheme(themeName);
     }
+  };
+
+  const handleShareTheme = () => {
+    setShareModalVisible(true);
+  };
+
+  const getCurrentThemeData = () => {
+    const themeList = getThemeList();
+    return themeList.find(theme => theme.key === currentTheme) || themeList[0];
   };
 
   const themeList = getThemeList();
@@ -57,21 +68,45 @@ const ThemeSelector = ({ onThemeChange }) => {
   }));
 
   return (
-    <Dropdown
-      menu={{ items: menuItems }}
-      placement="bottomRight"
-      trigger={['click']}
-      overlayClassName="theme-selector-dropdown"
-    >
-      <Button 
-        type="text" 
-        icon={<BgColorsOutlined />}
-        className="theme-selector-button"
-        title="切换主题"
-      >
-        换肤
-      </Button>
-    </Dropdown>
+    <>
+      <Space>
+        <Dropdown
+          menu={{ items: menuItems }}
+          placement="bottomRight"
+          trigger={['click']}
+          overlayClassName="theme-selector-dropdown"
+        >
+          <Button 
+            type="text" 
+            icon={<BgColorsOutlined />}
+            className="theme-selector-button"
+            title="切换主题"
+          >
+            换肤
+          </Button>
+        </Dropdown>
+        
+        <Button 
+          type="text" 
+          icon={<ShareAltOutlined />}
+          className="theme-share-button"
+          title="分享当前主题"
+          onClick={handleShareTheme}
+        >
+          分享主题
+        </Button>
+      </Space>
+
+      <ThemeShareModal
+        open={shareModalVisible}
+        onCancel={() => setShareModalVisible(false)}
+        theme={getCurrentThemeData()}
+        onShareSuccess={() => {
+          setShareModalVisible(false);
+          // 可以在这里添加分享成功后的处理逻辑
+        }}
+      />
+    </>
   );
 };
 
