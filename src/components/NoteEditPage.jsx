@@ -192,6 +192,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   const operationHandlers = {
     onOperationClick: (operationType) => {
       const operationTitles = {
+        [OPERATION_TYPES.KNOWLEDGE_GRAPH]: '知识图谱',
         [OPERATION_TYPES.AUDIO]: '音频概览',
         [OPERATION_TYPES.VIDEO]: '视频概览',
         [OPERATION_TYPES.MINDMAP]: '思维导图',

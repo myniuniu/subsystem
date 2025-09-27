@@ -24,6 +24,7 @@ import {
   OPERATION_TYPES
 } from '../constants/noteEditConstants';
 import { getOperationIcon } from '../utils/noteEditUtils';
+import QuestionConfigModal from './QuestionConfigModal';
 
 const { Title, Text } = Typography;
 
@@ -158,25 +159,47 @@ const DraggableOperationCard = ({ card, index, onMove, onRemove, onClick, isEdit
 };
 
 const OperationPanel = ({ state, handlers }) => {
-  // 状态管理 - 确保试题和试卷不在默认显示列表中
+  // 状态管理 - 确保试卷不在默认显示列表中，知识图谱和试题默认显示
   const [visibleCards, setVisibleCards] = useState(() => {
-    return OPERATION_CARDS.filter(card => 
+    const defaultCards = OPERATION_CARDS.filter(card => 
       card.key !== 'addTool' && 
-      card.key !== 'question' && 
       card.key !== 'exam-paper'
     );
+    // 确保知识图谱在第一位，试题在第二位
+    const knowledgeGraphCard = defaultCards.find(card => card.key === 'knowledge-graph');
+    const questionCard = defaultCards.find(card => card.key === 'question');
+    const otherCards = defaultCards.filter(card => 
+      card.key !== 'knowledge-graph' && 
+      card.key !== 'question'
+    );
+    const orderedCards = [];
+    if (knowledgeGraphCard) orderedCards.push(knowledgeGraphCard);
+    if (questionCard) orderedCards.push(questionCard);
+    orderedCards.push(...otherCards);
+    return orderedCards;
   });
   const [showCardSelector, setShowCardSelector] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false); // 新增编辑模式状态
+  const [questionConfigVisible, setQuestionConfigVisible] = useState(false); // 试题配置弹窗状态
   
   // 使用useEffect确保初始化正确
   useEffect(() => {
     const defaultCards = OPERATION_CARDS.filter(card => 
       card.key !== 'addTool' && 
-      card.key !== 'question' && 
       card.key !== 'exam-paper'
     );
-    setVisibleCards(defaultCards);
+    // 确保知识图谱在第一位，试题在第二位
+    const knowledgeGraphCard = defaultCards.find(card => card.key === 'knowledge-graph');
+    const questionCard = defaultCards.find(card => card.key === 'question');
+    const otherCards = defaultCards.filter(card => 
+      card.key !== 'knowledge-graph' && 
+      card.key !== 'question'
+    );
+    const orderedCards = [];
+    if (knowledgeGraphCard) orderedCards.push(knowledgeGraphCard);
+    if (questionCard) orderedCards.push(questionCard);
+    orderedCards.push(...otherCards);
+    setVisibleCards(orderedCards);
   }, []);
   
   const {
@@ -236,9 +259,20 @@ const OperationPanel = ({ state, handlers }) => {
   const handleCardClick = (card) => {
     if (card.key === OPERATION_TYPES.SCENARIO) {
       onScenarioClick();
+    } else if (card.key === OPERATION_TYPES.QUESTION) {
+      // 试题工具弹出配置窗口
+      setQuestionConfigVisible(true);
     } else {
       onOperationClick(card.key);
     }
+  };
+
+  // 处理试题配置确认
+  const handleQuestionConfigConfirm = (operationRecord) => {
+    setOperationRecords(prev => ({
+      ...prev,
+      question: [operationRecord, ...(prev.question || [])]
+    }));
   };
 
   // 新建笔记功能
@@ -908,6 +942,14 @@ const OperationPanel = ({ state, handlers }) => {
           </Button>
         </div>
       </div>
+      
+      {/* 试题配置弹窗 */}
+      <QuestionConfigModal
+        visible={questionConfigVisible}
+        onClose={() => setQuestionConfigVisible(false)}
+        onConfirm={handleQuestionConfigConfirm}
+        materialCount={uploadedFiles.length + addedTexts.length + courseVideos.length + links.length}
+      />
     </DndProvider>
   );
 };

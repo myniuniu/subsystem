@@ -1,5 +1,6 @@
 // 操作类型常量
 export const OPERATION_TYPES = {
+  KNOWLEDGE_GRAPH: 'knowledge-graph',
   AUDIO: 'audio',
   VIDEO: 'video',
   MINDMAP: 'mindmap',
@@ -45,6 +46,7 @@ export const MATERIAL_ICONS = {
   video: '🎥',
   link: '🔗',
   course: '📚',
+  [OPERATION_TYPES.KNOWLEDGE_GRAPH]: '🧠',
   [OPERATION_TYPES.AUDIO]: '音',
   [OPERATION_TYPES.VIDEO]: '视',
   [OPERATION_TYPES.MINDMAP]: '思',
@@ -186,6 +188,13 @@ export const COMMON_QUESTIONS = [
 // 操作卡片配置
 export const OPERATION_CARDS = [
   {
+    key: OPERATION_TYPES.KNOWLEDGE_GRAPH,
+    title: '知识图谱',
+    icon: '知',
+    gradient: 'linear-gradient(135deg, #e8f4f8 0%, #d1ecf1 100%)',
+    color: '#0369a1'
+  },
+  {
     key: OPERATION_TYPES.AUDIO,
     title: '音频概览',
     icon: '音',
@@ -230,7 +239,7 @@ export const OPERATION_CARDS = [
   {
     key: OPERATION_TYPES.QUESTION,
     title: '试题',
-    icon: '试',
+    icon: '题',
     gradient: 'linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%)',
     color: '#00695c'
   },
