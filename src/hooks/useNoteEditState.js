@@ -215,6 +215,10 @@ export const useNoteEditState = (note, mode) => {
   const [rightPanelView, setRightPanelView] = useState('operations');
   const [rightPanelEditingNote, setRightPanelEditingNote] = useState(null);
   const [rightPanelNoteContent, setRightPanelNoteContent] = useState('');
+  
+  // 试题查看状态
+  const [rightPanelQuestionRecord, setRightPanelQuestionRecord] = useState(null);
+  const [rightPanelQuestionContent, setRightPanelQuestionContent] = useState('');
 
   // 能力模型相关状态
   const [capabilityMap, setCapabilityMap] = useState(null);
@@ -413,6 +417,12 @@ export const useNoteEditState = (note, mode) => {
     setRightPanelEditingNote,
     rightPanelNoteContent,
     setRightPanelNoteContent,
+    
+    // 试题查看状态
+    rightPanelQuestionRecord,
+    setRightPanelQuestionRecord,
+    rightPanelQuestionContent,
+    setRightPanelQuestionContent,
 
     // 能力模型和知识图谱状态
     capabilityMap,

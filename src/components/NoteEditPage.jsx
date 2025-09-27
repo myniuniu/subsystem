@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Layout,
   Button,
@@ -113,19 +113,19 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
   } = state;
 
   // 初始化可用工具数据
-  React.useEffect(() => {
+  useEffect(() => {
     const { tools, categories } = initializeAvailableTools();
     setAvailableTools(tools);
     setToolCategories(categories);
   }, []);
 
   // 调试：监控 currentView 变化
-  React.useEffect(() => {
+  useEffect(() => {
     console.log('currentView 变化为:', currentView);
   }, [currentView]);
 
   // 调试：监控 selectedScenarios 变化
-  React.useEffect(() => {
+  useEffect(() => {
     console.log('selectedScenarios 变化为:', selectedScenarios);
   }, [selectedScenarios]);
 
@@ -265,6 +265,43 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
       }
       
       // 其他记录类型的处理逻辑
+      if (record.type === 'question') {
+        console.log('试题记录点击，record.content存在:', !!record.content);
+        console.log('record.content类型:', typeof record.content);
+        console.log('record.content长度:', record.content ? record.content.length : 0);
+        
+        // 设置试题查看状态并在右侧面板显示
+        state.setRightPanelQuestionRecord(record);
+        
+        if (record.content) {
+          state.setRightPanelQuestionContent(record.content);
+        } else {
+          // 如果没有content，生成默认内容
+          const defaultContent = `
+            <div style="padding: 20px; text-align: center;">
+              <h3>📝 ${record.title}</h3>
+              <p style="color: #666;">暂无具体试题内容</p>
+              <p style="color: #999; font-size: 14px;">${record.source} • ${record.time}</p>
+            </div>
+          `;
+          state.setRightPanelQuestionContent(defaultContent);
+        }
+        
+        // 切换到试题查看视图
+        state.setRightPanelView(RIGHT_PANEL_VIEWS.QUESTION_VIEWER);
+        console.log('在右侧面板显示试题内容:', record.title);
+        return;
+      }
+      
+      // 其他有内容的记录类型
+      if (record.content) {
+        setCurrentRecord(record);
+        setModalContent(record.content);
+        setShowContentModal(true);
+        console.log('显示记录内容:', record.title);
+        return;
+      }
+      
       console.log('点击了其他类型记录:', record);
     },
     
@@ -488,7 +525,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
 
             {/* 中间问答区域 */}
             <div style={{
-              flex: state.rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR ? 3.5 : 5,
+              flex: (state.rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR || state.rightPanelView === RIGHT_PANEL_VIEWS.QUESTION_VIEWER) ? 3.5 : 5,
               transition: 'flex 0.3s ease'
             }}>
               <AIChat 
@@ -500,8 +537,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
             {/* 右侧操作区域 */}
             <div style={{ 
               flex: (() => {
-                // 笔记编辑状态时进一步增加右侧宽度
-                if (state.rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR) {
+                // 笔记编辑或试题查看状态时进一步增加右侧宽度
+                if (state.rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR || state.rightPanelView === RIGHT_PANEL_VIEWS.QUESTION_VIEWER) {
                   const baseRatio = currentView === VIEW_MODES.VIDEO ? 3 : (state.viewMode === VIEW_MODES.MAP ? 3 : 2.5);
                   return baseRatio * 1.5; // 增加50%，比之前的20%更宽
                 }

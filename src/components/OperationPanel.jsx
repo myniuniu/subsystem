@@ -211,6 +211,10 @@ const OperationPanel = ({ state, handlers }) => {
     setRightPanelEditingNote,
     rightPanelNoteContent,
     setRightPanelNoteContent,
+    rightPanelQuestionRecord,
+    setRightPanelQuestionRecord,
+    rightPanelQuestionContent,
+    setRightPanelQuestionContent,
     uploadedFiles,
     addedTexts,
     courseVideos,
@@ -505,6 +509,78 @@ const OperationPanel = ({ state, handlers }) => {
           >
             保存
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (rightPanelView === RIGHT_PANEL_VIEWS.QUESTION_VIEWER) {
+    // 右侧栏试题查看器
+    return (
+      <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '100%' }}>
+        {/* 查看器头部 */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          marginBottom: '16px',
+          paddingBottom: '12px',
+          borderBottom: '1px solid #f0f0f0'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '16px', color: '#00695c' }}>📋</span>
+            <Text style={{ fontSize: '16px', fontWeight: 'bold' }}>试题内容</Text>
+          </div>
+          <Button 
+            type="text" 
+            icon={<ArrowLeftOutlined />}
+            onClick={() => {
+              setRightPanelView(RIGHT_PANEL_VIEWS.OPERATIONS);
+              setRightPanelQuestionRecord(null);
+              setRightPanelQuestionContent('');
+            }}
+            style={{ color: '#666' }}
+          >
+            返回
+          </Button>
+        </div>
+
+        {/* 试题信息 */}
+        {rightPanelQuestionRecord && (
+          <div style={{
+            background: 'linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%)',
+            padding: '12px',
+            borderRadius: '8px',
+            marginBottom: '16px',
+            border: '1px solid #4caf50'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <span style={{ color: '#00695c', fontWeight: 'bold' }}>{rightPanelQuestionRecord.title}</span>
+            </div>
+            <div style={{ fontSize: '12px', color: '#666', display: 'flex', gap: '12px' }}>
+              <span>{rightPanelQuestionRecord.source}</span>
+              <span>{rightPanelQuestionRecord.time}</span>
+            </div>
+          </div>
+        )}
+
+        {/* 试题内容显示区域 */}
+        <div style={{ 
+          flex: 1,
+          border: '1px solid #d9d9d9', 
+          borderRadius: '8px',
+          padding: '16px',
+          background: '#fff',
+          overflow: 'auto'
+        }}>
+          <div 
+            dangerouslySetInnerHTML={{ __html: rightPanelQuestionContent }}
+            style={{ 
+              lineHeight: '1.6',
+              fontSize: '14px',
+              color: '#333'
+            }}
+          />
         </div>
       </div>
     );
@@ -889,6 +965,19 @@ const OperationPanel = ({ state, handlers }) => {
                     size="small" 
                     icon={<EditOutlined style={{ fontSize: '12px' }} />}
                     style={{ padding: '2px 4px', height: 'auto', minWidth: 'auto' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRecordClick(record);
+                    }}
+                  />
+                )}
+                {record.type === 'question' && (
+                  <Button 
+                    type="text" 
+                    size="small" 
+                    icon={<div style={{ fontSize: '12px', color: '#00695c' }}>📋</div>}
+                    style={{ padding: '2px 4px', height: 'auto', minWidth: 'auto' }}
+                    title="查看试题"
                     onClick={(e) => {
                       e.stopPropagation();
                       onRecordClick(record);

@@ -280,6 +280,140 @@ const QuestionConfigModal = ({
       'knowledgeGraph': '知识图谱'
     };
     
+    // 模拟生成的试题内容
+    const generateQuestionContent = () => {
+      const questions = [
+        {
+          type: '单选题',
+          question: '下列哪个不是React的核心概念？',
+          options: ['A. 组件', 'B. JSX', 'C. 虚拟 DOM', 'D. jQuery'],
+          answer: 'D',
+          score: 2,
+          difficulty: '基础',
+          knowledge: 'React组件开发'
+        },
+        {
+          type: '多选题',
+          question: 'JavaScript中声明变量的方式有哪些？（多选）',
+          options: ['A. var', 'B. let', 'C. const', 'D. function'],
+          answer: 'ABC',
+          score: 4,
+          difficulty: '基础',
+          knowledge: 'JavaScript基础'
+        },
+        {
+          type: '判断题',
+          question: 'HTTP协议是无状态协议。',
+          answer: '正确',
+          score: 1,
+          difficulty: '中等',
+          knowledge: 'HTTP协议'
+        },
+        {
+          type: '填空题',
+          question: 'React中使用_____Hook来管理组件内部状态。',
+          answer: 'useState',
+          score: 3,
+          difficulty: '中等',
+          knowledge: 'React Hook'
+        },
+        {
+          type: '简答题',
+          question: '请简述数据结构中栈和队列的区别。',
+          answer: '栈是后进先出（LIFO）的数据结构，元素只能从一端（栈顶）进行添加和删除。队列是先进先出（FIFO）的数据结构，元素从一端（队尾）进入，从另一端（队头）出去。',
+          score: 8,
+          difficulty: '中等',
+          knowledge: '数据结构基础'
+        },
+        {
+          type: '计算题',
+          question: '已知直角三角形两直角边分别为3cm和4cm，请用勾股定理计算斜边长度。',
+          answer: '根据勾股定理：c² = a² + b²\n计算：c² = 3² + 4² = 9 + 16 = 25\n所以 c = √25 = 5cm',
+          score: 10,
+          difficulty: '应用',
+          knowledge: '数学公式应用'
+        }
+      ];
+      
+      return questions;
+    };
+    
+    const questions = generateQuestionContent();
+    
+    // 生成HTML内容
+    const generateHTMLContent = () => {
+      let html = `
+        <div style="font-family: '微软雅黑', sans-serif; padding: 20px; line-height: 1.6;">
+          <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #1890ff; padding-bottom: 15px;">
+            <h1 style="color: #1890ff; margin: 0; font-size: 24px;">📝 智能生成试题</h1>
+            <p style="color: #666; margin: 5px 0 0 0; font-size: 14px;">基于${materialCount}个资料生成 • ${viewLabels[selectedView]}视图 • 共${questions.length}道题</p>
+          </div>
+      `;
+      
+      questions.forEach((q, index) => {
+        const typeColors = {
+          '单选题': '#52c41a',
+          '多选题': '#1890ff', 
+          '判断题': '#fa8c16',
+          '填空题': '#eb2f96',
+          '简答题': '#722ed1',
+          '计算题': '#13c2c2'
+        };
+        
+        const difficultyColors = {
+          '基础': '#52c41a',
+          '中等': '#fa8c16', 
+          '应用': '#f5222d',
+          '高级': '#722ed1'
+        };
+        
+        html += `
+          <div style="margin-bottom: 25px; border: 1px solid #f0f0f0; border-radius: 8px; padding: 20px; background: #fafafa;">
+            <div style="display: flex; align-items: center; margin-bottom: 15px; gap: 10px;">
+              <span style="font-weight: bold; font-size: 16px; color: #262626;">第${index + 1}题</span>
+              <span style="background: ${typeColors[q.type] || '#666'}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">${q.type}</span>
+              <span style="background: ${difficultyColors[q.difficulty] || '#666'}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">${q.difficulty}</span>
+              <span style="background: #f0f0f0; color: #666; padding: 2px 8px; border-radius: 12px; font-size: 12px;">${q.score}分</span>
+              <span style="background: #e6f7ff; color: #1890ff; padding: 2px 8px; border-radius: 12px; font-size: 12px;">${q.knowledge}</span>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+              <p style="font-size: 15px; color: #262626; margin: 0; font-weight: 500;">${q.question}</p>
+            </div>
+        `;
+        
+        if (q.options) {
+          html += '<div style="margin-left: 20px;">';
+          q.options.forEach(option => {
+            html += `<p style="margin: 8px 0; color: #595959; font-size: 14px;">${option}</p>`;
+          });
+          html += '</div>';
+        }
+        
+        html += `
+            <div style="margin-top: 15px; padding: 10px; background: #f6ffed; border-left: 3px solid #52c41a; border-radius: 4px;">
+              <p style="margin: 0; color: #52c41a; font-weight: 500; font-size: 13px;">✅ 参考答案：</p>
+              <p style="margin: 5px 0 0 0; color: #262626; font-size: 14px; white-space: pre-line;">${q.answer}</p>
+            </div>
+          </div>
+        `;
+      });
+      
+      html += `
+          <div style="margin-top: 30px; padding: 15px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 8px; text-align: center;">
+            <h3 style="color: #0369a1; margin: 0 0 10px 0; font-size: 16px;">📈 试题统计</h3>
+            <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+              <span style="color: #595959; font-size: 13px;">总题数：<strong>${questions.length}道</strong></span>
+              <span style="color: #595959; font-size: 13px;">总分数：<strong>${questions.reduce((sum, q) => sum + q.score, 0)}分</strong></span>
+              <span style="color: #595959; font-size: 13px;">知识点：<strong>${mockKnowledgePoints.length}个</strong></span>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      return html;
+    };
+    
     // 生成操作记录
     const operationRecord = {
       id: Date.now(),
@@ -289,15 +423,25 @@ const QuestionConfigModal = ({
       type: 'question',
       viewType: selectedView,
       knowledgePoints: mockKnowledgePoints.length,
+      questionCount: questions.length,
+      totalScore: questions.reduce((sum, q) => sum + q.score, 0),
+      content: generateHTMLContent(), // 添加实际试题内容
+      questions: questions, // 保存结构化数据
       config: {
         viewMode: selectedView,
         selectedKnowledgePoints: mockKnowledgePoints.map(kp => kp.id),
-        totalConnections: mockKnowledgeConnections.length
+        totalConnections: mockKnowledgeConnections.length,
+        showAdvancedConfig: showAdvancedConfig,
+        advancedConfigData: showAdvancedConfig ? {
+          bloomTaxonomy: bloomTaxonomy,
+          questionTypes: questionTypes,
+          difficultyLevels: difficultyLevels
+        } : null
       }
     };
 
     onConfirm(operationRecord);
-    message.success(`已生成${viewLabels[selectedView]}视图的试题`);
+    message.success(`已生成${viewLabels[selectedView]}视图的试题，共${questions.length}道题`);
     onClose();
   };
 

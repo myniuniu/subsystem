@@ -80,7 +80,8 @@ export const VIEW_MODES = {
 // 右侧面板视图常量
 export const RIGHT_PANEL_VIEWS = {
   OPERATIONS: 'operations',
-  NOTE_EDITOR: 'noteEditor'
+  NOTE_EDITOR: 'noteEditor',
+  QUESTION_VIEWER: 'questionViewer'
 };
 
 // 直播状态常量
