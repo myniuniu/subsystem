@@ -159,7 +159,9 @@ export const MORE_MENU_ACTIONS = {
   CONVERT_TO_SOURCE: 'convertToSource',
   DELETE: 'delete',
   RENAME: 'rename',
-  VIEW: 'view'
+  VIEW: 'view',
+  COPY_TO: 'copyTo',
+  MOVE_TO: 'moveTo'
 };
 
 // 时间格式正则表达式

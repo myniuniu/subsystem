@@ -25,6 +25,7 @@ import {
 } from '../constants/noteEditConstants';
 import { getOperationIcon } from '../utils/noteEditUtils';
 import QuestionConfigModal from './QuestionConfigModal';
+import ThemeSelectModal from './ThemeSelectModal';
 
 const { Title, Text } = Typography;
 
@@ -219,6 +220,11 @@ const OperationPanel = ({ state, handlers }) => {
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
   
+  // 主题选择模态框状态
+  const [showThemeSelectModal, setShowThemeSelectModal] = useState(false);
+  const [currentRecord, setCurrentRecord] = useState(null);
+  const [currentActionType, setCurrentActionType] = useState(null); // 'copy' 或 'move'
+  
   // 当切换视图时重置练习状态
   useEffect(() => {
     if (rightPanelView !== RIGHT_PANEL_VIEWS.QUESTION_VIEWER) {
@@ -292,6 +298,85 @@ const OperationPanel = ({ state, handlers }) => {
     }
   };
 
+  // 处理主题选择确认
+  const handleThemeSelectConfirm = async (targetTheme, record, actionType) => {
+    try {
+      if (actionType === 'copy') {
+        // 复制操作：在目标主题中创建记录副本
+        const copiedRecord = {
+          ...record,
+          id: Date.now(), // 生成新的ID
+          title: `${record.title} (副本)`,
+          time: '刚刚',
+          source: `${record.source} • 复制自 ${targetTheme.name}`,
+          originalTheme: targetTheme.name,
+          copyFrom: record.id
+        };
+        
+        // 添加到操作记录中
+        setOperationRecords(prev => ({
+          ...prev,
+          [record.type]: [copiedRecord, ...(prev[record.type] || [])]
+        }));
+        
+        message.success(`成功复制"${record.title}"到主题"${targetTheme.name}"`);
+      } else if (actionType === 'move') {
+        // 移动操作：将记录转移到目标主题
+        const movedRecord = {
+          ...record,
+          source: `${record.source} • 移至 ${targetTheme.name}`,
+          originalTheme: targetTheme.name,
+          moveToTheme: targetTheme.name
+        };
+        
+        // 更新记录
+        setOperationRecords(prev => ({
+          ...prev,
+          [record.type]: (prev[record.type] || []).map(r => 
+            r.id === record.id ? movedRecord : r
+          )
+        }));
+        
+        message.success(`成功移动"${record.title}"到主题"${targetTheme.name}"`);
+      }
+      
+      // 关闭模态框
+      setShowThemeSelectModal(false);
+      setCurrentRecord(null);
+      setCurrentActionType(null);
+    } catch (error) {
+      console.error('操作失败:', error);
+      message.error('操作失败，请重试');
+    }
+  };
+  
+  // 处理取消主题选择
+  const handleThemeSelectCancel = () => {
+    setShowThemeSelectModal(false);
+    setCurrentRecord(null);
+    setCurrentActionType(null);
+  };
+  
+  // 修改onMoreAction处理器以支持复制和移动操作
+  const handleMoreAction = (action, record) => {
+    if (action === MORE_MENU_ACTIONS.COPY_TO) {
+      setCurrentRecord(record);
+      setCurrentActionType('copy');
+      setShowThemeSelectModal(true);
+      return;
+    }
+    
+    if (action === MORE_MENU_ACTIONS.MOVE_TO) {
+      setCurrentRecord(record);
+      setCurrentActionType('move');
+      setShowThemeSelectModal(true);
+      return;
+    }
+    
+    // 调用原始的onMoreAction处理器
+    onMoreAction(action, record);
+  };
+
   // 处理试题配置确认
   const handleQuestionConfigConfirm = (operationRecord) => {
     setOperationRecords(prev => ({
@@ -329,6 +414,35 @@ const OperationPanel = ({ state, handlers }) => {
   const getMoreMenuItems = (record) => {
     const commonItems = [
       {
+        key: MORE_MENU_ACTIONS.COPY_TO,
+        label: (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '16px' }}>📋</span>
+            <span>复制到</span>
+          </div>
+        ),
+        onClick: ({ domEvent }) => {
+          domEvent?.stopPropagation();
+          handleMoreAction(MORE_MENU_ACTIONS.COPY_TO, record);
+        }
+      },
+      {
+        key: MORE_MENU_ACTIONS.MOVE_TO,
+        label: (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '16px' }}>📦</span>
+            <span>移动到</span>
+          </div>
+        ),
+        onClick: ({ domEvent }) => {
+          domEvent?.stopPropagation();
+          handleMoreAction(MORE_MENU_ACTIONS.MOVE_TO, record);
+        }
+      },
+      {
+        type: 'divider'
+      },
+      {
         key: MORE_MENU_ACTIONS.DELETE,
         label: (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -338,7 +452,7 @@ const OperationPanel = ({ state, handlers }) => {
         ),
         onClick: ({ domEvent }) => {
           domEvent?.stopPropagation();
-          onMoreAction(MORE_MENU_ACTIONS.DELETE, record);
+          handleMoreAction(MORE_MENU_ACTIONS.DELETE, record);
         }
       }
     ];
@@ -360,11 +474,14 @@ const OperationPanel = ({ state, handlers }) => {
           ),
           onClick: ({ domEvent }) => {
             domEvent?.stopPropagation();
-            onMoreAction(
+            handleMoreAction(
               record.isStudyResult ? MORE_MENU_ACTIONS.UNMARK_STUDY_RESULT : MORE_MENU_ACTIONS.MARK_STUDY_RESULT, 
               record
             );
           }
+        },
+        {
+          type: 'divider'
         },
         ...commonItems
       ];
@@ -383,8 +500,11 @@ const OperationPanel = ({ state, handlers }) => {
           ),
           onClick: ({ domEvent }) => {
             domEvent?.stopPropagation();
-            onMoreAction(MORE_MENU_ACTIONS.CONVERT_TO_SOURCE, record);
+            handleMoreAction(MORE_MENU_ACTIONS.CONVERT_TO_SOURCE, record);
           }
+        },
+        {
+          type: 'divider'
         },
         ...commonItems
       ];
@@ -1442,6 +1562,17 @@ const OperationPanel = ({ state, handlers }) => {
         onClose={() => setQuestionConfigVisible(false)}
         onConfirm={handleQuestionConfigConfirm}
         materialCount={uploadedFiles.length + addedTexts.length + courseVideos.length + links.length}
+      />
+      
+      {/* 主题选择模态框 */}
+      <ThemeSelectModal
+        open={showThemeSelectModal}
+        onCancel={handleThemeSelectCancel}
+        onConfirm={handleThemeSelectConfirm}
+        title={currentActionType === 'copy' ? '选择复制目标主题' : '选择移动目标主题'}
+        confirmText={currentActionType === 'copy' ? '复制到此主题' : '移动到此主题'}
+        record={currentRecord}
+        actionType={currentActionType}
       />
     </DndProvider>
   );
