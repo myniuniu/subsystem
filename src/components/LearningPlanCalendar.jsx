@@ -7,11 +7,13 @@ import 'dayjs/locale/zh-cn';
 // 设置dayjs为中文
 dayjs.locale('zh-cn');
 
-const LearningPlanCalendar = ({ planData, analysis, plan, habits, selectedDate, onDateChange }) => {
+const LearningPlanCalendar = ({ planData, analysis, plan, habits, selectedDate, onDateChange, onBackToThreeColumn }) => {
   const [currentMonth, setCurrentMonth] = useState(dayjs());
   const [selectedDateForModal, setSelectedDateForModal] = useState(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [learningEvents, setLearningEvents] = useState([]);
+  const [calendarView, setCalendarView] = useState('day');
+  const [currentDate, setCurrentDate] = useState(selectedDate || dayjs());
 
   // 根据学习计划生成日历事件
   useEffect(() => {
@@ -165,27 +167,52 @@ const LearningPlanCalendar = ({ planData, analysis, plan, habits, selectedDate, 
     setCurrentMonth(value);
   };
 
-  // 导航到上月
+  // 导航功能
   const goToPrevMonth = () => {
     setCurrentMonth(prev => prev.subtract(1, 'month'));
   };
 
-  // 导航到下月
   const goToNextMonth = () => {
     setCurrentMonth(prev => prev.add(1, 'month'));
   };
 
-  // 导航到今天
   const goToToday = () => {
     const today = dayjs();
     setCurrentMonth(today);
-    onDateChange(today);
+    setCurrentDate(today);
+    onDateChange && onDateChange(today);
   };
+
+  const goToPrevDay = () => {
+    const prevDay = currentDate.subtract(1, 'day');
+    setCurrentDate(prevDay);
+    setCurrentMonth(prevDay);
+    onDateChange && onDateChange(prevDay);
+  };
+
+  const goToNextDay = () => {
+    const nextDay = currentDate.add(1, 'day');
+    setCurrentDate(nextDay);
+    setCurrentMonth(nextDay);
+    onDateChange && onDateChange(nextDay);
+  };
+
+  // 获取当前周的日期范围
+  const getCurrentWeekDates = () => {
+    const startOfWeek = currentDate.startOf('week')
+    return Array.from({ length: 7 }, (_, i) => startOfWeek.add(i, 'day'))
+  }
 
   // 检查是否有学习计划数据
   if (!plan || !plan.phases || plan.phases.length === 0) {
     return (
-      <div style={{ padding: '16px', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ 
+        height: '100%', 
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#f5f5f5'
+      }}>
         <Empty
           image="📅"
           imageStyle={{ fontSize: '48px' }}
@@ -201,119 +228,182 @@ const LearningPlanCalendar = ({ planData, analysis, plan, habits, selectedDate, 
   }
 
   return (
-    <div style={{ padding: '16px', height: '100%', overflow: 'auto' }}>
-      {/* 日历头部导航 */}
+    <>
+      {/* 学习计划日历组件 - 适配三栏布局 */}
       <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between',
-        marginBottom: '16px',
-        paddingBottom: '12px',
-        borderBottom: '1px solid #f0f0f0'
+        height: '100%', 
+        display: 'flex',
+        flexDirection: 'column',
+        background: '#f5f5f5'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Button 
-            size="small" 
-            icon={<LeftOutlined />} 
-            onClick={goToPrevMonth}
-          />
-          <Button 
-            size="small" 
-            icon={<RightOutlined />} 
-            onClick={goToNextMonth}
-          />
-          <Button 
-            size="small" 
-            onClick={goToToday}
-          >
-            今天
-          </Button>
-        </div>
-        
-        <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#1890ff' }}>
-          {currentMonth.format('YYYY年MM月')} 学习安排
-        </div>
-      </div>
+        {/* 头部导航区域 */}
+        <div style={{
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          padding: '12px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          borderRadius: '8px 8px 0 0'
+        }}>
+          {/* 左侧视图切换 */}
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Button
+              type={calendarView === 'day' ? 'primary' : 'default'}
+              size="small"
+              onClick={() => setCalendarView('day')}
+              style={{
+                background: calendarView === 'day' ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.3)',
+                color: '#fff'
+              }}
+            >
+              日视图
+            </Button>
+            <Button
+              type={calendarView === 'week' ? 'primary' : 'default'}
+              size="small"
+              onClick={() => setCalendarView('week')}
+              style={{
+                background: calendarView === 'week' ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.3)',
+                color: '#fff'
+              }}
+            >
+              周视图
+            </Button>
+            <Button
+              type={calendarView === 'month' ? 'primary' : 'default'}
+              size="small"
+              onClick={() => setCalendarView('month')}
+              style={{
+                background: calendarView === 'month' ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.3)',
+                color: '#fff'
+              }}
+            >
+              月视图
+            </Button>
+          </div>
 
-      {/* 学习计划统计概览 */}
-      <Row gutter={[8, 8]} style={{ marginBottom: '16px' }}>
-        <Col span={6}>
-          <Card size="small" style={{ textAlign: 'center' }}>
-            <Statistic 
-              title="总任务" 
-              value={learningEvents.filter(e => e.type === 'study').length} 
-              suffix="个"
-              valueStyle={{ fontSize: '14px' }}
+          {/* 中间日期导航 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff' }}>
+            <Button
+              size="small"
+              icon={<LeftOutlined />}
+              onClick={() => {
+                if (calendarView === 'day') {
+                  goToPrevDay();
+                } else if (calendarView === 'week') {
+                  const prevWeek = currentDate.subtract(1, 'week');
+                  setCurrentDate(prevWeek);
+                  setCurrentMonth(prevWeek);
+                } else {
+                  goToPrevMonth();
+                }
+              }}
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.3)',
+                color: '#fff'
+              }}
             />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card size="small" style={{ textAlign: 'center' }}>
-            <Statistic 
-              title="里程碑" 
-              value={learningEvents.filter(e => e.type === 'milestone').length} 
-              suffix="个"
-              valueStyle={{ fontSize: '14px' }}
+            
+            <span style={{ fontSize: '14px', fontWeight: '500', minWidth: '120px', textAlign: 'center' }}>
+              {calendarView === 'day' && currentDate.format('YYYY年MM月DD日')}
+              {calendarView === 'week' && `${getCurrentWeekDates()[0].format('MM月DD日')} - ${getCurrentWeekDates()[6].format('MM月DD日')}`}
+              {calendarView === 'month' && currentMonth.format('YYYY年MM月')}
+            </span>
+            
+            <Button
+              size="small"
+              icon={<RightOutlined />}
+              onClick={() => {
+                if (calendarView === 'day') {
+                  goToNextDay();
+                } else if (calendarView === 'week') {
+                  const nextWeek = currentDate.add(1, 'week');
+                  setCurrentDate(nextWeek);
+                  setCurrentMonth(nextWeek);
+                } else {
+                  goToNextMonth();
+                }
+              }}
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.3)',
+                color: '#fff'
+              }}
             />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card size="small" style={{ textAlign: 'center' }}>
-            <Statistic 
-              title="计划周期" 
-              value={plan?.duration || '未设定'}
-              valueStyle={{ fontSize: '14px' }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card size="small" style={{ textAlign: 'center' }}>
-            <Statistic 
-              title="每周学时" 
-              value={plan?.weeklyHours || 0} 
-              suffix="小时"
-              valueStyle={{ fontSize: '14px' }}
-            />
-          </Card>
-        </Col>
-      </Row>
+          </div>
 
-      {/* 学习习惯标签 */}
-      {habits.length > 0 && (
-        <div style={{ marginBottom: '16px' }}>
-          <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>学习习惯：</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-            {habits.map(habit => {
-              const habitMap = {
-                'morning': '早晨学习',
-                'evening': '晚间学习',
-                'weekend': '周末集中',
-                'fragmented': '碎片化学习',
-                'intensive': '密集学习',
-                'gradual': '循序渐进'
-              };
-              return (
-                <Tag key={habit} size="small" color="blue">
-                  {habitMap[habit]}
-                </Tag>
-              );
-            })}
+          {/* 右侧操作按钮 */}
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {onBackToThreeColumn && (
+              <Button
+                size="small"
+                icon={<LeftOutlined />}
+                onClick={onBackToThreeColumn}
+                style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  color: '#fff'
+                }}
+              >
+                返回三栏视图
+              </Button>
+            )}
+            <Button
+              size="small"
+              onClick={goToToday}
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.3)',
+                color: '#fff'
+              }}
+            >
+              今天
+            </Button>
           </div>
         </div>
-      )}
 
-      {/* 日历组件 */}
-      <Calendar
-        value={currentMonth}
-        cellRender={cellRender}
-        onSelect={onSelect}
-        onPanelChange={onPanelChange}
-        style={{ 
+        {/* 主内容区域 */}
+        <div style={{ 
+          flex: 1, 
           background: '#fff',
-          borderRadius: '8px',
-          padding: '8px'
-        }}
-      />
+          borderRadius: '0 0 8px 8px',
+          overflow: 'hidden',
+          padding: '16px'
+        }}>
+          {calendarView === 'month' && (
+            <Calendar
+              value={currentMonth}
+              cellRender={cellRender}
+              onSelect={onSelect}
+              onPanelChange={onPanelChange}
+              style={{ 
+                background: 'transparent',
+                borderRadius: '8px'
+              }}
+            />
+          )}
+          
+          {calendarView === 'day' && (
+            <div style={{ textAlign: 'center', padding: '40px' }}>
+              <h3>📅 日视图</h3>
+              <p>显示 {currentDate.format('YYYY年MM月DD日')} 的学习安排</p>
+              <div>今日有 {getDateEvents(currentDate).length} 个学习任务</div>
+            </div>
+          )}
+          
+          {calendarView === 'week' && (
+            <div style={{ textAlign: 'center', padding: '40px' }}>
+              <h3>📅 周视图</h3>
+              <p>显示本周 ({getCurrentWeekDates()[0].format('MM月DD日')} - {getCurrentWeekDates()[6].format('MM月DD日')}) 的学习安排</p>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* 日程详情弹窗 */}
       <Modal
@@ -383,7 +473,7 @@ const LearningPlanCalendar = ({ planData, analysis, plan, habits, selectedDate, 
           </div>
         )}
       </Modal>
-    </div>
+    </>
   );
 };
 

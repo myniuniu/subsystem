@@ -1264,19 +1264,7 @@ const OperationPanel = ({ state, handlers }) => {
                 概览
               </Button>
               <Button 
-                type={planViewMode === 'calendar' ? 'primary' : 'default'}
-                onClick={() => setPlanViewMode('calendar')}
-                icon={<CalendarOutlined />}
-              >
-                日历
-              </Button>
-            </Button.Group>
-            
-            {/* 全屏按钮 - 仅在日历模式下显示 */}
-            {planViewMode === 'calendar' && (
-              <Button 
-                size="small"
-                icon={<span style={{ fontSize: '14px' }}>🔍</span>}
+                type="default"
                 onClick={() => {
                   // 切换到全屏日历模式
                   if (handlers && handlers.onViewChange) {
@@ -1286,11 +1274,11 @@ const OperationPanel = ({ state, handlers }) => {
                   }
                   message.success('已切换到全屏日历模式');
                 }}
-                title="全屏显示日历"
+                icon={<CalendarOutlined />}
               >
-                全屏
+                日历
               </Button>
-            )}
+            </Button.Group>
             
             <Button 
               type="text" 
@@ -1502,14 +1490,19 @@ const OperationPanel = ({ state, handlers }) => {
               )}
             </div>
           ) : (
-            // 日历模式
-            <LearningPlanCalendar
-              planData={planData}
-              analysis={analysis}
-              plan={plan}
-              habits={habits}
-              selectedDate={selectedDate}
-              onDateChange={setSelectedDate}
+            // 默认显示原始内容（当不是概览模式时）
+            <div 
+              style={{ 
+                padding: '16px',
+                overflow: 'auto',
+                height: '100%',
+                lineHeight: '1.6',
+                fontSize: '14px',
+                color: '#333'
+              }}
+              dangerouslySetInnerHTML={{
+                __html: rightPanelLearningPlanContent || '暂无学习计划内容'
+              }}
             />
           )}
         </div>

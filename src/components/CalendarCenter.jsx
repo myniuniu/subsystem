@@ -91,11 +91,21 @@ const CalendarCenter = () => {
   // 智慧教学平台示例事件数据
   const [eventList, setEventList] = useState([
     // 1月份教研活动
-    { id: 1, date: '2025-01-02', title: '新学期教研工作部署会', type: 'meeting', color: 'blue' },
-    { id: 2, date: '2025-01-03', title: '课程标准研讨', type: 'work', color: 'green' },
-    { id: 3, date: '2025-01-06', title: '信息化教学培训', type: 'training', color: 'orange' },
-    { id: 4, date: '2025-01-08', title: '教学质量评估', type: 'business', color: 'red' },
-    { id: 5, date: '2025-01-10', title: '学科组教研会议', type: 'meeting', color: 'blue' },
+    { id: 1, date: '2025-01-02', title: '新学期教研工作部署会', type: 'meeting', color: 'blue', startTime: '09:00', endTime: '11:00' },
+    { id: 2, date: '2025-01-03', title: '课程标准研讨', type: 'work', color: 'green', startTime: '14:00', endTime: '16:00' },
+    { id: 3, date: '2025-01-06', title: '信息化教学培训', type: 'training', color: 'orange', startTime: '10:00', endTime: '12:00' },
+    { id: 4, date: '2025-01-08', title: '教学质量评估', type: 'business', color: 'red' }, // 全天事件
+    { id: 5, date: '2025-01-10', title: '学科组教研会议', type: 'meeting', color: 'blue', startTime: '15:30', endTime: '17:00' },
+    
+    // 今天的事件（使用当前日期）
+    { id: 100, date: dayjs().format('YYYY-MM-DD'), title: '早会', type: 'meeting', color: 'blue', startTime: '09:00', endTime: '09:30' },
+    { id: 101, date: dayjs().format('YYYY-MM-DD'), title: '项目讨论会', type: 'work', color: 'green', startTime: '10:30', endTime: '12:00' },
+    { id: 102, date: dayjs().format('YYYY-MM-DD'), title: '午餐会议', type: 'business', color: 'red', startTime: '12:30', endTime: '13:30' },
+    { id: 103, date: dayjs().format('YYYY-MM-DD'), title: '团队建设活动', type: 'milestone', color: 'purple' }, // 全天事件
+    { id: 104, date: dayjs().format('YYYY-MM-DD'), title: '技术培训', type: 'training', color: 'orange', startTime: '15:00', endTime: '17:00' },
+    { id: 105, date: dayjs().format('YYYY-MM-DD'), title: '日报总结', type: 'work', color: 'green', startTime: '18:00', endTime: '18:30' },
+    
+    // 其他月份事件
     { id: 6, date: '2025-01-12', title: '教案设计评审', type: 'work', color: 'green' },
     { id: 7, date: '2025-01-15', title: '青年教师座谈会', type: 'meeting', color: 'blue' },
     { id: 8, date: '2025-01-16', title: '课堂观察研讨', type: 'work', color: 'green' },
@@ -284,6 +294,9 @@ const CalendarCenter = () => {
 
   const onSelect = (value) => {
     setSelectedDate(value)
+    // 点击日期时自动切换到日视图
+    setCalendarView('day')
+    message.info(`已切换到 ${value.format('YYYY年MM月DD日')} 的日视图`)
   }
 
   // 获取当前周的日期范围
@@ -343,42 +356,163 @@ const CalendarCenter = () => {
     )
   }
 
-  // 渲染日视图
-  const renderDayView = () => {
-    const hours = Array.from({ length: 24 }, (_, i) => i)
+  // 渲染简洁版日视图
+  const renderSimpleDayView = () => {
     const dayEvents = getListData(selectedDate)
     const activeCategories = categories.filter(cat => cat.checked).map(cat => cat.key)
     const filteredEvents = dayEvents.filter(item => activeCategories.includes(item.type))
     
+    // 分组事件：全天事件和定时事件
+    const allDayEvents = filteredEvents.filter(event => !event.startTime)
+    const timedEvents = filteredEvents.filter(event => event.startTime)
+    
     return (
-      <div className="day-view">
-        <div className="day-header">
-          <div className="day-title">
-            {selectedDate.format('YYYY年MM月DD日 dddd')}
-          </div>
-          <div className="day-events-count">
-            {filteredEvents.length} 个事件
-          </div>
-        </div>
-        <div className="day-body">
-          {hours.map(hour => (
-            <div key={hour} className="hour-slot">
-              <div className="time-label">
-                {hour.toString().padStart(2, '0')}:00
-              </div>
-              <DroppableCell date={selectedDate} timeSlot={`${hour.toString().padStart(2, '0')}:00`} className="hour-content">
-                {hour === 9 && filteredEvents.map((event, index) => (
-                  <DraggableEvent key={event.id} event={event} className={`day-event event-${event.color}`}>
-                    <div>
-                      <div className="event-time">09:00 - 10:00</div>
-                      <div className="event-title">{event.title}</div>
-                      <div className="event-type">{categories.find(cat => cat.key === event.type)?.label}</div>
-                    </div>
-                  </DraggableEvent>
-                ))}
-              </DroppableCell>
+      <div className="simple-day-view" style={{ height: '100%', background: '#fff', borderRadius: '8px', overflow: 'hidden' }}>
+        {/* 日视图头部 */}
+        <div style={{ 
+          padding: '16px 20px',
+          borderBottom: '1px solid #f0f0f0',
+          background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div>
+            <div style={{ fontSize: '18px', fontWeight: '600', color: '#0369a1', marginBottom: '4px' }}>
+              {selectedDate.format('YYYY年MM月DD日 dddd')}
             </div>
-          ))}
+            <div style={{ fontSize: '14px', color: '#64748b' }}>
+              {filteredEvents.length > 0 ? `共有 ${filteredEvents.length} 个事件` : '今日无事件安排'}
+            </div>
+          </div>
+          <Button 
+            type="text"
+            onClick={() => setCalendarView('month')}
+            style={{ color: '#0369a1' }}
+          >
+            返回月视图
+          </Button>
+        </div>
+
+        <div style={{ padding: '16px', height: 'calc(100% - 80px)', overflow: 'auto' }}>
+          {/* 全天事件 */}
+          {allDayEvents.length > 0 && (
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ 
+                fontSize: '14px', 
+                fontWeight: '500', 
+                color: '#374151', 
+                marginBottom: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <span style={{ fontSize: '16px' }}>📅</span>
+                全天事件
+              </div>
+              {allDayEvents.map((event, index) => (
+                <div
+                  key={event.id}
+                  style={{
+                    background: `linear-gradient(135deg, ${categories.find(cat => cat.key === event.type)?.color}15 0%, ${categories.find(cat => cat.key === event.type)?.color}08 100%)`,
+                    border: `1px solid ${categories.find(cat => cat.key === event.type)?.color}30`,
+                    borderRadius: '8px',
+                    padding: '12px 16px',
+                    marginBottom: '8px',
+                    borderLeft: `4px solid ${categories.find(cat => cat.key === event.type)?.color}`,
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ fontWeight: '500', color: '#1f2937', marginBottom: '4px' }}>
+                    {event.title}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                    {categories.find(cat => cat.key === event.type)?.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 定时事件 */}
+          {timedEvents.length > 0 && (
+            <div>
+              <div style={{ 
+                fontSize: '14px', 
+                fontWeight: '500', 
+                color: '#374151', 
+                marginBottom: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <span style={{ fontSize: '16px' }}>⏰</span>
+                定时事件
+              </div>
+              {timedEvents
+                .sort((a, b) => (a.startTime || '00:00').localeCompare(b.startTime || '00:00'))
+                .map((event, index) => (
+                <div
+                  key={event.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '12px',
+                    padding: '12px 0',
+                    borderBottom: index < timedEvents.length - 1 ? '1px solid #f3f4f6' : 'none'
+                  }}
+                >
+                  <div style={{
+                    minWidth: '80px',
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    color: '#6b7280',
+                    textAlign: 'right',
+                    paddingTop: '2px'
+                  }}>
+                    {event.startTime}
+                    {event.endTime && (
+                      <div style={{ fontSize: '11px', color: '#9ca3af' }}>
+                        - {event.endTime}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{
+                    flex: 1,
+                    background: `linear-gradient(135deg, ${categories.find(cat => cat.key === event.type)?.color}10 0%, ${categories.find(cat => cat.key === event.type)?.color}05 100%)`,
+                    border: `1px solid ${categories.find(cat => cat.key === event.type)?.color}20`,
+                    borderRadius: '6px',
+                    padding: '10px 12px',
+                    borderLeft: `3px solid ${categories.find(cat => cat.key === event.type)?.color}`
+                  }}>
+                    <div style={{ fontWeight: '500', color: '#1f2937', marginBottom: '4px' }}>
+                      {event.title}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                      {categories.find(cat => cat.key === event.type)?.label}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 无事件时的显示 */}
+          {filteredEvents.length === 0 && (
+            <div style={{
+              textAlign: 'center',
+              padding: '40px 20px',
+              color: '#9ca3af'
+            }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🌱</div>
+              <div style={{ fontSize: '16px', fontWeight: '500', marginBottom: '8px' }}>
+                今日暂无事件安排
+              </div>
+              <div style={{ fontSize: '14px' }}>
+                享受一个轻松的一天吧！
+              </div>
+            </div>
+          )}
         </div>
       </div>
     )
@@ -571,7 +705,7 @@ const CalendarCenter = () => {
               </div>
             )}
             {calendarView === 'week' && renderWeekView()}
-            {calendarView === 'day' && renderDayView()}
+            {calendarView === 'day' && renderSimpleDayView()}
           </div>
         </div>
       </div>

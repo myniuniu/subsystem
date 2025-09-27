@@ -78,7 +78,8 @@ export const VIEW_MODES = {
   CARD: 'card',
   MAP: 'map',
   SCENARIO_VIEW: 'scenario_view',
-  LEARNING_PLAN_CALENDAR: 'learning_plan_calendar'
+  LEARNING_PLAN_CALENDAR: 'learning_plan_calendar',
+  LEARNING_PLAN_THREE_COLUMN: 'learning_plan_three_column'
 };
 
 // 右侧面板视图常量
