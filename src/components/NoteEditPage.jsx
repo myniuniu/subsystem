@@ -11,6 +11,7 @@ import {
   Col,
   Select
 } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 
 // 导入重构后的组件
 import MaterialManagement from './MaterialManagement';
@@ -28,6 +29,8 @@ import KnowledgeGraphMindMap from './KnowledgeGraphMindMap.jsx';
 // 导入场景仿真组件
 import ScenarioSimulation from './ScenarioSimulation';
 import ScenarioView from './ScenarioView';
+import LearningPlanCalendarFullscreen from './LearningPlanCalendarFullscreen';
+import CalendarCenter from './CalendarCenter';
 
 // 导入hooks和工具
 import { useNoteEditState } from '../hooks/useNoteEditState';
@@ -226,6 +229,11 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     
     onScenarioClick: () => {
       setScenarioModalVisible(true);
+    },
+    
+    // 添加视图切换处理函数
+    onViewChange: (viewMode) => {
+      setCurrentView(viewMode);
     },
     
     onRecordClick: (record) => {
@@ -497,7 +505,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
         transition: 'margin-top 0.3s ease, height 0.3s ease',
         overflow: 'hidden'
       }}>
-        {/* 宽屏模式：视频播放器占满整个宽度 */}
+        {/* 孕屏模式：视频播放器占满整个宽度 */}
         {currentView === VIEW_MODES.WIDESCREEN_VIDEO ? (
           <div style={{ 
             flex: 1, 
@@ -520,6 +528,67 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
             setSelectedScenarios={setSelectedScenarios}
             setCurrentView={setCurrentView}
           />
+        ) : currentView === VIEW_MODES.LEARNING_PLAN_CALENDAR ? (
+          /* 日历演示全屏模式：占据全部三栏区域 */
+          <div style={{ 
+            flex: 1, 
+            background: '#f0f2f5', 
+            margin: '16px', 
+            borderRadius: '12px', 
+            overflow: 'hidden', 
+            display: 'flex', 
+            flexDirection: 'column',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+          }}>
+            {/* 全屏日历演示头部 */}
+            <div style={{ 
+              background: 'linear-gradient(135deg, #1890ff 0%, #40a9ff 100%)',
+              padding: '16px 24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              color: '#fff'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ fontSize: '24px' }}>📅</span>
+                <div>
+                  <Title level={4} style={{ margin: 0, color: '#fff' }}>
+                    日历中心演示
+                  </Title>
+                  <div style={{ fontSize: '14px', opacity: 0.9, marginTop: '4px' }}>
+                    复制版日历模块 • 全屏模式
+                  </div>
+                </div>
+              </div>
+              
+              <Button 
+                type="text"
+                icon={<ArrowLeftOutlined />}
+                onClick={() => {
+                  setCurrentView(VIEW_MODES.MATERIALS);
+                  message.info('已退出日历演示全屏模式');
+                }}
+                style={{ 
+                  color: '#fff',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '6px'
+                }}
+              >
+                返回三栏视图
+              </Button>
+            </div>
+
+            {/* 日历演示内容区域 */}
+            <div style={{ 
+              flex: 1, 
+              background: '#fff',
+              margin: '0',
+              borderRadius: '0 0 12px 12px',
+              overflow: 'hidden'
+            }}>
+              <CalendarCenter />
+            </div>
+          </div>
         ) : (
           /* 普通三栏布局模式 */
           <>

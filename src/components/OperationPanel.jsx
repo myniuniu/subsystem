@@ -30,7 +30,8 @@ import {
   REPORT_DROPDOWN_ITEMS,
   RIGHT_PANEL_VIEWS,
   MORE_MENU_ACTIONS,
-  OPERATION_TYPES
+  OPERATION_TYPES,
+  VIEW_MODES
 } from '../constants/noteEditConstants';
 import { getOperationIcon } from '../utils/noteEditUtils';
 import QuestionConfigModal from './QuestionConfigModal';
@@ -1270,6 +1271,26 @@ const OperationPanel = ({ state, handlers }) => {
                 日历
               </Button>
             </Button.Group>
+            
+            {/* 全屏按钮 - 仅在日历模式下显示 */}
+            {planViewMode === 'calendar' && (
+              <Button 
+                size="small"
+                icon={<span style={{ fontSize: '14px' }}>🔍</span>}
+                onClick={() => {
+                  // 切换到全屏日历模式
+                  if (handlers && handlers.onViewChange) {
+                    handlers.onViewChange(VIEW_MODES.LEARNING_PLAN_CALENDAR);
+                  } else if (state.setCurrentView) {
+                    state.setCurrentView(VIEW_MODES.LEARNING_PLAN_CALENDAR);
+                  }
+                  message.success('已切换到全屏日历模式');
+                }}
+                title="全屏显示日历"
+              >
+                全屏
+              </Button>
+            )}
             
             <Button 
               type="text" 

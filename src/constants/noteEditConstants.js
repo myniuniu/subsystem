@@ -77,7 +77,8 @@ export const VIEW_MODES = {
   WIDESCREEN_VIDEO: 'widescreen_video',
   CARD: 'card',
   MAP: 'map',
-  SCENARIO_VIEW: 'scenario_view'
+  SCENARIO_VIEW: 'scenario_view',
+  LEARNING_PLAN_CALENDAR: 'learning_plan_calendar'
 };
 
 // 右侧面板视图常量

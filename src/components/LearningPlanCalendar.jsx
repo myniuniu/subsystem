@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Card, Badge, Button, Row, Col, Statistic, List, Tag, Tooltip, Modal } from 'antd';
+import { Calendar, Card, Badge, Button, Row, Col, Statistic, List, Tag, Tooltip, Modal, Empty } from 'antd';
 import { LeftOutlined, RightOutlined, CalendarOutlined, BookOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
@@ -19,7 +19,6 @@ const LearningPlanCalendar = ({ planData, analysis, plan, habits, selectedDate, 
       const events = generateLearningEvents(plan, habits);
       setLearningEvents(events);
     } else {
-      // 如果没有学习计划数据，显示空状态
       setLearningEvents([]);
     }
   }, [plan, habits]);
@@ -48,7 +47,7 @@ const LearningPlanCalendar = ({ planData, analysis, plan, habits, selectedDate, 
             times.push({ time: '18:00-18:30', label: '碎片学习' });
             break;
           default:
-            times.push({ time: '14:00-16:00', label: '下午学习' });
+            times.push({ time: '14:00-16:00', label: '学习时间' });
         }
       });
       return times.length > 0 ? times : [{ time: '14:00-16:00', label: '学习时间' }];
@@ -59,7 +58,7 @@ const LearningPlanCalendar = ({ planData, analysis, plan, habits, selectedDate, 
 
     // 为每个学习阶段生成事件
     plan.phases.forEach((phase, phaseIndex) => {
-      const phaseStartDate = startDate.add(phaseIndex * 7, 'day'); // 每个阶段间隔一周
+      const phaseStartDate = startDate.add(phaseIndex * 7, 'day');
       
       phase.tasks.forEach((task, taskIndex) => {
         const taskDate = phaseStartDate.add(taskIndex, 'day');
@@ -183,6 +182,24 @@ const LearningPlanCalendar = ({ planData, analysis, plan, habits, selectedDate, 
     onDateChange(today);
   };
 
+  // 检查是否有学习计划数据
+  if (!plan || !plan.phases || plan.phases.length === 0) {
+    return (
+      <div style={{ padding: '16px', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Empty
+          image="📅"
+          imageStyle={{ fontSize: '48px' }}
+          description={
+            <div>
+              <div style={{ fontSize: '16px', marginBottom: '8px' }}>暂无学习计划</div>
+              <div style={{ fontSize: '14px', color: '#8c8c8c' }}>请先生成学习计划，然后查看日历视图</div>
+            </div>
+          }
+        />
+      </div>
+    );
+  }
+
   return (
     <div style={{ padding: '16px', height: '100%', overflow: 'auto' }}>
       {/* 日历头部导航 */}
@@ -295,37 +312,6 @@ const LearningPlanCalendar = ({ planData, analysis, plan, habits, selectedDate, 
           background: '#fff',
           borderRadius: '8px',
           padding: '8px'
-        }}
-        locale={{
-          lang: {
-            locale: 'zh_CN',
-            monthFormat: 'YYYY年MM月',
-            today: '今天',
-            now: '此刻',
-            backToToday: '返回今天',
-            ok: '确定',
-            clear: '清除',
-            month: '月',
-            year: '年',
-            timeSelect: '选择时间',
-            dateSelect: '选择日期',
-            monthSelect: '选择月份',
-            yearSelect: '选择年份',
-            decadeSelect: '选择年代',
-            yearFormat: 'YYYY年',
-            dateFormat: 'YYYY年MM月DD日',
-            dayFormat: 'DD日',
-            dateTimeFormat: 'YYYY年MM月DD日 HH时mm分ss秒',
-            monthBeforeYear: true,
-            previousMonth: '上个月 (PageUp)',
-            nextMonth: '下个月 (PageDown)',
-            previousYear: '上一年 (Control + left)',
-            nextYear: '下一年 (Control + right)',
-            previousDecade: '上一年代',
-            nextDecade: '下一年代',
-            previousCentury: '上一世纪',
-            nextCentury: '下一世纪'
-          }
         }}
       />
 
