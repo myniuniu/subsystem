@@ -1029,8 +1029,8 @@ const OperationPanel = ({ state, handlers }) => {
           gap: '6px', 
           marginBottom: 8 
         }}>
-          {/* 渲染可见的工具 */}
-          {visibleCards.slice(0, 8).map((card, index) => (
+          {/* 渲染可见的工具 - 最多9个 */}
+          {visibleCards.slice(0, 9).map((card, index) => (
             <DraggableOperationCard
               key={card.key}
               card={card}
@@ -1042,8 +1042,8 @@ const OperationPanel = ({ state, handlers }) => {
             />
           ))}
 
-          {/* "更多"按钮 - 在第9个位置显示，只有在编辑模式下才显示 */}
-          {isEditMode && (
+          {/* "更多"按钮 - 只在编辑模式且工具数量少于9个时显示 */}
+          {isEditMode && visibleCards.length < 9 && (
             <Dropdown
               open={showCardSelector}
               onOpenChange={setShowCardSelector}
@@ -1188,29 +1188,29 @@ const OperationPanel = ({ state, handlers }) => {
               {/* 背景装饰 */}
               <div style={{
                 position: 'absolute',
-                top: '-10px',
-                right: '-10px',
-                width: '30px',
-                height: '30px',
+                top: '-6px',
+                right: '-6px',
+                width: '20px',
+                height: '20px',
                 background: 'linear-gradient(135deg, #1890ff20, #40a9ff20)',
                 borderRadius: '50%',
                 opacity: 0.6
               }} />
               <div style={{
                 position: 'absolute',
-                bottom: '-5px',
-                left: '-5px',
-                width: '20px',
-                height: '20px',
+                bottom: '-3px',
+                left: '-3px',
+                width: '12px',
+                height: '12px',
                 background: 'linear-gradient(135deg, #1890ff15, #40a9ff15)',
                 borderRadius: '50%',
                 opacity: 0.4
               }} />
               
-              <div style={{ padding: '8px 0', position: 'relative', zIndex: 1 }}>
+              <div style={{ padding: '2px 0', position: 'relative', zIndex: 1 }}>
                 <div style={{ 
-                  fontSize: '22px', 
-                  marginBottom: '4px',
+                  fontSize: '16px', 
+                  marginBottom: '2px',
                   background: 'linear-gradient(135deg, #1890ff, #40a9ff)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
@@ -1219,10 +1219,11 @@ const OperationPanel = ({ state, handlers }) => {
                   ⚡
                 </div>
                 <Text style={{ 
-                  fontSize: '11px', 
+                  fontSize: '10px', 
                   fontWeight: 600, 
                   color: '#1890ff',
-                  textShadow: '0 1px 2px rgba(24, 144, 255, 0.1)'
+                  textShadow: '0 1px 2px rgba(24, 144, 255, 0.1)',
+                  lineHeight: '1.2'
                 }}>
                   更多工具
                 </Text>
@@ -1231,20 +1232,23 @@ const OperationPanel = ({ state, handlers }) => {
           </Dropdown>
           )}
           
-          {/* 空位显示 - 只在少于9个工具时显示 */}
           {/* 工具栏已满提示 */}
           {visibleCards.length >= 9 && (
             <div style={{
               textAlign: 'center',
-              padding: '10px',
+              padding: '6px',
               color: '#999',
-              fontSize: '12px',
+              fontSize: '10px',
               border: '1px dashed #d9d9d9',
-              borderRadius: '12px',
+              borderRadius: '8px',
               background: '#fafafa',
-              gridColumn: 'span 3'
+              gridColumn: 'span 3',
+              height: '56px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}>
-              💼 工具栏已满（最多9个工具）
+              💼 工具栏已满（最处9个）
             </div>
           )}
         </div>
