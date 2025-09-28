@@ -46,13 +46,13 @@ const LearningPlanModal = ({ visible, onConfirm, onCancel }) => {
   ];
 
   useEffect(() => {
-    if (visible && currentStep === 0) {
+    if (visible && currentStep === 0 && !analysisData) {
       // 模拟分析过程
       setTimeout(() => {
         setAnalysisData(mockCourseAnalysis);
       }, 1000);
     }
-  }, [visible, currentStep]);
+  }, [visible, currentStep, analysisData]);
 
   const generateLearningPlan = () => {
     const plan = {
@@ -128,6 +128,20 @@ const LearningPlanModal = ({ visible, onConfirm, onCancel }) => {
     setGeneratedPlan(adjustedPlan);
   };
 
+  // 处理弹窗关闭
+  const handleCancel = () => {
+    // 重置状态
+    setCurrentStep(0);
+    setAnalysisData(null);
+    setGeneratedPlan(null);
+    setSelectedHabits([]);
+    setCustomPlan('');
+    form.resetFields();
+    
+    // 调用父组件的取消回调
+    onCancel();
+  };
+
   const handleConfirm = () => {
     const planData = {
       analysis: analysisData,
@@ -135,7 +149,17 @@ const LearningPlanModal = ({ visible, onConfirm, onCancel }) => {
       habits: selectedHabits,
       customContent: customPlan
     };
+    
+    // 调用父组件的确认回调
     onConfirm(planData);
+    
+    // 重置状态
+    setCurrentStep(0);
+    setAnalysisData(null);
+    setGeneratedPlan(null);
+    setSelectedHabits([]);
+    setCustomPlan('');
+    form.resetFields();
   };
 
   const renderAnalysisStep = () => (
@@ -355,11 +379,11 @@ const LearningPlanModal = ({ visible, onConfirm, onCancel }) => {
     <Modal
       title="🎯 智能学习计划"
       open={visible}
-      onCancel={onCancel}
+      onCancel={handleCancel}
       width={800}
       footer={
         <Space>
-          <Button onClick={onCancel}>取消</Button>
+          <Button onClick={handleCancel}>取消</Button>
           {currentStep > 0 && (
             <Button onClick={() => setCurrentStep(currentStep - 1)}>
               上一步

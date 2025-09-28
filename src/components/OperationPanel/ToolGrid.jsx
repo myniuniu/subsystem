@@ -1,0 +1,199 @@
+import React from 'react';
+import { Card, Dropdown, Button, Typography } from 'antd';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import DraggableOperationCard from './DraggableOperationCard';
+import { OPERATION_CARDS } from '../../constants/noteEditConstants';
+
+const { Text } = Typography;
+
+const ToolGrid = ({
+  visibleCards,
+  isEditMode,
+  hasSourceData,
+  sourceInfo,
+  onCardClick,
+  onMoveCard,
+  onRemoveCard,
+  onAddCard,
+  getAvailableAITools = () => []
+}) => {
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: '1fr 1fr 1fr', 
+        gap: '6px', 
+        marginBottom: 8 
+      }}>
+        {/* 渲染可见的工具 - 最多9个 */}
+        {visibleCards.slice(0, 9).map((card, index) => {
+          // 添加工具卡片不需要数据源限制
+          const cardHasSourceData = card.key === 'addTool' ? true : hasSourceData;
+          
+          return (
+            <DraggableOperationCard
+              key={card.key}
+              card={card}
+              index={index}
+              onMove={onMoveCard}
+              onRemove={onRemoveCard}
+              onClick={() => onCardClick(card)}
+              isEditMode={isEditMode}
+              hasSourceData={cardHasSourceData}
+              sourceInfo={sourceInfo}
+            />
+          );
+        })}
+        
+        {/* 渲染空位的添加工具卡片 */}
+        {visibleCards.length < 9 && [...Array(9 - visibleCards.length)].map((_, index) => {
+          if (index === 0) {
+            // 第一个空位显示"更多"按钮
+            return (
+              <Dropdown
+                key={`empty-${index}`}
+                menu={{
+                  items: [
+                    {
+                      key: 'basic-tools',
+                      type: 'group',
+                      label: (
+                        <div style={{
+                          padding: '8px 4px 4px 4px',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          color: '#1890ff',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                          borderBottom: '1px solid #f0f0f0',
+                          marginBottom: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}>
+                          ⚙️ 基础工具
+                        </div>
+                      ),
+                      children: OPERATION_CARDS
+                        .filter(card => card.key !== 'addTool' && !visibleCards.some(vc => vc.key === card.key))
+                        .map(card => ({
+                          key: card.key,
+                          label: (
+                            <div style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: '12px',
+                              padding: '8px 4px'
+                            }}>
+                              <div style={{ 
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '8px',
+                                background: card.gradient,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '14px',
+                                fontWeight: 'bold',
+                                color: card.color
+                              }}>
+                                {card.icon}
+                              </div>
+                              <span style={{ fontWeight: 500 }}>{card.title}</span>
+                            </div>
+                          ),
+                          onClick: () => onAddCard(card.key)
+                        }))
+                    },
+                    {
+                      key: 'ai-tools',
+                      type: 'group',
+                      label: (
+                        <div style={{
+                          padding: '8px 4px 4px 4px',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          color: '#722ed1',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                          borderBottom: '1px solid #f0f0f0',
+                          marginBottom: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}>
+                          🤖 AI工具屋
+                        </div>
+                      ),
+                      children: getAvailableAITools()
+                    }
+                  ]
+                }}
+                trigger={['click']}
+                placement="topLeft"
+              >
+                <Card 
+                  size="small" 
+                  hoverable
+                  style={{ 
+                    background: 'linear-gradient(135deg, #f8faff 0%, #eef4ff 100%)',
+                    border: '1px dashed #1890ff',
+                    borderRadius: '8px',
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    height: '68px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  styles={{ body: { padding: '4px' } }}
+                >
+                  <div style={{ padding: '2px 0' }}>
+                    <div style={{ fontSize: '16px', marginBottom: '2px' }}>➕</div>
+                    <Text style={{ 
+                      fontSize: '10px', 
+                      fontWeight: 500, 
+                      color: '#1890ff',
+                      lineHeight: '1.2'
+                    }}>更多</Text>
+                  </div>
+                </Card>
+              </Dropdown>
+            );
+          } else {
+            // 其他空位显示空白占位符
+            return (
+              <Card 
+                key={`empty-${index}`}
+                size="small" 
+                style={{ 
+                  background: '#fafafa',
+                  border: '1px dashed #d9d9d9',
+                  borderRadius: '8px',
+                  textAlign: 'center',
+                  height: '68px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                styles={{ body: { padding: '4px' } }}
+              >
+                <div style={{ padding: '2px 0' }}>
+                  <div style={{ fontSize: '16px', marginBottom: '2px', color: '#ccc' }}>◯</div>
+                  <Text style={{ 
+                    fontSize: '10px', 
+                    color: '#ccc',
+                    lineHeight: '1.2'
+                  }}>空位</Text>
+                </div>
+              </Card>
+            );
+          }
+        })}
+      </div>
+    </DndProvider>
+  );
+};
+
+export default ToolGrid;

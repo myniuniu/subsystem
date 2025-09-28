@@ -148,7 +148,7 @@ const ThemeSelectModal = ({
           {confirmText}
         </Button>
       ]}
-      destroyOnClose
+      destroyOnHidden
       style={{ top: 40 }}
     >
       {/* 当前记录信息 */}

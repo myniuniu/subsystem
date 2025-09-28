@@ -103,7 +103,7 @@ const ExploreModal = ({ visible, onClose, onExplore }) => {
       className="explore-modal"
       closable={false}
       centered
-      destroyOnClose={true}
+      destroyOnHidden={true}
       maskClosable={true}
     >
       <div className="explore-modal-content">

@@ -656,7 +656,7 @@ ${annotationText}
           okText="确定"
           cancelText="取消"
           width={600}
-          destroyOnClose
+          destroyOnHidden
         >
           <div style={{ marginBottom: 16 }}>
             <p style={{ marginBottom: 8, color: '#666' }}>
@@ -923,7 +923,7 @@ ${annotationText}
       okText="确定"
       cancelText="取消"
       width={600}
-      destroyOnClose
+      destroyOnHidden
     >
       <div style={{ marginBottom: 16 }}>
         <p style={{ marginBottom: 8, color: '#666' }}>

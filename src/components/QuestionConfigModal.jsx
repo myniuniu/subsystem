@@ -274,6 +274,17 @@ const QuestionConfigModal = ({
     return colorMap[difficulty] || 'default';
   };
 
+  // 处理弹窗关闭
+  const handleClose = () => {
+    // 重置状态
+    setSelectedView('knowledgeList');
+    setShowAdvancedConfig(false);
+    form.resetFields();
+    
+    // 调用父组件的关闭回调
+    onClose();
+  };
+
   const handleConfirm = () => {
     const viewLabels = {
       'knowledgeList': '知识点列表',
@@ -442,6 +453,12 @@ const QuestionConfigModal = ({
 
     onConfirm(operationRecord);
     message.success(`已生成${viewLabels[selectedView]}视图的试题，共${questions.length}道题`);
+    
+    // 重置状态
+    setSelectedView('knowledgeList');
+    setShowAdvancedConfig(false);
+    form.resetFields();
+    
     onClose();
   };
 
@@ -467,7 +484,7 @@ const QuestionConfigModal = ({
         </div>
       }
       open={visible}
-      onCancel={onClose}
+      onCancel={handleClose}
       width={760}
       styles={{
         body: { padding: '16px 12px' }
@@ -481,7 +498,7 @@ const QuestionConfigModal = ({
         >
           {showAdvancedConfig ? '简化配置' : '更多配置'}
         </Button>,
-        <Button key="cancel" onClick={onClose}>
+        <Button key="cancel" onClick={handleClose}>
           取消
         </Button>,
         <Button key="confirm" type="primary" onClick={handleConfirm}>
@@ -548,7 +565,7 @@ const QuestionConfigModal = ({
                             boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
                           }}
                           hoverable
-                          bodyStyle={{ padding: '8px 12px' }}
+                          styles={{ body: { padding: '8px 12px' } }}
                         >
                           <div style={{ 
                             display: 'flex', 

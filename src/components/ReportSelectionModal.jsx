@@ -152,7 +152,7 @@ const ReportSelectionModal = ({
         </Button>
       ]}
       width={800}
-      bodyStyle={{ padding: '24px' }}
+      styles={{ body: { padding: '24px' } }}
     >
       <div>
         {/* 操作提示 */}
