@@ -11,7 +11,8 @@ import {
   Col,
   Statistic,
   List,
-  Tag
+  Tag,
+  Tooltip
 } from 'antd';
 import {
   PlusOutlined,
@@ -37,6 +38,7 @@ import { getOperationIcon } from '../utils/noteEditUtils';
 import QuestionConfigModal from './QuestionConfigModal';
 import ThemeSelectModal from './ThemeSelectModal';
 import LearningPlanModal from './LearningPlanModal';
+import ReportSelectionModal from './ReportSelectionModal';
 import LearningPlanCalendar from './LearningPlanCalendar';
 
 const { Title, Text } = Typography;
@@ -77,7 +79,7 @@ if (typeof document !== 'undefined') {
 }
 
 // 可拖拽的工具卡片组件
-const DraggableOperationCard = ({ card, index, onMove, onRemove, onClick, isEditMode }) => {
+const DraggableOperationCard = ({ card, index, onMove, onRemove, onClick, isEditMode, isDisabled, hasSourceData, sourceInfo }) => {
   const [{ isDragging }, drag] = useDrag({
     type: 'operation',
     item: { index, key: card.key },
@@ -97,79 +99,120 @@ const DraggableOperationCard = ({ card, index, onMove, onRemove, onClick, isEdit
     },
   });
 
-  return (
-    <div 
-      ref={(node) => isEditMode ? drag(drop(node)) : node}
-      style={{ 
-        position: 'relative',
-        opacity: isDragging ? 0.5 : 1,
-        cursor: isEditMode ? 'move' : 'pointer'
-      }}
-    >
-      <Card 
-        key={card.key}
-        size="small" 
-        hoverable
-        onClick={!isEditMode ? onClick : undefined} // 非编辑模式下才能点击
-        style={{ 
-          background: card.gradient,
-          border: isEditMode ? '1px dashed #1890ff' : 'none',
+  // 渲染工具状态提示
+  const renderStatusOverlay = () => {
+    if (!hasSourceData && !isEditMode) {
+      return (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.6)',
           borderRadius: '8px',
-          textAlign: 'center',
-          cursor: isEditMode ? 'move' : 'pointer',
-          transition: 'all 0.2s ease',
-          height: '56px',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          opacity: isEditMode ? 0.8 : 1
-        }}
-        bodyStyle={{ padding: '4px' }}
-      >
-        <div style={{ padding: '2px 0' }}>
-          <div style={{ fontSize: '16px', marginBottom: '2px' }}>{card.icon}</div>
-          <Text style={{ 
-            fontSize: '10px', 
-            fontWeight: 500, 
-            color: card.color,
-            lineHeight: '1.2'
-          }}>{card.title}</Text>
+          color: 'white',
+          fontSize: '10px',
+          textAlign: 'center',
+          padding: '4px'
+        }}>
+          <div style={{ fontSize: '16px', marginBottom: '2px' }}>🚫</div>
+          <div>需要数据源</div>
         </div>
-      </Card>
-      
-      {/* 移除按钮 - 只有在编辑模式下才显示，且除了"添加工具"按钮外都显示 */}
-      {isEditMode && card.key !== 'addTool' && (
-        <Button
-          type="text"
-          size="small"
-          icon={<DeleteOutlined />}
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemove(card.key);
-          }}
-          style={{
-            position: 'absolute',
-            top: '-3px',
-            right: '-3px',
-            width: '16px',
-            height: '16px',
-            borderRadius: '50%',
-            backgroundColor: '#ff4d4f',
-            color: 'white',
-            fontSize: '8px',
+      );
+    }
+    return null;
+  };
+
+  return (
+    <Tooltip 
+      title={!hasSourceData && !isEditMode ? 
+        `此工具需要数据源支持。当前状态：${sourceInfo?.details || '暂无数据源'}` : 
+        hasSourceData ? `基于${sourceInfo?.total || 0}个数据源` : card.title
+      }
+      placement="top"
+    >
+      <div 
+        ref={(node) => isEditMode ? drag(drop(node)) : node}
+        style={{ 
+          position: 'relative',
+          opacity: isDragging ? 0.5 : (hasSourceData || isEditMode) ? 1 : 0.6,
+          cursor: isEditMode ? 'move' : (hasSourceData ? 'pointer' : 'not-allowed')
+        }}
+      >
+        <Card 
+          key={card.key}
+          size="small" 
+          hoverable={hasSourceData || isEditMode}
+          onClick={!isEditMode && hasSourceData ? onClick : undefined}
+          style={{ 
+            background: hasSourceData || isEditMode ? card.gradient : '#f5f5f5',
+            border: isEditMode ? '1px dashed #1890ff' : 'none',
+            borderRadius: '8px',
+            textAlign: 'center',
+            cursor: isEditMode ? 'move' : (hasSourceData ? 'pointer' : 'not-allowed'),
+            transition: 'all 0.2s ease',
+            height: '56px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: 0,
-            minWidth: 'auto',
-            opacity: 0.8,
-            transition: 'opacity 0.2s'
+            opacity: isEditMode ? 0.8 : 1,
+            filter: (!hasSourceData && !isEditMode) ? 'grayscale(100%)' : 'none'
           }}
-          onMouseEnter={(e) => e.target.style.opacity = '1'}
-          onMouseLeave={(e) => e.target.style.opacity = '0.8'}
-        />
-      )}
-    </div>
+          bodyStyle={{ padding: '4px' }}
+        >
+          <div style={{ padding: '2px 0' }}>
+            <div style={{ fontSize: '16px', marginBottom: '2px' }}>{card.icon}</div>
+            <Text style={{ 
+              fontSize: '10px', 
+              fontWeight: 500, 
+              color: hasSourceData || isEditMode ? card.color : '#999',
+              lineHeight: '1.2'
+            }}>{card.title}</Text>
+          </div>
+        </Card>
+        
+        {/* 状态覆盖层 */}
+        {renderStatusOverlay()}
+        
+        {/* 移除按钮 - 只有在编辑模式下才显示，且除了"添加工具"按钮外都显示 */}
+        {isEditMode && card.key !== 'addTool' && (
+          <Button
+            type="text"
+            size="small"
+            icon={<DeleteOutlined />}
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove(card.key);
+            }}
+            style={{
+              position: 'absolute',
+              top: '-3px',
+              right: '-3px',
+              width: '16px',
+              height: '16px',
+              borderRadius: '50%',
+              backgroundColor: '#ff4d4f',
+              color: 'white',
+              fontSize: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 0,
+              minWidth: 'auto',
+              opacity: 0.8,
+              transition: 'opacity 0.2s'
+            }}
+            onMouseEnter={(e) => e.target.style.opacity = '1'}
+            onMouseLeave={(e) => e.target.style.opacity = '0.8'}
+          />
+        )}
+      </div>
+    </Tooltip>
   );
 };
 
@@ -257,6 +300,7 @@ const OperationPanel = ({ state, handlers }) => {
   const [isEditMode, setIsEditMode] = useState(false); // 新增编辑模式状态
   const [questionConfigVisible, setQuestionConfigVisible] = useState(false); // 试题配置弹窗状态
   const [learningPlanModalVisible, setLearningPlanModalVisible] = useState(false); // 学习计划弹窗状态
+  const [reportSelectionVisible, setReportSelectionVisible] = useState(false); // 报告选择弹窗状态
   
   // 练习模式相关状态 - 移到组件顶层以遵守React Hooks规则
   const [practiceMode, setPracticeMode] = useState(false);
@@ -340,6 +384,36 @@ const OperationPanel = ({ state, handlers }) => {
       window.removeEventListener('aiToolsChanged', handleAIToolsChange);
     };
   }, []);
+
+  // 检查是否有可用的来源数据
+  const checkSourceData = () => {
+    const totalSources = (
+      (uploadedFiles?.length || 0) +
+      (addedTexts?.length || 0) +
+      (courseVideos?.length || 0) +
+      (links?.length || 0)
+    );
+    return totalSources > 0;
+  };
+
+  // 获取来源数据统计信息
+  const getSourceDataInfo = () => {
+    const uploadedCount = uploadedFiles?.length || 0;
+    const textCount = addedTexts?.length || 0;
+    const videoCount = courseVideos?.length || 0;
+    const linkCount = links?.length || 0;
+    const totalCount = uploadedCount + textCount + videoCount + linkCount;
+    
+    return {
+      total: totalCount,
+      details: [
+        uploadedCount > 0 && `${uploadedCount}个文件`,
+        textCount > 0 && `${textCount}个文本`,
+        videoCount > 0 && `${videoCount}个视频`,
+        linkCount > 0 && `${linkCount}个链接`
+      ].filter(Boolean).join('、') || '暂无数据源'
+    };
+  };
 
   // 使用useEffect确保初始化正确
   useEffect(() => {
@@ -650,6 +724,37 @@ const OperationPanel = ({ state, handlers }) => {
 
   // 处理工具点击
   const handleCardClick = (card) => {
+    // 添加工具不需要数据源限制
+    if (card.key === 'addTool') {
+      setShowCardSelector(true);
+      return;
+    }
+
+    // 检查来源数据
+    if (!checkSourceData()) {
+      const sourceInfo = getSourceDataInfo();
+      Modal.warning({
+        title: '需要添加数据源',
+        content: (
+          <div>
+            <p style={{ marginBottom: '12px' }}>
+              操作面板上的所有工具都需要基于来源数据作为依据。
+            </p>
+            <p style={{ marginBottom: '12px', color: '#666' }}>
+              当前数据源状态：<span style={{ color: '#999' }}>{sourceInfo.details}</span>
+            </p>
+            <p style={{ color: '#1890ff', fontSize: '14px' }}>
+              请先添加文件、文本、视频或链接资源，然后再使用工具。
+            </p>
+          </div>
+        ),
+        okText: '我知道了',
+        width: 400
+      });
+      return;
+    }
+
+    // 如果有来源数据，正常执行工具操作
     if (card.key === OPERATION_TYPES.SCENARIO) {
       onScenarioClick();
     } else if (card.key === OPERATION_TYPES.QUESTION) {
@@ -658,9 +763,13 @@ const OperationPanel = ({ state, handlers }) => {
     } else if (card.key === OPERATION_TYPES.LEARNING_PLAN) {
       // 学习计划工具弹出配置窗口
       setLearningPlanModalVisible(true);
+    } else if (card.key === OPERATION_TYPES.REPORT) {
+      // 报告工具弹出格式选择窗口
+      setReportSelectionVisible(true);
     } else if (card.isAITool) {
       // AI工具点击处理
-      message.info(`您点击了AI工具：${card.title}`);
+      const sourceInfo = getSourceDataInfo();
+      message.info(`您点击了AI工具：${card.title}（基于${sourceInfo.total}个数据源）`);
       // 这里可以添加AI工具的具体功能逻辑
       // 比如打开AI工具的对话界面或功能面板
     } else {
@@ -745,6 +854,81 @@ const OperationPanel = ({ state, handlers }) => {
     
     // 调用原始的onMoreAction处理器
     onMoreAction(action, record);
+  };
+
+  // 处理报告选择确认
+  const handleReportSelectionConfirm = (reportType, reportConfig, selectedSuggestion) => {
+    const sourceInfo = getSourceDataInfo();
+    
+    // 处理只选择了建议而没有选择格式的情况
+    if (!reportType && selectedSuggestion) {
+      const operationRecord = {
+        id: Date.now(),
+        title: `基于智能建议：${selectedSuggestion}`,
+        source: `${sourceInfo.total}个来源`,
+        time: '刚刚',
+        type: OPERATION_TYPES.REPORT,
+        reportType: 'suggestion-based',
+        selectedSuggestion: selectedSuggestion,
+        content: `# 基于智能建议的报告
+
+**智能建议：** ${selectedSuggestion}
+**数据源：** ${sourceInfo.details}
+**生成时间：** ${new Date().toLocaleString()}
+
+---
+
+基于您选择的智能建议"${selectedSuggestion}"，我们将为您生成相关报告内容。
+
+报告内容正在生成中...`
+      };
+      
+      setOperationRecords(prev => ({
+        ...prev,
+        report: [operationRecord, ...(prev.report || [])]
+      }));
+      
+      setReportSelectionVisible(false);
+      message.success(`基于建议"${selectedSuggestion}"的报告已生成`);
+      return;
+    }
+    
+    // 正常格式选择的处理逻辑
+    const suggestionText = selectedSuggestion ? `\n\n**选中建议：** ${selectedSuggestion}` : '';
+    const operationRecord = {
+      id: Date.now(),
+      title: `基于${sourceInfo.total}个资料生成${reportConfig.title}`,
+      source: `${sourceInfo.total}个来源`,
+      time: '刚刚',
+      type: OPERATION_TYPES.REPORT,
+      reportType: reportType,
+      reportConfig: reportConfig,
+      selectedSuggestion: selectedSuggestion,
+      content: `# ${reportConfig.title}
+
+基于您选择的${sourceInfo.total}个数据源生成的${reportConfig.title}。
+
+**报告类型：** ${reportConfig.title}
+**数据源：** ${sourceInfo.details}
+**生成时间：** ${new Date().toLocaleString()}${suggestionText}
+
+---
+
+报告内容正在生成中...
+
+> ${reportConfig.description}`
+    };
+    
+    setOperationRecords(prev => ({
+      ...prev,
+      report: [operationRecord, ...(prev.report || [])]
+    }));
+    
+    setReportSelectionVisible(false);
+    const successMessage = selectedSuggestion 
+      ? `${reportConfig.title}已生成（应用了建议：${selectedSuggestion}）`
+      : `${reportConfig.title}已生成并添加到操作记录`;
+    message.success(successMessage);
   };
 
   // 处理试题配置确认
@@ -1889,6 +2073,21 @@ const OperationPanel = ({ state, handlers }) => {
           </div>
         )}
         
+        {/* 数据源状态提示 */}
+        {!checkSourceData() && (
+          <div style={{
+            background: 'linear-gradient(135deg, #fff2e8 0%, #ffccc7 100%)',
+            border: '1px solid #ffbb96',
+            borderRadius: '6px',
+            padding: '6px 10px',
+            marginBottom: '8px',
+            fontSize: '11px',
+            color: '#d4380d'
+          }}>
+            ⚠️ 需要数据源支持：{getSourceDataInfo().details}
+          </div>
+        )}
+        
         {/* 功能卡片网格 - 3x3网格，最多9个 */}
         <div style={{ 
           display: 'grid', 
@@ -1897,17 +2096,176 @@ const OperationPanel = ({ state, handlers }) => {
           marginBottom: 8 
         }}>
           {/* 渲染可见的工具 - 最多9个 */}
-          {visibleCards.slice(0, 9).map((card, index) => (
-            <DraggableOperationCard
-              key={card.key}
-              card={card}
-              index={index}
-              onMove={moveCardPosition}
-              onRemove={handleRemoveCard}
-              onClick={() => handleCardClick(card)}
-              isEditMode={isEditMode}
-            />
-          ))}
+          {visibleCards.slice(0, 9).map((card, index) => {
+            const hasSourceData = checkSourceData();
+            const sourceInfo = getSourceDataInfo();
+            // 添加工具卡片不需要数据源限制
+            const cardHasSourceData = card.key === 'addTool' ? true : hasSourceData;
+            
+            return (
+              <DraggableOperationCard
+                key={card.key}
+                card={card}
+                index={index}
+                onMove={moveCardPosition}
+                onRemove={handleRemoveCard}
+                onClick={() => handleCardClick(card)}
+                isEditMode={isEditMode}
+                hasSourceData={cardHasSourceData}
+                sourceInfo={sourceInfo}
+              />
+            );
+          })}
+          
+          {/* 渲染空位的添加工具卡片 */}
+          {visibleCards.length < 9 && [...Array(9 - visibleCards.length)].map((_, index) => {
+            const isEmpty = true;
+            const hasSourceData = checkSourceData();
+            const sourceInfo = getSourceDataInfo();
+            
+            if (index === 0) {
+              // 第一个空位显示添加工具按钮
+              return (
+                <Dropdown
+                  key={`empty-${index}`}
+                  menu={{
+                    items: [
+                      {
+                        key: 'basic-tools',
+                        type: 'group',
+                        label: (
+                          <div style={{
+                            padding: '8px 4px 4px 4px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            color: '#1890ff',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                            borderBottom: '1px solid #f0f0f0',
+                            marginBottom: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}>
+                            ⚙️ 基础工具
+                          </div>
+                        ),
+                        children: OPERATION_CARDS
+                          .filter(card => card.key !== 'addTool' && !visibleCards.some(vc => vc.key === card.key))
+                          .map(card => ({
+                            key: card.key,
+                            label: (
+                              <div style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: '12px',
+                                padding: '8px 4px'
+                              }}>
+                                <div style={{ 
+                                  width: '32px',
+                                  height: '32px',
+                                  borderRadius: '8px',
+                                  background: card.gradient,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '14px',
+                                  fontWeight: 'bold',
+                                  color: card.color
+                                }}>
+                                  {card.icon}
+                                </div>
+                                <span style={{ fontWeight: 500 }}>{card.title}</span>
+                              </div>
+                            ),
+                            onClick: () => handleAddCard(card.key)
+                          }))
+                      },
+                      {
+                        key: 'ai-tools',
+                        type: 'group',
+                        label: (
+                          <div style={{
+                            padding: '8px 4px 4px 4px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            color: '#722ed1',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                            borderBottom: '1px solid #f0f0f0',
+                            marginBottom: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}>
+                            🤖 AI工具屋
+                          </div>
+                        ),
+                        children: getAIToolHouseTools()
+                      }
+                    ]
+                  }}
+                  trigger={['click']}
+                  placement="topLeft"
+                >
+                  <Card 
+                    size="small" 
+                    hoverable
+                    style={{ 
+                      background: 'linear-gradient(135deg, #f8faff 0%, #eef4ff 100%)',
+                      border: '1px dashed #1890ff',
+                      borderRadius: '8px',
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      height: '56px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    bodyStyle={{ padding: '4px' }}
+                  >
+                    <div style={{ padding: '2px 0' }}>
+                      <div style={{ fontSize: '16px', marginBottom: '2px' }}>➕</div>
+                      <Text style={{ 
+                        fontSize: '10px', 
+                        fontWeight: 500, 
+                        color: '#1890ff',
+                        lineHeight: '1.2'
+                      }}>添加工具</Text>
+                    </div>
+                  </Card>
+                </Dropdown>
+              );
+            } else {
+              // 其他空位显示空白占位符
+              return (
+                <Card 
+                  key={`empty-${index}`}
+                  size="small" 
+                  style={{ 
+                    background: '#fafafa',
+                    border: '1px dashed #d9d9d9',
+                    borderRadius: '8px',
+                    textAlign: 'center',
+                    height: '56px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  bodyStyle={{ padding: '4px' }}
+                >
+                  <div style={{ padding: '2px 0' }}>
+                    <div style={{ fontSize: '16px', marginBottom: '2px', color: '#ccc' }}>◯</div>
+                    <Text style={{ 
+                      fontSize: '10px', 
+                      color: '#ccc',
+                      lineHeight: '1.2'
+                    }}>空位</Text>
+                  </div>
+                </Card>
+              );
+            }
+          })}
 
           {/* "更多"按钮 - 只在编辑模式且工具数量少于9个时显示 */}
           {isEditMode && visibleCards.length < 9 && (
@@ -2344,6 +2702,14 @@ const OperationPanel = ({ state, handlers }) => {
         visible={questionConfigVisible}
         onClose={() => setQuestionConfigVisible(false)}
         onConfirm={handleQuestionConfigConfirm}
+        materialCount={uploadedFiles.length + addedTexts.length + courseVideos.length + links.length}
+      />
+      
+      {/* 报告选择弹窗 */}
+      <ReportSelectionModal
+        visible={reportSelectionVisible}
+        onCancel={() => setReportSelectionVisible(false)}
+        onConfirm={handleReportSelectionConfirm}
         materialCount={uploadedFiles.length + addedTexts.length + courseVideos.length + links.length}
       />
       

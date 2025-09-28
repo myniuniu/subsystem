@@ -194,8 +194,68 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     }
   };
 
+  // 数据源检查函数 - 检查是否有勾选的来源数据
+  const checkSourceData = () => {
+    // 检查用户是否勾选了任何资料
+    return state.selectedMaterials && state.selectedMaterials.length > 0;
+  };
+
+  // 获取数据源信息
+  const getSourceDataInfo = () => {
+    const selectedCount = state.selectedMaterials?.length || 0;
+    const totalAvailable = (
+      (state.uploadedFiles?.length || 0) +
+      (state.addedTexts?.length || 0) +
+      (state.courseVideos?.length || 0) +
+      (state.links?.length || 0)
+    );
+
+    if (selectedCount === 0) {
+      if (totalAvailable === 0) {
+        return {
+          total: 0,
+          details: '尚未添加任何数据源'
+        };
+      } else {
+        return {
+          total: 0,
+          details: `有${totalAvailable}个可用资料，但尚未勾选`
+        };
+      }
+    }
+
+    return {
+      total: selectedCount,
+      details: `已勾选${selectedCount}个资料`
+    };
+  };
+
   const operationHandlers = {
     onOperationClick: (operationType) => {
+      // 检查来源数据
+      if (!checkSourceData()) {
+        const sourceInfo = getSourceDataInfo();
+        Modal.warning({
+          title: '需要添加数据源',
+          content: (
+            <div>
+              <p style={{ marginBottom: '12px' }}>
+                操作面板上的所有工具都需要基于来源数据作为依据。
+              </p>
+              <p style={{ marginBottom: '12px', color: '#666' }}>
+                当前数据源状态：<span style={{ color: '#999' }}>{sourceInfo.details}</span>
+              </p>
+              <p style={{ color: '#1890ff', fontSize: '14px' }}>
+                请先添加文件、文本、视频或链接资源，然后再使用工具。
+              </p>
+            </div>
+          ),
+          okText: '我知道了',
+          width: 400
+        });
+        return;
+      }
+
       const operationTitles = {
         [OPERATION_TYPES.KNOWLEDGE_GRAPH]: '知识图谱',
         [OPERATION_TYPES.AUDIO]: '音频概览',
@@ -208,7 +268,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
         [OPERATION_TYPES.NOTE]: '笔记'
       };
 
-      const totalMaterials = state.uploadedFiles.length + state.addedTexts.length + state.courseVideos.length + state.links.length;
+      const totalMaterials = state.selectedMaterials?.length || 0;
       const newRecord = {
         id: Date.now(),
         title: `基于${totalMaterials}个资料生成${operationTitles[operationType]}`,

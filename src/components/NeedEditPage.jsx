@@ -54,7 +54,7 @@ const { TextArea } = Input;
 const { Option } = Select;
 
 // 可拖拽的工具卡片组件
-const DraggableToolCard = ({ toolType, index, config, onMove, onRemove, onClick }) => {
+const DraggableToolCard = ({ toolType, index, config, onMove, onRemove, onClick, hasSourceData, sourceInfo }) => {
   const [{ isDragging }, drag] = useDrag({
     type: 'tool',
     item: { index, toolType },
@@ -73,73 +73,114 @@ const DraggableToolCard = ({ toolType, index, config, onMove, onRemove, onClick 
     },
   });
 
-  return (
-    <div 
-      ref={(node) => drag(drop(node))}
-      style={{ 
-        position: 'relative',
-        opacity: isDragging ? 0.5 : 1,
-        cursor: 'move'
-      }}
-    >
-      <Card 
-        size="small" 
-        hoverable
-        onClick={onClick}
-        style={{ 
-          background: config.gradient,
-          border: 'none',
-          borderRadius: '12px',
-          textAlign: 'center',
-          cursor: 'move',
-          transition: 'all 0.2s ease',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
-      >
-        <div style={{ padding: '6px 0' }}>
-          <div style={{ fontSize: '20px', marginBottom: '6px' }}>{config.icon}</div>
-          <Text style={{ 
-            fontSize: '11px', 
-            fontWeight: 500, 
-            color: config.color 
-          }}>{config.title}</Text>
-        </div>
-      </Card>
-      
-      {/* 移除按钮 */}
-      <Button
-        type="text"
-        size="small"
-        icon={<DeleteOutlined />}
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove(toolType);
-        }}
-        style={{
+  // 渲染状态覆盖层
+  const renderStatusOverlay = () => {
+    if (!hasSourceData) {
+      return (
+        <div style={{
           position: 'absolute',
-          top: '-5px',
-          right: '-5px',
-          width: '20px',
-          height: '20px',
-          borderRadius: '50%',
-          backgroundColor: '#ff4d4f',
-          color: 'white',
-          fontSize: '10px',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.6)',
+          borderRadius: '12px',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: 0,
-          minWidth: 'auto',
-          opacity: 0.8,
-          transition: 'opacity 0.2s'
+          color: 'white',
+          fontSize: '10px',
+          textAlign: 'center',
+          padding: '4px'
+        }}>
+          <div style={{ fontSize: '16px', marginBottom: '2px' }}>🚫</div>
+          <div>需要数据源</div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <Tooltip 
+      title={!hasSourceData ? 
+        `此工具需要数据源支持。当前状态：${sourceInfo?.details || '暂无数据源'}` : 
+        hasSourceData ? `基于${sourceInfo?.total || 0}个数据源` : config.title
+      }
+      placement="top"
+    >
+      <div 
+        ref={(node) => drag(drop(node))}
+        style={{ 
+          position: 'relative',
+          opacity: isDragging ? 0.5 : (hasSourceData ? 1 : 0.6),
+          cursor: hasSourceData ? 'move' : 'not-allowed'
         }}
-        onMouseEnter={(e) => e.target.style.opacity = '1'}
-        onMouseLeave={(e) => e.target.style.opacity = '0.8'}
-      />
-    </div>
+      >
+        <Card 
+          size="small" 
+          hoverable={hasSourceData}
+          onClick={hasSourceData ? onClick : undefined}
+          style={{ 
+            background: hasSourceData ? config.gradient : '#f5f5f5',
+            border: 'none',
+            borderRadius: '12px',
+            textAlign: 'center',
+            cursor: hasSourceData ? 'move' : 'not-allowed',
+            transition: 'all 0.2s ease',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            filter: (!hasSourceData) ? 'grayscale(100%)' : 'none'
+          }}
+        >
+          <div style={{ padding: '6px 0' }}>
+            <div style={{ fontSize: '20px', marginBottom: '6px' }}>{config.icon}</div>
+            <Text style={{ 
+              fontSize: '11px', 
+              fontWeight: 500, 
+              color: hasSourceData ? config.color : '#999'
+            }}>{config.title}</Text>
+          </div>
+        </Card>
+        
+        {/* 状态覆盖层 */}
+        {renderStatusOverlay()}
+        
+        {/* 移除按钮 */}
+        <Button
+          type="text"
+          size="small"
+          icon={<DeleteOutlined />}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove(toolType);
+          }}
+          style={{
+            position: 'absolute',
+            top: '-5px',
+            right: '-5px',
+            width: '20px',
+            height: '20px',
+            borderRadius: '50%',
+            backgroundColor: '#ff4d4f',
+            color: 'white',
+            fontSize: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 0,
+            minWidth: 'auto',
+            opacity: 0.8,
+            transition: 'opacity 0.2s'
+          }}
+          onMouseEnter={(e) => e.target.style.opacity = '1'}
+          onMouseLeave={(e) => e.target.style.opacity = '0.8'}
+        />
+      </div>
+    </Tooltip>
   );
 };
 
@@ -864,8 +905,62 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
     }
   };
 
+  // 检查是否有可用的来源数据
+  const checkSourceData = () => {
+    const totalSources = (
+      (uploadedFiles?.length || 0) +
+      (addedTexts?.length || 0) +
+      (courseVideos?.length || 0) +
+      (links?.length || 0)
+    );
+    return totalSources > 0;
+  };
+
+  // 获取来源数据统计信息
+  const getSourceDataInfo = () => {
+    const uploadedCount = uploadedFiles?.length || 0;
+    const textCount = addedTexts?.length || 0;
+    const videoCount = courseVideos?.length || 0;
+    const linkCount = links?.length || 0;
+    const totalCount = uploadedCount + textCount + videoCount + linkCount;
+    
+    return {
+      total: totalCount,
+      details: [
+        uploadedCount > 0 && `${uploadedCount}个文件`,
+        textCount > 0 && `${textCount}个文本`,
+        videoCount > 0 && `${videoCount}个视频`,
+        linkCount > 0 && `${linkCount}个链接`
+      ].filter(Boolean).join('、') || '暂无数据源'
+    };
+  };
+
   // 操作按钮点击处理函数
   const handleOperationClick = (operationType) => {
+    // 检查来源数据
+    if (!checkSourceData()) {
+      const sourceInfo = getSourceDataInfo();
+      Modal.warning({
+        title: '需要添加数据源',
+        content: (
+          <div>
+            <p style={{ marginBottom: '12px' }}>
+              操作面板上的所有工具都需要基于来源数据作为依据。
+            </p>
+            <p style={{ marginBottom: '12px', color: '#666' }}>
+              当前数据源状态：<span style={{ color: '#999' }}>{sourceInfo.details}</span>
+            </p>
+            <p style={{ color: '#1890ff', fontSize: '14px' }}>
+              请先添加文件、文本、视频或链接资源，然后再使用工具。
+            </p>
+          </div>
+        ),
+        okText: '我知道了',
+        width: 400
+      });
+      return;
+    }
+
     const operationTitles = {
       audio: '音频概览',
       video: '视频概览', 
@@ -2691,6 +2786,21 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
               🛠️ 操作面板
             </Title>
             
+            {/* 数据源状态提示 */}
+            {!checkSourceData() && (
+              <div style={{
+                background: 'linear-gradient(135deg, #fff2e8 0%, #ffccc7 100%)',
+                border: '1px solid #ffbb96',
+                borderRadius: '6px',
+                padding: '6px 10px',
+                marginBottom: '12px',
+                fontSize: '11px',
+                color: '#d4380d'
+              }}>
+                ⚠️ 需要数据源支持：{getSourceDataInfo().details}
+              </div>
+            )}
+            
             {/* 功能卡片网格 */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: 16 }}>
               {/* 渲染可见的可拖拽工具 */}
@@ -2721,6 +2831,8 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
                     onMove={moveToolPosition}
                     onRemove={handleRemoveTool}
                     onClick={() => handleOperationClick(toolType)}
+                    hasSourceData={checkSourceData()}
+                    sourceInfo={getSourceDataInfo()}
                   />
                 );
               })}

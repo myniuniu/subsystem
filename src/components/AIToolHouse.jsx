@@ -476,6 +476,7 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
                 <Card
                   className="ai-tool-card featured"
                   hoverable
+                  onClick={() => showToolDetail(tool)}
                   cover={
                     <div className="tool-cover">
                       <div className="tool-icon" style={{ color: tool.color }}>
@@ -493,6 +494,9 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
                           </Tag>
                         )}
                       </div>
+                      <div className="click-hint">
+                        <EyeOutlined style={{ fontSize: 12, color: '#999' }} />
+                      </div>
                     </div>
                   }
                   actions={[
@@ -502,7 +506,10 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
                         type="text"
                         size="small"
                         icon={favoriteTools.includes(tool.id) ? <HeartFilled /> : <HeartOutlined />}
-                        onClick={() => toggleFavorite(tool.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(tool.id);
+                        }}
                         style={{ color: favoriteTools.includes(tool.id) ? '#eb2f96' : undefined }}
                       />
                     </Tooltip>,
@@ -512,35 +519,12 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
                         type="text"
                         size="small"
                         icon={<EyeOutlined />}
-                        onClick={() => showToolDetail(tool)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          showToolDetail(tool);
+                        }}
                       />
-                    </Tooltip>,
-                    isToolAdded(tool.id) ? (
-                      <Tooltip title="已添加到操作面板">
-                        <Button
-                          key="added"
-                          type="text"
-                          size="small"
-                          icon={<CheckOutlined />}
-                          onClick={() => removeFromOperationPanel(tool)}
-                          style={{ color: '#52c41a' }}
-                        >
-                          已添加
-                        </Button>
-                      </Tooltip>
-                    ) : (
-                      <Tooltip title="添加到操作面板">
-                        <Button
-                          key="add"
-                          type="primary"
-                          size="small"
-                          icon={<PlusOutlined />}
-                          onClick={() => addToOperationPanel(tool)}
-                        >
-                          添加
-                        </Button>
-                      </Tooltip>
-                    )
+                    </Tooltip>
                   ]}
                 >
                   <div className="tool-info">
@@ -563,9 +547,29 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
                       </div>
                     </div>
                     <div className="tool-tags">
-                      {tool.tags.slice(0, 3).map(tag => (
-                        <Tag key={tag} size="small" color={tool.color}>{tag}</Tag>
-                      ))}
+                      {tool.tags.slice(0, 3).map((tag, tagIndex) => {
+                        // 为不同标签设置清新的颜色
+                        const tagColors = ['#e6f7ff', '#f6ffed', '#fff2e8', '#f9f0ff', '#fff0f6'];
+                        const tagBorderColors = ['#91d5ff', '#b7eb8f', '#ffc069', '#d3adf7', '#ffadd2'];
+                        const tagTextColors = ['#1890ff', '#52c41a', '#fa8c16', '#722ed1', '#eb2f96'];
+                        
+                        const colorIndex = tagIndex % tagColors.length;
+                        
+                        return (
+                          <Tag 
+                            key={tag} 
+                            size="small" 
+                            style={{
+                              background: tagColors[colorIndex],
+                              borderColor: tagBorderColors[colorIndex],
+                              color: tagTextColors[colorIndex],
+                              opacity: 0.8
+                            }}
+                          >
+                            {tag}
+                          </Tag>
+                        );
+                      })}
                     </div>
                   </div>
                 </Card>
@@ -599,6 +603,7 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
                   <Card
                     className="ai-tool-card"
                     hoverable
+                    onClick={() => showToolDetail(tool)}
                     cover={
                       <div className="tool-cover">
                         <div className="tool-icon" style={{ color: tool.color }}>
@@ -621,6 +626,9 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
                             </Tag>
                           )}
                         </div>
+                        <div className="click-hint">
+                          <EyeOutlined style={{ fontSize: 12, color: '#999' }} />
+                        </div>
                       </div>
                     }
                     actions={[
@@ -630,7 +638,10 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
                           type="text"
                           size="small"
                           icon={favoriteTools.includes(tool.id) ? <HeartFilled /> : <HeartOutlined />}
-                          onClick={() => toggleFavorite(tool.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(tool.id);
+                          }}
                           style={{ color: favoriteTools.includes(tool.id) ? '#eb2f96' : undefined }}
                         />
                       </Tooltip>,
@@ -640,35 +651,12 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
                           type="text"
                           size="small"
                           icon={<EyeOutlined />}
-                          onClick={() => showToolDetail(tool)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            showToolDetail(tool);
+                          }}
                         />
-                      </Tooltip>,
-                      isToolAdded(tool.id) ? (
-                        <Tooltip title="已添加到操作面板">
-                          <Button
-                            key="added"
-                            type="text"
-                            size="small"
-                            icon={<CheckOutlined />}
-                            onClick={() => removeFromOperationPanel(tool)}
-                            style={{ color: '#52c41a' }}
-                          >
-                            已添加
-                          </Button>
-                        </Tooltip>
-                      ) : (
-                        <Tooltip title="添加到操作面板">
-                          <Button
-                            key="add"
-                            type="primary"
-                            size="small"
-                            icon={<PlusOutlined />}
-                            onClick={() => addToOperationPanel(tool)}
-                          >
-                            添加
-                          </Button>
-                        </Tooltip>
-                      )
+                      </Tooltip>
                     ]}
                   >
                     <div className="tool-info">
@@ -691,9 +679,29 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
                         </div>
                       </div>
                       <div className="tool-tags">
-                        {tool.tags.slice(0, 3).map(tag => (
-                          <Tag key={tag} size="small" color={tool.color}>{tag}</Tag>
-                        ))}
+                        {tool.tags.slice(0, 3).map((tag, tagIndex) => {
+                          // 为不同标签设置清新的颜色
+                          const tagColors = ['#e6f7ff', '#f6ffed', '#fff2e8', '#f9f0ff', '#fff0f6'];
+                          const tagBorderColors = ['#91d5ff', '#b7eb8f', '#ffc069', '#d3adf7', '#ffadd2'];
+                          const tagTextColors = ['#1890ff', '#52c41a', '#fa8c16', '#722ed1', '#eb2f96'];
+                          
+                          const colorIndex = tagIndex % tagColors.length;
+                          
+                          return (
+                            <Tag 
+                              key={tag} 
+                              size="small" 
+                              style={{
+                                background: tagColors[colorIndex],
+                                borderColor: tagBorderColors[colorIndex],
+                                color: tagTextColors[colorIndex],
+                                opacity: 0.8
+                              }}
+                            >
+                              {tag}
+                            </Tag>
+                          );
+                        })}
                       </div>
                     </div>
                   </Card>
@@ -713,7 +721,7 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
             </div>
             <div>
               <Title level={4} style={{ margin: 0 }}>{selectedTool?.name}</Title>
-              <Text type="secondary">by {selectedTool?.author}</Text>
+              <Text type="secondary">by {selectedTool?.author} · 工具详情</Text>
             </div>
           </div>
         )}
@@ -722,33 +730,7 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
         footer={[
           <Button key="cancel" onClick={() => setDetailModalVisible(false)}>
             关闭
-          </Button>,
-          isToolAdded(selectedTool?.id) ? (
-            <Button 
-              key="added" 
-              type="default" 
-              icon={<CheckOutlined />}
-              onClick={() => {
-                removeFromOperationPanel(selectedTool)
-                setDetailModalVisible(false)
-              }}
-              style={{ color: '#52c41a' }}
-            >
-              已添加到操作面板
-            </Button>
-          ) : (
-            <Button 
-              key="add" 
-              type="primary" 
-              icon={<PlusOutlined />}
-              onClick={() => {
-                addToOperationPanel(selectedTool)
-                setDetailModalVisible(false)
-              }}
-            >
-              添加到操作面板
-            </Button>
-          )
+          </Button>
         ]}
         width={700}
       >
@@ -788,9 +770,29 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
             <div>
               <Title level={5}>标签</Title>
               <div>
-                {selectedTool.tags?.map(tag => (
-                  <Tag key={tag} color={selectedTool.color}>{tag}</Tag>
-                ))}
+                {selectedTool.tags?.map((tag, tagIndex) => {
+                  // 为不同标签设置清新的颜色
+                  const tagColors = ['#e6f7ff', '#f6ffed', '#fff2e8', '#f9f0ff', '#fff0f6'];
+                  const tagBorderColors = ['#91d5ff', '#b7eb8f', '#ffc069', '#d3adf7', '#ffadd2'];
+                  const tagTextColors = ['#1890ff', '#52c41a', '#fa8c16', '#722ed1', '#eb2f96'];
+                  
+                  const colorIndex = tagIndex % tagColors.length;
+                  
+                  return (
+                    <Tag 
+                      key={tag} 
+                      style={{
+                        background: tagColors[colorIndex],
+                        borderColor: tagBorderColors[colorIndex],
+                        color: tagTextColors[colorIndex],
+                        opacity: 0.8,
+                        marginBottom: '4px'
+                      }}
+                    >
+                      {tag}
+                    </Tag>
+                  );
+                })}
               </div>
             </div>
           </div>
