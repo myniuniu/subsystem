@@ -57,7 +57,8 @@ import {
   ShareAltOutlined,
   PlayCircleOutlined,
   AppstoreOutlined,
-  UnorderedListOutlined
+  UnorderedListOutlined,
+  CalendarOutlined
 } from '@ant-design/icons';
 import NoteEditor from './NoteEditor';
 import CategoryTagManager from './CategoryTagManager';
@@ -67,6 +68,7 @@ import ImportExport from './ImportExport';
 import NoteCreateModal from './NoteCreateModal';
 import NoteEditPage from './NoteEditPage';
 import ThemeShareModal from './ThemeShareModal';
+import CalendarCenter from './CalendarCenter';
 import notesService from '../services/notesService';
 import courseSelectionService from '../services/courseSelectionService';
 import themeShareService from '../services/themeShareService';
@@ -108,6 +110,7 @@ const SmartNotes = ({ onViewChange }) => {
   const [showNoteEditPage, setShowNoteEditPage] = useState(false);
   const [editingNote, setEditingNote] = useState(null);
   const [editMode, setEditMode] = useState('create');
+  const [showCalendarCenter, setShowCalendarCenter] = useState(false);
   const [form] = Form.useForm();
 
   // 笔记分类
@@ -1046,6 +1049,12 @@ ${aiSelectedNote.content}`;
             <div className="header-actions">
               <Space>
                 <Button 
+                  icon={<CalendarOutlined />}
+                  onClick={() => setShowCalendarCenter(true)}
+                >
+                  我的日历
+                </Button>
+                <Button 
                   icon={<DatabaseOutlined />}
                   onClick={async () => {
                     try {
@@ -1750,6 +1759,19 @@ ${aiSelectedNote.content}`;
           message.success('主题分享成功！');
         }}
       />
+
+      {/* 日历中心模态框 */}
+      <Modal
+        title="我的日历"
+        open={showCalendarCenter}
+        onCancel={() => setShowCalendarCenter(false)}
+        width="90%"
+        style={{ top: 20 }}
+        footer={null}
+        destroyOnClose
+      >
+        <CalendarCenter />
+      </Modal>
     </div>
   );
 };

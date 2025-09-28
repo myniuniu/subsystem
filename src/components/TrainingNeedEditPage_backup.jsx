@@ -355,11 +355,21 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
     
     // 在当前内容后添加操作记录
     const timestamp = new Date().toLocaleString();
-    const operationRecord = `\n\n---\n**${title}操作记录** (${timestamp})\n\n点击了"${title}"按钮，可在此处添加相关内容。\n\n`;
+    const operationRecord = `
+
+---
+**${title}操作记录** (${timestamp})
+
+点击了"${title}"按钮，可在此处添加相关内容。
+
+`;
     
-    setNeedContent(prev => prev + operationRecord);
-    
-    message.success(`已添加${title}操作记录`);
+    // 添加进度效果
+    message.loading(`正在生成${title}...`, 3);
+    setTimeout(() => {
+      setNeedContent(prev => prev + operationRecord);
+      message.success(`已添加${title}操作记录`);
+    }, 3000);
   };
 
   return (

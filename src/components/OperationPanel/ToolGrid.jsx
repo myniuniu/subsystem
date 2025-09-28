@@ -16,7 +16,8 @@ const ToolGrid = ({
   onMoveCard,
   onRemoveCard,
   onAddCard,
-  getAvailableAITools = () => []
+  getAvailableAITools = () => [],
+  loadingCards = [] // 新增加载中的卡片列表
 }) => {
   return (
     <DndProvider backend={HTML5Backend}>
@@ -30,6 +31,8 @@ const ToolGrid = ({
         {visibleCards.slice(0, 9).map((card, index) => {
           // 添加工具卡片不需要数据源限制
           const cardHasSourceData = card.key === 'addTool' ? true : hasSourceData;
+          // 检查是否正在加载
+          const isLoading = loadingCards.includes(card.key);
           
           return (
             <DraggableOperationCard
@@ -42,6 +45,7 @@ const ToolGrid = ({
               isEditMode={isEditMode}
               hasSourceData={cardHasSourceData}
               sourceInfo={sourceInfo}
+              isLoading={isLoading}
             />
           );
         })}

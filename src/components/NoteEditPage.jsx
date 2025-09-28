@@ -287,12 +287,15 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
         type: operationType
       };
 
-      setOperationRecords(prev => ({
-        ...prev,
-        [operationType]: [newRecord, ...(prev[operationType] || [])]
-      }));
-
-      message.success(`${operationTitles[operationType]}已生成并添加到操作记录`);
+      // 添加进度效果
+      message.loading(`正在生成${operationTitles[operationType]}...`, 3);
+      setTimeout(() => {
+        setOperationRecords(prev => ({
+          ...prev,
+          [operationType]: [newRecord, ...(prev[operationType] || [])]
+        }));
+        message.success(`${operationTitles[operationType]}已生成并添加到操作记录`);
+      }, 3000);
     },
     
     onAddTool: () => {

@@ -322,12 +322,15 @@ const CourseSelectionEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'c
                undefined
     };
 
-    setOperationRecords(prev => ({
-      ...prev,
-      [recordType]: [newRecord, ...prev[recordType]]
-    }));
-
-    message.success(`${operationTitles[operationType]}已生成并添加到操作记录`);
+    // 添加进度效果
+    message.loading(`正在生成${operationTitles[operationType]}...`, 3);
+    setTimeout(() => {
+      setOperationRecords(prev => ({
+        ...prev,
+        [recordType]: [newRecord, ...prev[recordType]]
+      }));
+      message.success(`${operationTitles[operationType]}已生成并添加到操作记录`);
+    }, 3000);
   };
 
   // 发送消息

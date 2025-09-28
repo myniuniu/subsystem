@@ -75,6 +75,11 @@ const LearningPlanViewer = ({
       if (!syncedPlans.includes(planRecord.id)) {
         syncedPlans.push(planRecord.id);
         localStorage.setItem('synced-learning-plans', JSON.stringify(syncedPlans));
+        
+        // 触发自定义同步状态变化事件
+        window.dispatchEvent(new CustomEvent('syncedPlansChanged', {
+          detail: { syncedPlans }
+        }));
       }
 
       // 触发日历中心更新事件

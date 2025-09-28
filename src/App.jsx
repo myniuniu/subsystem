@@ -42,6 +42,7 @@ import StudentAnnotationPage from './components/StudentAnnotationPage'
 import CourseSelection from './components/CourseSelection'
 import CourseSelectionEditPage from './components/CourseSelectionEditPage'
 import LearningSquare from './components/LearningSquare'
+import ProgressTestPage from './components/ProgressTestPage'
 
 import './App.css'
 
@@ -419,6 +420,8 @@ function App() {
               />
             ) : currentView === 'learning-square' ? (
               <LearningSquare />
+            ) : currentView === 'progress-test' ? (
+              <ProgressTestPage />
             ) : (
               <MainContent 
                 currentView={currentView}

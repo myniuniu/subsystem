@@ -12,7 +12,8 @@ import {
   Tag,
   Row,
   Col,
-  Alert
+  Alert,
+  message
 } from 'antd';
 import {
   CheckCircleOutlined,
@@ -47,8 +48,19 @@ const ClassroomEvaluationModal = ({ visible, onCancel, onConfirm }) => {
       };
 
       onConfirm(evaluationConfig);
+      
+      // 创建操作记录后直接关闭弹窗
+      form.resetFields();
+      onCancel();
     } catch (error) {
       console.error('表单验证失败:', error);
+      // 添加用户友好的错误提示
+      if (error.errorFields && error.errorFields.length > 0) {
+        const firstError = error.errorFields[0];
+        message.error(`请检查${firstError.name[0]}字段：${firstError.errors[0]}`);
+      } else {
+        message.error('请检查表单填写是否完整');
+      }
     } finally {
       setLoading(false);
     }
@@ -231,7 +243,7 @@ const ClassroomEvaluationModal = ({ visible, onCancel, onConfirm }) => {
             loading={loading}
             icon={<CheckCircleOutlined />}
           >
-            生成评价量表
+            生成
           </Button>
         </Space>
       </div>

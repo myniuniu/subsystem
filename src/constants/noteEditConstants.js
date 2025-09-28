@@ -187,12 +187,12 @@ export const SUBTITLE_MENU_ITEM_CLASS = 'subtitle-menu-item';
 
 // 默认示例数据
 export const DEFAULT_COURSE_VIDEOS = [
-  { id: 101, title: '数据结构与算法基础', url: 'https://edu.example.com/course/data-structure', addTime: '2024-01-15 10:30', duration: '45分钟', instructor: '张教授', progress: 75 },
-  { id: 102, title: 'React前端开发实战', url: 'https://edu.example.com/course/react-dev', addTime: '2024-01-16 14:20', duration: '60分钟', instructor: '李老师', progress: 45 },
+  { id: 101, title: '数据结构与算法基础', url: 'https://edu.example.com/course/data-structure', addTime: '2024-01-15 10:30', duration: '45分钟', instructor: '张教授', progress: 75, plannedStartTime: '今天 14:00' },
+  { id: 102, title: 'React前端开发实战', url: 'https://edu.example.com/course/react-dev', addTime: '2024-01-16 14:20', duration: '60分钟', instructor: '李老师', progress: 45, plannedStartTime: '明天 09:30' },
   { id: 103, title: 'Python机器学习入门', url: 'https://edu.example.com/course/python-ml', addTime: '2024-01-17 09:15', duration: '75分钟', instructor: '王博士', progress: 90 },
-  { id: 104, title: '数据库设计与优化', url: 'https://edu.example.com/course/database-design', addTime: '2024-01-18 16:45', duration: '50分钟', instructor: '陈工程师', progress: 20 },
+  { id: 104, title: '数据库设计与优化', url: 'https://edu.example.com/course/database-design', addTime: '2024-01-18 16:45', duration: '50分钟', instructor: '陈工程师', progress: 20, plannedStartTime: '1月20日 10:00' },
   { id: 105, title: '云计算架构设计', url: 'https://edu.example.com/course/cloud-architecture', addTime: '2024-01-19 11:00', duration: '90分钟', instructor: '刘架构师', progress: 100 },
-  { id: 106, title: '【直播课回放】深度学习实战应用', url: 'https://live.example.com/replay/deep-learning', addTime: '2024-01-20 14:30', duration: '120分钟', instructor: '赵专家', progress: 60, type: 'live_replay', liveDate: '2024-01-20', audience: 1280 },
+  { id: 106, title: '【直播课回放】深度学习实战应用', url: 'https://live.example.com/replay/deep-learning', addTime: '2024-01-20 14:30', duration: '120分钟', instructor: '赵专家', progress: 60, type: 'live_replay', liveDate: '2024-01-20', audience: 1280, plannedStartTime: '周末 15:00' },
   { id: 107, title: '【直播课预约】AI技术前沿讲座', url: 'https://live.example.com/upcoming/ai-frontier', addTime: '2024-01-21 09:00', duration: '90分钟', instructor: '孙院士', progress: 0, type: 'live_scheduled', scheduleDate: '2024-01-25 19:00', maxAudience: 2000, registered: 876 }
 ];
 

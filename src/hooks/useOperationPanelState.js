@@ -63,6 +63,19 @@ export const useOperationPanelState = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [showCardSelector, setShowCardSelector] = useState(false);
   
+  // 加载状态管理
+  const [loadingCards, setLoadingCards] = useState([]);
+  
+  // 添加加载状态
+  const addLoadingCard = (cardKey) => {
+    setLoadingCards(prev => [...prev, cardKey]);
+  };
+  
+  // 移除加载状态
+  const removeLoadingCard = (cardKey) => {
+    setLoadingCards(prev => prev.filter(key => key !== cardKey));
+  };
+  
   // 监听AI工具添加事件，实时更新操作面板
   useEffect(() => {
     const handleAIToolsChange = () => {
@@ -146,6 +159,9 @@ export const useOperationPanelState = () => {
     setIsEditMode,
     showCardSelector,
     setShowCardSelector,
+    loadingCards,
+    addLoadingCard,
+    removeLoadingCard,
     practiceMode,
     setPracticeMode,
     userAnswers,

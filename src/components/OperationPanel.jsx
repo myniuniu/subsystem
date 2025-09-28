@@ -128,6 +128,9 @@ const OperationPanel = ({ state, handlers }) => {
     setIsEditMode,
     showCardSelector,
     setShowCardSelector,
+    loadingCards,
+    addLoadingCard,
+    removeLoadingCard,
     practiceMode,
     setPracticeMode,
     userAnswers,
@@ -411,8 +414,19 @@ const OperationPanel = ({ state, handlers }) => {
   };
 
   // 处理工具点击
-  const handleCardClick = (card) => {
-    handleToolClick(card);
+  const handleCardClick = async (card) => {
+    // 开始加载状态
+    addLoadingCard(card.key);
+    
+    try {
+      // 调用原有的工具点击处理逻辑
+      await handleToolClick(card);
+    } finally {
+      // 3秒后移除加载状态
+      setTimeout(() => {
+        removeLoadingCard(card.key);
+      }, 3000);
+    }
   };
 
   // 获取更多操作菜单项
@@ -588,15 +602,52 @@ const OperationPanel = ({ state, handlers }) => {
           key: 'syncToCalendar',
           label: (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '16px' }}>📅</span>
-              <span>{isSynced ? '已同步到日历' : '同步到我的日历'}</span>
+              <span style={{ fontSize: '16px' }}>{isSynced ? '📅' : '📅'}</span>
+              <span>{isSynced ? '取消日历同步' : '同步到我的日历'}</span>
             </div>
           ),
           onClick: (e) => {
             e?.stopPropagation?.();
             
             if (isSynced) {
-              message.info('该学习计划已同步到日历');
+              // 取消同步逻辑
+              try {
+                // 从已同步的学习计划列表中移除（先更新这个）
+                const updatedSyncedPlans = syncedPlans.filter(id => id !== record.id);
+                localStorage.setItem('synced-learning-plans', JSON.stringify(updatedSyncedPlans));
+                
+                console.log('OperationPanel: 取消同步，更新后的计划列表', updatedSyncedPlans);
+                
+                // 获取现有的日历分类
+                const existingCategories = JSON.parse(localStorage.getItem('calendar-categories') || '[]');
+                
+                // 移除对应的学习计划分类
+                const updatedCategories = existingCategories.filter(cat => 
+                  cat.key !== `learning-plan-${record.id}`
+                );
+                localStorage.setItem('calendar-categories', JSON.stringify(updatedCategories));
+                
+                // 触发日历分类更新事件
+                window.dispatchEvent(new CustomEvent('calendarCategoriesChanged', {
+                  detail: { categories: updatedCategories }
+                }));
+
+                // 触发自定义同步状态变化事件
+                window.dispatchEvent(new CustomEvent('syncedPlansChanged', {
+                  detail: { syncedPlans: updatedSyncedPlans }
+                }));
+                
+                console.log('OperationPanel: 已触发syncedPlansChanged事件');
+                
+                message.success(`学习计划"${record.title}"已取消日历同步！`);
+                
+                // 强制重新渲染以更新菜单状态
+                setOperationRecords(prev => ({ ...prev }));
+                
+              } catch (error) {
+                console.error('取消日历同步失败:', error);
+                message.error('取消同步失败，请重试');
+              }
               return;
             }
 
@@ -634,6 +685,11 @@ const OperationPanel = ({ state, handlers }) => {
               const updatedSyncedPlans = [...syncedPlans, record.id];
               localStorage.setItem('synced-learning-plans', JSON.stringify(updatedSyncedPlans));
               
+              // 触发自定义同步状态变化事件
+              window.dispatchEvent(new CustomEvent('syncedPlansChanged', {
+                detail: { syncedPlans: updatedSyncedPlans }
+              }));
+              
               message.success(`学习计划"${record.title}"已同步到日历！`);
               
               // 强制重新渲染以更新菜单状态
@@ -643,8 +699,7 @@ const OperationPanel = ({ state, handlers }) => {
               console.error('同步到日历失败:', error);
               message.error('同步失败，请重试');
             }
-          },
-          disabled: isSynced
+          }
         },
         {
           key: 'view',
@@ -830,6 +885,7 @@ const OperationPanel = ({ state, handlers }) => {
             onMoveCard={moveCardPosition}
             onAddAITool={handleAddAITool}
             getAvailableAITools={getAvailableAITools}
+            loadingCards={loadingCards}
           />
         </div>
       </DndProvider>
@@ -970,20 +1026,27 @@ const OperationPanel = ({ state, handlers }) => {
                           const isSynced = syncedPlans.includes(record.id);
                           return isSynced ? (
                             <div style={{
-                              background: 'linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%)',
-                              color: '#1890ff',
-                              fontSize: '8px',
-                              padding: '1px 4px',
-                              borderRadius: '8px',
-                              fontWeight: 'bold',
-                              border: '1px solid #40a9ff',
                               display: 'flex',
-                              alignItems: 'center',
+                              flexDirection: 'column',
                               gap: '2px',
                               flexShrink: 0
                             }}>
-                              <span>📅</span>
-                              <span>已同步到日历</span>
+                              <div style={{
+                                background: 'linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%)',
+                                color: '#1890ff',
+                                fontSize: '8px',
+                                padding: '1px 4px',
+                                borderRadius: '8px',
+                                fontWeight: 'bold',
+                                border: '1px solid #40a9ff',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '2px'
+                              }}>
+                                <span>📅</span>
+                                <span>已同步到日历</span>
+                              </div>
+
                             </div>
                           ) : null;
                         })()}
@@ -1081,7 +1144,11 @@ const OperationPanel = ({ state, handlers }) => {
               <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的个性化学习计划</p>
               <p style="color: #999; font-size: 14px;">${sourceInfo?.details || '数据源分析'} • ${new Date().toLocaleString('zh-CN')}</p>
             </div>`,
-            planData: planData
+            planData: {
+              ...planData,
+              startDate: new Date().toLocaleDateString('zh-CN'),
+              endDate: new Date(Date.now() + 84 * 24 * 60 * 60 * 1000).toLocaleDateString('zh-CN') // 12周后
+            }
           };
 
           // 添加到记录中
@@ -1140,9 +1207,9 @@ const OperationPanel = ({ state, handlers }) => {
           setOperationRecords(newRecords);
           
           // 设置右侧面板显示 - 报告可以使用笔记编辑器查看
-          setRightPanelNoteRecord(reportRecord);
+          setRightPanelEditingNote(reportRecord);
           setRightPanelNoteContent(reportRecord.content);
-          setRightPanelView('NOTE_EDITOR');
+          setRightPanelView(RIGHT_PANEL_VIEWS.NOTE_EDITOR);
           
           // 关闭弹窗
           setReportSelectionVisible(false);
@@ -1184,11 +1251,6 @@ const OperationPanel = ({ state, handlers }) => {
           }
           newRecords['classroom-evaluation'].unshift(evaluationRecord);
           setOperationRecords(newRecords);
-          
-          // 设置右侧面板显示
-          setRightPanelNoteRecord(evaluationRecord);
-          setRightPanelNoteContent(evaluationRecord.content);
-          setRightPanelView('NOTE_EDITOR');
           
           // 关闭弹窗
           setClassroomEvaluationVisible(false);

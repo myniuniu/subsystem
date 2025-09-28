@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Layout,
   Input,
@@ -117,6 +117,43 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     onKnowledgeResourceClick,
     onExplore
   } = handlers;
+
+  // 添加计划标识显示状态管理
+  const [showPlannedLabels, setShowPlannedLabels] = useState(false);
+
+  // 添加渲染调试日志
+  console.log('MaterialManagement: 组件渲染，showPlannedLabels =', showPlannedLabels);
+
+  // 监听学习计划同步事件
+  useEffect(() => {
+    const handleSyncEvent = (event) => {
+      console.log('MaterialManagement: 收到同步事件', event.type, event.detail);
+      // 检查是否有同步的学习计划
+      const syncedPlans = JSON.parse(localStorage.getItem('synced-learning-plans') || '[]');
+      console.log('MaterialManagement: 当前同步计划', syncedPlans);
+      const shouldShow = syncedPlans.length > 0;
+      console.log('MaterialManagement: 设置showPlannedLabels为', shouldShow);
+      setShowPlannedLabels(shouldShow);
+      console.log('MaterialManagement: setShowPlannedLabels调用完成，当前showPlannedLabels =', showPlannedLabels);
+    };
+
+    // 监听同步事件（包括取消同步）
+    window.addEventListener('calendarCategoriesChanged', handleSyncEvent);
+    
+    // 监听localStorage变化（跨窗口）
+    window.addEventListener('storage', handleSyncEvent);
+
+    // 添加自定义事件监听，用于同页面内的同步状态变化
+    window.addEventListener('syncedPlansChanged', handleSyncEvent);
+
+    // 不执行初始检查，确保页面初始化时不显示计划标识
+
+    return () => {
+      window.removeEventListener('calendarCategoriesChanged', handleSyncEvent);
+      window.removeEventListener('storage', handleSyncEvent);
+      window.removeEventListener('syncedPlansChanged', handleSyncEvent);
+    };
+  }, []);
 
   // 文件上传处理
   const handleFileUpload = (info) => {
@@ -592,6 +629,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                             <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
                               {video.title}
                             </Text>
+
                             <Text type="secondary" style={{ fontSize: 10 }}>
                               {video.type === 'live_replay' ? (
                                 `回放 • ${video.liveDate} • ${video.instructor || '未知讲师'} • ${video.audience || 0}人观看`
@@ -601,6 +639,36 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                 `${video.addTime} • ${video.instructor || '未知讲师'}`
                               )}
                             </Text>
+
+                            {/* 计划学习时间显示 - 基于同步状态动态显示 */}
+                            {showPlannedLabels && video.plannedStartTime && (() => {
+                              console.log(`MaterialManagement: 视频 ${video.id} 计划标识显示检查:`, {
+                                showPlannedLabels,
+                                hasPlannedStartTime: !!video.plannedStartTime,
+                                plannedStartTime: video.plannedStartTime,
+                                shouldShowLabel: true
+                              });
+                              return (
+                                <div 
+                                  key={`planned-label-${video.id}-${Date.now()}`}
+                                  style={{
+                                    background: 'linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%)',
+                                    color: '#1890ff',
+                                    fontSize: '8px',
+                                    padding: '1px 4px',
+                                    borderRadius: '8px',
+                                    fontWeight: 'bold',
+                                    border: '1px solid #40a9ff',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '2px',
+                                    marginTop: '2px'
+                                  }}>
+                                  <ClockCircleOutlined style={{ fontSize: '8px' }} />
+                                  <span>计划 {video.plannedStartTime}</span>
+                                </div>
+                              );
+                            })()}
                           </div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
