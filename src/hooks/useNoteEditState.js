@@ -24,11 +24,26 @@ const subtitleData = [
 
 export const useNoteEditState = (note, mode) => {
   // 资料收集相关状态
-  const [uploadedFiles, setUploadedFiles] = useState(
-    mode === 'create' ? [
-      { id: 1, name: '成都火锅制作工艺.pdf', type: 'application/pdf', uploadTime: '刚刚' }
-    ] : note?.materials?.files || []
-  );
+  const [uploadedFiles, setUploadedFiles] = useState(() => {
+    // 默认的试卷文件，在任何模式下都显示
+    const defaultFiles = [
+      { id: 1, name: '成都火锅制作工艺.pdf', type: 'application/pdf', uploadTime: '刚刚' },
+      { id: 4, name: '数学综合试卷-期末考试.pdf', type: 'application/pdf', uploadTime: '2分钟前', isPaper: true, paperType: '期末考试', subject: '数学' },
+      { id: 5, name: '语文阅读理解试卷.pdf', type: 'application/pdf', uploadTime: '5分钟前', isPaper: true, paperType: '专项练习', subject: '语文' }
+    ];
+    
+    if (mode === 'create') {
+      return defaultFiles;
+    } else {
+      // 编辑模式下，如果有传入的文件则使用，否则使用默认文件
+      const existingFiles = note?.materials?.files;
+      if (existingFiles && existingFiles.length > 0) {
+        return existingFiles;
+      } else {
+        return defaultFiles;
+      }
+    }
+  });
 
   // 组织培训课程来源状态
   const [organizationalCourses, setOrganizationalCourses] = useState(
@@ -39,11 +54,22 @@ export const useNoteEditState = (note, mode) => {
   const [selectedMaterials, setSelectedMaterials] = useState([]);
   const [showMaterialDetail, setShowMaterialDetail] = useState(false);
   const [currentMaterial, setCurrentMaterial] = useState(null);
-  const [links, setLinks] = useState(
-    mode === 'create' ? [
+  const [links, setLinks] = useState(() => {
+    const defaultLinks = [
       { id: 2, url: 'https://chengdu-food.com', title: '成都美食攻略网站', addTime: '刚刚' }
-    ] : note?.materials?.links || []
-  );
+    ];
+    
+    if (mode === 'create') {
+      return defaultLinks;
+    } else {
+      const existingLinks = note?.materials?.links;
+      if (existingLinks && existingLinks.length > 0) {
+        return existingLinks;
+      } else {
+        return defaultLinks;
+      }
+    }
+  });
   const [newLink, setNewLink] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showMaterialAddModal, setShowMaterialAddModal] = useState(false);
@@ -52,11 +78,22 @@ export const useNoteEditState = (note, mode) => {
 
   // 文字内容相关状态
   const [textContent, setTextContent] = useState('');
-  const [addedTexts, setAddedTexts] = useState(
-    mode === 'create' ? [
+  const [addedTexts, setAddedTexts] = useState(() => {
+    const defaultTexts = [
       { id: 3, title: '成都小吃介绍', content: '成都是著名的美食之都，拥有麻婆豆腐、回锅肉、担担面、龙抄手等众多特色小吃...', addTime: '刚刚' }
-    ] : note?.materials?.texts || []
-  );
+    ];
+    
+    if (mode === 'create') {
+      return defaultTexts;
+    } else {
+      const existingTexts = note?.materials?.texts;
+      if (existingTexts && existingTexts.length > 0) {
+        return existingTexts;
+      } else {
+        return defaultTexts;
+      }
+    }
+  });
 
   // 课程视频相关状态
   const [videoTitle, setVideoTitle] = useState('');
@@ -127,7 +164,8 @@ export const useNoteEditState = (note, mode) => {
       'study-result': [],
       question: [], // 添加试题操作类型
       'exam-paper': [], // 添加试卷操作类型
-      'learning-plan': [] // 添加学习计划操作类型
+      'learning-plan': [], // 添加学习计划操作类型
+      grading: [] // 添加阅卷工具操作类型
     };
     
     // 如果有传入的operationRecords，合并并确保每个字段都是数组
@@ -224,6 +262,10 @@ export const useNoteEditState = (note, mode) => {
   // 学习计划查看状态
   const [rightPanelLearningPlanRecord, setRightPanelLearningPlanRecord] = useState(null);
   const [rightPanelLearningPlanContent, setRightPanelLearningPlanContent] = useState('');
+  
+  // 阅卷报告查看状态
+  const [rightPanelGradingRecord, setRightPanelGradingRecord] = useState(null);
+  const [rightPanelGradingContent, setRightPanelGradingContent] = useState('');
 
   // 能力模型相关状态
   const [capabilityMap, setCapabilityMap] = useState(null);
@@ -434,6 +476,12 @@ export const useNoteEditState = (note, mode) => {
     setRightPanelLearningPlanRecord,
     rightPanelLearningPlanContent,
     setRightPanelLearningPlanContent,
+    
+    // 阅卷报告查看状态
+    rightPanelGradingRecord,
+    setRightPanelGradingRecord,
+    rightPanelGradingContent,
+    setRightPanelGradingContent,
 
     // 能力模型和知识图谱状态
     capabilityMap,

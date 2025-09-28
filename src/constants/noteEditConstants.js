@@ -20,7 +20,8 @@ export const OPERATION_TYPES = {
   TOOL: 'tool',
   QUESTION: 'question',
   EXAM_PAPER: 'exam-paper',
-  LEARNING_PLAN: 'learning-plan'
+  LEARNING_PLAN: 'learning-plan',
+  GRADING: 'grading'
 };
 
 // 操作按钮标题映射
@@ -38,7 +39,8 @@ export const OPERATION_TITLES = {
   [OPERATION_TYPES.NOTE]: '笔记',
   [OPERATION_TYPES.QUESTION]: '试题',
   [OPERATION_TYPES.EXAM_PAPER]: '试卷',
-  [OPERATION_TYPES.LEARNING_PLAN]: '学习计划'
+  [OPERATION_TYPES.LEARNING_PLAN]: '学习计划',
+  [OPERATION_TYPES.GRADING]: '阅卷工具'
 };
 
 // 材料类型图标映射
@@ -61,7 +63,8 @@ export const MATERIAL_ICONS = {
   [OPERATION_TYPES.TOOL]: '🛠️',
   [OPERATION_TYPES.QUESTION]: '试',
   [OPERATION_TYPES.EXAM_PAPER]: '卷',
-  [OPERATION_TYPES.LEARNING_PLAN]: '📋'
+  [OPERATION_TYPES.LEARNING_PLAN]: '计',
+  [OPERATION_TYPES.GRADING]: '阅'
 };
 
 // 网站类型常量
@@ -87,7 +90,8 @@ export const RIGHT_PANEL_VIEWS = {
   OPERATIONS: 'operations',
   NOTE_EDITOR: 'noteEditor',
   QUESTION_VIEWER: 'questionViewer',
-  LEARNING_PLAN_VIEWER: 'learningPlanViewer'
+  LEARNING_PLAN_VIEWER: 'learningPlanViewer',
+  GRADING_VIEWER: 'gradingViewer'
 };
 
 // 直播状态常量
@@ -294,9 +298,16 @@ export const OPERATION_CARDS = [
   {
     key: OPERATION_TYPES.LEARNING_PLAN,
     title: '学习计划',
-    icon: '📋',
+    icon: '计',
     gradient: 'linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%)',
     color: '#1890ff'
+  },
+  {
+    key: OPERATION_TYPES.GRADING,
+    title: '阅卷工具',
+    icon: '阅',
+    gradient: 'linear-gradient(135deg, #fff0f6 0%, #ffd6e7 100%)',
+    color: '#c41d7f'
   },
   {
     key: OPERATION_TYPES.EXAM_PAPER,

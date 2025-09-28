@@ -58,6 +58,37 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
   // 社区AI工具数据
   const aiTools = [
     {
+      id: 'grading-assistant',
+      name: '智能阅卷助手',
+      description: '专业的智能阅卷工具，支持试卷自动评阅、成绩分析、评语生成等功能',
+      category: AI_TOOL_CATEGORIES.TEACHING,
+      status: AI_TOOL_STATUS.NEW,
+      author: '智能教育团队',
+      version: 'v1.2.0',
+      rating: 4.9,
+      downloads: 18960,
+      tags: ['阅卷', '评分', '试卷分析', '自动批改'],
+      icon: '阅',
+      color: '#c41d7f',
+      featured: true,
+      menuConfig: {
+        key: 'grading',
+        title: '阅卷工具',
+        icon: '阅',
+        gradient: 'linear-gradient(135deg, #fff0f6 0%, #ffd6e7 100%)',
+        color: '#c41d7f'
+      },
+      features: [
+        '智能试卷识别扫描',
+        '自动答案匹配评分',
+        '个性化评语生成',
+        '成绩统计分析',
+        '学情报告生成',
+        '批改结果导出'
+      ],
+      usage: '上传试卷文件或图片，系统将自动识别答题内容并进行智能评阅，生成详细的评阅报告'
+    },
+    {
       id: 'smart-writer',
       name: '智能写作助手',
       description: '基于GPT技术的智能写作工具，支持文章生成、润色、翻译等功能',

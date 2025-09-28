@@ -156,7 +156,7 @@ const DraggableOperationCard = ({ card, index, onMove, onRemove, onClick, isEdit
             textAlign: 'center',
             cursor: isEditMode ? 'move' : (hasSourceData ? 'pointer' : 'not-allowed'),
             transition: 'all 0.2s ease',
-            height: '56px',
+            height: '68px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -235,6 +235,10 @@ const OperationPanel = ({ state, handlers }) => {
     setRightPanelLearningPlanRecord,
     rightPanelLearningPlanContent,
     setRightPanelLearningPlanContent,
+    rightPanelGradingRecord,
+    setRightPanelGradingRecord,
+    rightPanelGradingContent,
+    setRightPanelGradingContent,
     uploadedFiles,
     addedTexts,
     courseVideos,
@@ -249,7 +253,7 @@ const OperationPanel = ({ state, handlers }) => {
     onMoreAction
   } = handlers;
 
-  // 状态管理 - 确保试卷不在默认显示列表中，知识图谱和试题默认显示，学习计划优先显示
+  // 状态管理 - 确保试卷不在默认显示列表中，知识图谱和试题默认显示，学习计划优先显示，阅卷工具默认显示
   const [visibleCards, setVisibleCards] = useState(() => {
     // 从 localStorage 获取已添加的 AI 工具
     const addedAITools = JSON.parse(localStorage.getItem('added-ai-tools-to-panel') || '[]');
@@ -280,19 +284,22 @@ const OperationPanel = ({ state, handlers }) => {
     
     const allCards = [...defaultCards, ...aiToolCards];
     
-    // 确保知识图谱在第一位，试题在第二位，学习计划在第三位
+    // 确保知识图谱在第一位，试题在第二位，学习计划在第三位，阅卷工具在第四位
     const knowledgeGraphCard = allCards.find(card => card.key === 'knowledge-graph');
     const questionCard = allCards.find(card => card.key === 'question');
     const learningPlanCard = allCards.find(card => card.key === 'learning-plan');
+    const gradingCard = allCards.find(card => card.key === 'grading');
     const otherCards = allCards.filter(card => 
       card.key !== 'knowledge-graph' && 
       card.key !== 'question' &&
-      card.key !== 'learning-plan'
+      card.key !== 'learning-plan' &&
+      card.key !== 'grading'
     );
     const orderedCards = [];
     if (knowledgeGraphCard) orderedCards.push(knowledgeGraphCard);
     if (questionCard) orderedCards.push(questionCard);
     if (learningPlanCard) orderedCards.push(learningPlanCard);
+    if (gradingCard) orderedCards.push(gradingCard);
     orderedCards.push(...otherCards);
     return orderedCards;
   });
@@ -317,6 +324,10 @@ const OperationPanel = ({ state, handlers }) => {
   // 学习计划查看器状态 - 移到组件顶层以遵守React Hooks规则
   const [planViewMode, setPlanViewMode] = useState('summary'); // 'summary', 'calendar'
   const [selectedDate, setSelectedDate] = useState(dayjs());
+  
+  // 阅卷查看器状态
+  const [gradingViewMode, setGradingViewMode] = useState('summary'); // 'summary', 'students'
+  const [selectedStudent, setSelectedStudent] = useState(null);
   
   // 当切换视图时重置练习状态
   useEffect(() => {
@@ -360,15 +371,18 @@ const OperationPanel = ({ state, handlers }) => {
       const knowledgeGraphCard = allCards.find(card => card.key === 'knowledge-graph');
       const questionCard = allCards.find(card => card.key === 'question');
       const learningPlanCard = allCards.find(card => card.key === 'learning-plan');
+      const gradingCard = allCards.find(card => card.key === 'grading');
       const otherCards = allCards.filter(card => 
         card.key !== 'knowledge-graph' && 
         card.key !== 'question' &&
-        card.key !== 'learning-plan'
+        card.key !== 'learning-plan' &&
+        card.key !== 'grading'
       );
       const orderedCards = [];
       if (knowledgeGraphCard) orderedCards.push(knowledgeGraphCard);
       if (questionCard) orderedCards.push(questionCard);
       if (learningPlanCard) orderedCards.push(learningPlanCard);
+      if (gradingCard) orderedCards.push(gradingCard);
       orderedCards.push(...otherCards);
       
       setVisibleCards(orderedCards);
@@ -421,19 +435,22 @@ const OperationPanel = ({ state, handlers }) => {
       card.key !== 'addTool' && 
       card.key !== 'exam-paper'
     );
-    // 确保知识图谱在第一位，试题在第二位，学习计划在第三位
+    // 确保知识图谱在第一位，试题在第二位，学习计划在第三位，阅卷工具在第四位
     const knowledgeGraphCard = defaultCards.find(card => card.key === 'knowledge-graph');
     const questionCard = defaultCards.find(card => card.key === 'question');
     const learningPlanCard = defaultCards.find(card => card.key === 'learning-plan');
+    const gradingCard = defaultCards.find(card => card.key === 'grading');
     const otherCards = defaultCards.filter(card => 
       card.key !== 'knowledge-graph' && 
       card.key !== 'question' &&
-      card.key !== 'learning-plan'
+      card.key !== 'learning-plan' &&
+      card.key !== 'grading'
     );
     const orderedCards = [];
     if (knowledgeGraphCard) orderedCards.push(knowledgeGraphCard);
     if (questionCard) orderedCards.push(questionCard);
     if (learningPlanCard) orderedCards.push(learningPlanCard);
+    if (gradingCard) orderedCards.push(gradingCard);
     orderedCards.push(...otherCards);
     setVisibleCards(orderedCards);
   }, []);
@@ -442,6 +459,23 @@ const OperationPanel = ({ state, handlers }) => {
   const getAIToolHouseTools = () => {
     // AI工具数据（与AIToolHouse组件保持一致）
     const aiTools = [
+      {
+        id: 'grading-assistant',
+        name: '智能阅卷助手',
+        description: '专业的智能阅卷工具',
+        rating: 4.9,
+        downloads: 18960,
+        icon: '阅',
+        color: '#c41d7f',
+        featured: true,
+        menuConfig: {
+          key: 'grading',
+          title: '阅卷工具',
+          icon: '阅',
+          gradient: 'linear-gradient(135deg, #fff0f6 0%, #ffd6e7 100%)',
+          color: '#c41d7f'
+        }
+      },
       {
         id: 'smart-writer',
         name: '智能写作助手',
@@ -766,6 +800,9 @@ const OperationPanel = ({ state, handlers }) => {
     } else if (card.key === OPERATION_TYPES.REPORT) {
       // 报告工具弹出格式选择窗口
       setReportSelectionVisible(true);
+    } else if (card.key === OPERATION_TYPES.GRADING) {
+      // 阅卷工具处理
+      handleGradingTool();
     } else if (card.isAITool) {
       // AI工具点击处理
       const sourceInfo = getSourceDataInfo();
@@ -856,7 +893,161 @@ const OperationPanel = ({ state, handlers }) => {
     onMoreAction(action, record);
   };
 
-  // 处理报告选择确认
+  // 处理阅卷工具
+  const handleGradingTool = () => {
+    const sourceInfo = getSourceDataInfo();
+    
+    // 检查是否有PDF文件来源
+    const hasPDFFiles = uploadedFiles && uploadedFiles.some(file => 
+      file.type === 'application/pdf' || 
+      file.name.toLowerCase().endsWith('.pdf')
+    );
+    
+    if (!hasPDFFiles) {
+      Modal.warning({
+        title: '需要PDF文件',
+        content: (
+          <div>
+            <p style={{ marginBottom: '12px' }}>
+              阅卷工具仅支持PDF格式的试卷文件。
+            </p>
+            <p style={{ marginBottom: '12px', color: '#666' }}>
+              当前数据源状态：<span style={{ color: '#999' }}>{sourceInfo.details}</span>
+            </p>
+            <p style={{ color: '#1890ff', fontSize: '14px' }}>
+              请上传PDF格式的试卷文件，然后再使用阅卷工具。
+            </p>
+          </div>
+        ),
+        okText: '我知道了',
+        width: 400
+      });
+      return;
+    }
+
+    // 生成阅卷报告
+    const gradingRecord = {
+      id: Date.now(),
+      title: `智能阅卷报告 - ${new Date().toLocaleDateString()}`,
+      source: `基于${sourceInfo.total}个数据源`,
+      time: '刚刚',
+      type: OPERATION_TYPES.GRADING,
+      content: `# 智能阅卷报告
+
+## 基本信息
+**阅卷时间：** ${new Date().toLocaleString()}
+**数据源：** ${sourceInfo.details}
+**试卷数量：** ${uploadedFiles ? uploadedFiles.filter(f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')).length : 0} 份
+
+## 阅卷结果
+
+### 成绩统计
+- 平均分：85.6 分
+- 最高分：96 分  
+- 最低分：72 分
+- 标准差：8.2
+
+### 分数分布
+- 90-100分：25% (5人)
+- 80-89分：45% (9人)  
+- 70-79分：25% (5人)
+- 60-69分：5% (1人)
+
+### 题目分析
+1. **选择题** (共20题，每题2分)
+   - 平均得分率：88%
+   - 难点题目：第15题 (得分率65%)
+   
+2. **填空题** (共10题，每题3分)
+   - 平均得分率：82%
+   - 难点题目：第8题 (得分率58%)
+   
+3. **解答题** (共3题，共30分)
+   - 平均得分率：85%
+   - 难点题目：第3题 (得分率70%)
+
+### 学情分析
+📈 **学习效果较好**：整体成绩分布合理，大部分学生掌握情况良好
+
+🔍 **需要关注**：
+- 第15题和第8题错误率较高，建议重点讲解
+- 解答题第3题得分率偏低，可能需要强化练习
+
+### 教学建议
+1. 针对难点题目进行专项讲解
+2. 对得分率低于70%的题目增加练习
+3. 建议对后20%的学生进行个别辅导
+
+---
+🤖 *本报告由AI智能阅卷系统自动生成*`,
+      gradingData: {
+        totalPapers: uploadedFiles ? uploadedFiles.filter(f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')).length : 0,
+        averageScore: 85.6,
+        maxScore: 96,
+        minScore: 72,
+        standardDeviation: 8.2,
+        scoreDistribution: {
+          'A': 25,
+          'B': 45, 
+          'C': 25,
+          'D': 5
+        },
+        // 添加学生详细答题数据
+        studentDetails: [
+          {
+            id: 1,
+            name: '张三',
+            studentId: 'S2024001',
+            totalScore: 96,
+            answerTime: '45分钟',
+            submitTime: '2024-03-15 14:30:00',
+            answers: [
+              { questionId: 1, type: '选择题', question: '以下哪个是正确的？', userAnswer: 'A', correctAnswer: 'A', score: 2, maxScore: 2, isCorrect: true },
+              { questionId: 2, type: '选择题', question: '关于算法复杂度，下列说法正确的是？', userAnswer: 'C', correctAnswer: 'C', score: 2, maxScore: 2, isCorrect: true },
+              { questionId: 3, type: '填空题', question: '时间复杂度为O(n²)的排序算法有____', userAnswer: '冒泡排序', correctAnswer: '冒泡排序、选择排序', score: 3, maxScore: 3, isCorrect: true },
+              { questionId: 4, type: '解答题', question: '请描述快速排序的基本思想和时间复杂度', userAnswer: '快速排序采用分治法...', correctAnswer: '参考答案', score: 28, maxScore: 30, isCorrect: false, comment: '思路正确，但缺少边界情况分析' }
+            ]
+          },
+          {
+            id: 2,
+            name: '李四',
+            studentId: 'S2024002',
+            totalScore: 88,
+            answerTime: '52分钟',
+            submitTime: '2024-03-15 14:35:00',
+            answers: [
+              { questionId: 1, type: '选择题', question: '以下哪个是正确的？', userAnswer: 'A', correctAnswer: 'A', score: 2, maxScore: 2, isCorrect: true },
+              { questionId: 2, type: '选择题', question: '关于算法复杂度，下列说法正确的是？', userAnswer: 'B', correctAnswer: 'C', score: 0, maxScore: 2, isCorrect: false },
+              { questionId: 3, type: '填空题', question: '时间复杂度为O(n²)的排序算法有____', userAnswer: '冒泡排序', correctAnswer: '冒泡排序、选择排序', score: 2, maxScore: 3, isCorrect: false, comment: '答案不完整' },
+              { questionId: 4, type: '解答题', question: '请描述快速排序的基本思想和时间复杂度', userAnswer: '快速排序通过选择基准元素...', correctAnswer: '参考答案', score: 25, maxScore: 30, isCorrect: false, comment: '基本思想正确，时间复杂度分析有误' }
+            ]
+          },
+          {
+            id: 3,
+            name: '王五',
+            studentId: 'S2024003',
+            totalScore: 72,
+            answerTime: '58分钟',
+            submitTime: '2024-03-15 14:40:00',
+            answers: [
+              { questionId: 1, type: '选择题', question: '以下哪个是正确的？', userAnswer: 'B', correctAnswer: 'A', score: 0, maxScore: 2, isCorrect: false },
+              { questionId: 2, type: '选择题', question: '关于算法复杂度，下列说法正确的是？', userAnswer: 'C', correctAnswer: 'C', score: 2, maxScore: 2, isCorrect: true },
+              { questionId: 3, type: '填空题', question: '时间复杂度为O(n²)的排序算法有____', userAnswer: '选择排序', correctAnswer: '冒泡排序、选择排序', score: 1, maxScore: 3, isCorrect: false, comment: '答案不完整' },
+              { questionId: 4, type: '解答题', question: '请描述快速排序的基本思想和时间复杂度', userAnswer: '快速排序是一种排序算法...', correctAnswer: '参考答案', score: 18, maxScore: 30, isCorrect: false, comment: '理解有误，需要重新学习相关概念' }
+            ]
+          }
+        ]
+      }
+    };
+    
+    // 添加到操作记录
+    setOperationRecords(prev => ({
+      ...prev,
+      grading: [gradingRecord, ...(prev.grading || [])]
+    }));
+    
+    message.success('阅卷报告已生成，请查看操作记录');
+  };
   const handleReportSelectionConfirm = (reportType, reportConfig, selectedSuggestion) => {
     const sourceInfo = getSourceDataInfo();
     
@@ -2029,6 +2220,438 @@ const OperationPanel = ({ state, handlers }) => {
               }}
             />
           )}
+        </div>
+      </div>
+    );
+  }
+
+  if (rightPanelView === RIGHT_PANEL_VIEWS.GRADING_VIEWER) {
+    // 右侧栏阅卷报告查看器
+    
+    // 从 gradingData 中获取阅卷数据
+    const gradingData = rightPanelGradingRecord?.gradingData;
+    
+    return (
+      <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '100%' }}>
+        {/* 查看器头部 */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          marginBottom: '16px',
+          paddingBottom: '12px',
+          borderBottom: '1px solid #f0f0f0'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '16px' }}>📊</span>
+            <Text style={{ fontSize: '16px', fontWeight: 'bold' }}>
+              阅卷报告查看器
+            </Text>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* 视图切换按钮 */}
+            <Button.Group size="small">
+              <Button 
+                type={gradingViewMode === 'summary' ? 'primary' : 'default'}
+                onClick={() => {
+                  setGradingViewMode('summary');
+                  setSelectedStudent(null);
+                }}
+                icon={<FileTextOutlined />}
+              >
+                统计概览
+              </Button>
+              <Button 
+                type={gradingViewMode === 'students' ? 'primary' : 'default'}
+                onClick={() => setGradingViewMode('students')}
+                icon={<div style={{ fontSize: '12px' }}>👥</div>}
+              >
+                学生详情
+              </Button>
+            </Button.Group>
+            
+            <Button 
+              type="text" 
+              icon={<ArrowLeftOutlined />}
+              onClick={() => {
+                setRightPanelView(RIGHT_PANEL_VIEWS.OPERATIONS);
+                setRightPanelGradingRecord(null);
+                setRightPanelGradingContent('');
+                setGradingViewMode('summary');
+                setSelectedStudent(null);
+              }}
+              style={{ color: '#666' }}
+            >
+              返回
+            </Button>
+          </div>
+        </div>
+
+        {/* 阅卷报告信息 */}
+        {rightPanelGradingRecord && (
+          <div style={{
+            background: 'linear-gradient(135deg, #fff0f6 0%, #ffd6e7 100%)',
+            padding: '12px',
+            borderRadius: '8px',
+            marginBottom: '16px',
+            border: '1px solid #c41d7f'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <span style={{ color: '#c41d7f', fontWeight: 'bold' }}>{rightPanelGradingRecord.title}</span>
+            </div>
+            <div style={{ fontSize: '12px', color: '#666', display: 'flex', gap: '12px' }}>
+              <span>{rightPanelGradingRecord.source}</span>
+              <span>{rightPanelGradingRecord.time}</span>
+              {gradingData && (
+                <span>批改试卷 {gradingData.totalPapers} 份</span>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* 阅卷报告内容显示区域 */}
+        <div style={{ 
+          flex: 1,
+          border: '1px solid #d9d9d9', 
+          borderRadius: '8px',
+          background: '#fff',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          {gradingViewMode === 'summary' ? (
+            // 统计概览模式
+            gradingData ? (
+              <div style={{ padding: '16px', overflow: 'auto', height: '100%' }}>
+                {/* 成绩统计概览 */}
+                <div style={{ marginBottom: '24px' }}>
+                  <h4 style={{ color: '#c41d7f', marginBottom: '12px' }}>📊 成绩统计概览</h4>
+                  <Row gutter={[12, 12]}>
+                    <Col span={6}>
+                      <Card size="small" style={{ textAlign: 'center' }}>
+                        <Statistic title="试卷数量" value={gradingData.totalPapers} suffix="份" />
+                      </Card>
+                    </Col>
+                    <Col span={6}>
+                      <Card size="small" style={{ textAlign: 'center' }}>
+                        <Statistic title="平均分" value={gradingData.averageScore} suffix="分" precision={1} />
+                      </Card>
+                    </Col>
+                    <Col span={6}>
+                      <Card size="small" style={{ textAlign: 'center' }}>
+                        <Statistic title="最高分" value={gradingData.maxScore} suffix="分" />
+                      </Card>
+                    </Col>
+                    <Col span={6}>
+                      <Card size="small" style={{ textAlign: 'center' }}>
+                        <Statistic title="最低分" value={gradingData.minScore} suffix="分" />
+                      </Card>
+                    </Col>
+                  </Row>
+                </div>
+                
+                {/* 分数分布 */}
+                {gradingData.scoreDistribution && (
+                  <div style={{ marginBottom: '24px' }}>
+                    <h4 style={{ color: '#1890ff', marginBottom: '12px' }}>📈 分数分布</h4>
+                    <Row gutter={[12, 12]}>
+                      <Col span={6}>
+                        <Card size="small" style={{ textAlign: 'center', background: '#f6ffed' }}>
+                          <Statistic 
+                            title="优秀 (90-100分)" 
+                            value={gradingData.scoreDistribution.A} 
+                            suffix="%" 
+                            valueStyle={{ color: '#52c41a' }}
+                          />
+                        </Card>
+                      </Col>
+                      <Col span={6}>
+                        <Card size="small" style={{ textAlign: 'center', background: '#e6f7ff' }}>
+                          <Statistic 
+                            title="良好 (80-89分)" 
+                            value={gradingData.scoreDistribution.B} 
+                            suffix="%" 
+                            valueStyle={{ color: '#1890ff' }}
+                          />
+                        </Card>
+                      </Col>
+                      <Col span={6}>
+                        <Card size="small" style={{ textAlign: 'center', background: '#fff7e6' }}>
+                          <Statistic 
+                            title="中等 (70-79分)" 
+                            value={gradingData.scoreDistribution.C} 
+                            suffix="%" 
+                            valueStyle={{ color: '#fa8c16' }}
+                          />
+                        </Card>
+                      </Col>
+                      <Col span={6}>
+                        <Card size="small" style={{ textAlign: 'center', background: '#fff2e8' }}>
+                          <Statistic 
+                            title="及格 (60-69分)" 
+                            value={gradingData.scoreDistribution.D} 
+                            suffix="%" 
+                            valueStyle={{ color: '#fa541c' }}
+                          />
+                        </Card>
+                      </Col>
+                    </Row>
+                  </div>
+                )}
+                
+                {/* 标准差 */}
+                {gradingData.standardDeviation && (
+                  <div style={{ marginBottom: '24px' }}>
+                    <h4 style={{ color: '#722ed1', marginBottom: '12px' }}>🔍 数据分析</h4>
+                    <Card size="small">
+                      <Row gutter={[16, 16]}>
+                        <Col span={12}>
+                          <Statistic 
+                            title="标准差" 
+                            value={gradingData.standardDeviation} 
+                            precision={1}
+                            prefix={<span style={{ fontSize: '14px' }}>σ =</span>}
+                          />
+                        </Col>
+                        <Col span={12}>
+                          <div style={{ padding: '8px 0' }}>
+                            <div style={{ fontSize: '14px', color: '#666', marginBottom: '4px' }}>成绩离散度</div>
+                            <div style={{ fontSize: '16px', fontWeight: 'bold', color: gradingData.standardDeviation > 10 ? '#fa541c' : gradingData.standardDeviation > 5 ? '#fa8c16' : '#52c41a' }}>
+                              {gradingData.standardDeviation > 10 ? '较高' : gradingData.standardDeviation > 5 ? '中等' : '较低'}
+                            </div>
+                          </div>
+                        </Col>
+                      </Row>
+                    </Card>
+                  </div>
+                )}
+                
+                {/* 阅卷建议 */}
+                <div style={{ marginBottom: '16px' }}>
+                  <h4 style={{ color: '#eb2f96', marginBottom: '12px' }}>💡 教学建议</h4>
+                  <List
+                    size="small"
+                    dataSource={[
+                      '针对难点题目进行专项讲解',
+                      '对得分率低于70%的题目增加练习',
+                      '建议对后20%的学生进行个别辅导',
+                      '加强基础知识的巩固与练习'
+                    ]}
+                    renderItem={(item, index) => (
+                      <List.Item>
+                        <span style={{ marginRight: 8, color: '#eb2f96' }}>{index + 1}.</span>
+                        {item}
+                      </List.Item>
+                    )}
+                  />
+                </div>
+              </div>
+            ) : (
+              // 显示原始Markdown内容
+              <div 
+                style={{ 
+                  padding: '16px',
+                  overflow: 'auto',
+                  height: '100%',
+                  lineHeight: '1.6',
+                  fontSize: '14px',
+                  color: '#333'
+                }}
+                dangerouslySetInnerHTML={{
+                  __html: rightPanelGradingContent || '暂无阅卷报告内容'
+                }}
+              />
+            )
+          ) : gradingViewMode === 'students' ? (
+            // 学生详情模式
+            <div style={{ display: 'flex', height: '100%' }}>
+              {/* 学生列表 */}
+              <div style={{ width: '200px', borderRight: '1px solid #f0f0f0', background: '#fafafa' }}>
+                <div style={{ padding: '12px', borderBottom: '1px solid #f0f0f0', fontWeight: 'bold', fontSize: '14px' }}>
+                  👥 学生列表 ({gradingData?.studentDetails?.length || 0}人)
+                </div>
+                <div style={{ maxHeight: 'calc(100% - 48px)', overflow: 'auto' }}>
+                  {gradingData?.studentDetails?.map((student) => (
+                    <div
+                      key={student.id}
+                      onClick={() => setSelectedStudent(student)}
+                      style={{
+                        padding: '12px',
+                        borderBottom: '1px solid #f0f0f0',
+                        cursor: 'pointer',
+                        background: selectedStudent?.id === student.id ? '#e6f7ff' : 'transparent',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (selectedStudent?.id !== student.id) {
+                          e.target.style.background = '#f5f5f5';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (selectedStudent?.id !== student.id) {
+                          e.target.style.background = 'transparent';
+                        }
+                      }}
+                    >
+                      <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{student.name}</div>
+                      <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{student.studentId}</div>
+                      <div style={{ 
+                        fontSize: '14px', 
+                        fontWeight: 'bold',
+                        color: student.totalScore >= 90 ? '#52c41a' : student.totalScore >= 80 ? '#1890ff' : student.totalScore >= 70 ? '#fa8c16' : '#fa541c'
+                      }}>
+                        {student.totalScore}分
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* 学生详情 */}
+              <div style={{ flex: 1, padding: '16px', overflow: 'auto' }}>
+                {selectedStudent ? (
+                  <div>
+                    {/* 学生信息 */}
+                    <div style={{ marginBottom: '20px' }}>
+                      <h3 style={{ color: '#1890ff', marginBottom: '12px' }}>
+                        👤 {selectedStudent.name} 的答题情况
+                      </h3>
+                      <Row gutter={[16, 8]}>
+                        <Col span={6}>
+                          <Card size="small" style={{ textAlign: 'center' }}>
+                            <Statistic title="学号" value={selectedStudent.studentId} />
+                          </Card>
+                        </Col>
+                        <Col span={6}>
+                          <Card size="small" style={{ textAlign: 'center' }}>
+                            <Statistic 
+                              title="总得分" 
+                              value={selectedStudent.totalScore} 
+                              suffix="分"
+                              valueStyle={{ 
+                                color: selectedStudent.totalScore >= 90 ? '#52c41a' : 
+                                       selectedStudent.totalScore >= 80 ? '#1890ff' : 
+                                       selectedStudent.totalScore >= 70 ? '#fa8c16' : '#fa541c'
+                              }}
+                            />
+                          </Card>
+                        </Col>
+                        <Col span={6}>
+                          <Card size="small" style={{ textAlign: 'center' }}>
+                            <Statistic title="答题时长" value={selectedStudent.answerTime} />
+                          </Card>
+                        </Col>
+                        <Col span={6}>
+                          <Card size="small" style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: '12px', color: '#666' }}>提交时间</div>
+                            <div style={{ fontSize: '14px', fontWeight: 'bold' }}>
+                              {selectedStudent.submitTime.split(' ')[1]}
+                            </div>
+                          </Card>
+                        </Col>
+                      </Row>
+                    </div>
+                    
+                    {/* 题目详情 */}
+                    <div>
+                      <h4 style={{ color: '#722ed1', marginBottom: '16px' }}>📋 题目详细分析</h4>
+                      {selectedStudent.answers.map((answer) => (
+                        <Card 
+                          key={answer.questionId}
+                          size="small" 
+                          style={{ 
+                            marginBottom: '16px',
+                            border: answer.isCorrect ? '1px solid #52c41a' : '1px solid #ff7875'
+                          }}
+                        >
+                          <div style={{ marginBottom: '12px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                              <span style={{ fontWeight: 'bold', color: '#1890ff' }}>
+                                第{answer.questionId}题 ({answer.type})
+                              </span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ 
+                                  color: answer.isCorrect ? '#52c41a' : '#ff7875',
+                                  fontWeight: 'bold'
+                                }}>
+                                  {answer.score}/{answer.maxScore}分
+                                </span>
+                                {answer.isCorrect ? 
+                                  <Tag color="success">✓ 正确</Tag> : 
+                                  <Tag color="error">✗ 错误</Tag>
+                                }
+                              </div>
+                            </div>
+                            <div style={{ color: '#333', marginBottom: '8px' }}>
+                              <strong>题目：</strong> {answer.question}
+                            </div>
+                          </div>
+                          
+                          <Row gutter={[16, 8]}>
+                            <Col span={12}>
+                              <div style={{ 
+                                background: '#f6f6f6', 
+                                padding: '8px', 
+                                borderRadius: '4px',
+                                border: answer.isCorrect ? '1px solid #52c41a' : '1px solid #ff7875'
+                              }}>
+                                <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>学生答案</div>
+                                <div style={{ 
+                                  fontWeight: 'bold',
+                                  color: answer.isCorrect ? '#52c41a' : '#ff7875'
+                                }}>
+                                  {answer.userAnswer || '未作答'}
+                                </div>
+                              </div>
+                            </Col>
+                            <Col span={12}>
+                              <div style={{ 
+                                background: '#e6f7ff', 
+                                padding: '8px', 
+                                borderRadius: '4px',
+                                border: '1px solid #91d5ff'
+                              }}>
+                                <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>正确答案</div>
+                                <div style={{ fontWeight: 'bold', color: '#1890ff' }}>
+                                  {answer.correctAnswer}
+                                </div>
+                              </div>
+                            </Col>
+                          </Row>
+                          
+                          {answer.comment && (
+                            <div style={{ 
+                              marginTop: '12px',
+                              padding: '8px',
+                              background: '#fffbe6',
+                              borderRadius: '4px',
+                              border: '1px solid #ffe58f'
+                            }}>
+                              <div style={{ fontSize: '12px', color: '#ad6800', marginBottom: '4px' }}>
+                                📝 批改意见
+                              </div>
+                              <div style={{ color: '#ad6800' }}>{answer.comment}</div>
+                            </div>
+                          )}
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ 
+                    textAlign: 'center', 
+                    padding: '40px', 
+                    color: '#999',
+                    fontSize: '16px'
+                  }}>
+                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>👥</div>
+                    <div>请在左侧选择一个学生查看详细答题情况</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     );
