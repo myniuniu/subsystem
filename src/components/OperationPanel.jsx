@@ -936,7 +936,7 @@ const OperationPanel = ({ state, handlers }) => {
           </Button>
         </div>
         
-        <div style={{ flex: 1, overflowY: 'auto', maxHeight: '300px' }}>
+        <div style={{ flex: 1, overflowY: 'auto' }}>
           {Object.values(operationRecords).flat().map(record => {
             const getIcon = (type) => {
               switch(type) {
