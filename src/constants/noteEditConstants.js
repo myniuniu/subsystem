@@ -21,7 +21,8 @@ export const OPERATION_TYPES = {
   QUESTION: 'question',
   EXAM_PAPER: 'exam-paper',
   LEARNING_PLAN: 'learning-plan',
-  GRADING: 'grading'
+  GRADING: 'grading',
+  CLASSROOM_EVALUATION: 'classroom-evaluation'
 };
 
 // 操作按钮标题映射
@@ -40,7 +41,8 @@ export const OPERATION_TITLES = {
   [OPERATION_TYPES.QUESTION]: '试题',
   [OPERATION_TYPES.EXAM_PAPER]: '试卷',
   [OPERATION_TYPES.LEARNING_PLAN]: '学习计划',
-  [OPERATION_TYPES.GRADING]: '阅卷工具'
+  [OPERATION_TYPES.GRADING]: '阅卷工具',
+  [OPERATION_TYPES.CLASSROOM_EVALUATION]: '课堂评价'
 };
 
 // 材料类型图标映射
@@ -64,7 +66,8 @@ export const MATERIAL_ICONS = {
   [OPERATION_TYPES.QUESTION]: '试',
   [OPERATION_TYPES.EXAM_PAPER]: '卷',
   [OPERATION_TYPES.LEARNING_PLAN]: '计',
-  [OPERATION_TYPES.GRADING]: '阅'
+  [OPERATION_TYPES.GRADING]: '阅',
+  [OPERATION_TYPES.CLASSROOM_EVALUATION]: '评'
 };
 
 // 网站类型常量
@@ -82,7 +85,8 @@ export const VIEW_MODES = {
   MAP: 'map',
   SCENARIO_VIEW: 'scenario_view',
   LEARNING_PLAN_CALENDAR: 'learning_plan_calendar',
-  LEARNING_PLAN_THREE_COLUMN: 'learning_plan_three_column'
+  LEARNING_PLAN_THREE_COLUMN: 'learning_plan_three_column',
+  CLASSROOM_EVALUATION_FULLSCREEN: 'classroom_evaluation_fullscreen'
 };
 
 // 右侧面板视图常量
@@ -91,7 +95,8 @@ export const RIGHT_PANEL_VIEWS = {
   NOTE_EDITOR: 'noteEditor',
   QUESTION_VIEWER: 'questionViewer',
   LEARNING_PLAN_VIEWER: 'learningPlanViewer',
-  GRADING_VIEWER: 'gradingViewer'
+  GRADING_VIEWER: 'gradingViewer',
+  CLASSROOM_EVALUATION_VIEWER: 'classroomEvaluationViewer'
 };
 
 // 直播状态常量
@@ -308,6 +313,13 @@ export const OPERATION_CARDS = [
     icon: '阅',
     gradient: 'linear-gradient(135deg, #fff0f6 0%, #ffd6e7 100%)',
     color: '#c41d7f'
+  },
+  {
+    key: OPERATION_TYPES.CLASSROOM_EVALUATION,
+    title: '课堂评价',
+    icon: '评',
+    gradient: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
+    color: '#389e0d'
   },
   {
     key: OPERATION_TYPES.EXAM_PAPER,

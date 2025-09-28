@@ -173,6 +173,7 @@ export const useModalState = () => {
   const [learningPlanModalVisible, setLearningPlanModalVisible] = useState(false);
   const [reportSelectionVisible, setReportSelectionVisible] = useState(false);
   const [showThemeSelectModal, setShowThemeSelectModal] = useState(false);
+  const [classroomEvaluationVisible, setClassroomEvaluationVisible] = useState(false);
   const [currentRecord, setCurrentRecord] = useState(null);
   const [currentActionType, setCurrentActionType] = useState(null);
 
@@ -185,6 +186,8 @@ export const useModalState = () => {
     setReportSelectionVisible,
     showThemeSelectModal,
     setShowThemeSelectModal,
+    classroomEvaluationVisible,
+    setClassroomEvaluationVisible,
     currentRecord,
     setCurrentRecord,
     currentActionType,

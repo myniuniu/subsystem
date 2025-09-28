@@ -189,6 +189,10 @@ export const useNoteEditState = (note, mode) => {
   const [currentRecord, setCurrentRecord] = useState(null);
   const [modalContent, setModalContent] = useState('');
 
+  // 主题选择弹窗状态
+  const [showThemeSelectModal, setShowThemeSelectModal] = useState(false);
+  const [currentActionType, setCurrentActionType] = useState(null);
+
   // 预览功能状态
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewType, setPreviewType] = useState('');
@@ -388,6 +392,10 @@ export const useNoteEditState = (note, mode) => {
     setCurrentRecord,
     modalContent,
     setModalContent,
+    showThemeSelectModal,
+    setShowThemeSelectModal,
+    currentActionType,
+    setCurrentActionType,
     showPreviewModal,
     setShowPreviewModal,
     previewType,

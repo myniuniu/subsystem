@@ -362,6 +362,37 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
       usage: '基于智谱清言模型的强大中文理解和生成能力，提供高质量内容输出'
     },
     {
+      id: 'classroom-evaluation',
+      name: '课堂评价',
+      description: '基于用户提交的评价要求，生成评价量表，基于该量表以评价老师在课堂上的表现',
+      category: AI_TOOL_CATEGORIES.TEACHING,
+      status: AI_TOOL_STATUS.NEW,
+      author: '智能教育团队',
+      version: 'v1.0.0',
+      rating: 4.8,
+      downloads: 2150,
+      tags: ['课堂评价', '教学评估', '量表生成', '教师评价'],
+      icon: '📊',
+      color: '#1890ff',
+      featured: true,
+      menuConfig: {
+        key: 'classroom-evaluation',
+        title: '课堂评价',
+        icon: '📊',
+        gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+        color: '#1890ff'
+      },
+      features: [
+        '智能评价量表生成',
+        '多维度教学评估',
+        '个性化评价指标',
+        '数据统计分析',
+        '评价报告生成',
+        '历史数据对比'
+      ],
+      usage: '输入评价要求和标准，系统将自动生成专业的课堂评价量表，并基于量表对教师课堂表现进行全面评估'
+    },
+    {
       id: 'code-generator',
       name: '代码生成器',
       description: '智能代码生成和优化工具，支持多种编程语言和框架',

@@ -15,6 +15,7 @@ export const useOperationHandlers = ({
   setRightPanelGradingRecord,
   setRightPanelGradingContent,
   setQuestionConfigVisible,
+  setClassroomEvaluationVisible,
   setLearningPlanModalVisible,
   setReportSelectionVisible,
   onOperationClick,
@@ -134,6 +135,10 @@ export const useOperationHandlers = ({
     } else if (card.key === 'grading') {
       // 阅卷工具处理
       handleGradingToolAction();
+    } else if (card.key === 'classroom-evaluation') {
+      // 课堂评价工具处理
+      message.info(`正在启动课堂评价工具（基于${sourceInfo?.total || 0}个数据源）`);
+      setClassroomEvaluationVisible(true);
     } else if (card.isAITool) {
       // AI工具点击处理
       message.info(`您点击了AI工具：${card.title}（基于${sourceInfo?.total || 0}个数据源）`);

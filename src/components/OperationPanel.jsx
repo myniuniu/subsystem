@@ -27,12 +27,15 @@ import QuestionConfigModal from './QuestionConfigModal';
 import ThemeSelectModal from './ThemeSelectModal';
 import LearningPlanModal from './LearningPlanModal';
 import ReportSelectionModal from './ReportSelectionModal';
+import ClassroomEvaluationModal from './ClassroomEvaluationModal';
 
 // 导入子组件
 import DraggableOperationCard from './OperationPanel/DraggableOperationCard';
 import NoteEditorViewer from './OperationPanel/NoteEditorViewer';
 import QuestionViewer from './OperationPanel/QuestionViewer';
 import GradingViewer from './OperationPanel/GradingViewer';
+import LearningPlanViewer from './OperationPanel/LearningPlanViewer';
+import ClassroomEvaluationViewer from './OperationPanel/ClassroomEvaluationViewer';
 import ToolGrid from './OperationPanel/ToolGrid';
 
 // 导入自定义Hooks
@@ -154,6 +157,8 @@ const OperationPanel = ({ state, handlers }) => {
     setReportSelectionVisible,
     showThemeSelectModal,
     setShowThemeSelectModal,
+    classroomEvaluationVisible,
+    setClassroomEvaluationVisible,
     currentRecord,
     setCurrentRecord,
     currentActionType,
@@ -196,6 +201,7 @@ const OperationPanel = ({ state, handlers }) => {
     setRightPanelGradingRecord,
     setRightPanelGradingContent,
     setQuestionConfigVisible,
+    setClassroomEvaluationVisible,
     setLearningPlanModalVisible,
     setReportSelectionVisible,
     onOperationClick,
@@ -267,6 +273,20 @@ const OperationPanel = ({ state, handlers }) => {
           icon: '⚡',
           gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
           color: '#13c2c2'
+        }
+      },
+      {
+        id: 'classroom-evaluation',
+        name: '课堂评价',
+        description: '基于用户提交的评价要求，生成评价量表，基于该量表以评价老师在课堂上的表现',
+        icon: '📊',
+        color: '#1890ff',
+        menuConfig: {
+          key: 'classroom-evaluation',
+          title: '课堂评价',
+          icon: '📊',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
         }
       },
       {
@@ -395,6 +415,287 @@ const OperationPanel = ({ state, handlers }) => {
     handleToolClick(card);
   };
 
+  // 获取更多操作菜单项
+  const getMoreMenuItems = (record) => {
+    const commonItems = [
+      {
+        key: 'copyTo',
+        label: (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '16px' }}>📋</span>
+            <span>复制到</span>
+          </div>
+        ),
+        onClick: (e) => {
+          console.log('Copy to clicked!', record);
+          e?.stopPropagation?.();
+          setCurrentRecord(record);
+          setCurrentActionType('copy');
+          setShowThemeSelectModal(true);
+          console.log('Modal state set to true');
+        }
+      },
+      {
+        key: 'moveTo',
+        label: (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '16px' }}>📦</span>
+            <span>移动到</span>
+          </div>
+        ),
+        onClick: (e) => {
+          console.log('Move to clicked!', record);
+          e?.stopPropagation?.();
+          setCurrentRecord(record);
+          setCurrentActionType('move');
+          setShowThemeSelectModal(true);
+          console.log('Modal state set to true for move');
+        }
+      },
+      { type: 'divider' },
+      {
+        key: 'delete',
+        label: (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '16px' }}>🗑️</span>
+            <span>删除</span>
+          </div>
+        ),
+        onClick: (e) => {
+          e?.stopPropagation?.();
+          onMoreAction && onMoreAction('delete', record);
+        }
+      }
+    ];
+
+    // 笔记类型添加标记为研修成果功能
+    if (record.type === 'note') {
+      const isMarkedAsStudyResult = record.tags && record.tags.includes('研修成果');
+      
+      return [
+        {
+          key: isMarkedAsStudyResult ? 'unmarkStudyResult' : 'markStudyResult',
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>{isMarkedAsStudyResult ? '📝' : '⭐'}</span>
+              <span>{isMarkedAsStudyResult ? '取消标记研修成果' : '标记为研修成果'}</span>
+            </div>
+          ),
+          onClick: (e) => {
+            e?.stopPropagation?.();
+            console.log('Mark/Unmark study result clicked:', record, isMarkedAsStudyResult);
+            
+            // 直接在这里处理标记逻辑
+            const updatedRecord = { ...record };
+            if (isMarkedAsStudyResult) {
+              // 取消标记：移除"研修成果"标签
+              updatedRecord.tags = (record.tags || []).filter(tag => tag !== '研修成果');
+              message.success('已取消标记为研修成果');
+            } else {
+              // 添加标记：添加"研修成果"标签
+              updatedRecord.tags = [...(record.tags || []), '研修成果'];
+              message.success('已标记为研修成果');
+            }
+            
+            // 更新操作记录
+            setOperationRecords(prev => {
+              const newRecords = { ...prev };
+              Object.keys(newRecords).forEach(type => {
+                if (Array.isArray(newRecords[type])) {
+                  newRecords[type] = newRecords[type].map(r => 
+                    r.id === record.id ? updatedRecord : r
+                  );
+                }
+              });
+              return newRecords;
+            });
+          }
+        },
+        {
+          key: 'view',
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>👁️</span>
+              <span>查看</span>
+            </div>
+          ),
+          onClick: (e) => {
+            e?.stopPropagation?.();
+            onMoreAction && onMoreAction('view', record);
+          }
+        },
+        ...commonItems
+      ];
+    }
+
+    // 培训方案类型添加提交按钮
+    if (record.type === 'training-plan') {
+      return [
+        {
+          key: 'submit',
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>📤</span>
+              <span>提交</span>
+            </div>
+          ),
+          onClick: (e) => {
+            e?.stopPropagation?.();
+            onMoreAction && onMoreAction('submit', record);
+          }
+        },
+        {
+          key: 'convertToSource',
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>📋</span>
+              <span>转换为来源</span>
+            </div>
+          ),
+          onClick: (e) => {
+            e?.stopPropagation?.();
+            onMoreAction && onMoreAction('convertToSource', record);
+          }
+        },
+        ...commonItems
+      ];
+    }
+
+    // 知识图谱类型添加高级编辑功能
+    if (record.type === 'knowledge-graph' || record.source === '知识图谱标注系统' || record.title?.includes('知识图谱')) {
+      return [
+        {
+          key: 'advancedEdit',
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>⚙️</span>
+              <span>高级编辑</span>
+            </div>
+          ),
+          onClick: () => onMoreAction && onMoreAction('advancedEdit', record)
+        },
+        ...commonItems
+      ];
+    }
+
+    // 学习计划类型添加同步到日历功能
+    if (record.type === 'learning-plan') {
+      const syncedPlans = JSON.parse(localStorage.getItem('synced-learning-plans') || '[]');
+      const isSynced = syncedPlans.includes(record.id);
+
+      return [
+        {
+          key: 'syncToCalendar',
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>📅</span>
+              <span>{isSynced ? '已同步到日历' : '同步到我的日历'}</span>
+            </div>
+          ),
+          onClick: (e) => {
+            e?.stopPropagation?.();
+            
+            if (isSynced) {
+              message.info('该学习计划已同步到日历');
+              return;
+            }
+
+            // 执行同步逻辑
+            try {
+              // 获取现有的日历分类
+              const existingCategories = JSON.parse(localStorage.getItem('calendar-categories') || '[]');
+              
+              // 创建新的学习计划分类
+              const newCategory = {
+                key: `learning-plan-${record.id}`,
+                label: `学习计划: ${record.title}`,
+                color: '#1890ff',
+                checked: true,
+                type: 'learning-plan',
+                planId: record.id,
+                planTitle: record.title
+              };
+
+              // 检查是否已存在相同的分类
+              const categoryExists = existingCategories.some(cat => cat.key === newCategory.key);
+              
+              if (!categoryExists) {
+                // 添加新分类到现有分类中
+                const updatedCategories = [...existingCategories, newCategory];
+                localStorage.setItem('calendar-categories', JSON.stringify(updatedCategories));
+                
+                // 触发日历分类更新事件
+                window.dispatchEvent(new CustomEvent('calendarCategoriesChanged', {
+                  detail: { categories: updatedCategories }
+                }));
+              }
+
+              // 更新已同步的学习计划列表
+              const updatedSyncedPlans = [...syncedPlans, record.id];
+              localStorage.setItem('synced-learning-plans', JSON.stringify(updatedSyncedPlans));
+              
+              message.success(`学习计划"${record.title}"已同步到日历！`);
+              
+              // 强制重新渲染以更新菜单状态
+              setOperationRecords(prev => ({ ...prev }));
+              
+            } catch (error) {
+              console.error('同步到日历失败:', error);
+              message.error('同步失败，请重试');
+            }
+          },
+          disabled: isSynced
+        },
+        {
+          key: 'view',
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>👁️</span>
+              <span>查看</span>
+            </div>
+          ),
+          onClick: (e) => {
+            e?.stopPropagation?.();
+            onMoreAction && onMoreAction('view', record);
+          }
+        },
+        ...commonItems
+      ];
+    }
+
+    // 报告类型添加额外选项
+    if (record.type === 'report') {
+      return [
+        {
+          key: 'convertToSource',
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>📋</span>
+              <span>转换为来源</span>
+            </div>
+          ),
+          onClick: () => onMoreAction && onMoreAction('convertToSource', record)
+        },
+        ...commonItems
+      ];
+    }
+
+    // 默认返回通用选项
+    return [
+      {
+        key: 'view',
+        label: (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '16px' }}>👁️</span>
+            <span>查看</span>
+          </div>
+        ),
+        onClick: () => onMoreAction && onMoreAction('view', record)
+      },
+      ...commonItems
+    ];
+  };
+
   // 处理主题选择确认（简化版本）
   const handleThemeSelectConfirm = async (targetTheme, record, actionType) => {
     message.success(`${actionType === 'copy' ? '复制' : '移动'}操作完成`);
@@ -450,6 +751,30 @@ const OperationPanel = ({ state, handlers }) => {
         selectedStudent={selectedStudent}
         setSelectedStudent={setSelectedStudent}
         handleGradingToolAction={handleGradingToolAction}
+      />
+    );
+  }
+
+  if (rightPanelView === RIGHT_PANEL_VIEWS.LEARNING_PLAN_VIEWER) {
+    return (
+      <LearningPlanViewer 
+        rightPanelLearningPlanRecord={rightPanelLearningPlanRecord}
+        rightPanelLearningPlanContent={rightPanelLearningPlanContent}
+        setRightPanelView={setRightPanelView}
+        setRightPanelLearningPlanRecord={setRightPanelLearningPlanRecord}
+        setRightPlanelLearningPlanContent={setRightPanelLearningPlanContent}
+      />
+    );
+  }
+
+  if (rightPanelView === RIGHT_PANEL_VIEWS.CLASSROOM_EVALUATION_VIEWER) {
+    return (
+      <ClassroomEvaluationViewer 
+        rightPanelNoteRecord={rightPanelEditingNote}
+        rightPanelNoteContent={rightPanelNoteContent}
+        setRightPanelView={setRightPanelView}
+        setRightPanelNoteRecord={setRightPanelEditingNote}
+        setRightPanelNoteContent={setRightPanelNoteContent}
       />
     );
   }
@@ -517,7 +842,43 @@ const OperationPanel = ({ state, handlers }) => {
         display: 'flex', 
         flexDirection: 'column' 
       }}>
-        <Title level={5} style={{ marginBottom: 16, color: '#1f1f1f' }}>📝 操作记录</Title>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>📝 操作记录</Title>
+          <Button 
+            type="primary" 
+            size="small" 
+            icon={<PlusOutlined />} 
+            onClick={() => {
+              // 创建新的笔记记录
+              const newNote = {
+                id: Date.now(),
+                title: '新建笔记',
+                source: '手动创建',
+                time: new Date().toLocaleString('zh-CN'),
+                type: 'note',
+                content: ''
+              };
+              
+              // 添加到操作记录中
+              const newRecords = { ...operationRecords };
+              if (!newRecords.note) {
+                newRecords.note = [];
+              }
+              newRecords.note.unshift(newNote);
+              setOperationRecords(newRecords);
+              
+              // 设置右侧面板显示
+              setRightPanelEditingNote(newNote);
+              setRightPanelNoteContent(newNote.content);
+              setRightPanelView('NOTE_EDITOR');
+              
+              message.success('已创建新笔记');
+            }}
+            style={{ borderRadius: '4px', fontSize: '12px', height: '24px' }}
+          >
+            新建笔记
+          </Button>
+        </div>
         
         <div style={{ flex: 1, overflowY: 'auto', maxHeight: '300px' }}>
           {Object.values(operationRecords).flat().map(record => {
@@ -549,7 +910,18 @@ const OperationPanel = ({ state, handlers }) => {
                   transition: 'all 0.2s ease'
                 }}
                 styles={{ body: { padding: '8px 12px' } }}
-                onClick={() => onRecordClick && onRecordClick(record)}
+                onClick={(e) => {
+                  // 检查点击的目标是否是下拉菜单相关的元素
+                  const target = e.target;
+                  const isDropdownClick = target.closest('.ant-dropdown') || 
+                                        target.closest('[data-menu-id]') ||
+                                        target.closest('.ant-dropdown-menu') ||
+                                        target.closest('button[aria-haspopup="true"]');
+                  
+                  if (!isDropdownClick) {
+                    onRecordClick && onRecordClick(record);
+                  }
+                }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
@@ -569,9 +941,53 @@ const OperationPanel = ({ state, handlers }) => {
                       {getIcon(record.type)}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <Text ellipsis style={{ fontSize: '12px', fontWeight: 500, display: 'block' }}>
-                        {record.title}
-                      </Text>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                        <Text ellipsis style={{ fontSize: '12px', fontWeight: 500, flex: 1 }}>
+                          {record.title}
+                        </Text>
+                        {/* 显示研修成果标记状态 */}
+                        {record.tags && record.tags.includes('研修成果') && (
+                          <div style={{
+                            background: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+                            color: '#fa8c16',
+                            fontSize: '8px',
+                            padding: '1px 4px',
+                            borderRadius: '8px',
+                            fontWeight: 'bold',
+                            border: '1px solid #ffec3d',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '2px',
+                            flexShrink: 0
+                          }}>
+                            <span>⭐</span>
+                            <span>研修成果</span>
+                          </div>
+                        )}
+                        {/* 显示学习计划同步状态 */}
+                        {record.type === 'learning-plan' && (() => {
+                          const syncedPlans = JSON.parse(localStorage.getItem('synced-learning-plans') || '[]');
+                          const isSynced = syncedPlans.includes(record.id);
+                          return isSynced ? (
+                            <div style={{
+                              background: 'linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%)',
+                              color: '#1890ff',
+                              fontSize: '8px',
+                              padding: '1px 4px',
+                              borderRadius: '8px',
+                              fontWeight: 'bold',
+                              border: '1px solid #40a9ff',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '2px',
+                              flexShrink: 0
+                            }}>
+                              <span>📅</span>
+                              <span>已同步到日历</span>
+                            </div>
+                          ) : null;
+                        })()}
+                      </div>
                       <Text style={{ fontSize: '10px', color: '#999', display: 'block' }}>
                         {record.source}
                       </Text>
@@ -580,16 +996,36 @@ const OperationPanel = ({ state, handlers }) => {
                       </Text>
                     </div>
                   </div>
-                  <Button 
-                    type="text" 
-                    size="small" 
-                    icon={<div style={{ fontSize: '12px' }}>⋯</div>}
-                    style={{ padding: '2px 4px', height: 'auto', minWidth: 'auto' }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onMoreAction && onMoreAction('view', record);
-                    }}
-                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Button 
+                      type="text" 
+                      size="small" 
+                      icon={<div style={{ fontSize: '12px' }}>▶</div>}
+                      style={{ padding: '2px 4px', height: 'auto', minWidth: 'auto' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRecordClick && onRecordClick(record);
+                      }}
+                    />
+                    <Dropdown
+                      menu={{ items: getMoreMenuItems(record) }}
+                      trigger={['click']}
+                      placement="bottomRight"
+                      onOpenChange={(open) => {
+                        console.log('Dropdown open change:', open);
+                        // 当下拉菜单打开时，我们不需要阻止菜单项的点击事件
+                        // 只需要阻止Card本身的点击事件即可
+                      }}
+                    >
+                      <Button 
+                        type="text" 
+                        size="small" 
+                        icon={<div style={{ fontSize: '12px' }}>⋯</div>}
+                        style={{ padding: '2px 4px', height: 'auto', minWidth: 'auto' }}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </Dropdown>
+                  </div>
                 </div>
               </Card>
             );
@@ -721,6 +1157,44 @@ const OperationPanel = ({ state, handlers }) => {
         record={currentRecord}
         actionType={currentActionType}
         onConfirm={handleThemeSelectConfirm}
+      />
+
+      <ClassroomEvaluationModal
+        visible={classroomEvaluationVisible}
+        onCancel={() => setClassroomEvaluationVisible(false)}
+        onConfirm={(evaluationConfig) => {
+          // 生成课堂评价操作记录
+          const evaluationRecord = {
+            id: Date.now(),
+            type: 'classroom-evaluation',
+            title: '课堂评价',
+            time: new Date().toLocaleString('zh-CN'),
+            content: `<div style="padding: 20px; text-align: center;">
+              <h3>📊 课堂评价报告</h3>
+              <p style="color: #666;">基于评价量表生成的课堂表现评价</p>
+              <p style="color: #999; font-size: 14px;">科目：${evaluationConfig.subject} • 年级：${evaluationConfig.grade} • ${new Date().toLocaleString('zh-CN')}</p>
+            </div>`,
+            evaluationConfig: evaluationConfig
+          };
+
+          // 添加到记录中
+          const newRecords = { ...operationRecords };
+          if (!newRecords['classroom-evaluation']) {
+            newRecords['classroom-evaluation'] = [];
+          }
+          newRecords['classroom-evaluation'].unshift(evaluationRecord);
+          setOperationRecords(newRecords);
+          
+          // 设置右侧面板显示
+          setRightPanelNoteRecord(evaluationRecord);
+          setRightPanelNoteContent(evaluationRecord.content);
+          setRightPanelView('NOTE_EDITOR');
+          
+          // 关闭弹窗
+          setClassroomEvaluationVisible(false);
+          
+          message.success('课堂评价记录生成成功！');
+        }}
       />
     </div>
   );

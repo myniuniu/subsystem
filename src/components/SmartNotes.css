@@ -107,6 +107,116 @@
   box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
 }
 
+/* 主题详情视图样式 */
+.training-topic-detail-view {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.training-topic-detail-view .ant-card {
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15);
+  overflow: hidden;
+}
+
+.training-topic-detail-view .ant-progress-line {
+  transition: all 0.3s ease;
+}
+
+.training-topic-detail-view .ant-alert {
+  border-radius: 12px;
+  border: 1px solid #d6f3ff;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
+}
+
+.training-topic-detail-view .ant-alert-info {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
+  border-color: #91d5ff;
+}
+
+.training-topic-detail-view .ant-tag {
+  border-radius: 16px;
+  border: 1px solid #d6f3ff;
+  background: #f0f9ff;
+  transition: all 0.2s ease;
+}
+
+.training-topic-detail-view .ant-tag:hover {
+  border-color: #40a9ff;
+  background: #e6f7ff;
+}
+
+/* 主题切换导航样式 */
+.training-topic-detail-view .ant-btn-group .ant-btn {
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.training-topic-detail-view .ant-btn-group .ant-btn:first-child {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.training-topic-detail-view .ant-btn-group .ant-btn:last-child {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.training-topic-detail-view .ant-btn-group .ant-btn:not(:first-child):not(:last-child) {
+  border-radius: 0;
+}
+
+/* 状态标签样式 */
+.training-topic-detail-view .status-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 24px;
+  font-weight: bold;
+  font-size: 14px;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.training-topic-detail-view .status-tag.in-progress {
+  background: rgba(24, 144, 255, 0.1);
+  color: #1890ff;
+  border: 1px solid #91d5ff;
+}
+
+.training-topic-detail-view .status-tag.not-started {
+  background: rgba(140, 140, 140, 0.1);
+  color: #8c8c8c;
+  border: 1px solid #d9d9d9;
+}
+
+.training-topic-detail-view .status-tag.completed {
+  background: rgba(82, 196, 26, 0.1);
+  color: #52c41a;
+  border: 1px solid #95de64;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .training-topic-detail-view {
+    padding: 0 16px;
+  }
+  
+  .training-topic-detail-view .ant-card {
+    margin: 0 -16px;
+    border-radius: 0;
+  }
+  
+  .training-topic-detail-view .ant-card-head {
+    padding: 16px;
+  }
+  
+  .training-topic-detail-view .ant-card-body {
+    padding: 16px;
+  }
+}
+
 /* 针对组织培训笔记卡片的特殊样式 */
 .note-card[data-source="组织培训"] {
   border-left: 4px solid #667eea;

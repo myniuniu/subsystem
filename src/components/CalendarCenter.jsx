@@ -162,6 +162,39 @@ const CalendarCenter = () => {
     { key: 'milestone', label: '重要节点', color: '#722ed1', checked: true },
   ])
 
+  // 监听日历分类变化事件
+  React.useEffect(() => {
+    const handleCategoriesChanged = (event) => {
+      const { categories: newCategories } = event.detail;
+      // 合并现有分类和新的学习计划分类
+      const existingCategories = categories.filter(cat => cat.type !== 'learning-plan');
+      const learningPlanCategories = newCategories.filter(cat => cat.type === 'learning-plan');
+      setCategories([...existingCategories, ...learningPlanCategories]);
+    };
+
+    window.addEventListener('calendarCategoriesChanged', handleCategoriesChanged);
+    
+    // 初始化时加载已保存的分类
+    const savedCategories = JSON.parse(localStorage.getItem('calendar-categories') || '[]');
+    if (savedCategories.length > 0) {
+      const existingCategories = categories.filter(cat => cat.type !== 'learning-plan');
+      const learningPlanCategories = savedCategories.filter(cat => cat.type === 'learning-plan');
+      setCategories([...existingCategories, ...learningPlanCategories]);
+    }
+
+    return () => {
+      window.removeEventListener('calendarCategoriesChanged', handleCategoriesChanged);
+    };
+  }, []);
+
+  // 保存分类到localStorage
+  React.useEffect(() => {
+    const learningPlanCategories = categories.filter(cat => cat.type === 'learning-plan');
+    if (learningPlanCategories.length > 0) {
+      localStorage.setItem('calendar-categories', JSON.stringify(learningPlanCategories));
+    }
+  }, [categories]);
+
   // 获取指定日期的事件
   const getListData = (value) => {
     const dateStr = value.format('YYYY-MM-DD')

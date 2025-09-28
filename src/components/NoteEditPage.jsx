@@ -33,6 +33,8 @@ import ScenarioView from './ScenarioView';
 import LearningPlanCalendarFullscreen from './LearningPlanCalendarFullscreen';
 import LearningPlanCalendar from './LearningPlanCalendar';
 import CalendarCenter from './CalendarCenter';
+import ClassroomEvaluationFullscreen from './ClassroomEvaluationFullscreen';
+import ThemeSelectModal from './ThemeSelectModal';
 
 // 导入hooks和工具
 import { useNoteEditState } from '../hooks/useNoteEditState';
@@ -114,7 +116,15 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
     showVideoPlayer,
     setShowVideoPlayer,
     currentVideo,
-    setCurrentVideo
+    setCurrentVideo,
+    
+    // 主题选择模态框状态
+    showThemeSelectModal,
+    setShowThemeSelectModal,
+    currentRecord,
+    setCurrentRecord,
+    currentActionType,
+    setCurrentActionType
   } = state;
 
   // 初始化可用工具数据
@@ -417,6 +427,33 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
         return;
       }
       
+      if (record.type === 'classroom-evaluation') {
+        console.log('课堂评价记录点击，record.content存在:', !!record.content);
+        console.log('record.evaluationConfig存在:', !!record.evaluationConfig);
+        
+        // 设置课堂评价记录数据
+        state.setRightPanelEditingNote(record);
+        
+        if (record.content) {
+          state.setRightPanelNoteContent(record.content);
+        } else {
+          // 如果没有content，生成默认内容
+          const defaultContent = `
+            <div style="padding: 20px; text-align: center;">
+              <h3>📊 ${record.title}</h3>
+              <p style="color: #666;">课堂评价报告已生成</p>
+              <p style="color: #999; font-size: 14px;">${record.source} • ${record.time}</p>
+            </div>
+          `;
+          state.setRightPanelNoteContent(defaultContent);
+        }
+        
+        // 切换到课堂评价记录全屏模式
+        setCurrentView(VIEW_MODES.CLASSROOM_EVALUATION_FULLSCREEN);
+        console.log('切换到课堂评价记录全屏模式:', record.title);
+        return;
+      }
+      
       // 其他有内容的记录类型
       if (record.content) {
         setCurrentRecord(record);
@@ -450,6 +487,34 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
             )
           }));
           message.success(`笔记"${record.title}"已标记为研修成果！`);
+          break;
+        case MORE_MENU_ACTIONS.UNMARK_STUDY_RESULT:
+          setOperationRecords(prev => ({
+            ...prev,
+            note: (prev.note || []).map(note => 
+              note.id === record.id 
+                ? { 
+                    ...note, 
+                    isStudyResult: false,
+                    studyResultInfo: null,
+                    tags: (note.tags || []).filter(tag => tag !== '研修成果')
+                  }
+                : note
+            )
+          }));
+          message.success(`笔记"${record.title}"已取消标记为研修成果！`);
+          break;
+        case MORE_MENU_ACTIONS.COPY_TO:
+          // 显示主题选择弹窗进行复制操作
+          setShowThemeSelectModal(true);
+          setCurrentRecord(record);
+          setCurrentActionType('copy');
+          break;
+        case MORE_MENU_ACTIONS.MOVE_TO:
+          // 显示主题选择弹窗进行移动操作
+          setShowThemeSelectModal(true);
+          setCurrentRecord(record);
+          setCurrentActionType('move');
           break;
         case MORE_MENU_ACTIONS.DELETE:
           setOperationRecords(prev => {
@@ -663,6 +728,12 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
               <CalendarCenter />
             </div>
           </div>
+        ) : currentView === VIEW_MODES.CLASSROOM_EVALUATION_FULLSCREEN ? (
+          /* 课堂评价记录全屏模式：占据全部三栏区域 */
+          <ClassroomEvaluationFullscreen 
+            state={state}
+            setCurrentView={setCurrentView}
+          />
         ) : (
           /* 普通三栏布局模式 */
           <>
@@ -806,6 +877,19 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) =>
         operationRecords={operationRecords}
         setOperationRecords={setOperationRecords}
         state={state}
+      />
+      
+      {/* 主题选择模态框 */}
+      <ThemeSelectModal
+        open={showThemeSelectModal}
+        onCancel={() => setShowThemeSelectModal(false)}
+        currentRecord={currentRecord}
+        actionType={currentActionType}
+        onConfirm={(selectedTheme) => {
+          console.log(`${currentActionType === 'copy' ? '复制' : '移动'}到主题:`, selectedTheme);
+          message.success(`已${currentActionType === 'copy' ? '复制' : '移动'}到主题: ${selectedTheme}`);
+          setShowThemeSelectModal(false);
+        }}
       />
     </>
   );
