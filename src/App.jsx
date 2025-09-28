@@ -43,6 +43,7 @@ import CourseSelection from './components/CourseSelection'
 import CourseSelectionEditPage from './components/CourseSelectionEditPage'
 import LearningSquare from './components/LearningSquare'
 import ProgressTestPage from './components/ProgressTestPage'
+import ThemeTemplateCenter from './components/ThemeTemplateCenter'
 
 import './App.css'
 
@@ -422,6 +423,8 @@ function App() {
               <LearningSquare />
             ) : currentView === 'progress-test' ? (
               <ProgressTestPage />
+            ) : currentView === 'theme-template-center' ? (
+              <ThemeTemplateCenter onBack={() => handleViewChange('home')} />
             ) : (
               <MainContent 
                 currentView={currentView}

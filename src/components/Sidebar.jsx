@@ -47,7 +47,8 @@ import {
   Library,
   Tag,
   Edit,
-  GraduationCap
+  GraduationCap,
+  Settings
 } from 'lucide-react'
 import './Sidebar.css'
 
@@ -360,6 +361,13 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
        icon: Bot, 
        label: 'AI工具屋', 
        color: '#722ed1',
+       type: 'single'
+     },
+    { 
+       id: 'theme-template-center', 
+       icon: Settings, 
+       label: '主题模版', 
+       color: '#1890ff',
        type: 'single'
      },
     { 

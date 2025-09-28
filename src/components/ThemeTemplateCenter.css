@@ -1,0 +1,167 @@
+/* 主题模版中心样式 */
+.theme-template-center {
+  height: 100%;
+  background: #f5f7fa;
+}
+
+.theme-template-center .ant-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e8e8e8;
+}
+
+.theme-template-center .ant-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.theme-template-center .ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #262626;
+}
+
+.theme-template-center .ant-table-tbody > tr:hover > td {
+  background: #f5f7fa;
+}
+
+.theme-template-center .ant-tag {
+  border-radius: 6px;
+  margin: 2px;
+  font-size: 12px;
+  padding: 2px 8px;
+  border: none;
+}
+
+.theme-template-center .ant-btn {
+  border-radius: 6px;
+}
+
+.theme-template-center .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  border: none;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+}
+
+.theme-template-center .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff 0%, #69c0ff 100%);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
+}
+
+.theme-template-center .ant-modal-header {
+  border-radius: 12px 12px 0 0;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
+}
+
+.theme-template-center .ant-modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.theme-template-center .ant-divider-horizontal.ant-divider-with-text-left::before {
+  width: 5%;
+}
+
+.theme-template-center .ant-divider-horizontal.ant-divider-with-text-left::after {
+  width: 95%;
+}
+
+.theme-template-center .ant-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.theme-template-center .ant-checkbox-wrapper:hover {
+  background-color: #f0f9ff;
+}
+
+.theme-template-center .ant-checkbox-wrapper .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+.theme-template-center .ant-badge {
+  font-weight: 600;
+}
+
+.theme-template-center .ant-badge-count {
+  border-radius: 10px;
+  min-width: 20px;
+  height: 20px;
+  line-height: 20px;
+  font-size: 12px;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .theme-template-center .ant-col-8 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}
+
+@media (max-width: 768px) {
+  .theme-template-center .ant-col-8 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  
+  .theme-template-center .ant-col-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}
+
+@media (max-width: 576px) {
+  .theme-template-center .ant-col-6 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+/* 动画效果 */
+.theme-template-center .ant-card {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.theme-template-center .ant-table-row {
+  transition: all 0.2s ease;
+}
+
+.theme-template-center .ant-btn-text:hover {
+  background-color: rgba(24, 144, 255, 0.1);
+}
+
+/* 自定义滚动条 */
+.theme-template-center ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.theme-template-center ::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.theme-template-center ::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.theme-template-center ::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
