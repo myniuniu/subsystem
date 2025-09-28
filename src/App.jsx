@@ -32,6 +32,7 @@ import SimulationPlatform from './components/SimulationPlatform'
 
 import LearningAnalyticsCenter from './components/LearningAnalyticsCenter'
 import SmartNotes from './components/SmartNotes'
+import AIToolHouse from './components/AIToolHouse'
 import NoteEditPage from './components/NoteEditPage'
 import TrainingNeeds from './components/TrainingNeeds'
 import NeedEditPage from './components/NeedEditPage'
@@ -256,6 +257,13 @@ function App() {
     }
   }
 
+  // 处理AI工具添加到操作面板
+  const handleAddAIToolToOperationPanel = (toolConfig) => {
+    // 这里可以实现将AI工具添加到操作面板的逻辑
+    // 目前只是保存到localStorage，由OperationPanel组件读取
+    console.log('Adding AI tool to operation panel:', toolConfig)
+  }
+
   return (
     <Layout className="app" style={{ height: '100vh' }}>
       <AntHeader 
@@ -364,6 +372,8 @@ function App() {
               <SimulationPlatform onViewChange={handleViewChange} />
             ) : currentView === 'smart-notes' ? (
               <SmartNotes onViewChange={handleViewChange} />
+            ) : currentView === 'ai-tool-house' ? (
+              <AIToolHouse onAddToOperationPanel={handleAddAIToolToOperationPanel} />
             ) : currentView === 'note-edit-page' ? (
               <NoteEditPage 
                 onBack={() => handleViewChange('smart-notes')}

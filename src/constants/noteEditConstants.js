@@ -194,6 +194,45 @@ export const COMMON_QUESTIONS = [
   { key: 'snacks', text: '小吃推荐？', message: '小吃推荐？' }
 ];
 
+// AI工具分类常量
+export const AI_TOOL_CATEGORIES = {
+  ALL: 'all',
+  WRITING: 'writing',
+  ANALYSIS: 'analysis',
+  TEACHING: 'teaching',
+  CREATIVE: 'creative',
+  PRODUCTIVITY: 'productivity',
+  RESEARCH: 'research'
+};
+
+// AI工具分类标签
+export const AI_TOOL_CATEGORY_LABELS = {
+  [AI_TOOL_CATEGORIES.ALL]: { label: '全部工具', icon: '🤖', color: '#1890ff' },
+  [AI_TOOL_CATEGORIES.WRITING]: { label: '写作助手', icon: '✍️', color: '#52c41a' },
+  [AI_TOOL_CATEGORIES.ANALYSIS]: { label: '数据分析', icon: '📊', color: '#722ed1' },
+  [AI_TOOL_CATEGORIES.TEACHING]: { label: '教学辅助', icon: '🎓', color: '#fa8c16' },
+  [AI_TOOL_CATEGORIES.CREATIVE]: { label: '创意工具', icon: '🎨', color: '#eb2f96' },
+  [AI_TOOL_CATEGORIES.PRODUCTIVITY]: { label: '效率工具', icon: '⚡', color: '#13c2c2' },
+  [AI_TOOL_CATEGORIES.RESEARCH]: { label: '研究工具', icon: '🔬', color: '#f5222d' }
+};
+
+// AI工具状态常量
+export const AI_TOOL_STATUS = {
+  ACTIVE: 'active',
+  BETA: 'beta',
+  NEW: 'new',
+  DEPRECATED: 'deprecated'
+};
+
+// AI工具评级常量
+export const AI_TOOL_RATINGS = {
+  EXCELLENT: 5,
+  GOOD: 4,
+  AVERAGE: 3,
+  FAIR: 2,
+  POOR: 1
+};
+
 // 操作卡片配置
 export const OPERATION_CARDS = [
   {

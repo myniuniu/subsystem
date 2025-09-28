@@ -356,6 +356,13 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
        type: 'single'
      },
     { 
+       id: 'ai-tool-house', 
+       icon: Bot, 
+       label: 'AI工具屋', 
+       color: '#722ed1',
+       type: 'single'
+     },
+    { 
        id: 'training-needs', 
        icon: Target, 
        label: '培训需求', 

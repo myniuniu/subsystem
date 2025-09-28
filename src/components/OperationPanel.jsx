@@ -208,15 +208,40 @@ const OperationPanel = ({ state, handlers }) => {
 
   // 状态管理 - 确保试卷不在默认显示列表中，知识图谱和试题默认显示，学习计划优先显示
   const [visibleCards, setVisibleCards] = useState(() => {
+    // 从 localStorage 获取已添加的 AI 工具
+    const addedAITools = JSON.parse(localStorage.getItem('added-ai-tools-to-panel') || '[]');
+    
+    // 获取 AI 工具配置
+    const aiToolsConfig = JSON.parse(localStorage.getItem('ai-tools-config') || '{}');
+    
     const defaultCards = OPERATION_CARDS.filter(card => 
       card.key !== 'addTool' && 
       card.key !== 'exam-paper'
     );
+    
+    // 添加 AI 工具到默认卡片列表
+    const aiToolCards = addedAITools.map(toolId => {
+      const toolConfig = aiToolsConfig[toolId];
+      if (toolConfig) {
+        return {
+          key: toolConfig.key,
+          title: toolConfig.title,
+          icon: toolConfig.icon,
+          gradient: toolConfig.gradient,
+          color: toolConfig.color,
+          isAITool: true // 标记为AI工具
+        };
+      }
+      return null;
+    }).filter(Boolean);
+    
+    const allCards = [...defaultCards, ...aiToolCards];
+    
     // 确保知识图谱在第一位，试题在第二位，学习计划在第三位
-    const knowledgeGraphCard = defaultCards.find(card => card.key === 'knowledge-graph');
-    const questionCard = defaultCards.find(card => card.key === 'question');
-    const learningPlanCard = defaultCards.find(card => card.key === 'learning-plan');
-    const otherCards = defaultCards.filter(card => 
+    const knowledgeGraphCard = allCards.find(card => card.key === 'knowledge-graph');
+    const questionCard = allCards.find(card => card.key === 'question');
+    const learningPlanCard = allCards.find(card => card.key === 'learning-plan');
+    const otherCards = allCards.filter(card => 
       card.key !== 'knowledge-graph' && 
       card.key !== 'question' &&
       card.key !== 'learning-plan'
@@ -260,6 +285,62 @@ const OperationPanel = ({ state, handlers }) => {
     }
   }, [rightPanelView]);
   
+  // 监听AI工具添加事件，实时更新操作面板
+  useEffect(() => {
+    const handleAIToolsChange = () => {
+      const addedAITools = JSON.parse(localStorage.getItem('added-ai-tools-to-panel') || '[]');
+      const aiToolsConfig = JSON.parse(localStorage.getItem('ai-tools-config') || '{}');
+      
+      const defaultCards = OPERATION_CARDS.filter(card => 
+        card.key !== 'addTool' && 
+        card.key !== 'exam-paper'
+      );
+      
+      const aiToolCards = addedAITools.map(toolId => {
+        const toolConfig = aiToolsConfig[toolId];
+        if (toolConfig) {
+          return {
+            key: toolConfig.key,
+            title: toolConfig.title,
+            icon: toolConfig.icon,
+            gradient: toolConfig.gradient,
+            color: toolConfig.color,
+            isAITool: true
+          };
+        }
+        return null;
+      }).filter(Boolean);
+      
+      const allCards = [...defaultCards, ...aiToolCards];
+      
+      const knowledgeGraphCard = allCards.find(card => card.key === 'knowledge-graph');
+      const questionCard = allCards.find(card => card.key === 'question');
+      const learningPlanCard = allCards.find(card => card.key === 'learning-plan');
+      const otherCards = allCards.filter(card => 
+        card.key !== 'knowledge-graph' && 
+        card.key !== 'question' &&
+        card.key !== 'learning-plan'
+      );
+      const orderedCards = [];
+      if (knowledgeGraphCard) orderedCards.push(knowledgeGraphCard);
+      if (questionCard) orderedCards.push(questionCard);
+      if (learningPlanCard) orderedCards.push(learningPlanCard);
+      orderedCards.push(...otherCards);
+      
+      setVisibleCards(orderedCards);
+    };
+    
+    // 监听 storage 事件
+    window.addEventListener('storage', handleAIToolsChange);
+    // 监听自定义事件
+    window.addEventListener('aiToolsChanged', handleAIToolsChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleAIToolsChange);
+      window.removeEventListener('aiToolsChanged', handleAIToolsChange);
+    };
+  }, []);
+
   // 使用useEffect确保初始化正确
   useEffect(() => {
     const defaultCards = OPERATION_CARDS.filter(card => 
@@ -282,6 +363,233 @@ const OperationPanel = ({ state, handlers }) => {
     orderedCards.push(...otherCards);
     setVisibleCards(orderedCards);
   }, []);
+
+  // 获取AI工具屋的工具数据
+  const getAIToolHouseTools = () => {
+    // AI工具数据（与AIToolHouse组件保持一致）
+    const aiTools = [
+      {
+        id: 'smart-writer',
+        name: '智能写作助手',
+        description: '基于GPT技术的智能写作工具',
+        rating: 4.8,
+        downloads: 12580,
+        icon: '✍️',
+        color: '#52c41a',
+        featured: true,
+        menuConfig: {
+          key: 'smart-writer',
+          title: '智能写作',
+          icon: '✍',
+          gradient: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
+          color: '#52c41a'
+        }
+      },
+      {
+        id: 'data-analyst',
+        name: '数据分析大师',
+        description: '强大的数据分析和可视化工具',
+        rating: 4.7,
+        downloads: 8960,
+        icon: '📊',
+        color: '#722ed1',
+        featured: true,
+        menuConfig: {
+          key: 'data-analyst',
+          title: '数据分析',
+          icon: '📊',
+          gradient: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)',
+          color: '#722ed1'
+        }
+      },
+      {
+        id: 'teaching-assistant',
+        name: '教学智能助手',
+        description: '专为教育工作者设计的AI助手',
+        rating: 4.9,
+        downloads: 15620,
+        icon: '🎓',
+        color: '#fa8c16',
+        featured: true,
+        menuConfig: {
+          key: 'teaching-assistant',
+          title: '教学助手',
+          icon: '🎓',
+          gradient: 'linear-gradient(135deg, #fff3e0 0%, #ffcc80 100%)',
+          color: '#fa8c16'
+        }
+      },
+      {
+        id: 'creative-designer',
+        name: '创意设计师',
+        description: 'AI驱动的创意设计工具',
+        rating: 4.5,
+        downloads: 6780,
+        icon: '🎨',
+        color: '#eb2f96',
+        featured: false,
+        menuConfig: {
+          key: 'creative-designer',
+          title: '创意设计',
+          icon: '🎨',
+          gradient: 'linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%)',
+          color: '#eb2f96'
+        }
+      },
+      {
+        id: 'code-generator',
+        name: '代码生成器',
+        description: '智能代码生成和优化工具',
+        rating: 4.4,
+        downloads: 7230,
+        icon: '💻',
+        color: '#1890ff',
+        featured: true,
+        menuConfig: {
+          key: 'code-generator',
+          title: '代码生成',
+          icon: '💻',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
+        }
+      },
+      {
+        id: 'translation-pro',
+        name: '专业翻译家',
+        description: '高精度的多语言翻译工具',
+        rating: 4.8,
+        downloads: 18750,
+        icon: '🌐',
+        color: '#52c41a',
+        featured: false,
+        menuConfig: {
+          key: 'translation-pro',
+          title: '专业翻译',
+          icon: '🌐',
+          gradient: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
+          color: '#52c41a'
+        }
+      }
+    ];
+
+    // 获取已添加的AI工具
+    const addedAITools = JSON.parse(localStorage.getItem('added-ai-tools-to-panel') || '[]');
+    
+    // 过滤出未添加的AI工具
+    const availableAITools = aiTools.filter(tool => 
+      !addedAITools.includes(tool.id) && 
+      !visibleCards.some(vc => vc.key === tool.menuConfig.key)
+    );
+
+    return availableAITools.map(tool => ({
+      key: `ai-tool-${tool.id}`,
+      label: (
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '12px',
+          padding: '8px 4px',
+          borderRadius: '8px',
+          transition: 'all 0.2s ease'
+        }}>
+          <div style={{ 
+            width: '32px',
+            height: '32px',
+            borderRadius: '8px',
+            background: tool.menuConfig.gradient,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '14px',
+            fontWeight: 'bold',
+            color: tool.menuConfig.color,
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            transition: 'transform 0.2s ease'
+          }}
+          className="tool-icon"
+          >
+            {tool.icon}
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ 
+              fontSize: '14px', 
+              fontWeight: 500, 
+              color: '#1f1f1f',
+              marginBottom: '2px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              {tool.name}
+              {tool.featured && (
+                <span style={{
+                  fontSize: '10px',
+                  background: 'linear-gradient(135deg, #ffd700, #ffb347)',
+                  color: 'white',
+                  padding: '1px 4px',
+                  borderRadius: '6px',
+                  fontWeight: 'bold'
+                }}>
+                  热门
+                </span>
+              )}
+            </div>
+            <div style={{ 
+              fontSize: '11px', 
+              color: '#8c8c8c',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <span>⭐ {tool.rating}</span>
+              <span>📎 {(tool.downloads / 1000).toFixed(1)}k下载</span>
+            </div>
+          </div>
+        </div>
+      ),
+      onClick: () => handleAddAITool(tool)
+    }));
+  };
+
+  // 处理添加AI工具
+  const handleAddAITool = (tool) => {
+    if (visibleCards.length >= 9) {
+      message.warning('工具栏已满，请先移除其他工具');
+      return;
+    }
+
+    try {
+      // 添加到可见卡片列表
+      const newCard = {
+        key: tool.menuConfig.key,
+        title: tool.menuConfig.title,
+        icon: tool.menuConfig.icon,
+        gradient: tool.menuConfig.gradient,
+        color: tool.menuConfig.color,
+        isAITool: true
+      };
+      
+      setVisibleCards(prev => [...prev, newCard]);
+      
+      // 保存到localStorage
+      const addedAITools = JSON.parse(localStorage.getItem('added-ai-tools-to-panel') || '[]');
+      const newAddedTools = [...addedAITools, tool.id];
+      localStorage.setItem('added-ai-tools-to-panel', JSON.stringify(newAddedTools));
+      
+      // 保存AI工具配置信息
+      const aiToolsConfig = JSON.parse(localStorage.getItem('ai-tools-config') || '{}');
+      aiToolsConfig[tool.id] = tool.menuConfig;
+      localStorage.setItem('ai-tools-config', JSON.stringify(aiToolsConfig));
+      
+      // 触发自定义事件通知其他组件更新
+      window.dispatchEvent(new Event('aiToolsChanged'));
+      
+      message.success(`已添加 ${tool.name} 到工具栏`);
+      setShowCardSelector(false);
+    } catch (error) {
+      message.error('添加失败，请重试');
+    }
+  };
 
   // 拖拽排序处理函数
   const moveCardPosition = (fromIndex, toIndex) => {
@@ -307,6 +615,33 @@ const OperationPanel = ({ state, handlers }) => {
     if (visibleCards.length > 1) {
       const removedCard = visibleCards.find(card => card.key === cardKey);
       setVisibleCards(prev => prev.filter(card => card.key !== cardKey));
+      
+      // 如果是AI工具，也要从 localStorage 中移除
+      if (removedCard?.isAITool) {
+        try {
+          // 从已添加的AI工具列表中移除
+          const addedAITools = JSON.parse(localStorage.getItem('added-ai-tools-to-panel') || '[]');
+          const aiToolsConfig = JSON.parse(localStorage.getItem('ai-tools-config') || '{}');
+          
+          // 找到对应的AI工具ID
+          const toolId = Object.keys(aiToolsConfig).find(id => aiToolsConfig[id].key === cardKey);
+          
+          if (toolId) {
+            const newAddedTools = addedAITools.filter(id => id !== toolId);
+            localStorage.setItem('added-ai-tools-to-panel', JSON.stringify(newAddedTools));
+            
+            // 从配置中移除
+            delete aiToolsConfig[toolId];
+            localStorage.setItem('ai-tools-config', JSON.stringify(aiToolsConfig));
+            
+            // 触发事件通知更新
+            window.dispatchEvent(new Event('aiToolsChanged'));
+          }
+        } catch (error) {
+          console.error('移除AI工具时出错:', error);
+        }
+      }
+      
       message.success(`已移除${removedCard?.title}工具`);
     } else {
       message.warning('至少需要保留1个工具');
@@ -323,6 +658,11 @@ const OperationPanel = ({ state, handlers }) => {
     } else if (card.key === OPERATION_TYPES.LEARNING_PLAN) {
       // 学习计划工具弹出配置窗口
       setLearningPlanModalVisible(true);
+    } else if (card.isAITool) {
+      // AI工具点击处理
+      message.info(`您点击了AI工具：${card.title}`);
+      // 这里可以添加AI工具的具体功能逻辑
+      // 比如打开AI工具的对话界面或功能面板
     } else {
       onOperationClick(card.key);
     }
@@ -1590,7 +1930,7 @@ const OperationPanel = ({ state, handlers }) => {
                       borderBottom: '1px solid #f0f0f0',
                       marginBottom: '4px'
                     }}>
-                      🛠️ 选择更多工具
+                      🛠️ 基础工具
                     </div>
                   ),
                   children: OPERATION_CARDS
@@ -1644,32 +1984,68 @@ const OperationPanel = ({ state, handlers }) => {
                       ),
                       onClick: () => handleAddCard(card.key)
                     }))
+                },
+                // AI工具屋分组
+                {
+                  type: 'group',
+                  label: (
+                    <div style={{
+                      padding: '8px 4px 4px 4px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      color: '#722ed1',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      borderBottom: '1px solid #f0f0f0',
+                      marginBottom: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      🤖 AI工具屋
+                      <span style={{ fontSize: '10px', color: '#8c8c8c' }}>社区贡献</span>
+                    </div>
+                  ),
+                  children: getAIToolHouseTools()
                 }
               ].filter(item => {
-                // 如果没有可添加的工具，显示提示信息
-                const availableTools = OPERATION_CARDS.filter(card => card.key !== 'addTool' && !visibleCards.some(vc => vc.key === card.key));
-                if (availableTools.length === 0) {
+                // 检查是否有可添加的工具
+                const availableBasicTools = OPERATION_CARDS.filter(card => card.key !== 'addTool' && !visibleCards.some(vc => vc.key === card.key));
+                const availableAITools = getAIToolHouseTools();
+                
+                if (availableBasicTools.length === 0 && availableAITools.length === 0) {
                   return false;
                 }
                 return true;
-              }).concat(OPERATION_CARDS.filter(card => card.key !== 'addTool' && !visibleCards.some(vc => vc.key === card.key)).length === 0 ? [{
-                key: 'no-tools',
-                label: (
-                  <div style={{
-                    textAlign: 'center',
-                    padding: '20px 16px',
-                    color: '#8c8c8c',
-                    fontSize: '14px'
-                  }}>
-                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>🎉</div>
-                    <div>所有工具已添加完成</div>
-                    <div style={{ fontSize: '12px', marginTop: '4px' }}>
-                      您可以移除现有工具来添加其他工具
-                    </div>
-                  </div>
-                ),
-                disabled: true
-              }] : [])
+              }).concat(
+                // 如果没有可添加的工具，显示提示信息
+                (() => {
+                  const availableBasicTools = OPERATION_CARDS.filter(card => card.key !== 'addTool' && !visibleCards.some(vc => vc.key === card.key));
+                  const availableAITools = getAIToolHouseTools();
+                  
+                  if (availableBasicTools.length === 0 && availableAITools.length === 0) {
+                    return [{
+                      key: 'no-tools',
+                      label: (
+                        <div style={{
+                          textAlign: 'center',
+                          padding: '20px 16px',
+                          color: '#8c8c8c',
+                          fontSize: '14px'
+                        }}>
+                          <div style={{ fontSize: '24px', marginBottom: '8px' }}>🎉</div>
+                          <div>所有工具已添加完成</div>
+                          <div style={{ fontSize: '12px', marginTop: '4px' }}>
+                            您可以移除现有工具来添加其他工具
+                          </div>
+                        </div>
+                      ),
+                      disabled: true
+                    }];
+                  }
+                  return [];
+                })()
+              )
             }}
             trigger={['click']}
             placement="topLeft"
