@@ -48,8 +48,8 @@ const ToolGrid = ({
         
         {/* 渲染空位的添加工具卡片 */}
         {visibleCards.length < 9 && [...Array(9 - visibleCards.length)].map((_, index) => {
-          if (index === 0) {
-            // 第一个空位显示"更多"按钮
+          if (index === 0 && isEditMode) {
+            // 第一个空位在编辑模式下显示"更多"按钮
             return (
               <Dropdown
                 key={`empty-${index}`}
@@ -160,6 +160,34 @@ const ToolGrid = ({
                   </div>
                 </Card>
               </Dropdown>
+            );
+          } else if (index === 0 && !isEditMode) {
+            // 非编辑模式下第一个空位显示空白占位符
+            return (
+              <Card 
+                key={`empty-${index}`}
+                size="small" 
+                style={{ 
+                  background: '#fafafa',
+                  border: '1px dashed #d9d9d9',
+                  borderRadius: '8px',
+                  textAlign: 'center',
+                  height: '68px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                styles={{ body: { padding: '4px' } }}
+              >
+                <div style={{ padding: '2px 0' }}>
+                  <div style={{ fontSize: '16px', marginBottom: '2px', color: '#ccc' }}>◯</div>
+                  <Text style={{ 
+                    fontSize: '10px', 
+                    color: '#ccc',
+                    lineHeight: '1.2'
+                  }}>空位</Text>
+                </div>
+              </Card>
             );
           } else {
             // 其他空位显示空白占位符
