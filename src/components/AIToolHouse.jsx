@@ -269,6 +269,99 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
       usage: '输入研究领域和关键词，AI将提供相关文献和研究建议'
     },
     {
+      id: 'coze-smart-assistant',
+      name: 'Coze智能助手',
+      description: '基于Coze平台开发的智能对话助手，支持多轮对话和个性化服务',
+      category: AI_TOOL_CATEGORIES.PRODUCTIVITY,
+      status: AI_TOOL_STATUS.NEW,
+      author: 'Coze开发者',
+      version: 'v1.0.0',
+      rating: 4.6,
+      downloads: 3250,
+      tags: ['Coze', '智能对话', '个性化', '多轮对话'],
+      icon: '🤖',
+      color: '#722ed1',
+      featured: true,
+      platform: 'Coze',
+      menuConfig: {
+        key: 'coze-assistant',
+        title: 'Coze助手',
+        icon: '🤖',
+        gradient: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)',
+        color: '#722ed1'
+      },
+      features: [
+        '多轮对话理解',
+        '个性化响应',
+        '上下文记忆',
+        '多模态交互',
+        '插件扩展支持'
+      ],
+      usage: '通过Coze平台配置的智能助手，支持文本、语音等多种交互方式'
+    },
+    {
+      id: 'dify-workflow',
+      name: 'Dify工作流',
+      description: '基于Dify平台构建的智能工作流工具，支持低代码AI应用开发',
+      category: AI_TOOL_CATEGORIES.PRODUCTIVITY,
+      status: AI_TOOL_STATUS.ACTIVE,
+      author: 'Dify社区',
+      version: 'v2.0.1',
+      rating: 4.7,
+      downloads: 4680,
+      tags: ['Dify', '工作流', '低代码', 'RAG'],
+      icon: '⚡',
+      color: '#13c2c2',
+      featured: true,
+      platform: 'Dify',
+      menuConfig: {
+        key: 'dify-workflow',
+        title: 'Dify工作流',
+        icon: '⚡',
+        gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+        color: '#13c2c2'
+      },
+      features: [
+        '可视化工作流编辑',
+        'RAG知识库集成',
+        '多模型支持',
+        'API自动生成',
+        '企业级部署'
+      ],
+      usage: '通过拖拽的方式构建复杂的AI应用工作流，无需编程基础'
+    },
+    {
+      id: 'zhipu-qingyan',
+      name: '智谱清言助手',
+      description: '基于智谱AI清言模型开发的智能写作和翻译助手',
+      category: AI_TOOL_CATEGORIES.WRITING,
+      status: AI_TOOL_STATUS.ACTIVE,
+      author: '智谱AI',
+      version: 'v1.5.0',
+      rating: 4.8,
+      downloads: 6890,
+      tags: ['智谱AI', '清言', '写作', '翻译'],
+      icon: '✍️',
+      color: '#52c41a',
+      featured: false,
+      platform: '智谱清言',
+      menuConfig: {
+        key: 'zhipu-assistant',
+        title: '清言助手',
+        icon: '✍️',
+        gradient: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
+        color: '#52c41a'
+      },
+      features: [
+        '中文优化生成',
+        '多语言翻译',
+        '文本概括总结',
+        '代码生成辅助',
+        '逻辑推理能力'
+      ],
+      usage: '基于智谱清言模型的强大中文理解和生成能力，提供高质量内容输出'
+    },
+    {
       id: 'code-generator',
       name: '代码生成器',
       description: '智能代码生成和优化工具，支持多种编程语言和框架',
@@ -446,6 +539,26 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
         <Paragraph type="secondary" style={{ margin: '8px 0 0 0' }}>
           发现社区贡献的优质AI工具，一键添加到小黑屋操作面板
         </Paragraph>
+        
+        {/* 第三方平台支持提示 */}
+        <div style={{
+          background: 'linear-gradient(135deg, #e6f7ff 0%, #f0f9ff 100%)',
+          border: '1px solid #91d5ff',
+          borderRadius: '8px',
+          padding: '12px 16px',
+          marginTop: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px'
+        }}>
+          <div style={{ fontSize: '20px' }}>🤖</div>
+          <div style={{ flex: 1 }}>
+            <Text strong style={{ color: '#1890ff' }}>支持第三方智能体平台</Text>
+            <div style={{ marginTop: '4px', fontSize: '13px', color: '#666' }}>
+              支持集成 <Tag size="small" color="blue">Coze</Tag> <Tag size="small" color="cyan">Dify</Tag> <Tag size="small" color="geekblue">智谱清言</Tag> <Tag size="small" color="purple">ChatGPT</Tag> 等平台开发的智能体工具
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="ai-tool-house-filters">
@@ -514,6 +627,19 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
                         {tool.icon}
                       </div>
                       <div className="tool-badges">
+                        {tool.platform && (
+                          <Tag 
+                            color="processing" 
+                            size="small" 
+                            style={{ 
+                              background: 'linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%)',
+                              borderColor: '#40a9ff',
+                              color: '#096dd9'
+                            }}
+                          >
+                            {tool.platform}
+                          </Tag>
+                        )}
                         {tool.featured && (
                           <Tag color="gold" size="small" icon={<CrownOutlined />}>
                             推荐
@@ -641,6 +767,19 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
                           {tool.icon}
                         </div>
                         <div className="tool-badges">
+                          {tool.platform && (
+                            <Tag 
+                              color="processing" 
+                              size="small" 
+                              style={{ 
+                                background: 'linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%)',
+                                borderColor: '#40a9ff',
+                                color: '#096dd9'
+                              }}
+                            >
+                              {tool.platform}
+                            </Tag>
+                          )}
                           {tool.featured && (
                             <Tag color="gold" size="small" icon={<CrownOutlined />}>
                               推荐
@@ -770,6 +909,20 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
             <Descriptions column={2} size="small" style={{ marginBottom: 16 }}>
               <Descriptions.Item label="版本">{selectedTool.version}</Descriptions.Item>
               <Descriptions.Item label="状态">{getStatusBadge(selectedTool.status)}</Descriptions.Item>
+              {selectedTool.platform && (
+                <Descriptions.Item label="平台">
+                  <Tag 
+                    color="processing" 
+                    style={{ 
+                      background: 'linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%)',
+                      borderColor: '#40a9ff',
+                      color: '#096dd9'
+                    }}
+                  >
+                    {selectedTool.platform}
+                  </Tag>
+                </Descriptions.Item>
+              )}
               <Descriptions.Item label="评分">
                 <Rate disabled defaultValue={selectedTool.rating} style={{ fontSize: 14 }} />
                 <span style={{ marginLeft: 8 }}>{selectedTool.rating}</span>

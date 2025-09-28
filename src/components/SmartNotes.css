@@ -87,6 +87,26 @@
   margin: 0;
 }
 
+/* 学习中心布局样式 */
+.learning-center-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.learning-center-card {
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.learning-center-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+}
+
 /* 针对组织培训笔记卡片的特殊样式 */
 .note-card[data-source="组织培训"] {
   border-left: 4px solid #667eea;
@@ -527,12 +547,39 @@
   overflow-y: auto;
 }
 
+/* 保证所有卡片列高度一致 */
+.notes-grid .ant-row > .ant-col {
+  display: flex;
+  margin-bottom: 16px;
+}
+
+.notes-grid .ant-row > .ant-col > .note-card {
+  width: 100%;
+}
+
 .note-card {
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
   border: 1px solid #e8e8e8;
   overflow: hidden;
+  height: 100%;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+}
+
+.note-card .ant-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.note-card .ant-card-body {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .note-card:hover {
@@ -540,13 +587,10 @@
   transform: translateY(-2px);
 }
 
-.note-card .ant-card-body {
-  padding: 16px;
-}
-
 .note-card .ant-card-actions {
   background: #fafafa;
   border-top: 1px solid #f0f0f0;
+  margin-top: auto;
 }
 
 .note-card .ant-card-actions > li {
@@ -602,11 +646,13 @@
   color: #6b7280;
   line-height: 1.5;
   font-size: 13px;
+  flex: 1;
 }
 
 .note-tags {
   margin-bottom: 12px;
   min-height: 22px;
+  margin-top: auto;
 }
 
 .note-tags .ant-tag {
