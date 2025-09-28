@@ -355,24 +355,6 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
             </Title>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {selectedMaterials.length > 0 && (
-              <Popconfirm
-                title="确认删除"
-                description={`确定要删除选中的 ${selectedMaterials.length} 个资料吗？`}
-                onConfirm={handleBatchDelete}
-                okText="确定"
-                cancelText="取消"
-              >
-                <Button 
-                  type="text" 
-                  icon={<DeleteOutlined />}
-                  danger
-                  size="small"
-                >
-                  删除选中
-                </Button>
-              </Popconfirm>
-            )}
             {onBack && (
               <Button 
                 type="text" 
@@ -459,16 +441,41 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
               </Button>
             </Tooltip>
           </div>
-          <Checkbox 
-            style={{ marginLeft: 'auto' }}
-            checked={selectedMaterials.length > 0 && selectedMaterials.length === (
-              uploadedFiles.length + addedTexts.length + courseVideos.length + links.length + organizationalCourses.length
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Checkbox 
+              checked={selectedMaterials.length > 0 && selectedMaterials.length === (
+                uploadedFiles.length + addedTexts.length + courseVideos.length + links.length + organizationalCourses.length
+              )}
+              indeterminate={selectedMaterials.length > 0 && selectedMaterials.length < (
+                uploadedFiles.length + addedTexts.length + courseVideos.length + links.length + organizationalCourses.length
+              )}
+              onChange={(e) => handleSelectAll(e.target.checked)}
+            />
+            {selectedMaterials.length > 0 && (
+              <Popconfirm
+                title="确认删除"
+                description={`确定要删除选中的 ${selectedMaterials.length} 个资料吗？`}
+                onConfirm={handleBatchDelete}
+                okText="确定"
+                cancelText="取消"
+              >
+                <Button 
+                  type="link"
+                  icon={<DeleteOutlined />}
+                  danger
+                  size="small"
+                  style={{ 
+                    fontSize: '12px',
+                    height: 'auto',
+                    padding: '2px 4px',
+                    opacity: 0.7
+                  }}
+                >
+                  删除选中 ({selectedMaterials.length})
+                </Button>
+              </Popconfirm>
             )}
-            indeterminate={selectedMaterials.length > 0 && selectedMaterials.length < (
-              uploadedFiles.length + addedTexts.length + courseVideos.length + links.length + organizationalCourses.length
-            )}
-            onChange={(e) => handleSelectAll(e.target.checked)}
-          />
+          </div>
         </div>
 
         {/* 资料列表内容区域 */}
