@@ -58,9 +58,9 @@ import {
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create' }) => {
+const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', selectedTemplate = null }) => {
   // 使用统一的状态管理hook
-  const state = useNoteEditState(note, mode);
+  const state = useNoteEditState(note, mode, selectedTemplate);
   
   const {
     // 基本状态

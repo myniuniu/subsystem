@@ -3,7 +3,6 @@ import {
   Layout,
   Card,
   Button,
-  Table,
   Modal,
   Form,
   Input,
@@ -18,7 +17,9 @@ import {
   message,
   Popconfirm,
   Tooltip,
-  Badge
+  Badge,
+  Empty,
+  Spin
 } from 'antd';
 import {
   PlusOutlined,
@@ -101,6 +102,61 @@ const ThemeTemplateCenter = ({ onBack }) => {
           updateTime: '2024-01-16 09:20:00',
           creator: '张教授',
           usageCount: 8
+        },
+        {
+          id: 'template-3',
+          name: '培训需求与培训管理',
+          description: '专为培训需求分析和培训项目管理设计的综合模版',
+          sourceTypes: ['organizational-courses', 'uploaded-files', 'added-texts', 'links'],
+          smartTools: ['data-analyst', 'teaching-assistant', 'efficiency-master', 'smart-writer'],
+          createTime: '2024-01-20 14:20:00',
+          updateTime: '2024-01-20 14:20:00',
+          creator: '培训部主管',
+          usageCount: 12
+        },
+        {
+          id: 'template-4',
+          name: '个人组织培训',
+          description: '适用于个人参与组织培训活动的学习和管理模版',
+          sourceTypes: ['organizational-courses', 'course-videos', 'live-courses', 'uploaded-files'],
+          smartTools: ['knowledge-graph-tool', 'teaching-assistant', 'efficiency-master'],
+          createTime: '2024-01-18 09:15:00',
+          updateTime: '2024-01-18 09:15:00',
+          creator: '李老师',
+          usageCount: 6
+        },
+        {
+          id: 'template-5',
+          name: '个人工作管理',
+          description: '教师个人工作任务管理和效率提升的专用模版',
+          sourceTypes: ['added-texts', 'uploaded-files', 'links'],
+          smartTools: ['efficiency-master', 'data-analyst', 'smart-writer'],
+          createTime: '2024-01-17 16:45:00',
+          updateTime: '2024-01-17 16:45:00',
+          creator: '王老师',
+          usageCount: 9
+        },
+        {
+          id: 'template-6',
+          name: '个人学习提升',
+          description: '教师个人专业发展和持续学习的综合模版',
+          sourceTypes: ['course-videos', 'knowledge-graph', 'links', 'uploaded-files'],
+          smartTools: ['knowledge-graph-tool', 'research-helper', 'smart-writer', 'teaching-assistant'],
+          createTime: '2024-01-16 11:30:00',
+          updateTime: '2024-01-16 11:30:00',
+          creator: '陈教授',
+          usageCount: 14
+        },
+        {
+          id: 'template-7',
+          name: '教师综合能力发展',
+          description: '涵盖教学、科研、管理等多方面的教师综合能力提升模版',
+          sourceTypes: ['knowledge-graph', 'capability-model', 'course-videos', 'organizational-courses', 'uploaded-files', 'links'],
+          smartTools: ['knowledge-graph-tool', 'data-analyst', 'research-helper', 'teaching-assistant', 'efficiency-master', 'smart-writer'],
+          createTime: '2024-01-19 13:10:00',
+          updateTime: '2024-01-19 13:10:00',
+          creator: '教务处',
+          usageCount: 18
         }
       ];
       localStorage.setItem('theme-templates', JSON.stringify(defaultTemplates));
@@ -207,107 +263,91 @@ const ThemeTemplateCenter = ({ onBack }) => {
     ) : <Tag key={tool}>{tool}</Tag>;
   };
 
-  const columns = [
-    {
-      title: '模版名称',
-      dataIndex: 'name',
-      key: 'name',
-      width: 200,
-      render: (text, record) => (
-        <div>
-          <Text strong>{text}</Text>
-          <br />
-          <Text type="secondary" style={{ fontSize: '12px' }}>
-            {record.description}
+  // 渲染模版卡片
+  const renderTemplateCard = (template) => (
+    <Col xs={24} sm={12} lg={8} xl={6} key={template.id}>
+      <Card
+        className="template-card"
+        hoverable
+        style={{ 
+          height: '100%',
+          borderRadius: '12px',
+          overflow: 'hidden'
+        }}
+        actions={[
+          <Tooltip title="查看详情">
+            <EyeOutlined />
+          </Tooltip>,
+          <Tooltip title="编辑模版">
+            <EditOutlined onClick={(e) => { e.stopPropagation(); handleEdit(template); }} />
+          </Tooltip>,
+          <Tooltip title="复制模版">
+            <CopyOutlined onClick={(e) => { e.stopPropagation(); handleCopy(template); }} />
+          </Tooltip>,
+          <Popconfirm
+            title="确定要删除这个模版吗？"
+            onConfirm={() => handleDelete(template.id)}
+            okText="确定"
+            cancelText="取消"
+          >
+            <Tooltip title="删除模版">
+              <DeleteOutlined onClick={(e) => e.stopPropagation()} />
+            </Tooltip>
+          </Popconfirm>
+        ]}
+      >
+        <div className="template-card-header">
+          <div className="template-icon">
+            <BulbOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+          </div>
+          <div className="template-info">
+            <Title level={5} style={{ margin: 0, fontSize: '16px' }}>
+              {template.name}
+            </Title>
+            <Text type="secondary" style={{ fontSize: '12px' }}>
+              {template.description}
+            </Text>
+          </div>
+          <div className="template-usage">
+            <Badge count={template.usageCount} showZero color="#52c41a" />
+          </div>
+        </div>
+
+        <Divider style={{ margin: '12px 0' }} />
+
+        <div className="template-content">
+          <div className="template-section">
+            <Text strong style={{ fontSize: '12px', color: '#666' }}>来源类型</Text>
+            <div className="template-tags" style={{ marginTop: '6px' }}>
+              {template.sourceTypes.slice(0, 3).map(type => getSourceTypeTag(type))}
+              {template.sourceTypes.length > 3 && (
+                <Tag style={{ fontSize: '10px' }}>+{template.sourceTypes.length - 3}</Tag>
+              )}
+            </div>
+          </div>
+
+          <div className="template-section" style={{ marginTop: '12px' }}>
+            <Text strong style={{ fontSize: '12px', color: '#666' }}>智能工具</Text>
+            <div className="template-tags" style={{ marginTop: '6px' }}>
+              {template.smartTools.slice(0, 3).map(tool => getSmartToolTag(tool))}
+              {template.smartTools.length > 3 && (
+                <Tag style={{ fontSize: '10px' }}>+{template.smartTools.length - 3}</Tag>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="template-footer">
+          <Text type="secondary" style={{ fontSize: '11px' }}>
+            创建于 {template.createTime}
+          </Text>
+          <Text type="secondary" style={{ fontSize: '11px' }}>
+            创建者: {template.creator}
           </Text>
         </div>
-      )
-    },
-    {
-      title: '来源类型',
-      dataIndex: 'sourceTypes',
-      key: 'sourceTypes',
-      width: 300,
-      render: (types) => (
-        <div style={{ maxWidth: '280px' }}>
-          {types.map(type => getSourceTypeTag(type))}
-        </div>
-      )
-    },
-    {
-      title: '智能工具',
-      dataIndex: 'smartTools',
-      key: 'smartTools',
-      width: 300,
-      render: (tools) => (
-        <div style={{ maxWidth: '280px' }}>
-          {tools.map(tool => getSmartToolTag(tool))}
-        </div>
-      )
-    },
-    {
-      title: '使用次数',
-      dataIndex: 'usageCount',
-      key: 'usageCount',
-      width: 100,
-      render: (count) => <Badge count={count} showZero color="#52c41a" />
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'createTime',
-      key: 'createTime',
-      width: 150,
-      render: (time) => <Text type="secondary">{time}</Text>
-    },
-    {
-      title: '操作',
-      key: 'actions',
-      width: 200,
-      render: (_, record) => (
-        <Space>
-          <Tooltip title="查看详情">
-            <Button 
-              type="text" 
-              icon={<EyeOutlined />} 
-              size="small"
-              onClick={() => handleEdit(record)}
-            />
-          </Tooltip>
-          <Tooltip title="编辑">
-            <Button 
-              type="text" 
-              icon={<EditOutlined />} 
-              size="small"
-              onClick={() => handleEdit(record)}
-            />
-          </Tooltip>
-          <Tooltip title="复制">
-            <Button 
-              type="text" 
-              icon={<CopyOutlined />} 
-              size="small"
-              onClick={() => handleCopy(record)}
-            />
-          </Tooltip>
-          <Tooltip title="删除">
-            <Popconfirm
-              title="确定要删除这个模版吗？"
-              onConfirm={() => handleDelete(record.id)}
-              okText="确定"
-              cancelText="取消"
-            >
-              <Button 
-                type="text" 
-                icon={<DeleteOutlined />} 
-                size="small"
-                danger
-              />
-            </Popconfirm>
-          </Tooltip>
-        </Space>
-      )
-    }
-  ];
+      </Card>
+    </Col>
+  );
 
   return (
     <Layout style={{ height: '100%', background: '#f5f7fa' }}>
@@ -435,18 +475,31 @@ const ThemeTemplateCenter = ({ onBack }) => {
 
         {/* 模版列表 */}
         <Card>
-          <Table
-            columns={columns}
-            dataSource={templates}
-            rowKey="id"
-            loading={loading}
-            pagination={{
-              pageSize: 10,
-              showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total) => `共 ${total} 个模版`
-            }}
-          />
+          <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Title level={4} style={{ margin: 0 }}>模版列表</Title>
+            <Text type="secondary">共 {templates.length} 个模版</Text>
+          </div>
+          
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '40px 0' }}>
+              <Spin size="large">
+                <div style={{ marginTop: 8 }}>加载中...</div>
+              </Spin>
+            </div>
+          ) : templates.length === 0 ? (
+            <Empty
+              description="暂无模版"
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+            >
+              <Button type="primary" onClick={handleCreate}>
+                创建第一个模版
+              </Button>
+            </Empty>
+          ) : (
+            <Row gutter={[16, 16]}>
+              {templates.map(template => renderTemplateCard(template))}
+            </Row>
+          )}
         </Card>
 
         {/* 创建/编辑模版弹窗 */}

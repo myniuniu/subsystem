@@ -22,7 +22,7 @@ const subtitleData = [
   { start: 235, end: 250, text: '下节课我们将学习栈和队列，请大家做好预习准备。谢谢大家！' }
 ];
 
-export const useNoteEditState = (note, mode) => {
+export const useNoteEditState = (note, mode, selectedTemplate = null) => {
   // 资料收集相关状态
   const [uploadedFiles, setUploadedFiles] = useState(() => {
     // 默认的试卷文件，在任何模式下都显示
@@ -326,6 +326,46 @@ export const useNoteEditState = (note, mode) => {
       }
     }
   }, [note, mode]);
+
+  // 根据选择的模版初始化工具和来源
+  useEffect(() => {
+    if (selectedTemplate && mode === 'create') {
+      // 根据模版的smartTools初始化选中的工具
+      if (selectedTemplate.smartTools && selectedTemplate.smartTools.length > 0) {
+        // 映射模版中的智能工具到实际的工具ID
+        const templateToolMapping = {
+          'AI总结': 'content_generator',
+          '知识图谱': 'note_organizer',
+          '学习路径规划': 'progress_tracker',
+          '进度跟踪': 'progress_tracker',
+          '效果评估': 'statistical_analysis',
+          '反馈收集': 'survey_tool',
+          '任务规划': 'task_manager',
+          '时间管理': 'calendar_scheduler',
+          '工作总结': 'content_generator',
+          '学习笔记': 'note_organizer',
+          '知识整理': 'note_organizer',
+          '复习提醒': 'calendar_scheduler',
+          '能力评估': 'statistical_analysis',
+          '发展规划': 'progress_tracker',
+          '成长记录': 'progress_tracker',
+          '反思总结': 'content_generator'
+        };
+
+        const mappedTools = selectedTemplate.smartTools
+          .map(toolName => templateToolMapping[toolName])
+          .filter(toolId => toolId); // 过滤掉未映射的工具
+
+        setSelectedTools(mappedTools);
+      }
+
+      // 根据模版的sourceTypes初始化默认的资料类型提示
+      if (selectedTemplate.sourceTypes && selectedTemplate.sourceTypes.length > 0) {
+        // 可以在这里添加一些默认的资料或者提示用户添加相应类型的资料
+        console.log('模版建议的资料类型:', selectedTemplate.sourceTypes);
+      }
+    }
+  }, [selectedTemplate, mode]);
 
   // 合并所有资料为materials数组
   const materials = [...uploadedFiles, ...addedTexts, ...courseVideos, ...links, ...selectedCourses];

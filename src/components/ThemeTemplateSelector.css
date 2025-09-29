@@ -1,0 +1,40 @@
+.template-selector-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.template-selector-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.template-selector-card.selected {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.template-selector-card .ant-card-body {
+  padding: 16px;
+}
+
+.template-selector-card .ant-tag {
+  margin-bottom: 4px;
+  border-radius: 4px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .template-selector-card {
+    margin-bottom: 12px;
+  }
+  
+  .template-selector-card .ant-card-body {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 576px) {
+  .template-selector-card .ant-card-body {
+    padding: 10px;
+  }
+}

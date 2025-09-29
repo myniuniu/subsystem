@@ -69,6 +69,7 @@ import NoteCreateModal from './NoteCreateModal';
 import NoteEditPage from './NoteEditPage';
 import ThemeShareModal from './ThemeShareModal';
 import CalendarCenter from './CalendarCenter';
+import ThemeTemplateSelector from './ThemeTemplateSelector';
 import notesService from '../services/notesService';
 import courseSelectionService from '../services/courseSelectionService';
 import themeShareService from '../services/themeShareService';
@@ -111,6 +112,8 @@ const SmartNotes = ({ onViewChange }) => {
   const [editingNote, setEditingNote] = useState(null);
   const [editMode, setEditMode] = useState('create');
   const [showCalendarCenter, setShowCalendarCenter] = useState(false);
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [form] = Form.useForm();
 
   // 笔记分类
@@ -291,10 +294,26 @@ const SmartNotes = ({ onViewChange }) => {
 
   // 创建新笔记
   const handleCreateNote = () => {
-    // 在主区域显示笔记编辑页面
+    // 显示主题模版选择器
+    setShowTemplateSelector(true);
+  };
+
+  // 处理模版选择
+  const handleTemplateSelect = (template) => {
+    setSelectedTemplate(template);
+    setShowTemplateSelector(false);
+    
+    // 在主区域显示笔记编辑页面，并传递选中的模版
     setEditingNote(null);
     setEditMode('create');
     setShowNoteEditPage(true);
+    
+    message.success(`已选择模版：${template.name}`);
+  };
+
+  // 取消模版选择
+  const handleTemplateSelectorCancel = () => {
+    setShowTemplateSelector(false);
   };
 
   // 关闭编辑页面
@@ -821,6 +840,7 @@ ${aiSelectedNote.content}`;
       onViewChange={onViewChange} 
       note={editingNote}
       mode={editMode}
+      selectedTemplate={selectedTemplate}
     />;
   }
 
@@ -1772,6 +1792,13 @@ ${aiSelectedNote.content}`;
       >
         <CalendarCenter />
       </Modal>
+
+      {/* 主题模版选择器 */}
+      <ThemeTemplateSelector
+        visible={showTemplateSelector}
+        onCancel={handleTemplateSelectorCancel}
+        onSelect={handleTemplateSelect}
+      />
     </div>
   );
 };
