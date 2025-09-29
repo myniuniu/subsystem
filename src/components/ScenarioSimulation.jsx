@@ -9,6 +9,7 @@ import {
 } from 'antd';
 import scenarioService from '../services/scenarioService';
 import { generateScenarioThumbnail } from '../utils/scenarioThumbnailUtils';
+import { scienceDemoScenarios } from '../data/scienceDemoScenarios';
 
 const { Title, Text } = Typography;
 
@@ -43,12 +44,19 @@ const ScenarioSimulation = ({
         status: 'published' 
       });
       
+      let scenarios = [];
       if (response.success && response.data) {
-        setAvailableScenarios(response.data);
+        scenarios = response.data;
       }
+      
+      // 合并科学演示场景数据，将科学演示场景放在第一位
+      const combinedScenarios = [...scienceDemoScenarios, ...scenarios];
+      setAvailableScenarios(combinedScenarios);
     } catch (error) {
       console.error('加载场景数据失败:', error);
       message.error('加载场景数据失败');
+      // 即使API失败，也显示科学演示场景（放在第一位）
+      setAvailableScenarios(scienceDemoScenarios);
     } finally {
       setScenarioLoading(false);
     }
@@ -286,17 +294,18 @@ const ScenarioSimulation = ({
       category: scenario.category,
       difficulty: scenario.difficulty,
       duration: scenario.duration,
-      author: scenario.author,
+      author: scenario.author || '系统',
       tags: scenario.tags || [],
       views: scenario.views || 0,
       rating: scenario.rating || 0,
       thumbnail: scenario.thumbnail,
-      learningObjectives: scenario.learningObjectives,
-      source: '场景库选择',
+      learningObjectives: scenario.learningObjectives || scenario.objectives?.join('、'),
+      source: scenario.category === 'science_demo' ? '科学演示场景' : '场景库选择',
       time: '刚刚',
       type: 'scenario',
       status: 'selected',
-      createTime: new Date().toISOString()
+      createTime: new Date().toISOString(),
+      htmlPath: scenario.htmlPath // 保存科学演示场景的HTML路径
     };
     
     setOperationRecords(prev => ({
@@ -308,7 +317,7 @@ const ScenarioSimulation = ({
     message.success(`已选择场景：${scenario.title}`);
     setScenarioModalVisible(false);
     
-    showScenarioDetails(scenario);
+    // 移除自动运行逻辑，只选择场景不运行
   };
 
   // 显示场景详情
@@ -331,7 +340,7 @@ const ScenarioSimulation = ({
     };
     const categoryText = categoryMap[scenario.category] || scenario.category;
 
-    Modal.info({
+    Modal.confirm({
       title: `场景模拟：${scenario.title}`,
       width: 700,
       content: (
@@ -423,13 +432,44 @@ const ScenarioSimulation = ({
         </div>
       ),
       okText: '运行场景',
+      cancelText: '确定',
       onOk: () => {
-        if (scenario.thumbnail) {
-          window.open(scenario.thumbnail, '_blank');
+        // 处理科学演示场景的特殊路径
+        let scenarioUrl = scenario.thumbnail;
+        if (scenario.category === 'science_demo' && scenario.htmlPath) {
+          scenarioUrl = scenario.htmlPath;
+        }
+        
+        if (scenarioUrl) {
+          window.open(scenarioUrl, '_blank');
           message.success('场景已在新窗口中打开');
         } else {
           message.error('场景文件不存在');
         }
+      },
+      onCancel: () => {
+        // 确定按钮的逻辑：生成操作记录
+        const confirmRecord = {
+          id: `confirm-${Date.now()}`,
+          title: `确认场景：${scenario.title}`,
+          description: `用户确认了场景"${scenario.title}"的详细信息`,
+          category: scenario.category,
+          difficulty: scenario.difficulty,
+          duration: scenario.duration,
+          source: '场景确认',
+          time: '刚刚',
+          type: 'confirmation',
+          status: 'confirmed',
+          createTime: new Date().toISOString(),
+          scenarioId: scenario.id
+        };
+        
+        setOperationRecords(prev => ({
+          ...prev,
+          scenario: [confirmRecord, ...prev.scenario]
+        }));
+        
+        message.success(`已确认场景：${scenario.title}`);
       }
     });
   };
@@ -477,9 +517,17 @@ const ScenarioSimulation = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: '#f5f5f5'
+            background: scenario.category === 'science_demo' ? scenario.color || '#f5f5f5' : '#f5f5f5'
           }}>
-            {imageCache.has(scenario.id) ? (
+            {scenario.category === 'science_demo' && scenario.icon ? (
+              <div style={{ 
+                fontSize: '32px', 
+                textAlign: 'center',
+                color: '#fff'
+              }}>
+                {scenario.icon}
+              </div>
+            ) : imageCache.has(scenario.id) ? (
               <img 
                 src={imageCache.get(scenario.id)}
                 alt={scenario.title}
