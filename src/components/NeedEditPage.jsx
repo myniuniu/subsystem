@@ -1036,6 +1036,18 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
         // 提交培训方案
         message.loading('正在提交培训方案...', 1);
         setTimeout(() => {
+          // 更新记录状态为已提交
+          setOperationRecords(prev => {
+            const newRecords = { ...prev };
+            Object.keys(newRecords).forEach(type => {
+              if (Array.isArray(newRecords[type])) {
+                newRecords[type] = newRecords[type].map(r => 
+                  r.id === record.id ? { ...r, isSubmitted: true, submitTime: new Date().toLocaleString('zh-CN') } : r
+                );
+              }
+            });
+            return newRecords;
+          });
           message.success(`培训方案"${record.title}"已成功提交！`);
           // 这里可以添加实际的提交逻辑，比如调用API
           console.log('提交培训方案:', record);

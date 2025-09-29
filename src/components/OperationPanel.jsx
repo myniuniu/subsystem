@@ -973,6 +973,7 @@ const OperationPanel = ({ state, handlers }) => {
                 case 'learning-plan': return '计';
                 case 'grading': return '阅';
                 case 'knowledge-graph': return '知';
+                case 'training-plan': return '培';
                 default: return '📄';
               }
             };
@@ -1039,6 +1040,25 @@ const OperationPanel = ({ state, handlers }) => {
                           }}>
                             <span>⭐</span>
                             <span>研修成果</span>
+                          </div>
+                        )}
+                        {/* 显示培训方案提交状态 */}
+                        {record.type === 'training-plan' && record.isSubmitted && (
+                          <div style={{
+                            background: 'linear-gradient(135deg, #f6ffed 0%, #b7eb8f 100%)',
+                            color: '#52c41a',
+                            fontSize: '8px',
+                            padding: '1px 4px',
+                            borderRadius: '8px',
+                            fontWeight: 'bold',
+                            border: '1px solid #73d13d',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '2px',
+                            flexShrink: 0
+                          }}>
+                            <span>✓</span>
+                            <span>已提交</span>
                           </div>
                         )}
                         {/* 显示学习计划同步状态 */}

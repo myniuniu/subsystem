@@ -1,11 +1,11 @@
 /* SmartNotes 智能笔记模块样式 */
 .smart-notes {
-  height: calc(100vh - 64px); /* 减去Header的高度 */
+  height: 100vh; /* 修改为100vh，与左侧菜单栏保持一致 */
   background: #f5f7fa;
 }
 
 .smart-notes .ant-layout {
-  height: calc(100vh - 64px); /* 减去Header的高度 */
+  height: 100vh; /* 修改为100vh，与左侧菜单栏保持一致 */
   background: transparent;
 }
 
@@ -36,7 +36,7 @@
 
 .sidebar-content {
   padding: 20px;
-  height: calc(100vh - 64px - 140px); /* 减去Header和sidebar-header的高度 */
+  height: calc(100vh - 140px); /* 修改为与左侧菜单栏一致的高度计算方式 */
   overflow-y: auto;
 }
 
@@ -518,7 +518,7 @@
 .notes-content {
   padding: 24px;
   background: #f5f7fa;
-  height: 100vh;
+  height: calc(100vh - 80px); /* 修改为与左侧菜单栏一致的高度 */
   overflow-y: auto;
   display: flex;
   flex-direction: column;
