@@ -399,13 +399,140 @@ export function generateComprehensiveTrainingPlan(trainingData) {
     // 3. 培训内容设计
     content: generateTrainingContent(trainingData),
     
-    // 4. 实施计划
+    // 4. 培训课程安排
+    courseArrangement: {
+      totalHours: 120,
+      totalWeeks: 8,
+      courses: [
+        {
+          id: 'course_1',
+          courseName: '现代教学理论与实践',
+          instructor: '张教授',
+          duration: '8学时',
+          type: '理论课程',
+          status: '进行中',
+          progress: 75,
+          description: '深入学习现代教学理论，掌握有效的教学方法和策略',
+          schedule: '第1-2周',
+          location: '培训教室A',
+          materials: ['教学理论手册', '案例分析集', '实践指南']
+        },
+        {
+          id: 'course_2',
+          courseName: '数字化教学工具应用',
+          instructor: '李老师',
+          duration: '12学时',
+          type: '实践课程',
+          status: '未开始',
+          progress: 0,
+          description: '学习使用各种数字化教学工具，提升教学效率',
+          schedule: '第3-4周',
+          location: '计算机实验室',
+          materials: ['软件安装包', '操作手册', '练习素材']
+        },
+        {
+          id: 'course_3',
+          courseName: '课堂管理与学生互动',
+          instructor: '王老师',
+          duration: '6学时',
+          type: '工作坊',
+          status: '已完成',
+          progress: 100,
+          description: '掌握有效的课堂管理技巧，提升师生互动质量',
+          schedule: '第5周',
+          location: '模拟教室',
+          materials: ['管理工具包', '互动游戏集', '评估表单']
+        },
+        {
+          id: 'course_4',
+          courseName: '教学评价与反思',
+          instructor: '陈老师',
+          duration: '4学时',
+          type: '研讨课',
+          status: '未开始',
+          progress: 0,
+          description: '学习科学的教学评价方法，培养反思性教学习惯',
+          schedule: '第6周',
+          location: '研讨室',
+          materials: ['评价工具集', '反思模板', '优秀案例']
+        }
+      ]
+    },
+    
+    // 5. 参训人员管理
+    participantManagement: {
+      totalParticipants: 25,
+      groupStructure: '分为5个小组，每组5人',
+      participants: [
+        {
+          id: 'participant_1',
+          name: '张三',
+          department: '数学系',
+          position: '副教授',
+          experience: '8年',
+          status: '积极参与',
+          completionRate: 85,
+          lastActive: '2024-01-15',
+          specialNeeds: '希望加强数字化教学技能',
+          contactInfo: 'zhangsan@university.edu'
+        },
+        {
+          id: 'participant_2',
+          name: '李四',
+          department: '物理系',
+          position: '讲师',
+          experience: '5年',
+          status: '正常参与',
+          completionRate: 72,
+          lastActive: '2024-01-14',
+          specialNeeds: '需要提升课堂管理能力',
+          contactInfo: 'lisi@university.edu'
+        },
+        {
+          id: 'participant_3',
+          name: '王五',
+          department: '化学系',
+          position: '教授',
+          experience: '15年',
+          status: '积极参与',
+          completionRate: 90,
+          lastActive: '2024-01-15',
+          specialNeeds: '关注教学创新方法',
+          contactInfo: 'wangwu@university.edu'
+        },
+        {
+          id: 'participant_4',
+          name: '赵六',
+          department: '生物系',
+          position: '副教授',
+          experience: '10年',
+          status: '需要关注',
+          completionRate: 45,
+          lastActive: '2024-01-12',
+          specialNeeds: '需要额外辅导支持',
+          contactInfo: 'zhaoliu@university.edu'
+        }
+      ],
+      attendanceTracking: {
+        method: '电子签到系统',
+        requirements: '每次课程必须签到',
+        makeupPolicy: '缺课可申请补课或在线学习'
+      },
+      communicationChannels: [
+        '微信群组',
+        '邮件通知',
+        '学习平台消息',
+        '定期电话回访'
+      ]
+    },
+    
+    // 6. 实施计划
     implementation: generateImplementationPlan(trainingData),
     
-    // 5. 评估体系
+    // 7. 评估体系
     evaluation: generateEvaluationSystem(trainingData),
     
-    // 6. 预期成果
+    // 8. 预期成果
     expectedOutcomes: {
       immediate: [
         '参训人员掌握相关理论知识',
@@ -424,7 +551,7 @@ export function generateComprehensiveTrainingPlan(trainingData) {
       ]
     },
     
-    // 7. 资源需求
+    // 9. 资源需求
     resourceRequirements: {
       human: {
         trainers: '2-3名专家讲师',
@@ -444,7 +571,7 @@ export function generateComprehensiveTrainingPlan(trainingData) {
       }
     },
     
-    // 8. 持续改进
+    // 10. 持续改进
     continuousImprovement: {
       feedbackCollection: '多渠道收集反馈意见',
       dataAnalysis: '定期分析培训效果数据',
