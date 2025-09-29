@@ -86,7 +86,8 @@ export const VIEW_MODES = {
   SCENARIO_VIEW: 'scenario_view',
   LEARNING_PLAN_CALENDAR: 'learning_plan_calendar',
   LEARNING_PLAN_THREE_COLUMN: 'learning_plan_three_column',
-  CLASSROOM_EVALUATION_FULLSCREEN: 'classroom_evaluation_fullscreen'
+  CLASSROOM_EVALUATION_FULLSCREEN: 'classroom_evaluation_fullscreen',
+  TRAINING_PLAN_FULLSCREEN: 'training_plan_fullscreen'
 };
 
 // 右侧面板视图常量
@@ -96,7 +97,8 @@ export const RIGHT_PANEL_VIEWS = {
   QUESTION_VIEWER: 'questionViewer',
   LEARNING_PLAN_VIEWER: 'learningPlanViewer',
   GRADING_VIEWER: 'gradingViewer',
-  CLASSROOM_EVALUATION_VIEWER: 'classroomEvaluationViewer'
+  CLASSROOM_EVALUATION_VIEWER: 'classroomEvaluationViewer',
+  TRAINING_PLAN_VIEWER: 'training_plan_viewer'
 };
 
 // 直播状态常量
@@ -327,6 +329,20 @@ export const OPERATION_CARDS = [
     icon: '卷',
     gradient: 'linear-gradient(135deg, #fdf8e1 0%, #f9e79f 100%)',
     color: '#b7950b'
+  },
+  {
+    key: OPERATION_TYPES.TRAINING_PLAN,
+    title: '培训方案',
+    icon: '培',
+    gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+    color: '#0958d9'
+  },
+  {
+    key: OPERATION_TYPES.SCHEDULE,
+    title: '课表',
+    icon: '课',
+    gradient: 'linear-gradient(135deg, #f0f5ff 0%, #d6e4ff 100%)',
+    color: '#2f54eb'
   },
   {
     key: 'addTool',

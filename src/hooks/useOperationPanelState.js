@@ -4,9 +4,9 @@ import dayjs from 'dayjs';
 import { OPERATION_CARDS } from '../constants/noteEditConstants';
 
 // 操作面板状态管理Hook
-export const useOperationPanelState = () => {
-  // 可见工具卡片状态 - 初始化默认工具
-  const [visibleCards, setVisibleCards] = useState(() => {
+export const useOperationPanelState = (noteCategory = null) => {
+  // 根据分类过滤工具的函数
+  const getFilteredCards = (category) => {
     // 从 localStorage 获取已添加的 AI 工具
     const addedAITools = JSON.parse(localStorage.getItem('added-ai-tools-to-panel') || '[]');
     
@@ -14,15 +14,22 @@ export const useOperationPanelState = () => {
     const aiToolsConfig = JSON.parse(localStorage.getItem('ai-tools-config') || '{}');
     
     // 获取默认基础工具（排除添加工具按钮、试卷、思维导图和视频概览）
-    const defaultCards = OPERATION_CARDS.filter(card => 
+    let defaultCards = OPERATION_CARDS.filter(card => 
       card.key !== 'addTool' && 
       card.key !== 'exam-paper' &&
       card.key !== 'mindmap' &&
       card.key !== 'video'
     );
     
-    // 添加 AI 工具到默认卡片列表
-    const aiToolCards = addedAITools.map(toolId => {
+    // 如果是培训需求与培训管理系统分类，只显示培训方案和课表工具
+    if (category === 'training_needs_management') {
+      defaultCards = OPERATION_CARDS.filter(card => 
+        card.key === 'training-plan' || card.key === 'schedule'
+      );
+    }
+    
+    // 添加 AI 工具到默认卡片列表（培训管理系统分类下不显示AI工具）
+    const aiToolCards = category === 'training_needs_management' ? [] : addedAITools.map(toolId => {
       const toolConfig = aiToolsConfig[toolId];
       if (toolConfig) {
         return {
@@ -39,6 +46,12 @@ export const useOperationPanelState = () => {
     
     const allCards = [...defaultCards, ...aiToolCards];
     
+    // 如果是培训需求与培训管理系统分类，直接返回培训方案和课表工具
+    if (category === 'training_needs_management') {
+      return allCards;
+    }
+    
+    // 其他分类保持原有的排序逻辑
     // 确保知识图谱在第一位，试题在第二位，学习计划在第三位，阅卷工具在第四位
     const knowledgeGraphCard = allCards.find(card => card.key === 'knowledge-graph');
     const questionCard = allCards.find(card => card.key === 'question');
@@ -58,6 +71,11 @@ export const useOperationPanelState = () => {
     orderedCards.push(...otherCards);
     
     return orderedCards;
+  };
+
+  // 可见工具卡片状态 - 初始化默认工具
+  const [visibleCards, setVisibleCards] = useState(() => {
+    return getFilteredCards(noteCategory);
   });
   
   const [isEditMode, setIsEditMode] = useState(false);
@@ -79,51 +97,7 @@ export const useOperationPanelState = () => {
   // 监听AI工具添加事件，实时更新操作面板
   useEffect(() => {
     const handleAIToolsChange = () => {
-      const addedAITools = JSON.parse(localStorage.getItem('added-ai-tools-to-panel') || '[]');
-      const aiToolsConfig = JSON.parse(localStorage.getItem('ai-tools-config') || '{}');
-      
-      const defaultCards = OPERATION_CARDS.filter(card => 
-        card.key !== 'addTool' && 
-        card.key !== 'exam-paper' &&
-        card.key !== 'mindmap' &&
-        card.key !== 'video'
-      );
-      
-      const aiToolCards = addedAITools.map(toolId => {
-        const toolConfig = aiToolsConfig[toolId];
-        if (toolConfig) {
-          return {
-            key: toolConfig.key,
-            title: toolConfig.title,
-            icon: toolConfig.icon,
-            gradient: toolConfig.gradient,
-            color: toolConfig.color,
-            isAITool: true
-          };
-        }
-        return null;
-      }).filter(Boolean);
-      
-      const allCards = [...defaultCards, ...aiToolCards];
-      
-      const knowledgeGraphCard = allCards.find(card => card.key === 'knowledge-graph');
-      const questionCard = allCards.find(card => card.key === 'question');
-      const learningPlanCard = allCards.find(card => card.key === 'learning-plan');
-      const gradingCard = allCards.find(card => card.key === 'grading');
-      const otherCards = allCards.filter(card => 
-        card.key !== 'knowledge-graph' && 
-        card.key !== 'question' &&
-        card.key !== 'learning-plan' &&
-        card.key !== 'grading'
-      );
-      const orderedCards = [];
-      if (knowledgeGraphCard) orderedCards.push(knowledgeGraphCard);
-      if (questionCard) orderedCards.push(questionCard);
-      if (learningPlanCard) orderedCards.push(learningPlanCard);
-      if (gradingCard) orderedCards.push(gradingCard);
-      orderedCards.push(...otherCards);
-      
-      setVisibleCards(orderedCards);
+      setVisibleCards(getFilteredCards(noteCategory));
     };
     
     // 监听 storage 事件
@@ -135,7 +109,12 @@ export const useOperationPanelState = () => {
       window.removeEventListener('storage', handleAIToolsChange);
       window.removeEventListener('aiToolsChanged', handleAIToolsChange);
     };
-  }, []);
+  }, [noteCategory]);
+
+  // 当分类变化时，更新可见工具卡片
+  useEffect(() => {
+    setVisibleCards(getFilteredCards(noteCategory));
+  }, [noteCategory]);
   
   // 练习模式相关状态
   const [practiceMode, setPracticeMode] = useState(false);

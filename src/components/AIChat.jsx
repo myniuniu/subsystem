@@ -115,15 +115,24 @@ const AIChat = ({ state, handlers }) => {
       type: operationType
     };
 
-    // 添加进度效果
-    message.loading(`正在生成${operationTitles[operationType]}...`, 3);
-    setTimeout(() => {
+    // 对于培训方案和课表工具，不显示文字生成效果，直接添加记录
+    if (operationType === 'training-plan' || operationType === 'schedule') {
       setOperationRecords(prev => ({
         ...prev,
         [operationType]: [newRecord, ...prev[operationType]]
       }));
       message.success(`${operationTitles[operationType]}已生成并添加到操作记录`);
-    }, 3000);
+    } else {
+      // 其他工具保持原有的进度效果
+      message.loading(`正在生成${operationTitles[operationType]}...`, 3);
+      setTimeout(() => {
+        setOperationRecords(prev => ({
+          ...prev,
+          [operationType]: [newRecord, ...prev[operationType]]
+        }));
+        message.success(`${operationTitles[operationType]}已生成并添加到操作记录`);
+      }, 3000);
+    }
   };
 
   return (

@@ -36,6 +36,7 @@ import QuestionViewer from './OperationPanel/QuestionViewer';
 import GradingViewer from './OperationPanel/GradingViewer';
 import LearningPlanViewer from './OperationPanel/LearningPlanViewer';
 import ClassroomEvaluationViewer from './OperationPanel/ClassroomEvaluationViewer';
+import TrainingPlanViewer from './OperationPanel/TrainingPlanViewer';
 import ToolGrid from './OperationPanel/ToolGrid';
 
 // 导入自定义Hooks
@@ -106,11 +107,19 @@ const OperationPanel = ({ state, handlers }) => {
     setRightPanelGradingRecord,
     rightPanelGradingContent,
     setRightPanelGradingContent,
+    rightPanelTrainingPlanRecord,
+    setRightPanelTrainingPlanRecord,
+    rightPanelTrainingPlanContent,
+    setRightPanelTrainingPlanContent,
     uploadedFiles,
     addedTexts,
     courseVideos,
-    links
+    links,
+    note
   } = state;
+
+  // 获取当前笔记的分类信息
+  const noteCategory = note?.category || note?.courseType || null;
 
   const {
     onOperationClick,
@@ -149,7 +158,7 @@ const OperationPanel = ({ state, handlers }) => {
     setGradingViewMode,
     selectedStudent,
     setSelectedStudent
-  } = useOperationPanelState();
+  } = useOperationPanelState(noteCategory);
   
   const {
     questionConfigVisible,
@@ -830,6 +839,18 @@ const OperationPanel = ({ state, handlers }) => {
         setRightPanelView={setRightPanelView}
         setRightPanelNoteRecord={setRightPanelEditingNote}
         setRightPanelNoteContent={setRightPanelNoteContent}
+      />
+    );
+  }
+
+  if (rightPanelView === RIGHT_PANEL_VIEWS.TRAINING_PLAN_VIEWER) {
+    return (
+      <TrainingPlanViewer 
+        rightPanelTrainingPlanRecord={rightPanelTrainingPlanRecord}
+        rightPanelTrainingPlanContent={rightPanelTrainingPlanContent}
+        setRightPanelView={setRightPanelView}
+        setRightPanelTrainingPlanRecord={setRightPanelTrainingPlanRecord}
+        setRightPanelTrainingPlanContent={setRightPanelTrainingPlanContent}
       />
     );
   }

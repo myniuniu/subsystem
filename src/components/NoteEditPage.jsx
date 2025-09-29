@@ -35,6 +35,7 @@ import LearningPlanCalendar from './LearningPlanCalendar';
 import CalendarCenter from './CalendarCenter';
 import ClassroomEvaluationFullscreen from './ClassroomEvaluationFullscreen';
 import ThemeSelectModal from './ThemeSelectModal';
+import TrainingPlanViewer from './OperationPanel/TrainingPlanViewer';
 
 // 导入hooks和工具
 import { useNoteEditState } from '../hooks/useNoteEditState';
@@ -58,9 +59,9 @@ import {
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', selectedTemplate = null }) => {
+const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', selectedTemplate = null, selectedCategory = null }) => {
   // 使用统一的状态管理hook
-  const state = useNoteEditState(note, mode, selectedTemplate);
+  const state = useNoteEditState(note, mode, selectedTemplate, selectedCategory);
   
   const {
     // 基本状态
@@ -275,7 +276,12 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         [OPERATION_TYPES.PPT]: 'PPT演示',
         [OPERATION_TYPES.WEBCODE]: '网页代码',
         [OPERATION_TYPES.SCENARIO]: '场景模拟',
-        [OPERATION_TYPES.NOTE]: '笔记'
+        [OPERATION_TYPES.NOTE]: '笔记',
+        'training-plan': '培训方案',
+        'schedule': '课表',
+        'participants': '参训人员清单',
+        'question': '试题',
+        'exam-paper': '试卷'
       };
 
       const totalMaterials = state.selectedMaterials?.length || 0;
@@ -287,15 +293,60 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         type: operationType
       };
 
-      // 添加进度效果
-      message.loading(`正在生成${operationTitles[operationType]}...`, 3);
-      setTimeout(() => {
+      // 对于培训方案，使用专门的生成逻辑
+      if (operationType === 'training-plan') {
+        // 导入培训方案生成器
+        import('../utils/trainingPlanGenerator').then(({ generateComprehensiveTrainingPlan }) => {
+          try {
+            // 构建培训数据
+            const trainingData = {
+              title: `基于${totalMaterials}个资料的培训方案`,
+              category: 'teaching_methods', // 默认类别
+              targetAudience: '全体教师',
+              duration: '6周',
+              description: `基于${totalMaterials}个资料生成的综合培训方案`
+            };
+
+            // 生成完整的培训方案
+            const comprehensivePlan = generateComprehensiveTrainingPlan(trainingData);
+            
+            // 创建包含完整内容的记录
+            const trainingPlanRecord = {
+              ...newRecord,
+              content: comprehensivePlan,
+              id: `training_plan_${Date.now()}`,
+              timestamp: new Date().toISOString()
+            };
+
+            setOperationRecords(prev => ({
+              ...prev,
+              [operationType]: [trainingPlanRecord, ...(prev[operationType] || [])]
+            }));
+            
+            message.success(`${operationTitles[operationType]}已生成并添加到操作记录`);
+          } catch (error) {
+            console.error('生成培训方案失败:', error);
+            message.error('生成培训方案失败，请重试');
+          }
+        });
+      } else if (['schedule', 'participants', 'question', 'exam-paper'].includes(operationType)) {
+        // 对于其他工具，保持原有逻辑
         setOperationRecords(prev => ({
           ...prev,
           [operationType]: [newRecord, ...(prev[operationType] || [])]
         }));
         message.success(`${operationTitles[operationType]}已生成并添加到操作记录`);
-      }, 3000);
+      } else {
+        // 其他工具保持原有的进度效果
+        message.loading(`正在生成${operationTitles[operationType]}...`, 3);
+        setTimeout(() => {
+          setOperationRecords(prev => ({
+            ...prev,
+            [operationType]: [newRecord, ...(prev[operationType] || [])]
+          }));
+          message.success(`${operationTitles[operationType]}已生成并添加到操作记录`);
+        }, 3000);
+      }
     },
     
     onAddTool: () => {
@@ -400,6 +451,75 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         // 切换到学习计划查看视图
         state.setRightPanelView(RIGHT_PANEL_VIEWS.LEARNING_PLAN_VIEWER);
         console.log('在右侧面板显示学习计划内容:', record.title);
+        return;
+      }
+      
+      if (record.type === 'training-plan') {
+        console.log('培训方案记录点击，切换到全屏模式');
+        
+        // 设置培训方案查看状态
+        state.setRightPanelTrainingPlanRecord(record);
+        
+        // 使用记录中的content，如果没有则生成默认内容
+        if (record.content) {
+          state.setRightPanelTrainingPlanContent(record.content);
+        } else {
+          // 如果没有content，生成默认的培训方案内容
+          const defaultContent = {
+            title: record.title,
+            overview: '本培训方案旨在提升参训人员的专业技能和综合素质。',
+            schedule: [
+              {
+                id: 1,
+                title: '基础理论学习',
+                duration: '2小时',
+                type: 'video',
+                description: '学习相关理论知识和基础概念',
+                videos: [
+                  { id: 'v1', title: '理论基础第一讲', duration: '30分钟' },
+                  { id: 'v2', title: '理论基础第二讲', duration: '30分钟' },
+                  { id: 'v3', title: '案例分析', duration: '60分钟' }
+                ]
+              },
+              {
+                id: 2,
+                title: '实践操作训练',
+                duration: '3小时',
+                type: 'practice',
+                description: '通过实际操作加深理解',
+                videos: [
+                  { id: 'v4', title: '操作演示', duration: '90分钟' },
+                  { id: 'v5', title: '实践指导', duration: '90分钟' }
+                ]
+              },
+              {
+                id: 3,
+                title: '综合评估',
+                duration: '1小时',
+                type: 'assessment',
+                description: '对学习成果进行综合评估',
+                videos: [
+                  { id: 'v6', title: '评估说明', duration: '60分钟' }
+                ]
+              }
+            ],
+            participants: [
+              { id: 1, name: '张三', department: '技术部', position: '工程师', status: '已报名' },
+              { id: 2, name: '李四', department: '产品部', position: '产品经理', status: '已报名' },
+              { id: 3, name: '王五', department: '设计部', position: 'UI设计师', status: '待确认' },
+              { id: 4, name: '赵六', department: '运营部', position: '运营专员', status: '已报名' }
+            ],
+            totalDuration: '6小时',
+            startDate: '2024-01-15',
+            endDate: '2024-01-17',
+            location: '培训中心A座201室'
+          };
+          state.setRightPanelTrainingPlanContent(defaultContent);
+        }
+        
+        // 切换到培训方案全屏模式
+        setCurrentView(VIEW_MODES.TRAINING_PLAN_FULLSCREEN);
+        console.log('切换到培训方案全屏模式:', record.title);
         return;
       }
       
@@ -737,6 +857,37 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
             state={state}
             setCurrentView={setCurrentView}
           />
+        ) : currentView === VIEW_MODES.TRAINING_PLAN_FULLSCREEN ? (
+          /* 培训方案全屏模式：占据全部三栏区域 */
+          <div style={{ 
+            flex: 1, 
+            background: '#f0f2f5', 
+            margin: '16px', 
+            borderRadius: '12px', 
+            overflow: 'hidden', 
+            display: 'flex', 
+            flexDirection: 'column',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            position: 'relative'
+          }}>
+            {/* 培训方案内容区域 */}
+            <div style={{ 
+              flex: 1, 
+              background: '#fff',
+              borderRadius: '12px',
+              overflow: 'hidden'
+            }}>
+              <TrainingPlanViewer 
+                rightPanelTrainingPlanRecord={state.rightPanelTrainingPlanRecord}
+                rightPanelTrainingPlanContent={state.rightPanelTrainingPlanContent}
+                setRightPanelView={state.setRightPanelView}
+                setRightPanelTrainingPlanRecord={state.setRightPanelTrainingPlanRecord}
+                setRightPanelTrainingPlanContent={state.setRightPanelTrainingPlanContent}
+                isFullscreen={true}
+                setCurrentView={state.setCurrentView}
+              />
+            </div>
+          </div>
         ) : (
           /* 普通三栏布局模式 */
           <>

@@ -16,6 +16,8 @@ const DraggableOperationCard = ({
   sourceInfo,
   isLoading = false // 新增加载状态
 }) => {
+  // 所有工具在加载时都显示光圈效果
+  const showLoadingRipple = isLoading;
   const [{ isDragging }, drag] = useDrag({
     type: 'operation',
     item: { index, key: card.key },
@@ -96,6 +98,10 @@ const DraggableOperationCard = ({
               transform: scale(1);
               opacity: 1;
             }
+            50% {
+              transform: scale(1.2);
+              opacity: 0.7;
+            }
             100% {
               transform: scale(1.4);
               opacity: 0;
@@ -110,7 +116,7 @@ const DraggableOperationCard = ({
             bottom: -4px;
             border: 2px solid #1890ff;
             border-radius: 12px;
-            animation: ripple 1.5s infinite;
+            animation: ripple 3s ease-out;
             pointer-events: none;
           }
         `}
@@ -132,7 +138,7 @@ const DraggableOperationCard = ({
           }}
         >
           {/* 加载状态的光圈效果 */}
-          {isLoading && (
+          {showLoadingRipple && (
             <div className="loading-ripple" />
           )}
           

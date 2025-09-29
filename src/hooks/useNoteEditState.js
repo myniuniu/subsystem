@@ -22,7 +22,7 @@ const subtitleData = [
   { start: 235, end: 250, text: '下节课我们将学习栈和队列，请大家做好预习准备。谢谢大家！' }
 ];
 
-export const useNoteEditState = (note, mode, selectedTemplate = null) => {
+export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCategory = null) => {
   // 资料收集相关状态
   const [uploadedFiles, setUploadedFiles] = useState(() => {
     // 默认的试卷文件，在任何模式下都显示
@@ -270,6 +270,10 @@ export const useNoteEditState = (note, mode, selectedTemplate = null) => {
   // 阅卷报告查看状态
   const [rightPanelGradingRecord, setRightPanelGradingRecord] = useState(null);
   const [rightPanelGradingContent, setRightPanelGradingContent] = useState('');
+  
+  // 培训方案查看状态
+  const [rightPanelTrainingPlanRecord, setRightPanelTrainingPlanRecord] = useState(null);
+  const [rightPanelTrainingPlanContent, setRightPanelTrainingPlanContent] = useState('');
 
   // 能力模型相关状态
   const [capabilityMap, setCapabilityMap] = useState(null);
@@ -530,6 +534,12 @@ export const useNoteEditState = (note, mode, selectedTemplate = null) => {
     setRightPanelGradingRecord,
     rightPanelGradingContent,
     setRightPanelGradingContent,
+    
+    // 培训方案查看状态
+    rightPanelTrainingPlanRecord,
+    setRightPanelTrainingPlanRecord,
+    rightPanelTrainingPlanContent,
+    setRightPanelTrainingPlanContent,
 
     // 能力模型和知识图谱状态
     capabilityMap,
@@ -558,6 +568,17 @@ export const useNoteEditState = (note, mode, selectedTemplate = null) => {
     setIsWidescreenMode,
 
     // 常量数据
-    subtitleData
+    subtitleData,
+    
+    // 笔记对象 - 为新建主题构建包含category信息的note对象
+    note: mode === 'create' && !note ? {
+      id: null,
+      title: '',
+      content: '',
+      category: selectedCategory || 'personal',
+      tags: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    } : note
   };
 };

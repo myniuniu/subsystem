@@ -364,12 +364,18 @@ const NeedEditPage = ({ onBack, onViewChange, selectedNeed, mode = 'create' }) =
 
 `;
     
-    // 添加进度效果
-    message.loading(`正在生成${title}...`, 3);
-    setTimeout(() => {
+    // 对于培训方案和课表工具，不显示文字生成效果，直接添加记录
+    if (operationType === 'training-plan' || operationType === 'schedule') {
       setNeedContent(prev => prev + operationRecord);
       message.success(`已添加${title}操作记录`);
-    }, 3000);
+    } else {
+      // 其他工具保持原有的进度效果
+      message.loading(`正在生成${title}...`, 3);
+      setTimeout(() => {
+        setNeedContent(prev => prev + operationRecord);
+        message.success(`已添加${title}操作记录`);
+      }, 3000);
+    }
   };
 
   return (

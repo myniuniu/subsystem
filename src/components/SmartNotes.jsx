@@ -69,12 +69,13 @@ import NoteCreateModal from './NoteCreateModal';
 import NoteEditPage from './NoteEditPage';
 import ThemeShareModal from './ThemeShareModal';
 import CalendarCenter from './CalendarCenter';
-import ThemeTemplateSelector from './ThemeTemplateSelector';
+
 import notesService from '../services/notesService';
 import courseSelectionService from '../services/courseSelectionService';
 import themeShareService from '../services/themeShareService';
 import mockDataGenerator from '../utils/mockDataGenerator';
 import { TRAINING_STATUS, getTrainingStatusInfo } from '../utils/trainingStatusUtils';
+import { generateTrainingNeedsManagementData } from '../data/trainingNeedsManagementData';
 import './SmartNotes.css';
 
 const { Content, Sider } = Layout;
@@ -112,8 +113,6 @@ const SmartNotes = ({ onViewChange }) => {
   const [editingNote, setEditingNote] = useState(null);
   const [editMode, setEditMode] = useState('create');
   const [showCalendarCenter, setShowCalendarCenter] = useState(false);
-  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [form] = Form.useForm();
 
   // 笔记分类
@@ -128,7 +127,8 @@ const SmartNotes = ({ onViewChange }) => {
     { value: 'learning_square', label: '学习广场', icon: '🎓', type: 'system' },
     { value: 'knowledge_graph', label: '知识图谱', icon: 'NodeIndexOutlined', type: 'fixed' },
     { value: 'capability_model', label: '能力模型', icon: 'RadarChartOutlined', type: 'fixed' },
-    { value: 'micro_specialization', label: '微专业', icon: 'ExperimentOutlined', type: 'fixed' }
+    { value: 'micro_specialization', label: '微专业', icon: 'ExperimentOutlined', type: 'fixed' },
+    { value: 'training_needs_management', label: '培训需求与培训管理系统', icon: '📋', type: 'system' }
   ];
 
   // 常用标签
@@ -188,6 +188,16 @@ const SmartNotes = ({ onViewChange }) => {
       
       console.log('组织培训笔记数量:', orgTrainingNotes.length);
       
+      // 检查是否有培训需求与管理笔记，如果没有则自动生成
+      const trainingNeedsNotes = notesData.filter(note => 
+        note.courseType === 'training_needs_management' || 
+        note.tags?.includes('培训需求与管理') ||
+        note.category === 'training_needs_management' ||
+        note.source === '培训需求与管理'
+      );
+      
+      console.log('培训需求与管理笔记数量:', trainingNeedsNotes.length);
+      
       if (orgTrainingNotes.length === 0) {
         console.log('没有组织培训笔记，自动生成模拟数据...');
         try {
@@ -200,6 +210,23 @@ const SmartNotes = ({ onViewChange }) => {
           }
         } catch (error) {
           console.error('自动生成数据失败:', error);
+        }
+      }
+      
+      if (trainingNeedsNotes.length === 0) {
+        console.log('没有培训需求与管理笔记，自动生成模拟数据...');
+        try {
+          const trainingNeedsData = generateTrainingNeedsManagementData();
+          // 将数据添加到笔记服务中
+          trainingNeedsData.forEach(note => {
+            notesService.createNote(note);
+          });
+          // 重新获取数据
+          notesData = notesService.getAllNotes();
+          console.log('生成培训需求与管理数据后重新加载，笔记总数:', notesData.length);
+          message.success(`已自动生成 ${trainingNeedsData.length} 条培训需求与管理模拟数据`);
+        } catch (error) {
+          console.error('自动生成培训需求与管理数据失败:', error);
         }
       }
       
@@ -294,27 +321,13 @@ const SmartNotes = ({ onViewChange }) => {
 
   // 创建新笔记
   const handleCreateNote = () => {
-    // 显示主题模版选择器
-    setShowTemplateSelector(true);
-  };
-
-  // 处理模版选择
-  const handleTemplateSelect = (template) => {
-    setSelectedTemplate(template);
-    setShowTemplateSelector(false);
-    
-    // 在主区域显示笔记编辑页面，并传递选中的模版
+    // 直接创建新主题，不需要选择模版
     setEditingNote(null);
     setEditMode('create');
     setShowNoteEditPage(true);
-    
-    message.success(`已选择模版：${template.name}`);
   };
 
-  // 取消模版选择
-  const handleTemplateSelectorCancel = () => {
-    setShowTemplateSelector(false);
-  };
+
 
   // 关闭编辑页面
   const handleCloseEditPage = () => {
@@ -840,7 +853,8 @@ ${aiSelectedNote.content}`;
       onViewChange={onViewChange} 
       note={editingNote}
       mode={editMode}
-      selectedTemplate={selectedTemplate}
+      selectedTemplate={null}
+      selectedCategory={selectedCategory}
     />;
   }
 
@@ -1113,19 +1127,19 @@ ${aiSelectedNote.content}`;
                               await loadData();
                               
                               if (syncResult.syncedCount > 0) {
-                                message.success(`已生成 ${result.count} 条模拟数据并同步 ${syncResult.syncedCount} 条组织培训课程`);
+                                message.success(`已生成 ${result.stats.count} 条模拟数据并同步 ${syncResult.syncedCount} 条组织培训课程`);
                               } else {
-                                message.success(`已生成 ${result.count} 条模拟数据，所有组织培训课程已同步`);
+                                message.success(`已生成 ${result.stats.count} 条模拟数据，所有组织培训课程已同步`);
                               }
                             } else {
-                              message.success(`已生成 ${result.count} 条模拟数据，同步组织培训失败：${syncResult.error}`);
+                              message.success(`已生成 ${result.stats.count} 条模拟数据，同步组织培训失败：${syncResult.error}`);
                             }
                           } else {
-                            message.success(`已生成 ${result.count} 条模拟数据`);
+                            message.success(`已生成 ${result.stats.count} 条模拟数据`);
                           }
                         } catch (syncError) {
                           console.error('同步组织培训课程失败:', syncError);
-                          message.success(`已生成 ${result.count} 条模拟数据，同步组织培训课程失败`);
+                          message.success(`已生成 ${result.stats.count} 条模拟数据，同步组织培训课程失败`);
                         }
                       } else {
                         console.error('生成失败:', result.error);
@@ -1678,52 +1692,16 @@ ${aiSelectedNote.content}`;
             { id: 2, url: 'https://education-tech.org', title: '教育技术发展研究网', addTime: '3分钟前' },
             { id: 3, url: 'https://core-competency.edu', title: '核心素养教育资源库', addTime: '8分钟前' }
           ],
-          texts: [
-            { 
-              id: 1, 
-              title: '教师培训需求分析', 
-              content: '在教育改革不断深化、教育技术飞速发展的当下，传统的教学模式和教师知识结构已难以完全适配新时代教育教学的要求...', 
-              addTime: '刚刚' 
-            },
-            { 
-              id: 2, 
-              title: '教师信息技术能力提升方案', 
-              content: '随着信息技术在教育领域的深度融合，教师的信息技术应用能力已成为影响教学质量的关键因素...', 
-              addTime: '10分钟前' 
+          texts: (() => {
+            // 初始化培训方案记录数据
+            if (!localStorage.getItem('training_plan_records')) {
+              const trainingPlanRecords = mockDataGenerator.generateTrainingPlanRecords();
+              return trainingPlanRecords;
+            } else {
+              const savedTrainingPlanRecords = JSON.parse(localStorage.getItem('training_plan_records'));
+              return savedTrainingPlanRecords;
             }
-          ],
-          videos: [
-            { id: 1, title: '现代教学方法与技巧', url: 'https://edu-video.com/modern-teaching', addTime: '刚刚' },
-            { id: 2, title: '信息技术与课程整合', url: 'https://edu-video.com/tech-integration', addTime: '5分钟前' },
-            { id: 3, title: '学生心理发展与教育', url: 'https://edu-video.com/student-psychology', addTime: '12分钟前' }
-          ]
-        }}
-        operationRecords={{
-          audio: [
-            { id: 1, title: '基于7个资料生成音频概览', source: '7个来源', time: '刚刚', type: 'audio' },
-            { id: 11, title: '基于5个资料生成音频概览', source: '5个来源', time: '5分钟前', type: 'audio' }
-          ],
-          video: [
-            { id: 2, title: '基于7个资料生成视频概览', source: '7个来源', time: '2分钟前', type: 'video' },
-            { id: 12, title: '基于3个资料生成视频概览', source: '3个来源', time: '8分钟前', type: 'video' }
-          ],
-          ppt: [
-            { id: 13, title: '基于7个资料生成PPT演示', source: '7个来源', time: '3分钟前', type: 'ppt' },
-            { id: 14, title: '基于4个资料生成PPT演示', source: '4个来源', time: '12分钟前', type: 'ppt' }
-          ],
-          mindmap: [
-            { id: 3, title: '基于教师培训资料生成思维导图', source: '多个来源', time: '5分钟前', type: 'mindmap' },
-            { id: 15, title: '基于课程设计资料生成思维导图', source: '6个来源', time: '15分钟前', type: 'mindmap' }
-          ],
-          report: [
-            { id: 4, title: '教师培训需求分析报告', source: '调研数据', time: '10分钟前', type: 'report' },
-            { id: 5, title: '信息技术能力评估报告', source: '测评结果', time: '15分钟前', type: 'report' },
-            { id: 16, title: '学生学习效果分析报告', source: '学习数据', time: '25分钟前', type: 'report' }
-          ],
-          'training-plan': [
-            { id: 6, title: '教师专业发展培训方案', source: '需求分析', time: '20分钟前', type: 'training-plan' },
-            { id: 17, title: '新教师入职培训方案', source: '培训需求', time: '30分钟前', type: 'training-plan' }
-          ],
+          })(),
           scenario: [
             { 
               id: 18, 
@@ -1792,13 +1770,6 @@ ${aiSelectedNote.content}`;
       >
         <CalendarCenter />
       </Modal>
-
-      {/* 主题模版选择器 */}
-      <ThemeTemplateSelector
-        visible={showTemplateSelector}
-        onCancel={handleTemplateSelectorCancel}
-        onSelect={handleTemplateSelect}
-      />
     </div>
   );
 };

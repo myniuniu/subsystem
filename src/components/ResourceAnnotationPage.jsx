@@ -716,7 +716,9 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
       webcode: '网页代码',
       'training-plan': '培训方案',
       schedule: '课表',
-      participants: '参训人员清单'
+      participants: '参训人员清单',
+      question: '试题',
+      'exam-paper': '试卷'
     };
     
     if (!visibleTools.includes(toolType)) {
@@ -735,7 +737,9 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
       webcode: '网页代码',
       'training-plan': '培训方案',
       schedule: '课表',
-      participants: '参训人员清单'
+      participants: '参训人员清单',
+      question: '试题',
+      'exam-paper': '试卷'
     };
     
     setVisibleTools(prev => prev.filter(tool => tool !== toolType));
@@ -753,7 +757,9 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
       webcode: '网页代码',
       'training-plan': '培训方案',
       schedule: '课表',
-      participants: '参训人员清单'
+      participants: '参训人员清单',
+      question: '试题',
+      'exam-paper': '试卷'
     };
 
     // 计算所有资料的总数
@@ -771,15 +777,24 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
       type: operationType === 'training-plan' ? 'training-plan' : recordType
     };
 
-    // 添加进度效果
-    message.loading(`正在生成${operationTitles[operationType]}...`, 3);
-    setTimeout(() => {
+    // 对于培训方案和课表工具，不显示文字生成效果，直接添加记录
+    if (operationType === 'training-plan' || operationType === 'schedule') {
       setOperationRecords(prev => ({
         ...prev,
         [recordType]: [newRecord, ...prev[recordType]]
       }));
       message.success(`${operationTitles[operationType]}已生成并添加到操作记录`);
-    }, 3000);
+    } else {
+      // 其他工具保持原有的进度效果
+      message.loading(`正在生成${operationTitles[operationType]}...`, 3);
+      setTimeout(() => {
+        setOperationRecords(prev => ({
+          ...prev,
+          [recordType]: [newRecord, ...prev[recordType]]
+        }));
+        message.success(`${operationTitles[operationType]}已生成并添加到操作记录`);
+      }, 3000);
+    }
   };
 
   // 保存AI回复到需求
