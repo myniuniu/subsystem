@@ -1751,6 +1751,56 @@ ${aiSelectedNote.content}`;
             { id: 23, title: '基于5个资料生成网页代码', source: '5个来源', time: '22分钟前', type: 'webcode' }
           ]
         }}
+        operationRecords={{
+          texts: [
+            { id: 7, title: '手动标注记录 - 核心素养', source: '手动标注', time: '刚刚', type: 'text' },
+            { id: 8, title: '规则标注执行 - 教学方法分类', source: '规则标注系统', time: '5分钟前', type: 'text' },
+            { id: 20, title: '手动标注记录 - 学习目标', source: '手动标注', time: '18分钟前', type: 'text' }
+          ],
+          scenarios: [
+            { 
+              id: 18, 
+              title: '[AI生成] 智能场景：基于7个资料的个性化', 
+              source: 'AI智能助手', 
+              time: '刚刚', 
+              type: 'scenario',
+              isAIGenerated: true,
+              status: 'completed',
+              description: 'AI场景生成完成'
+            },
+            { 
+              id: 19, 
+              title: '[AI生成] 智能场景：课堂互动设计', 
+              source: 'AI智能助手', 
+              time: '6分钟前', 
+              type: 'scenario',
+              isAIGenerated: true,
+              status: 'completed',
+              description: 'AI场景生成完成'
+            }
+          ],
+          notes: [
+            { 
+              id: 21, 
+              title: '学习笔记示例', 
+              source: '示例笔记', 
+              time: '刚刚', 
+              type: 'note',
+              content: '<p>这是一个关于教学设计的学习笔记，包含了重要的理论知识和实践经验。</p>'
+            },
+            { 
+              id: 22, 
+              title: '课程反思笔记', 
+              source: '个人笔记', 
+              time: '10分钟前', 
+              type: 'note',
+              content: '<p>本次课程的教学反思和改进建议。</p>'
+            }
+          ],
+          webcodes: [
+            { id: 23, title: '基于5个资料生成网页代码', source: '5个来源', time: '22分钟前', type: 'webcode' }
+          ]
+        }}
         onShareSuccess={(type, result) => {
           setIsShareModalVisible(false);
           setShareSelectedNote(null);

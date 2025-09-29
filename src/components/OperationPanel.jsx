@@ -1101,16 +1101,6 @@ const OperationPanel = ({ state, handlers }) => {
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Button 
-                      type="text" 
-                      size="small" 
-                      icon={<div style={{ fontSize: '12px' }}>▶</div>}
-                      style={{ padding: '2px 4px', height: 'auto', minWidth: 'auto' }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRecordClick && onRecordClick(record);
-                      }}
-                    />
                     <Dropdown
                       menu={{ items: getMoreMenuItems(record) }}
                       trigger={['click']}
