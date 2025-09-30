@@ -9,9 +9,12 @@ import {
   Checkbox,
   Row,
   Col,
-  Select
+  Select,
+  List,
+  Input,
+  Badge
 } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, MessageOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
 // 导入重构后的组件
@@ -131,6 +134,36 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
     currentActionType,
     setCurrentActionType
   } = state;
+
+  // 消息中心相关状态
+  const [showMessageCenter, setShowMessageCenter] = useState(false);
+  const [unreadMessageCount, setUnreadMessageCount] = useState(3); // 模拟未读消息数量
+  const [discussionMessages, setDiscussionMessages] = useState([
+    {
+      id: 1,
+      senderId: 'user1',
+      senderName: '张老师',
+      content: '这个主题的内容很有深度，值得深入讨论',
+      time: '2024-01-15 14:30',
+      type: 'text'
+    },
+    {
+      id: 2,
+      senderId: 'user2',
+      senderName: '李主任',
+      content: '同意张老师的观点，建议增加实践案例',
+      time: '2024-01-15 15:15',
+      type: 'text'
+    },
+    {
+      id: 3,
+      senderId: 'user3',
+      senderName: '王同事',
+      content: '我这里有一些相关资料，可以分享给大家',
+      time: '2024-01-15 16:20',
+      type: 'text'
+    }
+  ]);
 
   // 初始化可用工具数据
   useEffect(() => {
@@ -1089,8 +1122,215 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
           dangerouslySetInnerHTML={{ __html: modalContent }}
         />
       </Modal>
-    </>
-  );
-};
+      
+      {/* 悬浮消息图标 */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          zIndex: 1000,
+          cursor: 'pointer'
+        }}
+        onClick={() => setShowMessageCenter(true)}
+      >
+        <div
+          style={{
+            width: '56px',
+            height: '56px',
+            backgroundColor: '#1890ff',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 12px rgba(24, 144, 255, 0.4)',
+            transition: 'all 0.3s ease',
+            position: 'relative'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.transform = 'scale(1.1)';
+            e.target.style.boxShadow = '0 6px 16px rgba(24, 144, 255, 0.6)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.transform = 'scale(1)';
+            e.target.style.boxShadow = '0 4px 12px rgba(24, 144, 255, 0.4)';
+          }}
+        >
+          <MessageOutlined style={{ fontSize: '24px', color: 'white' }} />
+          {unreadMessageCount > 0 && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '-10px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                backgroundColor: '#ff4d4f',
+                color: 'white',
+                borderRadius: '50%',
+                width: '20px',
+                height: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                border: '2px solid white'
+              }}
+            >
+              {unreadMessageCount > 99 ? '99+' : unreadMessageCount}
+            </div>
+          )}
+        </div>
+       </div>
+       
+       {/* 消息讨论弹窗 */}
+       <div
+         style={{
+           position: 'fixed',
+           bottom: '90px', // 在悬浮图标上方
+           right: '24px',
+           width: '400px',
+           height: '500px',
+           backgroundColor: 'white',
+           borderRadius: '12px',
+           boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+           border: '1px solid #e8e8e8',
+           zIndex: 1001,
+           display: showMessageCenter ? 'flex' : 'none',
+           flexDirection: 'column',
+           overflow: 'hidden'
+         }}
+       >
+         {/* 标题栏 */}
+         <div style={{
+           padding: '16px 20px',
+           borderBottom: '1px solid #f0f0f0',
+           backgroundColor: '#fafafa',
+           display: 'flex',
+           alignItems: 'center',
+           justifyContent: 'space-between'
+         }}>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+             <MessageOutlined style={{ color: '#1890ff' }} />
+             <span style={{ fontWeight: 'bold' }}>主题讨论</span>
+             <Badge count={unreadMessageCount} size="small" />
+           </div>
+           <Button 
+             type="text" 
+             size="small"
+             onClick={() => {
+               setShowMessageCenter(false);
+               setUnreadMessageCount(0);
+             }}
+             style={{ color: '#999' }}
+           >
+             ✕
+           </Button>
+         </div>
+          {/* 消息列表区域 */}
+          <div style={{ 
+            flex: 1, 
+            padding: '16px', 
+            overflowY: 'auto',
+            borderBottom: '1px solid #f0f0f0'
+          }}>
+            <List
+              dataSource={discussionMessages}
+              renderItem={(msg) => (
+                <List.Item style={{ padding: '12px 0', border: 'none' }}>
+                  <div style={{ width: '100%' }}>
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      marginBottom: '8px' 
+                    }}>
+                      <Typography.Text strong style={{ color: '#1890ff' }}>
+                        {msg.senderName}
+                      </Typography.Text>
+                      <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
+                        {msg.time}
+                      </Typography.Text>
+                    </div>
+                    <Typography.Text style={{ 
+                      fontSize: '14px', 
+                      lineHeight: '1.5',
+                      display: 'block',
+                      padding: '8px 12px',
+                      backgroundColor: '#f6f8ff',
+                      borderRadius: '8px',
+                      border: '1px solid #e6f0ff'
+                    }}>
+                      {msg.content}
+                    </Typography.Text>
+                  </div>
+                </List.Item>
+              )}
+            />
+          </div>
+          
+          {/* 消息输入区域 */}
+          <div style={{ 
+            padding: '16px', 
+            backgroundColor: '#fafafa',
+            borderTop: '1px solid #f0f0f0'
+          }}>
+            <Input.Group compact>
+              <Input
+                style={{ width: 'calc(100% - 80px)' }}
+                placeholder="输入您的讨论内容..."
+                onPressEnter={(e) => {
+                  if (e.target.value.trim()) {
+                    const newMessage = {
+                      id: Date.now(),
+                      senderId: 'me',
+                      senderName: '我',
+                      content: e.target.value,
+                      time: new Date().toLocaleString('zh-CN', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }),
+                      type: 'text'
+                    };
+                    setDiscussionMessages(prev => [...prev, newMessage]);
+                    e.target.value = '';
+                    message.success('消息发送成功');
+                  }
+                }}
+              />
+              <Button 
+                type="primary" 
+                style={{ width: '80px' }}
+                onClick={(e) => {
+                  const input = e.target.parentElement.querySelector('input');
+                  if (input && input.value.trim()) {
+                    const newMessage = {
+                      id: Date.now(),
+                      senderId: 'me',
+                      senderName: '我',
+                      content: input.value,
+                      time: new Date().toLocaleString('zh-CN', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }),
+                      type: 'text'
+                    };
+                    setDiscussionMessages(prev => [...prev, newMessage]);
+                    input.value = '';
+                    message.success('消息发送成功');
+                  }
+                }}
+              >
+                发送
+              </Button>
+            </Input.Group>
+          </div>
+        </div>
+     </>
+   );
+ };
 
-export default NoteEditPage;
+ export default NoteEditPage;
