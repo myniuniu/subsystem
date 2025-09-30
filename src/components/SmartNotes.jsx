@@ -94,7 +94,7 @@ const initializeDefaultAITools = () => {
   
   // 如果没有AI工具，添加一些默认的
   if (existingTools.length === 0) {
-    const defaultTools = ['grading-assistant', 'smart-writer', 'video-slicing'];
+    const defaultTools = ['grading-assistant', 'smart-writer'];
     const defaultConfig = {
       'grading-assistant': {
         key: 'grading-assistant',
@@ -109,13 +109,6 @@ const initializeDefaultAITools = () => {
         icon: '✍',
         gradient: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
         color: '#52c41a'
-      },
-      'video-slicing': {
-        key: 'video-slicing',
-        title: '视频切片',
-        icon: '🎬',
-        gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
-        color: '#1890ff'
       }
     };
     
@@ -1863,11 +1856,6 @@ ${aiSelectedNote.content}`;
           ],
           webcodes: [
             { id: 23, title: '基于5个资料生成网页代码', source: '5个来源', time: '22分钟前', type: 'webcode' }
-          ],
-          'video-slicing': [
-            { id: 24, title: '教学视频智能切片 - 核心知识点', source: '视频切片工具', time: '刚刚', type: 'video-slicing' },
-            { id: 25, title: '培训课程视频分段处理', source: '视频切片工具', time: '5分钟前', type: 'video-slicing' },
-            { id: 26, title: '微课视频自动切片', source: '视频切片工具', time: '10分钟前', type: 'video-slicing' }
           ]
         }}
         onShareSuccess={(type, result) => {

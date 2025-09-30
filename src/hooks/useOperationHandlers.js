@@ -1,5 +1,5 @@
 import { message, Modal } from 'antd';
-import { OPERATION_TYPES, RIGHT_PANEL_VIEWS } from '../constants/noteEditConstants';
+import { OPERATION_TYPES } from '../constants/noteEditConstants';
 
 // 操作处理逻辑Hook
 export const useOperationHandlers = ({
@@ -111,13 +111,6 @@ export const useOperationHandlers = ({
     message.success('培训报表工具已启动！');
   };
 
-  // 处理视频切片工具
-  const handleVideoSlicingToolAction = () => {
-    // 直接切换到视频切片视图
-    setRightPanelView(RIGHT_PANEL_VIEWS.VIDEO_SLICING_VIEWER);
-    message.success('视频切片工具已启动！');
-  };
-
   // 处理培训报告工具
   const handleTrainingReportToolAction = () => {
     // 生成培训报告记录
@@ -199,9 +192,6 @@ export const useOperationHandlers = ({
     } else if (card.key === OPERATION_TYPES.TRAINING_DASHBOARD) {
       // 培训报表工具处理
       handleTrainingDashboardToolAction();
-    } else if (card.key === OPERATION_TYPES.VIDEO_SLICING) {
-      // 视频切片工具处理
-      handleVideoSlicingToolAction();
     } else if (card.isAITool) {
       // AI工具点击处理
       message.info(`您点击了AI工具：${card.title}（基于${sourceInfo?.total || 0}个数据源）`);
@@ -214,7 +204,6 @@ export const useOperationHandlers = ({
     handleToolClick,
     handleGradingToolAction,
     handleTrainingReportToolAction,
-    handleTrainingDashboardToolAction,
-    handleVideoSlicingToolAction
+    handleTrainingDashboardToolAction
   };
 };

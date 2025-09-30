@@ -6,15 +6,18 @@ import {
   Settings, 
   Palette,
   CheckCircle,
-  Share2
+  Share2,
+  Users
 } from 'lucide-react';
 import { getCurrentTheme, setTheme, getThemeList } from '../utils/themeManager';
 import ThemeShareModal from './ThemeShareModal';
+import LoginMoreModal from './LoginMoreModal';
 import './SidebarAvatar.css';
 
 const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
   const [currentTheme, setCurrentTheme] = useState(getCurrentTheme());
   const [shareModalVisible, setShareModalVisible] = useState(false);
+  const [loginMoreModalVisible, setLoginMoreModalVisible] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(true); // 模拟登录状态
   const [userInfo, setUserInfo] = useState({
     name: '张老师',
@@ -57,6 +60,10 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
 
   const handleShareTheme = () => {
     setShareModalVisible(true);
+  };
+
+  const handleLoginMore = () => {
+    setLoginMoreModalVisible(true);
   };
 
   const getCurrentThemeData = () => {
@@ -151,6 +158,17 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
     {
       type: 'divider'
     },
+    // 登录更多账号
+    {
+      key: 'login-more',
+      label: (
+        <Space>
+          <Users size={16} />
+          <span>登录更多账号</span>
+        </Space>
+      ),
+      onClick: handleLoginMore
+    },
     // 登录/退出
     isLoggedIn ? {
       key: 'logout',
@@ -193,6 +211,11 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
         visible={shareModalVisible}
         onCancel={() => setShareModalVisible(false)}
         currentTheme={getCurrentThemeData()}
+      />
+
+      <LoginMoreModal
+        open={loginMoreModalVisible}
+        onCancel={() => setLoginMoreModalVisible(false)}
       />
     </>
   );
