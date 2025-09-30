@@ -1134,6 +1134,13 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
           cursor: 'pointer'
         }}
         onClick={() => {
+          // 如果是"组织培训"分类，直接打开消息中心，不需要判断群组创建状态
+          if (selectedCategory === 'organizational_training') {
+            setShowMessageCenter(true);
+            return;
+          }
+          
+          // 其他分类下的逻辑
           if (!isGroupCreated) {
             // 如果没有创建群组，显示创建群组的提示
             Modal.confirm({
