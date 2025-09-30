@@ -47,18 +47,19 @@ const NotesSidebar = ({
         note.tags?.includes('学习广场') ||
         note.source === '学习广场'
       ).length;
-    } else if (category.value === 'organizational_training') {
+  } else if (category.value === 'organizational_training') {
       const orgTrainingNotes = notes.filter(note => 
         note.courseType === 'organizational_training' || 
         note.tags?.includes('组织培训') ||
         note.category === 'organizational_training' ||
         note.source === '组织培训'
       );
-      // 只显示进行中的数量
-      return orgTrainingNotes.filter(note => {
+      // 优先显示“进行中”数量；如为0则显示总数，避免误显示为0
+      const inProgressCount = orgTrainingNotes.filter(note => {
         const statusInfo = getTrainingStatusInfo(note);
         return statusInfo && statusInfo.status === TRAINING_STATUS.IN_PROGRESS;
       }).length;
+      return inProgressCount > 0 ? inProgressCount : orgTrainingNotes.length;
     } else {
       return notes.filter(note => note.category === category.value).length;
     }

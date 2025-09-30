@@ -161,6 +161,7 @@ const SmartNotes = ({ onViewChange }) => {
     { value: 'ideas', label: '想法灵感', icon: '💡', type: 'system' },
     { value: 'meeting', label: '会议记录', icon: '🤝', type: 'system' },
     { value: 'learning_square', label: '学习广场', icon: '🎓', type: 'system' },
+    { value: 'teaching_research_office', label: '教研室', icon: '🏫', type: 'system' },
     { value: 'training_needs_management', label: '培训需求管理', icon: '📋', type: 'system' },
     { value: 'training_product_development', label: '培训产品研发', icon: '🚀', type: 'system' },
     { value: 'knowledge_graph', label: '知识图谱', icon: 'NodeIndexOutlined', type: 'fixed' },
@@ -187,7 +188,19 @@ const SmartNotes = ({ onViewChange }) => {
       
       // 加载笔记
       const notesData = await notesService.getAllNotes();
+      console.log('=== 数据加载调试信息 ===');
       console.log('加载的笔记数据:', notesData);
+      console.log('总笔记数量:', notesData.length);
+      
+      // 检查教研室数据
+      const teachingResearchNotes = notesData.filter(note => note.category === 'teaching_research_office');
+      console.log('教研室笔记数量:', teachingResearchNotes.length);
+      console.log('教研室笔记标题:', teachingResearchNotes.map(note => note.title));
+      
+      // 检查localStorage原始数据
+      const rawData = localStorage.getItem('smart_notes_data');
+      console.log('localStorage原始数据长度:', rawData ? rawData.length : 0);
+      
       setNotes(notesData);
       
     } catch (error) {
@@ -195,6 +208,31 @@ const SmartNotes = ({ onViewChange }) => {
       message.error('加载数据失败');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 生成模拟数据的处理函数
+  const handleGenerateMockData = async () => {
+    try {
+      console.log('=== 开始生成模拟数据 ===');
+      const result = await mockDataGenerator.generateAllMockData();
+      console.log('生成结果:', result);
+      
+      // 重新加载数据
+      await loadData();
+      
+      // 检查生成后的数据
+      const notes = JSON.parse(localStorage.getItem('smart_notes_data') || '[]');
+      console.log('总笔记数量:', notes.length);
+      
+      const teachingResearchNotes = notes.filter(note => note.category === 'teaching_research_office');
+      console.log('教研室笔记数量:', teachingResearchNotes.length);
+      console.log('教研室笔记标题:', teachingResearchNotes.map(note => note.title));
+      
+      message.success('模拟数据生成成功！');
+    } catch (error) {
+      console.error('生成模拟数据失败:', error);
+      message.error('生成模拟数据失败');
     }
   };
 
@@ -218,6 +256,12 @@ const SmartNotes = ({ onViewChange }) => {
           note.category === 'learning_square' ||
           note.tags?.includes('学习广场') ||
           note.source === '学习广场'
+        );
+      } else if (selectedCategory === 'teaching_research_office') {
+        filtered = filtered.filter(note => 
+          note.category === 'teaching_research_office' ||
+          note.tags?.includes('教研室') ||
+          note.source === '教研室'
         );
       } else {
         filtered = filtered.filter(note => note.category === selectedCategory);
@@ -352,6 +396,7 @@ const SmartNotes = ({ onViewChange }) => {
             setShowCalendarCenter={setShowCalendarCenter}
             loadData={loadData}
             onCreateNote={handleCreateNote}
+            onGenerateMockData={handleGenerateMockData}
             checkLocalStorageData={checkLocalStorageData}
           />
 

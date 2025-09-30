@@ -79,7 +79,7 @@ const NotesToolbar = ({
             onClick={onCreateNote}
             size="small"
           >
-            新建笔记
+            新建主题
           </Button>
         </Space>
       </div>

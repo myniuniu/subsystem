@@ -166,6 +166,60 @@ class MockDataGenerator {
       }
     ];
 
+    // 教研室笔记数据
+    this.teachingResearchOfficeNotes = [
+      {
+        id: generateId(),
+        title: '小学数学"数与代数"领域教学设计',
+        content: '# 小学数学"数与代数"领域教学设计\n\n## 教学目标\n\n### 知识与技能\n- 理解数的概念，掌握数的读写方法\n- 掌握四则运算的计算方法和运算律\n- 能够解决简单的实际问题\n\n### 过程与方法\n- 通过观察、操作、思考等活动，培养数感\n- 在解决问题的过程中，体验数学的应用价值\n- 培养逻辑思维能力和推理能力\n\n### 情感态度与价值观\n- 激发学习数学的兴趣\n- 培养认真、细心的学习习惯\n- 体验成功的喜悦，增强学习信心\n\n## 教学内容分析\n\n### 核心概念\n1. **数的认识**：自然数、整数、分数、小数\n2. **数的运算**：加法、减法、乘法、除法\n3. **数的性质**：奇偶性、大小比较、数位\n4. **运算律**：交换律、结合律、分配律\n\n### 重点难点\n- **重点**：四则运算的计算方法，运算律的应用\n- **难点**：分数和小数的概念理解，混合运算的顺序\n\n## 教学策略\n\n### 情境创设\n- 利用生活中的实际问题引入数学概念\n- 通过游戏、故事等形式激发学习兴趣\n- 创设探究性学习情境，引导学生主动思考\n\n### 操作体验\n- 使用教具和学具进行直观演示\n- 让学生动手操作，在实践中理解概念\n- 通过画图、列表等方式帮助理解\n\n### 合作交流\n- 组织小组讨论，分享解题思路\n- 鼓励学生表达自己的想法\n- 通过同伴互助提高学习效果\n\n## 教学过程设计\n\n### 第一阶段：数的认识（4课时）\n1. 100以内数的认识\n2. 万以内数的认识\n3. 分数的初步认识\n4. 小数的初步认识\n\n### 第二阶段：数的运算（8课时）\n1. 两位数加减法\n2. 表内乘除法\n3. 多位数乘除法\n4. 混合运算\n\n### 第三阶段：实际应用（4课时）\n1. 解决问题的策略\n2. 生活中的数学\n3. 数学游戏\n4. 综合练习\n\n## 评价方式\n\n### 过程性评价\n- 课堂表现观察记录\n- 作业完成情况\n- 小组合作参与度\n\n### 终结性评价\n- 单元测试\n- 期末综合评价\n- 实际应用能力测试\n\n## 教学反思\n通过本单元的教学，学生对数的概念有了更深入的理解，计算能力得到了提升。在今后的教学中，要继续加强实际应用的训练，培养学生的数学思维。',
+        category: 'teaching_research_office',
+        tags: ['小学数学', '教学设计', '数与代数', '基础教育'],
+        starred: true,
+        createdAt: new Date('2024-01-15'),
+        updatedAt: new Date('2024-01-18')
+      },
+      {
+        id: generateId(),
+        title: '小学语文阅读教学策略研究',
+        content: '# 小学语文阅读教学策略研究\n\n## 研究背景\n阅读是语文学习的核心，也是学生获取知识、发展思维、提高语文素养的重要途径。如何提高小学生的阅读能力，是语文教学的重要课题。\n\n## 阅读教学目标\n\n### 低年级（1-2年级）\n- 培养阅读兴趣，养成阅读习惯\n- 学会正确、流利地朗读\n- 理解词语和句子的基本含义\n- 能够复述简单的故事内容\n\n### 中年级（3-4年级）\n- 提高阅读速度和理解能力\n- 学会默读，能够概括文章主要内容\n- 体会文章表达的思想感情\n- 学会运用多种阅读方法\n\n### 高年级（5-6年级）\n- 能够独立阅读适合的书籍\n- 理解文章的表达方式和写作特点\n- 能够发表自己的阅读感受\n- 学会批判性阅读\n\n## 教学策略\n\n### 1. 激发阅读兴趣\n**策略方法**：\n- 选择适合学生年龄特点的读物\n- 创设良好的阅读环境\n- 开展丰富多彩的阅读活动\n- 教师示范，以身作则\n\n**具体做法**：\n- 建立班级图书角\n- 定期举办读书分享会\n- 开展"我最喜欢的一本书"推荐活动\n- 邀请作家进校园\n\n### 2. 培养阅读习惯\n**策略方法**：\n- 制定阅读计划\n- 建立阅读档案\n- 定期检查督促\n- 及时表扬鼓励\n\n**具体做法**：\n- 每天安排固定的阅读时间\n- 建立阅读记录卡\n- 开展阅读之星评选\n- 与家长配合，家校共育\n\n### 3. 指导阅读方法\n**朗读指导**：\n- 正确发音，注意语调\n- 把握节奏，体现感情\n- 理解内容，读出韵味\n\n**默读训练**：\n- 逐步提高阅读速度\n- 培养边读边思考的习惯\n- 学会抓住关键信息\n\n**精读技巧**：\n- 圈点勾画重要内容\n- 分析文章结构层次\n- 体会语言文字的妙处\n\n**略读方法**：\n- 快速浏览，把握大意\n- 筛选有用信息\n- 提高阅读效率\n\n### 4. 提升理解能力\n**词语理解**：\n- 联系上下文理解词义\n- 运用工具书查找词义\n- 积累词汇，扩大词汇量\n\n**句子理解**：\n- 分析句子结构\n- 理解句子含义\n- 体会句子的表达效果\n\n**段落理解**：\n- 概括段落大意\n- 理清段落层次\n- 分析段落作用\n\n**篇章理解**：\n- 把握文章主题\n- 理解文章结构\n- 体会表达方式\n\n## 教学实施\n\n### 课堂教学\n1. **导入环节**：激发阅读兴趣，明确阅读目标\n2. **初读环节**：整体感知，解决字词障碍\n3. **精读环节**：深入理解，品味语言文字\n4. **拓展环节**：联系实际，延伸阅读\n\n### 课外阅读\n1. **推荐书目**：根据学生年龄特点推荐适合的书籍\n2. **阅读指导**：教给学生阅读方法和技巧\n3. **交流分享**：组织学生交流阅读心得\n4. **成果展示**：展示学生的阅读成果\n\n## 评价方式\n\n### 过程性评价\n- 阅读态度和习惯\n- 阅读方法的运用\n- 阅读量的统计\n- 阅读交流的参与度\n\n### 结果性评价\n- 朗读水平测试\n- 阅读理解能力测试\n- 阅读感悟的表达\n- 阅读成果的展示\n\n## 预期效果\n通过系统的阅读教学，学生的阅读兴趣得到激发，阅读习惯逐步养成，阅读能力显著提高，为终身学习奠定坚实基础。',
+        category: 'teaching_research_office',
+        tags: ['小学语文', '阅读教学', '教学策略', '基础教育'],
+        starred: true,
+        createdAt: new Date('2024-01-20'),
+        updatedAt: new Date('2024-01-22')
+      },
+      {
+        id: generateId(),
+        title: '小学英语情境教学法实践探索',
+        content: '# 小学英语情境教学法实践探索\n\n## 情境教学法概述\n情境教学法是指在教学过程中，教师有目的地引入或创设具有一定情绪色彩的、以形象为主体的生动具体的场景，以引起学生一定的态度体验，从而帮助学生理解教材，并使学生的心理机能得到发展的教学方法。\n\n## 理论基础\n\n### 建构主义学习理论\n- 学习是学习者主动建构知识的过程\n- 情境是学习发生的重要条件\n- 社会互动促进知识建构\n\n### 第二语言习得理论\n- 语言输入假说：提供可理解的语言输入\n- 情感过滤假说：降低学习焦虑，提高学习动机\n- 交际语言教学：在真实交际中学习语言\n\n## 教学目标\n\n### 语言知识目标\n- 掌握基本的英语语音、词汇、语法\n- 了解英语国家的文化背景\n- 培养语言运用的准确性\n\n### 语言技能目标\n- 发展听、说、读、写四项基本技能\n- 提高语言交际能力\n- 培养语言学习策略\n\n### 情感态度目标\n- 激发学习英语的兴趣\n- 培养跨文化交际意识\n- 增强学习自信心\n\n## 情境创设策略\n\n### 1. 生活情境\n**特点**：贴近学生生活实际，容易引起共鸣\n\n**应用实例**：\n- 在学习"Shopping"主题时，在教室里布置小商店\n- 学习"At the restaurant"时，模拟餐厅点餐场景\n- 学习"Family"时，展示家庭照片，介绍家庭成员\n\n### 2. 游戏情境\n**特点**：趣味性强，能够激发学习兴趣\n\n**应用实例**：\n- 单词接龙游戏\n- 角色扮演游戏\n- 猜谜语游戏\n- 歌曲演唱比赛\n\n### 3. 故事情境\n**特点**：情节生动，有助于理解和记忆\n\n**应用实例**：\n- 通过故事学习新单词\n- 续编故事练习语法\n- 表演故事提高口语\n- 改写故事培养创造力\n\n### 4. 多媒体情境\n**特点**：直观形象，信息量大\n\n**应用实例**：\n- 使用PPT展示图片和动画\n- 播放英语歌曲和视频\n- 利用网络资源扩展学习\n- 制作电子小报展示成果\n\n## 教学实施步骤\n\n### 第一步：情境导入\n1. 创设问题情境，激发学习兴趣\n2. 展示相关图片、视频或实物\n3. 引导学生进入学习状态\n\n### 第二步：情境体验\n1. 学生在情境中感知新知识\n2. 通过观察、模仿、体验学习语言\n3. 教师适时给予指导和帮助\n\n### 第三步：情境操练\n1. 在情境中进行语言练习\n2. 从机械操练到意义操练\n3. 逐步提高语言运用能力\n\n### 第四步：情境运用\n1. 在新的情境中运用所学知识\n2. 进行真实的语言交际\n3. 培养语言综合运用能力\n\n## 具体教学案例\n\n### 案例一：《Colors》教学设计\n\n**教学目标**：\n- 学会表达颜色的英语单词\n- 能够描述物品的颜色\n- 培养观察能力和审美意识\n\n**情境创设**：\n1. 展示彩虹图片，引入颜色主题\n2. 播放颜色歌曲，营造轻松氛围\n3. 准备各种颜色的物品作为教具\n\n**教学过程**：\n1. **Warm-up**：唱颜色歌曲，复习已知颜色\n2. **Presentation**：通过实物展示学习新颜色\n3. **Practice**：颜色配对游戏，巩固新知\n4. **Production**：描述教室里物品的颜色\n5. **Summary**：总结所学颜色，布置作业\n\n### 案例二：《My School Day》教学设计\n\n**教学目标**：\n- 学会表达时间和日常活动\n- 能够描述自己的学校生活\n- 培养时间观念和规划能力\n\n**情境创设**：\n1. 制作学校一日时间表\n2. 准备钟表教具\n3. 拍摄学校生活照片\n\n**教学过程**：\n1. **Lead-in**：展示时钟，复习时间表达\n2. **Presentation**：介绍学校日常活动\n3. **Practice**：时间与活动配对练习\n4. **Production**：介绍自己的学校生活\n5. **Extension**：制作个人时间表\n\n## 评价方式\n\n### 形成性评价\n- 课堂观察记录\n- 学习过程评价\n- 同伴互评\n- 自我反思\n\n### 终结性评价\n- 口语测试\n- 听力测试\n- 阅读理解\n- 写作能力\n\n## 实施效果\n\n### 学生方面\n- 学习兴趣显著提高\n- 语言运用能力增强\n- 学习自信心增加\n- 跨文化意识提升\n\n### 教师方面\n- 教学方法更加灵活\n- 课堂氛围更加活跃\n- 师生关系更加和谐\n- 专业能力得到提升\n\n## 反思与改进\n\n### 存在问题\n1. 情境创设需要大量准备时间\n2. 部分学生参与度不够高\n3. 评价方式需要进一步完善\n\n### 改进措施\n1. 建立情境资源库，提高效率\n2. 关注个体差异，因材施教\n3. 完善评价体系，注重过程评价\n\n情境教学法在小学英语教学中具有重要价值，通过不断实践和完善，能够有效提高教学质量和学习效果。',
+        category: 'teaching_research_office',
+        tags: ['小学英语', '情境教学', '教学方法', '基础教育'],
+        starred: false,
+        createdAt: new Date('2024-01-25'),
+        updatedAt: new Date('2024-01-28')
+      },
+      {
+        id: generateId(),
+        title: '小学科学探究式教学设计与实施',
+        content: '# 小学科学探究式教学设计与实施\n\n## 探究式教学概述\n探究式教学是指学生在教师的指导下，通过自主探究活动获取知识、发展能力的教学方式。它强调学生的主体地位，注重培养学生的科学思维和实践能力。\n\n## 科学探究的基本要素\n\n### 1. 提出问题\n- 观察现象，发现问题\n- 提出有价值的科学问题\n- 学会质疑和思考\n\n### 2. 猜想假设\n- 基于已有知识和经验\n- 提出合理的假设\n- 培养想象力和创造力\n\n### 3. 制定计划\n- 设计实验方案\n- 选择合适的方法和工具\n- 考虑安全因素\n\n### 4. 进行实验\n- 按照计划进行操作\n- 仔细观察实验现象\n- 如实记录实验数据\n\n### 5. 收集证据\n- 整理实验数据\n- 分析实验结果\n- 寻找规律和联系\n\n### 6. 解释结论\n- 根据证据得出结论\n- 验证或修正假设\n- 解释科学原理\n\n### 7. 反思评价\n- 评价实验过程\n- 反思学习收获\n- 提出改进建议\n\n### 8. 表达交流\n- 分享探究成果\n- 交流学习心得\n- 倾听他人观点\n\n## 教学设计原则\n\n### 1. 学生主体原则\n- 以学生为中心\n- 尊重学生的主体地位\n- 发挥学生的主观能动性\n\n### 2. 问题导向原则\n- 以问题为驱动\n- 创设问题情境\n- 引导学生思考\n\n### 3. 实践体验原则\n- 重视动手实践\n- 在体验中学习\n- 培养实践能力\n\n### 4. 合作交流原则\n- 鼓励合作学习\n- 促进思维碰撞\n- 培养团队精神\n\n### 5. 循序渐进原则\n- 由浅入深\n- 由简到繁\n- 符合认知规律\n\n## 教学实施策略\n\n### 1. 创设探究情境\n**生活情境**：\n- 从学生熟悉的生活现象入手\n- 激发学生的探究兴趣\n- 体现科学与生活的联系\n\n**实验情境**：\n- 设计有趣的实验\n- 让学生在实验中发现问题\n- 培养实验技能\n\n**游戏情境**：\n- 通过科学游戏\n- 在玩中学，学中玩\n- 提高学习积极性\n\n### 2. 引导探究过程\n**问题引导**：\n- 提出启发性问题\n- 引导学生思考\n- 培养问题意识\n\n**方法指导**：\n- 教给学生探究方法\n- 培养科学思维\n- 提高探究能力\n\n**过程监控**：\n- 关注探究过程\n- 及时给予指导\n- 确保探究方向\n\n### 3. 组织交流分享\n**小组交流**：\n- 组内分享探究成果\n- 讨论存在的问题\n- 完善探究结论\n\n**全班交流**：\n- 各组汇报探究结果\n- 比较不同的观点\n- 形成共同认识\n\n**反思总结**：\n- 回顾探究过程\n- 总结学习收获\n- 提出改进建议\n\n## 具体教学案例\n\n### 案例一：《植物的生长需要什么》\n\n**教学目标**：\n- 了解植物生长的基本条件\n- 学会设计对比实验\n- 培养观察和记录能力\n\n**探究过程**：\n\n1. **提出问题**：\n   - 观察校园里的植物\n   - 思考：植物为什么能够生长？\n   - 提出问题：植物的生长需要什么条件？\n\n2. **猜想假设**：\n   - 学生根据生活经验提出猜想\n   - 可能需要：阳光、水分、空气、土壤等\n\n3. **制定计划**：\n   - 设计对比实验\n   - 控制变量，只改变一个条件\n   - 准备实验材料\n\n4. **进行实验**：\n   - 分组进行不同条件的实验\n   - 定期观察植物生长情况\n   - 记录实验数据\n\n5. **收集证据**：\n   - 整理观察记录\n   - 比较不同条件下的生长情况\n   - 拍照记录实验结果\n\n6. **解释结论**：\n   - 分析实验数据\n   - 得出结论：植物生长需要阳光、水分、空气和适宜的温度\n   - 解释各种条件的作用\n\n7. **反思评价**：\n   - 评价实验设计是否合理\n   - 反思实验过程中的问题\n   - 提出改进建议\n\n8. **表达交流**：\n   - 制作实验报告\n   - 向全班汇报实验结果\n   - 交流学习心得\n\n### 案例二：《声音的产生》\n\n**教学目标**：\n- 了解声音产生的原因\n- 学会通过实验验证假设\n- 培养科学探究精神\n\n**探究过程**：\n\n1. **提出问题**：\n   - 听各种声音\n   - 思考：声音是怎样产生的？\n\n2. **猜想假设**：\n   - 学生提出各种猜想\n   - 引导学生关注物体的振动\n\n3. **制定计划**：\n   - 设计实验验证猜想\n   - 选择不同的发声物体\n   - 观察它们的共同特点\n\n4. **进行实验**：\n   - 敲击音叉，观察振动\n   - 弹拨橡皮筋，感受振动\n   - 说话时摸喉咙，感受声带振动\n\n5. **收集证据**：\n   - 记录各种实验现象\n   - 总结发声物体的共同特点\n\n6. **解释结论**：\n   - 得出结论：声音是由物体振动产生的\n   - 解释振动与声音的关系\n\n7. **反思评价**：\n   - 评价实验效果\n   - 思考还有哪些实验可以证明\n\n8. **表达交流**：\n   - 演示实验过程\n   - 分享探究心得\n\n## 评价方式\n\n### 过程性评价\n- 探究态度和参与度\n- 实验操作技能\n- 合作交流能力\n- 问题解决能力\n\n### 结果性评价\n- 科学知识掌握情况\n- 探究报告质量\n- 实验设计能力\n- 科学思维发展水平\n\n## 实施效果\n\n### 学生收获\n- 科学兴趣显著提高\n- 动手能力得到锻炼\n- 思维能力得到发展\n- 合作意识得到培养\n\n### 教学改进\n- 教学方式更加灵活\n- 师生关系更加和谐\n- 课堂氛围更加活跃\n- 教学效果更加显著\n\n## 注意事项\n\n### 安全问题\n- 制定安全规则\n- 准备防护用品\n- 加强安全教育\n- 及时处理意外\n\n### 时间管理\n- 合理安排探究时间\n- 控制探究节奏\n- 确保教学进度\n\n### 资源准备\n- 充分准备实验材料\n- 检查实验设备\n- 预设可能问题\n\n探究式教学能够有效培养学生的科学素养，提高学生的综合能力，是小学科学教学的重要方法。',
+        category: 'teaching_research_office',
+        tags: ['小学科学', '探究式教学', '实验教学', '基础教育'],
+        starred: true,
+        createdAt: new Date('2024-02-01'),
+        updatedAt: new Date('2024-02-05')
+      },
+      {
+        id: generateId(),
+        title: '小学体育游戏化教学模式研究',
+        content: '# 小学体育游戏化教学模式研究\n\n## 游戏化教学概述\n游戏化教学是指将游戏元素和游戏设计技术运用到教学中，通过游戏的方式来传授知识、培养技能、发展能力的教学模式。在小学体育教学中，游戏化教学具有特殊的价值和意义。\n\n## 理论基础\n\n### 儿童发展理论\n- 游戏是儿童的天性\n- 游戏促进儿童身心发展\n- 游戏满足儿童的心理需求\n\n### 体育教学理论\n- 体育技能的形成规律\n- 运动兴趣的培养机制\n- 体育教学的目标导向\n\n### 学习动机理论\n- 内在动机的激发\n- 成就感的获得\n- 自主性的培养\n\n## 教学目标\n\n### 运动技能目标\n- 掌握基本运动技能\n- 发展身体素质\n- 提高运动能力\n\n### 认知目标\n- 了解体育知识\n- 理解运动规律\n- 培养战术意识\n\n### 情感态度目标\n- 培养运动兴趣\n- 增强自信心\n- 培养合作精神\n\n### 社会适应目标\n- 学会与人合作\n- 遵守规则意识\n- 培养竞争意识\n\n## 游戏化教学设计原则\n\n### 1. 趣味性原则\n- 游戏内容要有趣\n- 形式要新颖多样\n- 能够吸引学生注意力\n\n### 2. 教育性原则\n- 游戏要有明确的教学目标\n- 内容要符合教学要求\n- 能够促进学生发展\n\n### 3. 适应性原则\n- 适合学生的年龄特点\n- 符合学生的能力水平\n- 考虑个体差异\n\n### 4. 安全性原则\n- 确保游戏过程安全\n- 预防运动伤害\n- 建立安全保障机制\n\n### 5. 渐进性原则\n- 由简到繁\n- 由易到难\n- 循序渐进\n\n## 游戏化教学策略\n\n### 1. 情境创设策略\n**故事情境**：\n- 将体育活动融入故事中\n- 让学生扮演故事角色\n- 在情境中完成运动任务\n\n**竞赛情境**：\n- 设置各种比赛项目\n- 激发学生竞争意识\n- 在竞争中提高技能\n\n**探险情境**：\n- 设计探险任务\n- 通过闯关完成学习\n- 培养勇敢精神\n\n### 2. 规则设计策略\n**简化规则**：\n- 根据学生特点简化规则\n- 突出重点，降低难度\n- 便于学生理解和执行\n\n**灵活规则**：\n- 根据实际情况调整规则\n- 允许学生参与规则制定\n- 培养规则意识\n\n**激励规则**：\n- 设置奖励机制\n- 及时给予正面反馈\n- 激发学习动机\n\n### 3. 组织形式策略\n**小组合作**：\n- 分组进行游戏\n- 培养团队精神\n- 促进相互学习\n\n**个人挑战**：\n- 设置个人任务\n- 培养自主能力\n- 关注个体发展\n\n**全班参与**：\n- 组织集体游戏\n- 营造良好氛围\n- 增强班级凝聚力\n\n## 具体教学案例\n\n### 案例一：《跑步游戏》教学设计\n\n**教学目标**：\n- 掌握正确的跑步姿势\n- 提高跑步速度和耐力\n- 培养坚持不懈的品质\n\n**游戏设计**：\n\n1. **热身游戏：追逐跑**\n   - 学生分成两组，一组追，一组逃\n   - 在规定区域内进行\n   - 培养反应能力和灵敏性\n\n2. **技能游戏：接力跑**\n   - 分组进行接力比赛\n   - 强调跑步姿势和交接棒技术\n   - 培养团队合作精神\n\n3. **耐力游戏：定向跑**\n   - 设置多个检查点\n   - 学生按照路线图跑步\n   - 培养耐力和方向感\n\n4. **放松游戏：慢跑聊天**\n   - 两人一组慢跑\n   - 边跑边聊天\n   - 放松身心，增进友谊\n\n### 案例二：《篮球游戏》教学设计\n\n**教学目标**：\n- 掌握篮球基本技术\n- 培养篮球运动兴趣\n- 发展协调性和灵敏性\n\n**游戏设计**：\n\n1. **运球游戏：运球接力**\n   - 学生排成纵队\n   - 运球绕过障碍物\n   - 练习运球技术\n\n2. **投篮游戏：投篮大战**\n   - 设置不同距离的投篮点\n   - 学生轮流投篮得分\n   - 提高投篮准确性\n\n3. **传球游戏：传球接龙**\n   - 学生围成圆圈\n   - 按照顺序传球\n   - 练习传接球技术\n\n4. **综合游戏：小篮球比赛**\n   - 简化比赛规则\n   - 3对3小场地比赛\n   - 综合运用各项技术\n\n### 案例三：《体操游戏》教学设计\n\n**教学目标**：\n- 发展身体柔韧性和协调性\n- 培养优美的身体姿态\n- 增强身体控制能力\n\n**游戏设计**：\n\n1. **柔韧游戏：动物模仿**\n   - 模仿各种动物的动作\n   - 如猫伸腰、蛇扭动等\n   - 在模仿中练习柔韧性\n\n2. **平衡游戏：走钢丝**\n   - 在地面画线或使用平衡木\n   - 学生沿线行走\n   - 发展平衡能力\n\n3. **协调游戏：手脚并用**\n   - 设计需要手脚配合的动作\n   - 如爬行、翻滚等\n   - 提高身体协调性\n\n4. **创编游戏：自由体操**\n   - 学生自己创编动作\n   - 配合音乐表演\n   - 培养创造力和表现力\n\n## 评价方式\n\n### 过程性评价\n- 参与态度和积极性\n- 游戏中的表现\n- 合作交流能力\n- 技能掌握进步情况\n\n### 结果性评价\n- 技能测试成绩\n- 身体素质测试\n- 游戏创编能力\n- 运动知识掌握情况\n\n### 自我评价\n- 学习兴趣变化\n- 自信心提升\n- 运动习惯养成\n- 身体健康状况\n\n## 实施效果\n\n### 学生方面\n- 运动兴趣显著提高\n- 技能掌握更加扎实\n- 身体素质得到发展\n- 社会适应能力增强\n\n### 教学方面\n- 课堂氛围更加活跃\n- 教学效果更加显著\n- 师生关系更加和谐\n- 教学方法更加灵活\n\n## 注意事项\n\n### 安全管理\n- 制定详细的安全规则\n- 做好场地器材检查\n- 加强安全教育\n- 建立应急预案\n\n### 游戏选择\n- 根据教学目标选择游戏\n- 考虑学生的接受能力\n- 注意游戏的教育价值\n- 避免纯娱乐性游戏\n\n### 组织管理\n- 合理安排游戏时间\n- 控制游戏强度\n- 关注个体差异\n- 及时调整教学策略\n\n游戏化教学模式能够有效提高小学体育教学质量，促进学生全面发展，是值得推广的教学方法。',
+        category: 'teaching_research_office',
+        tags: ['小学体育', '游戏化教学', '运动技能', '基础教育'],
+        starred: false,
+        createdAt: new Date('2024-02-08'),
+        updatedAt: new Date('2024-02-10')
+      }
+    ];
+
     // 组织培训笔记数据（包含视频进度信息）
     this.organizationalTrainingNotes = [
       {
@@ -477,6 +531,114 @@ class MockDataGenerator {
         }
       }
     ];
+
+    // 培训需求管理笔记数据（5条）
+    this.trainingNeedsManagementNotes = [
+      {
+        id: generateId(),
+        title: '【培训需求】2024年度教师培训需求调研概要',
+        content: '# 2024年度教师培训需求调研概要\n\n- 目标人群：全体教师\n- 重点主题：信息技术、课堂管理、教学创新\n- 建议：分层分类实施，建立效果评估机制',
+        category: 'training_needs_management',
+        tags: ['培训需求', '教师发展', '调研报告'],
+        starred: true,
+        createdAt: new Date('2024-02-15'),
+        updatedAt: new Date('2024-02-15')
+      },
+      {
+        id: generateId(),
+        title: '【培训需求】新教师入职培训需求清单',
+        content: '# 入职培训需求清单\n\n- 教学基本功\n- 学校规章制度\n- 学生管理与沟通',
+        category: 'training_needs_management',
+        tags: ['培训需求', '入职培训', '清单'],
+        starred: false,
+        createdAt: new Date('2024-02-10'),
+        updatedAt: new Date('2024-02-12')
+      },
+      {
+        id: generateId(),
+        title: '【培训需求】骨干教师高端研修需求梳理',
+        content: '# 骨干教师研修需求\n\n- 教改与创新\n- 科研方法\n- 教育技术应用',
+        category: 'training_needs_management',
+        tags: ['培训需求', '骨干教师', '研修'],
+        starred: true,
+        createdAt: new Date('2024-02-05'),
+        updatedAt: new Date('2024-02-08')
+      },
+      {
+        id: generateId(),
+        title: '【培训需求】信息技术能力提升培训需求',
+        content: '# 技能提升需求\n\n- 学习平台使用\n- 互动工具应用\n- 资源制作与发布',
+        category: 'training_needs_management',
+        tags: ['培训需求', '信息技术', '能力提升'],
+        starred: false,
+        createdAt: new Date('2024-01-28'),
+        updatedAt: new Date('2024-02-01')
+      },
+      {
+        id: generateId(),
+        title: '【培训需求】教师心理健康教育培训需求',
+        content: '# 心理健康培训需求\n\n- 压力管理\n- 情绪调节\n- 沟通与支持',
+        category: 'training_needs_management',
+        tags: ['培训需求', '心理健康', '教师支持'],
+        starred: false,
+        createdAt: new Date('2024-01-20'),
+        updatedAt: new Date('2024-01-25')
+      }
+    ];
+
+    // 培训产品研发笔记数据（5条）
+    this.trainingProductDevelopmentNotes = [
+      {
+        id: generateId(),
+        title: '【产品研发】在线学习平台产品设计方案',
+        content: '# 在线学习平台产品设计方案\n\n- 多媒体课程管理\n- 实时互动教学\n- 学习路径推荐\n- 个性化评估系统',
+        category: 'training_product_development',
+        tags: ['产品研发', '在线学习平台', '产品设计'],
+        starred: true,
+        createdAt: new Date('2024-01-25'),
+        updatedAt: new Date('2024-01-25')
+      },
+      {
+        id: generateId(),
+        title: '【产品研发】移动学习APP开发计划',
+        content: '# 移动学习APP开发计划\n\n- 核心功能：课程浏览、互动问答、学习打卡\n- 技术架构：前端React Native，后端Node.js\n- 版本规划：Beta/正式版',
+        category: 'training_product_development',
+        tags: ['产品研发', '移动学习', '开发计划'],
+        starred: false,
+        createdAt: new Date('2024-01-22'),
+        updatedAt: new Date('2024-01-23')
+      },
+      {
+        id: generateId(),
+        title: '【产品研发】VR虚拟培训系统技术方案',
+        content: '# VR虚拟培训系统技术方案\n\n- 场景构建与交互\n- 学习行为采集\n- 效果评估与反馈',
+        category: 'training_product_development',
+        tags: ['产品研发', 'VR培训', '技术方案'],
+        starred: false,
+        createdAt: new Date('2024-01-21'),
+        updatedAt: new Date('2024-01-21')
+      },
+      {
+        id: generateId(),
+        title: '【产品研发】混合式培训平台原型设计',
+        content: '# 混合式培训平台原型设计\n\n- 学习编排\n- 行为分析\n- 互动教学',
+        category: 'training_product_development',
+        tags: ['产品研发', '混合式培训', '原型设计'],
+        starred: true,
+        createdAt: new Date('2024-01-24'),
+        updatedAt: new Date('2024-01-24')
+      },
+      {
+        id: generateId(),
+        title: '【产品研发】AI助手赋能教学产品规划',
+        content: '# 教学AI助手产品规划\n\n- 内容生成\n- 学习辅导\n- 效果评估',
+        category: 'training_product_development',
+        tags: ['产品研发', 'AI助手', '产品规划'],
+        starred: true,
+        createdAt: new Date('2024-01-21'),
+        updatedAt: new Date('2024-01-23')
+      }
+    ];
   }
 
   // 生成所有模拟数据
@@ -492,6 +654,10 @@ class MockDataGenerator {
       
       // 生成数据记录
       this.generateDataRecords();
+
+      // 生成并持久化培训类专项数据（确保初始化到本地存储）
+      this.generateTrainingNeedsManagementRecords();
+      this.generateTrainingProductDevelopmentRecords();
       
       console.log('模拟数据生成完成！');
       return {
@@ -527,7 +693,10 @@ class MockDataGenerator {
       ...this.workNotes,
       ...this.personalNotes,
       ...this.ideas,
-      ...this.organizationalTrainingNotes // 添加组织培训笔记
+      ...this.teachingResearchOfficeNotes, // 添加教研室笔记
+      ...this.organizationalTrainingNotes, // 添加组织培训笔记
+      ...this.trainingNeedsManagementNotes, // 添加培训需求管理笔记
+      ...this.trainingProductDevelopmentNotes // 添加培训产品研发笔记
     ];
 
     for (const note of allNotes) {
@@ -551,7 +720,18 @@ class MockDataGenerator {
       dataRecordService.recordUserBehavior(record.type, record.data);
     }
 
-    console.log(`生成了 ${searchBehaviors.length + otherRecords.length} 条数据记录`);
+    // 生成并持久化：培训需求管理（5条）与培训产品研发（5条）
+    const trainingNeedsManagementRecords = this.generateTrainingNeedsManagementRecords();
+    const trainingProductDevelopmentRecords = this.generateTrainingProductDevelopmentRecords();
+
+    console.log(
+      `生成了 ${
+        searchBehaviors.length +
+        otherRecords.length +
+        trainingNeedsManagementRecords.length +
+        trainingProductDevelopmentRecords.length
+      } 条数据记录（含培训需求管理与培训产品研发）`
+    );
   }
 
   // 生成搜索行为数据
@@ -660,6 +840,81 @@ class MockDataGenerator {
     return trainingNeeds;
   }
 
+  // 生成培训需求管理记录数据（组织培训相关，固定5条）
+  generateTrainingNeedsManagementRecords() {
+    const records = [
+      {
+        id: 'tnm_001',
+        title: '组织培训需求调研报告（2024）',
+        source: '需求分析',
+        time: '10分钟前',
+        type: 'training-needs',
+        category: 'training_needs_management',
+        priority: 'high',
+        description: '基于全校教师问卷与访谈的系统需求分析，明确关键培训主题与人群分层。',
+        content: '# 组织培训需求调研报告\n\n- 覆盖对象：全校教师\n- 重点主题：信息技术应用、课堂管理、教学创新\n- 建议：分层分类实施，建立效果评估机制',
+        createdAt: new Date('2024-02-15'),
+        updatedAt: new Date('2024-02-15')
+      },
+      {
+        id: 'tnm_002',
+        title: '新教师入职培训需求清单',
+        source: '人事与教务',
+        time: '30分钟前',
+        type: 'training-needs',
+        category: 'training_needs_management',
+        priority: 'medium',
+        description: '围绕教学基本功、制度规范、学生管理三大模块的入职培训需求。',
+        content: '# 入职培训需求\n\n- 教学基本功\n- 学校规章制度\n- 学生管理与沟通',
+        createdAt: new Date('2024-02-10'),
+        updatedAt: new Date('2024-02-12')
+      },
+      {
+        id: 'tnm_003',
+        title: '骨干教师高端研修需求梳理',
+        source: '教研室',
+        time: '1小时前',
+        type: 'training-needs',
+        category: 'training_needs_management',
+        priority: 'high',
+        description: '针对名师/学科带头人，聚焦教学改革、科研方法与教育技术应用的研修需求。',
+        content: '# 骨干教师研修需求\n\n- 教改与创新\n- 科研方法\n- 教育技术应用',
+        createdAt: new Date('2024-02-05'),
+        updatedAt: new Date('2024-02-08')
+      },
+      {
+        id: 'tnm_004',
+        title: '信息技术能力提升培训需求',
+        source: '信息化办公室',
+        time: '2小时前',
+        type: 'training-needs',
+        category: 'training_needs_management',
+        priority: 'medium',
+        description: '分层分类的数字化教学能力建设需求，涵盖平台使用与资源制作。',
+        content: '# 技能提升需求\n\n- 学习平台使用\n- 互动工具应用\n- 资源制作与发布',
+        createdAt: new Date('2024-01-28'),
+        updatedAt: new Date('2024-02-01')
+      },
+      {
+        id: 'tnm_005',
+        title: '教师心理健康教育培训需求',
+        source: '学生处与工会',
+        time: '昨天',
+        type: 'training-needs',
+        category: 'training_needs_management',
+        priority: 'high',
+        description: '覆盖压力管理、情绪调节与沟通技巧，支持校园心理健康体系建设。',
+        content: '# 心理健康培训需求\n\n- 压力管理\n- 情绪调节\n- 沟通与支持',
+        createdAt: new Date('2024-01-20'),
+        updatedAt: new Date('2024-01-25')
+      }
+    ];
+
+    localStorage.setItem('training_needs_management_records', JSON.stringify(records));
+    console.log('培训需求管理记录数据生成完成（5条）');
+    return records;
+  }
+
   // 获取数据统计
   getDataStats() {
     return {
@@ -668,8 +923,26 @@ class MockDataGenerator {
       personalNotes: this.personalNotes.length,
       ideas: this.ideas.length,
       organizationalTrainingNotes: this.organizationalTrainingNotes.length,
-      total: this.studyNotes.length + this.workNotes.length + this.personalNotes.length + this.ideas.length + this.organizationalTrainingNotes.length,
-      count: this.studyNotes.length + this.workNotes.length + this.personalNotes.length + this.ideas.length + this.organizationalTrainingNotes.length
+      trainingNeedsManagementNotes: this.trainingNeedsManagementNotes.length,
+      trainingProductDevelopmentNotes: this.trainingProductDevelopmentNotes.length,
+      total:
+        this.studyNotes.length +
+        this.workNotes.length +
+        this.personalNotes.length +
+        this.ideas.length +
+        this.teachingResearchOfficeNotes.length +
+        this.organizationalTrainingNotes.length +
+        this.trainingNeedsManagementNotes.length +
+        this.trainingProductDevelopmentNotes.length,
+      count:
+        this.studyNotes.length +
+        this.workNotes.length +
+        this.personalNotes.length +
+        this.ideas.length +
+        this.teachingResearchOfficeNotes.length +
+        this.organizationalTrainingNotes.length +
+        this.trainingNeedsManagementNotes.length +
+        this.trainingProductDevelopmentNotes.length
     };
   }
 
@@ -838,9 +1111,54 @@ class MockDataGenerator {
 - 数据分析：Python + TensorFlow`,
         createdAt: new Date('2024-01-23'),
         updatedAt: new Date('2024-01-25')
+      },
+      {
+        id: 'tpd_004',
+        title: '混合式培训平台原型设计',
+        source: '原型设计',
+        time: '50分钟前',
+        type: 'prototype',
+        category: 'training_product_development',
+        productType: '混合式培训平台',
+        developmentStage: '原型设计',
+        description: '支持线上线下融合教学的混合式培训平台原型，提供学习路径编排与数据分析能力。',
+        features: [
+          '线上线下学习编排',
+          '学习进度与行为分析',
+          '互动课堂与作业系统'
+        ],
+        status: '研发中',
+        priority: 'medium',
+        content: `# 混合式培训平台原型设计\n\n- 学习编排\n- 行为分析\n- 互动教学`,
+        createdAt: new Date('2024-01-24'),
+        updatedAt: new Date('2024-01-24')
+      },
+      {
+        id: 'tpd_005',
+        title: 'AI助手赋能教学产品规划',
+        source: '产品规划',
+        time: '1小时前',
+        type: 'product-roadmap',
+        category: 'training_product_development',
+        productType: '教学AI助手',
+        developmentStage: '路线规划',
+        description: '规划基于大模型的教学AI助手，支持内容生成、学习辅导与评估分析。',
+        features: [
+          '课程内容智能生成',
+          '个性化学习辅导',
+          '学习效果评估分析'
+        ],
+        status: '规划中',
+        priority: 'high',
+        content: `# 教学AI助手产品规划\n\n- 内容生成\n- 学习辅导\n- 效果评估`,
+        createdAt: new Date('2024-01-21'),
+        updatedAt: new Date('2024-01-23')
       }
     ];
 
+    // 持久化保存到 localStorage 并输出统计
+    localStorage.setItem('training_product_development_records', JSON.stringify(trainingProductDevelopmentRecords));
+    console.log('培训产品研发记录数据生成完成（5条）');
     return trainingProductDevelopmentRecords;
   }
 
