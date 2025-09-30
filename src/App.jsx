@@ -18,28 +18,24 @@ import ClassManagement from './components/ClassManagement'
 import StudentManagement from './components/StudentManagement'
 import SimulationCenter from './components/SimulationCenter'
 import ResourceLibrary from './components/ResourceLibrary'
-
+// import TrainingNeeds from './components/TrainingNeeds'
 import MentalHealthCoach from './components/MentalHealthCoach'
 import MyProgress from './components/MyProgress'
-
+// import CourseSelection from './components/CourseSelection'
 import ScenarioLibrary from './components/ScenarioLibrary'
 import MentalHealthCoaching from './components/MentalHealthCoaching'
 import ScienceDemo from './components/ScienceDemo'
-
+// import CourseSelectionEditPage from './components/CourseSelectionEditPage'
 import MyEvaluation from './components/MyEvaluation'
 import SimulationPlatform from './components/SimulationPlatform'
-
+// import NeedEditPage from './components/NeedEditPage'
 import LearningAnalyticsCenter from './components/LearningAnalyticsCenter'
 import SmartNotes from './components/SmartNotes'
 import AIToolHouse from './components/AIToolHouse'
 import NoteEditPage from './components/NoteEditPage'
-import TrainingNeeds from './components/TrainingNeeds'
-import NeedEditPage from './components/NeedEditPage'
 import ResourceAnnotation from './components/ResourceAnnotation'
 import ResourceAnnotationPage from './components/ResourceAnnotationPage'
 import StudentAnnotationPage from './components/StudentAnnotationPage'
-import CourseSelection from './components/CourseSelection'
-import CourseSelectionEditPage from './components/CourseSelectionEditPage'
 import LearningSquare from './components/LearningSquare'
 import ProgressTestPage from './components/ProgressTestPage'
 import ThemeTemplateCenter from './components/ThemeTemplateCenter'
@@ -366,11 +362,6 @@ function App() {
                 onBack={() => handleViewChange('smart-notes')}
                 onViewChange={handleViewChange}
               />
-            ) : currentView === 'training-needs' ? (
-              <TrainingNeeds 
-                onViewChange={handleViewChange}
-                pageState={pageState}
-              />
             ) : currentView === 'resource-annotation' ? (
               <ResourceAnnotationPage 
                 onBack={() => handleViewChange('home')}
@@ -385,25 +376,7 @@ function App() {
                 selectedNeed={pageState.selectedNeed}
                 mode={pageState.editorMode}
               />
-            ) : currentView === 'course-selection' ? (
-              <CourseSelection 
-                onViewChange={handleViewChange}
-                pageState={pageState}
-              />
-            ) : currentView === 'need-edit-page' ? (
-              <NeedEditPage 
-                onBack={() => handleViewChange('training-needs')}
-                onViewChange={handleViewChange}
-                selectedNeed={pageState.selectedNeed}
-                mode={pageState.editorMode}
-              />
-            ) : currentView === 'course-selection-edit-page' ? (
-              <CourseSelectionEditPage 
-                onBack={() => handleViewChange('course-selection')}
-                onViewChange={handleViewChange}
-                selectedNeed={pageState.selectedNeed}
-                mode={pageState.editorMode}
-              />
+
             ) : currentView === 'learning-square' ? (
               <LearningSquare />
             ) : currentView === 'progress-test' ? (

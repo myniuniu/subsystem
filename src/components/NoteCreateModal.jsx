@@ -229,11 +229,12 @@ const NoteCreateModal = ({ visible, onCancel, onSave, notes = [], categories = [
       title="智能主题编辑器"
       open={visible}
       onCancel={onCancel}
-      width={1200}
-      height={800}
+      width="90%"
+      style={{ maxWidth: '1200px', minWidth: '800px' }}
       footer={null}
       className="note-create-modal"
       destroyOnHidden
+      centered
     >
       <Layout className="modal-layout">
         {/* 左侧主题列表 */}

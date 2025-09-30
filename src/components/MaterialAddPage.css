@@ -1,0 +1,124 @@
+/* MaterialAddPage 样式 */
+.material-add-modal .ant-modal-content {
+  overflow: hidden;
+  max-height: 85vh;
+}
+
+.material-add-modal .ant-modal-body {
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(85vh - 150px);
+  padding: 0;
+  padding-bottom: 20px;
+}
+
+.material-add-modal .ant-modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #e8e8e8;
+  background-color: white;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+
+/* 响应式网格布局 */
+.material-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  max-width: 100%;
+  overflow: visible;
+}
+
+/* 卡片样式优化 */
+.material-card {
+  text-align: center;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  cursor: pointer;
+  min-width: 0;
+  overflow: visible;
+}
+
+.material-card .ant-card-body {
+  padding: 40px 24px;
+  overflow: visible;
+}
+
+/* 上传区域样式 */
+.upload-area {
+  text-align: center;
+  margin-bottom: 48px;
+  overflow: visible;
+}
+
+.upload-dragger {
+  background-color: #fafafa !important;
+  border: 2px dashed #d9d9d9 !important;
+  border-radius: 8px !important;
+  padding: 60px 20px !important;
+  overflow: visible;
+}
+
+/* 进度条区域 */
+.progress-area {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px 24px;
+  border: 1px solid #e8e8e8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  overflow: visible;
+  max-width: 100%;
+  margin-bottom: 20px;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .material-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+  }
+  
+  .material-card .ant-card-body {
+    padding: 30px 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .material-add-modal .ant-modal-content {
+    margin: 20px;
+    max-height: 90vh;
+  }
+  
+  .material-add-modal .ant-modal-body {
+    max-height: calc(90vh - 120px);
+  }
+  
+  .material-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+  }
+  
+  .material-card .ant-card-body {
+    padding: 20px 16px;
+  }
+  
+  .upload-dragger {
+    padding: 40px 16px !important;
+  }
+  
+  .progress-area {
+    padding: 16px 20px;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .material-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

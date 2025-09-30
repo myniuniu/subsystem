@@ -71,11 +71,9 @@ import ThemeShareModal from './ThemeShareModal';
 import CalendarCenter from './CalendarCenter';
 
 import notesService from '../services/notesService';
-import courseSelectionService from '../services/courseSelectionService';
 import themeShareService from '../services/themeShareService';
 import mockDataGenerator from '../utils/mockDataGenerator';
 import { TRAINING_STATUS, getTrainingStatusInfo } from '../utils/trainingStatusUtils';
-import { generateTrainingNeedsManagementData } from '../data/trainingNeedsManagementData';
 import { generateTrainingProductDevelopmentData } from '../data/trainingProductDevelopmentData';
 import './SmartNotes.css';
 
@@ -232,15 +230,7 @@ const SmartNotes = ({ onViewChange }) => {
       
       console.log('组织培训笔记数量:', orgTrainingNotes.length);
       
-      // 检查是否有培训需求与管理笔记，如果没有则自动生成
-      const trainingNeedsNotes = notesData.filter(note => 
-        note.courseType === 'training_needs_management' || 
-        note.tags?.includes('培训需求与管理') ||
-        note.category === 'training_needs_management' ||
-        note.source === '培训需求与管理'
-      );
-      
-      console.log('培训需求与管理笔记数量:', trainingNeedsNotes.length);
+
       
       // 检查是否有培训产品研发笔记，如果没有则自动生成
       const trainingProductNotes = notesData.filter(note => 
@@ -284,22 +274,7 @@ const SmartNotes = ({ onViewChange }) => {
         }
       }
       
-      if (trainingNeedsNotes.length === 0) {
-        console.log('没有培训需求与管理笔记，自动生成模拟数据...');
-        try {
-          const trainingNeedsData = generateTrainingNeedsManagementData();
-          // 将数据添加到笔记服务中
-          trainingNeedsData.forEach(note => {
-            notesService.createNote(note);
-          });
-          // 重新获取数据
-          notesData = notesService.getAllNotes();
-          console.log('生成培训需求与管理数据后重新加载，笔记总数:', notesData.length);
-          message.success(`已自动生成 ${trainingNeedsData.length} 条培训需求与管理模拟数据`);
-        } catch (error) {
-          console.error('自动生成培训需求与管理数据失败:', error);
-        }
-      }
+
       
       // 按分类统计
       const categoryStats = {};
@@ -567,19 +542,8 @@ const SmartNotes = ({ onViewChange }) => {
     try {
       setLoading(true);
       
-      // 获取所有组织培训课程
-      const allCourses = courseSelectionService.getAllCourses();
-      const organizationalCourses = allCourses.filter(course => 
-        course.type === 'organizational_training'
-      );
-      
-      if (organizationalCourses.length === 0) {
-        message.warning('暂无组织培训课程可同步');
-        return;
-      }
-
-      // 使用智能笔记服务的同步功能
-      const result = notesService.syncOrganizationalCourses(organizationalCourses);
+      // 直接使用智能笔记服务的同步功能，不依赖外部课程服务
+      const result = notesService.syncOrganizationalCourses([]);
       
       if (result.success) {
         // 重新加载数据
@@ -606,16 +570,8 @@ const SmartNotes = ({ onViewChange }) => {
     try {
       setLoading(true);
       
-      // 获取所有选课记录
-      const courses = courseSelectionService.getAllCourses();
-      
-      if (courses.length === 0) {
-        message.warning('暂无选课记录可同步');
-        return;
-      }
-
-      // 使用智能笔记服务的同步功能
-      const result = notesService.syncOrganizationalCourses(courses);
+      // 直接使用智能笔记服务的同步功能，不依赖外部课程服务
+      const result = notesService.syncOrganizationalCourses([]);
       
       if (result.success) {
         // 重新加载数据
@@ -1209,17 +1165,10 @@ ${aiSelectedNote.content}`;
                         // 2. 同步组织培训课程
                         console.log('开始同步组织培训课程...');
                         try {
-                          // 获取所有组织培训课程
-                          const allCourses = courseSelectionService.getAllCourses();
-                          const organizationalCourses = allCourses.filter(course => 
-                            course.type === 'organizational_training'
-                          );
+                          // 直接使用智能笔记服务的同步功能，不依赖外部课程服务
+                          const syncResult = notesService.syncOrganizationalCourses([]);
                           
-                          if (organizationalCourses.length > 0) {
-                            // 使用智能笔记服务的同步功能
-                            const syncResult = notesService.syncOrganizationalCourses(organizationalCourses);
-                            
-                            if (syncResult.success) {
+                          if (syncResult.success) {
                               // 重新加载数据
                               await loadData();
                               
@@ -1231,9 +1180,6 @@ ${aiSelectedNote.content}`;
                             } else {
                               message.success(`已生成 ${result.stats.count} 条模拟数据，同步组织培训失败：${syncResult.error}`);
                             }
-                          } else {
-                            message.success(`已生成 ${result.stats.count} 条模拟数据`);
-                          }
                         } catch (syncError) {
                           console.error('同步组织培训课程失败:', syncError);
                           message.success(`已生成 ${result.stats.count} 条模拟数据，同步组织培训课程失败`);

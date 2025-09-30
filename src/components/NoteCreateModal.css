@@ -1,17 +1,22 @@
 .note-create-modal {
   .ant-modal-content {
-    height: 80vh;
+    height: 85vh;
+    max-height: 800px;
     padding: 0;
+    overflow: hidden;
   }
 
   .ant-modal-body {
-    height: calc(80vh - 110px);
+    height: calc(85vh - 110px);
+    max-height: calc(800px - 110px);
     padding: 0;
+    overflow: hidden;
   }
 
   .modal-layout {
     height: 100%;
     background: #fff;
+    overflow: hidden;
   }
 }
 
@@ -20,16 +25,19 @@
   background: #fafafa;
   border-right: 1px solid #f0f0f0;
   height: 100%;
+  overflow: hidden;
 
   .sidebar-header {
     padding: 16px;
     border-bottom: 1px solid #f0f0f0;
+    flex-shrink: 0;
   }
 
   .sidebar-content {
     padding: 16px;
     height: calc(100% - 72px);
     overflow-y: auto;
+    overflow-x: hidden;
 
     .search-input {
       margin-bottom: 8px;
@@ -43,6 +51,7 @@
   .notes-list {
     height: calc(100% - 120px);
     overflow-y: auto;
+    overflow-x: hidden;
 
     .empty-notes {
       text-align: center;
@@ -145,22 +154,26 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 
   .editor-container {
     height: 100%;
     display: flex;
     flex-direction: column;
     padding: 20px;
+    overflow: hidden;
 
     .editor-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       margin-bottom: 16px;
+      flex-shrink: 0;
 
       .editor-title {
         flex: 1;
         margin-right: 16px;
+        min-width: 0; /* 允许flex项目收缩 */
 
         .title-input {
           font-size: 24px;
@@ -168,6 +181,7 @@
           border: none;
           box-shadow: none;
           padding: 0;
+          width: 100%;
 
           &:focus {
             border-bottom: 2px solid #1890ff;
@@ -180,6 +194,7 @@
           font-size: 24px;
           font-weight: 600;
           color: #262626;
+          word-wrap: break-word;
         }
       }
 
@@ -193,6 +208,8 @@
       min-height: 32px;
       display: flex;
       align-items: center;
+      flex-shrink: 0;
+      flex-wrap: wrap;
 
       .ant-tag {
         margin: 2px 8px 2px 0;
@@ -214,17 +231,36 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      min-height: 0; /* 重要：允许flex项目收缩 */
+
+      .ant-tabs {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+
+        .ant-tabs-content-holder {
+          flex: 1;
+          overflow: hidden;
+
+          .ant-tabs-tabpane {
+            height: 100%;
+            overflow: hidden;
+          }
+        }
+      }
 
       .quill-editor {
         flex: 1;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
 
         .ql-toolbar {
           border: 1px solid #d9d9d9;
           border-bottom: none;
           border-radius: 6px 6px 0 0;
           background: #fafafa;
+          flex-shrink: 0;
         }
 
         .ql-container {
@@ -233,10 +269,14 @@
           border-radius: 0 0 6px 6px;
           font-size: 14px;
           line-height: 1.6;
+          overflow: hidden;
 
           .ql-editor {
             min-height: 300px;
             padding: 16px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            word-wrap: break-word;
 
             &.ql-blank::before {
               color: #bfbfbf;
@@ -253,9 +293,11 @@
         border-radius: 6px;
         background: #fafafa;
         overflow-y: auto;
+        overflow-x: hidden;
         font-size: 14px;
         line-height: 1.6;
         color: #262626;
+        word-wrap: break-word;
 
         h1, h2, h3, h4, h5, h6 {
           margin-top: 24px;
@@ -355,7 +397,7 @@
 }
 
 /* 响应式设计 */
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
   .note-create-modal {
     .ant-modal {
       width: 95% !important;
@@ -364,6 +406,54 @@
 
     .notes-sidebar {
       width: 280px !important;
+    }
+
+    .editor-container {
+      padding: 16px;
+    }
+
+    .editor-title .title-input {
+      font-size: 20px;
+    }
+
+    .editor-title .title-display {
+      font-size: 20px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .note-create-modal {
+    .ant-modal {
+      width: 100% !important;
+      margin: 0;
+      height: 100vh;
+    }
+
+    .ant-modal-content {
+      height: 100vh !important;
+      max-height: none !important;
+    }
+
+    .ant-modal-body {
+      height: calc(100vh - 110px) !important;
+      max-height: none !important;
+    }
+
+    .notes-sidebar {
+      width: 250px !important;
+    }
+
+    .editor-container {
+      padding: 12px;
+    }
+
+    .editor-title .title-input {
+      font-size: 18px;
+    }
+
+    .editor-title .title-display {
+      font-size: 18px;
     }
   }
 }

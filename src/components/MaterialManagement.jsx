@@ -22,7 +22,7 @@ import MaterialAddPage from './MaterialAddPage';
 import ExploreModal from './ExploreModal';
 import CapabilityMindMap from './CapabilityMindMap.jsx';
 import KnowledgeGraphMindMap from './KnowledgeGraphMindMap.jsx';
-import courseSelectionService from '../services/courseSelectionService';
+// import courseSelectionService from '../services/courseSelectionService';
 import {
   ArrowLeftOutlined,
   UploadOutlined,

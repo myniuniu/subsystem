@@ -27,7 +27,8 @@ import {
   CloudOutlined,
   TeamOutlined
 } from '@ant-design/icons';
-import courseSelectionService from '../services/courseSelectionService';
+import './MaterialAddPage.css';
+// import courseSelectionService from '../services/courseSelectionService';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -51,7 +52,7 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
   const [showMicroMajorForm, setShowMicroMajorForm] = useState(false);
   const [showLiveCourseForm, setShowLiveCourseForm] = useState(false);
   const [showCloudDiskForm, setShowCloudDiskForm] = useState(false);
-  const [showTrainingNeedsForm, setShowTrainingNeedsForm] = useState(false);
+  // const [showTrainingNeedsForm, setShowTrainingNeedsForm] = useState(false);
 
   const handleFileUpload = (info) => {
     const { status } = info.file;
@@ -261,7 +262,8 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
     setShowCloudDiskForm(false);
   };
 
-  // 培训需求相关处理函数
+  // 培训需求相关处理函数（已删除功能）
+  /*
   const handleTrainingNeedsClick = () => {
     setShowTrainingNeedsForm(true);
   };
@@ -275,14 +277,17 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
   const handleTrainingNeedsCancel = () => {
     setShowTrainingNeedsForm(false);
   };
+  */
 
   return (
     <Modal
-      title={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm || showTrainingNeedsForm) ? null : "添加来源"}
+      title={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm) ? null : "添加来源"}
       open={visible}
       onCancel={onClose}
-      width={1040}
-      footer={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm || showTrainingNeedsForm) ? null : [
+      width="90%"
+      style={{ maxWidth: '1200px', minWidth: '800px' }}
+      className="material-add-modal"
+      footer={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm) ? null : [
         <Button key="cancel" onClick={onClose}>
           取消
         </Button>,
@@ -290,9 +295,9 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
           保存资源
         </Button>
       ]}
-      centered={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm || showTrainingNeedsForm)}
-      closable={!(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm || showTrainingNeedsForm)}
-      bodyStyle={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm || showTrainingNeedsForm) ? { padding: 0 } : {}}
+      centered
+      closable={!(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm)}
+      bodyStyle={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm) ? { padding: 0, overflowX: 'hidden', overflowY: 'auto' } : { overflowX: 'hidden', overflowY: 'auto' }}
     >
       {showTextForm ? (
         <div>
@@ -318,90 +323,7 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
               粘贴文字
             </Title>
           </div>
-      ) : showTrainingNeedsForm ? (
-        <div>
-          {/* 标题栏 */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            padding: '16px 20px',
-            borderBottom: '1px solid #e5e7eb'
-          }}>
-            <Button 
-              type="text" 
-              icon={<ArrowLeftOutlined />} 
-              onClick={handleTrainingNeedsCancel}
-              style={{ 
-                marginRight: '12px',
-                padding: '4px',
-                minWidth: 'auto',
-                height: 'auto'
-              }}
-            />
-            <Title level={4} style={{ margin: 0, fontSize: '16px', fontWeight: 500, color: '#1f2937' }}>
-              培训需求
-            </Title>
-          </div>
-          
-          {/* 内容区域 */}
-          <div style={{ padding: '24px 20px' }}>
-            <div style={{ marginBottom: '16px' }}>
-              <Text style={{ fontSize: '14px', color: '#6b7280' }}>
-                添加培训需求信息，系统将基于需求内容为您推荐合适的学习资源和培训方案。
-              </Text>
-            </div>
-            
-            <div style={{ marginBottom: '24px' }}>
-              <Text strong style={{ fontSize: '14px', color: '#1f2937', display: 'block', marginBottom: '8px' }}>
-                培训需求描述
-              </Text>
-              <TextArea
-                rows={6}
-                placeholder="请详细描述您的培训需求，包括：&#10;• 培训目标和期望达到的效果&#10;• 培训对象和人员规模&#10;• 培训时间和周期要求&#10;• 培训内容和重点领域&#10;• 其他特殊要求"
-                style={{
-                  borderRadius: '8px',
-                  border: '2px solid #e5e7eb',
-                  fontSize: '14px',
-                  resize: 'none'
-                }}
-              />
-            </div>
-            
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <Button
-                onClick={handleTrainingNeedsCancel}
-                style={{
-                  height: '36px',
-                  paddingLeft: '16px',
-                  paddingRight: '16px',
-                  borderRadius: '18px',
-                  border: '1px solid #d1d5db',
-                  backgroundColor: 'white',
-                  color: '#374151',
-                  fontSize: '14px'
-                }}
-              >
-                取消
-              </Button>
-              <Button
-                type="primary"
-                onClick={handleTrainingNeedsSubmit}
-                style={{
-                  height: '36px',
-                  paddingLeft: '16px',
-                  paddingRight: '16px',
-                  borderRadius: '18px',
-                  backgroundColor: '#13c2c2',
-                  borderColor: '#13c2c2',
-                  fontSize: '14px'
-                }}
-              >
-                添加培训需求
-              </Button>
-            </div>
-          </div>
-        </div>
-          
+      ) : (
           {/* 内容区域 */}
           <div style={{ padding: '24px 20px' }}>
             <div style={{ marginBottom: '16px' }}>
@@ -1428,7 +1350,7 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
           </div>
         </div>
       ) : (
-      <div style={{ padding: '0' }}>
+      <div style={{ padding: '0', overflowX: 'hidden', maxWidth: '100%' }}>
 
 
 
@@ -1438,7 +1360,9 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
           borderRadius: '8px',
           padding: '40px',
           marginBottom: '24px',
-          border: '1px solid #e8e8e8'
+          border: '1px solid #e8e8e8',
+          overflowX: 'hidden',
+          maxWidth: '100%'
         }}>
           {/* 上传区域 */}
           <div style={{ 
@@ -1451,12 +1375,7 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
               onChange={handleFileUpload}
               showUploadList={false}
               accept=".pdf,.txt,.md,.doc,.docx"
-              style={{
-                backgroundColor: '#fafafa',
-                border: '2px dashed #d9d9d9',
-                borderRadius: '8px',
-                padding: '60px 20px'
-              }}
+              className="upload-dragger"
             >
               <div>
                 <UploadOutlined style={{ 
@@ -1483,22 +1402,12 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
           </div>
 
           {/* 八个功能区域 - 两排布局，每排四个 */}
-          <div style={{ 
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr 1fr 1fr',
-            gridTemplateRows: '1fr 1fr',
-            gap: '20px'
-          }}>
+          <div className="material-grid">
             {/* 第一排：知识图谱、能力模型、微专业、我的选课 */}
             {/* 知识图谱 */}
             <Card 
               hoverable
-              style={{ 
-                textAlign: 'center',
-                border: '1px solid #e8e8e8',
-                borderRadius: '8px',
-                cursor: 'pointer'
-              }}
+              className="material-card"
               bodyStyle={{ padding: '40px 24px' }}
               onClick={handleKnowledgeGraphClick}
             >
@@ -1757,44 +1666,6 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
               </Button>
             </Card>
 
-            {/* 培训需求 */}
-            <Card 
-              hoverable
-              style={{ 
-                textAlign: 'center',
-                border: '1px solid #e8e8e8',
-                borderRadius: '8px',
-                cursor: 'pointer'
-              }}
-              bodyStyle={{ padding: '40px 24px' }}
-              onClick={handleTrainingNeedsClick}
-            >
-              <TeamOutlined style={{ 
-                fontSize: '40px', 
-                color: '#13c2c2',
-                marginBottom: '20px'
-              }} />
-              <div style={{ marginBottom: '12px' }}>
-                <Text strong style={{ fontSize: '16px' }}>培训需求</Text>
-              </div>
-              <Button 
-                type="primary"
-                size="small"
-                onClick={handleTrainingNeedsClick}
-                style={{
-                  backgroundColor: '#13c2c2',
-                  borderColor: '#13c2c2',
-                  borderRadius: '16px',
-                  fontSize: '12px',
-                  height: '28px',
-                  paddingLeft: '12px',
-                  paddingRight: '12px'
-                }}
-              >
-                添加需求
-              </Button>
-            </Card>
-
             {/* 链接 */}
             <Card 
               hoverable
@@ -1901,15 +1772,7 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
         </div>
 
         {/* 底部进度条 */}
-        <div style={{ 
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '20px 24px',
-          border: '1px solid #e8e8e8',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
+        <div className="progress-area">
           <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
             <Text style={{ marginRight: '16px', fontSize: '14px', fontWeight: 500 }}>资源添加进度</Text>
             <Progress 
