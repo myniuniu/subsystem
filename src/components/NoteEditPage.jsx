@@ -139,6 +139,63 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
   const [showMessageCenter, setShowMessageCenter] = useState(false);
   const [unreadMessageCount, setUnreadMessageCount] = useState(3); // 模拟未读消息数量
   const [isGroupCreated, setIsGroupCreated] = useState(false); // 群组创建状态
+  
+  // 悬浮图标拖动相关状态
+  const [floatIconPosition, setFloatIconPosition] = useState({ x: 24, y: 24 }); // 相对于右下角的位置
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  
+  // 拖动事件处理函数
+  const handleMouseDown = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    const iconSize = 56;
+    
+    // 计算新位置（相对于右下角）
+    const newX = windowWidth - e.clientX - dragOffset.x + iconSize;
+    const newY = windowHeight - e.clientY - dragOffset.y + iconSize;
+    
+    // 边界限制
+    const minX = iconSize;
+    const maxX = windowWidth - iconSize;
+    const minY = iconSize;
+    const maxY = windowHeight - iconSize;
+    
+    setFloatIconPosition({
+      x: Math.max(minX, Math.min(maxX, windowWidth - e.clientX + dragOffset.x)),
+      y: Math.max(minY, Math.min(maxY, windowHeight - e.clientY + dragOffset.y))
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // 添加全局鼠标事件监听
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, dragOffset]);
+  
   const [discussionMessages, setDiscussionMessages] = useState([
     {
       id: 1,
@@ -1128,12 +1185,19 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
       <div
         style={{
           position: 'fixed',
-          bottom: '24px',
-          right: '24px',
+          bottom: `${floatIconPosition.y}px`,
+          right: `${floatIconPosition.x}px`,
           zIndex: 1000,
-          cursor: 'pointer'
+          cursor: isDragging ? 'grabbing' : 'grab'
         }}
-        onClick={() => {
+        onMouseDown={handleMouseDown}
+        onClick={(e) => {
+          // 如果正在拖动，不触发点击事件
+          if (isDragging) {
+            e.preventDefault();
+            return;
+          }
+          
           // 如果是"组织培训"分类，直接打开消息中心，不需要判断群组创建状态
           if (selectedCategory === 'organizational_training') {
             setShowMessageCenter(true);
@@ -1163,22 +1227,30 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
           style={{
             width: '56px',
             height: '56px',
-            backgroundColor: '#1890ff',
+            backgroundColor: isDragging ? '#40a9ff' : '#1890ff',
             borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(24, 144, 255, 0.4)',
-            transition: 'all 0.3s ease',
-            position: 'relative'
+            boxShadow: isDragging 
+              ? '0 8px 24px rgba(24, 144, 255, 0.8)' 
+              : '0 4px 12px rgba(24, 144, 255, 0.4)',
+            transition: isDragging ? 'none' : 'all 0.3s ease',
+            transform: isDragging ? 'scale(1.1)' : 'scale(1)',
+            position: 'relative',
+            userSelect: 'none'
           }}
           onMouseEnter={(e) => {
-            e.target.style.transform = 'scale(1.1)';
-            e.target.style.boxShadow = '0 6px 16px rgba(24, 144, 255, 0.6)';
+            if (!isDragging) {
+              e.target.style.transform = 'scale(1.1)';
+              e.target.style.boxShadow = '0 6px 16px rgba(24, 144, 255, 0.6)';
+            }
           }}
           onMouseLeave={(e) => {
-            e.target.style.transform = 'scale(1)';
-            e.target.style.boxShadow = '0 4px 12px rgba(24, 144, 255, 0.4)';
+            if (!isDragging) {
+              e.target.style.transform = 'scale(1)';
+              e.target.style.boxShadow = '0 4px 12px rgba(24, 144, 255, 0.4)';
+            }
           }}
         >
           <MessageOutlined style={{ fontSize: '24px', color: 'white' }} />
