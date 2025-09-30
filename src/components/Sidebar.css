@@ -1,7 +1,7 @@
 .sidebar {
   height: 100%;
   padding: 16px 0;
-  background: var(--theme-cardBackground);
+  background: #f5f5f5;
   width: 280px;
   transition: width 0.3s ease;
   overflow: hidden;
