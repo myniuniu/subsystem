@@ -56,6 +56,26 @@ const customStyles = `
   .custom-more-tools-dropdown .ant-dropdown-menu {
     padding: 4px;
     border-radius: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
+  .custom-more-tools-dropdown .ant-dropdown-menu::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-more-tools-dropdown .ant-dropdown-menu::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 3px;
+  }
+  
+  .custom-more-tools-dropdown .ant-dropdown-menu::-webkit-scrollbar-thumb {
+    background: #d9d9d9;
+    border-radius: 3px;
+  }
+  
+  .custom-more-tools-dropdown .ant-dropdown-menu::-webkit-scrollbar-thumb:hover {
+    background: #bfbfbf;
   }
   
   .custom-more-tools-dropdown .ant-dropdown-menu-item {
@@ -392,6 +412,20 @@ const OperationPanel = ({ state, handlers }) => {
           icon: '🔬',
           gradient: 'linear-gradient(135deg, #fff1f0 0%, #ffccc7 100%)',
           color: '#f5222d'
+        }
+      },
+      {
+        id: 'video-slice',
+        name: '视频切片',
+        description: '智能视频切片工具，支持视频片段提取、剪辑、标注等功能',
+        icon: '🎬',
+        color: '#fa8c16',
+        menuConfig: {
+          key: 'video-slice',
+          title: '视频切片',
+          icon: '🎬',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
         }
       }
     ];

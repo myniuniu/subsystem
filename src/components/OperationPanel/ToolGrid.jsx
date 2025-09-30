@@ -153,6 +153,7 @@ const ToolGrid = ({
                 }}
                 trigger={['click']}
                 placement="topLeft"
+                overlayClassName="custom-more-tools-dropdown"
               >
                 <Card 
                   size="small" 

@@ -115,7 +115,7 @@ const ClassroomEvaluationModal = ({ visible, onCancel, onConfirm }) => {
       onCancel={handleCancel}
       footer={null}
       width={720}
-      destroyOnClose
+      destroyOnHidden
     >
       <div style={{ marginBottom: '24px' }}>
         <Alert

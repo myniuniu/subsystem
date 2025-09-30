@@ -604,7 +604,7 @@ ${timelineData.map(note => {
 
   // 如果显示编辑页面，则渲染NoteEditPage
   if (showTrainingNeedsEditPage) {
-    return <NoteEditPage onBack={handleCloseEditPage} onViewChange={onViewChange} />;
+    return <NoteEditPage onBack={handleCloseEditPage} onViewChange={onViewChange} selectedCategory="training_needs_management" />;
   }
 
   return (

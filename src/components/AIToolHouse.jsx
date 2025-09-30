@@ -589,6 +589,38 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
         '改进建议输出'
       ],
       usage: '系统将自动收集培训相关数据，包括参与人数、完成率、满意度等，生成全面的培训效果分析报告'
+    },
+    {
+      id: 'training-dashboard',
+      name: '培训报表',
+      description: '智能培训数据报表工具，提供培训数据的可视化分析和统计报表功能',
+      category: AI_TOOL_CATEGORIES.ANALYSIS,
+      status: AI_TOOL_STATUS.ACTIVE,
+      author: '培训管理团队',
+      version: 'v1.2.0',
+      rating: 4.8,
+      downloads: 3650,
+      tags: ['培训报表', '数据可视化', '统计分析', '报表生成'],
+      icon: '📊',
+      color: '#0369a1',
+      featured: true,
+      applicableNoteCategories: ['training_needs_management'],
+      menuConfig: {
+        key: 'training-dashboard',
+        title: '培训报表',
+        icon: '📊',
+        gradient: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+        color: '#0369a1'
+      },
+      features: [
+        '培训数据统计分析',
+        '可视化图表生成',
+        '多维度数据展示',
+        '培训效果对比',
+        '报表自动生成',
+        '数据导出功能'
+      ],
+      usage: '基于培训数据生成各类统计报表和可视化图表，帮助管理者全面了解培训情况和效果'
     }
   ]
 
@@ -610,9 +642,9 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       return tools;
     }
     
-    // 特殊处理：培训产品研发分类下默认只显示课程研发工具
+    // 特殊处理：培训产品研发分类下默认显示课程研发工具和视频切片工具
     if (category === 'training_product_development') {
-      const filtered = tools.filter(tool => tool.id === 'course-development');
+      const filtered = tools.filter(tool => ['course-development', 'video-slice'].includes(tool.id));
       console.log('getFilteredToolsByNoteCategory - 培训产品研发分类，过滤后的工具:', filtered);
       return filtered;
     }
@@ -620,7 +652,7 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
     // 特殊处理：培训需求与管理分类下显示特定的工具
     if (category === 'training_needs_management') {
       const filtered = tools.filter(tool => 
-        ['training-plan', 'schedule', 'training-report'].includes(tool.id)
+        ['training-plan', 'schedule', 'training-report', 'training-dashboard'].includes(tool.id)
       );
       console.log('getFilteredToolsByNoteCategory - 培训需求与管理分类，过滤后的工具:', filtered);
       return filtered;

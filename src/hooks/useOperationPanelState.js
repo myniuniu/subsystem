@@ -16,58 +16,19 @@ export const useOperationPanelState = (noteCategory = null) => {
     
     // 如果是培训需求与管理分类，返回培训相关工具
     if (category === 'training_needs_management') {
+      // 只显示指定的四个工具：培训方案、课表、培训报告、培训报表
       const trainingCards = OPERATION_CARDS.filter(card => 
-        card.key === 'training-plan' || card.key === 'schedule' || card.key === 'training-report'
+        card.key === 'training-plan' || 
+        card.key === 'schedule' || 
+        card.key === 'training-report' ||
+        card.key === 'training-dashboard'
       );
-      
-      // 获取AI工具配置
-      const aiToolsConfig = JSON.parse(localStorage.getItem('ai-tools-config') || '{}');
-      const addedAITools = JSON.parse(localStorage.getItem('added-ai-tools-to-panel') || '[]');
-      
-      // 检查培训报表工具是否已添加，如果没有则自动添加
-      if (!addedAITools.includes('training-dashboard')) {
-        console.log('培训报表工具不存在，自动创建...');
-        
-        // 创建培训报表工具配置
-        const trainingDashboardConfig = {
-          key: 'training-dashboard',
-          title: '培训报表',
-          icon: '📊',
-          gradient: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
-          color: '#0369a1'
-        };
-        
-        // 更新配置
-        aiToolsConfig['training-dashboard'] = trainingDashboardConfig;
-        addedAITools.push('training-dashboard');
-        
-        // 保存到localStorage
-        localStorage.setItem('ai-tools-config', JSON.stringify(aiToolsConfig));
-        localStorage.setItem('added-ai-tools-to-panel', JSON.stringify(addedAITools));
-        
-        console.log('培训报表工具已自动创建并添加');
-      }
-      
-      // 查找培训报表AI工具并添加到卡片列表
-      if (addedAITools.includes('training-dashboard') && aiToolsConfig['training-dashboard']) {
-        const config = aiToolsConfig['training-dashboard'];
-        const trainingDashboardCard = {
-          key: 'training-dashboard',
-          title: config.title,
-          icon: config.icon,
-          gradient: config.gradient,
-          color: config.color,
-          isAITool: true
-        };
-        trainingCards.push(trainingDashboardCard);
-        console.log('培训报表工具已添加到卡片列表:', trainingDashboardCard);
-      }
       
       console.log('培训需求管理分类，返回的卡片:', trainingCards);
       return trainingCards;
     }
     
-    // 如果是培训产品研发分类，只显示课程研发工具
+    // 如果是培训产品研发分类，显示课程研发工具和视频切片工具
     if (category === 'training_product_development') {
       // 获取AI工具配置
       const aiToolsConfig = JSON.parse(localStorage.getItem('aiToolsConfig') || '{}');
@@ -100,28 +61,65 @@ export const useOperationPanelState = (noteCategory = null) => {
         console.log('课程研发工具已自动创建并添加');
       }
       
-      // 查找课程研发AI工具
-      const courseDevAITool = addedAITools.find(toolId => toolId === 'course-development');
-      const courseDevCards = [];
+      // 如果视频切片工具不存在，自动创建并添加
+      if (!addedAITools.includes('video-slice')) {
+        console.log('视频切片工具不存在，自动创建...');
+        
+        // 创建视频切片工具配置
+        const videoSliceConfig = {
+          key: 'video-slice',
+          title: '视频切片',
+          icon: '🎬',
+          gradient: 'linear-gradient(135deg, #fff2e8 0%, #ffd8bf 100%)',
+          color: '#fa8c16'
+        };
+        
+        // 更新配置
+        aiToolsConfig['video-slice'] = videoSliceConfig;
+        addedAITools.push('video-slice');
+        
+        // 保存到localStorage
+        localStorage.setItem('aiToolsConfig', JSON.stringify(aiToolsConfig));
+        localStorage.setItem('addedAITools', JSON.stringify(addedAITools));
+        
+        console.log('视频切片工具已自动创建并添加');
+      }
       
-      if (courseDevAITool && aiToolsConfig[courseDevAITool]) {
-        const config = aiToolsConfig[courseDevAITool];
+      // 查找培训产品研发相关的AI工具
+      const trainingProductDevCards = [];
+      
+      // 添加课程研发工具
+      if (addedAITools.includes('course-development') && aiToolsConfig['course-development']) {
+        const config = aiToolsConfig['course-development'];
         const aiCard = {
-          key: courseDevAITool,
+          key: 'course-development',
           title: config.title,
           icon: config.icon,
           gradient: config.gradient,
           color: config.color,
           isAITool: true
         };
-        courseDevCards.push(aiCard);
+        trainingProductDevCards.push(aiCard);
         console.log('找到课程研发AI工具:', aiCard);
-      } else {
-        console.log('未找到课程研发AI工具，addedAITools:', addedAITools);
       }
       
-      console.log('培训产品研发分类，最终返回的卡片:', courseDevCards);
-      return courseDevCards;
+      // 添加视频切片工具
+      if (addedAITools.includes('video-slice') && aiToolsConfig['video-slice']) {
+        const config = aiToolsConfig['video-slice'];
+        const aiCard = {
+          key: 'video-slice',
+          title: config.title,
+          icon: config.icon,
+          gradient: config.gradient,
+          color: config.color,
+          isAITool: true
+        };
+        trainingProductDevCards.push(aiCard);
+        console.log('找到视频切片AI工具:', aiCard);
+      }
+      
+      console.log('培训产品研发分类，返回的卡片:', trainingProductDevCards);
+      return trainingProductDevCards;
     }
     
     // 其他分类返回所有工具（保持原有逻辑）
