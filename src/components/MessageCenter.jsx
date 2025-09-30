@@ -17,6 +17,16 @@ const MessageCenter = ({ contacts: propContacts }) => {
       online: true
     },
     {
+      id: 'topic_discussion',
+      name: '主题讨论',
+      type: 'group',
+      avatar: '💬',
+      lastMessage: '我这里有一些相关资料，可以分享给大家',
+      lastTime: '2024-01-15 16:20',
+      unreadCount: 3,
+      online: true
+    },
+    {
       id: 'user1',
       name: '张老师',
       type: 'user',
@@ -361,6 +371,50 @@ const MessageCenter = ({ contacts: propContacts }) => {
 
   // 消息历史数据
   const [messageHistory, setMessageHistory] = useState({
+    topic_discussion: [
+      {
+        id: 1,
+        senderId: 'user1',
+        senderName: '张老师',
+        content: '大家好，我想和大家讨论一下这个教学方案的可行性',
+        time: new Date(Date.now() - 2 * 60 * 60 * 1000).toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        type: 'text'
+      },
+      {
+        id: 2,
+        senderId: 'me',
+        senderName: '我',
+        content: '这个方案确实很有创新性，我觉得可以先在小范围内试点',
+        time: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        type: 'text'
+      },
+      {
+        id: 3,
+        senderId: 'user2',
+        senderName: '李主任',
+        content: '我这里有一些相关资料，可以分享给大家',
+        time: new Date(Date.now() - 1 * 60 * 60 * 1000).toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        type: 'text'
+      }
+    ],
     system: [
       {
         id: 1,

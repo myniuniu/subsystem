@@ -138,6 +138,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
   // 消息中心相关状态
   const [showMessageCenter, setShowMessageCenter] = useState(false);
   const [unreadMessageCount, setUnreadMessageCount] = useState(3); // 模拟未读消息数量
+  const [isGroupCreated, setIsGroupCreated] = useState(false); // 群组创建状态
   const [discussionMessages, setDiscussionMessages] = useState([
     {
       id: 1,
@@ -1132,7 +1133,24 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
           zIndex: 1000,
           cursor: 'pointer'
         }}
-        onClick={() => setShowMessageCenter(true)}
+        onClick={() => {
+          if (!isGroupCreated) {
+            // 如果没有创建群组，显示创建群组的提示
+            Modal.confirm({
+              title: '创建主题讨论群组',
+              content: '该主题还没有创建讨论群组，是否现在创建？',
+              okText: '创建',
+              cancelText: '取消',
+              onOk: () => {
+                setIsGroupCreated(true);
+                message.success('主题讨论群组创建成功！');
+                setShowMessageCenter(true);
+              }
+            });
+          } else {
+            setShowMessageCenter(true);
+          }
+        }}
       >
         <div
           style={{
