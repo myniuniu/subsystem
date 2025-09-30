@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { Avatar, Typography, Space, Button } from 'antd'
-import { MessageCircle, Sparkles, User, ExternalLink } from 'lucide-react'
-import ThemeSelector from './ThemeSelector'
+import { Typography, Space, Button } from 'antd'
+import { Sparkles, ExternalLink } from 'lucide-react'
+import UserAvatar from './UserAvatar'
 import { initTheme } from '../utils/themeManager'
 import './Header.css'
 
@@ -94,16 +94,7 @@ const Header = ({ onMenuClick, currentView }) => {
               张老师
             </div>
           </div>
-          <ThemeSelector onThemeChange={handleThemeChange} />
-          <Avatar 
-            size={40}
-            style={{ 
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              border: '2px solid rgba(255, 255, 255, 0.3)',
-              backdropFilter: 'blur(10px)'
-            }}
-            icon={<User size={20} color="#fff" />}
-          />
+          <UserAvatar onThemeChange={handleThemeChange} />
         </Space>
       </div>
     </div>

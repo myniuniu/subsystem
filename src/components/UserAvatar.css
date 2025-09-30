@@ -1,0 +1,125 @@
+/* 用户头像下拉菜单样式 */
+.user-avatar-dropdown {
+  min-width: 280px;
+}
+
+.user-avatar-dropdown .ant-dropdown-menu {
+  padding: 8px 0;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-avatar-dropdown .ant-dropdown-menu-item {
+  padding: 8px 16px;
+  border-radius: 8px;
+  margin: 2px 8px;
+  transition: all 0.2s ease;
+}
+
+.user-avatar-dropdown .ant-dropdown-menu-item:hover {
+  background: rgba(24, 144, 255, 0.08);
+}
+
+.user-avatar-dropdown .ant-dropdown-menu-submenu-title {
+  padding: 8px 16px;
+  border-radius: 8px;
+  margin: 2px 8px;
+  transition: all 0.2s ease;
+}
+
+.user-avatar-dropdown .ant-dropdown-menu-submenu-title:hover {
+  background: rgba(24, 144, 255, 0.08);
+}
+
+/* 用户信息区域 */
+.user-info-section {
+  padding: 4px 0;
+  text-align: left;
+}
+
+.user-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+  line-height: 1.4;
+}
+
+.user-email {
+  font-size: 12px;
+  color: #8c8c8c;
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+/* 主题选项样式 */
+.theme-option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.theme-preview {
+  display: flex;
+  gap: 4px;
+  margin-right: 8px;
+}
+
+.theme-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.theme-name {
+  flex: 1;
+  font-size: 14px;
+  color: #262626;
+}
+
+/* 头像按钮悬停效果 */
+.user-avatar-button:hover {
+  transform: scale(1.05);
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  background-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* 子菜单样式 */
+.user-avatar-dropdown .ant-dropdown-menu-submenu .ant-dropdown-menu {
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.user-avatar-dropdown .ant-dropdown-menu-submenu .ant-dropdown-menu-item {
+  margin: 1px 4px;
+  padding: 6px 12px;
+}
+
+/* 分割线样式 */
+.user-avatar-dropdown .ant-dropdown-menu-item-divider {
+  margin: 8px 16px;
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .user-avatar-dropdown {
+    min-width: 240px;
+  }
+  
+  .user-name {
+    font-size: 14px;
+  }
+  
+  .user-email {
+    font-size: 11px;
+  }
+}

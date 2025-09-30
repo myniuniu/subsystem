@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { Layout } from 'antd'
-import Header from './components/Header'
 import Sidebar from './components/Sidebar'
 import MainContent from './components/MainContent'
 import UnifiedAICenter from './components/UnifiedAICenter'
@@ -44,13 +43,14 @@ import CourseSelectionEditPage from './components/CourseSelectionEditPage'
 import LearningSquare from './components/LearningSquare'
 import ProgressTestPage from './components/ProgressTestPage'
 import ThemeTemplateCenter from './components/ThemeTemplateCenter'
+import PWAInstallButton from './components/PWAInstallButton'
 
 import './App.css'
 
-const { Header: AntHeader, Sider, Content } = Layout
+const { Sider, Content } = Layout
 
 function App() {
-  const [currentView, setCurrentView] = useState('home') // 'home', 'chat', 'image', 'search', etc.
+  const [currentView, setCurrentView] = useState('smart-notes') // 'home', 'chat', 'image', 'search', etc.
   const [messages, setMessages] = useState([])
   
   // 页面状态管理
@@ -268,22 +268,7 @@ function App() {
 
   return (
     <Layout className="app" style={{ height: '100vh' }}>
-      <AntHeader 
-        style={{ 
-          padding: 0, 
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-          height: '64px',
-          display: 'flex',
-          alignItems: 'center'
-        }}
-      >
-        <Header 
-          currentView={currentView}
-        />
-      </AntHeader>
-      
-      <Layout style={{ height: 'calc(100vh - 64px)' }}>
+      <Layout style={{ height: '100vh' }}>
         <Sider 
           width="auto"
           style={{
@@ -310,13 +295,13 @@ function App() {
         <Layout style={{ height: '100%' }}>
           <Content 
             style={{
-              margin: '16px',
+              margin: '0', // 移除margin，让内容区域完全填满
               padding: '0',
               background: 'var(--theme-cardBackground)',
               backdropFilter: 'blur(10px)',
-              borderRadius: '12px',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-              height: 'calc(100% - 32px)',
+              borderRadius: '0', // 移除圆角，让内容区域完全贴合
+              boxShadow: 'none', // 移除阴影
+              height: '100%', // 改为100%，完全填满父容器
               display: 'flex',
               flexDirection: 'column'
             }}
@@ -435,6 +420,9 @@ function App() {
           </Content>
         </Layout>
       </Layout>
+      
+      {/* PWA安装按钮 */}
+      <PWAInstallButton />
     </Layout>
   )
 }

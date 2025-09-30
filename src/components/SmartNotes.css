@@ -2,11 +2,13 @@
 .smart-notes {
   height: 100vh; /* 修改为100vh，与左侧菜单栏保持一致 */
   background: #f5f7fa;
+  overflow-x: hidden; /* 隐藏横向滚动条 */
 }
 
 .smart-notes .ant-layout {
   height: 100vh; /* 修改为100vh，与左侧菜单栏保持一致 */
   background: transparent;
+  overflow-x: hidden; /* 隐藏横向滚动条 */
 }
 
 /* 侧边栏样式 */
@@ -36,8 +38,8 @@
 
 .sidebar-content {
   padding: 20px;
-  height: calc(100vh - 140px); /* 修改为与左侧菜单栏一致的高度计算方式 */
-  overflow-y: auto;
+  height: 100vh; /* 改为100vh，与整体容器保持一致 */
+  overflow: hidden; /* 完全隐藏滚动条 */
 }
 
 .search-input {
@@ -518,8 +520,8 @@
 .notes-content {
   padding: 24px;
   background: #f5f7fa;
-  height: calc(100vh - 80px); /* 修改为与左侧菜单栏一致的高度 */
-  overflow-y: auto;
+  height: 100vh; /* 改为100vh，与整体容器保持一致 */
+  overflow: hidden; /* 完全隐藏滚动条 */
   display: flex;
   flex-direction: column;
 }
@@ -654,7 +656,7 @@
 .notes-grid {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow: hidden; /* 完全隐藏滚动条 */
 }
 
 /* 保证所有卡片列高度一致 */

@@ -48,8 +48,10 @@ import {
   Tag,
   Edit,
   GraduationCap,
-  Settings
+  Settings,
+  User
 } from 'lucide-react'
+import SidebarAvatar from './SidebarAvatar'
 import './Sidebar.css'
 
 // 可拖拽的菜单项组件
@@ -305,7 +307,7 @@ const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onCli
 const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadingCount = 0, onAddApp, onRemoveApp }) => {
   const [isCollapsed, setIsCollapsed] = useState(() => {
     const saved = localStorage.getItem('sidebar-collapsed')
-    return saved ? JSON.parse(saved) : false
+    return saved ? JSON.parse(saved) : true // 默认为收缩模式
   })
 
   // 动态应用菜单项
@@ -329,6 +331,34 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
   // 2级菜单数据结构
   const defaultMenuItems = [
     { 
+       id: 'smart-notes', 
+       icon: Edit, 
+       label: '小黑屋', 
+       color: '#52c41a',
+       type: 'single'
+     },
+    { 
+      id: 'message-center', 
+      icon: MessageSquare, 
+      label: '消息中心', 
+      color: '#f39c12',
+      type: 'single'
+    },
+    { 
+      id: 'docs-center', 
+      icon: FileText, 
+      label: '云盘', 
+      color: '#a18cd1',
+      type: 'single'
+    },
+    { 
+      id: 'calendar-center', 
+      icon: Calendar, 
+      label: '日历中心', 
+      color: '#52c41a',
+      type: 'single'
+    },
+    { 
       id: 'home', 
       icon: Home, 
       label: '个人工作台', 
@@ -349,13 +379,6 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       color: '#667eea',
       type: 'single'
     },
-    { 
-       id: 'smart-notes', 
-       icon: Edit, 
-       label: '小黑屋', 
-       color: '#52c41a',
-       type: 'single'
-     },
     { 
        id: 'ai-tool-house', 
        icon: Bot, 
@@ -443,13 +466,6 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       ]
     },
     { 
-      id: 'message-center', 
-      icon: MessageSquare, 
-      label: '消息中心', 
-      color: '#f39c12',
-      type: 'single'
-    },
-    { 
       id: 'meeting-center', 
       icon: Video, 
       label: '会议中心', 
@@ -464,24 +480,10 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       type: 'single'
     },
     { 
-      id: 'docs-center', 
-      icon: FileText, 
-      label: '云盘', 
-      color: '#a18cd1',
-      type: 'single'
-    },
-    { 
       id: 'download-center', 
       icon: Download, 
       label: '下载中心', 
       color: '#ff9a9e',
-      type: 'single'
-    },
-    { 
-      id: 'calendar-center', 
-      icon: Calendar, 
-      label: '日历中心', 
-      color: '#52c41a',
       type: 'single'
     },
     { 
@@ -705,7 +707,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
   return (
     <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
-        {!isCollapsed && <h4 className="sidebar-title">功能菜单</h4>}
+        <SidebarAvatar isCollapsed={isCollapsed} />
         <button className="collapse-toggle" onClick={toggleCollapse}>
           {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
         </button>

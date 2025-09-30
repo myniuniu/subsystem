@@ -75,7 +75,7 @@ export const themes = {
 };
 
 // 默认主题
-export const DEFAULT_THEME = 'blue';
+export const DEFAULT_THEME = 'light';
 
 // 获取当前主题
 export const getCurrentTheme = () => {

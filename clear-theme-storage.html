@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>清除主题设置</title>
+</head>
+<body>
+    <h1>清除主题设置</h1>
+    <p>点击下面的按钮清除本地存储的主题设置，让应用使用新的默认亮色主题。</p>
+    <button onclick="clearThemeStorage()">清除主题设置并刷新</button>
+    
+    <script>
+        function clearThemeStorage() {
+            localStorage.removeItem('app-theme');
+            alert('主题设置已清除，页面将刷新以应用默认亮色主题');
+            window.location.href = 'http://localhost:5173/';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+/* 侧边栏头像样式 */
+.sidebar-title-with-avatar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  min-height: 40px;
+}
+
+.sidebar-title-with-avatar.collapsed {
+  justify-content: center;
+  padding: 8px;
+  gap: 0;
+}
+
+.sidebar-title-with-avatar.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  padding: 4px 8px;
+  margin: -4px -8px;
+}
+
+.sidebar-title-with-avatar:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-title-with-avatar.clickable:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.sidebar-title-with-avatar.clickable:active {
+  transform: translateY(0);
+}
+
+.sidebar-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.sidebar-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--theme-textColor);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 侧边栏头像下拉菜单样式 */
+.sidebar-avatar-dropdown {
+  z-index: 1050;
+}
+
+.sidebar-avatar-dropdown .ant-dropdown-menu {
+  background: var(--theme-cardBackground);
+  border: 1px solid var(--theme-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(20px);
+  padding: 8px;
+  min-width: 240px;
+}
+
+.sidebar-avatar-dropdown .ant-dropdown-menu-item {
+  border-radius: 8px;
+  margin: 2px 0;
+  padding: 8px 12px;
+  color: var(--theme-textPrimary);
+  transition: all 0.2s ease;
+}
+
+.sidebar-avatar-dropdown .ant-dropdown-menu-item:hover {
+  background: var(--theme-hoverBackground);
+  color: var(--theme-primary);
+}
+
+.sidebar-avatar-dropdown .ant-dropdown-menu-submenu-title {
+  border-radius: 8px;
+  margin: 2px 0;
+  padding: 8px 12px;
+  color: var(--theme-textPrimary);
+  transition: all 0.2s ease;
+}
+
+.sidebar-avatar-dropdown .ant-dropdown-menu-submenu-title:hover {
+  background: var(--theme-hoverBackground);
+  color: var(--theme-primary);
+}
+
+.sidebar-avatar-dropdown .ant-dropdown-menu-divider {
+  background: var(--theme-border);
+  margin: 8px 0;
+}
+
+/* 用户信息区域 */
+.sidebar-user-info-section {
+  padding: 4px 0;
+}
+
+.sidebar-user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--theme-textPrimary);
+  margin-bottom: 2px;
+}
+
+.sidebar-user-email {
+  font-size: 12px;
+  color: var(--theme-textSecondary);
+}
+
+/* 主题选项样式 */
+.theme-option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 4px 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-option:hover {
+  transform: translateX(2px);
+}
+
+.theme-preview {
+  display: flex;
+  gap: 2px;
+  margin-right: 8px;
+}
+
+.theme-color-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.theme-name {
+  flex: 1;
+  font-size: 13px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .sidebar-avatar-dropdown .ant-dropdown-menu {
+    min-width: 200px;
+  }
+}
