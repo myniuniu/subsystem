@@ -144,11 +144,14 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
   const [floatIconPosition, setFloatIconPosition] = useState({ x: 24, y: 24 }); // 相对于右下角的位置
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isMouseDown, setIsMouseDown] = useState(false);
+  const [mouseDownPos, setMouseDownPos] = useState({ x: 0, y: 0 });
   
   // 拖动事件处理函数
   const handleMouseDown = (e) => {
     e.preventDefault();
-    setIsDragging(true);
+    setIsMouseDown(true);
+    setMouseDownPos({ x: e.clientX, y: e.clientY });
     const rect = e.currentTarget.getBoundingClientRect();
     setDragOffset({
       x: e.clientX - rect.left,
@@ -157,7 +160,14 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
   };
 
   const handleMouseMove = (e) => {
-    if (!isDragging) return;
+    if (!isMouseDown) return;
+    const dragThreshold = 3; // 像素阈值，超过即认定为拖动
+    const moveDist = Math.hypot(e.clientX - mouseDownPos.x, e.clientY - mouseDownPos.y);
+    const willDrag = moveDist > dragThreshold;
+    if (willDrag && !isDragging) {
+      setIsDragging(true);
+    }
+    if (!willDrag) return;
     
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
@@ -180,12 +190,13 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
   };
 
   const handleMouseUp = () => {
+    setIsMouseDown(false);
     setIsDragging(false);
   };
 
   // 添加全局鼠标事件监听
   useEffect(() => {
-    if (isDragging) {
+    if (isMouseDown) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
       
@@ -194,7 +205,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, dragOffset]);
+  }, [isMouseDown, dragOffset, mouseDownPos]);
   
   const [discussionMessages, setDiscussionMessages] = useState([
     {
