@@ -14,6 +14,8 @@ export const useOperationHandlers = ({
   setRightPanelLearningPlanContent,
   setRightPanelGradingRecord,
   setRightPanelGradingContent,
+  setRightPanelTrainingReportRecord,
+  setRightPanelTrainingReportContent,
   setQuestionConfigVisible,
   setClassroomEvaluationVisible,
   setLearningPlanModalVisible,
@@ -102,6 +104,51 @@ export const useOperationHandlers = ({
     message.success('智能阅卷完成，已生成详细报告！');
   };
 
+  // 处理培训报表工具
+  const handleTrainingDashboardToolAction = () => {
+    // 直接切换到培训报表视图
+    setRightPanelView('TRAINING_DASHBOARD_VIEWER');
+    message.success('培训报表工具已启动！');
+  };
+
+  // 处理培训报告工具
+  const handleTrainingReportToolAction = () => {
+    // 生成培训报告记录
+    const trainingReportRecord = {
+      id: `training_report_${Date.now()}`,
+      type: 'training-report',
+      title: '培训需求与管理系统整体培训报告',
+      source: sourceInfo?.details || '基于当前数据源',
+      time: new Date().toLocaleString('zh-CN'),
+      content: `<div style="padding: 20px; text-align: center;">
+        <h3>📊 培训需求与管理系统整体培训报告</h3>
+        <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的综合培训分析报告</p>
+        <p style="color: #999; font-size: 14px;">${sourceInfo?.details || '数据源分析'} • ${new Date().toLocaleString('zh-CN')}</p>
+      </div>`,
+      reportData: {
+        reportType: '综合培训报告',
+        generatedAt: new Date().toISOString(),
+        dataSource: sourceInfo?.details || '基于当前数据源',
+        totalDataSources: sourceInfo?.total || 1
+      }
+    };
+
+    // 添加到记录中
+    const newRecords = { ...operationRecords };
+    if (!newRecords['training-report']) {
+      newRecords['training-report'] = [];
+    }
+    newRecords['training-report'].unshift(trainingReportRecord);
+    setOperationRecords(newRecords);
+    
+    // 设置右侧面板显示
+    setRightPanelTrainingReportRecord(trainingReportRecord);
+    setRightPanelTrainingReportContent(trainingReportRecord.content);
+    setRightPanelView('TRAINING_REPORT_VIEWER');
+    
+    message.success('培训报告生成成功！');
+  };
+
   // 处理工具点击
   const handleToolClick = (card) => {
     // 添加工具不需要数据源限制
@@ -139,6 +186,12 @@ export const useOperationHandlers = ({
       // 课堂评价工具处理
       message.info(`正在启动课堂评价工具（基于${sourceInfo?.total || 0}个数据源）`);
       setClassroomEvaluationVisible(true);
+    } else if (card.key === 'training-report') {
+      // 培训报告工具处理
+      handleTrainingReportToolAction();
+    } else if (card.key === OPERATION_TYPES.TRAINING_DASHBOARD) {
+      // 培训报表工具处理
+      handleTrainingDashboardToolAction();
     } else if (card.isAITool) {
       // AI工具点击处理
       message.info(`您点击了AI工具：${card.title}（基于${sourceInfo?.total || 0}个数据源）`);
@@ -149,6 +202,8 @@ export const useOperationHandlers = ({
 
   return {
     handleToolClick,
-    handleGradingToolAction
+    handleGradingToolAction,
+    handleTrainingReportToolAction,
+    handleTrainingDashboardToolAction
   };
 };

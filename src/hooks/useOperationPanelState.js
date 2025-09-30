@@ -14,11 +14,56 @@ export const useOperationPanelState = (noteCategory = null) => {
   const getFilteredCards = (category) => {
     console.log('getFilteredCards 被调用，分类:', category);
     
-    // 如果是培训需求与培训管理系统分类，直接返回培训方案和课表工具
+    // 如果是培训需求与培训管理系统分类，返回培训相关工具
     if (category === 'training_needs_management') {
       const trainingCards = OPERATION_CARDS.filter(card => 
-        card.key === 'training-plan' || card.key === 'schedule'
+        card.key === 'training-plan' || card.key === 'schedule' || card.key === 'training-report'
       );
+      
+      // 获取AI工具配置
+      const aiToolsConfig = JSON.parse(localStorage.getItem('ai-tools-config') || '{}');
+      const addedAITools = JSON.parse(localStorage.getItem('added-ai-tools-to-panel') || '[]');
+      
+      // 检查培训报表工具是否已添加，如果没有则自动添加
+      if (!addedAITools.includes('training-dashboard')) {
+        console.log('培训报表工具不存在，自动创建...');
+        
+        // 创建培训报表工具配置
+        const trainingDashboardConfig = {
+          key: 'training-dashboard',
+          title: '培训报表',
+          icon: '📊',
+          gradient: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+          color: '#0369a1'
+        };
+        
+        // 更新配置
+        aiToolsConfig['training-dashboard'] = trainingDashboardConfig;
+        addedAITools.push('training-dashboard');
+        
+        // 保存到localStorage
+        localStorage.setItem('ai-tools-config', JSON.stringify(aiToolsConfig));
+        localStorage.setItem('added-ai-tools-to-panel', JSON.stringify(addedAITools));
+        
+        console.log('培训报表工具已自动创建并添加');
+      }
+      
+      // 查找培训报表AI工具并添加到卡片列表
+      if (addedAITools.includes('training-dashboard') && aiToolsConfig['training-dashboard']) {
+        const config = aiToolsConfig['training-dashboard'];
+        const trainingDashboardCard = {
+          key: 'training-dashboard',
+          title: config.title,
+          icon: config.icon,
+          gradient: config.gradient,
+          color: config.color,
+          isAITool: true
+        };
+        trainingCards.push(trainingDashboardCard);
+        console.log('培训报表工具已添加到卡片列表:', trainingDashboardCard);
+      }
+      
+      console.log('培训需求管理分类，返回的卡片:', trainingCards);
       return trainingCards;
     }
     

@@ -37,6 +37,8 @@ import GradingViewer from './OperationPanel/GradingViewer';
 import LearningPlanViewer from './OperationPanel/LearningPlanViewer';
 import ClassroomEvaluationViewer from './OperationPanel/ClassroomEvaluationViewer';
 import TrainingPlanViewer from './OperationPanel/TrainingPlanViewer';
+import TrainingReportViewer from './OperationPanel/TrainingReportViewer';
+import TrainingDashboardViewer from './OperationPanel/TrainingDashboardViewer';
 import ToolGrid from './OperationPanel/ToolGrid';
 
 // 导入自定义Hooks
@@ -111,6 +113,10 @@ const OperationPanel = ({ state, handlers }) => {
     setRightPanelTrainingPlanRecord,
     rightPanelTrainingPlanContent,
     setRightPanelTrainingPlanContent,
+    rightPanelTrainingReportRecord,
+    setRightPanelTrainingReportRecord,
+    rightPanelTrainingReportContent,
+    setRightPanelTrainingReportContent,
     uploadedFiles,
     addedTexts,
     courseVideos,
@@ -206,7 +212,9 @@ const OperationPanel = ({ state, handlers }) => {
   
   const {
     handleToolClick,
-    handleGradingToolAction
+    handleGradingToolAction,
+    handleTrainingReportToolAction,
+    handleTrainingDashboardToolAction
   } = useOperationHandlers({
     hasSourceData,
     sourceInfo,
@@ -219,6 +227,8 @@ const OperationPanel = ({ state, handlers }) => {
     setRightPanelLearningPlanContent,
     setRightPanelGradingRecord,
     setRightPanelGradingContent,
+    setRightPanelTrainingReportRecord,
+    setRightPanelTrainingReportContent,
     setQuestionConfigVisible,
     setClassroomEvaluationVisible,
     setLearningPlanModalVisible,
@@ -238,6 +248,68 @@ const OperationPanel = ({ state, handlers }) => {
     
     // AI工具数据 - 从AIToolHouse组件同步
     const aiTools = [
+      // 培训管理相关工具
+      {
+        id: 'training-plan',
+        name: '培训方案',
+        description: '智能生成培训方案，包含培训目标、内容安排、时间规划等',
+        icon: '培',
+        color: '#0958d9',
+        applicableNoteCategories: ['training_needs_management'],
+        menuConfig: {
+          key: 'training-plan',
+          title: '培训方案',
+          icon: '培',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#0958d9'
+        }
+      },
+      {
+        id: 'schedule',
+        name: '课表',
+        description: '智能生成课程表，合理安排培训时间和课程顺序',
+        icon: '课',
+        color: '#2f54eb',
+        applicableNoteCategories: ['training_needs_management'],
+        menuConfig: {
+          key: 'schedule',
+          title: '课表',
+          icon: '课',
+          gradient: 'linear-gradient(135deg, #f0f5ff 0%, #d6e4ff 100%)',
+          color: '#2f54eb'
+        }
+      },
+      {
+        id: 'training-report',
+        name: '培训报告',
+        description: '生成培训效果评估报告，包含数据分析和改进建议',
+        icon: '报',
+        color: '#722ed1',
+        applicableNoteCategories: ['training_needs_management'],
+        menuConfig: {
+          key: 'training-report',
+          title: '培训报告',
+          icon: '报',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#722ed1'
+        }
+      },
+      {
+        id: 'training-dashboard',
+        name: '培训报表',
+        description: '多维度培训数据可视化分析，提供全面的培训管理报表',
+        icon: '📊',
+        color: '#0369a1',
+        applicableNoteCategories: ['training_needs_management'],
+        menuConfig: {
+          key: 'training-dashboard',
+          title: '培训报表',
+          icon: '📊',
+          gradient: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+          color: '#0369a1'
+        }
+      },
+      // 通用AI工具
       {
         id: 'grading-assistant',
         name: '智能阅卷助手',
@@ -324,8 +396,23 @@ const OperationPanel = ({ state, handlers }) => {
       }
     ];
     
-    // 过滤掉已添加的AI工具
-    const availableTools = aiTools.filter(tool => !addedAITools.includes(tool.id));
+    // 过滤掉已添加的AI工具，并根据noteCategory过滤适用的工具
+    let availableTools = aiTools.filter(tool => !addedAITools.includes(tool.id));
+    
+    // 如果有noteCategory，只显示适用于该分类的工具
+    if (noteCategory) {
+      availableTools = availableTools.filter(tool => 
+        !tool.applicableNoteCategories || 
+        tool.applicableNoteCategories.includes(noteCategory)
+      );
+    }
+    
+    console.log('=== getAvailableAITools 调试信息 ===');
+    console.log('当前 noteCategory:', noteCategory);
+    console.log('所有 AI 工具数量:', aiTools.length);
+    console.log('过滤后可用工具数量:', availableTools.length);
+    console.log('可用工具列表:', availableTools.map(t => ({ id: t.id, name: t.name, categories: t.applicableNoteCategories })));
+    console.log('================================');
     
     return availableTools.map(tool => ({
       key: tool.menuConfig.key,
@@ -858,6 +945,26 @@ const OperationPanel = ({ state, handlers }) => {
         setRightPanelView={setRightPanelView}
         setRightPanelTrainingPlanRecord={setRightPanelTrainingPlanRecord}
         setRightPanelTrainingPlanContent={setRightPanelTrainingPlanContent}
+      />
+    );
+  }
+
+  if (rightPanelView === RIGHT_PANEL_VIEWS.TRAINING_REPORT_VIEWER) {
+    return (
+      <TrainingReportViewer 
+        rightPanelTrainingReportRecord={rightPanelTrainingReportRecord}
+        rightPanelTrainingReportContent={rightPanelTrainingReportContent}
+        setRightPanelView={setRightPanelView}
+        setRightPanelTrainingReportRecord={setRightPanelTrainingReportRecord}
+        setRightPanelTrainingReportContent={setRightPanelTrainingReportContent}
+      />
+    );
+  }
+
+  if (rightPanelView === RIGHT_PANEL_VIEWS.TRAINING_DASHBOARD_VIEWER) {
+    return (
+      <TrainingDashboardViewer 
+        setRightPanelView={setRightPanelView}
       />
     );
   }

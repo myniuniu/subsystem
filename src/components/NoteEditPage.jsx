@@ -80,6 +80,10 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
     // 操作记录状态
     operationRecords,
     setOperationRecords,
+    showContentModal,
+    setShowContentModal,
+    modalContent,
+    setModalContent,
     
     // 场景模拟状态
     scenarioModalVisible,
@@ -1066,6 +1070,25 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
           setShowThemeSelectModal(false);
         }}
       />
+      
+      {/* 内容查看弹窗 */}
+      <Modal
+        title={currentRecord?.title || '查看内容'}
+        open={showContentModal}
+        onCancel={() => setShowContentModal(false)}
+        footer={null}
+        width={800}
+        centered
+      >
+        <div 
+          style={{ 
+            padding: '20px 0',
+            maxHeight: '60vh',
+            overflowY: 'auto'
+          }}
+          dangerouslySetInnerHTML={{ __html: modalContent }}
+        />
+      </Modal>
     </>
   );
 };

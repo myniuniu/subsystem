@@ -493,6 +493,102 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
         '翻译质量评估'
       ],
       usage: '上传文档或输入文本，选择目标语言，AI将提供高质量翻译'
+    },
+    {
+      id: 'training-plan',
+      name: '培训方案',
+      description: '智能培训方案生成工具，基于培训需求和目标，生成完整的培训计划和实施方案',
+      category: AI_TOOL_CATEGORIES.TEACHING,
+      status: AI_TOOL_STATUS.ACTIVE,
+      author: '培训管理团队',
+      version: 'v1.3.0',
+      rating: 4.9,
+      downloads: 8650,
+      tags: ['培训方案', '培训计划', '教学设计', '培训管理'],
+      icon: '📚',
+      color: '#1890ff',
+      featured: true,
+      applicableNoteCategories: ['training_needs_management'],
+      menuConfig: {
+        key: 'training-plan',
+        title: '培训方案',
+        icon: '📚',
+        gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+        color: '#1890ff'
+      },
+      features: [
+        '智能培训方案生成',
+        '培训目标设定',
+        '课程内容规划',
+        '时间安排优化',
+        '资源配置建议',
+        '效果评估设计'
+      ],
+      usage: '输入培训需求和目标，AI将生成完整的培训方案，包括课程安排、时间规划和评估体系'
+    },
+    {
+      id: 'schedule',
+      name: '课表',
+      description: '智能课表生成和管理工具，支持课程安排、时间冲突检测、资源优化配置',
+      category: AI_TOOL_CATEGORIES.TEACHING,
+      status: AI_TOOL_STATUS.ACTIVE,
+      author: '教务管理团队',
+      version: 'v2.1.0',
+      rating: 4.7,
+      downloads: 12340,
+      tags: ['课表', '课程安排', '时间管理', '资源配置'],
+      icon: '📅',
+      color: '#52c41a',
+      featured: true,
+      applicableNoteCategories: ['training_needs_management'],
+      menuConfig: {
+        key: 'schedule',
+        title: '课表',
+        icon: '📅',
+        gradient: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
+        color: '#52c41a'
+      },
+      features: [
+        '智能课表生成',
+        '时间冲突检测',
+        '教室资源分配',
+        '教师安排优化',
+        '课程负载均衡',
+        '个性化课表定制'
+      ],
+      usage: '输入课程信息和约束条件，AI将自动生成最优的课表安排，避免时间冲突并优化资源利用'
+    },
+    {
+      id: 'training-report',
+      name: '培训报告',
+      description: '智能培训报告生成工具，对培训整体情况进行总结分析，生成专业的培训效果评估报告',
+      category: AI_TOOL_CATEGORIES.ANALYSIS,
+      status: AI_TOOL_STATUS.NEW,
+      author: '培训管理团队',
+      version: 'v1.0.0',
+      rating: 4.9,
+      downloads: 1250,
+      tags: ['培训报告', '数据分析', '效果评估', '总结分析'],
+      icon: '📋',
+      color: '#722ed1',
+      featured: true,
+      applicableNoteCategories: ['training_needs_management'],
+      menuConfig: {
+        key: 'training-report',
+        title: '培训报告',
+        icon: '📋',
+        gradient: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)',
+        color: '#722ed1'
+      },
+      features: [
+        '培训数据智能收集',
+        '多维度效果分析',
+        '学员满意度统计',
+        '培训ROI计算',
+        '可视化报告生成',
+        '改进建议输出'
+      ],
+      usage: '系统将自动收集培训相关数据，包括参与人数、完成率、满意度等，生成全面的培训效果分析报告'
     }
   ]
 
@@ -524,7 +620,7 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
     // 特殊处理：培训需求与培训管理系统分类下显示特定的工具
     if (category === 'training_needs_management') {
       const filtered = tools.filter(tool => 
-        ['training-needs-analysis', 'training-plan-generator', 'training-evaluation'].includes(tool.id)
+        ['training-plan', 'schedule', 'training-report'].includes(tool.id)
       );
       console.log('getFilteredToolsByNoteCategory - 培训需求与培训管理系统分类，过滤后的工具:', filtered);
       return filtered;
@@ -550,6 +646,8 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
     console.log('=== 开始筛选工具 ===');
     console.log('初始工具数量:', aiTools.length);
     console.log('当前 noteCategory:', noteCategory);
+    console.log('noteCategory 类型:', typeof noteCategory);
+    console.log('noteCategory === "training_needs_management":', noteCategory === 'training_needs_management');
     
     let tools = aiTools;
     
@@ -558,6 +656,9 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       console.log('开始根据笔记分类过滤...');
       tools = getFilteredToolsByNoteCategory(tools, noteCategory);
       console.log('分类过滤后的工具数量:', tools.length);
+      console.log('分类过滤后的工具列表:', tools.map(t => ({ id: t.id, name: t.name })));
+    } else {
+      console.log('noteCategory 为空，不进行分类过滤');
     }
     
     // 然后应用其他过滤条件
