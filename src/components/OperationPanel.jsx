@@ -39,6 +39,7 @@ import ClassroomEvaluationViewer from './OperationPanel/ClassroomEvaluationViewe
 import TrainingPlanViewer from './OperationPanel/TrainingPlanViewer';
 import TrainingReportViewer from './OperationPanel/TrainingReportViewer';
 import TrainingDashboardViewer from './OperationPanel/TrainingDashboardViewer';
+import VideoSlicing from './VideoSlicing';
 import ToolGrid from './OperationPanel/ToolGrid';
 
 // 导入自定义Hooks
@@ -964,6 +965,14 @@ const OperationPanel = ({ state, handlers }) => {
   if (rightPanelView === RIGHT_PANEL_VIEWS.TRAINING_DASHBOARD_VIEWER) {
     return (
       <TrainingDashboardViewer 
+        setRightPanelView={setRightPanelView}
+      />
+    );
+  }
+
+  if (rightPanelView === RIGHT_PANEL_VIEWS.VIDEO_SLICING_VIEWER) {
+    return (
+      <VideoSlicing 
         setRightPanelView={setRightPanelView}
       />
     );

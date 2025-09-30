@@ -129,6 +129,38 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       usage: '输入课程主题和培训目标，AI将协助生成完整的课程开发方案和教学设计'
     },
     {
+      id: 'video-slicing',
+      name: '视频切片',
+      description: '专业的视频编辑和切片工具，支持视频分段、时间轴编辑、片段导出等功能，专为培训内容制作优化',
+      category: AI_TOOL_CATEGORIES.CREATIVE,
+      status: AI_TOOL_STATUS.NEW,
+      author: '培训产品研发团队',
+      version: 'v1.0.0',
+      rating: 4.7,
+      downloads: 3280,
+      tags: ['视频编辑', '视频切片', '培训制作', '多媒体'],
+      icon: '🎬',
+      color: '#722ed1',
+      featured: true,
+      applicableNoteCategories: ['training_product_development'],
+      menuConfig: {
+        key: 'video-slicing',
+        title: '视频切片',
+        icon: '🎬',
+        gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+        color: '#722ed1'
+      },
+      features: [
+        '智能视频分段',
+        '精确时间轴编辑',
+        '多格式视频支持',
+        '批量片段导出',
+        '实时预览功能',
+        '培训场景优化'
+      ],
+      usage: '上传培训视频文件，通过时间轴工具进行精确切片，生成适合教学使用的视频片段'
+    },
+    {
       id: 'smart-writer',
       name: '智能写作助手',
       description: '基于GPT技术的智能写作工具，支持文章生成、润色、翻译等功能',
@@ -610,9 +642,11 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       return tools;
     }
     
-    // 特殊处理：培训产品研发分类下默认只显示课程研发工具
+    // 特殊处理：培训产品研发分类下显示课程研发和视频切片工具
     if (category === 'training_product_development') {
-      const filtered = tools.filter(tool => tool.id === 'course-development');
+      const filtered = tools.filter(tool => 
+        ['course-development', 'video-slicing'].includes(tool.id)
+      );
       console.log('getFilteredToolsByNoteCategory - 培训产品研发分类，过滤后的工具:', filtered);
       return filtered;
     }

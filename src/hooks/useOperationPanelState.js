@@ -67,7 +67,7 @@ export const useOperationPanelState = (noteCategory = null) => {
       return trainingCards;
     }
     
-    // 如果是培训产品研发分类，只显示课程研发工具
+    // 如果是培训产品研发分类，显示课程研发和视频切片工具
     if (category === 'training_product_development') {
       // 获取AI工具配置
       const aiToolsConfig = JSON.parse(localStorage.getItem('aiToolsConfig') || '{}');
@@ -76,7 +76,9 @@ export const useOperationPanelState = (noteCategory = null) => {
       console.log('localStorage aiToolsConfig:', aiToolsConfig);
       console.log('localStorage addedAITools:', addedAITools);
       
-      // 如果课程研发工具不存在，自动创建并添加
+      const trainingDevCards = [];
+      
+      // 处理课程研发工具
       if (!addedAITools.includes('course-development')) {
         console.log('课程研发工具不存在，自动创建...');
         
@@ -93,17 +95,35 @@ export const useOperationPanelState = (noteCategory = null) => {
         aiToolsConfig['course-development'] = courseDevConfig;
         addedAITools.push('course-development');
         
-        // 保存到localStorage
-        localStorage.setItem('aiToolsConfig', JSON.stringify(aiToolsConfig));
-        localStorage.setItem('addedAITools', JSON.stringify(addedAITools));
-        
         console.log('课程研发工具已自动创建并添加');
       }
       
-      // 查找课程研发AI工具
-      const courseDevAITool = addedAITools.find(toolId => toolId === 'course-development');
-      const courseDevCards = [];
+      // 处理视频切片工具
+      if (!addedAITools.includes('video-slicing')) {
+        console.log('视频切片工具不存在，自动创建...');
+        
+        // 创建视频切片工具配置
+        const videoSlicingConfig = {
+          key: 'video-slicing',
+          title: '视频切片',
+          icon: '🎬',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#722ed1'
+        };
+        
+        // 更新配置
+        aiToolsConfig['video-slicing'] = videoSlicingConfig;
+        addedAITools.push('video-slicing');
+        
+        console.log('视频切片工具已自动创建并添加');
+      }
       
+      // 保存到localStorage
+      localStorage.setItem('aiToolsConfig', JSON.stringify(aiToolsConfig));
+      localStorage.setItem('addedAITools', JSON.stringify(addedAITools));
+      
+      // 添加课程研发工具
+      const courseDevAITool = addedAITools.find(toolId => toolId === 'course-development');
       if (courseDevAITool && aiToolsConfig[courseDevAITool]) {
         const config = aiToolsConfig[courseDevAITool];
         const aiCard = {
@@ -114,14 +134,28 @@ export const useOperationPanelState = (noteCategory = null) => {
           color: config.color,
           isAITool: true
         };
-        courseDevCards.push(aiCard);
+        trainingDevCards.push(aiCard);
         console.log('找到课程研发AI工具:', aiCard);
-      } else {
-        console.log('未找到课程研发AI工具，addedAITools:', addedAITools);
       }
       
-      console.log('培训产品研发分类，最终返回的卡片:', courseDevCards);
-      return courseDevCards;
+      // 添加视频切片工具
+      const videoSlicingAITool = addedAITools.find(toolId => toolId === 'video-slicing');
+      if (videoSlicingAITool && aiToolsConfig[videoSlicingAITool]) {
+        const config = aiToolsConfig[videoSlicingAITool];
+        const aiCard = {
+          key: videoSlicingAITool,
+          title: config.title,
+          icon: config.icon,
+          gradient: config.gradient,
+          color: config.color,
+          isAITool: true
+        };
+        trainingDevCards.push(aiCard);
+        console.log('找到视频切片AI工具:', aiCard);
+      }
+      
+      console.log('培训产品研发分类，最终返回的卡片:', trainingDevCards);
+      return trainingDevCards;
     }
     
     // 其他分类返回所有工具（保持原有逻辑）
