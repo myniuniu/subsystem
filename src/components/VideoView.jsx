@@ -474,68 +474,7 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
           overflowY: 'auto',
           minHeight: '500px'
         }}>
-          {/* 视频学习进度条 - 新增功能 */}
-          {selectedMaterial && selectedMaterial.videoInfo && (
-            <div style={{
-              padding: '12px 16px',
-              background: 'rgba(24, 144, 255, 0.05)',
-              borderRadius: '6px',
-              border: '1px solid rgba(24, 144, 255, 0.15)',
-              marginBottom: '16px'
-            }}>
-              {selectedMaterial.videoInfo.type === 'single_video' ? (
-                <div className="single-video-progress">
-                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
-                    <Text style={{ fontSize: 12, color: '#666', marginRight: 8 }}>
-                      🎥 视频学习进度
-                    </Text>
-                    <Text style={{ fontSize: 11, color: '#999' }}>
-                      {selectedMaterial.videoInfo.progress}%
-                    </Text>
-                  </div>
-                  <Progress 
-                    percent={selectedMaterial.videoInfo.progress} 
-                    size="small" 
-                    strokeColor={
-                      selectedMaterial.videoInfo.progress === 100 ? '#52c41a' : 
-                      selectedMaterial.videoInfo.progress >= 50 ? '#1890ff' : '#faad14'
-                    }
-                    showInfo={false}
-                    style={{ marginBottom: 2 }}
-                  />
-                </div>
-              ) : selectedMaterial.videoInfo.type === 'multi_video' ? (
-                <div className="multi-video-progress">
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <Text style={{ fontSize: 12, color: '#666' }}>
-                      🎥 视频课程 ({selectedMaterial.videoInfo.totalVideos}个视频)
-                    </Text>
-                    <Text style={{ fontSize: 11, color: '#999' }}>
-                      {selectedMaterial.videoInfo.overallProgress}%
-                    </Text>
-                  </div>
-                  <Progress 
-                    percent={selectedMaterial.videoInfo.overallProgress} 
-                    size="small" 
-                    strokeColor={
-                      selectedMaterial.videoInfo.overallProgress === 100 ? '#52c41a' : 
-                      selectedMaterial.videoInfo.overallProgress >= 50 ? '#1890ff' : '#faad14'
-                    }
-                    showInfo={false}
-                    style={{ marginBottom: 2 }}
-                  />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                    <Text style={{ fontSize: 11, color: '#999' }}>
-                      已学习: {Math.round(selectedMaterial.videoInfo.watchedDuration / 60)}分钟
-                    </Text>
-                    <Text style={{ fontSize: 11, color: '#999' }}>
-                      总时长: {Math.round(selectedMaterial.videoInfo.totalDuration / 60)}分钟
-                    </Text>
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          )}
+
 
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
