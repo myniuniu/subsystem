@@ -360,7 +360,7 @@ const ThemeTemplateCenter = ({ onBack }) => {
               主题模版管理
             </Title>
             <Text type="secondary" style={{ marginTop: '8px', display: 'block' }}>
-              管理和配置小黑屋的主题模版，组合不同的来源类型和智能工具
+              管理和配置果仁的主题模版，组合不同的来源类型和智能工具
             </Text>
           </div>
           <Button 

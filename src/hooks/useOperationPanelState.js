@@ -14,7 +14,7 @@ export const useOperationPanelState = (noteCategory = null) => {
   const getFilteredCards = (category) => {
     console.log('getFilteredCards 被调用，分类:', category);
     
-    // 如果是培训需求与培训管理系统分类，返回培训相关工具
+    // 如果是培训需求与管理分类，返回培训相关工具
     if (category === 'training_needs_management') {
       const trainingCards = OPERATION_CARDS.filter(card => 
         card.key === 'training-plan' || card.key === 'schedule' || card.key === 'training-report'

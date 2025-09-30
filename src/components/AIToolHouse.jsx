@@ -617,12 +617,12 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       return filtered;
     }
     
-    // 特殊处理：培训需求与培训管理系统分类下显示特定的工具
+    // 特殊处理：培训需求与管理分类下显示特定的工具
     if (category === 'training_needs_management') {
       const filtered = tools.filter(tool => 
         ['training-plan', 'schedule', 'training-report'].includes(tool.id)
       );
-      console.log('getFilteredToolsByNoteCategory - 培训需求与培训管理系统分类，过滤后的工具:', filtered);
+      console.log('getFilteredToolsByNoteCategory - 培训需求与管理分类，过滤后的工具:', filtered);
       return filtered;
     }
     
@@ -785,7 +785,7 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
           <Tag color="gold" style={{ marginLeft: 8 }}>社区贡献</Tag>
         </div>
         <Paragraph type="secondary" style={{ margin: '8px 0 0 0' }}>
-          发现社区贡献的优质AI工具，一键添加到小黑屋操作面板
+          发现社区贡献的优质AI工具，一键添加到果仁操作面板
         </Paragraph>
         
         {/* 第三方平台支持提示 */}

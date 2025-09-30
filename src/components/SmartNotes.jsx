@@ -169,7 +169,7 @@ const SmartNotes = ({ onViewChange }) => {
     { value: 'knowledge_graph', label: '知识图谱', icon: 'NodeIndexOutlined', type: 'fixed' },
     { value: 'capability_model', label: '能力模型', icon: 'RadarChartOutlined', type: 'fixed' },
     { value: 'micro_specialization', label: '微专业', icon: 'ExperimentOutlined', type: 'fixed' },
-    { value: 'training_needs_management', label: '培训需求与培训管理系统', icon: '📋', type: 'system' },
+    { value: 'training_needs_management', label: '培训需求与管理', icon: '📋', type: 'system' },
     { value: 'training_product_development', label: '培训产品研发', icon: '🚀', type: 'system' }
   ];
 
@@ -1099,7 +1099,7 @@ ${aiSelectedNote.content}`;
         <Content className="notes-content">
           <div className="content-header">
             <div className="header-left">
-              <Title level={3}>小黑屋-沉浸式AI学习空间</Title>
+              <Title level={3}>果仁-沉浸式AI学习空间</Title>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <Text type="secondary">
                   共 {filteredNotes.length} 个主题
