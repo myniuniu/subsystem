@@ -195,7 +195,7 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
   };
 
   const handleMyCourseSubmit = () => {
-    message.success('我的选课已成功添加！');
+    message.success('培训项目已成功添加！');
     setShowMyCourseForm(false);
     onClose();
   };
@@ -911,7 +911,7 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
               }}
             />
             <Title level={4} style={{ margin: 0, fontSize: '16px', fontWeight: 500, color: '#1f2937' }}>
-              我的选课
+              培训项目
             </Title>
           </div>
           
@@ -1531,7 +1531,7 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                 marginBottom: '20px'
               }} />
               <div style={{ marginBottom: '12px' }}>
-                <Text strong style={{ fontSize: '16px' }}>我的选课</Text>
+                <Text strong style={{ fontSize: '16px' }}>培训项目</Text>
               </div>
               <Button 
                 type="primary"
