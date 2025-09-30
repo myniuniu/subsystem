@@ -640,6 +640,77 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                               )}
                             </Text>
 
+                            {/* 视频学习进度条 */}
+                            {video.videoInfo && (
+                              <div style={{ marginTop: '4px' }}>
+                                {video.videoInfo.type === 'single_video' ? (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <Text style={{ fontSize: '8px', color: '#666', minWidth: '50px' }}>
+                                      学习进度
+                                    </Text>
+                                    <div style={{ 
+                                      flex: 1, 
+                                      height: '4px', 
+                                      backgroundColor: '#f0f0f0', 
+                                      borderRadius: '2px',
+                                      overflow: 'hidden'
+                                    }}>
+                                      <div style={{
+                                        width: `${video.videoInfo.progress || 0}%`,
+                                        height: '100%',
+                                        backgroundColor: '#1890ff',
+                                        borderRadius: '2px',
+                                        transition: 'width 0.3s ease'
+                                      }} />
+                                    </div>
+                                    <Text style={{ fontSize: '8px', color: '#1890ff', fontWeight: 'bold', minWidth: '25px' }}>
+                                      {video.videoInfo.progress || 0}%
+                                    </Text>
+                                  </div>
+                                ) : (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <Text style={{ fontSize: '8px', color: '#666', minWidth: '50px' }}>
+                                      学习进度
+                                    </Text>
+                                    <div style={{ 
+                                      flex: 1, 
+                                      height: '4px', 
+                                      backgroundColor: '#f0f0f0', 
+                                      borderRadius: '2px',
+                                      overflow: 'hidden'
+                                    }}>
+                                      <div style={{
+                                        width: `${video.videoInfo.overallProgress || 0}%`,
+                                        height: '100%',
+                                        backgroundColor: '#1890ff',
+                                        borderRadius: '2px',
+                                        transition: 'width 0.3s ease'
+                                      }} />
+                                    </div>
+                                    <Text style={{ fontSize: '8px', color: '#1890ff', fontWeight: 'bold', minWidth: '25px' }}>
+                                      {video.videoInfo.overallProgress || 0}%
+                                    </Text>
+                                    <Text style={{ fontSize: '8px', color: '#999', marginLeft: '4px' }}>
+                                      ({video.videoInfo.totalVideos || 0}个视频)
+                                    </Text>
+                                  </div>
+                                )}
+                                
+                                {/* 时长信息 */}
+                                {video.videoInfo.type === 'multi_video' && (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                                    <Text style={{ fontSize: '8px', color: '#666', minWidth: '50px' }}>
+                                      时长信息
+                                    </Text>
+                                    <Text style={{ fontSize: '8px', color: '#999' }}>
+                                      已学习 {Math.floor((video.videoInfo.watchedDuration || 0) / 60)}分钟 / 
+                                      总计 {Math.floor((video.videoInfo.totalDuration || 0) / 60)}分钟
+                                    </Text>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
                             {/* 计划学习时间显示 - 基于同步状态动态显示 */}
                             {showPlannedLabels && video.plannedStartTime && (() => {
                               console.log(`MaterialManagement: 视频 ${video.id} 计划标识显示检查:`, {
