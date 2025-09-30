@@ -338,6 +338,13 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
        type: 'single'
      },
     { 
+      id: 'ai-assistant', 
+      icon: Bot, 
+      label: 'AI智能中心', 
+      color: '#667eea',
+      type: 'single'
+    },
+    { 
       id: 'message-center', 
       icon: MessageSquare, 
       label: '消息中心', 
@@ -370,13 +377,6 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       icon: GraduationCap, 
       label: '学习广场', 
       color: '#52c41a',
-      type: 'single'
-    },
-    { 
-      id: 'ai-assistant', 
-      icon: Bot, 
-      label: 'AI智能中心', 
-      color: '#667eea',
       type: 'single'
     },
     { 

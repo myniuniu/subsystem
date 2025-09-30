@@ -90,15 +90,7 @@ const { Option } = Select;
 
 const UnifiedAICenter = () => {
   // 基础状态
-  const [messages, setMessages] = useState([
-    {
-      id: 'welcome-1',
-      type: 'ai',
-      content: '👋 欢迎使用AI工具箱！\n\n我是您的智能助手，可以帮助您：\n\n🔧 **编程开发** - 代码生成、调试、优化\n🌐 **多语言翻译** - 支持多种语言互译\n📊 **数据分析** - 图表制作、数据处理\n🎵 **音乐创作** - 旋律生成、和弦编配\n✏️ **文本创作** - 写作辅助、内容生成\n🖼️ **图像处理** - 图片分析、创意设计\n🔍 **智能搜索** - 信息检索、知识问答\n🎤 **语音交互** - 语音识别、对话交流\n\n💡 **使用提示：**\n- 选择左侧工具开始对话\n- 点击快速模板获取灵感\n- 使用语音输入更便捷\n- 支持文件上传和下载\n\n现在就开始您的AI之旅吧！',
-      timestamp: new Date(),
-      tool: null
-    }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [currentTool, setCurrentTool] = useState(null);
@@ -1369,7 +1361,7 @@ const UnifiedAICenter = () => {
     }
   ]);
   const [currentChatId, setCurrentChatId] = useState(null);
-  const [selectedTool, setSelectedTool] = useState({ key: 'coding', label: 'AI编程', icon: Code, description: '编程教学辅助和代码示例生成' });
+  const [selectedTool, setSelectedTool] = useState(null);
   
   // 分享状态
   const [showShareModal, setShowShareModal] = useState(false);
@@ -2415,7 +2407,7 @@ const UnifiedAICenter = () => {
                           <Card
                             size="small"
                             style={{
-                              maxWidth: '80%',
+                              maxWidth: '92%',
                               backgroundColor: '#1890ff',
                               border: 'none',
                               borderRadius: '12px'
@@ -2544,7 +2536,7 @@ const UnifiedAICenter = () => {
                                 background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
                                 boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04)',
                                 width: 'fit-content',
-                                maxWidth: '80%'
+                                maxWidth: '92%'
                               }}
                               styles={{
                                 body: {
