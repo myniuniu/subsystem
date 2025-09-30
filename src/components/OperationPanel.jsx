@@ -120,6 +120,13 @@ const OperationPanel = ({ state, handlers }) => {
 
   // 获取当前笔记的分类信息
   const noteCategory = note?.category || note?.courseType || null;
+  console.log('=== OperationPanel noteCategory ===');
+  console.log('传入的 state:', state);
+  console.log('传入的 note:', note);
+  console.log('noteCategory:', noteCategory);
+  console.log('note?.category:', note?.category);
+  console.log('note?.courseType:', note?.courseType);
+  console.log('================================');
 
   const {
     onOperationClick,

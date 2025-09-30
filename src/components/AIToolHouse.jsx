@@ -40,7 +40,14 @@ import './AIToolHouse.css'
 const { Title, Text, Paragraph } = Typography
 const { Option } = Select
 
-const AIToolHouse = ({ onAddToOperationPanel }) => {
+const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
+  console.log('=== AIToolHouse 组件渲染 ===');
+  console.log('接收到的 noteCategory:', noteCategory);
+  console.log('noteCategory 类型:', typeof noteCategory);
+  console.log('================================');
+  // 添加调试日志
+  console.log('AIToolHouse - 接收到的 noteCategory:', noteCategory);
+  
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedStatus, setSelectedStatus] = useState('all')
@@ -71,6 +78,7 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
       icon: '阅',
       color: '#c41d7f',
       featured: true,
+      applicableNoteCategories: ['organizational_training', 'learning_square'],
       menuConfig: {
         key: 'grading',
         title: '阅卷工具',
@@ -89,6 +97,38 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
       usage: '上传试卷文件或图片，系统将自动识别答题内容并进行智能评阅，生成详细的评阅报告'
     },
     {
+      id: 'course-development',
+      name: '课程研发',
+      description: '专业的课程开发和设计工具，支持课程大纲制定、教学内容规划、评估体系设计等功能',
+      category: AI_TOOL_CATEGORIES.TEACHING,
+      status: AI_TOOL_STATUS.NEW,
+      author: '培训产品研发团队',
+      version: 'v1.0.0',
+      rating: 4.8,
+      downloads: 5420,
+      tags: ['课程研发', '教学设计', '课程规划', '培训产品'],
+      icon: '📚',
+      color: '#1890ff',
+      featured: true,
+      applicableNoteCategories: ['training_product_development'],
+      menuConfig: {
+        key: 'course-development',
+        title: '课程研发',
+        icon: '📚',
+        gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+        color: '#1890ff'
+      },
+      features: [
+        '智能课程大纲生成',
+        '教学目标设定',
+        '学习路径规划',
+        '评估体系设计',
+        '教学资源整合',
+        '课程质量评估'
+      ],
+      usage: '输入课程主题和培训目标，AI将协助生成完整的课程开发方案和教学设计'
+    },
+    {
       id: 'smart-writer',
       name: '智能写作助手',
       description: '基于GPT技术的智能写作工具，支持文章生成、润色、翻译等功能',
@@ -102,6 +142,7 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
       icon: '✍️',
       color: '#52c41a',
       featured: true,
+      applicableNoteCategories: ['organizational_training', 'learning_square', 'training_product_development'],
       menuConfig: {
         key: 'smart-writer',
         title: '智能写作',
@@ -132,6 +173,7 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
       icon: '📊',
       color: '#722ed1',
       featured: true,
+      applicableNoteCategories: ['organizational_training', 'learning_square'],
       menuConfig: {
         key: 'data-analyst',
         title: '数据分析',
@@ -463,15 +505,89 @@ const AIToolHouse = ({ onAddToOperationPanel }) => {
     { value: AI_TOOL_STATUS.DEPRECATED, label: '⚠️ 已废弃' }
   ]
 
+  // 根据笔记分类过滤工具
+  const getFilteredToolsByNoteCategory = (tools, category) => {
+    console.log('getFilteredToolsByNoteCategory - 输入参数:', { tools: tools.length, category });
+    
+    if (!category || category === 'all') {
+      console.log('getFilteredToolsByNoteCategory - 返回所有工具');
+      return tools;
+    }
+    
+    // 特殊处理：培训产品研发分类下默认只显示课程研发工具
+    if (category === 'training_product_development') {
+      const filtered = tools.filter(tool => tool.id === 'course-development');
+      console.log('getFilteredToolsByNoteCategory - 培训产品研发分类，过滤后的工具:', filtered);
+      return filtered;
+    }
+    
+    // 特殊处理：培训需求与培训管理系统分类下显示特定的工具
+    if (category === 'training_needs_management') {
+      const filtered = tools.filter(tool => 
+        ['training-needs-analysis', 'training-plan-generator', 'training-evaluation'].includes(tool.id)
+      );
+      console.log('getFilteredToolsByNoteCategory - 培训需求与培训管理系统分类，过滤后的工具:', filtered);
+      return filtered;
+    }
+    
+    // 对于其他分类，使用常规的applicableNoteCategories过滤
+    const filtered = tools.filter(tool => {
+      // 如果工具没有applicableNoteCategories属性，则不显示
+      if (!tool.applicableNoteCategories) {
+        return false;
+      }
+      
+      // 检查工具是否适用于当前笔记分类
+      return tool.applicableNoteCategories.includes(category);
+    });
+    
+    console.log(`getFilteredToolsByNoteCategory - ${category}分类，过滤后的工具:`, filtered);
+    return filtered;
+  };
+
   // 筛选工具
-  const filteredTools = aiTools.filter(tool => {
-    const matchesSearch = tool.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         tool.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         tool.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-    const matchesCategory = selectedCategory === 'all' || tool.category === selectedCategory
-    const matchesStatus = selectedStatus === 'all' || tool.status === selectedStatus
-    return matchesSearch && matchesCategory && matchesStatus
-  })
+  const filteredTools = (() => {
+    console.log('=== 开始筛选工具 ===');
+    console.log('初始工具数量:', aiTools.length);
+    console.log('当前 noteCategory:', noteCategory);
+    
+    let tools = aiTools;
+    
+    // 首先根据笔记分类过滤
+    if (noteCategory) {
+      console.log('开始根据笔记分类过滤...');
+      tools = getFilteredToolsByNoteCategory(tools, noteCategory);
+      console.log('分类过滤后的工具数量:', tools.length);
+    }
+    
+    // 然后应用其他过滤条件
+    const finalTools = tools.filter(tool => {
+      const matchesSearch = tool.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           tool.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           tool.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+      const matchesCategory = selectedCategory === 'all' || tool.category === selectedCategory
+      const matchesStatus = selectedStatus === 'all' || tool.status === selectedStatus
+      
+      console.log(`工具 ${tool.name} 过滤检查:`, {
+        matchesSearch,
+        matchesCategory,
+        matchesStatus,
+        searchTerm,
+        selectedCategory,
+        selectedStatus,
+        toolCategory: tool.category,
+        toolStatus: tool.status
+      });
+      
+      return matchesSearch && matchesCategory && matchesStatus
+    });
+    
+    console.log('最终过滤后的工具数量:', finalTools.length);
+    console.log('最终工具列表:', finalTools.map(t => t.name));
+    console.log('=== 筛选工具完成 ===');
+    
+    return finalTools;
+  })();
 
   // 切换收藏状态
   const toggleFavorite = (toolId) => {

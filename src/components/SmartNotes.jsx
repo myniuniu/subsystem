@@ -76,6 +76,7 @@ import themeShareService from '../services/themeShareService';
 import mockDataGenerator from '../utils/mockDataGenerator';
 import { TRAINING_STATUS, getTrainingStatusInfo } from '../utils/trainingStatusUtils';
 import { generateTrainingNeedsManagementData } from '../data/trainingNeedsManagementData';
+import { generateTrainingProductDevelopmentData } from '../data/trainingProductDevelopmentData';
 import './SmartNotes.css';
 
 const { Content, Sider } = Layout;
@@ -83,6 +84,48 @@ const { Search } = Input;
 const { Option } = Select;
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
+
+// 初始化默认AI工具到localStorage（用于演示）
+const initializeDefaultAITools = () => {
+  const existingTools = JSON.parse(localStorage.getItem('added-ai-tools-to-panel') || '[]');
+  const existingConfig = JSON.parse(localStorage.getItem('ai-tools-config') || '{}');
+  
+  console.log('=== 初始化AI工具检查 ===');
+  console.log('现有工具:', existingTools);
+  console.log('现有配置:', existingConfig);
+  
+  // 如果没有AI工具，添加一些默认的
+  if (existingTools.length === 0) {
+    const defaultTools = ['grading-assistant', 'smart-writer'];
+    const defaultConfig = {
+      'grading-assistant': {
+        key: 'grading-assistant',
+        title: '阅卷助手',
+        icon: '阅',
+        gradient: 'linear-gradient(135deg, #fff0f6 0%, #ffd6e7 100%)',
+        color: '#c41d7f'
+      },
+      'smart-writer': {
+        key: 'smart-writer',
+        title: '智能写作',
+        icon: '✍',
+        gradient: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
+        color: '#52c41a'
+      }
+    };
+    
+    localStorage.setItem('added-ai-tools-to-panel', JSON.stringify(defaultTools));
+    localStorage.setItem('ai-tools-config', JSON.stringify(defaultConfig));
+    
+    console.log('已初始化默认AI工具:', defaultTools);
+    console.log('已初始化默认配置:', defaultConfig);
+    
+    // 触发事件通知其他组件更新
+    window.dispatchEvent(new Event('aiToolsChanged'));
+  } else {
+    console.log('AI工具已存在，无需初始化');
+  }
+};
 
 const SmartNotes = ({ onViewChange }) => {
   // 状态管理
@@ -128,7 +171,8 @@ const SmartNotes = ({ onViewChange }) => {
     { value: 'knowledge_graph', label: '知识图谱', icon: 'NodeIndexOutlined', type: 'fixed' },
     { value: 'capability_model', label: '能力模型', icon: 'RadarChartOutlined', type: 'fixed' },
     { value: 'micro_specialization', label: '微专业', icon: 'ExperimentOutlined', type: 'fixed' },
-    { value: 'training_needs_management', label: '培训需求与培训管理系统', icon: '📋', type: 'system' }
+    { value: 'training_needs_management', label: '培训需求与培训管理系统', icon: '📋', type: 'system' },
+    { value: 'training_product_development', label: '培训产品研发', icon: '🚀', type: 'system' }
   ];
 
   // 常用标签
@@ -198,6 +242,16 @@ const SmartNotes = ({ onViewChange }) => {
       
       console.log('培训需求与管理笔记数量:', trainingNeedsNotes.length);
       
+      // 检查是否有培训产品研发笔记，如果没有则自动生成
+      const trainingProductNotes = notesData.filter(note => 
+        note.courseType === 'training_product_development' || 
+        note.tags?.includes('培训产品研发') ||
+        note.category === 'training_product_development' ||
+        note.source === '培训产品研发'
+      );
+      
+      console.log('培训产品研发笔记数量:', trainingProductNotes.length);
+      
       if (orgTrainingNotes.length === 0) {
         console.log('没有组织培训笔记，自动生成模拟数据...');
         try {
@@ -210,6 +264,23 @@ const SmartNotes = ({ onViewChange }) => {
           }
         } catch (error) {
           console.error('自动生成数据失败:', error);
+        }
+      }
+      
+      if (trainingProductNotes.length === 0) {
+        console.log('没有培训产品研发笔记，自动生成模拟数据...');
+        try {
+          const trainingProductData = generateTrainingProductDevelopmentData();
+          // 将数据添加到笔记服务中
+          trainingProductData.forEach(note => {
+            notesService.createNote(note);
+          });
+          // 重新获取数据
+          notesData = notesService.getAllNotes();
+          console.log('生成培训产品研发数据后重新加载，笔记总数:', notesData.length);
+          message.success(`已自动生成 ${trainingProductData.length} 条培训产品研发模拟数据`);
+        } catch (error) {
+          console.error('自动生成培训产品研发数据失败:', error);
         }
       }
       
@@ -263,6 +334,9 @@ const SmartNotes = ({ onViewChange }) => {
 
   useEffect(() => {
     loadData();
+    
+    // 初始化默认AI工具
+    initializeDefaultAITools();
   }, []);
 
   // 搜索和过滤
@@ -294,6 +368,14 @@ const SmartNotes = ({ onViewChange }) => {
           note.tags?.includes('学习广场') ||
           note.source === '学习广场'
         );
+      } else if (selectedCategory === 'training_product_development') {
+        // 筛选培训产品研发相关的笔记
+        filtered = filtered.filter(note => 
+          note.category === 'training_product_development' ||
+          note.tags?.includes('培训产品研发') ||
+          note.source === '培训产品研发' ||
+          note.courseType === 'training_product_development'
+        );
       } else {
         filtered = filtered.filter(note => note.category === selectedCategory);
       }
@@ -321,10 +403,18 @@ const SmartNotes = ({ onViewChange }) => {
 
   // 创建新笔记
   const handleCreateNote = () => {
+    console.log('=== handleCreateNote 被调用 ===');
+    console.log('当前 selectedCategory:', selectedCategory);
+    console.log('当前 showNoteEditPage:', showNoteEditPage);
+    console.log('当前 noteCreateModalVisible:', noteCreateModalVisible);
+    
     // 直接创建新主题，不需要选择模版
     setEditingNote(null);
     setEditMode('create');
     setShowNoteEditPage(true);
+    
+    console.log('设置 showNoteEditPage 为 true');
+    console.log('================================');
   };
 
 
@@ -848,6 +938,13 @@ ${aiSelectedNote.content}`;
 
   // 如果显示编辑页面，则渲染NoteEditPage
   if (showNoteEditPage) {
+    console.log('=== 渲染 NoteEditPage ===');
+    console.log('showNoteEditPage:', showNoteEditPage);
+    console.log('selectedCategory:', selectedCategory);
+    console.log('editingNote:', editingNote);
+    console.log('editMode:', editMode);
+    console.log('========================');
+    
     return <NoteEditPage 
       onBack={handleCloseEditPage} 
       onViewChange={onViewChange} 
@@ -1663,6 +1760,7 @@ ${aiSelectedNote.content}`;
         notes={notes}
         categories={noteCategories}
         tags={tags}
+        noteCategory={selectedCategory}
       />
 
       {/* 主题分享弹窗 */}
@@ -1693,13 +1791,26 @@ ${aiSelectedNote.content}`;
             { id: 3, url: 'https://core-competency.edu', title: '核心素养教育资源库', addTime: '8分钟前' }
           ],
           texts: (() => {
-            // 初始化培训方案记录数据
-            if (!localStorage.getItem('training_plan_records')) {
-              const trainingPlanRecords = mockDataGenerator.generateTrainingPlanRecords();
-              return trainingPlanRecords;
+            // 根据当前选择的分类返回相应的智能工具数据
+            if (selectedCategory === 'training_product_development') {
+              // 初始化培训产品研发记录数据
+              if (!localStorage.getItem('training_product_development_records')) {
+                const trainingProductDevelopmentRecords = mockDataGenerator.generateTrainingProductDevelopmentRecords();
+                localStorage.setItem('training_product_development_records', JSON.stringify(trainingProductDevelopmentRecords));
+                return trainingProductDevelopmentRecords;
+              } else {
+                const savedTrainingProductDevelopmentRecords = JSON.parse(localStorage.getItem('training_product_development_records'));
+                return savedTrainingProductDevelopmentRecords;
+              }
             } else {
-              const savedTrainingPlanRecords = JSON.parse(localStorage.getItem('training_plan_records'));
-              return savedTrainingPlanRecords;
+              // 初始化培训方案记录数据
+              if (!localStorage.getItem('training_plan_records')) {
+                const trainingPlanRecords = mockDataGenerator.generateTrainingPlanRecords();
+                return trainingPlanRecords;
+              } else {
+                const savedTrainingPlanRecords = JSON.parse(localStorage.getItem('training_plan_records'));
+                return savedTrainingPlanRecords;
+              }
             }
           })(),
           scenario: [

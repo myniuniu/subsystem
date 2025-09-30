@@ -673,6 +673,177 @@ class MockDataGenerator {
     };
   }
 
+  // 生成培训产品研发记录数据
+  generateTrainingProductDevelopmentRecords() {
+    const trainingProductDevelopmentRecords = [
+      {
+        id: 'tpd_001',
+        title: '在线学习平台产品设计方案',
+        source: '产品规划',
+        time: '15分钟前',
+        type: 'product-design',
+        category: 'training_product_development',
+        productType: '在线学习平台',
+        developmentStage: '需求分析',
+        description: '基于现代教育技术的在线学习平台产品设计，支持多媒体教学、互动学习、智能评估等功能',
+        features: [
+          '多媒体课程内容管理',
+          '实时互动教学功能',
+          '智能学习路径推荐',
+          '个性化学习评估系统'
+        ],
+        status: '设计中',
+        priority: 'high',
+        content: `# 在线学习平台产品设计方案
+
+## 产品概述
+设计一款面向现代教育的在线学习平台，集成多媒体教学、互动学习、智能评估等核心功能。
+
+## 核心功能
+### 1. 多媒体课程管理
+- 视频课程上传与播放
+- 课件资源管理
+- 学习进度跟踪
+
+### 2. 互动教学功能
+- 实时直播教学
+- 在线讨论区
+- 师生互动工具
+
+### 3. 智能学习系统
+- 个性化学习路径
+- 智能内容推荐
+- 学习效果分析
+
+### 4. 评估与反馈
+- 在线测试系统
+- 学习成果评估
+- 个性化反馈报告
+
+## 技术架构
+- 前端：React + Ant Design
+- 后端：Node.js + Express
+- 数据库：MongoDB
+- 视频处理：FFmpeg
+- AI推荐：机器学习算法`,
+        createdAt: new Date('2024-01-25'),
+        updatedAt: new Date('2024-01-25')
+      },
+      {
+        id: 'tpd_002',
+        title: '移动学习APP开发计划',
+        source: '技术调研',
+        time: '25分钟前',
+        type: 'development-plan',
+        category: 'training_product_development',
+        productType: '移动学习应用',
+        developmentStage: '原型设计',
+        description: '面向移动端的学习应用开发，支持离线学习、碎片化学习、社交学习等特色功能',
+        features: [
+          '离线课程下载',
+          '碎片化学习模块',
+          '学习社区功能',
+          '智能提醒系统'
+        ],
+        status: '开发中',
+        priority: 'medium',
+        content: `# 移动学习APP开发计划
+
+## 项目背景
+随着移动互联网的普及，移动学习成为教育培训的重要趋势，开发专业的移动学习APP势在必行。
+
+## 产品特色
+### 1. 离线学习支持
+- 课程内容本地缓存
+- 离线播放功能
+- 学习进度同步
+
+### 2. 碎片化学习
+- 微课程设计
+- 知识点拆分
+- 快速学习模式
+
+### 3. 社交学习
+- 学习小组功能
+- 知识分享社区
+- 同伴学习支持
+
+### 4. 智能化服务
+- 学习提醒推送
+- 个性化推荐
+- 学习数据分析
+
+## 开发计划
+- **第一阶段**：需求分析与原型设计（2周）
+- **第二阶段**：核心功能开发（6周）
+- **第三阶段**：测试与优化（2周）
+- **第四阶段**：上线与运营（持续）`,
+        createdAt: new Date('2024-01-24'),
+        updatedAt: new Date('2024-01-25')
+      },
+      {
+        id: 'tpd_003',
+        title: 'VR虚拟培训系统技术方案',
+        source: '创新研发',
+        time: '35分钟前',
+        type: 'technical-solution',
+        category: 'training_product_development',
+        productType: 'VR培训系统',
+        developmentStage: '技术验证',
+        description: '基于虚拟现实技术的沉浸式培训系统，提供真实场景模拟、交互式操作训练等功能',
+        features: [
+          '3D场景建模',
+          '沉浸式体验设计',
+          '交互式操作训练',
+          '培训效果评估'
+        ],
+        status: '研发中',
+        priority: 'high',
+        content: `# VR虚拟培训系统技术方案
+
+## 技术概述
+利用虚拟现实技术构建沉浸式培训环境，为学员提供安全、高效的实践训练平台。
+
+## 核心技术
+### 1. 3D建模技术
+- 真实场景重建
+- 高精度模型制作
+- 物理引擎集成
+
+### 2. 交互设计
+- 手势识别技术
+- 语音交互系统
+- 触觉反馈设备
+
+### 3. 培训模块
+- 场景化培训设计
+- 操作流程模拟
+- 错误处理训练
+
+### 4. 数据分析
+- 学习行为追踪
+- 培训效果评估
+- 个性化改进建议
+
+## 应用场景
+- 医疗手术培训
+- 工业安全培训
+- 教学实验模拟
+- 应急处理训练
+
+## 技术栈
+- VR引擎：Unity 3D
+- 建模软件：Blender
+- 交互框架：OpenXR
+- 数据分析：Python + TensorFlow`,
+        createdAt: new Date('2024-01-23'),
+        updatedAt: new Date('2024-01-25')
+      }
+    ];
+
+    return trainingProductDevelopmentRecords;
+  }
+
   // 生成培训方案记录数据
   generateTrainingPlanRecords() {
     const trainingPlanRecords = [

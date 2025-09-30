@@ -5,72 +5,134 @@ import { OPERATION_CARDS } from '../constants/noteEditConstants';
 
 // 操作面板状态管理Hook
 export const useOperationPanelState = (noteCategory = null) => {
+  console.log('=== useOperationPanelState 调用 ===');
+  console.log('接收到的 noteCategory:', noteCategory);
+  console.log('noteCategory 类型:', typeof noteCategory);
+  console.log('================================');
+
   // 根据分类过滤工具的函数
   const getFilteredCards = (category) => {
-    // 从 localStorage 获取已添加的 AI 工具
-    const addedAITools = JSON.parse(localStorage.getItem('added-ai-tools-to-panel') || '[]');
+    console.log('getFilteredCards 被调用，分类:', category);
     
-    // 获取 AI 工具配置
-    const aiToolsConfig = JSON.parse(localStorage.getItem('ai-tools-config') || '{}');
-    
-    // 获取默认基础工具（排除添加工具按钮、试卷、思维导图和视频概览）
-    let defaultCards = OPERATION_CARDS.filter(card => 
-      card.key !== 'addTool' && 
-      card.key !== 'exam-paper' &&
-      card.key !== 'mindmap' &&
-      card.key !== 'video'
-    );
-    
-    // 如果是培训需求与培训管理系统分类，只显示培训方案和课表工具
+    // 如果是培训需求与培训管理系统分类，直接返回培训方案和课表工具
     if (category === 'training_needs_management') {
-      defaultCards = OPERATION_CARDS.filter(card => 
+      const trainingCards = OPERATION_CARDS.filter(card => 
         card.key === 'training-plan' || card.key === 'schedule'
       );
+      return trainingCards;
     }
     
-    // 添加 AI 工具到默认卡片列表（培训管理系统分类下不显示AI工具）
-    const aiToolCards = category === 'training_needs_management' ? [] : addedAITools.map(toolId => {
-      const toolConfig = aiToolsConfig[toolId];
-      if (toolConfig) {
-        return {
-          key: toolConfig.key,
-          title: toolConfig.title,
-          icon: toolConfig.icon,
-          gradient: toolConfig.gradient,
-          color: toolConfig.color,
-          isAITool: true // 标记为AI工具
+    // 如果是培训产品研发分类，只显示课程研发工具
+    if (category === 'training_product_development') {
+      // 获取AI工具配置
+      const aiToolsConfig = JSON.parse(localStorage.getItem('aiToolsConfig') || '{}');
+      const addedAITools = JSON.parse(localStorage.getItem('addedAITools') || '[]');
+      
+      console.log('localStorage aiToolsConfig:', aiToolsConfig);
+      console.log('localStorage addedAITools:', addedAITools);
+      
+      // 如果课程研发工具不存在，自动创建并添加
+      if (!addedAITools.includes('course-development')) {
+        console.log('课程研发工具不存在，自动创建...');
+        
+        // 创建课程研发工具配置
+        const courseDevConfig = {
+          key: 'course-development',
+          title: '课程研发',
+          icon: '📚',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
         };
+        
+        // 更新配置
+        aiToolsConfig['course-development'] = courseDevConfig;
+        addedAITools.push('course-development');
+        
+        // 保存到localStorage
+        localStorage.setItem('aiToolsConfig', JSON.stringify(aiToolsConfig));
+        localStorage.setItem('addedAITools', JSON.stringify(addedAITools));
+        
+        console.log('课程研发工具已自动创建并添加');
+      }
+      
+      // 查找课程研发AI工具
+      const courseDevAITool = addedAITools.find(toolId => toolId === 'course-development');
+      const courseDevCards = [];
+      
+      if (courseDevAITool && aiToolsConfig[courseDevAITool]) {
+        const config = aiToolsConfig[courseDevAITool];
+        const aiCard = {
+          key: courseDevAITool,
+          title: config.title,
+          icon: config.icon,
+          gradient: config.gradient,
+          color: config.color,
+          isAITool: true
+        };
+        courseDevCards.push(aiCard);
+        console.log('找到课程研发AI工具:', aiCard);
+      } else {
+        console.log('未找到课程研发AI工具，addedAITools:', addedAITools);
+      }
+      
+      console.log('培训产品研发分类，最终返回的卡片:', courseDevCards);
+      return courseDevCards;
+    }
+    
+    // 其他分类返回所有工具（保持原有逻辑）
+    const defaultCards = OPERATION_CARDS.filter(card => card.key !== 'addTool');
+    
+    // 获取AI工具配置
+    const aiToolsConfig = JSON.parse(localStorage.getItem('aiToolsConfig') || '{}');
+    const addedAITools = JSON.parse(localStorage.getItem('addedAITools') || '[]');
+    
+    // 创建AI工具卡片
+    const aiToolCards = addedAITools.map(toolId => {
+      const config = aiToolsConfig[toolId];
+      if (config) {
+        const aiCard = {
+          key: toolId,
+          title: config.title,
+          icon: config.icon,
+          gradient: config.gradient,
+          color: config.color,
+          isAITool: true
+        };
+        return aiCard;
       }
       return null;
     }).filter(Boolean);
     
     const allCards = [...defaultCards, ...aiToolCards];
     
-    // 如果是培训需求与培训管理系统分类，直接返回培训方案和课表工具
-    if (category === 'training_needs_management') {
-      return allCards;
-    }
-    
-    // 其他分类保持原有的排序逻辑
     // 确保知识图谱在第一位，试题在第二位，学习计划在第三位，阅卷工具在第四位
     const knowledgeGraphCard = allCards.find(card => card.key === 'knowledge-graph');
     const questionCard = allCards.find(card => card.key === 'question');
     const learningPlanCard = allCards.find(card => card.key === 'learning-plan');
     const gradingCard = allCards.find(card => card.key === 'grading');
-    const otherCards = allCards.filter(card => 
+    
+    // 分离AI工具卡片和其他基础工具卡片
+    const aiCards = allCards.filter(card => card.isAITool);
+    const otherBasicCards = allCards.filter(card => 
       card.key !== 'knowledge-graph' && 
       card.key !== 'question' &&
       card.key !== 'learning-plan' &&
-      card.key !== 'grading'
+      card.key !== 'grading' &&
+      !card.isAITool
     );
+    
     const orderedCards = [];
     if (knowledgeGraphCard) orderedCards.push(knowledgeGraphCard);
     if (questionCard) orderedCards.push(questionCard);
     if (learningPlanCard) orderedCards.push(learningPlanCard);
     if (gradingCard) orderedCards.push(gradingCard);
-    orderedCards.push(...otherCards);
     
-    return orderedCards;
+    // AI工具卡片优先显示在基础工具之后，其他工具之前
+    orderedCards.push(...aiCards);
+    orderedCards.push(...otherBasicCards);
+    
+    // 确保返回的工具数量不超过9个
+    return orderedCards.slice(0, 9);
   };
 
   // 可见工具卡片状态 - 初始化默认工具

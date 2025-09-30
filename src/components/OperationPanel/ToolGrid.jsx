@@ -19,6 +19,21 @@ const ToolGrid = ({
   getAvailableAITools = () => [],
   loadingCards = [] // 新增加载中的卡片列表
 }) => {
+  console.log('=== ToolGrid 渲染 ===');
+  console.log('visibleCards 详细内容:', visibleCards);
+      console.log('visibleCards 长度:', visibleCards?.length);
+      
+      // 检查AI工具卡片的位置
+      visibleCards?.forEach((card, index) => {
+        if (card.isAITool) {
+          console.log(`AI工具卡片位置 ${index}:`, card.key, card.title);
+        }
+      });
+  console.log('visibleCards 详细内容:', JSON.stringify(visibleCards, null, 2));
+  console.log('isEditMode:', isEditMode);
+  console.log('hasSourceData:', hasSourceData);
+  console.log('========================');
+  
   return (
     <DndProvider backend={HTML5Backend}>
       <div style={{ 
@@ -29,6 +44,8 @@ const ToolGrid = ({
       }}>
         {/* 渲染可见的工具 - 最多9个 */}
         {visibleCards.slice(0, 9).map((card, index) => {
+          console.log(`渲染卡片 ${index}:`, card.key, card.title, card.isAITool ? '(AI工具)' : '(基础工具)');
+          
           // 添加工具卡片不需要数据源限制
           const cardHasSourceData = card.key === 'addTool' ? true : hasSourceData;
           // 检查是否正在加载

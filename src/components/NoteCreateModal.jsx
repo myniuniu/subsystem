@@ -16,7 +16,8 @@ import {
   message,
   Form,
   Row,
-  Col
+  Col,
+  Tabs
 } from 'antd';
 import {
   SearchOutlined,
@@ -36,18 +37,25 @@ import {
   OrderedListOutlined,
   UnorderedListOutlined,
   LinkOutlined,
-  PictureOutlined
+  PictureOutlined,
+  RobotOutlined
 } from '@ant-design/icons';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import AIToolHouse from './AIToolHouse';
 import './NoteCreateModal.css';
 
 const { Sider, Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
 const { Search } = Input;
 const { Option } = Select;
+const { TabPane } = Tabs;
 
-const NoteCreateModal = ({ visible, onCancel, onSave, notes = [], categories = [], tags = [] }) => {
+const NoteCreateModal = ({ visible, onCancel, onSave, notes = [], categories = [], tags = [], noteCategory = null }) => {
+  console.log('=== NoteCreateModal 组件渲染 ===');
+  console.log('接收到的 noteCategory:', noteCategory);
+  console.log('noteCategory 类型:', typeof noteCategory);
+  console.log('================================');
   const [form] = Form.useForm();
   const [selectedNote, setSelectedNote] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -421,23 +429,53 @@ const NoteCreateModal = ({ visible, onCancel, onSave, notes = [], categories = [
 
               <Divider style={{ margin: '16px 0' }} />
 
-              {/* 编辑器内容 */}
+              {/* 主要内容区域 - 使用Tabs */}
               <div className="editor-body">
-                {isEditing ? (
-                  <ReactQuill
-                    value={editorContent}
-                    onChange={setEditorContent}
-                    modules={quillModules}
-                    formats={quillFormats}
-                    placeholder="开始写下你的想法..."
-                    className="quill-editor"
-                  />
-                ) : (
-                  <div 
-                    className="content-display"
-                    dangerouslySetInnerHTML={{ __html: selectedNote?.content || '' }}
-                  />
-                )}
+                <Tabs defaultActiveKey="editor" type="card">
+                  <TabPane 
+                    tab={
+                      <span>
+                        <EditOutlined />
+                        编辑器
+                      </span>
+                    } 
+                    key="editor"
+                  >
+                    {isEditing ? (
+                      <ReactQuill
+                        value={editorContent}
+                        onChange={setEditorContent}
+                        modules={quillModules}
+                        formats={quillFormats}
+                        placeholder="开始写下你的想法..."
+                        className="quill-editor"
+                      />
+                    ) : (
+                      <div 
+                        className="content-display"
+                        dangerouslySetInnerHTML={{ __html: selectedNote?.content || '' }}
+                      />
+                    )}
+                  </TabPane>
+                  
+                  <TabPane 
+                    tab={
+                      <span>
+                        <RobotOutlined />
+                        智能工具
+                      </span>
+                    } 
+                    key="tools"
+                  >
+                    <AIToolHouse 
+                      noteCategory={noteCategory}
+                      onAddToOperationPanel={(toolConfig) => {
+                        // 处理工具添加到操作面板的逻辑
+                        message.success(`${toolConfig.title} 已添加到操作面板`);
+                      }}
+                    />
+                  </TabPane>
+                </Tabs>
               </div>
             </div>
           ) : (
