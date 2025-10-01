@@ -578,182 +578,201 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
           ) : (
             /* 卡片模式 - 原有的资料列表显示 */
             <div>
-              {/* 课程视频列表 */}
+              {/* 课程视频列表（按课程分组，支持一课多视频） */}
               {courseVideos.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
                   <Text strong style={{ fontSize: '12px', color: '#666', marginBottom: 8, display: 'block' }}>
                     📹 课程视频 ({courseVideos.length})
                   </Text>
-                  {courseVideos.map(video => (
-                    <Card 
-                      key={`video-${video.id}`}
-                      size="small" 
-                      style={{ 
-                        marginBottom: 8,
-                        cursor: 'pointer',
-                        border: '1px solid #e8e8e8'
-                      }}
-                      bodyStyle={{ padding: '8px 12px' }}
-                      onClick={() => onPlayVideo(video)}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
-                          {video.type === 'live_replay' ? (
-                            <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>
-                              <PlayCircleOutlined style={{ color: '#ff4d4f', marginRight: 4, fontSize: 16 }} />
-                              <span style={{ 
-                                background: '#ff4d4f', 
-                                color: 'white', 
-                                fontSize: '8px', 
-                                padding: '1px 4px', 
-                                borderRadius: '2px',
-                                marginRight: 4
-                              }}>LIVE</span>
-                            </div>
-                          ) : video.type === 'live_scheduled' ? (
-                            <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>
-                              <ClockCircleOutlined style={{ color: '#faad14', marginRight: 4, fontSize: 16 }} />
-                              <span style={{ 
-                                background: '#faad14', 
-                                color: 'white', 
-                                fontSize: '8px', 
-                                padding: '1px 4px', 
-                                borderRadius: '2px',
-                                marginRight: 4
-                              }}>预约</span>
-                            </div>
-                          ) : (
-                            <PlayCircleOutlined style={{ color: '#1890ff', marginRight: 8, fontSize: 16 }} />
-                          )}
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
-                              {video.title}
-                            </Text>
-
-                            <Text type="secondary" style={{ fontSize: 10 }}>
-                              {video.type === 'live_replay' ? (
-                                `回放 • ${video.liveDate} • ${video.instructor || '未知讲师'} • ${video.audience || 0}人观看`
-                              ) : video.type === 'live_scheduled' ? (
-                                `预约直播 • ${video.scheduleDate} • ${video.instructor || '未知讲师'} • ${video.registered || 0}/${video.maxAudience || 0}人`
-                              ) : (
-                                `${video.addTime} • ${video.instructor || '未知讲师'}`
-                              )}
-                            </Text>
-
-                            {/* 视频学习进度条 */}
-                            {video.videoInfo && (
-                              <div style={{ marginTop: '4px' }}>
-                                {video.videoInfo.type === 'single_video' ? (
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <Text style={{ fontSize: '8px', color: '#666', minWidth: '50px' }}>
-                                      学习进度
-                                    </Text>
-                                    <div style={{ 
-                                      flex: 1, 
-                                      height: '4px', 
-                                      backgroundColor: '#f0f0f0', 
-                                      borderRadius: '2px',
-                                      overflow: 'hidden'
-                                    }}>
-                                      <div style={{
-                                        width: `${video.videoInfo.progress || 0}%`,
-                                        height: '100%',
-                                        backgroundColor: '#1890ff',
-                                        borderRadius: '2px',
-                                        transition: 'width 0.3s ease'
-                                      }} />
-                                    </div>
-                                    <Text style={{ fontSize: '8px', color: '#1890ff', fontWeight: 'bold', minWidth: '25px' }}>
-                                      {video.videoInfo.progress || 0}%
-                                    </Text>
-                                  </div>
-                                ) : (
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <Text style={{ fontSize: '8px', color: '#666', minWidth: '50px' }}>
-                                      学习进度
-                                    </Text>
-                                    <div style={{ 
-                                      flex: 1, 
-                                      height: '4px', 
-                                      backgroundColor: '#f0f0f0', 
-                                      borderRadius: '2px',
-                                      overflow: 'hidden'
-                                    }}>
-                                      <div style={{
-                                        width: `${video.videoInfo.overallProgress || 0}%`,
-                                        height: '100%',
-                                        backgroundColor: '#1890ff',
-                                        borderRadius: '2px',
-                                        transition: 'width 0.3s ease'
-                                      }} />
-                                    </div>
-                                    <Text style={{ fontSize: '8px', color: '#1890ff', fontWeight: 'bold', minWidth: '25px' }}>
-                                      {video.videoInfo.overallProgress || 0}%
-                                    </Text>
-                                    <Text style={{ fontSize: '8px', color: '#999', marginLeft: '4px' }}>
-                                      ({video.videoInfo.totalVideos || 0}个视频)
-                                    </Text>
-                                  </div>
-                                )}
-                                
-                                {/* 时长信息 */}
-                                {video.videoInfo.type === 'multi_video' && (
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
-                                    <Text style={{ fontSize: '8px', color: '#666', minWidth: '50px' }}>
-                                      时长信息
-                                    </Text>
-                                    <Text style={{ fontSize: '8px', color: '#999' }}>
-                                      已学习 {Math.floor((video.videoInfo.watchedDuration || 0) / 60)}分钟 / 
-                                      总计 {Math.floor((video.videoInfo.totalDuration || 0) / 60)}分钟
-                                    </Text>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-
-                            {/* 计划学习时间显示 - 基于同步状态动态显示 */}
-                            {showPlannedLabels && video.plannedStartTime && (() => {
-                              console.log(`MaterialManagement: 视频 ${video.id} 计划标识显示检查:`, {
-                                showPlannedLabels,
-                                hasPlannedStartTime: !!video.plannedStartTime,
-                                plannedStartTime: video.plannedStartTime,
-                                shouldShowLabel: true
-                              });
-                              return (
-                                <div 
-                                  key={`planned-label-${video.id}-${Date.now()}`}
-                                  style={{
-                                    background: 'linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%)',
-                                    color: '#1890ff',
-                                    fontSize: '8px',
-                                    padding: '1px 4px',
-                                    borderRadius: '8px',
-                                    fontWeight: 'bold',
-                                    border: '1px solid #40a9ff',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '2px',
-                                    marginTop: '2px'
-                                  }}>
-                                  <ClockCircleOutlined style={{ fontSize: '8px' }} />
-                                  <span>计划 {video.plannedStartTime}</span>
-                                </div>
-                              );
-                            })()}
-                          </div>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <Checkbox
-                            checked={selectedMaterials.includes(`video-${video.id}`)}
-                            onChange={(e) => {
-                              e.stopPropagation();
-                              handleSelectMaterial(`video-${video.id}`, e.target.checked);
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        </div>
+                  {Object.values(courseVideos.reduce((groups, v) => {
+                    const cid = v.courseId || v.id;
+                    if (!groups[cid]) {
+                      groups[cid] = {
+                        courseId: cid,
+                        courseTitle: v.courseTitle || v.title,
+                        instructor: v.instructor,
+                        videos: []
+                      };
+                    }
+                    groups[cid].videos.push(v);
+                    return groups;
+                  }, {})).map(group => (
+                    <div key={`course-${group.courseId}`} style={{ marginBottom: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '4px 0' }}>
+                        <Text strong style={{ fontSize: 12 }}>{group.courseTitle}</Text>
+                        <Text type="secondary" style={{ fontSize: 10 }}>
+                          {(group.instructor || '未知讲师')} • {group.videos.length}个视频
+                        </Text>
                       </div>
-                    </Card>
+                      {group.videos.map(video => (
+                        <Card 
+                          key={`video-${video.id}`}
+                          size="small" 
+                          style={{ 
+                            marginBottom: 8,
+                            cursor: 'pointer',
+                            border: '1px solid #e8e8e8'
+                          }}
+                          bodyStyle={{ padding: '8px 12px' }}
+                          onClick={() => onPlayVideo(video)}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                              {video.type === 'live_replay' ? (
+                                <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>
+                                  <PlayCircleOutlined style={{ color: '#ff4d4f', marginRight: 4, fontSize: 16 }} />
+                                  <span style={{ 
+                                    background: '#ff4d4f', 
+                                    color: 'white', 
+                                    fontSize: '8px', 
+                                    padding: '1px 4px', 
+                                    borderRadius: '2px',
+                                    marginRight: 4
+                                  }}>LIVE</span>
+                                </div>
+                              ) : video.type === 'live_scheduled' ? (
+                                <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>
+                                  <ClockCircleOutlined style={{ color: '#faad14', marginRight: 4, fontSize: 16 }} />
+                                  <span style={{ 
+                                    background: '#faad14', 
+                                    color: 'white', 
+                                    fontSize: '8px', 
+                                    padding: '1px 4px', 
+                                    borderRadius: '2px',
+                                    marginRight: 4
+                                  }}>预约</span>
+                                </div>
+                              ) : (
+                                <PlayCircleOutlined style={{ color: '#1890ff', marginRight: 8, fontSize: 16 }} />
+                              )}
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
+                                  {video.title}
+                                </Text>
+
+                                <Text type="secondary" style={{ fontSize: 10 }}>
+                                  {video.type === 'live_replay' ? (
+                                    `回放 • ${video.liveDate} • ${video.instructor || '未知讲师'} • ${video.audience || 0}人观看`
+                                  ) : video.type === 'live_scheduled' ? (
+                                    `预约直播 • ${video.scheduleDate} • ${video.instructor || '未知讲师'} • ${video.registered || 0}/${video.maxAudience || 0}人`
+                                  ) : (
+                                    `${video.addTime} • ${video.instructor || '未知讲师'}`
+                                  )}
+                                </Text>
+
+                                {video.videoInfo && (
+                                  <div style={{ marginTop: '4px' }}>
+                                    {video.videoInfo.type === 'single_video' ? (
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <Text style={{ fontSize: '8px', color: '#666', minWidth: '50px' }}>
+                                          学习进度
+                                        </Text>
+                                        <div style={{ 
+                                          flex: 1, 
+                                          height: '4px', 
+                                          backgroundColor: '#f0f0f0', 
+                                          borderRadius: '2px',
+                                          overflow: 'hidden'
+                                        }}>
+                                          <div style={{
+                                            width: `${video.videoInfo.progress || 0}%`,
+                                            height: '100%',
+                                            backgroundColor: '#1890ff',
+                                            borderRadius: '2px',
+                                            transition: 'width 0.3s ease'
+                                          }} />
+                                        </div>
+                                        <Text style={{ fontSize: '8px', color: '#1890ff', fontWeight: 'bold', minWidth: '25px' }}>
+                                          {video.videoInfo.progress || 0}%
+                                        </Text>
+                                      </div>
+                                    ) : (
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <Text style={{ fontSize: '8px', color: '#666', minWidth: '50px' }}>
+                                          学习进度
+                                        </Text>
+                                        <div style={{ 
+                                          flex: 1, 
+                                          height: '4px', 
+                                          backgroundColor: '#f0f0f0', 
+                                          borderRadius: '2px',
+                                          overflow: 'hidden'
+                                        }}>
+                                          <div style={{
+                                            width: `${video.videoInfo.overallProgress || 0}%`,
+                                            height: '100%',
+                                            backgroundColor: '#1890ff',
+                                            borderRadius: '2px',
+                                            transition: 'width 0.3s ease'
+                                          }} />
+                                        </div>
+                                        <Text style={{ fontSize: '8px', color: '#1890ff', fontWeight: 'bold', minWidth: '25px' }}>
+                                          {video.videoInfo.overallProgress || 0}%
+                                        </Text>
+                                        <Text style={{ fontSize: '8px', color: '#999', marginLeft: '4px' }}>
+                                          ({video.videoInfo.totalVideos || 0}个视频)
+                                        </Text>
+                                      </div>
+                                    )}
+
+                                    {video.videoInfo.type === 'multi_video' && (
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                                        <Text style={{ fontSize: '8px', color: '#666', minWidth: '50px' }}>
+                                          时长信息
+                                        </Text>
+                                        <Text style={{ fontSize: '8px', color: '#999' }}>
+                                          已学习 {Math.floor((video.videoInfo.watchedDuration || 0) / 60)}分钟 / 
+                                          总计 {Math.floor((video.videoInfo.totalDuration || 0) / 60)}分钟
+                                        </Text>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+
+                                {showPlannedLabels && video.plannedStartTime && (() => {
+                                  console.log(`MaterialManagement: 视频 ${video.id} 计划标识显示检查:`, {
+                                    showPlannedLabels,
+                                    hasPlannedStartTime: !!video.plannedStartTime,
+                                    plannedStartTime: video.plannedStartTime,
+                                    shouldShowLabel: true
+                                  });
+                                  return (
+                                    <div 
+                                      key={`planned-label-${video.id}-${Date.now()}`}
+                                      style={{
+                                        background: 'linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%)',
+                                        color: '#1890ff',
+                                        fontSize: '8px',
+                                        padding: '1px 4px',
+                                        borderRadius: '8px',
+                                        fontWeight: 'bold',
+                                        border: '1px solid #40a9ff',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '2px',
+                                        marginTop: '2px'
+                                      }}>
+                                      <ClockCircleOutlined style={{ fontSize: '8px' }} />
+                                      <span>计划 {video.plannedStartTime}</span>
+                                    </div>
+                                  );
+                                })()}
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <Checkbox
+                                checked={selectedMaterials.includes(`video-${video.id}`)}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  handleSelectMaterial(`video-${video.id}`, e.target.checked);
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
                   ))}
                 </div>
               )}

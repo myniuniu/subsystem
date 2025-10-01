@@ -198,6 +198,8 @@ export const DEFAULT_COURSE_VIDEOS = [
   { 
     id: 101, 
     title: '数据结构与算法基础', 
+    courseId: 201,
+    courseTitle: '数据结构与算法基础',
     url: 'https://edu.example.com/course/data-structure', 
     addTime: '2024-01-15 10:30', 
     duration: '45分钟', 
@@ -212,8 +214,27 @@ export const DEFAULT_COURSE_VIDEOS = [
     }
   },
   { 
+    id: 108, 
+    title: '数据结构与算法基础（进阶）', 
+    courseId: 201,
+    courseTitle: '数据结构与算法基础',
+    url: 'https://edu.example.com/course/data-structure-advanced', 
+    addTime: '2024-02-01 10:00', 
+    duration: '40分钟', 
+    instructor: '张教授', 
+    progress: 30, 
+    videoInfo: {
+      type: 'single_video',
+      progress: 30,
+      duration: 2400,
+      instructor: '张教授'
+    }
+  },
+  { 
     id: 102, 
     title: 'React前端开发实战', 
+    courseId: 202,
+    courseTitle: 'React前端开发实战',
     url: 'https://edu.example.com/course/react-dev', 
     addTime: '2024-01-16 14:20', 
     duration: '60分钟', 
@@ -231,6 +252,8 @@ export const DEFAULT_COURSE_VIDEOS = [
   { 
     id: 103, 
     title: 'Python机器学习入门', 
+    courseId: 203,
+    courseTitle: 'Python机器学习入门',
     url: 'https://edu.example.com/course/python-ml', 
     addTime: '2024-01-17 09:15', 
     duration: '75分钟', 
@@ -247,6 +270,8 @@ export const DEFAULT_COURSE_VIDEOS = [
   { 
     id: 104, 
     title: '数据库设计与优化', 
+    courseId: 204,
+    courseTitle: '数据库设计与优化',
     url: 'https://edu.example.com/course/database-design', 
     addTime: '2024-01-18 16:45', 
     duration: '50分钟', 
@@ -261,8 +286,27 @@ export const DEFAULT_COURSE_VIDEOS = [
     }
   },
   { 
+    id: 109, 
+    title: '数据库索引与查询优化', 
+    courseId: 204,
+    courseTitle: '数据库设计与优化',
+    url: 'https://edu.example.com/course/database-optimization-advanced', 
+    addTime: '2024-02-02 09:30', 
+    duration: '55分钟', 
+    instructor: '陈工程师', 
+    progress: 10, 
+    videoInfo: {
+      type: 'single_video',
+      progress: 10,
+      duration: 3300,
+      instructor: '陈工程师'
+    }
+  },
+  { 
     id: 105, 
     title: '云计算架构设计', 
+    courseId: 205,
+    courseTitle: '云计算架构设计',
     url: 'https://edu.example.com/course/cloud-architecture', 
     addTime: '2024-01-19 11:00', 
     duration: '90分钟', 
@@ -279,6 +323,8 @@ export const DEFAULT_COURSE_VIDEOS = [
   { 
     id: 106, 
     title: '【直播课回放】深度学习实战应用', 
+    courseId: 206,
+    courseTitle: '深度学习实战应用',
     url: 'https://live.example.com/replay/deep-learning', 
     addTime: '2024-01-20 14:30', 
     duration: '120分钟', 
@@ -298,6 +344,8 @@ export const DEFAULT_COURSE_VIDEOS = [
   { 
     id: 107, 
     title: '【直播课预约】AI技术前沿讲座', 
+    courseId: 207,
+    courseTitle: 'AI技术前沿讲座',
     url: 'https://live.example.com/upcoming/ai-frontier', 
     addTime: '2024-01-21 09:00', 
     duration: '90分钟', 
