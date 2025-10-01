@@ -469,6 +469,22 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
     },
     
     onRecordClick: (record) => {
+      // 白板类型：当为笔记且子类型为 whiteboard，点击打开 Excalidraw
+      if (record.type === 'note' && record.subType === 'whiteboard') {
+        try {
+          if (typeof window !== 'undefined') {
+            window.open('https://excalidraw.com/', '_blank', 'noopener,noreferrer');
+            message.success('已在新窗口打开 Excalidraw 白板');
+          } else {
+            message.info('请在浏览器中打开 https://excalidraw.com/');
+          }
+        } catch (err) {
+          console.error('打开 Excalidraw 失败:', err);
+          message.error('打开 Excalidraw 失败，请稍后重试');
+        }
+        return;
+      }
+      
       if (record.type === 'note') {
         state.setRightPanelEditingNote(record);
         const initialContent = record.content || '<p>请在此处编写您的笔记内容...</p>';
@@ -699,6 +715,16 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
       switch (action) {
         case MORE_MENU_ACTIONS.OPEN_IN_NEW_WINDOW:
           try {
+            // 文档类型记录：在新窗口打开 Lexical Playground
+            if (record?.type === 'note' && record?.subType === 'document') {
+              if (typeof window !== 'undefined') {
+                window.open('https://playground.lexical.dev/', '_blank', 'noopener,noreferrer');
+                message.success('已在新窗口打开 Lexical Playground');
+              } else {
+                message.info('请在浏览器中打开 https://playground.lexical.dev/');
+              }
+              break;
+            }
             const htmlContent = record?.content || '<div style="color:#999">暂无内容</div>';
             const newWin = window.open('', '_blank');
             if (newWin) {

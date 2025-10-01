@@ -151,16 +151,8 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
       file: [],
       text: [],
       link: [],
-      note: [
-        {
-          id: 1,
-          title: '学习笔记示例',
-          source: '示例笔记',
-          time: '刚刚',
-          type: 'note',
-          content: '<p>这是一个示例笔记，您可以点击编辑来修改内容。</p>'
-        }
-      ],
+      // 默认不初始化示例笔记记录，保持为空
+      note: [],
       'study-result': [],
       question: [], // 添加试题操作类型
       'exam-paper': [], // 添加试卷操作类型
