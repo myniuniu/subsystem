@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Layout,
   Button,
@@ -12,9 +12,11 @@ import {
   Select,
   List,
   Input,
-  Badge
+  Badge,
+  Avatar,
+  Space
 } from 'antd';
-import { ArrowLeftOutlined, MessageOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, MessageOutlined, VideoCameraOutlined, AudioOutlined, AudioMutedOutlined, StopOutlined, ShareAltOutlined, TeamOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
 // 导入重构后的组件
@@ -140,12 +142,105 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
   const [unreadMessageCount, setUnreadMessageCount] = useState(3); // 模拟未读消息数量
   const [isGroupCreated, setIsGroupCreated] = useState(false); // 群组创建状态
   
+  // 会议相关状态
+  const [showMeetingModal, setShowMeetingModal] = useState(false);
+  const [isCalling, setIsCalling] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoOn, setIsVideoOn] = useState(true);
+  const localVideoRef = useRef(null);
+  const [localStream, setLocalStream] = useState(null);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [screenStream, setScreenStream] = useState(null);
+  
   // 悬浮图标拖动相关状态
   const [floatIconPosition, setFloatIconPosition] = useState({ x: 24, y: 24 }); // 相对于右下角的位置
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [mouseDownPos, setMouseDownPos] = useState({ x: 0, y: 0 });
+
+  // 会议控制函数
+  const startVideoCall = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      setLocalStream(stream);
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream;
+        // 某些浏览器需要显式调用 play
+        localVideoRef.current.play().catch(() => {});
+      }
+      setIsCalling(true);
+      setIsMuted(false);
+      setIsVideoOn(true);
+      message.success('已开始视频通话');
+    } catch (err) {
+      console.error('startVideoCall error:', err);
+      message.error('无法访问摄像头/麦克风，请检查浏览器权限');
+    }
+  };
+
+  const endVideoCall = () => {
+    try {
+      if (localStream) {
+        localStream.getTracks().forEach(t => t.stop());
+      }
+    } catch (e) {
+      console.warn('stop tracks error:', e);
+    }
+    setLocalStream(null);
+    setIsCalling(false);
+    setShowMeetingModal(false);
+    message.info('已结束通话');
+  };
+
+  const toggleMute = () => {
+    if (!localStream) return;
+    const audioTracks = localStream.getAudioTracks();
+    audioTracks.forEach(track => (track.enabled = !track.enabled));
+    setIsMuted(prev => !prev);
+  };
+
+  const toggleVideo = () => {
+    if (!localStream) return;
+    const videoTracks = localStream.getVideoTracks();
+    videoTracks.forEach(track => (track.enabled = !track.enabled));
+    setIsVideoOn(prev => !prev);
+  };
+
+  const toggleScreenShare = async () => {
+    if (!isScreenSharing) {
+      try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        setScreenStream(stream);
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+          localVideoRef.current.play().catch(() => {});
+        }
+        setIsScreenSharing(true);
+        message.success('开始屏幕共享');
+      } catch (err) {
+        console.error('screen share error:', err);
+        message.error('无法开始屏幕共享');
+      }
+    } else {
+      try {
+        if (screenStream) {
+          screenStream.getTracks().forEach(t => t.stop());
+        }
+      } catch (e) {}
+      setScreenStream(null);
+      if (localVideoRef.current) {
+        if (localStream) {
+          localVideoRef.current.srcObject = localStream;
+          localVideoRef.current.play().catch(() => {});
+        } else {
+          localVideoRef.current.srcObject = null;
+        }
+      }
+      setIsScreenSharing(false);
+      message.info('已停止屏幕共享');
+    }
+  };
   
   // 拖动事件处理函数
   const handleMouseDown = (e) => {
@@ -1159,8 +1254,113 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 state={state}
                 handlers={operationHandlers}
               />
+        </div>
+
+        {/* 会议模态框 */}
+        <Modal
+          title="会议"
+          open={showMeetingModal}
+          onCancel={() => {
+            if (isCalling) {
+              endVideoCall();
+            } else {
+              setShowMeetingModal(false);
+            }
+          }}
+          footer={null}
+          width={720}
+          centered
+        >
+          {/* 会议布局：左侧视频/共享，右侧成员与聊天 */}
+          <div style={{ display: 'flex', gap: 12 }}>
+            {/* 左侧视频/共享区域 */}
+            <div style={{ flex: 3, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{
+                background: '#000',
+                borderRadius: 8,
+                height: 320,
+                overflow: 'hidden',
+                position: 'relative'
+              }}>
+                <video
+                  ref={localVideoRef}
+                  muted
+                  playsInline
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+                {!isCalling && (
+                  <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <Button type="primary" size="large" icon={<VideoCameraOutlined />} onClick={startVideoCall}>
+                      开始会议
+                    </Button>
+                  </div>
+                )}
+              </div>
+              {/* 控制栏 */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <Button icon={isMuted ? <AudioMutedOutlined /> : <AudioOutlined />} onClick={toggleMute} disabled={!isCalling}>
+                    {isMuted ? '取消静音' : '静音'}
+                  </Button>
+                  <Button icon={<VideoCameraOutlined />} onClick={toggleVideo} disabled={!isCalling}>
+                    {isVideoOn ? '关闭摄像头' : '打开摄像头'}
+                  </Button>
+                  <Button icon={<ShareAltOutlined />} onClick={toggleScreenShare} disabled={!isCalling}>
+                    {isScreenSharing ? '停止共享' : '屏幕共享'}
+                  </Button>
+                </div>
+                <Button danger type="primary" icon={<StopOutlined />} onClick={endVideoCall} disabled={!isCalling}>
+                  结束会议
+                </Button>
+              </div>
             </div>
-          </>
+
+            {/* 右侧成员与聊天 */}
+            <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {/* 成员列表 */}
+              <Card size="small" title={<span><TeamOutlined /> 成员</span>}>
+                <Space wrap>
+                  {Array.from(new Set(['我', ...discussionMessages.map(m => m.senderName).filter(Boolean)]))
+                    .slice(0, 12)
+                    .map((name, idx) => (
+                      <Space key={`${name}-${idx}`} direction="vertical" align="center" style={{ width: 64 }}>
+                        <Avatar>{name?.[0] || '成'}</Avatar>
+                        <Typography.Text style={{ fontSize: 12 }} ellipsis>{name}</Typography.Text>
+                      </Space>
+                  ))}
+                </Space>
+              </Card>
+
+              {/* 会议聊天（复用讨论消息） */}
+              <Card size="small" title={<span><MessageOutlined /> 会议聊天</span>} bodyStyle={{ padding: 12 }}>
+                <div style={{ maxHeight: 160, overflowY: 'auto' }}>
+                  <List
+                    size="small"
+                    dataSource={discussionMessages}
+                    renderItem={(msg) => (
+                      <List.Item style={{ padding: '6px 0' }}>
+                        <div style={{ width: '100%' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                            <Typography.Text strong>{msg.senderName}</Typography.Text>
+                            <Typography.Text type="secondary" style={{ fontSize: 12 }}>{msg.time}</Typography.Text>
+                          </div>
+                          <Typography.Text style={{ display: 'block' }}>{msg.content}</Typography.Text>
+                        </div>
+                      </List.Item>
+                    )}
+                  />
+                </div>
+              </Card>
+            </div>
+          </div>
+        </Modal>
+      </>
         )}
       </div>
       
@@ -1379,23 +1579,33 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
            alignItems: 'center',
            justifyContent: 'space-between'
          }}>
-           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-             <MessageOutlined style={{ color: '#1890ff' }} />
-             <span style={{ fontWeight: 'bold' }}>主题讨论</span>
-             <Badge count={unreadMessageCount} size="small" />
-           </div>
-           <Button 
-             type="text" 
-             size="small"
-             onClick={() => {
-               setShowMessageCenter(false);
-               setUnreadMessageCount(0);
-             }}
-             style={{ color: '#999' }}
-           >
-             ✕
-           </Button>
+         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+           <MessageOutlined style={{ color: '#1890ff' }} />
+           <span style={{ fontWeight: 'bold' }}>主题讨论</span>
+           <Badge count={unreadMessageCount} size="small" />
          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Button 
+              type="link"
+              size="small"
+              icon={<VideoCameraOutlined />}
+              onClick={() => setShowMeetingModal(true)}
+            >
+              会议
+            </Button>
+            <Button 
+              type="text" 
+              size="small"
+              onClick={() => {
+                setShowMessageCenter(false);
+                setUnreadMessageCount(0);
+              }}
+              style={{ color: '#999' }}
+            >
+              ✕
+            </Button>
+          </div>
+        </div>
           {/* 消息列表区域 */}
           <div style={{ 
             flex: 1, 
