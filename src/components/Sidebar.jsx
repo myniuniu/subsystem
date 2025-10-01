@@ -49,7 +49,8 @@ import {
   Edit,
   GraduationCap,
   Settings,
-  User
+  User,
+  Cloud
 } from 'lucide-react'
 import SidebarAvatar from './SidebarAvatar'
 import './Sidebar.css'
@@ -353,7 +354,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
     },
     { 
       id: 'docs-center', 
-      icon: FileText, 
+      icon: Cloud, 
       label: '云盘', 
       color: '#a18cd1',
       type: 'single'

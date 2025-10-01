@@ -131,42 +131,42 @@ const DocsCenter = () => {
       key: 'multidimensional',
       title: '多维表格',
       description: '支持多种数据类型的智能表格',
-      icon: <TableOutlined style={{ fontSize: '24px', color: '#722ed1' }} />,
+      icon: <TableOutlined style={{ fontSize: '18px', color: '#722ed1' }} />,
       color: '#722ed1'
     },
     {
       key: 'document',
       title: '文档',
       description: '富文本编辑器，支持协作编辑',
-      icon: <FileTextOutlined style={{ fontSize: '24px', color: '#1890ff' }} />,
+      icon: <FileTextOutlined style={{ fontSize: '18px', color: '#1890ff' }} />,
       color: '#1890ff'
     },
     {
       key: 'table',
       title: '表格',
       description: '在线电子表格，支持公式计算',
-      icon: <TableOutlined style={{ fontSize: '24px', color: '#52c41a' }} />,
+      icon: <TableOutlined style={{ fontSize: '18px', color: '#52c41a' }} />,
       color: '#52c41a'
     },
     {
       key: 'presentation',
       title: '幻灯片',
       description: '演示文稿制作工具',
-      icon: <FilePptOutlined style={{ fontSize: '24px', color: '#fa8c16' }} />,
+      icon: <FilePptOutlined style={{ fontSize: '18px', color: '#fa8c16' }} />,
       color: '#fa8c16'
     },
     {
       key: 'survey',
       title: '问卷',
       description: '在线问卷调查工具',
-      icon: <FormOutlined style={{ fontSize: '24px', color: '#eb2f96' }} />,
+      icon: <FormOutlined style={{ fontSize: '18px', color: '#eb2f96' }} />,
       color: '#eb2f96'
     },
     {
       key: 'mindmap',
       title: '思维笔记',
       description: '思维导图和笔记工具',
-      icon: <BulbOutlined style={{ fontSize: '24px', color: '#13c2c2' }} />,
+      icon: <BulbOutlined style={{ fontSize: '18px', color: '#13c2c2' }} />,
       color: '#13c2c2'
     },
     {
@@ -181,7 +181,7 @@ const DocsCenter = () => {
       key: 'folder',
       title: '文件夹',
       description: '创建文件夹来组织文档',
-      icon: <FileMarkdownOutlined style={{ fontSize: '24px', color: '#faad14' }} />,
+      icon: <FileMarkdownOutlined style={{ fontSize: '18px', color: '#faad14' }} />,
       color: '#faad14'
     }
   ]
@@ -717,25 +717,25 @@ const DocsCenter = () => {
   const getTypeIcon = (type) => {
     switch (type) {
       case 'multitable':
-        return <TableOutlined style={{ color: '#722ed1' }} />
+        return <TableOutlined style={{ color: '#722ed1', fontSize: '18px' }} />
       case 'document':
-        return <FileTextOutlined style={{ color: '#1890ff' }} />
+        return <FileTextOutlined style={{ color: '#1890ff', fontSize: '18px' }} />
       case 'table':
-        return <TableOutlined style={{ color: '#52c41a' }} />
+        return <TableOutlined style={{ color: '#52c41a', fontSize: '18px' }} />
       case 'presentation':
-        return <PieChartOutlined style={{ color: '#fa8c16' }} />
+        return <PieChartOutlined style={{ color: '#fa8c16', fontSize: '18px' }} />
       case 'survey':
-        return <FormOutlined style={{ color: '#fadb14' }} />
+        return <FormOutlined style={{ color: '#fadb14', fontSize: '18px' }} />
       case 'mindnote':
-        return <BulbOutlined style={{ color: '#13c2c2' }} />
+        return <BulbOutlined style={{ color: '#13c2c2', fontSize: '18px' }} />
       case 'markdown':
-        return <FileMarkdownOutlined style={{ color: '#eb2f96' }} />
+        return <FileMarkdownOutlined style={{ color: '#eb2f96', fontSize: '18px' }} />
       case 'ppt':
-        return <FilePptOutlined style={{ color: '#fa8c16' }} />
+        return <FilePptOutlined style={{ color: '#fa8c16', fontSize: '18px' }} />
       case 'whiteboard':
-        return <HighlightOutlined style={{ color: '#13c2c2' }} />
+        return <HighlightOutlined style={{ color: '#13c2c2', fontSize: '18px' }} />
       default:
-        return <FileTextOutlined style={{ color: '#1890ff' }} />
+        return <FileTextOutlined style={{ color: '#1890ff', fontSize: '18px' }} />
     }
   }
 
@@ -955,7 +955,6 @@ const DocsCenter = () => {
       <Layout>
         <Header className="docs-header">
           <div className="header-title">
-            <FileTextOutlined className="header-icon" />
             <Title level={2} style={{ color: '#262626', margin: 0 }}>云盘</Title>
           </div>
           <div className="header-actions">

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Typography, Space, Button } from 'antd'
-import { Sparkles, ExternalLink } from 'lucide-react'
+import { Sparkles, ExternalLink, Cloud } from 'lucide-react'
 import UserAvatar from './UserAvatar'
 import { initTheme } from '../utils/themeManager'
 import './Header.css'
@@ -33,6 +33,9 @@ const Header = ({ onMenuClick, currentView }) => {
     return titles[view] || '智慧教学平台【端管理】'
   }
 
+  // 根据当前视图选择图标
+  const IconComponent = currentView === 'docs-center' ? Cloud : Sparkles
+
   return (
     <div className="header" style={{ 
       display: 'flex', 
@@ -43,7 +46,7 @@ const Header = ({ onMenuClick, currentView }) => {
       background: 'transparent'
     }}>
       <div className="header-title" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <Sparkles size={28} color="#fff" />
+        <IconComponent size={28} color="#fff" />
         <Title 
           level={3} 
           style={{ 

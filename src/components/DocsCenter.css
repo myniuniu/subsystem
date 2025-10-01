@@ -51,8 +51,8 @@
   gap: 12px;
 }
 
-.header-icon {
-  font-size: 24px;
+.docs-center .header-icon {
+  font-size: 18px;
   color: #1890ff;
 }
 
@@ -584,6 +584,20 @@
 
 .docs-grid.list .ant-card-meta-avatar {
   margin-right: 16px;
+}
+
+/* 统一卡片头像区域图标尺寸为 18px，容器为 24px */
+.docs-center .ant-card-meta-avatar {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.docs-center .ant-card-meta-avatar .anticon {
+  font-size: 18px;
+  line-height: 1;
 }
 
 .docs-grid.list .ant-card-meta-detail {
