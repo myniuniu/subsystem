@@ -590,7 +590,7 @@ class MockDataGenerator {
     this.trainingNeedsManagementNotes = [
       {
         id: generateId(),
-        title: '【培训需求】2024年度教师培训需求调研概要',
+        title: '2025年度教师培训',
         content: '# 2024年度教师培训需求调研概要\n\n- 目标人群：全体教师\n- 重点主题：信息技术、课堂管理、教学创新\n- 建议：分层分类实施，建立效果评估机制',
         category: 'training_needs_management',
         tags: ['培训需求', '教师发展', '调研报告'],
@@ -600,7 +600,7 @@ class MockDataGenerator {
       },
       {
         id: generateId(),
-        title: '【培训需求】新教师入职培训需求清单',
+        title: '新教师入职培训',
         content: '# 入职培训需求清单\n\n- 教学基本功\n- 学校规章制度\n- 学生管理与沟通',
         category: 'training_needs_management',
         tags: ['培训需求', '入职培训', '清单'],
@@ -610,7 +610,7 @@ class MockDataGenerator {
       },
       {
         id: generateId(),
-        title: '【培训需求】骨干教师高端研修需求梳理',
+        title: '骨干教师高端研修',
         content: '# 骨干教师研修需求\n\n- 教改与创新\n- 科研方法\n- 教育技术应用',
         category: 'training_needs_management',
         tags: ['培训需求', '骨干教师', '研修'],
@@ -620,7 +620,7 @@ class MockDataGenerator {
       },
       {
         id: generateId(),
-        title: '【培训需求】信息技术能力提升培训需求',
+        title: '信息技术能力提升培训',
         content: '# 技能提升需求\n\n- 学习平台使用\n- 互动工具应用\n- 资源制作与发布',
         category: 'training_needs_management',
         tags: ['培训需求', '信息技术', '能力提升'],
@@ -630,7 +630,7 @@ class MockDataGenerator {
       },
       {
         id: generateId(),
-        title: '【培训需求】教师心理健康教育培训需求',
+        title: '教师心理健康教育培训',
         content: '# 心理健康培训需求\n\n- 压力管理\n- 情绪调节\n- 沟通与支持',
         category: 'training_needs_management',
         tags: ['培训需求', '心理健康', '教师支持'],
@@ -913,7 +913,7 @@ class MockDataGenerator {
       },
       {
         id: 'tnm_002',
-        title: '新教师入职培训需求清单',
+        title: '新教师入职培训',
         source: '人事与教务',
         time: '30分钟前',
         type: 'training-needs',
@@ -926,7 +926,7 @@ class MockDataGenerator {
       },
       {
         id: 'tnm_003',
-        title: '骨干教师高端研修需求梳理',
+        title: '骨干教师高端研修',
         source: '教研室',
         time: '1小时前',
         type: 'training-needs',
@@ -939,7 +939,7 @@ class MockDataGenerator {
       },
       {
         id: 'tnm_004',
-        title: '信息技术能力提升培训需求',
+        title: '信息技术能力提升培训',
         source: '信息化办公室',
         time: '2小时前',
         type: 'training-needs',
@@ -952,7 +952,7 @@ class MockDataGenerator {
       },
       {
         id: 'tnm_005',
-        title: '教师心理健康教育培训需求',
+        title: '教师心理健康教育培训',
         source: '学生处与工会',
         time: '昨天',
         type: 'training-needs',
