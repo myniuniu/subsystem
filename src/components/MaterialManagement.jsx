@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Layout,
   Input,
@@ -36,10 +36,13 @@ import {
   PlayCircleOutlined,
   ClockCircleOutlined,
   RobotOutlined,
-  NodeIndexOutlined
+  NodeIndexOutlined,
+  DownOutlined,
+  RightOutlined
 } from '@ant-design/icons';
-import { Grid, Map } from 'lucide-react';
+import { Grid, Map as MapIcon } from 'lucide-react';
 import { VIEW_MODES, DEFAULT_COURSE_VIDEOS } from '../constants/noteEditConstants';
+import { getMockCourseContentHierarchy, flattenCourseContentToVideos } from '../utils/mockCourseData';
 import { 
   generateSmartNote, 
   getLiveStreamStatus, 
@@ -120,6 +123,106 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
 
   // 添加计划标识显示状态管理
   const [showPlannedLabels, setShowPlannedLabels] = useState(false);
+  // 课程层级结构索引（章/节数量摘要）
+  const courseStructureIndex = useMemo(() => {
+    let index = new Map();
+    try {
+      const hierarchy = getMockCourseContentHierarchy();
+      hierarchy.forEach(course => {
+        const chapters = course.chapters || [];
+        const chapterCount = chapters.length;
+        let sectionCount = 0;
+        chapters.forEach(ch => {
+          sectionCount += (ch.sections?.length || 0);
+        });
+        index.set(course.id, { chapterCount, sectionCount });
+      });
+    } catch (e) {
+      // 安静失败，避免影响现有UI
+      index = new Map();
+    }
+    return index;
+  }, []);
+  const courseHierarchyMap = useMemo(() => {
+    let map = new Map();
+    try {
+      const hierarchy = getMockCourseContentHierarchy();
+      hierarchy.forEach(course => {
+        map.set(course.id, course);
+      });
+    } catch (e) {
+      map = new Map();
+    }
+    return map;
+  }, []);
+  // 分组折叠状态 & 汇总计算（需在组件函数体内）
+  const [collapsedGroups, setCollapsedGroups] = useState(new Set());
+  const [hierarchyOpenCourses, setHierarchyOpenCourses] = useState(new Set());
+  const [highlightVideoId, setHighlightVideoId] = useState(null);
+  const toggleGroup = (courseId) => {
+    setCollapsedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(courseId)) next.delete(courseId); else next.add(courseId);
+      return next;
+    });
+  };
+  const toggleHierarchy = (courseId) => {
+    setHierarchyOpenCourses(prev => {
+      const next = new Set(prev);
+      if (next.has(courseId)) next.delete(courseId); else next.add(courseId);
+      return next;
+    });
+  };
+
+  const scrollToVideoCard = (videoId) => {
+    try {
+      const el = document.getElementById(`video-card-${videoId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setHighlightVideoId(videoId);
+        setTimeout(() => setHighlightVideoId(null), 1600);
+      }
+    } catch (e) {
+      // ignore
+    }
+  };
+
+  const computeGroupSummary = (videos) => {
+    let totalSeconds = 0;
+    let watchedSeconds = 0;
+    videos.forEach(v => {
+      const info = v.videoInfo || {};
+      if (info.type === 'multi_video') {
+        const td = Number(info.totalDuration || 0);
+        const wd = Number(info.watchedDuration || 0);
+        totalSeconds += td;
+        watchedSeconds += wd;
+      } else {
+        const d = Number(info.duration || 0);
+        const p = Number(info.progress || 0) / 100;
+        totalSeconds += d;
+        watchedSeconds += d * p;
+      }
+    });
+    const overallProgress = totalSeconds > 0 ? Math.round((watchedSeconds / totalSeconds) * 100) : 0;
+    return {
+      totalMinutes: Math.round(totalSeconds / 60),
+      overallProgress
+    };
+  };
+
+  // 将层级数据扁平化为额外的视频条目，并与现有courseVideos合并用于显示
+  const displayCourseVideos = useMemo(() => {
+    const base = Array.isArray(courseVideos) ? courseVideos : [];
+    try {
+      const hierarchy = getMockCourseContentHierarchy();
+      const extra = flattenCourseContentToVideos(hierarchy);
+      const existingIds = new Set(base.map(v => v.id));
+      return base.concat(extra.filter(v => !existingIds.has(v.id)));
+    } catch (e) {
+      return base;
+    }
+  }, [courseVideos]);
 
   // 添加渲染调试日志
   console.log('MaterialManagement: 组件渲染，showPlannedLabels =', showPlannedLabels);
@@ -438,7 +541,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
               </Button>
               <Button 
                 type={viewMode === 'map' ? 'primary' : 'default'}
-                icon={<Map size={16} />}
+                icon={<MapIcon size={16} />}
                 onClick={() => setViewMode('map')}
                 size="small"
               >
@@ -579,12 +682,12 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
             /* 卡片模式 - 原有的资料列表显示 */
             <div>
               {/* 课程视频列表（按课程分组，支持一课多视频） */}
-              {courseVideos.length > 0 && (
+              {displayCourseVideos.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
                   <Text strong style={{ fontSize: '12px', color: '#666', marginBottom: 8, display: 'block' }}>
-                    📹 课程视频 ({courseVideos.length})
+                    📹 课程视频 ({displayCourseVideos.length})
                   </Text>
-                  {Object.values(courseVideos.reduce((groups, v) => {
+                  {Object.values(displayCourseVideos.reduce((groups, v) => {
                     const cid = v.courseId || v.id;
                     if (!groups[cid]) {
                       groups[cid] = {
@@ -597,21 +700,111 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                     groups[cid].videos.push(v);
                     return groups;
                   }, {})).map(group => (
-                    <div key={`course-${group.courseId}`} style={{ marginBottom: 8 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '4px 0' }}>
-                        <Text strong style={{ fontSize: 12 }}>{group.courseTitle}</Text>
-                        <Text type="secondary" style={{ fontSize: 10 }}>
-                          {(group.instructor || '未知讲师')} • {group.videos.length}个视频
-                        </Text>
-                      </div>
-                      {group.videos.map(video => (
+                    <div key={`course-${group.courseId}`} style={{ marginBottom: 8, border: '1px solid #e8e8e8', borderRadius: 8, padding: 8, background: '#fff' }}>
+                      {(() => {
+                        const summary = computeGroupSummary(group.videos);
+                        const collapsed = collapsedGroups.has(group.courseId);
+                        return (
+                          <div style={{ margin: '4px 0' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                {collapsed ? (
+                                  <RightOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleGroup(group.courseId)} />
+                                ) : (
+                                  <DownOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleGroup(group.courseId)} />
+                                )}
+                                <Text strong style={{ fontSize: 13, cursor: 'pointer' }} onClick={() => toggleGroup(group.courseId)}>
+                                  {group.courseTitle}
+                                </Text>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <Tooltip title={hierarchyOpenCourses.has(group.courseId) ? '隐藏层级' : '显示层级'}>
+                                  <NodeIndexOutlined style={{ fontSize: 14, color: '#1890ff', cursor: 'pointer' }} onClick={() => toggleHierarchy(group.courseId)} />
+                                </Tooltip>
+                                <Tooltip title="选择本课程">
+                                  <Checkbox
+                                    checked={group.videos.every(v => selectedMaterials.includes(`video-${v.id}`))}
+                                    indeterminate={group.videos.some(v => selectedMaterials.includes(`video-${v.id}`)) && !group.videos.every(v => selectedMaterials.includes(`video-${v.id}`))}
+                                    onChange={(e) => {
+                                      const checked = e.target.checked;
+                                      group.videos.forEach(v => handleSelectMaterial(`video-${v.id}`, checked));
+                                    }}
+                                  />
+                                </Tooltip>
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                <Text type="secondary" style={{ fontSize: 11 }}>
+                                  {(group.instructor || '未知讲师')} • {group.videos.length}个视频 • 总计{summary.totalMinutes}分钟
+                                </Text>
+                                {(() => {
+                                  const struct = courseStructureIndex.get(group.courseId);
+                                  if (!struct) return null;
+                                  return (
+                                    <Text type="secondary" style={{ fontSize: 11 }}>
+                                      • 章{struct.chapterCount} • 节{struct.sectionCount}
+                                    </Text>
+                                  );
+                                })()}
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <div style={{ width: 140 }}>
+                                  <Progress percent={summary.overallProgress} size="small" showInfo={false} />
+                                </div>
+                                <Tooltip title={`整体进度：${summary.overallProgress}%`}>
+                                  <Text style={{ fontSize: 10, color: '#1890ff' }}>{summary.overallProgress}%</Text>
+                                </Tooltip>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    {hierarchyOpenCourses.has(group.courseId) && (() => {
+                      const course = courseHierarchyMap.get(group.courseId);
+                      if (!course) return null;
+                      return (
+                        <div style={{ padding: 8, background: '#f9fafb', border: '1px solid #eee', borderRadius: 6, margin: '6px 0' }}>
+                          {(course.chapters || []).map(ch => (
+                            <div key={`ch-${ch.id}`} style={{ marginBottom: 6 }}>
+                              <Text strong style={{ fontSize: 11 }}>{ch.title}</Text>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+                                {(ch.sections || []).map(sec => (
+                                  <div key={`sec-${sec.id}`} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 6, padding: '6px 8px' }}>
+                                    <div style={{ fontSize: 10, color: '#666' }}>• {sec.title}（共{(sec.videos || []).length}个视频）</div>
+                                    <div style={{ marginTop: 4 }}>
+                                      {(sec.videos || []).map(v => (
+                                        <div
+                                          key={`secv-${v.id}`}
+                                          onClick={() => scrollToVideoCard(v.id)}
+                                          style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', padding: '4px 6px', borderRadius: 4, background: '#f7faff' }}
+                                        >
+                                          <span style={{ fontSize: 10, color: '#333' }}>{v.title}</span>
+                                          <div style={{ flex: 1 }}>
+                                            <Progress percent={v.progress || 0} size="small" showInfo={false} />
+                                          </div>
+                                          <Text type="secondary" style={{ fontSize: 10 }}>{v.instructor}</Text>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                     {!collapsedGroups.has(group.courseId) && group.videos.map(video => (
                         <Card 
                           key={`video-${video.id}`}
+                          id={`video-card-${video.id}`}
                           size="small" 
                           style={{ 
                             marginBottom: 8,
                             cursor: 'pointer',
-                            border: '1px solid #e8e8e8'
+                            border: '1px solid #e8e8e8',
+                            ...(highlightVideoId === video.id ? { boxShadow: '0 0 0 2px #1890ff', borderColor: '#1890ff' } : {})
                           }}
                           bodyStyle={{ padding: '8px 12px' }}
                           onClick={() => onPlayVideo(video)}
@@ -923,3 +1116,4 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
 };
 
 export default MaterialManagement;
+  // 分组折叠状态 & 汇总计算
