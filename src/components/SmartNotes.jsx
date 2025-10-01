@@ -186,8 +186,23 @@ const SmartNotes = ({ onViewChange }) => {
       // 初始化默认AI工具
       initializeDefaultAITools();
       
+      // 首次加载强制生成模拟数据（一次性）
+      const FIRST_INIT_KEY = 'smart_notes_first_init_v1';
+      const isFirstInit = localStorage.getItem(FIRST_INIT_KEY) !== 'true';
+      if (isFirstInit) {
+        console.log('首次加载：强制生成模拟数据');
+        const resultInit = await mockDataGenerator.generateAllMockData();
+        console.log('首次生成结果:', resultInit);
+        localStorage.setItem(FIRST_INIT_KEY, 'true');
+        if (resultInit && resultInit.success) {
+          message.success('首次加载已初始化模拟数据');
+        } else {
+          message.error('首次加载模拟数据生成失败');
+        }
+      }
+
       // 加载笔记
-      const notesData = await notesService.getAllNotes();
+      let notesData = await notesService.getAllNotes();
       console.log('=== 数据加载调试信息 ===');
       console.log('加载的笔记数据:', notesData);
       console.log('总笔记数量:', notesData.length);
@@ -200,6 +215,32 @@ const SmartNotes = ({ onViewChange }) => {
       // 检查localStorage原始数据
       const rawData = localStorage.getItem('smart_notes_data');
       console.log('localStorage原始数据长度:', rawData ? rawData.length : 0);
+
+      // 无数据时自动生成（避免与首次强制生成重复提示）
+      try {
+        const parsed = JSON.parse(rawData || '[]');
+        const needGenerateDueToEmpty = (!rawData || !Array.isArray(parsed) || parsed.length === 0 || notesData.length === 0);
+        if (!isFirstInit && needGenerateDueToEmpty) {
+          console.log('未检测到笔记数据，自动生成模拟数据...');
+          const result = await mockDataGenerator.generateAllMockData();
+          console.log('自动生成结果:', result);
+          if (result && result.success) {
+            notesData = await notesService.getAllNotes();
+            message.success('已自动生成模拟数据');
+          } else {
+            message.error('自动生成模拟数据失败');
+          }
+        }
+      } catch (e) {
+        console.warn('解析初始数据失败，尝试生成模拟数据:', e);
+        if (!isFirstInit) {
+          const result = await mockDataGenerator.generateAllMockData();
+          if (result && result.success) {
+            notesData = await notesService.getAllNotes();
+            message.success('已自动生成模拟数据');
+          }
+        }
+      }
       
       setNotes(notesData);
       

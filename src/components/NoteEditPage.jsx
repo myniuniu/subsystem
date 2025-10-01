@@ -697,6 +697,41 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
     
     onMoreAction: (action, record) => {
       switch (action) {
+        case MORE_MENU_ACTIONS.OPEN_IN_NEW_WINDOW:
+          try {
+            const htmlContent = record?.content || '<div style="color:#999">暂无内容</div>';
+            const newWin = window.open('', '_blank');
+            if (newWin) {
+              newWin.document.write(`<!doctype html>
+                <html>
+                  <head>
+                    <meta charset="utf-8" />
+                    <meta name="viewport" content="width=device-width, initial-scale=1" />
+                    <title>${record?.title || '笔记'}</title>
+                    <style>
+                      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif; padding: 24px; line-height: 1.7; color: #1f1f1f; }
+                      h1 { margin: 0 0 12px; font-size: 20px; }
+                      .meta { color:#8c8c8c; margin-bottom: 16px; font-size: 12px; }
+                      .content img { max-width: 100%; height: auto; }
+                      .content { font-size: 14px; }
+                    </style>
+                  </head>
+                  <body>
+                    <h1>${record?.title || '笔记'}</h1>
+                    <div class="meta">来源：${record?.source || '笔记'}｜时间：${record?.time || ''}</div>
+                    <div class="content">${htmlContent}</div>
+                  </body>
+                </html>`);
+              newWin.document.close();
+              message.success('已在新窗口打开笔记');
+            } else {
+              message.error('浏览器阻止了新窗口，请允许弹窗');
+            }
+          } catch (err) {
+            console.error('新窗口打开失败:', err);
+            message.error('新窗口打开失败');
+          }
+          break;
         case 'submit':
           // 提交培训方案
           message.loading('正在提交培训方案...', 1);

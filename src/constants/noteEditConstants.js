@@ -182,6 +182,7 @@ export const MORE_MENU_ACTIONS = {
   DELETE: 'delete',
   RENAME: 'rename',
   VIEW: 'view',
+  OPEN_IN_NEW_WINDOW: 'openInNewWindow',
   COPY_TO: 'copyTo',
   MOVE_TO: 'moveTo'
 };

@@ -705,6 +705,19 @@ const OperationPanel = ({ state, handlers }) => {
             onMoreAction && onMoreAction('view', record);
           }
         },
+        {
+          key: 'openInNewWindow',
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>🔗</span>
+              <span>新窗口打开</span>
+            </div>
+          ),
+          onClick: (e) => {
+            e?.stopPropagation?.();
+            onMoreAction && onMoreAction(MORE_MENU_ACTIONS.OPEN_IN_NEW_WINDOW, record);
+          }
+        },
         ...commonItems
       ];
     }

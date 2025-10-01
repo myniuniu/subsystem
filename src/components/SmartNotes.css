@@ -765,7 +765,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
 }
 
 .note-category {
@@ -789,10 +789,11 @@
 }
 
 .note-title {
-  margin-bottom: 8px !important;
+  margin-bottom: 6px !important;
   color: #1f2937;
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.2;
+  font-size: 14px;
 }
 
 .note-content {
