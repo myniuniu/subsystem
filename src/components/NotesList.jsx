@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Card,
   Row,
@@ -10,7 +10,9 @@ import {
   Button,
   Progress,
   Empty,
-  Spin
+  Spin,
+  Modal,
+  Select
 } from 'antd';
 import {
   EyeOutlined,
@@ -19,7 +21,8 @@ import {
   StarOutlined,
   StarFilled,
   ShareAltOutlined,
-  PlayCircleOutlined
+  PlayCircleOutlined,
+  TagOutlined
 } from '@ant-design/icons';
 import { TRAINING_STATUS, getTrainingStatusInfo } from '../utils/trainingStatusUtils';
 
@@ -34,11 +37,31 @@ const NotesList = ({
   handleCreateNote,
   handleEditNote,
   handleViewNote,
+  handleUpdateTags,
   handleShareTheme,
   handleToggleStar,
   handleDeleteNote,
   getTrainingStatusInfo
 }) => {
+  // 标签编辑模态框状态
+  const [tagModalVisible, setTagModalVisible] = useState(false);
+  const [tagEditingNote, setTagEditingNote] = useState(null);
+  const [tagInput, setTagInput] = useState([]);
+
+  const openTagModal = (note) => {
+    setTagEditingNote(note);
+    setTagInput(note.tags || []);
+    setTagModalVisible(true);
+  };
+
+  const handleTagSave = async () => {
+    if (tagEditingNote) {
+      await handleUpdateTags(tagEditingNote.id, tagInput);
+    }
+    setTagModalVisible(false);
+    setTagEditingNote(null);
+    setTagInput([]);
+  };
   if (loading) {
     return (
       <div className="loading-container">
@@ -235,6 +258,7 @@ const NotesList = ({
 
   // 网格布局
   return (
+    <>
     <Row gutter={[16, 16]}>
       {filteredNotes.map(note => {
         const categoryInfo = getCategoryInfo(note.category);
@@ -247,8 +271,8 @@ const NotesList = ({
               onClick={() => handleEditNote(note)}
               style={{ cursor: 'pointer' }}
               actions={[
-                <Tooltip title="查看详情">
-                  <EyeOutlined onClick={(e) => { e.stopPropagation(); handleViewNote(note); }} />
+                <Tooltip title="标签">
+                  <TagOutlined onClick={(e) => { e.stopPropagation(); openTagModal(note); }} />
                 </Tooltip>,
                 <Tooltip title="编辑">
                   <EditOutlined onClick={(e) => { e.stopPropagation(); handleEditNote(note); }} />
@@ -343,9 +367,12 @@ const NotesList = ({
               </Paragraph>
               
               <div className="note-tags">
-                {note.tags?.map(tag => (
+                {note.tags?.slice(0, 3).map(tag => (
                   <Tag key={tag} size="small">{tag}</Tag>
                 ))}
+                {note.tags && note.tags.length > 3 && (
+                  <Tag key="more" size="small">+{note.tags.length - 3}</Tag>
+                )}
               </div>
               
               {/* 视频进度条 - 仅在组织培训分类下显示 */}
@@ -457,6 +484,24 @@ const NotesList = ({
         );
       })}
     </Row>
+    {/* 标签编辑模态框（网格布局下） */}
+    <Modal
+      title="编辑标签"
+      open={tagModalVisible}
+      onCancel={() => setTagModalVisible(false)}
+      onOk={handleTagSave}
+      okText="保存"
+      cancelText="取消"
+    >
+      <Select
+        mode="tags"
+        style={{ width: '100%' }}
+        placeholder="输入标签并回车添加"
+        value={tagInput}
+        onChange={(values) => setTagInput(values)}
+      />
+    </Modal>
+    </>
   );
 };
 

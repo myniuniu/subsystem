@@ -17,6 +17,7 @@ import {
 } from '@ant-design/icons';
 import { COMMON_QUESTIONS } from '../constants/noteEditConstants';
 import { generateSummaryContent } from '../utils/noteEditUtils';
+import notesService from '../services/notesService';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -56,17 +57,96 @@ const AIChat = ({ state, handlers }) => {
     setInputMessage('');
     setIsLoading(true);
     
-    // 模拟AI回复
+    // 基于个人培训与学习数据生成“学伴”式智能回复
     setTimeout(() => {
-      const aiResponse = {
-        id: Date.now() + 1,
-        type: 'assistant',
-        content: `基于您上传的资料，我理解您的问题是："${inputMessage}"。根据现有资料分析，我建议...`,
-        timestamp: new Date().toISOString()
-      };
-      setMessages(prev => [...prev, aiResponse]);
-      setIsLoading(false);
-    }, 1500);
+      try {
+        const notes = notesService.getAllNotes() || [];
+        const byCategory = (cat) => notes.filter(n => n.category === cat);
+        const study = byCategory('study');
+        const personal = byCategory('personal');
+        const orgTrain = byCategory('organizational_training');
+
+        const recentTitles = (arr, k = 3) => arr
+          .slice()
+          .sort((a, b) => new Date(b.createdAt || b.updatedAt || 0) - new Date(a.createdAt || a.updatedAt || 0))
+          .slice(0, k)
+          .map(n => n.title)
+          .filter(Boolean);
+
+        const studyCount = study.length;
+        const personalCount = personal.length;
+        const orgCount = orgTrain.length;
+
+        const orgProgress = (() => {
+          let totalUnits = 0;
+          let completedUnits = 0;
+          for (const n of orgTrain) {
+            const schedule = n.learningSchedule;
+            if (Array.isArray(schedule)) {
+              totalUnits += schedule.length;
+              completedUnits += schedule.filter(u => u.completed || u.done || u.status === 'completed').length;
+            } else if (schedule && Array.isArray(schedule.units)) {
+              totalUnits += schedule.units.length;
+              completedUnits += schedule.units.filter(u => u.completed || u.done || u.status === 'completed').length;
+            }
+          }
+          const percent = totalUnits > 0 ? Math.round((completedUnits / totalUnits) * 100) : null;
+          return { totalUnits, completedUnits, percent };
+        })();
+
+        const studyRecent = recentTitles(study, 3);
+        const personalRecent = recentTitles(personal, 3);
+        const orgRecent = recentTitles(orgTrain, 3);
+
+        const progressLine = orgProgress.percent != null
+          ? `组织培训总体进度约为 ${orgProgress.percent}%（${orgProgress.completedUnits}/${orgProgress.totalUnits} 单元）。`
+          : orgCount > 0
+            ? `已记录 ${orgCount} 条组织培训笔记，部分课程包含学习进度。`
+            : `尚未记录组织培训数据，建议先添加培训课程或生成模拟数据。`;
+
+        const suggestion = [
+          '- 今日建议：复习最近一次组织培训的关键知识点，完成一个未完成单元。',
+          '- 学习规划：从最近的学习笔记中挑选一个主题，生成导图或小测验。',
+          '- 数据跟踪：开启形成性评价记录（参与度、作业正确率、路径完成度）。'
+        ].join('\n');
+
+        const content = [
+          `您问到：“${inputMessage}”。以下是基于您个人的培训与学习数据的学伴答复：`,
+          '',
+          '【个人学习与培训概览】',
+          `- 学习笔记：${studyCount} 条；近期主题：${studyRecent.join('、') || '暂无'}`,
+          `- 个人笔记：${personalCount} 条；近期主题：${personalRecent.join('、') || '暂无'}`,
+          `- 组织培训：${orgCount} 条；近期课程：${orgRecent.join('、') || '暂无'}`,
+          `- 进度概况：${progressLine}`,
+          '',
+          '【学伴建议】',
+          suggestion,
+          '',
+          '如果需要，我可以：',
+          '- 生成复习清单或导图',
+          '- 汇总本周学习报告',
+          '- 提醒下一个学习里程碑'
+        ].join('\n');
+
+        const aiResponse = {
+          id: Date.now() + 1,
+          type: 'assistant',
+          content,
+          timestamp: new Date().toISOString()
+        };
+        setMessages(prev => [...prev, aiResponse]);
+      } catch (e) {
+        const fallback = {
+          id: Date.now() + 1,
+          type: 'assistant',
+          content: `我理解您的问题：“${inputMessage}”。目前无法读取个人数据，请稍后重试或点击“生成模拟数据”。`,
+          timestamp: new Date().toISOString()
+        };
+        setMessages(prev => [...prev, fallback]);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 1000);
   };
 
   // 保存AI回复到笔记

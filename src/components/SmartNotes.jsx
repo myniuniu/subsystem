@@ -409,6 +409,20 @@ const SmartNotes = ({ onViewChange }) => {
             handleCreateNote={handleCreateNote}
             handleEditNote={handleEditNote}
             handleViewNote={handleViewNote}
+            handleUpdateTags={async (noteId, newTags) => {
+              try {
+                const note = notes.find(n => n.id === noteId);
+                if (note) {
+                  const updatedNote = { ...note, tags: newTags };
+                  await notesService.updateNote(noteId, updatedNote);
+                  message.success('标签已更新');
+                  loadData();
+                }
+              } catch (error) {
+                console.error('更新标签失败:', error);
+                message.error('更新标签失败');
+              }
+            }}
             handleShareTheme={handleShareTheme}
             handleToggleStar={handleToggleStar}
             handleDeleteNote={handleDeleteNote}
