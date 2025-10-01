@@ -220,6 +220,60 @@ class MockDataGenerator {
       }
     ];
 
+    // 研究主题（AI赋能教学）模拟笔记数据
+    this.researchNotes = [
+      {
+        id: generateId(),
+        title: 'AI如何提升课堂互动与参与度',
+        content: '# AI 提升课堂互动与参与度\n\n## 场景概述\n利用课堂实时问答、弹幕互动、学习助手等 AI 工具，增强学生参与度与课堂互动质量。\n\n## 关键做法\n- 实时生成问题与提示，引导学生在关键知识点进行思考\n- 通过语音识别与情感分析，捕捉学生反馈并自适应调整节奏\n- 互动数据可视化，帮助教师即时把握参与情况\n\n## 效果评估\n- 互动次数、发言覆盖率、知识点命中率\n- 学生满意度与课堂参与热度指数',
+        category: 'research',
+        tags: ['AI', '互动教学', '课堂参与', '学习分析'],
+        starred: true,
+        createdAt: new Date('2024-02-20'),
+        updatedAt: new Date('2024-02-20')
+      },
+      {
+        id: generateId(),
+        title: 'AI驱动的个性化学习路径与作业反馈',
+        content: '# AI 个性化学习路径与作业反馈\n\n## 应用思路\n基于学生画像与学习轨迹，动态生成学习路径与分层作业；结合大模型进行作业自动点评与二次讲解。\n\n## 实施要点\n- 使用知识图谱映射课程目标与能力项\n- 作业自动批注：给出知识点定位、错误类型与改进建议\n- 生成个性化“二讲”材料（讲义/短视频/图解）\n\n## 教学增益\n- 降低教师重复性批改负担\n- 提升学生学习效率与学习动机',
+        category: 'research',
+        tags: ['AI', '个性化学习', '作业反馈', '知识图谱'],
+        starred: true,
+        createdAt: new Date('2024-02-22'),
+        updatedAt: new Date('2024-02-23')
+      },
+      {
+        id: generateId(),
+        title: 'AI辅助的形成性评价与学习预警',
+        content: '# AI 形成性评价与学习预警\n\n## 方案框架\n汇聚课堂互动、作业表现、测验结果，构建形成性评价指标；对学习风险进行早期识别与预警。\n\n## 指标示例\n- 学习投入：访问时长、互动频次\n- 学习表现：作业正确率、知识点掌握度\n- 学习进展：学习路径完成度、拖延指数\n\n## 预警与干预\n- 自动生成干预建议与复习清单\n- 教师与学生端推送个性化提醒',
+        category: 'research',
+        tags: ['AI', '形成性评价', '学习预警', '学习分析'],
+        starred: false,
+        createdAt: new Date('2024-02-24'),
+        updatedAt: new Date('2024-02-25')
+      },
+      {
+        id: generateId(),
+        title: '生成式AI支持的备课与多模态素材制作',
+        content: '# 生成式 AI 支持备课与素材制作\n\n## 功能清单\n- 教学目标拆解与重难点提炼\n- 多模态课件生成：文本、图片、音频、短视频\n- 课堂案例与情境任务自动生成\n\n## 落地建议\n- 以主题模板为载体，规范输出结构\n- 配合能力模型，统一质量标准与复用机制',
+        category: 'research',
+        tags: ['生成式AI', '备课', '多模态', '教学资源'],
+        starred: false,
+        createdAt: new Date('2024-02-26'),
+        updatedAt: new Date('2024-02-26')
+      },
+      {
+        id: generateId(),
+        title: 'AI赋能课堂管理与教学节奏优化',
+        content: '# AI 赋能课堂管理与节奏优化\n\n## 管理维度\n- 实时出勤与行为识别（走神、疲劳）\n- 节奏建议：讲解/互动/练习时间配比优化\n- 课堂事件自动记录与摘要\n\n## 增效指标\n- 课堂秩序指数、任务完成率、教学时间利用率\n- 教师负担变化与教学满意度',
+        category: 'research',
+        tags: ['AI', '课堂管理', '节奏优化', '教学效率'],
+        starred: true,
+        createdAt: new Date('2024-02-27'),
+        updatedAt: new Date('2024-02-27')
+      }
+    ];
+
     // 组织培训笔记数据（包含视频进度信息）
     this.organizationalTrainingNotes = [
       {
@@ -693,6 +747,7 @@ class MockDataGenerator {
       ...this.workNotes,
       ...this.personalNotes,
       ...this.ideas,
+      ...this.researchNotes, // 添加研究主题笔记
       ...this.teachingResearchOfficeNotes, // 添加教研室笔记
       ...this.organizationalTrainingNotes, // 添加组织培训笔记
       ...this.trainingNeedsManagementNotes, // 添加培训需求管理笔记
@@ -922,6 +977,7 @@ class MockDataGenerator {
       workNotes: this.workNotes.length,
       personalNotes: this.personalNotes.length,
       ideas: this.ideas.length,
+      researchNotes: this.researchNotes.length,
       organizationalTrainingNotes: this.organizationalTrainingNotes.length,
       trainingNeedsManagementNotes: this.trainingNeedsManagementNotes.length,
       trainingProductDevelopmentNotes: this.trainingProductDevelopmentNotes.length,
@@ -930,6 +986,7 @@ class MockDataGenerator {
         this.workNotes.length +
         this.personalNotes.length +
         this.ideas.length +
+        this.researchNotes.length +
         this.teachingResearchOfficeNotes.length +
         this.organizationalTrainingNotes.length +
         this.trainingNeedsManagementNotes.length +
@@ -939,6 +996,7 @@ class MockDataGenerator {
         this.workNotes.length +
         this.personalNotes.length +
         this.ideas.length +
+        this.researchNotes.length +
         this.teachingResearchOfficeNotes.length +
         this.organizationalTrainingNotes.length +
         this.trainingNeedsManagementNotes.length +

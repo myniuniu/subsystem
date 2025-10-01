@@ -9,7 +9,8 @@ import {
   StarOutlined,
   NodeIndexOutlined,
   RadarChartOutlined,
-  ExperimentOutlined
+  ExperimentOutlined,
+  TeamOutlined
 } from '@ant-design/icons';
 import { TRAINING_STATUS, getTrainingStatusInfo } from '../utils/trainingStatusUtils';
 
@@ -33,7 +34,8 @@ const NotesSidebar = ({
     StarOutlined,
     NodeIndexOutlined,
     RadarChartOutlined,
-    ExperimentOutlined
+    ExperimentOutlined,
+    TeamOutlined
   };
 
   const getCategoryCount = (category) => {
@@ -86,9 +88,12 @@ const NotesSidebar = ({
           <IconComponent className="category-icon" />
         )}
         <span className="category-label">
-          {category.value === 'organizational_training' ? '🏢 组织培训' : category.label}
+          {category.value === 'organizational_training' ? '组织培训' : category.label}
         </span>
         <span className="category-count">{count}</span>
+        {category.value === 'organizational_training' && (
+          <span className="category-ribbon">组织</span>
+        )}
       </div>
     );
   };
@@ -114,7 +119,7 @@ const NotesSidebar = ({
                 {renderCategoryItem({
                   value: 'organizational_training',
                   label: '组织培训',
-                  icon: <BookOutlined />,
+                  icon: 'TeamOutlined',
                   type: 'system'
                 })}
               </div>,

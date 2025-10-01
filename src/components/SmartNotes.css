@@ -52,12 +52,11 @@
 }
 
 /* 分类样式 */
-/* 组织培训分类特殊样式 */
+/* 组织培训分类特殊样式（基础态更浅、选中态更明显） */
 .organizational-training-category {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-  color: white !important;
-  border: 2px solid #5a67d8 !important;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3) !important;
+  color: #1f2937 !important; /* 深灰文字 */
+  border: 1px solid #c7d2fe !important; /* 边框更浅 */
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15) !important; /* 阴影更轻 */
   font-weight: 600 !important;
   margin-bottom: 8px !important;
   position: relative;
@@ -258,24 +257,66 @@
 }
 
 .organizational-training-category .category-icon {
-  color: white !important;
+  color: #4f46e5 !important; /* 靛蓝图标 */
   font-size: 16px;
+  background: #eef2ff; /* 图标圆形底 */
+  border: 1px solid #c7d2fe;
+  border-radius: 50%;
+  padding: 6px;
+  margin-right: 8px;
 }
 
 .organizational-training-category .category-label {
-  color: white !important;
+  color: #1f2937 !important; /* 深灰文字 */
   font-weight: 600;
 }
 
 .organizational-training-category .category-count {
-  background: rgba(255, 255, 255, 0.2) !important;
-  color: white !important;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: #e0e7ff !important; /* 计数浅底 */
+  color: #3730a3 !important; /* 靛蓝文字 */
+  border: 1px solid #c7d2fe;
 }
 
 .organizational-training-category.active {
-  background: linear-gradient(135deg, #4c51bf 0%, #553c9a 100%) !important;
-  box-shadow: 0 6px 20px rgba(76, 81, 191, 0.5) !important;
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35) !important;
+  border-color: #3b82f6 !important;
+}
+
+.organizational-training-category.active .category-icon {
+  color: #1e40af !important; /* 选中更深 */
+  background: #e0e7ff;
+  border-color: #3b82f6;
+}
+
+.organizational-training-category.active .category-label {
+  color: #1e40af !important;
+}
+
+.organizational-training-category.active .category-count {
+  background: #3b82f6 !important;
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+}
+
+/* 组织培训分类右上角角标（Ribbon） */
+.organizational-training-category .category-ribbon {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+  transform: rotate(12deg);
+  z-index: 1;
+}
+
+.organizational-training-category.active .category-ribbon {
+  background: #1e40af;
+  box-shadow: 0 3px 8px rgba(30, 64, 175, 0.5);
 }
 
 /* 分类组样式 */

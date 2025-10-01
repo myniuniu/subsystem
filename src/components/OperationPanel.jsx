@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Button,
   Typography,
@@ -214,6 +214,36 @@ const OperationPanel = ({ state, handlers }) => {
     hasSourceData,
     sourceInfo
   } = useSourceDataCheck({ uploadedFiles, addedTexts, courseVideos, links });
+
+  // 新建笔记类型选择下拉菜单状态（靠近按钮显示）
+  const [noteTypeDropdownVisible, setNoteTypeDropdownVisible] = useState(false);
+
+  // 根据选择的类型创建笔记并进入编辑器
+  const createNoteByType = (noteSubType) => {
+    const isWhiteboard = noteSubType === 'whiteboard';
+    const title = isWhiteboard ? '新建白板' : '新建文档';
+
+    const newNote = {
+      id: Date.now(),
+      title,
+      source: '手动创建',
+      time: new Date().toLocaleString('zh-CN'),
+      type: 'note',
+      subType: noteSubType, // 记录笔记子类型：document 或 whiteboard
+      content: isWhiteboard ? '' : ''
+    };
+
+    const newRecords = { ...operationRecords };
+    if (!newRecords.note) {
+      newRecords.note = [];
+    }
+    newRecords.note.unshift(newNote);
+    setOperationRecords(newRecords);
+
+    // 不打开右侧编辑器，仅生成记录
+    setNoteTypeDropdownVisible(false);
+    message.success(`${title}已创建`);
+  };
   
   // 监听AI工具变化事件
   useEffect(() => {
@@ -1069,40 +1099,45 @@ const OperationPanel = ({ state, handlers }) => {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>📝 操作记录</Title>
-          <Button 
-            type="primary" 
-            size="small" 
-            icon={<PlusOutlined />} 
-            onClick={() => {
-              // 创建新的笔记记录
-              const newNote = {
-                id: Date.now(),
-                title: '新建笔记',
-                source: '手动创建',
-                time: new Date().toLocaleString('zh-CN'),
-                type: 'note',
-                content: ''
-              };
-              
-              // 添加到操作记录中
-              const newRecords = { ...operationRecords };
-              if (!newRecords.note) {
-                newRecords.note = [];
-              }
-              newRecords.note.unshift(newNote);
-              setOperationRecords(newRecords);
-              
-              // 设置右侧面板显示
-              setRightPanelEditingNote(newNote);
-              setRightPanelNoteContent(newNote.content);
-              setRightPanelView('NOTE_EDITOR');
-              
-              message.success('已创建新笔记');
+          <Dropdown
+            open={noteTypeDropdownVisible}
+            onOpenChange={(open) => setNoteTypeDropdownVisible(open)}
+            trigger={["click"]}
+            placement="bottomRight"
+            menu={{
+              items: [
+                {
+                  key: 'document',
+                  label: (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 16 }}>📄</span>
+                      <span>文档</span>
+                    </div>
+                  ),
+                  onClick: () => createNoteByType('document')
+                },
+                {
+                  key: 'whiteboard',
+                  label: (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 16 }}>🧭</span>
+                      <span>白板</span>
+                    </div>
+                  ),
+                  onClick: () => createNoteByType('whiteboard')
+                }
+              ]
             }}
-            style={{ borderRadius: '4px', fontSize: '12px', height: '24px' }}
           >
-            新建笔记
-          </Button>
+            <Button 
+              type="primary" 
+              size="small" 
+              icon={<PlusOutlined />} 
+              style={{ borderRadius: '4px', fontSize: '12px', height: '24px' }}
+            >
+              新建笔记
+            </Button>
+          </Dropdown>
         </div>
         
         <div style={{ flex: 1, overflowY: 'auto' }}>
@@ -1404,6 +1439,8 @@ const OperationPanel = ({ state, handlers }) => {
         actionType={currentActionType}
         onConfirm={handleThemeSelectConfirm}
       />
+
+      {/* 取消居中模态，改用贴靠按钮的下拉菜单（已在按钮处实现） */}
 
       <ClassroomEvaluationModal
         visible={classroomEvaluationVisible}
