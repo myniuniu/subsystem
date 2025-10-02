@@ -54,6 +54,7 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
   const [showMicroMajorForm, setShowMicroMajorForm] = useState(false);
   const [showLiveCourseForm, setShowLiveCourseForm] = useState(false);
   const [showCloudDiskForm, setShowCloudDiskForm] = useState(false);
+  const [showExerciseForm, setShowExerciseForm] = useState(false);
   // const [showTrainingNeedsForm, setShowTrainingNeedsForm] = useState(false);
 
   const handleFileUpload = (info) => {
@@ -278,6 +279,21 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
     setShowCloudDiskForm(false);
   };
 
+  // 考试/练习相关处理函数
+  const handleExerciseClick = () => {
+    setShowExerciseForm(true);
+  };
+
+  const handleExerciseSubmit = () => {
+    message.success('考试/练习选择成功！');
+    setShowExerciseForm(false);
+    onClose();
+  };
+
+  const handleExerciseCancel = () => {
+    setShowExerciseForm(false);
+  };
+
   // 培训需求相关处理函数（已删除功能）
   /*
   const handleTrainingNeedsClick = () => {
@@ -297,13 +313,13 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
 
   return (
     <Modal
-      title={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showTrainingProductForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm) ? null : "添加来源"}
+      title={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showTrainingProductForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm || showExerciseForm) ? null : "添加来源"}
       open={visible}
       onCancel={onClose}
       width="90%"
       style={{ maxWidth: '1200px', minWidth: '800px' }}
       className="material-add-modal"
-      footer={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showTrainingProductForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm) ? null : [
+      footer={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showTrainingProductForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm || showExerciseForm) ? null : [
         <Button key="cancel" onClick={onClose}>
           取消
         </Button>,
@@ -312,8 +328,8 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
         </Button>
       ]}
       centered
-      closable={!(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showTrainingProductForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm)}
-      bodyStyle={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showTrainingProductForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm) ? { padding: 0, overflowX: 'hidden', overflowY: 'auto' } : { overflowX: 'hidden', overflowY: 'auto' }}
+      closable={!(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showTrainingProductForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm || showExerciseForm)}
+      bodyStyle={(showWebsiteForm || showBilibiliForm || showDouyinForm || showTextForm || showKnowledgeGraphForm || showCapabilityModelForm || showMyCourseForm || showTrainingProductForm || showCourseVideoForm || showMicroMajorForm || showLiveCourseForm || showCloudDiskForm || showExerciseForm) ? { padding: 0, overflowX: 'hidden', overflowY: 'auto' } : { overflowX: 'hidden', overflowY: 'auto' }}
     >
       {showTextForm ? (
         <div>
@@ -1456,6 +1472,94 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
             </div>
           </div>
         </div>
+      ) : showExerciseForm ? (
+        <div>
+          {/* 标题栏 */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            padding: '16px 20px',
+            borderBottom: '1px solid #e5e7eb'
+          }}>
+            <Button 
+              type="text" 
+              icon={<ArrowLeftOutlined />} 
+              onClick={handleExerciseCancel}
+              style={{ 
+                marginRight: '12px',
+                padding: '4px',
+                minWidth: 'auto',
+                height: 'auto'
+              }}
+            />
+            <Title level={4} style={{ margin: 0, fontSize: '16px', fontWeight: 500, color: '#1f2937' }}>
+              考试/练习
+            </Title>
+          </div>
+          {/* 内容区域 */}
+          <div style={{ padding: '24px 20px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <Text style={{ fontSize: '14px', color: '#6b7280' }}>
+                选择考试或练习作为智能笔记的来源，系统将基于题目与解析进行分析。
+              </Text>
+            </div>
+            <div style={{ marginBottom: '24px' }}>
+              <Text strong style={{ fontSize: '14px', color: '#1f2937', display: 'block', marginBottom: '8px' }}>
+                可用的考试/练习
+              </Text>
+              <div style={{ 
+                border: '2px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '16px',
+                backgroundColor: '#f9fafb'
+              }}>
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 阶段测验（一）
+                </Text>
+                <br />
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 单元练习（知识点巩固）
+                </Text>
+                <br />
+                <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+                  • 模拟考试（综合评估）
+                </Text>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <Button
+                onClick={handleExerciseCancel}
+                style={{
+                  height: '36px',
+                  paddingLeft: '16px',
+                  paddingRight: '16px',
+                  borderRadius: '18px',
+                  border: '1px solid #d1d5db',
+                  backgroundColor: 'white',
+                  color: '#374151',
+                  fontSize: '14px'
+                }}
+              >
+                取消
+              </Button>
+              <Button
+                type="primary"
+                onClick={handleExerciseSubmit}
+                style={{
+                  height: '36px',
+                  paddingLeft: '16px',
+                  paddingRight: '16px',
+                  borderRadius: '18px',
+                  backgroundColor: '#faad14',
+                  borderColor: '#faad14',
+                  fontSize: '14px'
+                }}
+              >
+                选择考试/练习
+              </Button>
+            </div>
+          </div>
+        </div>
       ) : (
       <div style={{ padding: '0', overflowX: 'hidden', maxWidth: '100%' }}>
 
@@ -1735,44 +1839,6 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
               </Button>
             </Card>
 
-            {/* 直播课 */}
-            <Card 
-              hoverable
-              style={{ 
-                textAlign: 'center',
-                border: '1px solid #e8e8e8',
-                borderRadius: '8px',
-                cursor: 'pointer'
-              }}
-              bodyStyle={{ padding: '40px 24px' }}
-              onClick={handleLiveCourseClick}
-            >
-              <PlayCircleOutlined style={{ 
-                fontSize: '40px', 
-                color: '#fa541c',
-                marginBottom: '20px'
-              }} />
-              <div style={{ marginBottom: '12px' }}>
-                <Text strong style={{ fontSize: '16px' }}>直播课</Text>
-              </div>
-              <Button 
-                type="primary"
-                size="small"
-                onClick={handleLiveCourseClick}
-                style={{
-                  backgroundColor: '#fa541c',
-                  borderColor: '#fa541c',
-                  borderRadius: '16px',
-                  fontSize: '12px',
-                  height: '28px',
-                  paddingLeft: '12px',
-                  paddingRight: '12px'
-                }}
-              >
-                选择直播课
-              </Button>
-            </Card>
-
             {/* 云盘 */}
             <Card 
               hoverable
@@ -1808,6 +1874,82 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                 }}
               >
                 选择文件
+              </Button>
+            </Card>
+
+            {/* 考试/练习 */}
+            <Card 
+              hoverable
+              style={{ 
+                textAlign: 'center',
+                border: '1px solid #e8e8e8',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+              bodyStyle={{ padding: '40px 24px' }}
+              onClick={handleExerciseClick}
+            >
+              <BookOutlined style={{ 
+                fontSize: '40px', 
+                color: '#faad14',
+                marginBottom: '20px'
+              }} />
+              <div style={{ marginBottom: '12px' }}>
+                <Text strong style={{ fontSize: '16px' }}>考试/练习</Text>
+              </div>
+              <Button 
+                type="primary"
+                size="small"
+                onClick={handleExerciseClick}
+                style={{
+                  backgroundColor: '#faad14',
+                  borderColor: '#faad14',
+                  borderRadius: '16px',
+                  fontSize: '12px',
+                  height: '28px',
+                  paddingLeft: '12px',
+                  paddingRight: '12px'
+                }}
+              >
+                选择考试/练习
+              </Button>
+            </Card>
+
+            {/* 直播课 */}
+            <Card 
+              hoverable
+              style={{ 
+                textAlign: 'center',
+                border: '1px solid #e8e8e8',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+              bodyStyle={{ padding: '40px 24px' }}
+              onClick={handleLiveCourseClick}
+            >
+              <PlayCircleOutlined style={{ 
+                fontSize: '40px', 
+                color: '#fa541c',
+                marginBottom: '20px'
+              }} />
+              <div style={{ marginBottom: '12px' }}>
+                <Text strong style={{ fontSize: '16px' }}>直播课</Text>
+              </div>
+              <Button 
+                type="primary"
+                size="small"
+                onClick={handleLiveCourseClick}
+                style={{
+                  backgroundColor: '#fa541c',
+                  borderColor: '#fa541c',
+                  borderRadius: '16px',
+                  fontSize: '12px',
+                  height: '28px',
+                  paddingLeft: '12px',
+                  paddingRight: '12px'
+                }}
+              >
+                选择直播课
               </Button>
             </Card>
 
