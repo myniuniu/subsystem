@@ -192,6 +192,8 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
   const computeGroupSummary = (videos) => {
     let totalSeconds = 0;
     let watchedSeconds = 0;
+    let scoreSum = 0;
+    let scoreCount = 0;
     videos.forEach(v => {
       const info = v.videoInfo || {};
       if (info.type === 'multi_video') {
@@ -205,11 +207,19 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
         totalSeconds += d;
         watchedSeconds += d * p;
       }
+      const s = v.score != null ? Number(v.score) : (info && info.score != null ? Number(info.score) : null);
+      if (!isNaN(s)) {
+        scoreSum += s;
+        scoreCount += 1;
+      }
     });
     const overallProgress = totalSeconds > 0 ? Math.round((watchedSeconds / totalSeconds) * 100) : 0;
+    const avgScore = scoreCount > 0 ? Math.round(scoreSum / scoreCount) : null;
     return {
       totalMinutes: Math.round(totalSeconds / 60),
-      overallProgress
+      totalHours: Math.round((totalSeconds / 3600) * 10) / 10,
+      overallProgress,
+      avgScore
     };
   };
 
@@ -738,7 +748,10 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                                 <Text type="secondary" style={{ fontSize: 11 }}>
-                                  {(group.instructor || '未知讲师')} • {group.videos.length}个视频 • 总计{summary.totalMinutes}分钟
+                                  {(group.instructor || '未知讲师')} • {group.videos.length}个视频 • 总学时{summary.totalHours}小时
+                                </Text>
+                                <Text type="secondary" style={{ fontSize: 11 }}>
+                                  • 成绩 {summary.avgScore != null ? `${summary.avgScore}分` : '未评分'}
                                 </Text>
                                 {(() => {
                                   const struct = courseStructureIndex.get(group.courseId);
@@ -781,7 +794,9 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                             title: v.title,
                             videoId: v.id,
                             instructor: v.instructor,
-                            progress: v.progress || 0
+                            progress: v.progress || 0,
+                            duration: v.duration,
+                            score: v.score
                           }))
                         }))
                       }));
@@ -830,7 +845,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                 <span className="mm-name">{name}</span>
                               </div>
                             );
-                            // 右侧：仅视频显示进度与讲师
+                            // 右侧：仅视频显示进度与讲师（课程级汇总已在分组头部展示）
                             let right = null;
                             if (record.type === 'video') {
                               const percent = Math.round(record.progress || 0);
