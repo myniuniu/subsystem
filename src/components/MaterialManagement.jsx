@@ -11,6 +11,7 @@ import {
   Divider,
   Tag,
   Tooltip,
+  Radio,
   Select,
   Modal,
   Checkbox,
@@ -24,24 +25,25 @@ import ExploreModal from './ExploreModal';
 import CapabilityMindMap from './CapabilityMindMap.jsx';
 import KnowledgeGraphMindMap from './KnowledgeGraphMindMap.jsx';
 // import courseSelectionService from '../services/courseSelectionService';
-import {
-  ArrowLeftOutlined,
-  UploadOutlined,
-  FileTextOutlined,
-  LinkOutlined,
-  PlusOutlined,
-  DeleteOutlined,
-  EditOutlined,
-  MoreOutlined,
-  EyeOutlined,
-  PlayCircleOutlined,
-  ClockCircleOutlined,
-  RobotOutlined,
-  NodeIndexOutlined,
-  DownOutlined,
-  RightOutlined,
-  FolderOutlined
-} from '@ant-design/icons';
+  import {
+    ArrowLeftOutlined,
+    UploadOutlined,
+    FileTextOutlined,
+    LinkOutlined,
+    PlusOutlined,
+    DeleteOutlined,
+    EditOutlined,
+    MoreOutlined,
+    EyeOutlined,
+    PlayCircleOutlined,
+    ClockCircleOutlined,
+    RobotOutlined,
+    NodeIndexOutlined,
+    DownOutlined,
+    RightOutlined,
+    FolderOutlined,
+    AppstoreOutlined
+  } from '@ant-design/icons';
 import { Grid, Map as MapIcon } from 'lucide-react';
 import { VIEW_MODES, DEFAULT_COURSE_VIDEOS } from '../constants/noteEditConstants';
 import { getMockCourseContentHierarchy, flattenCourseContentToVideos } from '../utils/mockCourseData';
@@ -189,6 +191,8 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
   const [collapsedGroups, setCollapsedGroups] = useState(new Set());
   const [hierarchyOpenCourses, setHierarchyOpenCourses] = useState(new Set());
   const [highlightVideoId, setHighlightVideoId] = useState(null);
+  // 课程视频视图模式：平铺视图 或 层级视图
+  const [videoViewMode, setVideoViewMode] = useState('flat');
   const toggleGroup = (courseId) => {
     setCollapsedGroups(prev => {
       const next = new Set(prev);
@@ -724,9 +728,29 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
               {/* 课程视频列表（按课程分组，支持一课多视频） */}
               {displayCourseVideos.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
-                  <Text strong style={{ fontSize: '12px', color: '#666', marginBottom: 8, display: 'block' }}>
-                    📹 课程视频 ({displayCourseVideos.length})
-                  </Text>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <Text strong style={{ fontSize: '12px', color: '#666' }}>
+                      📹 课程视频 ({displayCourseVideos.length})
+                    </Text>
+                    <Button.Group>
+                      <Tooltip title="平铺视图">
+                        <Button 
+                          size="small"
+                          type={videoViewMode === 'flat' ? 'primary' : 'default'}
+                          icon={<AppstoreOutlined />}
+                          onClick={() => setVideoViewMode('flat')}
+                        />
+                      </Tooltip>
+                      <Tooltip title="层级视图">
+                        <Button 
+                          size="small"
+                          type={videoViewMode === 'hierarchy' ? 'primary' : 'default'}
+                          icon={<NodeIndexOutlined />}
+                          onClick={() => setVideoViewMode('hierarchy')}
+                        />
+                      </Tooltip>
+                    </Button.Group>
+                  </div>
                   {Object.values(displayCourseVideos.reduce((groups, v) => {
                     const cid = v.courseId || v.id;
                     if (!groups[cid]) {
@@ -758,9 +782,11 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                 </Text>
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <Tooltip title={hierarchyOpenCourses.has(group.courseId) ? '隐藏层级' : '显示层级'}>
-                                  <NodeIndexOutlined style={{ fontSize: 14, color: '#1890ff', cursor: 'pointer' }} onClick={() => toggleHierarchy(group.courseId)} />
-                                </Tooltip>
+                                {videoViewMode === 'flat' && (
+                                  <Tooltip title={hierarchyOpenCourses.has(group.courseId) ? '隐藏层级' : '显示层级'}>
+                                    <NodeIndexOutlined style={{ fontSize: 14, color: '#1890ff', cursor: 'pointer' }} onClick={() => toggleHierarchy(group.courseId)} />
+                                  </Tooltip>
+                                )}
                                 <Tooltip title="选择本课程">
                                   <Checkbox
                                     checked={group.videos.every(v => selectedMaterials.includes(`video-${v.id}`))}
@@ -803,7 +829,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                           </div>
                         );
                       })()}
-                    {hierarchyOpenCourses.has(group.courseId) && (() => {
+                    {(videoViewMode === 'hierarchy' || hierarchyOpenCourses.has(group.courseId)) && (() => {
                       const course = courseHierarchyMap.get(group.courseId);
                       if (!course) return null;
 
@@ -847,7 +873,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                               : <NodeIndexOutlined style={iconStyle} />;
 
                             const name = record.type === 'video'
-                              ? <span className="mm-video-name">{text}</span>
+                              ? <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{text}</Text>
                               : <Text strong style={{ fontSize: 12 }}>{text}</Text>;
 
                             const isExpandable = Array.isArray(record.children) && record.children.length > 0;
@@ -866,27 +892,40 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                             ) : null;
 
                             const depth = record.type === 'chapter' ? 0 : (record.type === 'section' ? 1 : 2);
-                            const left = (
-                              <div className="mm-title" style={{ marginLeft: `${depth * 16}px` }}>
-                                {switcher}
-                                <span className="mm-icon">{icon}</span>
-                                <span className="mm-name">{name}</span>
-                              </div>
-                            );
-                            // 右侧：仅视频显示进度与讲师（课程级汇总已在分组头部展示）
-                            let right = null;
+                            let left = null;
                             if (record.type === 'video') {
                               const percent = Math.round(record.progress || 0);
-                              right = (
-                                <div className="mm-meta">
-                                  <div className="mm-inline-progress" aria-label="学习进度">
-                                    <div className="mm-inline-progress__bar" style={{ width: `${percent}%` }} />
+                              const durationMin = Math.floor((record.duration || 0) / 60);
+                              const subtitle = `讲师：${record.instructor || '未知讲师'} • 进度 ${percent}%${Number.isFinite(durationMin) && durationMin > 0 ? ` • 时长 ${durationMin}分钟` : ''}`;
+                              left = (
+                                <div className="mm-title" style={{ marginLeft: `${depth * 16}px`, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                                  {switcher}
+                                  <span className="mm-icon">{icon}</span>
+                                  <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+                                    {name}
+                                    <Text type="secondary" style={{ fontSize: 10 }}>
+                                      {subtitle}
+                                    </Text>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                                      <div className="mm-inline-progress" aria-label="学习进度" style={{ flex: '0 0 120px' }}>
+                                        <div className="mm-inline-progress__bar" style={{ width: `${percent}%` }} />
+                                      </div>
+                                      <Text type="secondary" style={{ fontSize: 10 }}>{percent}%</Text>
+                                    </div>
                                   </div>
-                                  <span className="mm-inline-progress__text">{percent}%</span>
-                                  <span className="mm-instructor">讲师：{record.instructor || '未知讲师'}</span>
+                                </div>
+                              );
+                            } else {
+                              left = (
+                                <div className="mm-title" style={{ marginLeft: `${depth * 16}px` }}>
+                                  {switcher}
+                                  <span className="mm-icon">{icon}</span>
+                                  <span className="mm-name">{name}</span>
                                 </div>
                               );
                             }
+                            // 右侧：改为多行展示后，视频不再显示右侧元信息
+                            let right = null;
                             return (
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                                 {left}
@@ -923,7 +962,15 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                             onRow={(record) => ({
                               onClick: () => {
                                 if (record.type === 'video' && record.videoId) {
-                                  scrollToVideoCard(record.videoId);
+                                  const videoObj = (group && Array.isArray(group.videos))
+                                    ? group.videos.find(v => v.id === record.videoId)
+                                    : null;
+                                  if (videoObj) {
+                                    onPlayVideo(videoObj);
+                                  } else {
+                                    // 回退：若无法找到视频对象，则滚动到对应卡片高亮
+                                    scrollToVideoCard(record.videoId);
+                                  }
                                 }
                               }
                             })}
@@ -931,7 +978,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                         </div>
                       );
                     })()}
-                     {!collapsedGroups.has(group.courseId) && group.videos.map(video => (
+                     {!collapsedGroups.has(group.courseId) && videoViewMode === 'flat' && group.videos.map(video => (
                         <Tooltip title={getVideoHierarchyPath(group.courseId, video)} placement="top">
                         <Card 
                           key={`video-${video.id}`}
