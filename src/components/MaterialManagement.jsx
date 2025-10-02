@@ -157,6 +157,34 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     }
     return map;
   }, []);
+
+  // 计算视频的层次路径（课程/章/节），用于鼠标悬停提示
+  const getVideoHierarchyPath = (courseId, video) => {
+    const course = courseHierarchyMap.get(courseId);
+    const courseTitle = video?.courseTitle || course?.title || '未知课程';
+
+    // 如果能在课程层级中找到该视频，返回 课程 / 章 / 节
+    if (course && Array.isArray(course.chapters)) {
+      for (const ch of course.chapters) {
+        if (!Array.isArray(ch.sections)) continue;
+        for (const sec of ch.sections) {
+          if (!Array.isArray(sec.videos)) continue;
+          const found = sec.videos.find(v => v.id === video?.id);
+          if (found) {
+            return `${courseTitle} / ${ch.title} / ${sec.title}`;
+          }
+        }
+      }
+    }
+
+    // 回退：若存在 addTime（常包含“章 · 节”），拼接显示
+    if (video?.addTime) {
+      return `${courseTitle} / ${video.addTime}`;
+    }
+
+    // 最后回退：仅显示课程名
+    return courseTitle;
+  };
   // 分组折叠状态 & 汇总计算（需在组件函数体内）
   const [collapsedGroups, setCollapsedGroups] = useState(new Set());
   const [hierarchyOpenCourses, setHierarchyOpenCourses] = useState(new Set());
@@ -904,6 +932,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                       );
                     })()}
                      {!collapsedGroups.has(group.courseId) && group.videos.map(video => (
+                        <Tooltip title={getVideoHierarchyPath(group.courseId, video)} placement="top">
                         <Card 
                           key={`video-${video.id}`}
                           id={`video-card-${video.id}`}
@@ -1058,9 +1087,9 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                     </div>
                                   );
                                 })()}
-                              </div>
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                               <Checkbox
                                 checked={selectedMaterials.includes(`video-${video.id}`)}
                                 onChange={(e) => {
@@ -1072,6 +1101,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                             </div>
                           </div>
                         </Card>
+                        </Tooltip>
                       ))}
                     </div>
                   ))}

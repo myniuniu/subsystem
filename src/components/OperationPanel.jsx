@@ -106,7 +106,7 @@ if (typeof document !== 'undefined') {
   }
 }
 
-const OperationPanel = ({ state, handlers }) => {
+const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
   // 先解构state中的变量
   const {
     operationRecords,
@@ -1098,6 +1098,7 @@ const OperationPanel = ({ state, handlers }) => {
             onAddAITool={handleAddAITool}
             getAvailableAITools={getAvailableAITools}
             loadingCards={loadingCards}
+            hideEmptySlots={hideEmptySlots}
           />
         </div>
       </DndProvider>

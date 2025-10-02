@@ -1253,6 +1253,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               <OperationPanel 
                 state={state}
                 handlers={operationHandlers}
+                hideEmptySlots
               />
         </div>
 
