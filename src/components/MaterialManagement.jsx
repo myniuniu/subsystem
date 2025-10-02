@@ -830,11 +830,24 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                 <span className="mm-name">{name}</span>
                               </div>
                             );
+                            // 右侧：仅视频显示进度与讲师
+                            let right = null;
+                            if (record.type === 'video') {
+                              const percent = Math.round(record.progress || 0);
+                              right = (
+                                <div className="mm-meta">
+                                  <div className="mm-inline-progress" aria-label="学习进度">
+                                    <div className="mm-inline-progress__bar" style={{ width: `${percent}%` }} />
+                                  </div>
+                                  <span className="mm-inline-progress__text">{percent}%</span>
+                                  <span className="mm-instructor">讲师：{record.instructor || '未知讲师'}</span>
+                                </div>
+                              );
+                            }
                             return (
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                                 {left}
-                                {/* 占位以撑满两侧灰色背景空间 */}
-                                <div style={{ flex: 1 }} />
+                                {right}
                               </div>
                             );
                           }

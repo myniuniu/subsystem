@@ -145,6 +145,35 @@
   justify-content: center;
 }
 
+/* 视频行右侧元信息（进度+讲师） */
+.mm-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #8c8c8c;
+  font-size: 11px;
+}
+.mm-inline-progress {
+  width: 80px;
+  height: 4px;
+  background: rgba(0,0,0,0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.mm-inline-progress__bar {
+  height: 100%;
+  background: var(--theme-primary, #1890ff);
+  transition: width 0.25s ease;
+}
+.mm-inline-progress__text {
+  font-size: 10px;
+  font-weight: 600;
+  color: #1890ff;
+}
+.mm-instructor {
+  color: #595959;
+}
+
 /* 视频标题更精致的字体与交互样式 */
 .mm-video-name {
   color: #1677ff;
