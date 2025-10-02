@@ -16,7 +16,8 @@ import {
   Checkbox,
   Popconfirm,
   Dropdown,
-  Progress
+  Progress,
+  Table
 } from 'antd';
 import MaterialAddPage from './MaterialAddPage';
 import ExploreModal from './ExploreModal';
@@ -38,7 +39,8 @@ import {
   RobotOutlined,
   NodeIndexOutlined,
   DownOutlined,
-  RightOutlined
+  RightOutlined,
+  FolderOutlined
 } from '@ant-design/icons';
 import { Grid, Map as MapIcon } from 'lucide-react';
 import { VIEW_MODES, DEFAULT_COURSE_VIDEOS } from '../constants/noteEditConstants';
@@ -763,35 +765,113 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                     {hierarchyOpenCourses.has(group.courseId) && (() => {
                       const course = courseHierarchyMap.get(group.courseId);
                       if (!course) return null;
-                      return (
-                        <div style={{ padding: 8, background: '#f9fafb', border: '1px solid #eee', borderRadius: 6, margin: '6px 0' }}>
-                          {(course.chapters || []).map(ch => (
-                            <div key={`ch-${ch.id}`} style={{ marginBottom: 6 }}>
-                              <Text strong style={{ fontSize: 11 }}>{ch.title}</Text>
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
-                                {(ch.sections || []).map(sec => (
-                                  <div key={`sec-${sec.id}`} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 6, padding: '6px 8px' }}>
-                                    <div style={{ fontSize: 10, color: '#666' }}>• {sec.title}（共{(sec.videos || []).length}个视频）</div>
-                                    <div style={{ marginTop: 4 }}>
-                                      {(sec.videos || []).map(v => (
-                                        <div
-                                          key={`secv-${v.id}`}
-                                          onClick={() => scrollToVideoCard(v.id)}
-                                          style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', padding: '4px 6px', borderRadius: 4, background: '#f7faff' }}
-                                        >
-                                          <span style={{ fontSize: 10, color: '#333' }}>{v.title}</span>
-                                          <div style={{ flex: 1 }}>
-                                            <Progress percent={v.progress || 0} size="small" showInfo={false} />
-                                          </div>
-                                          <Text type="secondary" style={{ fontSize: 10 }}>{v.instructor}</Text>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                ))}
+
+                      const treeData = (course.chapters || []).map(ch => ({
+                        key: `ch-${ch.id}`,
+                        type: 'chapter',
+                        title: ch.title,
+                        children: (ch.sections || []).map(sec => ({
+                          key: `sec-${sec.id}`,
+                          type: 'section',
+                          title: sec.title,
+                          videoCount: (sec.videos || []).length,
+                          children: (sec.videos || []).map(v => ({
+                            key: `v-${v.id}`,
+                            type: 'video',
+                            title: v.title,
+                            videoId: v.id,
+                            instructor: v.instructor,
+                            progress: v.progress || 0
+                          }))
+                        }))
+                      }));
+
+                      // 用于把展开/收缩控制内联到名称列
+                      const expanderState = new Map();
+                      const expanderFn = new Map();
+
+                      const columns = [
+                        {
+                          title: '名称',
+                          dataIndex: 'title',
+                          key: 'title',
+                          render: (text, record) => {
+                            const iconStyle = { fontSize: 14, color: '#8c8c8c' };
+                            const icon = record.type === 'video'
+                              ? <PlayCircleOutlined style={{ ...iconStyle, color: '#1890ff' }} />
+                              : record.type === 'chapter'
+                              ? <FolderOutlined style={iconStyle} />
+                              : <NodeIndexOutlined style={iconStyle} />;
+
+                            const name = record.type === 'video'
+                              ? <span className="mm-video-name">{text}</span>
+                              : <Text strong style={{ fontSize: 12 }}>{text}</Text>;
+
+                            const isExpandable = Array.isArray(record.children) && record.children.length > 0;
+                            const isExpanded = expanderState.get(record.key);
+                            const switcher = isExpandable ? (
+                              <span
+                                className="mm-switcher"
+                                onClick={(e) => {
+                                  const fn = expanderFn.get(record.key);
+                                  if (fn) fn(record, e);
+                                  e.stopPropagation();
+                                }}
+                              >
+                                {isExpanded ? <DownOutlined /> : <RightOutlined />}
+                              </span>
+                            ) : null;
+
+                            const depth = record.type === 'chapter' ? 0 : (record.type === 'section' ? 1 : 2);
+                            const left = (
+                              <div className="mm-title" style={{ marginLeft: `${depth * 16}px` }}>
+                                {switcher}
+                                <span className="mm-icon">{icon}</span>
+                                <span className="mm-name">{name}</span>
                               </div>
-                            </div>
-                          ))}
+                            );
+                            return (
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                                {left}
+                                {/* 占位以撑满两侧灰色背景空间 */}
+                                <div style={{ flex: 1 }} />
+                              </div>
+                            );
+                          }
+                        }
+                      ];
+
+                      return (
+                        <div className="mm-shell" style={{ padding: 0, margin: '6px 0' }}>
+                          <Table
+                            columns={columns}
+                            dataSource={treeData}
+                            size="small"
+                            pagination={false}
+                            rowKey="key"
+                            showHeader={false}
+                            className="mm-table"
+                            style={{ width: '100%' }}
+                            tableLayout="fixed"
+                            defaultExpandAllRows
+                            rowClassName={(record) => `mm-row mm-${record.type} mm-level-${record.type === 'chapter' ? 0 : (record.type === 'section' ? 1 : 2)}`}
+                            expandable={{
+                              indentSize: 12,
+                              expandRowByClick: true,
+                              expandIcon: ({ expanded, onExpand, record }) => {
+                                expanderState.set(record.key, expanded);
+                                expanderFn.set(record.key, onExpand);
+                                return null; // 隐藏默认展开图标列
+                              }
+                            }}
+                            onRow={(record) => ({
+                              onClick: () => {
+                                if (record.type === 'video' && record.videoId) {
+                                  scrollToVideoCard(record.videoId);
+                                }
+                              }
+                            })}
+                          />
                         </div>
                       );
                     })()}

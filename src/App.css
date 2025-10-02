@@ -59,3 +59,134 @@
     transform: scale(1);
   }
 }
+
+/* 一体化的层级容器与表格树样式 */
+.mm-shell {
+  position: relative;
+  /* 使内部表格与父卡片左右贴边，利用灰色背景空间 */
+  margin-left: -8px;
+  margin-right: -8px;
+}
+
+.mm-shell::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #f0f7ff; /* 左侧淡色导引，形成必要区分，更柔和 */
+  border-radius: 0 2px 2px 0;
+}
+
+.mm-table .ant-table,
+.mm-table .ant-table-container,
+.mm-table .ant-table-content {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.mm-table .ant-table-tbody > tr.mm-row > td {
+  padding: 6px 10px;
+  border-top: none;
+}
+
+.mm-table .ant-table-tbody > tr.mm-row:first-child > td {
+  border-top: none;
+}
+
+.mm-table .ant-table-tbody > tr.mm-row:hover > td {
+  background: #fafafa;
+}
+
+/* 行层级的必要区分：章节/小节/视频 */
+.mm-table .ant-table-tbody > tr.mm-chapter > td {
+  background: rgba(24, 144, 255, 0.06);
+  font-weight: 600;
+}
+
+.mm-table .ant-table-tbody > tr.mm-section > td {
+  background: rgba(24, 144, 255, 0.03);
+  font-weight: 500;
+}
+
+.mm-table .ant-table-tbody > tr.mm-video > td {
+  background: transparent;
+}
+
+/* 更明显的层级左侧强调线（章节/小节） */
+.mm-table .ant-table-tbody > tr.mm-level-0 > td {
+  border-left: 2px solid #91d5ff;
+}
+.mm-table .ant-table-tbody > tr.mm-level-1 > td {
+  border-left: 2px solid #cde8ff;
+}
+.mm-table .ant-table-tbody > tr.mm-level-2 > td {
+  border-left: 2px solid transparent;
+}
+
+/* 图标与文字同排，避免断行并保持精致感 */
+.mm-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mm-title .mm-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mm-title .mm-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 视频标题更精致的字体与交互样式 */
+.mm-video-name {
+  color: #1677ff;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.4;
+  letter-spacing: 0.1px;
+  cursor: pointer;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.mm-video-name:hover {
+  color: #0958d9;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.mm-video-name:active {
+  color: #0747a6;
+}
+
+/* 内联展开列时，彻底隐藏表格自带的展开列占位 */
+.mm-table .ant-table-row-expand-icon-cell {
+  width: 0 !important;
+  padding: 0 !important;
+}
+
+.mm-table col.ant-table-expand-icon-col {
+  width: 0 !important;
+}
+
+.mm-table .ant-table-row-expand-icon {
+  display: none !important;
+}
+
+/* 自定义展开/收缩开关的样式，使其与名称同排 */
+.mm-switcher {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #8c8c8c;
+}
