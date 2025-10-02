@@ -268,6 +268,23 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     }
   }, [courseVideos]);
 
+  // 将上传文件按是否为试卷分组
+  const examFiles = useMemo(() => {
+    return Array.isArray(uploadedFiles) ? uploadedFiles.filter(f => f.isPaper) : [];
+  }, [uploadedFiles]);
+
+  const nonExamFiles = useMemo(() => {
+    return Array.isArray(uploadedFiles) ? uploadedFiles.filter(f => !f.isPaper) : [];
+  }, [uploadedFiles]);
+
+  // 展示用：去掉文件名扩展名
+  const getFileDisplayName = (name) => {
+    if (typeof name !== 'string') return name;
+    const idx = name.lastIndexOf('.');
+    if (idx > 0) return name.slice(0, idx);
+    return name;
+  };
+
   // 添加渲染调试日志
   console.log('MaterialManagement: 组件渲染，showPlannedLabels =', showPlannedLabels);
 
@@ -481,7 +498,8 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
   const handleSelectAll = (checked) => {
     if (checked) {
       const allMaterialIds = [
-        ...uploadedFiles.map(file => `file-${file.id}`),
+        ...examFiles.map(file => `file-${file.id}`),
+        ...nonExamFiles.map(file => `file-${file.id}`),
         ...addedTexts.map(text => `text-${text.id}`),
         ...courseVideos.map(video => `video-${video.id}`),
         ...links.map(link => `link-${link.id}`),
@@ -1156,12 +1174,51 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
               )}
 
               {/* 文件列表 */}
-              {uploadedFiles.length > 0 && (
+              {/* 考试/试卷列表（从上传文件中筛选 isPaper:true） */}
+              {examFiles.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
                   <Text strong style={{ fontSize: '12px', color: '#666', marginBottom: 8, display: 'block' }}>
-                    📄 文件 ({uploadedFiles.length})
+                    🎓 考试/试卷 ({examFiles.length})
                   </Text>
-                  {uploadedFiles.map(file => (
+                  {examFiles.map(file => (
+                    <Card 
+                      key={`file-${file.id}`}
+                      size="small" 
+                      style={{ 
+                        marginBottom: 8,
+                        border: '1px solid #e8e8e8'
+                      }}
+                      bodyStyle={{ padding: '8px 12px' }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                          <FileTextOutlined style={{ color: '#722ed1', marginRight: 8, fontSize: 16 }} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
+                              {getFileDisplayName(file.name)} <Tag color="purple" style={{ marginLeft: 6 }}>试卷</Tag>
+                            </Text>
+                            <Text type="secondary" style={{ fontSize: 10 }}>
+                              {file.uploadTime}
+                            </Text>
+                          </div>
+                        </div>
+                        <Checkbox
+                          checked={selectedMaterials.includes(`file-${file.id}`)}
+                          onChange={(e) => handleSelectMaterial(`file-${file.id}`, e.target.checked)}
+                        />
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {/* 文件列表（不包含试卷） */}
+              {nonExamFiles.length > 0 && (
+                <div style={{ marginBottom: 16 }}>
+                  <Text strong style={{ fontSize: '12px', color: '#666', marginBottom: 8, display: 'block' }}>
+                    📄 文件 ({nonExamFiles.length})
+                  </Text>
+                  {nonExamFiles.map(file => (
                     <Card 
                       key={`file-${file.id}`}
                       size="small" 
@@ -1176,7 +1233,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                           <FileTextOutlined style={{ color: '#52c41a', marginRight: 8, fontSize: 16 }} />
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
-                              {file.name}
+                              {getFileDisplayName(file.name)}
                             </Text>
                             <Text type="secondary" style={{ fontSize: 10 }}>
                               {file.uploadTime}
@@ -1270,7 +1327,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
               )}
 
               {/* 空状态显示 */}
-              {courseVideos.length === 0 && uploadedFiles.length === 0 && links.length === 0 && addedTexts.length === 0 && (
+              {courseVideos.length === 0 && examFiles.length === 0 && nonExamFiles.length === 0 && links.length === 0 && addedTexts.length === 0 && (
                 <div style={{ textAlign: 'center', padding: '40px 20px', color: '#999' }}>
                   <FileTextOutlined style={{ fontSize: 32, marginBottom: 16, color: '#ccc' }} />
                   <div style={{ fontSize: 14 }}>暂无资料</div>
