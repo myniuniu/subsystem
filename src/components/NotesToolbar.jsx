@@ -21,7 +21,7 @@ const NotesToolbar = ({
     <div className="content-header">
       <div className="header-left">
         <h2 className="notes-count">
-          {filteredNotes.length} 个笔记
+          {filteredNotes.length} 个主题
         </h2>
       </div>
       
