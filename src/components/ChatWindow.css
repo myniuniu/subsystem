@@ -183,6 +183,9 @@
   word-wrap: break-word;
   animation: messageSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .message-bubble.sent {
@@ -226,7 +229,25 @@
   transition: all 0.2s ease;
   min-height: 36px;
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.message-bubble .message-sender {
+  display: inline-flex;
   align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #58616b;
+  padding: 0 2px;
+}
+
+.message-bubble.sent .message-sender {
+  align-self: flex-end;
+}
+
+.message-bubble.received .message-sender {
+  align-self: flex-start;
 }
 
 .message-bubble.sent .message-content {
@@ -234,6 +255,7 @@
   color: white;
   border-bottom-right-radius: 4px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 123, 255, 0.3);
 }
 
 
@@ -543,4 +565,21 @@
 
 .template-content::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, #2980b9, #8e44ad);
+}
+.message-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #3498db, #9b59b6);
+  color: #fff;
+  font-size: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+
+.message-author {
+  font-weight: 600;
+  color: #2c3e50;
 }

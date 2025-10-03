@@ -42,6 +42,8 @@ import ThemeTemplateCenter from './components/ThemeTemplateCenter'
 import PWAInstallButton from './components/PWAInstallButton'
 
 import './App.css'
+import notesService from './services/notesService'
+import { generateTrainingProductDevelopmentData } from './data/trainingProductDevelopmentData'
 
 const { Sider, Content } = Layout
 
@@ -99,7 +101,30 @@ function App() {
   }, [])
   
   // 消息中心联系人数据
-  const [contacts] = useState([
+  const getTrainingProductDevelopmentTopicContacts = () => {
+    const allNotes = notesService.getAllNotes() || [];
+    const tpNotes = allNotes.filter(n => n.category === 'training_product_development');
+    const sourceNotes = tpNotes.length > 0 ? tpNotes : (generateTrainingProductDevelopmentData() || []);
+    const extractBaseTitle = (title) => {
+      const noBracket = title.replace(/^【[^】]*】/, '');
+      const base = noBracket.split(' - ')[0].trim();
+      return base || noBracket.trim();
+    };
+    const uniqueTitles = Array.from(new Set(sourceNotes.map(n => extractBaseTitle(n.title))));
+    const now = new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    return uniqueTitles.slice(0, 8).map((t, idx) => ({
+      id: `tpd_topic_${idx + 1}`,
+      name: t,
+      type: 'topic',
+      avatar: '🚀',
+      lastMessage: '进入主题讨论',
+      lastTime: now,
+      unreadCount: 0,
+      online: true
+    }));
+  };
+
+  const defaultContacts = [
     {
       id: 'system',
       name: '系统消息',
@@ -150,7 +175,9 @@ function App() {
       unreadCount: 5,
       online: true
     }
-  ])
+  ];
+
+  const [contacts] = useState([...defaultContacts, ...getTrainingProductDevelopmentTopicContacts()])
   
   // 下载中心数据
   const [downloads] = useState([

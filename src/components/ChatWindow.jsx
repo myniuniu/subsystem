@@ -10,7 +10,8 @@ const ChatWindow = ({
   newMessage,
   onMessageChange,
   onSendMessage,
-  onKeyPress
+  onKeyPress,
+  onSimulateMe
 }) => {
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   
@@ -121,19 +122,40 @@ const ChatWindow = ({
             <p>开始对话吧</p>
           </div>
         ) : (
-          messages.map(message => (
-            <div 
-              key={message.id}
-              className={`message-bubble ${message.senderId === 'me' ? 'sent' : 'received'}`}
-            >
-              <div className="message-content">
-                {message.content}
+          messages.map(message => {
+            const isGroupChat = currentContact?.type === 'group' || currentContact?.type === 'topic';
+            // 计算显示的发言人名称
+            const displaySenderName = (
+              message.senderName ||
+              (message.senderId === 'me'
+                ? '我'
+                : (typeof message.senderId === 'string' && message.senderId)
+                  || currentContact?.name
+                  || '对方')
+            );
+
+            return (
+              <div 
+                key={message.id}
+                className={`message-bubble ${message.senderId === 'me' ? 'sent' : 'received'}`}
+              >
+                {isGroupChat && (
+                  <div className="message-sender">
+                    <span className="message-avatar">
+                      {(displaySenderName || '').charAt(0)}
+                    </span>
+                    <span className="message-author">{displaySenderName}</span>
+                  </div>
+                )}
+                <div className="message-content">
+                  {message.content}
+                </div>
+                <div className="message-time">
+                  {message.time}
+                </div>
               </div>
-              <div className="message-time">
-                {message.time}
-              </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
       
@@ -147,6 +169,12 @@ const ChatWindow = ({
           size="large"
           suffix={
             <Space size={4}>
+              <Button 
+                type="dashed" 
+                size="small" 
+                title="模拟我对话"
+                onClick={onSimulateMe}
+              >模拟我</Button>
               <Button 
                 type="text" 
                 size="small" 

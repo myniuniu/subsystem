@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ContactList from './ContactList';
 import ChatWindow from './ChatWindow';
 import './MessageCenter.css';
 
 const MessageCenter = ({ contacts: propContacts }) => {
   // 联系人数据 - 使用传入的props或默认数据
-  const [contacts] = useState(propContacts || [
+  const [contacts, setContacts] = useState(propContacts || [
     {
       id: 'system',
       name: '系统消息',
@@ -637,9 +637,173 @@ const MessageCenter = ({ contacts: propContacts }) => {
     ]
   });
 
+  // 为传入的主题会话联系人生成更真实的模拟对话（一次性初始化）
+  useEffect(() => {
+    const contactsList = propContacts || [];
+    const topicContacts = contactsList.filter(c => c.type === 'topic');
+    if (topicContacts.length === 0) return;
+
+    const formatTime = (offsetMinutes) => {
+      return new Date(Date.now() - offsetMinutes * 60 * 1000).toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    };
+
+    setMessageHistory(prev => {
+      const additions = {};
+      topicContacts.forEach((contact, idx) => {
+        if (!prev[contact.id]) {
+          additions[contact.id] = [
+            {
+              id: Date.now() + idx * 10 + 1,
+              senderId: 'host',
+              senderName: '主持人',
+              content: `大家好，今天我们重点讨论「${contact.name}」的产品研发进展与下一步安排。`,
+              time: formatTime(120),
+              type: 'text'
+            },
+            {
+              id: Date.now() + idx * 10 + 2,
+              senderId: 'product_manager',
+              senderName: '产品经理',
+              content: '需求调研已完成，课程设计初稿也已整理出框架，计划下周启动试点。',
+              time: formatTime(105),
+              type: 'text'
+            },
+            {
+              id: Date.now() + idx * 10 + 3,
+              senderId: '张老师',
+              senderName: '张老师',
+              content: '建议增加实践环节并准备课堂演练材料，试点班级可安排在周三下午。',
+              time: formatTime(98),
+              type: 'text'
+            },
+            {
+              id: Date.now() + idx * 10 + 6,
+              senderId: 'me',
+              senderName: '我',
+              content: '我这边准备了教案细化稿和演练素材，稍后分享链接。',
+              time: formatTime(100),
+              type: 'text'
+            },
+            {
+              id: Date.now() + idx * 10 + 7,
+              senderId: 'zhouli',
+              senderName: '周丽',
+              content: '收到～我也会补充课堂观察表模板。',
+              time: formatTime(99),
+              type: 'text'
+            },
+            {
+              id: Date.now() + idx * 10 + 8,
+              senderId: 'yuanwei',
+              senderName: '袁伟',
+              content: '收到，试点班级的协调我来跟进。',
+              time: formatTime(99),
+              type: 'text'
+            },
+            {
+              id: Date.now() + idx * 10 + 9,
+              senderId: 'me',
+              senderName: '我',
+              content: '初步定的：阿里部署给网院业务用，华为云平台给国人通业务用——两个云、两套平台。',
+              time: formatTime(95),
+              type: 'text'
+            },
+            {
+              id: Date.now() + idx * 10 + 4,
+              senderId: '教研助理',
+              senderName: '教研助理',
+              content: '我来整理会议纪要与行动清单，包含试点范围、资源准备与评估指标。',
+              time: formatTime(92),
+              type: 'text'
+            },
+            {
+              id: Date.now() + idx * 10 + 10,
+              senderId: 'host',
+              senderName: '主持人',
+              content: '好的，继续按上述安排推进，资源清单由助理汇总后共享给大家。',
+              time: formatTime(88),
+              type: 'text'
+            },
+            {
+              id: Date.now() + idx * 10 + 5,
+              senderId: 'host',
+              senderName: '主持人',
+              content: '结论：本周完成教案细化与演练材料准备；下周三组织试点并收集课堂观察数据。',
+              time: formatTime(85),
+              type: 'text'
+            }
+          ];
+        }
+      });
+
+      if (Object.keys(additions).length === 0) return prev;
+      return { ...prev, ...additions };
+    });
+  }, [propContacts]);
+
+  // 当消息历史变化时，动态更新联系人最近摘要（lastMessage/lastTime）
+  useEffect(() => {
+    setContacts(prev => {
+      if (!prev || prev.length === 0) return prev;
+      return prev.map(c => {
+        const msgs = messageHistory[c.id] || [];
+        if (msgs.length === 0) return c;
+        const last = msgs[msgs.length - 1];
+        const shouldPrefixSpeaker = (c.type === 'group' || c.type === 'topic') && !!last.senderName;
+        const lastMessageText = shouldPrefixSpeaker
+          ? `${last.senderName}：${last.content}`
+          : last.content;
+        return {
+          ...c,
+          lastMessage: lastMessageText,
+          lastTime: last.time
+        };
+      });
+    });
+  }, [messageHistory]);
+
+  // 当传入联系人变化时，同步到本地联系人（随后由上面的 effect 用历史补充摘要）
+  useEffect(() => {
+    if (propContacts && Array.isArray(propContacts)) {
+      setContacts(propContacts);
+    }
+  }, [propContacts]);
+
   const [activeContact, setActiveContact] = useState('system');
   const [newMessage, setNewMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // 模拟“我”的多条消息，用于快速演示
+  const simulateMyMessages = (count = 3) => {
+    if (!activeContact) return;
+    const msgs = [];
+    for (let i = 0; i < count; i++) {
+      msgs.push({
+        id: Date.now() + i,
+        senderId: 'me',
+        senderName: '我',
+        content: `这是我发的第${i + 1}条模拟消息`,
+        time: new Date().toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        type: 'text'
+      });
+    }
+    setMessageHistory(prev => ({
+      ...prev,
+      [activeContact]: [...(prev[activeContact] || []), ...msgs]
+    }));
+  };
 
   // 发送消息
   const sendMessage = () => {
@@ -670,13 +834,17 @@ const MessageCenter = ({ contacts: propContacts }) => {
     console.log('发送消息:', message);
     setNewMessage('');
     
-    // 模拟对方回复（仅对用户消息）
-    if (activeContact !== 'system' && activeContact.startsWith('user')) {
+    // 模拟对方回复（根据联系人类型回复不同内容）
+    const currentContact = contacts.find(c => c.id === activeContact);
+    if (!currentContact || currentContact.id === 'system') return;
+
+    // 用户联系人：简单确认
+    if (currentContact.type === 'user') {
       setTimeout(() => {
         const replyMessage = {
           id: Date.now() + 1,
           senderId: activeContact,
-          senderName: contacts.find(c => c.id === activeContact)?.name || '对方',
+          senderName: currentContact.name || '对方',
           content: '收到您的消息，稍后回复',
           time: new Date().toLocaleString('zh-CN', {
             year: 'numeric',
@@ -687,15 +855,76 @@ const MessageCenter = ({ contacts: propContacts }) => {
           }),
           type: 'text'
         };
-        
-        // 将回复消息也添加到聊天记录中
         setMessageHistory(prev => ({
           ...prev,
           [activeContact]: [...(prev[activeContact] || []), replyMessage]
         }));
-        
         console.log('收到回复:', replyMessage);
-      }, 2000);
+      }, 1500);
+    }
+
+    // 群组联系人：给出安排或行动项
+    if (currentContact.type === 'group') {
+      setTimeout(() => {
+        const replyMessage = {
+          id: Date.now() + 2,
+          senderId: 'user2',
+          senderName: '李主任',
+          content: '建议明天下午集中讨论，汇总各自的准备情况与需要支持的事项。',
+          time: new Date().toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          type: 'text'
+        };
+        setMessageHistory(prev => ({
+          ...prev,
+          [activeContact]: [...(prev[activeContact] || []), replyMessage]
+        }));
+        console.log('群组回复:', replyMessage);
+      }, 1800);
+    }
+
+    // 主题联系人：回复推进与资源链接提示
+    if (currentContact.type === 'topic') {
+      setTimeout(() => {
+        const reply1 = {
+          id: Date.now() + 3,
+          senderId: 'product_manager',
+          senderName: '产品经理',
+          content: '已记录您的建议，教案会同步更新；同时准备课堂观察表与学生反馈问卷。',
+          time: new Date().toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          type: 'text'
+        };
+        const reply2 = {
+          id: Date.now() + 4,
+          senderId: '教研助理',
+          senderName: '教研助理',
+          content: '会议纪要与行动清单已更新至文档中心，稍后在群里分享链接。',
+          time: new Date(Date.now() + 40 * 1000).toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          type: 'text'
+        };
+        setMessageHistory(prev => ({
+          ...prev,
+          [activeContact]: [...(prev[activeContact] || []), reply1, reply2]
+        }));
+        console.log('主题回复:', reply1, reply2);
+      }, 2200);
     }
   };
 
@@ -742,6 +971,7 @@ const MessageCenter = ({ contacts: propContacts }) => {
         onMessageChange={setNewMessage}
         onSendMessage={sendMessage}
         onKeyPress={handleKeyPress}
+        onSimulateMe={() => simulateMyMessages(5)}
       />
     </div>
   );
