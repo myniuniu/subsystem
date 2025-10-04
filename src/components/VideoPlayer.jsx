@@ -162,15 +162,19 @@ const VideoPlayer = ({
 
   // 获取视频源URL
   const getVideoUrl = (videoData) => {
-    if (!videoData) return '';
+    // 允许的资源：本地 assets 路径或直接 mp4 文件
+    const isPlayableAsset = (u) => {
+      if (typeof u !== 'string' || !u) return false;
+      // 允许 '/assets/xxx.mp4' 或以 '.mp4' 结尾的直链
+      return u.startsWith('/assets/') || /\.mp4(\?.*)?$/i.test(u);
+    };
+
+    // 候选来源：videoUrl → url → src
+    const candidates = [videoData?.videoUrl, videoData?.url, videoData?.src];
+    const picked = candidates.find(isPlayableAsset);
     
-    // 如果有直接的视频URL
-    if (videoData.videoUrl) {
-      return videoData.videoUrl;
-    }
-    
-    // 使用本地视频文件
-    return '/assets/demo1.mp4';
+    // 找到可播放资源则使用；否则回退到 demo1.mp4
+    return picked || '/assets/demo1.mp4';
   };
 
   // 关闭播放器时保存进度

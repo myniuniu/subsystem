@@ -103,7 +103,8 @@ export const RIGHT_PANEL_VIEWS = {
   CLASSROOM_EVALUATION_VIEWER: 'classroomEvaluationViewer',
   TRAINING_PLAN_VIEWER: 'training_plan_viewer',
   TRAINING_REPORT_VIEWER: 'training_report_viewer',
-  TRAINING_DASHBOARD_VIEWER: 'training_dashboard_viewer'
+  TRAINING_DASHBOARD_VIEWER: 'training_dashboard_viewer',
+  VIDEO_PLAYER: 'video_player'
 };
 
 // 直播状态常量

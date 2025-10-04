@@ -693,7 +693,7 @@ const MessageCenter = ({ contacts: propContacts }) => {
             {
               id: Date.now() + idx * 10 + 7,
               senderId: 'zhouli',
-              senderName: '周丽',
+              senderName: '丁敏',
               content: '收到～我也会补充课堂观察表模板。',
               time: formatTime(99),
               type: 'text'
@@ -701,7 +701,7 @@ const MessageCenter = ({ contacts: propContacts }) => {
             {
               id: Date.now() + idx * 10 + 8,
               senderId: 'yuanwei',
-              senderName: '袁伟',
+              senderName: '贾凯',
               content: '收到，试点班级的协调我来跟进。',
               time: formatTime(99),
               type: 'text'

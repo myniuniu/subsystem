@@ -64,6 +64,11 @@ import {
 const { Title, Text } = Typography;
 const { Option } = Select;
 
+// 指定本地视频资源（用于“智能工具生成的视频概览”的播放”）
+// “视频概览”固定播放地址（仅用于“视频概览”记录，不影响其他视频）
+// 使用公开路径，确保地址为 '/assets/2.mp4'
+const VIDEO_OVERVIEW_URL = '/assets/2.mp4';
+
 const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', selectedTemplate = null, selectedCategory = null }) => {
   // 使用统一的状态管理hook
   const state = useNoteEditState(note, mode, selectedTemplate, selectedCategory);
@@ -614,7 +619,61 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         
         return;
       }
-      
+
+      // 视频类型：在右侧面板嵌入播放视频
+      if (record.type === 'video') {
+        try {
+          const { courseVideos } = state;
+
+          // 尝试根据记录中的信息匹配课程视频
+          let material = null;
+          if (record.videoId && Array.isArray(courseVideos)) {
+            material = courseVideos.find(v => v.id === record.videoId) || null;
+          }
+          if (!material && record.url && Array.isArray(courseVideos)) {
+            material = courseVideos.find(v => v.url === record.url) || null;
+          }
+          if (!material && Array.isArray(courseVideos) && courseVideos.length > 0) {
+            // 回退到第一个课程视频
+            material = courseVideos[0];
+          }
+
+          // 仅当是“视频概览”记录时，使用固定地址 /assets/2.mp4
+          const isVideoOverview = typeof record.title === 'string' && record.title.includes('视频概览');
+          if (!isVideoOverview && !material) {
+            message.warning('暂无可播放的视频资源，请先在资料区添加课程视频');
+            return;
+          }
+
+          // 设置选中的视频与开始时间，切换右侧为视频播放器视图（关闭宽屏）
+          if (isVideoOverview) {
+            // 仅“视频概览”使用固定地址 '/assets/2.mp4'
+            const fixedVideo = {
+              id: 'video-overview',
+              title: record?.title || '视频概览',
+              url: VIDEO_OVERVIEW_URL,
+              videoUrl: VIDEO_OVERVIEW_URL,
+              duration: record?.duration || 0,
+              progress: 0,
+              courseId: 'local-assets',
+              courseTitle: '本地视频',
+              addTime: new Date().toLocaleString('zh-CN')
+            };
+            state.setSelectedMaterial(fixedVideo);
+          } else {
+            state.setSelectedMaterial(material);
+          }
+          state.setVideoStartTime(record?.startTime || 0);
+          state.setIsWidescreenMode(false);
+          state.setRightPanelView(RIGHT_PANEL_VIEWS.VIDEO_PLAYER);
+          message.success(`在右侧播放视频：${isVideoOverview ? '视频概览' : (material?.title || '视频')}`);
+        } catch (err) {
+          console.error('打开视频失败:', err);
+          message.error('打开视频失败，请稍后重试');
+        }
+        return;
+      }
+
       // 其他记录类型的处理逻辑
       if (record.type === 'question') {
         console.log('试题记录点击，record.content存在:', !!record.content);
@@ -1223,7 +1282,12 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
 
             {/* 中间问答区域 */}
             <div style={{
-              flex: (state.rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR || state.rightPanelView === RIGHT_PANEL_VIEWS.QUESTION_VIEWER || state.rightPanelView === RIGHT_PANEL_VIEWS.GRADING_VIEWER) ? 3.5 : 5,
+              // 当右侧为视频播放器时，中间区域减少30%（从5降至3.5）
+              flex: (state.rightPanelView === RIGHT_PANEL_VIEWS.VIDEO_PLAYER)
+                ? 3.5
+                : ((state.rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR || state.rightPanelView === RIGHT_PANEL_VIEWS.QUESTION_VIEWER || state.rightPanelView === RIGHT_PANEL_VIEWS.GRADING_VIEWER)
+                  ? 3.5
+                  : 5),
               transition: 'flex 0.3s ease'
             }}>
               <AIChat 
@@ -1235,12 +1299,16 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
             {/* 右侧操作区域 */}
             <div style={{ 
               flex: (() => {
-                // 笔记编辑、试题查看或阅卷报告查看状态时进一步增加右侧宽度
-                if (state.rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR || state.rightPanelView === RIGHT_PANEL_VIEWS.QUESTION_VIEWER || state.rightPanelView === RIGHT_PANEL_VIEWS.GRADING_VIEWER) {
-                  const baseRatio = currentView === VIEW_MODES.VIDEO ? 3 : (state.viewMode === VIEW_MODES.MAP ? 3 : 2.5);
-                  return baseRatio * 1.5; // 增加50%，比之前的20%更宽
+                const baseRatio = currentView === VIEW_MODES.VIDEO ? 3 : (state.viewMode === VIEW_MODES.MAP ? 3 : 2.5);
+                // 当右侧为视频播放器时，仅将中间减少的30%（1.5）加给右侧，左侧保持不变
+                if (state.rightPanelView === RIGHT_PANEL_VIEWS.VIDEO_PLAYER) {
+                  return baseRatio + 1.5;
                 }
-                return currentView === VIEW_MODES.VIDEO ? 3 : (state.viewMode === VIEW_MODES.MAP ? 3 : 2.5);
+                // 笔记编辑、试题查看或阅卷报告查看状态时，保持原有增加宽度的逻辑
+                if (state.rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR || state.rightPanelView === RIGHT_PANEL_VIEWS.QUESTION_VIEWER || state.rightPanelView === RIGHT_PANEL_VIEWS.GRADING_VIEWER) {
+                  return baseRatio * 1.5;
+                }
+                return baseRatio;
               })(), 
               background: '#fff', 
               margin: '16px 16px 16px 0', 

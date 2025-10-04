@@ -38,6 +38,7 @@ import LearningPlanViewer from './OperationPanel/LearningPlanViewer';
 import ClassroomEvaluationViewer from './OperationPanel/ClassroomEvaluationViewer';
 import TrainingPlanViewer from './OperationPanel/TrainingPlanViewer';
 import TrainingReportViewer from './OperationPanel/TrainingReportViewer';
+import VideoPlayer from './VideoPlayer';
 import TrainingDashboardViewer from './OperationPanel/TrainingDashboardViewer';
 import ToolGrid from './OperationPanel/ToolGrid';
 
@@ -141,7 +142,17 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
     addedTexts,
     courseVideos,
     links,
-    note
+    note,
+    // 视频相关状态
+    selectedMaterial,
+    videoStartTime,
+    isWidescreenMode,
+    setIsWidescreenMode,
+    // 编辑器相关状态（用于 VideoPlayer 的 currentEditorState 回调）
+    showNoteEditor,
+    editingNote,
+    noteEditorContent,
+    setNoteEditorContent
   } = state;
 
   // 获取当前笔记的分类信息
@@ -1043,6 +1054,51 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
       <TrainingDashboardViewer 
         setRightPanelView={setRightPanelView}
       />
+    );
+  }
+
+  // 视频播放器视图（嵌入式）
+  if (rightPanelView === RIGHT_PANEL_VIEWS.VIDEO_PLAYER) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
+        <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => setRightPanelView(RIGHT_PANEL_VIEWS.OPERATIONS)}>
+            返回
+          </Button>
+          <Typography.Text style={{ fontWeight: 600 }}>
+            {selectedMaterial?.title || '视频播放器'}
+          </Typography.Text>
+        </div>
+        <div style={{ flex: 1, minHeight: 400, display: 'flex', flexDirection: 'column' }}>
+          <VideoPlayer
+            embedded
+            style={{ height: '100%' }}
+            videoData={selectedMaterial}
+            isWidescreenMode={isWidescreenMode}
+            onToggleWidescreen={() => setIsWidescreenMode && setIsWidescreenMode(!isWidescreenMode)}
+            onTimeUpdate={handlers?.onVideoTimeUpdate}
+            currentEditorState={{
+              isEditing: rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR || (showNoteEditor && editingNote),
+              noteTitle: rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR
+                ? rightPanelEditingNote?.title || '当前笔记'
+                : editingNote?.title || '当前笔记',
+              onContentUpdate: (content) => {
+                if (rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR && rightPanelEditingNote) {
+                  setRightPanelNoteContent(prev => (prev || '') + content);
+                } else if (showNoteEditor && editingNote) {
+                  setNoteEditorContent(prev => (prev || '') + content);
+                }
+              }
+            }}
+            onNoteCreated={(operationRecord) => {
+              setOperationRecords(prev => ({
+                ...prev,
+                note: [operationRecord, ...(prev.note || [])]
+              }));
+            }}
+          />
+        </div>
+      </div>
     );
   }
 
