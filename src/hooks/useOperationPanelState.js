@@ -31,11 +31,13 @@ export const useOperationPanelState = (noteCategory = null) => {
     // 如果是培训产品研发分类，显示课程研发工具和视频切片工具
     if (category === 'training_product_development') {
       // 获取AI工具配置
-      const aiToolsConfig = JSON.parse(localStorage.getItem('aiToolsConfig') || '{}');
-      const addedAITools = JSON.parse(localStorage.getItem('addedAITools') || '[]');
+  const aiToolsConfig = JSON.parse(localStorage.getItem('ai-tools-config') || '{}');
+  let addedAITools = JSON.parse(localStorage.getItem('added-ai-tools-to-panel') || '[]');
+  // 过滤已移除的智能写作工具，防止历史数据继续显示
+  addedAITools = addedAITools.filter(id => id !== 'smart-writer');
       
-      console.log('localStorage aiToolsConfig:', aiToolsConfig);
-      console.log('localStorage addedAITools:', addedAITools);
+  console.log('localStorage ai-tools-config:', aiToolsConfig);
+  console.log('localStorage added-ai-tools-to-panel:', addedAITools);
       
       // 如果课程研发工具不存在，自动创建并添加
       if (!addedAITools.includes('course-development')) {
@@ -54,36 +56,14 @@ export const useOperationPanelState = (noteCategory = null) => {
         aiToolsConfig['course-development'] = courseDevConfig;
         addedAITools.push('course-development');
         
-        // 保存到localStorage
-        localStorage.setItem('aiToolsConfig', JSON.stringify(aiToolsConfig));
-        localStorage.setItem('addedAITools', JSON.stringify(addedAITools));
+  // 保存到localStorage（与 OperationPanel 保持一致的键名）
+  localStorage.setItem('ai-tools-config', JSON.stringify(aiToolsConfig));
+  localStorage.setItem('added-ai-tools-to-panel', JSON.stringify(addedAITools));
         
         console.log('课程研发工具已自动创建并添加');
       }
       
-      // 如果视频切片工具不存在，自动创建并添加
-      if (!addedAITools.includes('video-slice')) {
-        console.log('视频切片工具不存在，自动创建...');
-        
-        // 创建视频切片工具配置
-        const videoSliceConfig = {
-          key: 'video-slice',
-          title: '视频切片',
-          icon: '🎬',
-          gradient: 'linear-gradient(135deg, #fff2e8 0%, #ffd8bf 100%)',
-          color: '#fa8c16'
-        };
-        
-        // 更新配置
-        aiToolsConfig['video-slice'] = videoSliceConfig;
-        addedAITools.push('video-slice');
-        
-        // 保存到localStorage
-        localStorage.setItem('aiToolsConfig', JSON.stringify(aiToolsConfig));
-        localStorage.setItem('addedAITools', JSON.stringify(addedAITools));
-        
-        console.log('视频切片工具已自动创建并添加');
-      }
+      // 取消自动创建“视频切片”工具，避免与面板内 AI 工具屋重复
       
       // 查找培训产品研发相关的AI工具
       const trainingProductDevCards = [];
@@ -103,20 +83,7 @@ export const useOperationPanelState = (noteCategory = null) => {
         console.log('找到课程研发AI工具:', aiCard);
       }
       
-      // 添加视频切片工具
-      if (addedAITools.includes('video-slice') && aiToolsConfig['video-slice']) {
-        const config = aiToolsConfig['video-slice'];
-        const aiCard = {
-          key: 'video-slice',
-          title: config.title,
-          icon: config.icon,
-          gradient: config.gradient,
-          color: config.color,
-          isAITool: true
-        };
-        trainingProductDevCards.push(aiCard);
-        console.log('找到视频切片AI工具:', aiCard);
-      }
+      // 不在此处注入“视频切片”AI工具，统一通过面板添加，避免重复
       
       console.log('培训产品研发分类，返回的卡片:', trainingProductDevCards);
       return trainingProductDevCards;
@@ -126,8 +93,8 @@ export const useOperationPanelState = (noteCategory = null) => {
     const defaultCards = OPERATION_CARDS.filter(card => card.key !== 'addTool');
     
     // 获取AI工具配置
-    const aiToolsConfig = JSON.parse(localStorage.getItem('aiToolsConfig') || '{}');
-    const addedAITools = JSON.parse(localStorage.getItem('addedAITools') || '[]');
+  const aiToolsConfig = JSON.parse(localStorage.getItem('ai-tools-config') || '{}');
+  const addedAITools = JSON.parse(localStorage.getItem('added-ai-tools-to-panel') || '[]');
     
     // 创建AI工具卡片
     const aiToolCards = addedAITools.map(toolId => {

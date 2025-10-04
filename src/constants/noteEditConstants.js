@@ -70,7 +70,7 @@ export const MATERIAL_ICONS = {
   [OPERATION_TYPES.LEARNING_PLAN]: '计',
   [OPERATION_TYPES.GRADING]: '阅',
   [OPERATION_TYPES.CLASSROOM_EVALUATION]: '评',
-  [OPERATION_TYPES.TRAINING_DASHBOARD]: '📊'
+  [OPERATION_TYPES.TRAINING_DASHBOARD]: '报'
 };
 
 // 网站类型常量
@@ -522,7 +522,7 @@ export const OPERATION_CARDS = [
   {
     key: OPERATION_TYPES.TRAINING_DASHBOARD,
     title: '培训报表',
-    icon: '📊',
+    icon: '报',
     gradient: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
     color: '#0369a1'
   },

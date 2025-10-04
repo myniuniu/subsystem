@@ -359,13 +359,13 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         id: 'training-dashboard',
         name: '培训报表',
         description: '多维度培训数据可视化分析，提供全面的培训管理报表',
-        icon: '📊',
+        icon: '报',
         color: '#0369a1',
         applicableNoteCategories: ['training_needs_management'],
         menuConfig: {
           key: 'training-dashboard',
           title: '培训报表',
-          icon: '📊',
+          icon: '报',
           gradient: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
           color: '#0369a1'
         }
@@ -383,20 +383,6 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
           icon: '阅',
           gradient: 'linear-gradient(135deg, #fff0f6 0%, #ffd6e7 100%)',
           color: '#c41d7f'
-        }
-      },
-      {
-        id: 'smart-writer',
-        name: '智能写作助手',
-        description: '基于GPT技术的智能写作工具，支持文章生成、润色、翻译等功能',
-        icon: '✍',
-        color: '#52c41a',
-        menuConfig: {
-          key: 'smart-writer',
-          title: '智能写作',
-          icon: '✍',
-          gradient: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
-          color: '#52c41a'
         }
       },
       {
@@ -459,12 +445,12 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         id: 'video-slice',
         name: '视频切片',
         description: '智能视频切片工具，支持视频片段提取、剪辑、标注等功能',
-        icon: '🎬',
+        icon: '切',
         color: '#fa8c16',
         menuConfig: {
           key: 'video-slice',
           title: '视频切片',
-          icon: '🎬',
+          icon: '切',
           gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
           color: '#fa8c16'
         }

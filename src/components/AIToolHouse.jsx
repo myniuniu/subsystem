@@ -129,37 +129,6 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       usage: '输入课程主题和培训目标，AI将协助生成完整的课程开发方案和教学设计'
     },
     {
-      id: 'smart-writer',
-      name: '智能写作助手',
-      description: '基于GPT技术的智能写作工具，支持文章生成、润色、翻译等功能',
-      category: AI_TOOL_CATEGORIES.WRITING,
-      status: AI_TOOL_STATUS.ACTIVE,
-      author: '教育AI团队',
-      version: 'v2.1.0',
-      rating: 4.8,
-      downloads: 12580,
-      tags: ['写作', 'GPT', '润色', '翻译'],
-      icon: '✍️',
-      color: '#52c41a',
-      featured: true,
-      applicableNoteCategories: ['organizational_training', 'learning_square', 'training_product_development'],
-      menuConfig: {
-        key: 'smart-writer',
-        title: '智能写作',
-        icon: '✍',
-        gradient: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
-        color: '#52c41a'
-      },
-      features: [
-        '支持多种文体写作',
-        '智能语法检查',
-        '多语言翻译',
-        '文本润色优化',
-        '创意灵感生成'
-      ],
-      usage: '在操作面板中点击智能写作工具，输入写作需求即可获得AI辅助'
-    },
-    {
       id: 'data-analyst',
       name: '数据分析大师',
       description: '强大的数据分析和可视化工具，支持多种图表生成和统计分析',
@@ -601,14 +570,14 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       rating: 4.8,
       downloads: 3650,
       tags: ['培训报表', '数据可视化', '统计分析', '报表生成'],
-      icon: '📊',
+      icon: '报',
       color: '#0369a1',
       featured: true,
       applicableNoteCategories: ['training_needs_management'],
       menuConfig: {
         key: 'training-dashboard',
         title: '培训报表',
-        icon: '📊',
+        icon: '报',
         gradient: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
         color: '#0369a1'
       },
