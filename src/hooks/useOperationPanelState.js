@@ -88,7 +88,105 @@ export const useOperationPanelState = (noteCategory = null) => {
       console.log('培训产品研发分类，返回的卡片:', trainingProductDevCards);
       return trainingProductDevCards;
     }
-    
+
+    // 如果是教研室分类，默认注入并仅显示六个教研室工具
+    if (category === 'teaching_research_office') {
+      const aiToolsConfig = JSON.parse(localStorage.getItem('ai-tools-config') || '{}');
+      const addedAITools = JSON.parse(localStorage.getItem('added-ai-tools-to-panel') || '[]');
+
+      const teachingToolIds = [
+        'verbatim-transcript',
+        'large-unit-design',
+        'interdisciplinary-design',
+        'unit-assignment-design',
+        'large-unit-academic-case',
+        'teacher-research-project'
+      ];
+
+      const defaultConfigs = {
+        'verbatim-transcript': {
+          key: 'verbatim-transcript',
+          title: '逐字稿工具',
+          icon: '稿',
+          gradient: 'linear-gradient(135deg, #f0f5ff 0%, #d6e4ff 100%)',
+          color: '#2f54eb'
+        },
+        'large-unit-design': {
+          key: 'large-unit-design',
+          title: '大单元设计',
+          icon: '单',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#0958d9'
+        },
+        'interdisciplinary-design': {
+          key: 'interdisciplinary-design',
+          title: '跨学科设计',
+          icon: '跨',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        },
+        'unit-assignment-design': {
+          key: 'unit-assignment-design',
+          title: '单元作业设计',
+          icon: '作',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        },
+        'large-unit-academic-case': {
+          key: 'large-unit-academic-case',
+          title: '大单元学历案',
+          icon: '案',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#722ed1'
+        },
+        'teacher-research-project': {
+          key: 'teacher-research-project',
+          title: '教师课题研究',
+          icon: '研',
+          gradient: 'linear-gradient(135deg, #fff1f0 0%, #ffccc7 100%)',
+          color: '#f5222d'
+        }
+      };
+
+      // 注入缺失的工具配置与ID
+      let changed = false;
+      teachingToolIds.forEach(id => {
+        if (!addedAITools.includes(id)) {
+          addedAITools.push(id);
+          changed = true;
+        }
+        if (!aiToolsConfig[id]) {
+          aiToolsConfig[id] = defaultConfigs[id];
+          changed = true;
+        }
+      });
+
+      if (changed) {
+        localStorage.setItem('ai-tools-config', JSON.stringify(aiToolsConfig));
+        localStorage.setItem('added-ai-tools-to-panel', JSON.stringify(addedAITools));
+        console.log('教研室工具默认注入完成:', teachingToolIds);
+      }
+
+      // 仅显示六个教研室工具
+      const teachingCards = teachingToolIds.map(id => {
+        const config = aiToolsConfig[id];
+        if (config) {
+          return {
+            key: id,
+            title: config.title,
+            icon: config.icon,
+            gradient: config.gradient,
+            color: config.color,
+            isAITool: true
+          };
+        }
+        return null;
+      }).filter(Boolean);
+
+      console.log('教研室分类，返回的卡片:', teachingCards);
+      return teachingCards;
+    }
+
     // 其他分类返回所有工具（保持原有逻辑）
     const defaultCards = OPERATION_CARDS.filter(card => card.key !== 'addTool');
     

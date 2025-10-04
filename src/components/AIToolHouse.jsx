@@ -96,6 +96,157 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       ],
       usage: '上传试卷文件或图片，系统将自动识别答题内容并进行智能评阅，生成详细的评阅报告'
     },
+    // 教研室分类新增工具
+    {
+      id: 'verbatim-transcript',
+      name: '逐字稿工具',
+      description: '将音视频内容转写为逐字稿，支持段落结构与说话人标注',
+      category: AI_TOOL_CATEGORIES.TEACHING,
+      status: AI_TOOL_STATUS.NEW,
+      author: '教研室工具组',
+      version: 'v1.0.0',
+      rating: 4.7,
+      downloads: 3200,
+      tags: ['转写', '逐字稿', '音视频'],
+      icon: '稿',
+      color: '#2f54eb',
+      featured: true,
+      applicableNoteCategories: ['teaching_research_office'],
+      menuConfig: {
+        key: 'verbatim-transcript',
+        title: '逐字稿工具',
+        icon: '稿',
+        gradient: 'linear-gradient(135deg, #f0f5ff 0%, #d6e4ff 100%)',
+        color: '#2f54eb'
+      },
+      features: ['音视频自动转写', '说话人识别', '段落分段', '时间轴标注'],
+      usage: '上传音频或视频文件，系统自动生成逐字稿并支持导出'
+    },
+    {
+      id: 'large-unit-design',
+      name: '大单元设计',
+      description: '支持基于核心素养的大单元教学设计与目标任务分解',
+      category: AI_TOOL_CATEGORIES.TEACHING,
+      status: AI_TOOL_STATUS.NEW,
+      author: '教研室工具组',
+      version: 'v1.0.0',
+      rating: 4.8,
+      downloads: 4100,
+      tags: ['大单元', '教学设计', '核心素养'],
+      icon: '单',
+      color: '#0958d9',
+      featured: true,
+      applicableNoteCategories: ['teaching_research_office'],
+      menuConfig: {
+        key: 'large-unit-design',
+        title: '大单元设计',
+        icon: '单',
+        gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+        color: '#0958d9'
+      },
+      features: ['学习目标设计', '任务群拆解', '评价标准建议'],
+      usage: '输入学科主题与学段，生成大单元整体教学设计方案'
+    },
+    {
+      id: 'interdisciplinary-design',
+      name: '跨学科设计',
+      description: '围绕真实情境与综合任务进行跨学科项目化学习设计',
+      category: AI_TOOL_CATEGORIES.TEACHING,
+      status: AI_TOOL_STATUS.NEW,
+      author: '教研室工具组',
+      version: 'v1.0.0',
+      rating: 4.8,
+      downloads: 3860,
+      tags: ['跨学科', '项目化学习', '综合素养'],
+      icon: '跨',
+      color: '#13c2c2',
+      featured: true,
+      applicableNoteCategories: ['teaching_research_office'],
+      menuConfig: {
+        key: 'interdisciplinary-design',
+        title: '跨学科设计',
+        icon: '跨',
+        gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+        color: '#13c2c2'
+      },
+      features: ['主题情境设计', '多学科融合', '评价维度建议'],
+      usage: '选择跨学科主题，系统生成项目化学习方案与活动安排'
+    },
+    {
+      id: 'unit-assignment-design',
+      name: '单元作业设计',
+      description: '依据学习目标与内容设计分层作业与任务单',
+      category: AI_TOOL_CATEGORIES.TEACHING,
+      status: AI_TOOL_STATUS.NEW,
+      author: '教研室工具组',
+      version: 'v1.0.0',
+      rating: 4.7,
+      downloads: 2950,
+      tags: ['作业设计', '分层任务', '学习评价'],
+      icon: '作',
+      color: '#fa8c16',
+      featured: true,
+      applicableNoteCategories: ['teaching_research_office'],
+      menuConfig: {
+        key: 'unit-assignment-design',
+        title: '单元作业设计',
+        icon: '作',
+        gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+        color: '#fa8c16'
+      },
+      features: ['作业类型建议', '分层与个性化', '评分与反馈模板'],
+      usage: '输入单元主题与学生差异，生成分层作业与评价建议'
+    },
+    {
+      id: 'large-unit-academic-case',
+      name: '大单元学历案',
+      description: '生成结构化的学历案，包括环节目标、活动任务与评价要点',
+      category: AI_TOOL_CATEGORIES.TEACHING,
+      status: AI_TOOL_STATUS.NEW,
+      author: '教研室工具组',
+      version: 'v1.0.0',
+      rating: 4.6,
+      downloads: 2600,
+      tags: ['学历案', '教学活动', '目标评价'],
+      icon: '案',
+      color: '#722ed1',
+      featured: true,
+      applicableNoteCategories: ['teaching_research_office'],
+      menuConfig: {
+        key: 'large-unit-academic-case',
+        title: '大单元学历案',
+        icon: '案',
+        gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+        color: '#722ed1'
+      },
+      features: ['学习任务链路', '环节目标与评价', '资源与工具建议'],
+      usage: '选择单元主题与年级，生成完整的学历案结构'
+    },
+    {
+      id: 'teacher-research-project',
+      name: '教师课题研究',
+      description: '提供课题选题、研究设计、数据分析与报告撰写辅助',
+      category: AI_TOOL_CATEGORIES.RESEARCH,
+      status: AI_TOOL_STATUS.NEW,
+      author: '教研室工具组',
+      version: 'v1.0.0',
+      rating: 4.8,
+      downloads: 3320,
+      tags: ['课题研究', '研究方法', '报告撰写'],
+      icon: '研',
+      color: '#f5222d',
+      featured: true,
+      applicableNoteCategories: ['teaching_research_office'],
+      menuConfig: {
+        key: 'teacher-research-project',
+        title: '教师课题研究',
+        icon: '研',
+        gradient: 'linear-gradient(135deg, #fff1f0 0%, #ffccc7 100%)',
+        color: '#f5222d'
+      },
+      features: ['选题方向建议', '研究设计模板', '数据分析指导', '报告结构生成'],
+      usage: '输入研究主题与目标，生成研究方案、数据分析流程与报告框架'
+    },
     {
       id: 'course-development',
       name: '课程研发',
@@ -624,6 +775,21 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
         ['training-plan', 'schedule', 'training-report', 'training-dashboard'].includes(tool.id)
       );
       console.log('getFilteredToolsByNoteCategory - 培训需求与管理分类，过滤后的工具:', filtered);
+      return filtered;
+    }
+
+    // 特殊处理：教研室分类仅显示新增的六个工具
+    if (category === 'teaching_research_office') {
+      const ids = [
+        'verbatim-transcript',
+        'large-unit-design',
+        'interdisciplinary-design',
+        'unit-assignment-design',
+        'large-unit-academic-case',
+        'teacher-research-project'
+      ];
+      const filtered = tools.filter(tool => ids.includes(tool.id));
+      console.log('getFilteredToolsByNoteCategory - 教研室分类，过滤后的工具:', filtered);
       return filtered;
     }
     
