@@ -867,6 +867,31 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
     
     onMoreAction: (action, record) => {
       switch (action) {
+        case 'convertToSource': {
+          // 将操作记录/笔记转换为资料来源
+          const newMaterial = {
+            id: Date.now(),
+            title: record.title,
+            content: record.content || `来源于记录：${record.title}`,
+            addTime: '刚刚',
+            source: record.source || '操作记录转换'
+          };
+
+          // 根据记录类型添加到对应的资料数组
+          if (record.type === 'report' || record.type === 'mindmap' || record.type === 'training-plan' || (record.type === 'note' && record.subType === 'document')) {
+            state.setAddedTexts(prev => [newMaterial, ...prev]);
+          } else if (record.type === 'video' || record.type === 'audio') {
+            state.setCourseVideos(prev => [{
+              ...newMaterial,
+              url: record.url || 'https://converted-from-record.com'
+            }, ...prev]);
+          } else {
+            state.setAddedTexts(prev => [newMaterial, ...prev]);
+          }
+
+          message.success(`已将"${record.title}"转换为来源并保存到资料`);
+          break;
+        }
         case MORE_MENU_ACTIONS.OPEN_IN_NEW_WINDOW:
           try {
             // 文档类型记录：在新窗口打开 Lexical Playground

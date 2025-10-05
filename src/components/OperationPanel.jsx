@@ -1768,6 +1768,22 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
             onMoreAction && onMoreAction(MORE_MENU_ACTIONS.OPEN_IN_NEW_WINDOW, record);
           }
         },
+        // 文档型笔记支持转换为来源
+        ...(record?.subType === 'document' ? [
+          {
+            key: 'convertToSource',
+            label: (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '16px' }}>📋</span>
+                <span>转换为来源</span>
+              </div>
+            ),
+            onClick: (e) => {
+              e?.stopPropagation?.();
+              onMoreAction && onMoreAction('convertToSource', record);
+            }
+          }
+        ] : []),
         ...commonItems
       ];
     }
