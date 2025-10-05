@@ -544,7 +544,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         description: '支持课程设计、题目生成、学情分析的教学助手',
         icon: '🎓',
         color: '#fa8c16',
-        applicableNoteCategories: ['teaching_design'],
+        applicableNoteCategories: ['teaching_design', 'classroom_integration'],
         menuConfig: {
           key: 'teaching-assistant',
           title: '教学助手',
@@ -635,7 +635,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         description: '生成公开课流程、教案与课件要点，支持评课要素',
         icon: '公',
         color: '#1890ff',
-        applicableNoteCategories: ['teaching_design'],
+        applicableNoteCategories: ['teaching_design', 'classroom_integration'],
         menuConfig: {
           key: 'open-class-design',
           title: '公开课设计',
@@ -650,7 +650,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         description: '按照学习目标与任务链生成导学案，支持分层与自评',
         icon: '导',
         color: '#fa8c16',
-        applicableNoteCategories: ['teaching_design'],
+        applicableNoteCategories: ['teaching_design', 'classroom_integration'],
         menuConfig: {
           key: 'guided-learning-plan',
           title: '导学案',
@@ -665,7 +665,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         description: '生成说课稿结构与关键阐述，支持教学目标与方法说明',
         icon: '说',
         color: '#13c2c2',
-        applicableNoteCategories: ['teaching_design'],
+        applicableNoteCategories: ['teaching_design', 'classroom_integration'],
         menuConfig: {
           key: 'lesson-presentation',
           title: '说课稿',
@@ -680,7 +680,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         description: '根据目标维度生成可量化评价量规，支持等级描述与示例',
         icon: '评',
         color: '#531dab',
-        applicableNoteCategories: ['teaching_design'],
+        applicableNoteCategories: ['teaching_design', 'classroom_integration'],
         menuConfig: {
           key: 'evaluation-rubric',
           title: '评价量规',
@@ -695,7 +695,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         description: '面向单元的学历案结构生成，包含环节目标与任务设计',
         icon: '单',
         color: '#0958d9',
-        applicableNoteCategories: ['teaching_design'],
+        applicableNoteCategories: ['teaching_design', 'classroom_integration'],
         menuConfig: {
           key: 'unit-academic-case',
           title: '单元学历案',
@@ -710,7 +710,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         description: '基于文本与图片提示生成教学绘本，支持分镜与旁白',
         icon: '📖',
         color: '#fa8c16',
-        applicableNoteCategories: ['teaching_design'],
+        applicableNoteCategories: ['teaching_design', 'classroom_integration'],
         menuConfig: {
           key: 'ai-picture-book',
           title: 'AI绘本',
@@ -725,7 +725,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         description: '快速生成云朵风格字卡，支持词语例句与练习任务',
         icon: '☁️',
         color: '#40a9ff',
-        applicableNoteCategories: ['teaching_design'],
+        applicableNoteCategories: ['teaching_design', 'classroom_integration'],
         menuConfig: {
           key: 'cloud-word-cards',
           title: '云朵字卡',
@@ -740,7 +740,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         description: '生成课堂贴纸与图标素材，用于教具或白板',
         icon: '🎯',
         color: '#722ed1',
-        applicableNoteCategories: ['teaching_design'],
+        applicableNoteCategories: ['teaching_design', 'classroom_integration'],
         menuConfig: {
           key: 'sticker-materials',
           title: '贴纸素材',
@@ -755,7 +755,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         description: '将文本转为数字人朗读视频，支持角色与语速选择',
         icon: '🧑‍🎤',
         color: '#fa8c16',
-        applicableNoteCategories: ['teaching_design'],
+        applicableNoteCategories: ['teaching_design', 'classroom_integration'],
         menuConfig: {
           key: 'digital-human-speech',
           title: '数字人说话',
@@ -770,7 +770,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         description: '生成教学连环画分镜与画面，支持台词与镜头',
         icon: '🎞️',
         color: '#13c2c2',
-        applicableNoteCategories: ['teaching_design'],
+        applicableNoteCategories: ['teaching_design', 'classroom_integration'],
         menuConfig: {
           key: 'comic-strip',
           title: '连环画',
@@ -785,7 +785,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         description: '快速生成教学活动与素材方案，适合备课速成',
         icon: '速',
         color: '#1890ff',
-        applicableNoteCategories: ['teaching_design'],
+        applicableNoteCategories: ['teaching_design', 'classroom_integration'],
         menuConfig: {
           key: 'quick-designer',
           title: '快速设计师',
@@ -800,7 +800,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         description: '生成儿童风格简笔画教程图片与步骤说明',
         icon: '🖍️',
         color: '#40a9ff',
-        applicableNoteCategories: ['teaching_design'],
+        applicableNoteCategories: ['teaching_design', 'classroom_integration'],
         menuConfig: {
           key: 'children-simple-drawings',
           title: '儿童简笔画',
@@ -815,7 +815,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         description: '根据脚本与素材生成课堂视频，支持字幕与配音',
         icon: '🎬',
         color: '#fa8c16',
-        applicableNoteCategories: ['teaching_design'],
+        applicableNoteCategories: ['teaching_design', 'classroom_integration'],
         menuConfig: {
           key: 'ai-video',
           title: 'AI视频',
@@ -830,7 +830,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         description: '根据课程结构自动生成PPT课件大纲与页面',
         icon: '📊',
         color: '#fa8c16',
-        applicableNoteCategories: ['teaching_design'],
+        applicableNoteCategories: ['teaching_design', 'classroom_integration'],
         menuConfig: {
           key: 'ppt-courseware',
           title: 'PPT课件',
@@ -845,7 +845,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         description: '支持音视频转文本与文本生成语音，适配课堂素材',
         icon: '🔄',
         color: '#13c2c2',
-        applicableNoteCategories: ['teaching_design'],
+        applicableNoteCategories: ['teaching_design', 'classroom_integration'],
         menuConfig: {
           key: 'audio-video-text-converter',
           title: '音视频文本互转',
@@ -1514,6 +1514,12 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         return tool.applicableNoteCategories.includes(noteCategory);
       });
     }
+
+    // 过滤掉已在面板可见的工具，避免重复添加
+    availableTools = availableTools.filter(tool => {
+      const key = tool.menuConfig?.key;
+      return key ? !visibleCards.some(card => card.key === key) : true;
+    });
     
     console.log('=== getAvailableAITools 调试信息 ===');
     console.log('当前 noteCategory:', noteCategory);

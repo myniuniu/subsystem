@@ -815,6 +815,7 @@ ${timelineData.map(note => {
         notes={notes}
         categories={noteCategories}
         tags={tags}
+        noteCategory={selectedCategory}
       />
     </div>
   );

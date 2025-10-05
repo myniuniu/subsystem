@@ -197,7 +197,7 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       features: ['作业类型建议', '分层与个性化', '评分与反馈模板'],
       usage: '输入单元主题与学生差异，生成分层作业与评价建议'
     },
-    // 作业中心（课后作业系统）
+    // 作业中心（课后作业）
     {
       id: 'homework-center',
       name: '作业中心',
@@ -208,7 +208,7 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       version: 'v1.0.0',
       rating: 4.8,
       downloads: 12580,
-      tags: ['作业', '布置', '批改', '分析', '课后作业系统'],
+      tags: ['作业', '布置', '批改', '分析', '课后作业'],
       icon: '📘',
       color: '#1890ff',
       featured: true,
@@ -701,7 +701,7 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       icon: '单',
       color: '#0958d9',
       featured: true,
-      applicableNoteCategories: ['teaching_design'],
+      applicableNoteCategories: ['teaching_design', 'classroom_integration'],
       menuConfig: { key: 'unit-academic-case', title: '单元学历案', icon: '单', gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)', color: '#0958d9' },
       features: ['环节目标', '活动任务', '评价要点'],
       usage: '输入单元主题，生成结构化学历案'
@@ -720,7 +720,7 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       icon: '📖',
       color: '#fa8c16',
       featured: true,
-      applicableNoteCategories: ['teaching_design'],
+      applicableNoteCategories: ['teaching_design', 'classroom_integration'],
       menuConfig: { key: 'ai-picture-book', title: 'AI绘本', icon: '📖', gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)', color: '#fa8c16' },
       features: ['分镜生成', '配图', '旁白脚本'],
       usage: '输入主题与故事梗概，生成教学绘本'
@@ -739,7 +739,7 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       icon: '☁️',
       color: '#40a9ff',
       featured: true,
-      applicableNoteCategories: ['teaching_design'],
+      applicableNoteCategories: ['teaching_design', 'classroom_integration'],
       menuConfig: { key: 'cloud-word-cards', title: '云朵字卡', icon: '☁️', gradient: 'linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%)', color: '#40a9ff' },
       features: ['字卡生成', '例句', '练习题'],
       usage: '输入词语列表，生成字卡并附带练习'
@@ -758,7 +758,7 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       icon: '🎯',
       color: '#722ed1',
       featured: true,
-      applicableNoteCategories: ['teaching_design'],
+      applicableNoteCategories: ['teaching_design', 'classroom_integration'],
       menuConfig: { key: 'sticker-materials', title: '贴纸素材', icon: '🎯', gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)', color: '#722ed1' },
       features: ['图标库', '贴纸生成', '下载导出'],
       usage: '选择风格与主题，生成课堂贴纸素材'
@@ -777,7 +777,7 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       icon: '🧑‍🎤',
       color: '#fa8c16',
       featured: true,
-      applicableNoteCategories: ['teaching_design'],
+      applicableNoteCategories: ['teaching_design', 'classroom_integration'],
       menuConfig: { key: 'digital-human-speech', title: '数字人说话', icon: '🧑‍🎤', gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)', color: '#fa8c16' },
       features: ['角色选择', '语速控制', '字幕生成'],
       usage: '输入讲解文本，生成数字人讲解视频'
@@ -796,7 +796,7 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       icon: '🎞️',
       color: '#13c2c2',
       featured: true,
-      applicableNoteCategories: ['teaching_design'],
+      applicableNoteCategories: ['teaching_design', 'classroom_integration'],
       menuConfig: { key: 'comic-strip', title: '连环画', icon: '🎞️', gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)', color: '#13c2c2' },
       features: ['分镜脚本', '画面生成', '台词自动化'],
       usage: '输入主题故事，生成连环画分镜与画面'
@@ -815,7 +815,7 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       icon: '速',
       color: '#1890ff',
       featured: true,
-      applicableNoteCategories: ['teaching_design'],
+      applicableNoteCategories: ['teaching_design', 'classroom_integration'],
       menuConfig: { key: 'quick-designer', title: '快速设计师', icon: '速', gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)', color: '#1890ff' },
       features: ['活动模板', '素材清单', '时间规划'],
       usage: '选择场景，生成可执行的活动与素材方案'
@@ -834,7 +834,7 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       icon: '🖍️',
       color: '#40a9ff',
       featured: true,
-      applicableNoteCategories: ['teaching_design'],
+      applicableNoteCategories: ['teaching_design', 'classroom_integration'],
       menuConfig: { key: 'children-simple-drawings', title: '儿童简笔画', icon: '🖍️', gradient: 'linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%)', color: '#40a9ff' },
       features: ['步骤图', '练习稿', '素材包'],
       usage: '输入主题或对象，生成简笔画教程'
@@ -853,7 +853,7 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       icon: '🎬',
       color: '#fa8c16',
       featured: true,
-      applicableNoteCategories: ['teaching_design'],
+      applicableNoteCategories: ['teaching_design', 'classroom_integration'],
       menuConfig: { key: 'ai-video', title: 'AI视频', icon: '🎬', gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)', color: '#fa8c16' },
       features: ['脚本到视频', '字幕自动', '配音合成'],
       usage: '输入讲解脚本与素材，生成课堂视频'
@@ -872,7 +872,7 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       icon: '📊',
       color: '#fa8c16',
       featured: true,
-      applicableNoteCategories: ['teaching_design'],
+      applicableNoteCategories: ['teaching_design', 'classroom_integration'],
       menuConfig: { key: 'ppt-courseware', title: 'PPT课件', icon: '📊', gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)', color: '#fa8c16' },
       features: ['课件大纲', '页面生成', '图片建议'],
       usage: '输入课程目标与结构，生成PPT课件'
@@ -891,7 +891,7 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       icon: '🔄',
       color: '#13c2c2',
       featured: true,
-      applicableNoteCategories: ['teaching_design'],
+      applicableNoteCategories: ['teaching_design', 'classroom_integration'],
       menuConfig: { key: 'audio-video-text-converter', title: '音视频文本互转', icon: '🔄', gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)', color: '#13c2c2' },
       features: ['音视频转写', '文本转语音', '字幕导出'],
       usage: '上传音频/视频或输入文本，进行互转处理'
@@ -1495,8 +1495,27 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
       console.log('getFilteredToolsByNoteCategory - 教学设计分类，过滤后的工具:', filtered);
       return filtered;
     }
+
+    // 特殊处理：课堂融合分类仅显示课堂融合相关工具
+    if (category === 'classroom_integration') {
+      const ids = [
+        'ai-picture-book',
+        'cloud-word-cards',
+        'sticker-materials',
+        'digital-human-speech',
+        'comic-strip',
+        'quick-designer',
+        'children-simple-drawings',
+        'ai-video',
+        'ppt-courseware',
+        'audio-video-text-converter'
+      ];
+      const filtered = tools.filter(tool => ids.includes(tool.id));
+      console.log('getFilteredToolsByNoteCategory - 课堂融合分类，过滤后的工具:', filtered);
+      return filtered;
+    }
     
-    // 特殊处理：课后作业系统分类显示作业相关工具
+// 特殊处理：课后作业分类显示作业相关工具
     if (category === 'homework_system') {
       const ids = [
         'homework-center',

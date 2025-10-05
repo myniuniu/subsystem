@@ -693,6 +693,276 @@ class MockDataGenerator {
         updatedAt: new Date('2024-01-23')
       }
     ];
+
+    // 学情分析笔记数据（5条）
+    this.learningAnalyticsNotes = [
+      {
+        id: generateId(),
+        title: '学情分析概览与指标体系',
+        content: '# 学情分析概览\n\n- 指标：出勤、作业完成率、测验成绩、互动参与\n- 数据源：学习平台日志、作业系统、测评系统\n- 目的：识别学习困难与干预建议',
+        category: 'learning_analytics',
+        tags: ['学情分析', '数据指标', '学习行为'],
+        starred: true,
+        createdAt: new Date('2024-02-01'),
+        updatedAt: new Date('2024-02-02')
+      },
+      {
+        id: generateId(),
+        title: '作业数据驱动的学习预警',
+        content: '# 作业数据驱动的学习预警\n\n- 规则：迟交/未交次数、错误率阈值\n- 方法：周度趋势与离群点识别\n- 应用：及时反馈与个性化辅导',
+        category: 'learning_analytics',
+        tags: ['作业数据', '学习预警', '个性化辅导'],
+        starred: false,
+        createdAt: new Date('2024-02-05'),
+        updatedAt: new Date('2024-02-06')
+      },
+      {
+        id: generateId(),
+        title: '课堂互动行为分析方法',
+        content: '# 课堂互动行为分析\n\n- 指标：问答次数、讨论参与、举手与投票\n- 工具：课堂互动系统日志\n- 输出：互动热力图与改进建议',
+        category: 'learning_analytics',
+        tags: ['课堂互动', '行为分析', '教学改进'],
+        starred: false,
+        createdAt: new Date('2024-02-10'),
+        updatedAt: new Date('2024-02-11')
+      },
+      {
+        id: generateId(),
+        title: '测评结果分层诊断',
+        content: '# 测评结果分层诊断\n\n- 维度：知识点掌握、解题步骤、时间利用\n- 报告：分层诊断与补救路径\n- 追踪：学习目标达成度',
+        category: 'learning_analytics',
+        tags: ['测评分析', '分层诊断', '学习目标'],
+        starred: true,
+        createdAt: new Date('2024-02-15'),
+        updatedAt: new Date('2024-02-16')
+      },
+      {
+        id: generateId(),
+        title: '学习画像与推荐策略',
+        content: '# 学习画像与推荐\n\n- 画像：学习风格、学习节奏、兴趣点\n- 策略：资源与任务推荐\n- 效果：学习动机与成绩提升',
+        category: 'learning_analytics',
+        tags: ['学习画像', '资源推荐', '学习动机'],
+        starred: false,
+        createdAt: new Date('2024-02-18'),
+        updatedAt: new Date('2024-02-18')
+      }
+    ];
+
+    // 教育课题笔记数据（5条）
+    this.educationalTopicsNotes = [
+      {
+        id: generateId(),
+        title: '核心素养导向的课程建设研究',
+        content: '# 核心素养导向的课程建设\n\n- 目标：培养关键能力与学科思维\n- 方法：项目化学习与跨学科融合\n- 评价：过程性与表现性评价',
+        category: 'educational_topics',
+        tags: ['教育课题', '核心素养', '课程建设'],
+        starred: true,
+        createdAt: new Date('2024-01-28'),
+        updatedAt: new Date('2024-01-29')
+      },
+      {
+        id: generateId(),
+        title: '信息技术支持下的教学创新',
+        content: '# 信息技术支持教学创新\n\n- 工具：交互白板、学习平台、AI助手\n- 模式：混合式学习与翻转课堂\n- 效果：参与度与学习成效提升',
+        category: 'educational_topics',
+        tags: ['教育课题', '信息技术', '教学创新'],
+        starred: false,
+        createdAt: new Date('2024-02-03'),
+        updatedAt: new Date('2024-02-04')
+      },
+      {
+        id: generateId(),
+        title: '评价改革与形成性评价实践',
+        content: '# 评价改革与形成性评价\n\n- 工具：学习任务单与学习档案\n- 方法：同伴互评与自评\n- 追踪：学习过程证据',
+        category: 'educational_topics',
+        tags: ['教育课题', '评价改革', '形成性评价'],
+        starred: false,
+        createdAt: new Date('2024-02-06'),
+        updatedAt: new Date('2024-02-06')
+      },
+      {
+        id: generateId(),
+        title: '课堂管理与学生发展支持',
+        content: '# 课堂管理与学生发展\n\n- 策略：积极课堂与规则共建\n- 支持：心理健康与学业辅导\n- 指标：秩序指数与完成率',
+        category: 'educational_topics',
+        tags: ['教育课题', '课堂管理', '学生发展'],
+        starred: true,
+        createdAt: new Date('2024-02-08'),
+        updatedAt: new Date('2024-02-09')
+      },
+      {
+        id: generateId(),
+        title: '家校社协同的育人机制',
+        content: '# 家校社协同育人\n\n- 机制：沟通平台与家校活动\n- 资源：社区与企业参与\n- 效果：育人共同体建设',
+        category: 'educational_topics',
+        tags: ['教育课题', '家校社协同', '育人机制'],
+        starred: false,
+        createdAt: new Date('2024-02-12'),
+        updatedAt: new Date('2024-02-12')
+      }
+    ];
+
+    // 课堂融合笔记数据（5条）
+    this.classroomIntegrationNotes = [
+      {
+        id: generateId(),
+        title: '技术与课程的深度融合',
+        content: '# 技术与课程融合\n\n- 路径：目标-活动-评价对齐\n- 支撑：微课、交互题、课堂投票\n- 案例：算法课互动练习',
+        category: 'classroom_integration',
+        tags: ['课堂融合', '技术整合', '互动教学'],
+        starred: true,
+        createdAt: new Date('2024-02-01'),
+        updatedAt: new Date('2024-02-01')
+      },
+      {
+        id: generateId(),
+        title: '多模态资源助力课堂',
+        content: '# 多模态资源助力课堂\n\n- 资源：文本、图片、音频、视频\n- 设计：入口任务与分层练习\n- 评估：课堂表现与作业质量',
+        category: 'classroom_integration',
+        tags: ['课堂融合', '多模态', '资源设计'],
+        starred: false,
+        createdAt: new Date('2024-02-04'),
+        updatedAt: new Date('2024-02-04')
+      },
+      {
+        id: generateId(),
+        title: '互动策略与学生参与度提升',
+        content: '# 互动策略与参与度\n\n- 策略：提问、讨论、同伴互助\n- 工具：互动平台与分组任务\n- 指标：参与率与任务完成度',
+        category: 'classroom_integration',
+        tags: ['课堂融合', '参与度', '互动策略'],
+        starred: false,
+        createdAt: new Date('2024-02-07'),
+        updatedAt: new Date('2024-02-08')
+      },
+      {
+        id: generateId(),
+        title: '课堂即时反馈与调整',
+        content: '# 课堂即时反馈与调整\n\n- 手段：小测与问答\n- 数据：错误率与掌握度\n- 决策：节奏与难度微调',
+        category: 'classroom_integration',
+        tags: ['课堂融合', '即时反馈', '教学调整'],
+        starred: true,
+        createdAt: new Date('2024-02-10'),
+        updatedAt: new Date('2024-02-11')
+      },
+      {
+        id: generateId(),
+        title: '线上线下混合式课堂实践',
+        content: '# 混合式课堂实践\n\n- 模式：线上预习+线下探究\n- 工具：学习平台与课堂互动\n- 成效：学习效率与满意度',
+        category: 'classroom_integration',
+        tags: ['课堂融合', '混合式学习', '课堂实践'],
+        starred: false,
+        createdAt: new Date('2024-02-13'),
+        updatedAt: new Date('2024-02-13')
+      }
+    ];
+
+    // 教学设计笔记数据（5条）
+    this.teachingDesignNotes = [
+      {
+        id: generateId(),
+        title: '教学目标分解与达成度设计',
+        content: '# 教学目标分解\n\n- 目标：知识、技能、态度\n- 方法：可观察与可测量\n- 评估：达成度量表',
+        category: 'teaching_design',
+        tags: ['教学设计', '教学目标', '达成度'],
+        starred: true,
+        createdAt: new Date('2024-01-26'),
+        updatedAt: new Date('2024-01-27')
+      },
+      {
+        id: generateId(),
+        title: '任务驱动的课堂活动编排',
+        content: '# 任务驱动活动编排\n\n- 结构：导入-探究-应用-总结\n- 支撑：案例与情境任务\n- 差异：分层任务与支架',
+        category: 'teaching_design',
+        tags: ['教学设计', '任务驱动', '课堂活动'],
+        starred: false,
+        createdAt: new Date('2024-01-30'),
+        updatedAt: new Date('2024-01-31')
+      },
+      {
+        id: generateId(),
+        title: '评价设计与证据收集',
+        content: '# 评价设计与证据\n\n- 工具：学习单与表现任务\n- 证据：过程记录与作品\n- 汇总：学习档案与报告',
+        category: 'teaching_design',
+        tags: ['教学设计', '评价设计', '学习档案'],
+        starred: false,
+        createdAt: new Date('2024-02-02'),
+        updatedAt: new Date('2024-02-03')
+      },
+      {
+        id: generateId(),
+        title: '资源设计与微课制作要点',
+        content: '# 资源与微课制作要点\n\n- 原则：短小精悍与明确目标\n- 工具：PPT、录屏、交互题\n- 发布：平台与班级',
+        category: 'teaching_design',
+        tags: ['教学设计', '资源设计', '微课'],
+        starred: true,
+        createdAt: new Date('2024-02-06'),
+        updatedAt: new Date('2024-02-06')
+      },
+      {
+        id: generateId(),
+        title: '课堂流程与时间管理',
+        content: '# 课堂流程与时间管理\n\n- 比例：讲解/互动/练习\n- 管理：节奏控制与过渡\n- 记录：课堂事件与反思',
+        category: 'teaching_design',
+        tags: ['教学设计', '课堂流程', '时间管理'],
+        starred: false,
+        createdAt: new Date('2024-02-08'),
+        updatedAt: new Date('2024-02-09')
+      }
+    ];
+
+    // 课后作业笔记数据（5条）
+    this.homeworkSystemNotes = [
+      {
+        id: generateId(),
+        title: '作业中心使用流程与模板',
+        content: '# 作业中心流程与模板\n\n- 流程：设计-布置-收集-批改-分析\n- 模板：知识点、层级难度、评价标准\n- 输出：成绩与学情报告',
+        category: 'homework_system',
+        tags: ['课后作业', '作业中心', '流程设计'],
+        starred: true,
+        createdAt: new Date('2024-01-25'),
+        updatedAt: new Date('2024-01-26')
+      },
+      {
+        id: generateId(),
+        title: '分层作业与差异化评价',
+        content: '# 分层作业与差异化\n\n- 设计：基础/提升/挑战\n- 评价：过程与结果并重\n- 反馈：个性化评语',
+        category: 'homework_system',
+        tags: ['课后作业', '分层作业', '差异化评价'],
+        starred: false,
+        createdAt: new Date('2024-01-28'),
+        updatedAt: new Date('2024-01-29')
+      },
+      {
+        id: generateId(),
+        title: '智能批改策略与题库建设',
+        content: '# 智能批改与题库\n\n- 批改：自动判分与要点提示\n- 题库：知识点映射与解析\n- 质量：难度与区分度控制',
+        category: 'homework_system',
+        tags: ['课后作业', '智能批改', '题库建设'],
+        starred: false,
+        createdAt: new Date('2024-02-01'),
+        updatedAt: new Date('2024-02-02')
+      },
+      {
+        id: generateId(),
+        title: '作业数据分析与学情报告',
+        content: '# 作业数据与学情报告\n\n- 指标：提交率、正确率、滞后率\n- 可视化：趋势与分布图\n- 应用：教学调整与个辅',
+        category: 'homework_system',
+        tags: ['课后作业', '数据分析', '学情报告'],
+        starred: true,
+        createdAt: new Date('2024-02-04'),
+        updatedAt: new Date('2024-02-05')
+      },
+      {
+        id: generateId(),
+        title: '作业与课堂活动的闭环设计',
+        content: '# 作业-课堂闭环\n\n- 对齐：目标-活动-作业-评价\n- 追踪：知识点掌握与迁移\n- 改进：迭代优化与复盘',
+        category: 'homework_system',
+        tags: ['课后作业', '课堂闭环', '教学设计'],
+        starred: false,
+        createdAt: new Date('2024-02-07'),
+        updatedAt: new Date('2024-02-07')
+      }
+    ];
   }
 
   // 生成所有模拟数据
@@ -751,7 +1021,12 @@ class MockDataGenerator {
       ...this.teachingResearchOfficeNotes, // 添加教研室笔记
       ...this.organizationalTrainingNotes, // 添加组织培训笔记
       ...this.trainingNeedsManagementNotes, // 添加培训需求管理笔记
-      ...this.trainingProductDevelopmentNotes // 添加培训产品研发笔记
+      ...this.trainingProductDevelopmentNotes, // 添加培训产品研发笔记
+      ...this.learningAnalyticsNotes, // 添加学情分析笔记
+      ...this.educationalTopicsNotes, // 添加教育课题笔记
+      ...this.classroomIntegrationNotes, // 添加课堂融合笔记
+      ...this.teachingDesignNotes, // 添加教学设计笔记
+      ...this.homeworkSystemNotes // 添加课后作业笔记
     ];
 
     for (const note of allNotes) {
@@ -981,6 +1256,11 @@ class MockDataGenerator {
       organizationalTrainingNotes: this.organizationalTrainingNotes.length,
       trainingNeedsManagementNotes: this.trainingNeedsManagementNotes.length,
       trainingProductDevelopmentNotes: this.trainingProductDevelopmentNotes.length,
+      learningAnalyticsNotes: this.learningAnalyticsNotes.length,
+      educationalTopicsNotes: this.educationalTopicsNotes.length,
+      classroomIntegrationNotes: this.classroomIntegrationNotes.length,
+      teachingDesignNotes: this.teachingDesignNotes.length,
+      homeworkSystemNotes: this.homeworkSystemNotes.length,
       total:
         this.studyNotes.length +
         this.workNotes.length +
@@ -990,7 +1270,12 @@ class MockDataGenerator {
         this.teachingResearchOfficeNotes.length +
         this.organizationalTrainingNotes.length +
         this.trainingNeedsManagementNotes.length +
-        this.trainingProductDevelopmentNotes.length,
+        this.trainingProductDevelopmentNotes.length +
+        this.learningAnalyticsNotes.length +
+        this.educationalTopicsNotes.length +
+        this.classroomIntegrationNotes.length +
+        this.teachingDesignNotes.length +
+        this.homeworkSystemNotes.length,
       count:
         this.studyNotes.length +
         this.workNotes.length +
@@ -1000,7 +1285,12 @@ class MockDataGenerator {
         this.teachingResearchOfficeNotes.length +
         this.organizationalTrainingNotes.length +
         this.trainingNeedsManagementNotes.length +
-        this.trainingProductDevelopmentNotes.length
+        this.trainingProductDevelopmentNotes.length +
+        this.learningAnalyticsNotes.length +
+        this.educationalTopicsNotes.length +
+        this.classroomIntegrationNotes.length +
+        this.teachingDesignNotes.length +
+        this.homeworkSystemNotes.length
     };
   }
 

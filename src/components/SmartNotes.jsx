@@ -162,9 +162,10 @@ const SmartNotes = ({ onViewChange }) => {
     { value: 'meeting', label: '会议记录', icon: '🤝', type: 'system' },
     { value: 'learning_analytics', label: '学情分析', icon: '📈', type: 'system' },
     { value: 'educational_topics', label: '教育课题', icon: '📑', type: 'system' },
+    { value: 'classroom_integration', label: '课堂融合', icon: '🧩', type: 'system' },
     { value: 'learning_square', label: '学习广场', icon: '🎓', type: 'system' },
     { value: 'teaching_design', label: '教学设计', icon: '🎯', type: 'system' },
-    { value: 'homework_system', label: '课后作业系统', icon: '📘', type: 'system' },
+    { value: 'homework_system', label: '课后作业', icon: '📘', type: 'system' },
     { value: 'teaching_research_office', label: '教研室', icon: '🏫', type: 'system' },
     { value: 'training_needs_management', label: '培训需求管理', icon: '📋', type: 'system' },
     { value: 'training_product_development', label: '培训产品研发', icon: '🚀', type: 'system' },
@@ -305,9 +306,9 @@ const SmartNotes = ({ onViewChange }) => {
       } else if (selectedCategory === 'homework_system') {
         filtered = filtered.filter(note => 
           note.category === 'homework_system' ||
-          note.tags?.includes('课后作业系统') ||
+          note.tags?.includes('课后作业') ||
           note.tags?.includes('作业') ||
-          note.source === '课后作业系统'
+          note.source === '课后作业'
         );
       } else if (selectedCategory === 'teaching_design') {
         filtered = filtered.filter(note => 
@@ -597,6 +598,7 @@ const SmartNotes = ({ onViewChange }) => {
         destroyOnHidden
       >
         <NoteCreateModal
+          noteCategory={selectedCategory}
           onClose={() => setShowCreateModal(false)}
           onCreate={(noteData) => {
             setShowCreateModal(false);

@@ -900,6 +900,109 @@ export const useOperationPanelState = (noteCategory = null) => {
       return educationalCards;
     }
 
+    // 如果是课堂融合分类，默认仅显示课堂融合相关智能工具（不注入全局存储）
+    if (category === 'classroom_integration') {
+      const classroomIntegrationToolIds = [
+        'ai-picture-book',
+        'cloud-word-cards',
+        'sticker-materials',
+        'digital-human-speech',
+        'comic-strip',
+        'quick-designer',
+        'children-simple-drawings',
+        'ai-video',
+        'audio-video-text-converter',
+        'ppt-courseware'
+      ];
+
+      const defaultConfigs = {
+        'ai-picture-book': {
+          key: 'ai-picture-book',
+          title: 'AI绘本',
+          icon: '📖',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        },
+        'cloud-word-cards': {
+          key: 'cloud-word-cards',
+          title: '云朵字卡',
+          icon: '☁️',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%)',
+          color: '#40a9ff'
+        },
+        'sticker-materials': {
+          key: 'sticker-materials',
+          title: '贴纸素材',
+          icon: '🎯',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#722ed1'
+        },
+        'digital-human-speech': {
+          key: 'digital-human-speech',
+          title: '数字人讲课',
+          icon: '🧑‍🎤',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        },
+        'comic-strip': {
+          key: 'comic-strip',
+          title: '连环画',
+          icon: '🎞️',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        },
+        'quick-designer': {
+          key: 'quick-designer',
+          title: '快手设计师',
+          icon: '速',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
+        },
+        'children-simple-drawings': {
+          key: 'children-simple-drawings',
+          title: '儿童简笔画',
+          icon: '🖍️',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%)',
+          color: '#40a9ff'
+        },
+        'ai-video': {
+          key: 'ai-video',
+          title: 'AI视频',
+          icon: '🎬',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        },
+        'audio-video-text-converter': {
+          key: 'audio-video-text-converter',
+          title: '音视频文本互转',
+          icon: '🔄',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        },
+        'ppt-courseware': {
+          key: 'ppt-courseware',
+          title: 'PPT课件',
+          icon: '📊',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        }
+      };
+
+      const integrationCards = classroomIntegrationToolIds
+        .map(id => defaultConfigs[id])
+        .filter(Boolean)
+        .map(config => ({
+          key: config.key,
+          title: config.title,
+          icon: config.icon,
+          gradient: config.gradient,
+          color: config.color,
+          isAITool: true
+        }));
+
+      console.log('课堂融合分类，返回的卡片:', integrationCards);
+      return integrationCards;
+    }
     // 其他分类返回所有工具（保持原有逻辑）
     const defaultCards = OPERATION_CARDS.filter(card => card.key !== 'addTool');
     
