@@ -777,6 +777,129 @@ export const useOperationPanelState = (noteCategory = null) => {
       return learningCards;
     }
 
+    // 如果是教育课题分类，默认仅显示教育课题相关智能工具（不注入全局存储）
+    if (category === 'educational_topics') {
+      const educationalTopicToolIds = [
+        // 课题申报
+        'topic-selection-recommendation',
+        'topic-selection-evaluation',
+        'topic-application-guidance',
+        'topic-subdivision-guidance',
+        // 课题研究
+        'topic-technical-roadmap',
+        'opening-report-guidance',
+        'midterm-report-guidance',
+        'final-report-guidance',
+        'topic-paper-guidance',
+        // 教学成果奖
+        'teaching-achievement-application',
+        'teaching-achievement-report',
+        'teaching-achievement-materials'
+      ];
+
+      const defaultConfigs = {
+        'topic-selection-recommendation': {
+          key: 'topic-selection-recommendation',
+          title: '课题选题推荐',
+          icon: '荐',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1677ff'
+        },
+        'topic-selection-evaluation': {
+          key: 'topic-selection-evaluation',
+          title: '课题选题评估',
+          icon: '评',
+          gradient: 'linear-gradient(135deg, #f0f5ff 0%, #d6e4ff 100%)',
+          color: '#2f54eb'
+        },
+        'topic-application-guidance': {
+          key: 'topic-application-guidance',
+          title: '课题申报指导',
+          icon: '申',
+          gradient: 'linear-gradient(135deg, #fff1f0 0%, #ffccc7 100%)',
+          color: '#f5222d'
+        },
+        'topic-subdivision-guidance': {
+          key: 'topic-subdivision-guidance',
+          title: '课题细分指导',
+          icon: '细',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        },
+        'topic-technical-roadmap': {
+          key: 'topic-technical-roadmap',
+          title: '课题技术路线图',
+          icon: '图',
+          gradient: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
+          color: '#389e0d'
+        },
+        'opening-report-guidance': {
+          key: 'opening-report-guidance',
+          title: '开题报告指导',
+          icon: '开',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        },
+        'midterm-report-guidance': {
+          key: 'midterm-report-guidance',
+          title: '中期报告指导',
+          icon: '中',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#722ed1'
+        },
+        'final-report-guidance': {
+          key: 'final-report-guidance',
+          title: '结题报告指导',
+          icon: '结',
+          gradient: 'linear-gradient(135deg, #fffbe6 0%, #fff1b8 100%)',
+          color: '#d4b106'
+        },
+        'topic-paper-guidance': {
+          key: 'topic-paper-guidance',
+          title: '课题论文指导',
+          icon: '文',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1677ff'
+        },
+        'teaching-achievement-application': {
+          key: 'teaching-achievement-application',
+          title: '教学成果申报书',
+          icon: '申',
+          gradient: 'linear-gradient(135deg, #fff1f0 0%, #ffccc7 100%)',
+          color: '#f5222d'
+        },
+        'teaching-achievement-report': {
+          key: 'teaching-achievement-report',
+          title: '教学成果报告',
+          icon: '报',
+          gradient: 'linear-gradient(135deg, #f0f5ff 0%, #d6e4ff 100%)',
+          color: '#2f54eb'
+        },
+        'teaching-achievement-materials': {
+          key: 'teaching-achievement-materials',
+          title: '教学成果支撑材料',
+          icon: '材',
+          gradient: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
+          color: '#389e0d'
+        }
+      };
+
+      const educationalCards = educationalTopicToolIds
+        .map(id => defaultConfigs[id])
+        .filter(Boolean)
+        .map(config => ({
+          key: config.key,
+          title: config.title,
+          icon: config.icon,
+          gradient: config.gradient,
+          color: config.color,
+          isAITool: true
+        }));
+
+      console.log('教育课题分类，返回的卡片:', educationalCards);
+      return educationalCards;
+    }
+
     // 其他分类返回所有工具（保持原有逻辑）
     const defaultCards = OPERATION_CARDS.filter(card => card.key !== 'addTool');
     

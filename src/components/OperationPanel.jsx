@@ -356,6 +356,187 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
           color: '#2f54eb'
         }
       },
+      // 教育课题分类新增工具
+      {
+        id: 'topic-selection-recommendation',
+        name: '课题选题推荐',
+        description: '根据教师研究方向与资料，智能推荐课题选题',
+        icon: '荐',
+        color: '#1677ff',
+        applicableNoteCategories: ['educational_topics'],
+        menuConfig: {
+          key: 'topic-selection-recommendation',
+          title: '课题选题推荐',
+          icon: '荐',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1677ff'
+        }
+      },
+      {
+        id: 'topic-selection-evaluation',
+        name: '课题选题评估',
+        description: '评估课题选题的可行性、创新性与价值',
+        icon: '评',
+        color: '#2f54eb',
+        applicableNoteCategories: ['educational_topics'],
+        menuConfig: {
+          key: 'topic-selection-evaluation',
+          title: '课题选题评估',
+          icon: '评',
+          gradient: 'linear-gradient(135deg, #f0f5ff 0%, #d6e4ff 100%)',
+          color: '#2f54eb'
+        }
+      },
+      {
+        id: 'topic-application-guidance',
+        name: '课题申报指导',
+        description: '生成课题申报书结构与撰写建议',
+        icon: '申',
+        color: '#f5222d',
+        applicableNoteCategories: ['educational_topics'],
+        menuConfig: {
+          key: 'topic-application-guidance',
+          title: '课题申报指导',
+          icon: '申',
+          gradient: 'linear-gradient(135deg, #fff1f0 0%, #ffccc7 100%)',
+          color: '#f5222d'
+        }
+      },
+      {
+        id: 'topic-subdivision-guidance',
+        name: '课题细分指导',
+        description: '细化课题方向，明确研究问题与子任务',
+        icon: '细',
+        color: '#fa8c16',
+        applicableNoteCategories: ['educational_topics'],
+        menuConfig: {
+          key: 'topic-subdivision-guidance',
+          title: '课题细分指导',
+          icon: '细',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        }
+      },
+      {
+        id: 'topic-technical-roadmap',
+        name: '课题技术路线图',
+        description: '生成研究技术路线图，梳理方法与流程',
+        icon: '图',
+        color: '#389e0d',
+        applicableNoteCategories: ['educational_topics'],
+        menuConfig: {
+          key: 'topic-technical-roadmap',
+          title: '课题技术路线图',
+          icon: '图',
+          gradient: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
+          color: '#389e0d'
+        }
+      },
+      {
+        id: 'opening-report-guidance',
+        name: '开题报告指导',
+        description: '指导开题报告撰写，提供模板与示例',
+        icon: '开',
+        color: '#13c2c2',
+        applicableNoteCategories: ['educational_topics'],
+        menuConfig: {
+          key: 'opening-report-guidance',
+          title: '开题报告指导',
+          icon: '开',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        }
+      },
+      {
+        id: 'midterm-report-guidance',
+        name: '中期报告指导',
+        description: '生成中期报告框架并给出撰写建议',
+        icon: '中',
+        color: '#722ed1',
+        applicableNoteCategories: ['educational_topics'],
+        menuConfig: {
+          key: 'midterm-report-guidance',
+          title: '中期报告指导',
+          icon: '中',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#722ed1'
+        }
+      },
+      {
+        id: 'final-report-guidance',
+        name: '结题报告指导',
+        description: '生成结题报告结构与内容建议',
+        icon: '结',
+        color: '#d4b106',
+        applicableNoteCategories: ['educational_topics'],
+        menuConfig: {
+          key: 'final-report-guidance',
+          title: '结题报告指导',
+          icon: '结',
+          gradient: 'linear-gradient(135deg, #fffbe6 0%, #fff1b8 100%)',
+          color: '#d4b106'
+        }
+      },
+      {
+        id: 'topic-paper-guidance',
+        name: '课题论文指导',
+        description: '论文选题、结构、方法与写作建议',
+        icon: '文',
+        color: '#1677ff',
+        applicableNoteCategories: ['educational_topics'],
+        menuConfig: {
+          key: 'topic-paper-guidance',
+          title: '课题论文指导',
+          icon: '文',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1677ff'
+        }
+      },
+      {
+        id: 'teaching-achievement-application',
+        name: '教学成果申报书',
+        description: '教学成果奖申报书模板与智能生成',
+        icon: '申',
+        color: '#f5222d',
+        applicableNoteCategories: ['educational_topics'],
+        menuConfig: {
+          key: 'teaching-achievement-application',
+          title: '教学成果申报书',
+          icon: '申',
+          gradient: 'linear-gradient(135deg, #fff1f0 0%, #ffccc7 100%)',
+          color: '#f5222d'
+        }
+      },
+      {
+        id: 'teaching-achievement-report',
+        name: '教学成果报告',
+        description: '生成教学成果总结与展示报告',
+        icon: '报',
+        color: '#2f54eb',
+        applicableNoteCategories: ['educational_topics'],
+        menuConfig: {
+          key: 'teaching-achievement-report',
+          title: '教学成果报告',
+          icon: '报',
+          gradient: 'linear-gradient(135deg, #f0f5ff 0%, #d6e4ff 100%)',
+          color: '#2f54eb'
+        }
+      },
+      {
+        id: 'teaching-achievement-materials',
+        name: '教学成果支撑材料',
+        description: '梳理并生成教学成果支撑材料清单与内容',
+        icon: '材',
+        color: '#389e0d',
+        applicableNoteCategories: ['educational_topics'],
+        menuConfig: {
+          key: 'teaching-achievement-materials',
+          title: '教学成果支撑材料',
+          icon: '材',
+          gradient: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
+          color: '#389e0d'
+        }
+      },
       // 教学设计分类适用工具
       {
         id: 'teaching-assistant',
