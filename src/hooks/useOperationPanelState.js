@@ -632,6 +632,151 @@ export const useOperationPanelState = (noteCategory = null) => {
       return teachingDesignCards;
     }
 
+    // 如果是学情分析分类，默认仅显示学情分析相关智能工具（不注入全局localStorage）
+    if (category === 'learning_analytics') {
+      const learningAnalyticsToolIds = [
+        // 班主任
+        'classmaster-performance-dashboard',
+        'classmaster-passline-analysis',
+        'classmaster-student-honesty-analysis',
+        'classmaster-class-exam-analysis',
+        // 学科老师
+        'subject-unit-small-tests',
+        'subject-exam-paper-analysis',
+        'subject-student-performance-analysis',
+        'subject-historical-exam-analysis',
+        // 年级组
+        'grade-multi-class-exam-analysis',
+        'grade-passline-analysis',
+        'grade-historical-exam-analysis',
+        // 联考分析（不同版本）
+        'league-exam-performance-analysis',
+        'league-exam-performance-plus',
+        'league-exam-performance-pro',
+        'league-exam-performance-ultra'
+      ];
+
+      const defaultConfigs = {
+        'classmaster-performance-dashboard': {
+          key: 'classmaster-performance-dashboard',
+          title: '成绩数据看板',
+          icon: '📈',
+          gradient: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
+          color: '#52c41a'
+        },
+        'classmaster-passline-analysis': {
+          key: 'classmaster-passline-analysis',
+          title: '高中新上线分析',
+          icon: '🎯',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        },
+        'classmaster-student-honesty-analysis': {
+          key: 'classmaster-student-honesty-analysis',
+          title: '学生诚卷分析',
+          icon: '🧭',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#9254de'
+        },
+        'classmaster-class-exam-analysis': {
+          key: 'classmaster-class-exam-analysis',
+          title: '班级考试分析',
+          icon: '📊',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
+        },
+        'subject-unit-small-tests': {
+          key: 'subject-unit-small-tests',
+          title: '单元小测分析',
+          icon: '🧪',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        },
+        'subject-exam-paper-analysis': {
+          key: 'subject-exam-paper-analysis',
+          title: '试卷学科分析',
+          icon: '📄',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#722ed1'
+        },
+        'subject-student-performance-analysis': {
+          key: 'subject-student-performance-analysis',
+          title: '学科薄弱生分析',
+          icon: '📉',
+          gradient: 'linear-gradient(135deg, #fff1f0 0%, #ffccc7 100%)',
+          color: '#f5222d'
+        },
+        'subject-historical-exam-analysis': {
+          key: 'subject-historical-exam-analysis',
+          title: '学科历次考试分析',
+          icon: '📊',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
+        },
+        'grade-multi-class-exam-analysis': {
+          key: 'grade-multi-class-exam-analysis',
+          title: '年级多班考试分析',
+          icon: '🏫',
+          gradient: 'linear-gradient(135deg, #f0f5ff 0%, #d6e4ff 100%)',
+          color: '#2f54eb'
+        },
+        'grade-passline-analysis': {
+          key: 'grade-passline-analysis',
+          title: '年级及科目过线分析',
+          icon: '📈',
+          gradient: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
+          color: '#52c41a'
+        },
+        'grade-historical-exam-analysis': {
+          key: 'grade-historical-exam-analysis',
+          title: '年级历次考试分析',
+          icon: '📊',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
+        },
+        'league-exam-performance-analysis': {
+          key: 'league-exam-performance-analysis',
+          title: '联考成绩分析',
+          icon: '🏆',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
+        },
+        'league-exam-performance-plus': {
+          key: 'league-exam-performance-plus',
+          title: '联考成绩分析Plus',
+          icon: '🏆',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        },
+        'league-exam-performance-pro': {
+          key: 'league-exam-performance-pro',
+          title: '联考成绩分析Pro',
+          icon: '🏆',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#722ed1'
+        },
+        'league-exam-performance-ultra': {
+          key: 'league-exam-performance-ultra',
+          title: '联考成绩分析Ultra',
+          icon: '🏆',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        }
+      };
+
+      const learningCards = learningAnalyticsToolIds.map(id => defaultConfigs[id]).filter(Boolean).map(config => ({
+        key: config.key,
+        title: config.title,
+        icon: config.icon,
+        gradient: config.gradient,
+        color: config.color,
+        isAITool: true
+      }));
+
+      console.log('学情分析分类，返回的卡片:', learningCards);
+      return learningCards;
+    }
+
     // 其他分类返回所有工具（保持原有逻辑）
     const defaultCards = OPERATION_CARDS.filter(card => card.key !== 'addTool');
     

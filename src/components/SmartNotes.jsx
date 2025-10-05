@@ -160,6 +160,7 @@ const SmartNotes = ({ onViewChange }) => {
     { value: 'personal', label: '个人主题', icon: '👤', type: 'system' },
     { value: 'ideas', label: '想法灵感', icon: '💡', type: 'system' },
     { value: 'meeting', label: '会议记录', icon: '🤝', type: 'system' },
+    { value: 'learning_analytics', label: '学情分析', icon: '📈', type: 'system' },
     { value: 'learning_square', label: '学习广场', icon: '🎓', type: 'system' },
     { value: 'teaching_design', label: '教学设计', icon: '🎯', type: 'system' },
     { value: 'homework_system', label: '课后作业系统', icon: '📘', type: 'system' },

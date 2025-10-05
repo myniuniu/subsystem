@@ -719,6 +719,235 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
           color: '#1890ff'
         }
       },
+      // 学情分析 · 班主任
+      {
+        id: 'classmaster-performance-dashboard',
+        name: '成绩数据看板',
+        description: '接入成绩数据，大屏看板，聚焦班级成绩概览与趋势',
+        icon: '📈',
+        color: '#52c41a',
+        applicableNoteCategories: ['learning_analytics'],
+        menuConfig: {
+          key: 'classmaster-performance-dashboard',
+          title: '成绩数据看板',
+          icon: '📈',
+          gradient: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
+          color: '#52c41a'
+        }
+      },
+      {
+        id: 'classmaster-passline-analysis',
+        name: '高中新上线分析',
+        description: '分析高一至高三上线情况，输出分层比例与提升建议',
+        icon: '🎯',
+        color: '#13c2c2',
+        applicableNoteCategories: ['learning_analytics'],
+        menuConfig: {
+          key: 'classmaster-passline-analysis',
+          title: '高中新上线分析',
+          icon: '🎯',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        }
+      },
+      {
+        id: 'classmaster-student-honesty-analysis',
+        name: '学生诚卷分析',
+        description: '针对学生作弊风险与诚卷情况进行综合分析与识别',
+        icon: '🧭',
+        color: '#9254de',
+        applicableNoteCategories: ['learning_analytics'],
+        menuConfig: {
+          key: 'classmaster-student-honesty-analysis',
+          title: '学生诚卷分析',
+          icon: '🧭',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#9254de'
+        }
+      },
+      {
+        id: 'classmaster-class-exam-analysis',
+        name: '班级考试分析',
+        description: '分析单次或一段时期内班级考试的成绩结构与波动',
+        icon: '📊',
+        color: '#1890ff',
+        applicableNoteCategories: ['learning_analytics'],
+        menuConfig: {
+          key: 'classmaster-class-exam-analysis',
+          title: '班级考试分析',
+          icon: '📊',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
+        }
+      },
+      // 学情分析 · 学科老师
+      {
+        id: 'subject-unit-small-tests',
+        name: '单元小测分析',
+        description: '基于小测数据分析掌握度、失分点与教学改进建议',
+        icon: '🧪',
+        color: '#fa8c16',
+        applicableNoteCategories: ['learning_analytics'],
+        menuConfig: {
+          key: 'subject-unit-small-tests',
+          title: '单元小测分析',
+          icon: '🧪',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        }
+      },
+      {
+        id: 'subject-exam-paper-analysis',
+        name: '试卷学科分析',
+        description: '对试卷进行学科维度拆解，输出题型、知识点与难度分布',
+        icon: '📄',
+        color: '#722ed1',
+        applicableNoteCategories: ['learning_analytics'],
+        menuConfig: {
+          key: 'subject-exam-paper-analysis',
+          title: '试卷学科分析',
+          icon: '📄',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#722ed1'
+        }
+      },
+      {
+        id: 'subject-student-performance-analysis',
+        name: '学科薄弱生分析',
+        description: '识别学科薄弱学生，定位薄弱点并生成个性化提升建议',
+        icon: '📉',
+        color: '#f5222d',
+        applicableNoteCategories: ['learning_analytics'],
+        menuConfig: {
+          key: 'subject-student-performance-analysis',
+          title: '学科薄弱生分析',
+          icon: '📉',
+          gradient: 'linear-gradient(135deg, #fff1f0 0%, #ffccc7 100%)',
+          color: '#f5222d'
+        }
+      },
+      {
+        id: 'subject-historical-exam-analysis',
+        name: '学科历次考试分析',
+        description: '分析同一学科历次考试的成绩变化与影响因素',
+        icon: '📊',
+        color: '#1890ff',
+        applicableNoteCategories: ['learning_analytics'],
+        menuConfig: {
+          key: 'subject-historical-exam-analysis',
+          title: '学科历次考试分析',
+          icon: '📊',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
+        }
+      },
+      // 学情分析 · 年级组
+      {
+        id: 'grade-multi-class-exam-analysis',
+        name: '年级多班考试分析',
+        description: '对多个班级进行成绩对比，识别教学差异与改进方向',
+        icon: '🏫',
+        color: '#2f54eb',
+        applicableNoteCategories: ['learning_analytics'],
+        menuConfig: {
+          key: 'grade-multi-class-exam-analysis',
+          title: '年级多班考试分析',
+          icon: '🏫',
+          gradient: 'linear-gradient(135deg, #f0f5ff 0%, #d6e4ff 100%)',
+          color: '#2f54eb'
+        }
+      },
+      {
+        id: 'grade-passline-analysis',
+        name: '年级及科目过线分析',
+        description: '统计年级整体及各学科过线率，定位提升空间',
+        icon: '📈',
+        color: '#52c41a',
+        applicableNoteCategories: ['learning_analytics'],
+        menuConfig: {
+          key: 'grade-passline-analysis',
+          title: '年级及科目过线分析',
+          icon: '📈',
+          gradient: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
+          color: '#52c41a'
+        }
+      },
+      {
+        id: 'grade-historical-exam-analysis',
+        name: '年级历次考试分析',
+        description: '面向年级维度分析历次考试的综合表现与变化',
+        icon: '📊',
+        color: '#1890ff',
+        applicableNoteCategories: ['learning_analytics'],
+        menuConfig: {
+          key: 'grade-historical-exam-analysis',
+          title: '年级历次考试分析',
+          icon: '📊',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
+        }
+      },
+      // 学情分析 · 联考分析（不同版本）
+      {
+        id: 'league-exam-performance-analysis',
+        name: '联考成绩分析',
+        description: '支持多校联考数据分析，生成关键指标与对比洞察',
+        icon: '🏆',
+        color: '#1890ff',
+        applicableNoteCategories: ['learning_analytics'],
+        menuConfig: {
+          key: 'league-exam-performance-analysis',
+          title: '联考成绩分析',
+          icon: '🏆',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
+        }
+      },
+      {
+        id: 'league-exam-performance-plus',
+        name: '联考成绩分析Plus',
+        description: '支持样本数≥万人级别的深度联考分析版本',
+        icon: '🏆',
+        color: '#13c2c2',
+        applicableNoteCategories: ['learning_analytics'],
+        menuConfig: {
+          key: 'league-exam-performance-plus',
+          title: '联考成绩分析Plus',
+          icon: '🏆',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        }
+      },
+      {
+        id: 'league-exam-performance-pro',
+        name: '联考成绩分析Pro',
+        description: '针对样本数≥五万人的大型联考数据的专业版',
+        icon: '🏆',
+        color: '#722ed1',
+        applicableNoteCategories: ['learning_analytics'],
+        menuConfig: {
+          key: 'league-exam-performance-pro',
+          title: '联考成绩分析Pro',
+          icon: '🏆',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#722ed1'
+        }
+      },
+      {
+        id: 'league-exam-performance-ultra',
+        name: '联考成绩分析Ultra',
+        description: '面向样本数≥十万人级别联考数据的旗舰版',
+        icon: '🏆',
+        color: '#fa8c16',
+        applicableNoteCategories: ['learning_analytics'],
+        menuConfig: {
+          key: 'league-exam-performance-ultra',
+          title: '联考成绩分析Ultra',
+          icon: '🏆',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        }
+      },
       {
         id: 'grading-assistant',
         name: '智能阅卷助手',
