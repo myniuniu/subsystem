@@ -43,8 +43,8 @@ const ToolGrid = ({
         gap: '6px', 
         marginBottom: 8 
       }}>
-        {/* 渲染可见的工具 - 最多9个 */}
-        {visibleCards.slice(0, 9).map((card, index) => {
+        {/* 渲染可见的工具 - 最多18个 */}
+        {visibleCards.slice(0, 18).map((card, index) => {
           console.log(`渲染卡片 ${index}:`, card.key, card.title, card.isAITool ? '(AI工具)' : '(基础工具)');
           
           // 添加工具卡片不需要数据源限制
@@ -69,7 +69,7 @@ const ToolGrid = ({
         })}
         
         {/* 渲染空位的添加工具卡片（可隐藏） */}
-        {!hideEmptySlots && visibleCards.length < 9 && [...Array(9 - visibleCards.length)].map((_, index) => {
+        {!hideEmptySlots && visibleCards.length < 18 && [...Array(18 - visibleCards.length)].map((_, index) => {
           if (index === 0 && isEditMode) {
             // 第一个空位在编辑模式下显示"更多"按钮
             return (
@@ -244,7 +244,7 @@ const ToolGrid = ({
         })}
 
         {/* 在隐藏空位时，编辑模式下仍保留一个“更多”按钮 */}
-        {hideEmptySlots && isEditMode && visibleCards.length < 9 && (
+        {hideEmptySlots && isEditMode && visibleCards.length < 18 && (
           <Dropdown
             key={`empty-more`}
             menu={{

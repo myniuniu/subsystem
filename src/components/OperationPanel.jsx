@@ -347,7 +347,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         description: '将音视频内容转写为逐字稿，支持段落结构与说话人标注',
         icon: '稿',
         color: '#2f54eb',
-        applicableNoteCategories: ['teaching_research_office'],
+        applicableNoteCategories: ['teaching_research_office', 'teaching_design'],
         menuConfig: {
           key: 'verbatim-transcript',
           title: '逐字稿工具',
@@ -356,13 +356,29 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
           color: '#2f54eb'
         }
       },
+      // 教学设计分类适用工具
+      {
+        id: 'teaching-assistant',
+        name: '教学智能助手',
+        description: '支持课程设计、题目生成、学情分析的教学助手',
+        icon: '🎓',
+        color: '#fa8c16',
+        applicableNoteCategories: ['teaching_design'],
+        menuConfig: {
+          key: 'teaching-assistant',
+          title: '教学助手',
+          icon: '🎓',
+          gradient: 'linear-gradient(135deg, #fff3e0 0%, #ffcc80 100%)',
+          color: '#fa8c16'
+        }
+      },
       {
         id: 'large-unit-design',
         name: '大单元设计',
         description: '支持基于核心素养的大单元教学设计与目标任务分解',
         icon: '单',
         color: '#0958d9',
-        applicableNoteCategories: ['teaching_research_office'],
+        applicableNoteCategories: ['teaching_research_office', 'teaching_design'],
         menuConfig: {
           key: 'large-unit-design',
           title: '大单元设计',
@@ -377,7 +393,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         description: '围绕真实情境与综合任务进行跨学科项目化学习设计',
         icon: '跨',
         color: '#13c2c2',
-        applicableNoteCategories: ['teaching_research_office'],
+        applicableNoteCategories: ['teaching_research_office', 'teaching_design'],
         menuConfig: {
           key: 'interdisciplinary-design',
           title: '跨学科设计',
@@ -392,7 +408,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         description: '依据学习目标与内容设计分层作业与任务单',
         icon: '作',
         color: '#fa8c16',
-        applicableNoteCategories: ['teaching_research_office', 'homework_system'],
+        applicableNoteCategories: ['teaching_research_office', 'homework_system', 'teaching_design'],
         menuConfig: {
           key: 'unit-assignment-design',
           title: '单元作业设计',
@@ -429,6 +445,232 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
           icon: '研',
           gradient: 'linear-gradient(135deg, #fff1f0 0%, #ffccc7 100%)',
           color: '#f5222d'
+        }
+      },
+      // 教学设计分类新增（如图）
+      {
+        id: 'open-class-design',
+        name: '公开课设计',
+        description: '生成公开课流程、教案与课件要点，支持评课要素',
+        icon: '公',
+        color: '#1890ff',
+        applicableNoteCategories: ['teaching_design'],
+        menuConfig: {
+          key: 'open-class-design',
+          title: '公开课设计',
+          icon: '公',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
+        }
+      },
+      {
+        id: 'guided-learning-plan',
+        name: '导学案',
+        description: '按照学习目标与任务链生成导学案，支持分层与自评',
+        icon: '导',
+        color: '#fa8c16',
+        applicableNoteCategories: ['teaching_design'],
+        menuConfig: {
+          key: 'guided-learning-plan',
+          title: '导学案',
+          icon: '导',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        }
+      },
+      {
+        id: 'lesson-presentation',
+        name: '说课稿',
+        description: '生成说课稿结构与关键阐述，支持教学目标与方法说明',
+        icon: '说',
+        color: '#13c2c2',
+        applicableNoteCategories: ['teaching_design'],
+        menuConfig: {
+          key: 'lesson-presentation',
+          title: '说课稿',
+          icon: '说',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        }
+      },
+      {
+        id: 'evaluation-rubric',
+        name: '评价量规',
+        description: '根据目标维度生成可量化评价量规，支持等级描述与示例',
+        icon: '评',
+        color: '#531dab',
+        applicableNoteCategories: ['teaching_design'],
+        menuConfig: {
+          key: 'evaluation-rubric',
+          title: '评价量规',
+          icon: '评',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#531dab'
+        }
+      },
+      {
+        id: 'unit-academic-case',
+        name: '单元学历案',
+        description: '面向单元的学历案结构生成，包含环节目标与任务设计',
+        icon: '单',
+        color: '#0958d9',
+        applicableNoteCategories: ['teaching_design'],
+        menuConfig: {
+          key: 'unit-academic-case',
+          title: '单元学历案',
+          icon: '单',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#0958d9'
+        }
+      },
+      {
+        id: 'ai-picture-book',
+        name: 'AI绘本',
+        description: '基于文本与图片提示生成教学绘本，支持分镜与旁白',
+        icon: '📖',
+        color: '#fa8c16',
+        applicableNoteCategories: ['teaching_design'],
+        menuConfig: {
+          key: 'ai-picture-book',
+          title: 'AI绘本',
+          icon: '📖',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        }
+      },
+      {
+        id: 'cloud-word-cards',
+        name: '云朵字卡',
+        description: '快速生成云朵风格字卡，支持词语例句与练习任务',
+        icon: '☁️',
+        color: '#40a9ff',
+        applicableNoteCategories: ['teaching_design'],
+        menuConfig: {
+          key: 'cloud-word-cards',
+          title: '云朵字卡',
+          icon: '☁️',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%)',
+          color: '#40a9ff'
+        }
+      },
+      {
+        id: 'sticker-materials',
+        name: '贴纸素材',
+        description: '生成课堂贴纸与图标素材，用于教具或白板',
+        icon: '🎯',
+        color: '#722ed1',
+        applicableNoteCategories: ['teaching_design'],
+        menuConfig: {
+          key: 'sticker-materials',
+          title: '贴纸素材',
+          icon: '🎯',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#722ed1'
+        }
+      },
+      {
+        id: 'digital-human-speech',
+        name: '数字人说话',
+        description: '将文本转为数字人朗读视频，支持角色与语速选择',
+        icon: '🧑‍🎤',
+        color: '#fa8c16',
+        applicableNoteCategories: ['teaching_design'],
+        menuConfig: {
+          key: 'digital-human-speech',
+          title: '数字人说话',
+          icon: '🧑‍🎤',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        }
+      },
+      {
+        id: 'comic-strip',
+        name: '连环画',
+        description: '生成教学连环画分镜与画面，支持台词与镜头',
+        icon: '🎞️',
+        color: '#13c2c2',
+        applicableNoteCategories: ['teaching_design'],
+        menuConfig: {
+          key: 'comic-strip',
+          title: '连环画',
+          icon: '🎞️',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        }
+      },
+      {
+        id: 'quick-designer',
+        name: '快速设计师',
+        description: '快速生成教学活动与素材方案，适合备课速成',
+        icon: '速',
+        color: '#1890ff',
+        applicableNoteCategories: ['teaching_design'],
+        menuConfig: {
+          key: 'quick-designer',
+          title: '快速设计师',
+          icon: '速',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
+        }
+      },
+      {
+        id: 'children-simple-drawings',
+        name: '儿童简笔画',
+        description: '生成儿童风格简笔画教程图片与步骤说明',
+        icon: '🖍️',
+        color: '#40a9ff',
+        applicableNoteCategories: ['teaching_design'],
+        menuConfig: {
+          key: 'children-simple-drawings',
+          title: '儿童简笔画',
+          icon: '🖍️',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%)',
+          color: '#40a9ff'
+        }
+      },
+      {
+        id: 'ai-video',
+        name: 'AI视频',
+        description: '根据脚本与素材生成课堂视频，支持字幕与配音',
+        icon: '🎬',
+        color: '#fa8c16',
+        applicableNoteCategories: ['teaching_design'],
+        menuConfig: {
+          key: 'ai-video',
+          title: 'AI视频',
+          icon: '🎬',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        }
+      },
+      {
+        id: 'ppt-courseware',
+        name: 'PPT课件',
+        description: '根据课程结构自动生成PPT课件大纲与页面',
+        icon: '📊',
+        color: '#fa8c16',
+        applicableNoteCategories: ['teaching_design'],
+        menuConfig: {
+          key: 'ppt-courseware',
+          title: 'PPT课件',
+          icon: '📊',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        }
+      },
+      {
+        id: 'audio-video-text-converter',
+        name: '音视频文本互转',
+        description: '支持音视频转文本与文本生成语音，适配课堂素材',
+        icon: '🔄',
+        color: '#13c2c2',
+        applicableNoteCategories: ['teaching_design'],
+        menuConfig: {
+          key: 'audio-video-text-converter',
+          title: '音视频文本互转',
+          icon: '🔄',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
         }
       },
       {
@@ -855,12 +1097,12 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
     // 过滤掉已添加的AI工具，并根据noteCategory过滤适用的工具
     let availableTools = aiTools.filter(tool => !addedAITools.includes(tool.id));
     
-    // 如果有noteCategory，只显示适用于该分类的工具
+    // 如果有noteCategory，只显示适用于该分类的工具；无配置的直接隐藏
     if (noteCategory) {
-      availableTools = availableTools.filter(tool => 
-        !tool.applicableNoteCategories || 
-        tool.applicableNoteCategories.includes(noteCategory)
-      );
+      availableTools = availableTools.filter(tool => {
+        if (!tool.applicableNoteCategories) return false;
+        return tool.applicableNoteCategories.includes(noteCategory);
+      });
     }
     
     console.log('=== getAvailableAITools 调试信息 ===');
@@ -902,7 +1144,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
 
   // 处理添加AI工具
   const handleAddAITool = (tool) => {
-    if (visibleCards.length >= 9) {
+    if (visibleCards.length >= 18) {
       message.warning('工具栏已满，请先移除其他工具');
       return;
     }
@@ -951,11 +1193,11 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
   // 添加工具到可见列表
   const handleAddCard = (cardKey) => {
     const cardToAdd = OPERATION_CARDS.find(card => card.key === cardKey);
-    if (cardToAdd && !visibleCards.some(card => card.key === cardKey) && visibleCards.length < 9) {
+    if (cardToAdd && !visibleCards.some(card => card.key === cardKey) && visibleCards.length < 18) {
       setVisibleCards(prev => [...prev, cardToAdd]);
       message.success(`已添加${cardToAdd.title}工具`);
-    } else if (visibleCards.length >= 9) {
-      message.warning('工具栏已满，最多只能显示9个工具');
+    } else if (visibleCards.length >= 18) {
+      message.warning('工具栏已满，最多只能显示18个工具');
     } else if (visibleCards.some(card => card.key === cardKey)) {
       message.info('该工具已经存在');
     }

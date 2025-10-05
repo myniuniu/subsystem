@@ -421,6 +421,217 @@ export const useOperationPanelState = (noteCategory = null) => {
       return teachingCards;
     }
 
+    // 如果是教学设计分类，默认注入并仅显示教学设计相关工具
+    if (category === 'teaching_design') {
+      const aiToolsConfig = JSON.parse(localStorage.getItem('ai-tools-config') || '{}');
+      const addedAITools = JSON.parse(localStorage.getItem('added-ai-tools-to-panel') || '[]');
+
+      const teachingDesignToolIds = [
+        'teaching-assistant',
+        'verbatim-transcript',
+        'large-unit-design',
+        'interdisciplinary-design',
+        'unit-assignment-design',
+        'open-class-design',
+        'guided-learning-plan',
+        'lesson-presentation',
+        'evaluation-rubric',
+        'unit-academic-case',
+        'ai-picture-book',
+        'cloud-word-cards',
+        'sticker-materials',
+        'digital-human-speech',
+        'comic-strip',
+        'quick-designer',
+        'children-simple-drawings',
+        'ai-video',
+        'audio-video-text-converter',
+        'ppt-courseware'
+      ];
+
+      const defaultConfigs = {
+        'teaching-assistant': {
+          key: 'teaching-assistant',
+          title: '教学助手',
+          icon: '🎓',
+          gradient: 'linear-gradient(135deg, #fff3e0 0%, #ffcc80 100%)',
+          color: '#fa8c16'
+        },
+        'verbatim-transcript': {
+          key: 'verbatim-transcript',
+          title: '逐字稿工具',
+          icon: '稿',
+          gradient: 'linear-gradient(135deg, #f0f5ff 0%, #d6e4ff 100%)',
+          color: '#2f54eb'
+        },
+        'large-unit-design': {
+          key: 'large-unit-design',
+          title: '大单元设计',
+          icon: '单',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#0958d9'
+        },
+        'interdisciplinary-design': {
+          key: 'interdisciplinary-design',
+          title: '跨学科设计',
+          icon: '跨',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        },
+        'unit-assignment-design': {
+          key: 'unit-assignment-design',
+          title: '单元作业设计',
+          icon: '作',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        }
+        ,
+        'open-class-design': {
+          key: 'open-class-design',
+          title: '公开课设计',
+          icon: '公',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
+        },
+        'guided-learning-plan': {
+          key: 'guided-learning-plan',
+          title: '导学案',
+          icon: '导',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        },
+        'lesson-presentation': {
+          key: 'lesson-presentation',
+          title: '说课稿',
+          icon: '说',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        },
+        'evaluation-rubric': {
+          key: 'evaluation-rubric',
+          title: '评价量规',
+          icon: '评',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#531dab'
+        },
+        'unit-academic-case': {
+          key: 'unit-academic-case',
+          title: '单元学历案',
+          icon: '单',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#0958d9'
+        },
+        'ai-picture-book': {
+          key: 'ai-picture-book',
+          title: 'AI绘本',
+          icon: '📖',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        },
+        'cloud-word-cards': {
+          key: 'cloud-word-cards',
+          title: '云朵字卡',
+          icon: '☁️',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%)',
+          color: '#40a9ff'
+        },
+        'sticker-materials': {
+          key: 'sticker-materials',
+          title: '贴纸素材',
+          icon: '🎯',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#722ed1'
+        },
+        'digital-human-speech': {
+          key: 'digital-human-speech',
+          title: '数字人说话',
+          icon: '🧑‍🎤',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        },
+        'comic-strip': {
+          key: 'comic-strip',
+          title: '连环画',
+          icon: '🎞️',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        },
+        'quick-designer': {
+          key: 'quick-designer',
+          title: '快速设计师',
+          icon: '速',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
+        },
+        'children-simple-drawings': {
+          key: 'children-simple-drawings',
+          title: '儿童简笔画',
+          icon: '🖍️',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%)',
+          color: '#40a9ff'
+        },
+        'ai-video': {
+          key: 'ai-video',
+          title: 'AI视频',
+          icon: '🎬',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        },
+        'audio-video-text-converter': {
+          key: 'audio-video-text-converter',
+          title: '音视频文本互转',
+          icon: '🔄',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        },
+        'ppt-courseware': {
+          key: 'ppt-courseware',
+          title: 'PPT课件',
+          icon: '📊',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        }
+      };
+
+      // 注入缺失的工具配置与ID
+      let changed = false;
+      teachingDesignToolIds.forEach(id => {
+        if (!addedAITools.includes(id)) {
+          addedAITools.push(id);
+          changed = true;
+        }
+        if (!aiToolsConfig[id]) {
+          aiToolsConfig[id] = defaultConfigs[id];
+          changed = true;
+        }
+      });
+
+      if (changed) {
+        localStorage.setItem('ai-tools-config', JSON.stringify(aiToolsConfig));
+        localStorage.setItem('added-ai-tools-to-panel', JSON.stringify(addedAITools));
+        console.log('教学设计工具默认注入完成:', teachingDesignToolIds);
+      }
+
+      // 仅显示教学设计相关工具
+      const teachingDesignCards = teachingDesignToolIds.map(id => {
+        const config = aiToolsConfig[id];
+        if (config) {
+          return {
+            key: id,
+            title: config.title,
+            icon: config.icon,
+            gradient: config.gradient,
+            color: config.color,
+            isAITool: true
+          };
+        }
+        return null;
+      }).filter(Boolean);
+
+      console.log('教学设计分类，返回的卡片:', teachingDesignCards);
+      return teachingDesignCards;
+    }
+
     // 其他分类返回所有工具（保持原有逻辑）
     const defaultCards = OPERATION_CARDS.filter(card => card.key !== 'addTool');
     
@@ -473,8 +684,8 @@ export const useOperationPanelState = (noteCategory = null) => {
     orderedCards.push(...aiCards);
     orderedCards.push(...otherBasicCards);
     
-    // 确保返回的工具数量不超过9个
-    return orderedCards.slice(0, 9);
+    // 确保返回的工具数量不超过18个
+    return orderedCards.slice(0, 18);
   };
 
   // 可见工具卡片状态 - 初始化默认工具
