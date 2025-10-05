@@ -12,6 +12,7 @@ import {
 import { getCurrentTheme, setTheme, getThemeList } from '../utils/themeManager';
 import ThemeShareModal from './ThemeShareModal';
 import LoginMoreModal from './LoginMoreModal';
+import DesktopDownloadModal from './DesktopDownloadModal';
 import './SidebarAvatar.css';
 
 const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
@@ -64,6 +65,36 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
 
   const handleLoginMore = () => {
     setLoginMoreModalVisible(true);
+  };
+
+  // 下载到桌面弹窗
+  const [downloadModalVisible, setDownloadModalVisible] = useState(false);
+
+  // PWA 安装相关逻辑：通过全局隐藏的按钮触发 beforeinstallprompt
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, []);
+
+  const triggerPWAInstall = async () => {
+    if (!deferredPrompt) {
+      message.info('当前浏览器暂不支持或暂不可安装PWA');
+      return;
+    }
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      message.success('已添加到桌面');
+      setDownloadModalVisible(false);
+    } else {
+      message.warning('已取消安装');
+    }
+    setDeferredPrompt(null);
   };
 
   const getCurrentThemeData = () => {
@@ -158,17 +189,6 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
     {
       type: 'divider'
     },
-    // 登录更多账号
-    {
-      key: 'login-more',
-      label: (
-        <Space>
-          <Users size={16} />
-          <span>登录更多账号</span>
-        </Space>
-      ),
-      onClick: handleLoginMore
-    },
     // 登录/退出
     isLoggedIn ? {
       key: 'logout',
@@ -188,6 +208,49 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
         </Space>
       ),
       onClick: handleLogin
+    },
+    // 下载到桌面（位于退出登录与登录更多账号之间）
+    {
+      key: 'download-desktop',
+      label: (
+        <Space>
+          <CheckCircle size={16} />
+          <span>下载到桌面</span>
+        </Space>
+      ),
+      children: [
+        {
+          key: 'pwa-install',
+          label: (
+            <Space>
+              <Palette size={16} />
+              <span>添加到电脑桌面</span>
+            </Space>
+          ),
+          onClick: () => setDownloadModalVisible(true)
+        },
+        {
+          key: 'wechat-qr',
+          label: (
+            <Space>
+              <Palette size={16} />
+              <span>微信扫码即可体验</span>
+            </Space>
+          ),
+          onClick: () => setDownloadModalVisible(true)
+        }
+      ]
+    },
+    // 登录更多账号
+    {
+      key: 'login-more',
+      label: (
+        <Space>
+          <Users size={16} />
+          <span>登录更多账号</span>
+        </Space>
+      ),
+      onClick: handleLoginMore
     }
   ];
 
@@ -206,6 +269,13 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
           {!isCollapsed && <h4 className="sidebar-title">张老师</h4>}
         </div>
       </Dropdown>
+
+      <DesktopDownloadModal
+        open={downloadModalVisible}
+        onCancel={() => setDownloadModalVisible(false)}
+        onInstallPWA={triggerPWAInstall}
+        qrUrl={window.location.origin}
+      />
 
       <ThemeShareModal
         visible={shareModalVisible}

@@ -1,0 +1,59 @@
+.desktop-download-modal .ant-modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.desktop-download-container {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.desktop-download-left,
+.desktop-download-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 12px;
+}
+
+.left-header, .right-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.left-title, .right-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.left-desc, .right-desc {
+  margin-bottom: 12px;
+  color: #8c8c8c;
+}
+
+.divider {
+  width: 1px;
+  background: #f0f0f0;
+}
+
+.qr-wrapper {
+  padding: 8px;
+  border-radius: 8px;
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+}
+
+@media (max-width: 520px) {
+  .desktop-download-container {
+    flex-direction: column;
+  }
+  .divider {
+    height: 1px;
+    width: 100%;
+  }
+}

@@ -89,6 +89,240 @@ export const useOperationPanelState = (noteCategory = null) => {
       return trainingProductDevCards;
     }
 
+    // 如果是作业系统分类，默认注入并仅显示相关作业工具
+    if (category === 'homework_system') {
+      const aiToolsConfig = JSON.parse(localStorage.getItem('ai-tools-config') || '{}');
+      const addedAITools = JSON.parse(localStorage.getItem('added-ai-tools-to-panel') || '[]');
+
+      const homeworkToolIds = [
+        'homework-center',
+        'grading-assistant',
+        'unit-assignment-design',
+        // 作业设计扩展
+        'custom-unit-homework-design',
+        'recompose-unit-assignment-design',
+        'graphic-homework-design',
+        // 作文批改
+        'primary-chinese-essay-grader',
+        'primary-english-essay-grader',
+        'junior-chinese-essay-grader',
+        'junior-english-essay-grader',
+        'senior-chinese-essay-grader',
+        'senior-english-essay-grader',
+        // 默写改错
+        'chinese-dictation-correction',
+        'english-dictation-correction',
+        // 出题工具
+        'knowledge-point-question-generator',
+        'chapter-question-generator',
+        'unit-question-generator',
+        'question-set-generator',
+        'logic-question-generator',
+        'multiple-choice-generator',
+        'image-question-generator',
+        'smart-question-bank-manager'
+      ];
+
+      const defaultConfigs = {
+        'homework-center': {
+          key: 'homework-center',
+          title: '作业中心',
+          icon: '📘',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
+        },
+        'grading-assistant': {
+          key: 'grading-assistant',
+          title: '阅卷助手',
+          icon: '阅',
+          gradient: 'linear-gradient(135deg, #fff0f6 0%, #ffd6e7 100%)',
+          color: '#c41d7f'
+        },
+        'unit-assignment-design': {
+          key: 'unit-assignment-design',
+          title: '单元作业设计',
+          icon: '作',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        },
+        // 作业设计扩展
+        'custom-unit-homework-design': {
+          key: 'custom-unit-homework-design',
+          title: '自定义单元作业',
+          icon: '自',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #d6e4ff 100%)',
+          color: '#1d4ed8'
+        },
+        'recompose-unit-assignment-design': {
+          key: 'recompose-unit-assignment-design',
+          title: '重组单元作业设计',
+          icon: '重',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        },
+        'graphic-homework-design': {
+          key: 'graphic-homework-design',
+          title: '图形设计',
+          icon: '图',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#531dab'
+        },
+        // 作文批改
+        'primary-chinese-essay-grader': {
+          key: 'primary-chinese-essay-grader',
+          title: '小学语文作文批改',
+          icon: '语',
+          gradient: 'linear-gradient(135deg, #fff2e8 0%, #ffd8bf 100%)',
+          color: '#fa541c'
+        },
+        'primary-english-essay-grader': {
+          key: 'primary-english-essay-grader',
+          title: '小学英文作文批改',
+          icon: '英',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        },
+        'junior-chinese-essay-grader': {
+          key: 'junior-chinese-essay-grader',
+          title: '初中语文作文批改',
+          icon: '语',
+          gradient: 'linear-gradient(135deg, #fffbe6 0%, #ffe58f 100%)',
+          color: '#faad14'
+        },
+        'junior-english-essay-grader': {
+          key: 'junior-english-essay-grader',
+          title: '初中英文作文批改',
+          icon: '英',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
+        },
+        'senior-chinese-essay-grader': {
+          key: 'senior-chinese-essay-grader',
+          title: '高中语文作文批改',
+          icon: '语',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#722ed1'
+        },
+        'senior-english-essay-grader': {
+          key: 'senior-english-essay-grader',
+          title: '高中英文作文批改',
+          icon: '英',
+          gradient: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
+          color: '#52c41a'
+        },
+        // 默写改错
+        'chinese-dictation-correction': {
+          key: 'chinese-dictation-correction',
+          title: '语文默写改错',
+          icon: '默',
+          gradient: 'linear-gradient(135deg, #fff2e8 0%, #ffd8bf 100%)',
+          color: '#fa541c'
+        },
+        'english-dictation-correction': {
+          key: 'english-dictation-correction',
+          title: '英语默写改错',
+          icon: '默',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        },
+        // 出题工具
+        'knowledge-point-question-generator': {
+          key: 'knowledge-point-question-generator',
+          title: '知识点出题',
+          icon: '知',
+          gradient: 'linear-gradient(135deg, #f0e6ff 0%, #e6d7ff 100%)',
+          color: '#722ed1'
+        },
+        'chapter-question-generator': {
+          key: 'chapter-question-generator',
+          title: '章节出题',
+          icon: '章',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
+        },
+        'unit-question-generator': {
+          key: 'unit-question-generator',
+          title: '单元出题',
+          icon: '单',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        },
+        'question-set-generator': {
+          key: 'question-set-generator',
+          title: '题组出题',
+          icon: '组',
+          gradient: 'linear-gradient(135deg, #fff0f6 0%, #ffd6e7 100%)',
+          color: '#eb2f96'
+        },
+        'logic-question-generator': {
+          key: 'logic-question-generator',
+          title: '逻辑出题',
+          icon: '逻',
+          gradient: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
+          color: '#52c41a'
+        },
+        'multiple-choice-generator': {
+          key: 'multiple-choice-generator',
+          title: '选择题出题',
+          icon: '选',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        },
+        'image-question-generator': {
+          key: 'image-question-generator',
+          title: '图像题出题',
+          icon: '图',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#531dab'
+        },
+        'smart-question-bank-manager': {
+          key: 'smart-question-bank-manager',
+          title: '智能题库管理',
+          icon: '库',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#0958d9'
+        }
+      };
+
+      // 注入缺失的工具配置与ID
+      let changed = false;
+      homeworkToolIds.forEach(id => {
+        if (!addedAITools.includes(id)) {
+          addedAITools.push(id);
+          changed = true;
+        }
+        if (!aiToolsConfig[id]) {
+          aiToolsConfig[id] = defaultConfigs[id];
+          changed = true;
+        }
+      });
+
+      if (changed) {
+        localStorage.setItem('ai-tools-config', JSON.stringify(aiToolsConfig));
+        localStorage.setItem('added-ai-tools-to-panel', JSON.stringify(addedAITools));
+        console.log('作业系统工具默认注入完成:', homeworkToolIds);
+      }
+
+      // 仅显示作业系统相关工具
+      const homeworkCards = homeworkToolIds.map(id => {
+        const config = aiToolsConfig[id];
+        if (config) {
+          return {
+            key: id,
+            title: config.title,
+            icon: config.icon,
+            gradient: config.gradient,
+            color: config.color,
+            isAITool: true
+          };
+        }
+        return null;
+      }).filter(Boolean);
+
+      console.log('作业系统分类，返回的卡片:', homeworkCards);
+      return homeworkCards;
+    }
+
     // 如果是教研室分类，默认注入并仅显示六个教研室工具
     if (category === 'teaching_research_office') {
       const aiToolsConfig = JSON.parse(localStorage.getItem('ai-tools-config') || '{}');

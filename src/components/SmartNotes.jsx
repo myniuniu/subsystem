@@ -161,6 +161,7 @@ const SmartNotes = ({ onViewChange }) => {
     { value: 'ideas', label: '想法灵感', icon: '💡', type: 'system' },
     { value: 'meeting', label: '会议记录', icon: '🤝', type: 'system' },
     { value: 'learning_square', label: '学习广场', icon: '🎓', type: 'system' },
+    { value: 'homework_system', label: '课后作业系统', icon: '📘', type: 'system' },
     { value: 'teaching_research_office', label: '教研室', icon: '🏫', type: 'system' },
     { value: 'training_needs_management', label: '培训需求管理', icon: '📋', type: 'system' },
     { value: 'training_product_development', label: '培训产品研发', icon: '🚀', type: 'system' },
@@ -297,6 +298,13 @@ const SmartNotes = ({ onViewChange }) => {
           note.category === 'learning_square' ||
           note.tags?.includes('学习广场') ||
           note.source === '学习广场'
+        );
+      } else if (selectedCategory === 'homework_system') {
+        filtered = filtered.filter(note => 
+          note.category === 'homework_system' ||
+          note.tags?.includes('课后作业系统') ||
+          note.tags?.includes('作业') ||
+          note.source === '课后作业系统'
         );
       } else if (selectedCategory === 'teaching_research_office') {
         filtered = filtered.filter(note => 

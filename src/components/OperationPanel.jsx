@@ -392,7 +392,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
         description: '依据学习目标与内容设计分层作业与任务单',
         icon: '作',
         color: '#fa8c16',
-        applicableNoteCategories: ['teaching_research_office'],
+        applicableNoteCategories: ['teaching_research_office', 'homework_system'],
         menuConfig: {
           key: 'unit-assignment-design',
           title: '单元作业设计',
@@ -463,17 +463,321 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
       },
       // 通用AI工具
       {
+        id: 'homework-center',
+        name: '作业中心',
+        description: '统一管理作业设计、布置、批改与分析的中心工具',
+        icon: '📘',
+        color: '#1890ff',
+        applicableNoteCategories: ['homework_system'],
+        menuConfig: {
+          key: 'homework-center',
+          title: '作业中心',
+          icon: '📘',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
+        }
+      },
+      {
         id: 'grading-assistant',
         name: '智能阅卷助手',
         description: '专业的智能阅卷工具，支持试卷自动评阅、成绩分析、评语生成等功能',
         icon: '阅',
         color: '#c41d7f',
+        applicableNoteCategories: ['homework_system'],
         menuConfig: {
           key: 'grading-assistant',
           title: '阅卷助手',
           icon: '阅',
           gradient: 'linear-gradient(135deg, #fff0f6 0%, #ffd6e7 100%)',
           color: '#c41d7f'
+        }
+      },
+      // 作业系统 · 出题与批改扩展
+      {
+        id: 'knowledge-point-question-generator',
+        name: '知识点出题',
+        description: '基于指定知识点自动生成题目并按难度分层',
+        icon: '知',
+        color: '#722ed1',
+        applicableNoteCategories: ['homework_system'],
+        menuConfig: {
+          key: 'knowledge-point-question-generator',
+          title: '知识点出题',
+          icon: '知',
+          gradient: 'linear-gradient(135deg, #f0e6ff 0%, #e6d7ff 100%)',
+          color: '#722ed1'
+        }
+      },
+      {
+        id: 'chapter-question-generator',
+        name: '章节出题',
+        description: '围绕指定章节内容生成配套练习与测评题',
+        icon: '章',
+        color: '#1890ff',
+        applicableNoteCategories: ['homework_system'],
+        menuConfig: {
+          key: 'chapter-question-generator',
+          title: '章节出题',
+          icon: '章',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
+        }
+      },
+      {
+        id: 'unit-question-generator',
+        name: '单元出题',
+        description: '依据单元目标生成覆盖全面的练习题与试卷',
+        icon: '单',
+        color: '#fa8c16',
+        applicableNoteCategories: ['homework_system'],
+        menuConfig: {
+          key: 'unit-question-generator',
+          title: '单元出题',
+          icon: '单',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        }
+      },
+      {
+        id: 'question-set-generator',
+        name: '题组出题',
+        description: '按题组结构与能力层次生成梯度训练题',
+        icon: '组',
+        color: '#eb2f96',
+        applicableNoteCategories: ['homework_system'],
+        menuConfig: {
+          key: 'question-set-generator',
+          title: '题组出题',
+          icon: '组',
+          gradient: 'linear-gradient(135deg, #fff0f6 0%, #ffd6e7 100%)',
+          color: '#eb2f96'
+        }
+      },
+      {
+        id: 'logic-question-generator',
+        name: '逻辑出题',
+        description: '生成强调推理与逻辑思维的题目集合',
+        icon: '逻',
+        color: '#52c41a',
+        applicableNoteCategories: ['homework_system'],
+        menuConfig: {
+          key: 'logic-question-generator',
+          title: '逻辑出题',
+          icon: '逻',
+          gradient: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
+          color: '#52c41a'
+        }
+      },
+      {
+        id: 'multiple-choice-generator',
+        name: '选择题出题',
+        description: '批量生成高质量选择题并附解析',
+        icon: '选',
+        color: '#13c2c2',
+        applicableNoteCategories: ['homework_system'],
+        menuConfig: {
+          key: 'multiple-choice-generator',
+          title: '选择题出题',
+          icon: '选',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        }
+      },
+      {
+        id: 'image-question-generator',
+        name: '图像题出题',
+        description: '基于图片与图形信息自动生成题目',
+        icon: '图',
+        color: '#531dab',
+        applicableNoteCategories: ['homework_system'],
+        menuConfig: {
+          key: 'image-question-generator',
+          title: '图像题出题',
+          icon: '图',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#531dab'
+        }
+      },
+      {
+        id: 'smart-question-bank-manager',
+        name: '智能题库管理',
+        description: '管理与检索题库，支持难度评估与标签',
+        icon: '库',
+        color: '#0958d9',
+        applicableNoteCategories: ['homework_system'],
+        menuConfig: {
+          key: 'smart-question-bank-manager',
+          title: '智能题库管理',
+          icon: '库',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#0958d9'
+        }
+      },
+      // 作文批改与默写改错
+      {
+        id: 'primary-chinese-essay-grader',
+        name: '小学语文作文批改',
+        description: '针对小学语文作文的智能批改与评语生成',
+        icon: '语',
+        color: '#fa541c',
+        applicableNoteCategories: ['homework_system'],
+        menuConfig: {
+          key: 'primary-chinese-essay-grader',
+          title: '小学语文作文批改',
+          icon: '语',
+          gradient: 'linear-gradient(135deg, #fff2e8 0%, #ffd8bf 100%)',
+          color: '#fa541c'
+        }
+      },
+      {
+        id: 'primary-english-essay-grader',
+        name: '小学英文作文批改',
+        description: '针对小学英文作文的智能批改与评语生成',
+        icon: '英',
+        color: '#13c2c2',
+        applicableNoteCategories: ['homework_system'],
+        menuConfig: {
+          key: 'primary-english-essay-grader',
+          title: '小学英文作文批改',
+          icon: '英',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        }
+      },
+      {
+        id: 'junior-chinese-essay-grader',
+        name: '初中语文作文批改',
+        description: '针对初中语文作文的智能批改与评语生成',
+        icon: '语',
+        color: '#faad14',
+        applicableNoteCategories: ['homework_system'],
+        menuConfig: {
+          key: 'junior-chinese-essay-grader',
+          title: '初中语文作文批改',
+          icon: '语',
+          gradient: 'linear-gradient(135deg, #fffbe6 0%, #ffe58f 100%)',
+          color: '#faad14'
+        }
+      },
+      {
+        id: 'junior-english-essay-grader',
+        name: '初中英文作文批改',
+        description: '针对初中英文作文的智能批改与评语生成',
+        icon: '英',
+        color: '#1890ff',
+        applicableNoteCategories: ['homework_system'],
+        menuConfig: {
+          key: 'junior-english-essay-grader',
+          title: '初中英文作文批改',
+          icon: '英',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
+        }
+      },
+      {
+        id: 'senior-chinese-essay-grader',
+        name: '高中语文作文批改',
+        description: '针对高中语文作文的智能批改与评语生成',
+        icon: '语',
+        color: '#722ed1',
+        applicableNoteCategories: ['homework_system'],
+        menuConfig: {
+          key: 'senior-chinese-essay-grader',
+          title: '高中语文作文批改',
+          icon: '语',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#722ed1'
+        }
+      },
+      {
+        id: 'senior-english-essay-grader',
+        name: '高中英文作文批改',
+        description: '针对高中英文作文的智能批改与评语生成',
+        icon: '英',
+        color: '#52c41a',
+        applicableNoteCategories: ['homework_system'],
+        menuConfig: {
+          key: 'senior-english-essay-grader',
+          title: '高中英文作文批改',
+          icon: '英',
+          gradient: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
+          color: '#52c41a'
+        }
+      },
+      {
+        id: 'chinese-dictation-correction',
+        name: '语文默写改错',
+        description: '识别默写错误并给出针对性纠错与巩固练习',
+        icon: '默',
+        color: '#fa541c',
+        applicableNoteCategories: ['homework_system'],
+        menuConfig: {
+          key: 'chinese-dictation-correction',
+          title: '语文默写改错',
+          icon: '默',
+          gradient: 'linear-gradient(135deg, #fff2e8 0%, #ffd8bf 100%)',
+          color: '#fa541c'
+        }
+      },
+      {
+        id: 'english-dictation-correction',
+        name: '英语默写改错',
+        description: '识别英文拼写与语法错误并生成纠错练习',
+        icon: '默',
+        color: '#13c2c2',
+        applicableNoteCategories: ['homework_system'],
+        menuConfig: {
+          key: 'english-dictation-correction',
+          title: '英语默写改错',
+          icon: '默',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        }
+      },
+      // 作业设计扩展
+      {
+        id: 'custom-unit-homework-design',
+        name: '自定义单元作业',
+        description: '按教学目标自由组合生成个性化单元作业包',
+        icon: '自',
+        color: '#1d4ed8',
+        applicableNoteCategories: ['homework_system'],
+        menuConfig: {
+          key: 'custom-unit-homework-design',
+          title: '自定义单元作业',
+          icon: '自',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #d6e4ff 100%)',
+          color: '#1d4ed8'
+        }
+      },
+      {
+        id: 'recompose-unit-assignment-design',
+        name: '重组单元作业设计',
+        description: '基于既有作业与题库快速重组形成新作业包',
+        icon: '重',
+        color: '#fa8c16',
+        applicableNoteCategories: ['homework_system'],
+        menuConfig: {
+          key: 'recompose-unit-assignment-design',
+          title: '重组单元作业设计',
+          icon: '重',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        }
+      },
+      {
+        id: 'graphic-homework-design',
+        name: '图形设计',
+        description: '用于作业版式与图形元素的设计与生成',
+        icon: '图',
+        color: '#531dab',
+        applicableNoteCategories: ['homework_system'],
+        menuConfig: {
+          key: 'graphic-homework-design',
+          title: '图形设计',
+          icon: '图',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#531dab'
         }
       },
       {
