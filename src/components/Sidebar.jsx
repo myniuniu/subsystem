@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Modal } from 'antd'
+import { Modal, Tooltip } from 'antd'
 import {
   DndContext,
   closestCenter,
@@ -196,75 +196,114 @@ const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onCli
 
   return (
     <div ref={setNodeRef} style={style}>
-      <div
-        className={`menu-item ${item.type === 'group' ? 'menu-group' : ''} ${isGroupActive ? 'active' : ''}`}
-        onClick={handleClick}
-      >
-        <div 
-           className="drag-area"
-           {...attributes}
-           {...listeners}
-           style={{ 
-             cursor: isDragging ? 'grabbing' : 'grab'
-           }}
-         />
-        <div className="menu-item-content">
-          <div className="menu-item-icon">
-            <div
-              className="icon-wrapper"
-              style={{
-                backgroundColor: isGroupActive ? 'transparent' : 'rgba(0, 0, 0, 0.06)',
-              }}
-            >
-              {Icon && React.createElement(Icon, {
-                size: 18,
-                color: isGroupActive ? '#fff' : item.color
-              })}
-            </div>
-            {isCollapsed && item.id === 'message-center' && unreadCount > 0 && (
-              <span className="unread-badge">{unreadCount}</span>
-            )}
-            {isCollapsed && item.id === 'download-center' && downloadingCount > 0 && (
-              <span className="unread-badge">{downloadingCount}</span>
-            )}
-          </div>
-          {!isCollapsed && (
-            <>
-              <span
-                className="menu-item-label"
-                style={{
-                  fontWeight: isGroupActive ? 600 : 400,
-                  color: isGroupActive ? 'white' : 'var(--theme-textSecondary)',
-                }}
-              >
-                {item.label}
-              </span>
-              {item.id === 'message-center' && unreadCount > 0 && (
-                <span className="unread-badge">{unreadCount}</span>
-              )}
-              {item.id === 'download-center' && downloadingCount > 0 && (
-                <span className="unread-badge">{downloadingCount}</span>
-              )}
-              {item.type === 'group' && (
-                <ChevronDown 
-                  size={16} 
-                  className={`expand-icon ${item.expanded ? 'expanded' : ''}`}
-                  style={{ color: isGroupActive ? 'white' : 'var(--theme-textSecondary)' }}
-                />
-              )}
-              {isDynamic && (
-                <button 
-                  className="remove-button"
-                  onClick={handleRemove}
-                  title="移除应用"
+      {isCollapsed ? (
+        <Tooltip title={item.label} placement="right">
+          <div
+            className={`menu-item ${item.type === 'group' ? 'menu-group' : ''} ${isGroupActive ? 'active' : ''}`}
+            onClick={handleClick}
+          >
+            <div 
+               className="drag-area"
+               {...attributes}
+               {...listeners}
+               style={{ 
+                 cursor: isDragging ? 'grabbing' : 'grab'
+               }}
+             />
+            <div className="menu-item-content">
+              <div className="menu-item-icon">
+                <div
+                  className="icon-wrapper"
+                  style={{
+                    backgroundColor: isGroupActive ? 'transparent' : 'rgba(0, 0, 0, 0.06)',
+                  }}
                 >
-                  ×
-                </button>
+                  {Icon && React.createElement(Icon, {
+                    size: 18,
+                    color: isGroupActive ? '#fff' : item.color
+                  })}
+                </div>
+                {isCollapsed && item.id === 'message-center' && unreadCount > 0 && (
+                  <span className="unread-badge">{unreadCount}</span>
+                )}
+                {isCollapsed && item.id === 'download-center' && downloadingCount > 0 && (
+                  <span className="unread-badge">{downloadingCount}</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </Tooltip>
+      ) : (
+          <div
+            className={`menu-item ${item.type === 'group' ? 'menu-group' : ''} ${isGroupActive ? 'active' : ''}`}
+            onClick={handleClick}
+          >
+            <div 
+               className="drag-area"
+               {...attributes}
+               {...listeners}
+               style={{ 
+                 cursor: isDragging ? 'grabbing' : 'grab'
+               }}
+             />
+            <div className="menu-item-content">
+              <div className="menu-item-icon">
+                <div
+                  className="icon-wrapper"
+                  style={{
+                    backgroundColor: isGroupActive ? 'transparent' : 'rgba(0, 0, 0, 0.06)',
+                  }}
+                >
+                  {Icon && React.createElement(Icon, {
+                    size: 18,
+                    color: isGroupActive ? '#fff' : item.color
+                  })}
+                </div>
+                {isCollapsed && item.id === 'message-center' && unreadCount > 0 && (
+                  <span className="unread-badge">{unreadCount}</span>
+                )}
+                {isCollapsed && item.id === 'download-center' && downloadingCount > 0 && (
+                  <span className="unread-badge">{downloadingCount}</span>
+                )}
+              </div>
+              {!isCollapsed && (
+                <>
+                  <span
+                    className="menu-item-label"
+                    style={{
+                      fontWeight: isGroupActive ? 600 : 400,
+                      color: isGroupActive ? 'white' : 'var(--theme-textSecondary)',
+                    }}
+                  >
+                    {item.label}
+                  </span>
+                  {item.id === 'message-center' && unreadCount > 0 && (
+                    <span className="unread-badge">{unreadCount}</span>
+                  )}
+                  {item.id === 'download-center' && downloadingCount > 0 && (
+                    <span className="unread-badge">{downloadingCount}</span>
+                  )}
+                  {item.type === 'group' && (
+                    <ChevronDown 
+                      size={16} 
+                      className={`expand-icon ${item.expanded ? 'expanded' : ''}`}
+                      style={{ color: isGroupActive ? 'white' : 'var(--theme-textSecondary)' }}
+                    />
+                  )}
+                  {isDynamic && (
+                    <button 
+                      className="remove-button"
+                      onClick={handleRemove}
+                      title="移除应用"
+                    >
+                      ×
+                    </button>
+                  )}
+                </>
               )}
-            </>
-          )}
-        </div>
-      </div>
+            </div>
+          </div>
+      )}
       
       {/* 子菜单 */}
       {item.type === 'group' && item.expanded && !isCollapsed && item.children && (
