@@ -145,6 +145,8 @@
 .calendar-cell {
   min-height: 100px;
   position: relative;
+  width: 100%;
+  display: block;
 }
 
 .day-slot, .hour-content {
@@ -590,6 +592,9 @@
 
 .main-calendar .ant-picker-calendar .ant-picker-calendar-date-content {
   overflow: hidden !important;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .main-calendar * {
@@ -615,6 +620,7 @@
   padding: 12px;
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   position: relative;
   overflow: hidden;
   border-radius: 8px;
@@ -650,18 +656,23 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .event-item {
   margin: 0;
   font-size: 11px;
   line-height: 1.2;
-  display: block;
+  display: flex;
+  align-items: center;
   padding: 2px 6px;
   border-radius: 4px;
   background: rgba(102, 126, 234, 0.1);
   border-left: 3px solid #667eea;
   transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .event-item:hover {
@@ -673,6 +684,7 @@
   display: flex;
   align-items: center;
   gap: 2px;
+  width: 100%;
 }
 
 .event-dot {
@@ -689,6 +701,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
+  min-width: 0; /* 允许在 flex 容器中正确省略 */
 }
 
 /* 事件点颜色 */

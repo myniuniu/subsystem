@@ -240,7 +240,7 @@ const CalendarCenter = () => {
       
       return (
         <DroppableCell date={current} className="calendar-cell">
-          <ul className="events">
+          <div className="events">
             {filteredData.map((item, index) => {
               // 将颜色值转换为Badge支持的status
               let status = 'default'
@@ -255,14 +255,14 @@ const CalendarCenter = () => {
               
               return (
                 <DraggableEvent key={item.id} event={item} className={`event-item event-${item.type}`}>
-                  <li className="event-content">
+                  <div className="event-content">
                     <span className={`event-dot event-${item.color}`}></span>
                     <span className="event-title">{item.title}</span>
-                  </li>
+                  </div>
                 </DraggableEvent>
               )
             })}
-          </ul>
+          </div>
         </DroppableCell>
       )
     }

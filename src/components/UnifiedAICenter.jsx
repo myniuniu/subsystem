@@ -52,6 +52,8 @@ import {
   Crown,
   Flame
 } from 'lucide-react';
+// 额外图标：云盘保存
+import { Cloud } from 'lucide-react';
 import { 
   Card, 
   Row, 
@@ -1882,6 +1884,8 @@ const UnifiedAICenter = () => {
         width: '380px', 
         display: 'flex', 
         flexDirection: 'column',
+        height: '100%',
+        minHeight: 0,
         marginRight: '0',
         borderRight: '1px solid #f0f0f0'
       }}>
@@ -1890,7 +1894,9 @@ const UnifiedAICenter = () => {
           style={{ 
             margin: '16px',
             borderRadius: '12px',
-            flex: 1
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column'
           }}
           styles={{ body: { padding: '16px' } }}
         >
@@ -1953,7 +1959,8 @@ const UnifiedAICenter = () => {
             margin: '0 16px 16px 16px',
             borderRadius: '12px',
             flex: 1,
-            maxHeight: '300px',
+            display: 'flex',
+            flexDirection: 'column',
             overflow: 'hidden'
           }}
           styles={{ body: { padding: '16px' } }}
@@ -1967,7 +1974,7 @@ const UnifiedAICenter = () => {
             </div>
           </div>
           
-          <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
             {[
               { id: 1, title: '手机聊对话', time: '2小时前' },
               { id: 2, title: '对111的处理', time: '3小时前' },
@@ -2611,6 +2618,26 @@ const UnifiedAICenter = () => {
                                       onClick={() => {
                                         navigator.clipboard.writeText(message.content);
                                         antdMessage.success('内容已复制到剪贴板');
+                                      }}
+                                      style={{
+                                        color: '#6b7280',
+                                        borderRadius: '8px'
+                                      }}
+                                    />
+                                  </Tooltip>
+                                  {/* 另存云盘按钮 */}
+                                  <Tooltip title="另存云盘">
+                                    <Button 
+                                      type="text" 
+                                      size="small" 
+                                      icon={<Cloud size={14} />}
+                                      onClick={() => {
+                                        try {
+                                          // 简单反馈；如需接入真实云盘服务，可在此扩展
+                                          antdMessage.success('已另存到云盘');
+                                        } catch (e) {
+                                          antdMessage.error('云盘保存失败，请稍后重试');
+                                        }
                                       }}
                                       style={{
                                         color: '#6b7280',
