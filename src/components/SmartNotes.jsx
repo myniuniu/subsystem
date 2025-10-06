@@ -3,6 +3,7 @@ import {
   Layout,
   Card,
   Button,
+  Table,
   Input,
   Select,
   Tag,
@@ -495,6 +496,72 @@ const SmartNotes = ({ onViewChange }) => {
       return tb - ta;
     })[0];
 
+  const listColumns = [
+    {
+      title: '标题',
+      dataIndex: 'title',
+      key: 'title',
+      render: (text, note) => (
+        <Button type="link" onClick={() => handleEditNote(note)}>{text}</Button>
+      )
+    },
+    {
+      title: '分类',
+      dataIndex: 'category',
+      key: 'category',
+      render: (category) => {
+        const info = getCategoryInfo ? getCategoryInfo(category) : { label: category };
+        return info?.label || category || '-';
+      }
+    },
+    {
+      title: '标签',
+      dataIndex: 'tags',
+      key: 'tags',
+      render: (tags) => (tags && tags.length ? tags.map(t => (<Tag key={t}>{t}</Tag>)) : '-')
+    },
+    {
+      title: '来源',
+      dataIndex: 'source',
+      key: 'source',
+      render: (source) => source || '-'
+    },
+    {
+      title: '更新时间',
+      dataIndex: 'updatedAt',
+      key: 'updatedAt',
+      render: (val, note) => {
+        const d = val || note.createdAt;
+        try { return d ? new Date(d).toLocaleString() : '-'; } catch { return '-'; }
+      }
+    },
+    {
+      title: '收藏',
+      dataIndex: 'starred',
+      key: 'starred',
+      render: (starred, note) => (
+        starred ? (
+          <StarFilled onClick={() => handleToggleStar && handleToggleStar(note.id)} style={{ color: '#faad14', cursor: 'pointer' }} />
+        ) : (
+          <StarOutlined onClick={() => handleToggleStar && handleToggleStar(note.id)} style={{ cursor: 'pointer' }} />
+        )
+      )
+    },
+    {
+      title: '操作',
+      key: 'actions',
+      render: (_, note) => (
+        <Space>
+          <Button icon={<EyeOutlined />} size="small" onClick={() => handleViewNote(note)} />
+          <Button icon={<EditOutlined />} size="small" onClick={() => handleEditNote(note)} />
+          <Popconfirm title="确定删除该主题？" onConfirm={() => handleDeleteNote(note.id)}>
+            <Button icon={<DeleteOutlined />} size="small" />
+          </Popconfirm>
+        </Space>
+      )
+    }
+  ];
+
   return (
     <div className="smart-notes">
       <Layout>
@@ -510,8 +577,8 @@ const SmartNotes = ({ onViewChange }) => {
           />
         )}
 
-        {/* 主内容区：收藏视图采用无内边距白底模式 */}
-        <Content className={viewMode === 'favorites' ? 'notes-content favorites-mode' : 'notes-content'}>
+        {/* 主内容区：收藏视图采用无内边距白底模式；列表视图减少内边距以充分利用空间 */}
+        <Content className={`notes-content ${viewMode === 'favorites' ? 'favorites-mode' : (viewMode === 'list' ? 'list-mode' : '')}`}>
           <NotesToolbar
             filteredNotes={filteredNotes}
             viewMode={viewMode}
@@ -535,6 +602,15 @@ const SmartNotes = ({ onViewChange }) => {
             ) : (
               <Empty description="当前分类下暂无收藏主题" />
             )
+          ) : viewMode === 'list' ? (
+            <Table
+              columns={listColumns}
+              dataSource={filteredNotes}
+              rowKey={note => note.id || note.title}
+              pagination={false}
+              size="middle"
+              style={{ width: '100%' }}
+            />
           ) : (
             <NotesList
               loading={loading}

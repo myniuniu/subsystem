@@ -574,6 +574,72 @@
   background: #fff;
 }
 
+/* 列表视图：减少内边距以让表格充分利用空间 */
+.notes-content.list-mode {
+  padding: 12px; /* 缩小内边距，减少周围留白 */
+}
+
+/* 让表格在列表视图下充满容器宽度 */
+.notes-content.list-mode .ant-table-wrapper,
+.notes-content.list-mode .ant-table {
+  width: 100%;
+}
+
+/* 使表格紧贴内容顶部，避免过多间距 */
+.notes-content.list-mode .ant-table-wrapper {
+  margin-top: 8px;
+}
+
+/* 列表视图分页样式：简洁清爽，去除浓重背景色 */
+.notes-content.list-mode .ant-pagination {
+  background: transparent;
+  padding: 16px 0;
+}
+
+.notes-content.list-mode .ant-pagination-item {
+  background: transparent;
+  border: 1px solid #e8e8e8;
+  color: #666;
+}
+
+.notes-content.list-mode .ant-pagination-item:hover {
+  background: #f5f5f5;
+  border-color: #d9d9d9;
+}
+
+.notes-content.list-mode .ant-pagination-item-active {
+  background: #fff;
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+.notes-content.list-mode .ant-pagination-item-active a {
+  color: #1890ff;
+}
+
+.notes-content.list-mode .ant-pagination-prev,
+.notes-content.list-mode .ant-pagination-next {
+  background: transparent;
+  border: 1px solid #e8e8e8;
+}
+
+.notes-content.list-mode .ant-pagination-prev:hover,
+.notes-content.list-mode .ant-pagination-next:hover {
+  background: #f5f5f5;
+  border-color: #d9d9d9;
+}
+
+.notes-content.list-mode .ant-pagination-jump-prev,
+.notes-content.list-mode .ant-pagination-jump-next {
+  background: transparent;
+  border: 1px solid #e8e8e8;
+}
+
+.notes-content.list-mode .ant-pagination-jump-prev:hover,
+.notes-content.list-mode .ant-pagination-jump-next:hover {
+  background: #f5f5f5;
+}
+
 .content-header {
   display: flex;
   justify-content: space-between;
