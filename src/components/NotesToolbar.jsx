@@ -1,7 +1,6 @@
 import React from 'react';
 import { Button, Space, Tooltip } from 'antd';
 import {
-  CalendarOutlined,
   PlusOutlined,
   AppstoreOutlined,
   UnorderedListOutlined,
@@ -13,7 +12,6 @@ const NotesToolbar = ({
   filteredNotes,
   viewMode,
   onViewModeChange,
-  onCalendarClick,
   onGenerateMockData,
   onCreateNote,
   selectedCategory
@@ -56,16 +54,7 @@ const NotesToolbar = ({
             </Tooltip>
           </div>
 
-          {/* 日历按钮 */}
-          <Tooltip title="查看日历">
-            <Button
-              icon={<CalendarOutlined />}
-              onClick={onCalendarClick}
-              size="small"
-            >
-              日历
-            </Button>
-          </Tooltip>
+          {/* 日历按钮已移除 */}
 
           {/* 生成模拟数据按钮 - 仅在开发环境显示 */}
           {process.env.NODE_ENV === 'development' && (

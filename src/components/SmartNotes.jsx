@@ -516,7 +516,6 @@ const SmartNotes = ({ onViewChange }) => {
             filteredNotes={filteredNotes}
             viewMode={viewMode}
             onViewModeChange={handleViewModeChange}
-            onCalendarClick={() => setShowCalendarCenter(true)}
             onCreateNote={handleCreateNote}
             onGenerateMockData={handleGenerateMockData}
             selectedCategory={selectedCategory}
