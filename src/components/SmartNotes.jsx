@@ -132,8 +132,19 @@ const initializeDefaultAITools = () => {
 };
 
 const SmartNotes = ({ onViewChange }) => {
-  // 视图模式持久化存储键
-  const VIEW_MODE_STORAGE_KEY = 'smartnotes:lastViewMode';
+  // 按分类持久化视图模式的存储键与默认映射
+  const VIEW_BY_CATEGORY_KEY = 'smartnotes:viewByCategory';
+  const DEFAULT_VIEW_BY_CATEGORY = {
+    all: 'grid',
+    organizational_training: 'grid',
+    work: 'grid',
+    study: 'list',
+    research: 'list',
+    personal: 'grid',
+    ideas: 'list',
+    meeting: 'list',
+    learning_square: 'grid'
+  };
   const [notes, setNotes] = useState([]);
   const [filteredNotes, setFilteredNotes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -149,36 +160,41 @@ const SmartNotes = ({ onViewChange }) => {
   const [editingNote, setEditingNote] = useState(null);
   const [editMode, setEditMode] = useState('create');
   const [viewMode, setViewMode] = useState('grid');
+  const [viewByCategory, setViewByCategory] = useState(DEFAULT_VIEW_BY_CATEGORY);
 
-  // 初始化时读取最近一次视图模式
+  // 初始化时读取按分类的视图映射并应用当前分类的视图
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
-      if (saved === 'grid' || saved === 'list' || saved === 'favorites') {
-        setViewMode(saved);
+      const raw = localStorage.getItem(VIEW_BY_CATEGORY_KEY);
+      const savedMap = raw ? JSON.parse(raw) : {};
+      const merged = { ...DEFAULT_VIEW_BY_CATEGORY, ...savedMap };
+      setViewByCategory(merged);
+      const initialMode = merged[selectedCategory] || 'grid';
+      if (initialMode === 'grid' || initialMode === 'list' || initialMode === 'favorites') {
+        setViewMode(initialMode);
       }
     } catch (e) {
-      console.warn('读取最近视图失败:', e);
+      console.warn('读取分类视图映射失败:', e);
     }
   }, []);
 
-  // 视图模式变更并写入本地存储
+  // 视图模式变更：按当前分类写入本地映射
   const handleViewModeChange = (mode) => {
     setViewMode(mode);
     try {
-      localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode);
+      const nextMap = { ...viewByCategory, [selectedCategory]: mode };
+      setViewByCategory(nextMap);
+      localStorage.setItem(VIEW_BY_CATEGORY_KEY, JSON.stringify(nextMap));
     } catch (e) {}
   };
 
-  // 分类切换后重置为最近一次使用的视图模式
+  // 分类切换：应用该分类对应的视图模式（优先本地映射，否则用默认映射）
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
-    try {
-      const saved = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
-      if (saved === 'grid' || saved === 'list' || saved === 'favorites') {
-        setViewMode(saved);
-      }
-    } catch (e) {}
+    const mode = (viewByCategory && viewByCategory[category]) || DEFAULT_VIEW_BY_CATEGORY[category] || 'grid';
+    if (mode === 'grid' || mode === 'list' || mode === 'favorites') {
+      setViewMode(mode);
+    }
   };
   const [isShareModalVisible, setIsShareModalVisible] = useState(false);
   const [shareSelectedNote, setShareSelectedNote] = useState(null);
