@@ -132,6 +132,8 @@ const initializeDefaultAITools = () => {
 };
 
 const SmartNotes = ({ onViewChange }) => {
+  // 视图模式持久化存储键
+  const VIEW_MODE_STORAGE_KEY = 'smartnotes:lastViewMode';
   const [notes, setNotes] = useState([]);
   const [filteredNotes, setFilteredNotes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -146,7 +148,38 @@ const SmartNotes = ({ onViewChange }) => {
   const [showNoteEditPage, setShowNoteEditPage] = useState(false);
   const [editingNote, setEditingNote] = useState(null);
   const [editMode, setEditMode] = useState('create');
-  const [viewMode, setViewMode] = useState('card');
+  const [viewMode, setViewMode] = useState('grid');
+
+  // 初始化时读取最近一次视图模式
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+      if (saved === 'grid' || saved === 'list' || saved === 'favorites') {
+        setViewMode(saved);
+      }
+    } catch (e) {
+      console.warn('读取最近视图失败:', e);
+    }
+  }, []);
+
+  // 视图模式变更并写入本地存储
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode);
+    } catch (e) {}
+  };
+
+  // 分类切换后重置为最近一次使用的视图模式
+  const handleCategoryChange = (category) => {
+    setSelectedCategory(category);
+    try {
+      const saved = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+      if (saved === 'grid' || saved === 'list' || saved === 'favorites') {
+        setViewMode(saved);
+      }
+    } catch (e) {}
+  };
   const [isShareModalVisible, setIsShareModalVisible] = useState(false);
   const [shareSelectedNote, setShareSelectedNote] = useState(null);
   const [showCalendarCenter, setShowCalendarCenter] = useState(false);
@@ -383,7 +416,12 @@ const SmartNotes = ({ onViewChange }) => {
     try {
       const note = notes.find(n => n.id === noteId);
       if (note) {
-        const updatedNote = { ...note, starred: !note.starred };
+        const now = new Date().toISOString();
+        const updatedNote = { 
+          ...note, 
+          starred: !note.starred,
+          starredAt: !note.starred ? now : null
+        };
         await notesService.updateNote(noteId, updatedNote);
         message.success(updatedNote.starred ? '已收藏' : '已取消收藏');
         loadData();
@@ -431,62 +469,87 @@ const SmartNotes = ({ onViewChange }) => {
     />;
   }
 
+  // 计算当前分类下最近收藏的主题（基于当前分类过滤后的列表）
+  const favoritesInCategory = filteredNotes.filter(n => n.starred);
+  const recentFavoriteNote = favoritesInCategory
+    .slice()
+    .sort((a, b) => {
+      const ta = new Date(a.starredAt || a.updatedAt || a.createdAt || 0).getTime();
+      const tb = new Date(b.starredAt || b.updatedAt || b.createdAt || 0).getTime();
+      return tb - ta;
+    })[0];
+
   return (
     <div className="smart-notes">
       <Layout>
-        {/* 侧边栏 */}
-        <NotesSidebar
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          notes={notes}
-          categories={categories}
-        />
+        {/* 侧边栏：在收藏视图下隐藏以便编辑页全宽展示 */}
+        {viewMode !== 'favorites' && (
+          <NotesSidebar
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            selectedCategory={selectedCategory}
+            onCategoryChange={handleCategoryChange}
+            notes={notes}
+            categories={categories}
+          />
+        )}
 
-        {/* 主内容区 */}
-        <Content className="notes-content">
+        {/* 主内容区：收藏视图采用无内边距白底模式 */}
+        <Content className={viewMode === 'favorites' ? 'notes-content favorites-mode' : 'notes-content'}>
           <NotesToolbar
             filteredNotes={filteredNotes}
-            selectedCategory={selectedCategory}
-            getCategoryInfo={getCategoryInfo}
             viewMode={viewMode}
-            setViewMode={setViewMode}
-            setShowCalendarCenter={setShowCalendarCenter}
-            loadData={loadData}
+            onViewModeChange={handleViewModeChange}
+            onCalendarClick={() => setShowCalendarCenter(true)}
             onCreateNote={handleCreateNote}
             onGenerateMockData={handleGenerateMockData}
-            checkLocalStorageData={checkLocalStorageData}
+            selectedCategory={selectedCategory}
           />
 
-          <NotesList
-            loading={loading}
-            filteredNotes={filteredNotes}
-            viewMode={viewMode}
-            selectedCategory={selectedCategory}
-            getCategoryInfo={getCategoryInfo}
-            handleCreateNote={handleCreateNote}
-            handleEditNote={handleEditNote}
-            handleViewNote={handleViewNote}
-            handleUpdateTags={async (noteId, newTags) => {
-              try {
-                const note = notes.find(n => n.id === noteId);
-                if (note) {
-                  const updatedNote = { ...note, tags: newTags };
-                  await notesService.updateNote(noteId, updatedNote);
-                  message.success('标签已更新');
-                  loadData();
+          {viewMode === 'favorites' ? (
+            recentFavoriteNote ? (
+              <NoteEditPage
+                onBack={() => setViewMode('grid')}
+                onViewChange={onViewChange}
+                note={recentFavoriteNote}
+                mode="view"
+                selectedTemplate={null}
+                selectedCategory={selectedCategory}
+              />
+              
+            ) : (
+              <Empty description="当前分类下暂无收藏主题" />
+            )
+          ) : (
+            <NotesList
+              loading={loading}
+              filteredNotes={filteredNotes}
+              viewMode={viewMode}
+              selectedCategory={selectedCategory}
+              getCategoryInfo={getCategoryInfo}
+              handleCreateNote={handleCreateNote}
+              handleEditNote={handleEditNote}
+              handleViewNote={handleViewNote}
+              handleUpdateTags={async (noteId, newTags) => {
+                try {
+                  const note = notes.find(n => n.id === noteId);
+                  if (note) {
+                    const updatedNote = { ...note, tags: newTags };
+                    await notesService.updateNote(noteId, updatedNote);
+                    message.success('标签已更新');
+                    loadData();
+                  }
+                } catch (error) {
+                  console.error('更新标签失败:', error);
+                  message.error('更新标签失败');
                 }
-              } catch (error) {
-                console.error('更新标签失败:', error);
-                message.error('更新标签失败');
-              }
-            }}
-            handleShareTheme={handleShareTheme}
-            handleToggleStar={handleToggleStar}
-            handleDeleteNote={handleDeleteNote}
-            getTrainingStatusInfo={getTrainingStatusInfo}
-          />
+              }}
+              handleShareTheme={handleShareTheme}
+              handleToggleStar={handleToggleStar}
+              handleDeleteNote={handleDeleteNote}
+              getTrainingStatusInfo={getTrainingStatusInfo}
+            />
+          )}
         </Content>
       </Layout>
 

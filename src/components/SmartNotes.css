@@ -568,6 +568,12 @@
   flex-direction: column;
 }
 
+/* 收藏视图下的内容区样式：去除留白并采用白底，便于编辑页全宽显示 */
+.notes-content.favorites-mode {
+  padding: 0;
+  background: #fff;
+}
+
 .content-header {
   display: flex;
   justify-content: space-between;
@@ -1022,4 +1028,14 @@
 /* 错误消息样式 */
 .ant-message-error .anticon {
   color: #ff4d4f;
+}
+/* 视图切换图标按钮组：增大按钮之间的间距 */
+.view-toggle {
+  display: inline-flex;
+  gap: 16px; /* 增大为 16px 间距 */
+}
+
+/* 确保按钮不会因为外层布局压缩而贴得过近 */
+.view-toggle .ant-btn {
+  padding: 0 8px; /* 保持小按钮的点击舒适度 */
 }

@@ -1071,10 +1071,10 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
 
   return (
     <>
-      {/* 直播中提示条 */}
+      {/* 直播中提示条（sticky 占位，不遮挡内容）*/}
       {liveStreams.some(stream => getLiveStreamStatus(stream) === 'live') && (
         <div style={{
-          position: 'fixed',
+          position: 'sticky',
           top: 0,
           left: 0,
           right: 0,
@@ -1141,12 +1141,9 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
       
       <div style={{ 
         display: 'flex', 
-        height: liveStreams.some(stream => getLiveStreamStatus(stream) === 'live') 
-          ? 'calc(100vh - 64px - 52px)' 
-          : 'calc(100vh - 64px)', 
+        height: 'calc(100vh - 64px)', 
         background: '#f5f5f5',
-        marginTop: liveStreams.some(stream => getLiveStreamStatus(stream) === 'live') ? '52px' : '0px',
-        transition: 'margin-top 0.3s ease, height 0.3s ease',
+        transition: 'height 0.3s ease',
         overflow: 'hidden'
       }}>
         {/* 孕屏模式：视频播放器占满整个宽度 */}
