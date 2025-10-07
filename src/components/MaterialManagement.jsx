@@ -193,6 +193,17 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
   const [highlightVideoId, setHighlightVideoId] = useState(null);
   // 课程视频视图模式：平铺视图 或 层级视图
   const [videoViewMode, setVideoViewMode] = useState('flat');
+  // 各来源类型分区折叠状态（课程视频、考试文件、普通文件、链接、文本）
+  const [collapsedSections, setCollapsedSections] = useState({
+    videos: false,
+    examFiles: false,
+    files: false,
+    links: false,
+    texts: false
+  });
+  const toggleSection = (key) => {
+    setCollapsedSections(prev => ({ ...prev, [key]: !prev[key] }));
+  };
   const toggleGroup = (courseId) => {
     setCollapsedGroups(prev => {
       const next = new Set(prev);
@@ -206,6 +217,17 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
       if (next.has(courseId)) next.delete(courseId); else next.add(courseId);
       return next;
     });
+  };
+
+
+  // 全部展开/全部折叠
+  const expandAllSections = () => {
+    setCollapsedSections({ videos: false, examFiles: false, files: false, links: false, texts: false });
+    setCollapsedGroups(new Set());
+  };
+  const collapseAllSections = () => {
+    setCollapsedSections({ videos: true, examFiles: true, files: true, links: true, texts: true });
+    setCollapsedGroups(new Set(allCourseIds));
   };
 
   const scrollToVideoCard = (videoId) => {
@@ -267,6 +289,15 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
       return base;
     }
   }, [courseVideos]);
+
+  // 所有课程ID用于全局折叠/展开控制（基于 displayCourseVideos）
+  const allCourseIds = useMemo(() => {
+    const ids = new Set();
+    (Array.isArray(displayCourseVideos) ? displayCourseVideos : []).forEach(v => {
+      ids.add(v.courseId || v.id);
+    });
+    return Array.from(ids);
+  }, [displayCourseVideos]);
 
   // 将上传文件按是否为试卷分组
   const examFiles = useMemo(() => {
@@ -644,6 +675,48 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
             </Tooltip>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* 全局折叠/展开单一图标按钮 */}
+            <Tooltip title={collapsedSections.videos && collapsedSections.examFiles && collapsedSections.files && collapsedSections.links && collapsedSections.texts && collapsedGroups.size === allCourseIds.length ? '全部展开' : '全部折叠'}>
+              <Button 
+                size="small"
+                type="default"
+                onClick={() => {
+                  const allCollapsed = (
+                    collapsedSections.videos &&
+                    collapsedSections.examFiles &&
+                    collapsedSections.files &&
+                    collapsedSections.links &&
+                    collapsedSections.texts &&
+                    collapsedGroups.size === allCourseIds.length
+                  );
+                  if (allCollapsed) {
+                    expandAllSections();
+                  } else {
+                    collapseAllSections();
+                  }
+                }}
+                icon={(
+                  collapsedSections.videos &&
+                  collapsedSections.examFiles &&
+                  collapsedSections.files &&
+                  collapsedSections.links &&
+                  collapsedSections.texts &&
+                  collapsedGroups.size === allCourseIds.length
+                    ? <DownOutlined />
+                    : <RightOutlined />
+                )}
+                style={{ fontSize: '12px', height: 'auto', padding: '2px 8px' }}
+              >
+                {(
+                  collapsedSections.videos &&
+                  collapsedSections.examFiles &&
+                  collapsedSections.files &&
+                  collapsedSections.links &&
+                  collapsedSections.texts &&
+                  collapsedGroups.size === allCourseIds.length
+                ) ? '全部展开' : '全部折叠'}
+              </Button>
+            </Tooltip>
             <Checkbox 
               checked={selectedMaterials.length > 0 && selectedMaterials.length === (
                 uploadedFiles.length + addedTexts.length + courseVideos.length + links.length + organizationalCourses.length
@@ -747,9 +820,16 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
               {displayCourseVideos.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <Text strong style={{ fontSize: '12px', color: '#666' }}>
-                      📹 课程视频 ({displayCourseVideos.length})
-                    </Text>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {collapsedSections.videos ? (
+                        <RightOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('videos')} />
+                      ) : (
+                        <DownOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('videos')} />
+                      )}
+                      <Text strong style={{ fontSize: '12px', color: '#666' }}>
+                        📹 课程视频 ({displayCourseVideos.length})
+                      </Text>
+                    </div>
                     <Button.Group>
                       <Tooltip title="平铺视图">
                         <Button 
@@ -769,7 +849,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                       </Tooltip>
                     </Button.Group>
                   </div>
-                  {Object.values(displayCourseVideos.reduce((groups, v) => {
+                  {!collapsedSections.videos && Object.values(displayCourseVideos.reduce((groups, v) => {
                     const cid = v.courseId || v.id;
                     if (!groups[cid]) {
                       groups[cid] = {
@@ -781,7 +861,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                     }
                     groups[cid].videos.push(v);
                     return groups;
-                  }, {})).map(group => (
+                   }, {})).map(group => (
                     <div key={`course-${group.courseId}`} style={{ marginBottom: 8, border: '1px solid #e8e8e8', borderRadius: 8, padding: 8, background: '#fff' }}>
                       {(() => {
                         const summary = computeGroupSummary(group.videos);
@@ -996,7 +1076,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                         </div>
                       );
                     })()}
-                     {!collapsedGroups.has(group.courseId) && videoViewMode === 'flat' && group.videos.map(video => (
+                    {!collapsedGroups.has(group.courseId) && videoViewMode === 'flat' && group.videos.map(video => (
                         <Tooltip title={getVideoHierarchyPath(group.courseId, video)} placement="top">
                         <Card 
                           key={`video-${video.id}`}
@@ -1169,7 +1249,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                         </Tooltip>
                       ))}
                     </div>
-                  ))}
+                   ))}
                 </div>
               )}
 
@@ -1177,10 +1257,19 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
               {/* 考试/试卷列表（从上传文件中筛选 isPaper:true） */}
               {examFiles.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
-                  <Text strong style={{ fontSize: '12px', color: '#666', marginBottom: 8, display: 'block' }}>
-                    🎓 考试/试卷 ({examFiles.length})
-                  </Text>
-                  {examFiles.map(file => (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {collapsedSections.examFiles ? (
+                        <RightOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('examFiles')} />
+                      ) : (
+                        <DownOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('examFiles')} />
+                      )}
+                      <Text strong style={{ fontSize: '12px', color: '#666' }}>
+                        🎓 考试/试卷 ({examFiles.length})
+                      </Text>
+                    </div>
+                  </div>
+                  {!collapsedSections.examFiles && examFiles.map(file => (
                     <Card 
                       key={`file-${file.id}`}
                       size="small" 
@@ -1215,10 +1304,19 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
               {/* 文件列表（不包含试卷） */}
               {nonExamFiles.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
-                  <Text strong style={{ fontSize: '12px', color: '#666', marginBottom: 8, display: 'block' }}>
-                    📄 文件 ({nonExamFiles.length})
-                  </Text>
-                  {nonExamFiles.map(file => (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {collapsedSections.files ? (
+                        <RightOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('files')} />
+                      ) : (
+                        <DownOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('files')} />
+                      )}
+                      <Text strong style={{ fontSize: '12px', color: '#666' }}>
+                        📄 文件 ({nonExamFiles.length})
+                      </Text>
+                    </div>
+                  </div>
+                  {!collapsedSections.files && nonExamFiles.map(file => (
                     <Card 
                       key={`file-${file.id}`}
                       size="small" 
@@ -1253,10 +1351,19 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
               {/* 链接列表 */}
               {links.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
-                  <Text strong style={{ fontSize: '12px', color: '#666', marginBottom: 8, display: 'block' }}>
-                    🔗 链接 ({links.length})
-                  </Text>
-                  {links.map(link => (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {collapsedSections.links ? (
+                        <RightOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('links')} />
+                      ) : (
+                        <DownOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('links')} />
+                      )}
+                      <Text strong style={{ fontSize: '12px', color: '#666' }}>
+                        🔗 链接 ({links.length})
+                      </Text>
+                    </div>
+                  </div>
+                  {!collapsedSections.links && links.map(link => (
                     <Card 
                       key={`link-${link.id}`}
                       size="small" 
@@ -1291,10 +1398,19 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
               {/* 文本内容列表 */}
               {addedTexts.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
-                  <Text strong style={{ fontSize: '12px', color: '#666', marginBottom: 8, display: 'block' }}>
-                    📝 文本 ({addedTexts.length})
-                  </Text>
-                  {addedTexts.map(text => (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {collapsedSections.texts ? (
+                        <RightOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('texts')} />
+                      ) : (
+                        <DownOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('texts')} />
+                      )}
+                      <Text strong style={{ fontSize: '12px', color: '#666' }}>
+                        📝 文本 ({addedTexts.length})
+                      </Text>
+                    </div>
+                  </div>
+                  {!collapsedSections.texts && addedTexts.map(text => (
                     <Card 
                       key={`text-${text.id}`}
                       size="small" 
