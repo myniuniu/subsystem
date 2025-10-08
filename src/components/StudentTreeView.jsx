@@ -318,23 +318,31 @@ const ResourceTreeView = ({
             </span>
           </Checkbox>
           <div className="control-buttons">
-            <Button 
-              type="primary"
-              size="small"
-              icon={<DownOutlined />}
-              onClick={() => setExpandedKeys(trainingCategories.map(c => c.id))}
-              className="expand-btn"
-            >
-              展开全部
-            </Button>
-            <Button 
-              size="small"
-              icon={<UpOutlined />}
-              onClick={() => setExpandedKeys([])}
-              className="collapse-btn"
-            >
-              收起全部
-            </Button>
+            {(() => {
+              const topLevelKeys = trainingCategories.map(c => c.id);
+              const allExpanded = topLevelKeys.every(k => expandedKeys.includes(k));
+              const label = allExpanded ? '收起全部' : '展开全部';
+              const icon = allExpanded ? <UpOutlined /> : <DownOutlined />;
+              const type = allExpanded ? 'default' : 'primary';
+              const onClick = () => {
+                if (allExpanded) {
+                  setExpandedKeys([]);
+                } else {
+                  setExpandedKeys(topLevelKeys);
+                }
+              };
+              return (
+                <Tooltip title={label}>
+                  <Button
+                    type={type}
+                    size="small"
+                    icon={icon}
+                    onClick={onClick}
+                    className="expand-toggle-btn"
+                  />
+                </Tooltip>
+              );
+            })()}
           </div>
         </div>
       )}
@@ -438,7 +446,8 @@ const ResourceTreeView = ({
         }
 
         .expand-btn,
-        .collapse-btn {
+        .collapse-btn,
+        .expand-toggle-btn {
           font-size: 12px;
           height: 24px;
           padding: 0 8px;

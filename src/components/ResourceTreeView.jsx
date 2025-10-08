@@ -318,23 +318,31 @@ const ResourceTreeView = ({
             </span>
           </Checkbox>
           <div className="control-buttons">
-            <Button 
-              type="primary"
-              size="small"
-              icon={<DownOutlined />}
-              onClick={() => setExpandedKeys(trainingCategories.map(c => c.id))}
-              className="expand-btn"
-            >
-              展开全部
-            </Button>
-            <Button 
-              size="small"
-              icon={<UpOutlined />}
-              onClick={() => setExpandedKeys([])}
-              className="collapse-btn"
-            >
-              收起全部
-            </Button>
+            {(() => {
+              // 计算全局展开状态：所有顶层类目是否都在 expandedKeys 中
+              const topLevelIds = trainingCategories.map(c => c.id);
+              const allExpanded = topLevelIds.every(id => expandedKeys.includes(id));
+
+              return (
+                <Tooltip title={allExpanded ? '收起全部' : '展开全部'}>
+                  <Button 
+                    size="small"
+                    type={allExpanded ? 'default' : 'primary'}
+                    icon={allExpanded ? <UpOutlined /> : <DownOutlined />}
+                    onClick={() => {
+                      if (allExpanded) {
+                        // 全部展开 → 点击后收起
+                        setExpandedKeys([]);
+                      } else {
+                        // 非全部展开 → 点击后展开所有顶层
+                        setExpandedKeys(topLevelIds);
+                      }
+                    }}
+                    className="expand-toggle-btn"
+                  />
+                </Tooltip>
+              );
+            })()}
           </div>
         </div>
       )}
@@ -438,7 +446,8 @@ const ResourceTreeView = ({
         }
 
         .expand-btn,
-        .collapse-btn {
+        .collapse-btn,
+        .expand-toggle-btn {
           font-size: 12px;
           height: 24px;
           padding: 0 8px;
