@@ -438,14 +438,14 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
 
     { 
        id: 'resource-annotation', 
-       icon: Tag, 
+       icon: ClipboardCheck, 
        label: '资源标注', 
        color: '#f759ab',
        type: 'single'
      },
     { 
        id: 'student-annotation', 
-       icon: Users, 
+       icon: UserCheck, 
        label: '学员标注', 
        color: '#722ed1',
        type: 'single'

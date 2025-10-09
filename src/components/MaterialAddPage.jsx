@@ -12,22 +12,23 @@ import {
   Divider,
   Tag
 } from 'antd';
-import {
-  UploadOutlined,
-  GoogleOutlined,
-  LinkOutlined,
-  FileTextOutlined,
-  ArrowLeftOutlined,
-  ArrowRightOutlined,
-  PlayCircleOutlined,
-  BookOutlined,
-  PlusOutlined,
-  ApartmentOutlined,
-  NodeIndexOutlined,
-  CloudOutlined,
-  TeamOutlined,
-  ShoppingOutlined
-} from '@ant-design/icons';
+  import {
+    UploadOutlined,
+    GoogleOutlined,
+    LinkOutlined,
+    FileTextOutlined,
+    ArrowLeftOutlined,
+    ArrowRightOutlined,
+    PlayCircleOutlined,
+    BookOutlined,
+    PlusOutlined,
+    ApartmentOutlined,
+    NodeIndexOutlined,
+    CloudOutlined,
+    TeamOutlined,
+    ShoppingOutlined,
+    BulbOutlined
+  } from '@ant-design/icons';
 import './MaterialAddPage.css';
 // import courseSelectionService from '../services/courseSelectionService';
 
@@ -56,6 +57,17 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
   const [showCloudDiskForm, setShowCloudDiskForm] = useState(false);
   const [showExerciseForm, setShowExerciseForm] = useState(false);
   // const [showTrainingNeedsForm, setShowTrainingNeedsForm] = useState(false);
+
+  // 知识广场相关处理函数
+  const handleKnowledgeSquareClick = () => {
+    try {
+      // 使用哈希路由以适配 App.jsx 的视图切换逻辑
+      window.open('/#learning-square', '_blank');
+      message.info('已在新标签打开学习广场，请在广场中选择后返回继续。');
+    } catch (e) {
+      message.warning('无法打开学习广场，请检查路由或网络。');
+    }
+  };
 
   const handleFileUpload = (info) => {
     const { status } = info.file;
@@ -1950,6 +1962,44 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                 }}
               >
                 选择直播课
+              </Button>
+            </Card>
+
+            {/* 知识广场 */}
+            <Card 
+              hoverable
+              style={{ 
+                textAlign: 'center',
+                border: '1px solid #e8e8e8',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+              bodyStyle={{ padding: '40px 24px' }}
+              onClick={handleKnowledgeSquareClick}
+            >
+              <BulbOutlined style={{ 
+                fontSize: '40px', 
+                color: '#722ed1',
+                marginBottom: '20px'
+              }} />
+              <div style={{ marginBottom: '12px' }}>
+                <Text strong style={{ fontSize: '16px' }}>知识广场</Text>
+              </div>
+              <Button 
+                type="primary"
+                size="small"
+                onClick={handleKnowledgeSquareClick}
+                style={{
+                  backgroundColor: '#722ed1',
+                  borderColor: '#722ed1',
+                  borderRadius: '16px',
+                  fontSize: '12px',
+                  height: '28px',
+                  paddingLeft: '12px',
+                  paddingRight: '12px'
+                }}
+              >
+                进入知识广场
               </Button>
             </Card>
 
