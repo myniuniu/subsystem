@@ -153,6 +153,35 @@ const VideoPlayer = ({
     }
   };
 
+  // 监听 fullscreenchange 事件以同步全屏状态，并支持 ESC 键退出
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isFs = !!document.fullscreenElement;
+      setIsFullscreen(isFs);
+    };
+
+    const handleKeyDown = (e) => {
+      // 当按下 ESC 键时，如果处于全屏则退出并同步状态
+      if (e.key === 'Escape' || e.keyCode === 27) {
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+          setIsFullscreen(false);
+        }
+      }
+    };
+
+    // 仅在播放器可见时监听，避免全局污染
+    if (visible) {
+      document.addEventListener('fullscreenchange', handleFullscreenChange);
+      window.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [visible]);
+
   // 格式化时间
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);

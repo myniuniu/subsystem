@@ -68,6 +68,27 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
     };
   }, [isWidescreenMode]);
 
+  // 宽屏模式下按 ESC 退出宽屏
+  useEffect(() => {
+    if (!isWidescreenMode) return;
+
+    const handleKeyDown = (e) => {
+      const isEsc = e.key === 'Escape' || e.keyCode === 27;
+      if (isEsc) {
+        try {
+          onToggleWidescreen && onToggleWidescreen();
+        } catch (err) {
+          console.error('退出宽屏失败:', err);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isWidescreenMode, onToggleWidescreen]);
+
   // 处理字幕文字选中
   const handleSubtitleTextSelection = (e, subtitle) => {
     const selection = window.getSelection();
