@@ -118,10 +118,13 @@ const ScenarioView = ({
             position: 'relative',
             background: '#f5f5f5'
           }}>
-            {/* 直接显示iframe，保持原有交互功能 */}
+            {/* 直接显示iframe，保持原有交互功能；增加安全回退 */}
             <iframe 
-              src={selectedScenarios[0].thumbnail}
-              title={selectedScenarios[0].title}
+              src={(selectedScenarios[0]?.thumbnail 
+                || selectedScenarios[0]?.files?.html 
+                || selectedScenarios[0]?.htmlPath 
+                || '/gen-html/ai-mental-health-scenario.html')}
+              title={selectedScenarios[0]?.title || '场景预览'}
               style={{ 
                 width: '100%', 
                 height: '100%', 
@@ -130,8 +133,8 @@ const ScenarioView = ({
                 top: 0,
                 left: 0
               }}
-              onLoad={() => console.log('iframe已加载:', selectedScenarios[0].thumbnail)}
-              onError={() => console.error('iframe加载失败:', selectedScenarios[0].thumbnail)}
+              onLoad={() => console.log('iframe已加载:', (selectedScenarios[0]?.thumbnail || selectedScenarios[0]?.files?.html || selectedScenarios[0]?.htmlPath))}
+              onError={() => console.error('iframe加载失败:', (selectedScenarios[0]?.thumbnail || selectedScenarios[0]?.files?.html || selectedScenarios[0]?.htmlPath))}
             />
           </div>
         </>

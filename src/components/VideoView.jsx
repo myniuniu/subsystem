@@ -575,8 +575,21 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
                   }}
                   onClick={() => {
                     // 点击跳转到对应时间点
-                    if (selectedMaterial) {
-                      // 这里可以添加实际的视频跳转逻辑
+                    try {
+                      const videoElement = document.querySelector('video');
+                      if (videoElement) {
+                        const targetTime = subtitle.start || 0;
+                        videoElement.currentTime = targetTime;
+                        // 若暂停则尝试播放，保证联动高亮
+                        if (videoElement.paused) {
+                          videoElement.play().catch(() => {});
+                        }
+                      } else {
+                        message.warning('未找到视频播放器，请先打开视频');
+                      }
+                    } catch (err) {
+                      console.error('跳转到字幕时间失败:', err);
+                      message.error('跳转失败，请稍后重试');
                     }
                   }}
                   onMouseUp={(e) => handleSubtitleTextSelection(e, subtitle)}

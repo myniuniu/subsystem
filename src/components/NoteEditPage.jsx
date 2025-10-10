@@ -70,6 +70,27 @@ const { Option } = Select;
 const VIDEO_OVERVIEW_URL = '/assets/2.mp4';
 
 const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', selectedTemplate = null, selectedCategory = null }) => {
+  // 注册全局时间链接点击处理，使文本中的时间码点击可跳转视频
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.handleTimeClick = (seconds) => {
+        try {
+          const videoElement = document.querySelector('video');
+          if (videoElement) {
+            videoElement.currentTime = Number(seconds) || 0;
+            if (videoElement.paused) {
+              videoElement.play().catch(() => {});
+            }
+          } else {
+            message.info('请先在右侧打开视频播放器');
+          }
+        } catch (err) {
+          console.error('处理时间链接点击失败:', err);
+          message.error('跳转失败，请稍后重试');
+        }
+      };
+    }
+  }, []);
   // 使用统一的状态管理hook
   const state = useNoteEditState(note, mode, selectedTemplate, selectedCategory);
   
@@ -599,24 +620,32 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         console.log('选择场景模拟:', record);
         console.log('当前 currentView:', currentView);
         console.log('当前 VIEW_MODES:', VIEW_MODES);
-        
+
+        // 统一计算安全的 iframe 源地址：优先使用缩略图，其次 files.html、htmlPath，最后兜底到心理场景HTML
+        const safeIframeSrc = (
+          record?.thumbnail ||
+          (record?.files && record.files.html) ||
+          record?.htmlPath ||
+          '/gen-html/ai-mental-health-scenario.html'
+        );
+
+        const effectiveRecord = { ...record, thumbnail: safeIframeSrc };
+
         // 先强制重置为 materials 视图，然后再切换到场景视图
         setCurrentView(VIEW_MODES.MATERIALS);
-        
-        // 使用 setTimeout 确保状态更新
+
+        // 使用 setTimeout 确保状态更新顺序：先选中场景后切视图
         setTimeout(() => {
-          // 设置选中的场景并在三栏布局中显示
-          setSelectedScenarios([record]);
-          console.log('设置 selectedScenarios:', [record]);
-          console.log('场景路径 thumbnail:', record.thumbnail);
-          
-          // 切换到场景显示视图
+          setSelectedScenarios([effectiveRecord]);
+          console.log('设置 selectedScenarios:', [effectiveRecord]);
+          console.log('场景路径 thumbnail (effective):', effectiveRecord.thumbnail);
+
           setCurrentView(VIEW_MODES.SCENARIO_VIEW);
           console.log('切换到 VIEW_MODES.SCENARIO_VIEW:', VIEW_MODES.SCENARIO_VIEW);
-          
-          message.success(`正在加载场景：${record.title}`);
+
+          message.success(`正在加载场景：${effectiveRecord.title}`);
         }, 100);
-        
+
         return;
       }
 
