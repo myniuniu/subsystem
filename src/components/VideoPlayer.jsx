@@ -8,8 +8,7 @@ import {
   FullscreenOutlined,
   FullscreenExitOutlined,
   CloseOutlined,
-  EditOutlined,
-  CameraOutlined
+  EditOutlined
 } from '@ant-design/icons';
 import './VideoPlayer.css';
 
@@ -637,15 +636,6 @@ ${annotationText}
                   style={{ color: 'white' }}
                   title="时刻标注（含截图）"
                 />
-
-                {/* 截图按钮 */}
-                <Button
-                  type="text"
-                  icon={<CameraOutlined />}
-                  onClick={captureVideoScreenshot}
-                  style={{ color: 'white' }}
-                  title="截取当前帧"
-                />
               </Space>
 
               <Space>
@@ -901,15 +891,6 @@ ${annotationText}
                   onClick={handleAnnotationClick}
                   style={{ color: 'white' }}
                   title="时刻标注（含截图）"
-                />
-
-                {/* 截图按钮 */}
-                <Button
-                  type="text"
-                  icon={<CameraOutlined />}
-                  onClick={captureVideoScreenshot}
-                  style={{ color: 'white' }}
-                  title="截取当前帧"
                 />
               </Space>
 

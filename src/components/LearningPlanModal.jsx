@@ -383,7 +383,6 @@ const LearningPlanModal = ({ visible, onConfirm, onCancel }) => {
       width={800}
       footer={
         <Space>
-          <Button onClick={handleCancel}>取消</Button>
           {currentStep > 0 && (
             <Button onClick={() => setCurrentStep(currentStep - 1)}>
               上一步
