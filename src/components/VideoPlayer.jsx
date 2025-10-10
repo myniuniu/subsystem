@@ -64,11 +64,24 @@ const VideoPlayer = ({
         const savedTime = (videoData.progress / 100) * videoRef.current.duration;
         videoRef.current.currentTime = savedTime;
         setCurrentTime(savedTime);
+        // 元数据加载完成后立即触发一次时间更新回调，确保字幕与进度初始同步
+        if (onTimeUpdate) {
+          onTimeUpdate(savedTime, videoRef.current.duration);
+        }
       }
       // 如果有起始时间（用于时刻标注跳转），跳转到对应位置
       else if (videoData?.startTime !== undefined && videoData.startTime > 0) {
         videoRef.current.currentTime = videoData.startTime;
         setCurrentTime(videoData.startTime);
+        // 元数据加载完成后立即触发一次时间更新回调，确保字幕与进度初始同步
+        if (onTimeUpdate) {
+          onTimeUpdate(videoData.startTime, videoRef.current.duration);
+        }
+      } else {
+        // 无保存进度或起始时间时，也触发一次回调用于初始化
+        if (onTimeUpdate) {
+          onTimeUpdate(videoRef.current.currentTime || 0, videoRef.current.duration);
+        }
       }
     }
   };

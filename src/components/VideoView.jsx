@@ -539,6 +539,9 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
             overflowY: 'auto',
             paddingRight: '4px'
           }}>
+            {Array.isArray(subtitleData) && subtitleData.length > 0 && (
+              console.log('[VideoView] subtitleData length:', subtitleData.length, 'last end:', subtitleData[subtitleData.length - 1].end)
+            )}
             {subtitleData.map((subtitle, index) => {
               const isActive = currentSubtitle === subtitle.text;
               

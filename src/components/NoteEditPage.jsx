@@ -1061,6 +1061,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
     },
     
     onVideoTimeUpdate: (currentTime, duration) => {
+      console.log('[onVideoTimeUpdate] currentTime:', currentTime, 'duration:', duration, 'subtitleData length:', (state.subtitleData || []).length);
       setVideoProgress(duration > 0 ? (currentTime / duration) * 100 : 0);
       
       const subtitle = state.subtitleData.find(sub => 
