@@ -13,6 +13,24 @@ export const useOperationPanelState = (noteCategory = null) => {
   // 根据分类过滤工具的函数
   const getFilteredCards = (category) => {
     console.log('getFilteredCards 被调用，分类:', category);
+    // 组织培训分类：仅默认显示指定的六个工具
+    if (category === 'organizational_training') {
+      const allowedKeys = [
+        'learning-plan',
+        'audio',
+        'video',
+        'mindmap',
+        'report',
+        'scenario'
+      ];
+      const filtered = OPERATION_CARDS.filter(card => allowedKeys.includes(card.key));
+      // 固定顺序输出
+      const ordered = allowedKeys
+        .map(key => filtered.find(c => c.key === key))
+        .filter(Boolean);
+      console.log('组织培训分类，返回的卡片:', ordered);
+      return ordered;
+    }
     
     // 如果是培训需求与管理分类，返回培训相关工具
     if (category === 'training_needs_management') {
@@ -87,6 +105,23 @@ export const useOperationPanelState = (noteCategory = null) => {
       
       console.log('培训产品研发分类，返回的卡片:', trainingProductDevCards);
       return trainingProductDevCards;
+    }
+
+    // 如果是组织培训分类，默认仅显示六个工具并保持固定顺序
+    if (category === 'organizational_training') {
+      const orderedKeys = [
+        'learning-plan',
+        'audio',
+        'video',
+        'mindmap',
+        'report',
+        'scenario'
+      ];
+      const orgTrainingCards = orderedKeys
+        .map(key => OPERATION_CARDS.find(card => card.key === key))
+        .filter(Boolean);
+      console.log('组织培训分类，返回的卡片:', orgTrainingCards);
+      return orgTrainingCards;
     }
 
     // 如果是作业系统分类，默认注入并仅显示相关作业工具

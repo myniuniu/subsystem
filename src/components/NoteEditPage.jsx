@@ -1344,6 +1344,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 state={state}
                 handlers={operationHandlers}
                 hideEmptySlots
+                selectedCategory={selectedCategory}
               />
         </div>
 

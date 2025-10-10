@@ -107,7 +107,7 @@ if (typeof document !== 'undefined') {
   }
 }
 
-const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
+const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCategory = null }) => {
   // 先解构state中的变量
   const {
     operationRecords,
@@ -155,14 +155,15 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false }) => {
     setNoteEditorContent
   } = state;
 
-  // 获取当前笔记的分类信息
-  const noteCategory = note?.category || note?.courseType || null;
+  // 获取当前笔记的分类信息（优先使用选中的分类）
+  const noteCategory = selectedCategory || note?.category || note?.courseType || null;
   console.log('=== OperationPanel noteCategory ===');
   console.log('传入的 state:', state);
   console.log('传入的 note:', note);
   console.log('noteCategory:', noteCategory);
   console.log('note?.category:', note?.category);
   console.log('note?.courseType:', note?.courseType);
+  console.log('selectedCategory:', selectedCategory);
   console.log('================================');
 
   const {
