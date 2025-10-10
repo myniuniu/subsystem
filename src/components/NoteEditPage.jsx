@@ -1390,7 +1390,9 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
             }
           }}
           footer={null}
-          width={720}
+          width="90%"
+          style={{ maxWidth: '1200px' }}
+          bodyStyle={{ height: '95vh' }}
           centered
         >
           {/* 会议布局：左侧视频/共享，右侧成员与聊天 */}
@@ -1400,7 +1402,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               <div style={{
                 background: '#000',
                 borderRadius: 8,
-                height: 320,
+                height: 630,
                 overflow: 'hidden',
                 position: 'relative'
               }}>
