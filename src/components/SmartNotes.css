@@ -39,7 +39,9 @@
 .sidebar-content {
   padding: 20px;
   height: 100vh; /* 改为100vh，与整体容器保持一致 */
-  overflow: hidden; /* 完全隐藏滚动条 */
+  overflow: hidden; /* 顶部固定，底部区域单独滚动 */
+  display: flex; /* 使顶部与底部形成上下布局 */
+  flex-direction: column;
 }
 
 .search-input {
@@ -49,6 +51,58 @@
 .search-input .ant-input {
   border-radius: 8px;
   padding: 8px 12px;
+}
+
+/* 顶部固定区域样式：包含搜索、组织培训、专业分类 */
+.sidebar-top {
+  flex: 0 0 auto;
+  padding-bottom: 8px;
+  border-bottom: none;
+  background: #fff;
+}
+
+/* 顶部内的分类块不再额外留白，避免与系统分类之间空隙过大 */
+.sidebar-top .category-section {
+  margin-bottom: 0;
+}
+
+/* 底部滚动区域样式：系统分类在此处滚动 */
+.sidebar-bottom {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding-top: 0;
+  background: #fff;
+}
+
+/* 顶部区域最后一个分组（系统分类标题）不再额外留白 */
+.sidebar-top .category-group:last-child {
+  margin-bottom: 0;
+}
+
+/* 仅在笔记侧边栏中，系统分类标题下边距为 0，避免额外空白 */
+.notes-sidebar .system-title {
+  margin-bottom: 0;
+}
+
+/* 顶部“系统分类”标题使用普通组样式，与专业分类一致 */
+
+/* 底部滚动区域的滚动条样式 */
+.sidebar-bottom::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-bottom::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 2px;
+}
+
+.sidebar-bottom::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 2px;
+}
+
+.sidebar-bottom::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 /* 分类样式 */

@@ -105,20 +105,21 @@ const NotesSidebar = ({
   return (
     <Sider width={280} className="notes-sidebar">
       <div className="sidebar-content">
-        {/* 搜索框 */}
-        <Search
-          placeholder="搜索笔记..."
-          allowClear
-          value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="search-input"
-        />
+        {/* 顶部固定区域：搜索框、组织培训、专业分类 */}
+        <div className="sidebar-top">
+          {/* 搜索框 */}
+          <Search
+            placeholder="搜索笔记..."
+            allowClear
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="search-input"
+          />
 
-        {/* 分类列表 */}
-        <div className="category-section">
-          <div className="category-list">
-            {[
-              /* 固定显示组织培训分类 */
+          {/* 顶部分类列表：组织培训 + 专业分类（位于组织培训下面） */}
+          <div className="category-section">
+            <div className="category-list">
+              {/* 固定显示组织培训分类 */}
               <div key="organizational_training_wrapper">
                 {renderCategoryItem({
                   value: 'organizational_training',
@@ -126,31 +127,51 @@ const NotesSidebar = ({
                   icon: 'TeamOutlined',
                   type: 'system'
                 })}
-              </div>,
-              
-              /* 系统分类 */
-              <div className="category-group system-group" key="system_categories">
-                <div className="category-group-title">系统分类</div>
-                {categories.filter(category => 
-                  category.value !== 'organizational_training' && 
-                  (!category.type || category.type === 'system')
-                ).map(category => <div key={category.value}>{renderCategoryItem(category)}</div>)}
-              </div>,
+              </div>
 
-              /* 专业分类 */
+              {/* 专业分类（在组织培训下面） */}
               <div className="category-group" key="fixed_categories">
                 <div className="category-group-title">专业分类</div>
-                {categories.filter(category => category.type === 'fixed').map(category => <div key={category.value}>{renderCategoryItem(category)}</div>)}
-              </div>,
+                {categories
+                  .filter(category => category.type === 'fixed')
+                  .map(category => (
+                    <div key={category.value}>{renderCategoryItem(category)}</div>
+                  ))}
+              </div>
 
-              /* 自定义分类 */
-              ...(categories.filter(category => category.type === 'custom').length > 0 ? [
+              {/* 自定义分类（保持在顶部区域，若存在） */}
+              {categories.filter(category => category.type === 'custom').length > 0 && (
                 <div className="category-group" key="custom_categories">
                   <div className="category-group-title">自定义分类</div>
-                  {categories.filter(category => category.type === 'custom').map(category => <div key={category.value}>{renderCategoryItem(category)}</div>)}
+                  {categories
+                    .filter(category => category.type === 'custom')
+                    .map(category => (
+                      <div key={category.value}>{renderCategoryItem(category)}</div>
+                    ))}
                 </div>
-              ] : [])
-            ]}
+              )}
+
+              {/* 系统分类标题（固定在顶部区域，使用普通样式） */}
+              <div className="category-group" key="system_categories_header">
+                <div className="category-group-title">系统分类</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 底部区域：系统分类，内容过多时可滚动 */}
+        <div className="sidebar-bottom">
+          <div className="category-section">
+            <div className="category-group system-group" key="system_categories">
+              {categories
+                .filter(category =>
+                  category.value !== 'organizational_training' &&
+                  (!category.type || category.type === 'system')
+                )
+                .map(category => (
+                  <div key={category.value}>{renderCategoryItem(category)}</div>
+                ))}
+            </div>
           </div>
         </div>
       </div>
