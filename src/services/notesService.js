@@ -6,6 +6,8 @@
 const STORAGE_KEY = 'smart_notes_data';
 const CATEGORIES_KEY = 'smart_notes_categories';
 const TAGS_KEY = 'smart_notes_tags';
+// 一次性迁移标记：移除组织培训第二条（org_002）
+const MIGRATION_REMOVE_ORG_002_KEY = 'migration_remove_org_002_done';
 
 // 默认分类
 const DEFAULT_CATEGORIES = [
@@ -1429,6 +1431,26 @@ class NotesService {
     if (!localStorage.getItem(TAGS_KEY)) {
       localStorage.setItem(TAGS_KEY, JSON.stringify(DEFAULT_TAGS));
     }
+    // 一次性迁移：移除组织培训第二条（courseId: org_002 / 标题包含“班级管理实务”）
+    try {
+      const migrated = localStorage.getItem(MIGRATION_REMOVE_ORG_002_KEY);
+      if (!migrated) {
+        const notes = this.getAllNotes();
+        if (Array.isArray(notes) && notes.length > 0) {
+          const filtered = notes.filter(n => {
+            const isOrgTraining = n.source === '组织培训' || (n.tags && n.tags.includes('组织培训')) || (n.title && n.title.includes('【组织培训】'));
+            const isTarget = (n.courseId === 'org_002') || (n.title && n.title.includes('班级管理实务'));
+            return !(isOrgTraining && isTarget);
+          });
+          if (filtered.length !== notes.length) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+          }
+        }
+        localStorage.setItem(MIGRATION_REMOVE_ORG_002_KEY, 'true');
+      }
+    } catch (e) {
+      console.error('执行迁移移除 org_002 笔记失败:', e);
+    }
   }
 
   // 加载固定分类的模拟数据
@@ -2103,9 +2125,14 @@ class NotesService {
   syncOrganizationalCourses(courses) {
     try {
       const existingNotes = this.getAllNotes();
+      // 过滤掉不需要同步的课程（org_002 / 班级管理实务）
+      const filteredCourses = (courses || []).filter(course => {
+        const isTarget = (course && course.id === 'org_002') || (course && course.title && course.title.includes('班级管理实务'));
+        return !isTarget;
+      });
       const syncedNotes = [];
       
-      courses.forEach(course => {
+      filteredCourses.forEach(course => {
         // 检查是否已经同步过该课程
         const existingNote = existingNotes.find(note => 
           note.source === '组织培训' && note.courseId === course.id

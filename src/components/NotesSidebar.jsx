@@ -125,7 +125,7 @@ const NotesSidebar = ({
               </div>,
               
               /* 系统分类 */
-              <div className="category-group" key="system_categories">
+              <div className="category-group system-group" key="system_categories">
                 <div className="category-group-title">系统分类</div>
                 {categories.filter(category => 
                   category.value !== 'organizational_training' && 

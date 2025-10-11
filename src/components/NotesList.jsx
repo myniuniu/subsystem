@@ -24,7 +24,7 @@ import {
   PlayCircleOutlined,
   TagOutlined
 } from '@ant-design/icons';
-import { TRAINING_STATUS, getTrainingStatusInfo } from '../utils/trainingStatusUtils';
+import { TRAINING_STATUS, getTrainingStatusInfo, parseTimeString } from '../utils/trainingStatusUtils';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -52,6 +52,66 @@ const NotesList = ({
     setTagEditingNote(note);
     setTagInput(note.tags || []);
     setTagModalVisible(true);
+  };
+
+  // 组织培训排序：进行中优先，其次未开始，其次无安排，最后已结束
+  const sortOrganizationalNotes = (notes) => {
+    return [...notes].sort((a, b) => {
+      const aInfo = getTrainingStatusInfo(a);
+      const bInfo = getTrainingStatusInfo(b);
+
+      const getPriority = (info) => {
+        if (info?.isInProgress) return 0;
+        if (info?.isNotStarted) return 1;
+        if (!info) return 2; // 无安排其次
+        if (info?.isCompleted) return 3; // 已结束固定最后
+        return 2;
+      };
+
+      const pa = getPriority(aInfo);
+      const pb = getPriority(bInfo);
+      if (pa !== pb) return pa - pb;
+
+      // 二级排序：进行中组内按结束时间升序（更早截止更靠前），再按开始时间倒序
+      const isInProgressGroup = (info) => {
+        return info && info.status === TRAINING_STATUS.IN_PROGRESS;
+      };
+      if (isInProgressGroup(aInfo) && isInProgressGroup(bInfo)) {
+        const aEnd = parseTimeString(a?.learningSchedule?.endTime);
+        const bEnd = parseTimeString(b?.learningSchedule?.endTime);
+        const aEndTime = aEnd ? aEnd.getTime() : Infinity;
+        const bEndTime = bEnd ? bEnd.getTime() : Infinity;
+        if (aEndTime !== bEndTime) return aEndTime - bEndTime; // 结束时间越早越靠前
+
+        const aStart = parseTimeString(a?.learningSchedule?.startTime);
+        const bStart = parseTimeString(b?.learningSchedule?.startTime);
+        const aStartTime = aStart ? aStart.getTime() : -Infinity;
+        const bStartTime = bStart ? bStart.getTime() : -Infinity;
+        if (bStartTime !== aStartTime) return bStartTime - aStartTime; // 开始时间越晚越靠前
+      }
+
+      // 二级排序：在未开始和已结束组内，按开始时间倒序（最近的在前）
+      const isGroupRequiringStartSort = (info) => {
+        if (!info) return false;
+        return info.status === TRAINING_STATUS.NOT_STARTED || info.status === TRAINING_STATUS.COMPLETED;
+      };
+
+      if (isGroupRequiringStartSort(aInfo) && isGroupRequiringStartSort(bInfo)) {
+        const aStart = parseTimeString(a?.learningSchedule?.startTime);
+        const bStart = parseTimeString(b?.learningSchedule?.startTime);
+        const aTime = aStart ? aStart.getTime() : -Infinity;
+        const bTime = bStart ? bStart.getTime() : -Infinity;
+        // 倒序：更晚的开始时间在前
+        if (bTime !== aTime) return bTime - aTime;
+      }
+
+      // 其他情况保持稳定或按标题作为最后兜底排序（避免闪动）
+      const aTitle = String(a?.title || '').toLowerCase();
+      const bTitle = String(b?.title || '').toLowerCase();
+      if (aTitle < bTitle) return -1;
+      if (aTitle > bTitle) return 1;
+      return 0;
+    });
   };
 
   const handleTagSave = async () => {
@@ -87,19 +147,21 @@ const NotesList = ({
 
   // 学习中心布局 - 当组织培训数量较少时显示
   if (viewMode === 'learning-center' && selectedCategory === 'organizational_training') {
+    const sortedNotes = sortOrganizationalNotes(filteredNotes);
     return (
       <div className="learning-center-layout">
-        {filteredNotes.map(note => {
+        {sortedNotes.map(note => {
           const trainingStatus = getTrainingStatusInfo(note);
+          const isCompleted = trainingStatus && trainingStatus.isCompleted;
           
           return (
             <div key={note.id} className="learning-center-card" style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: isCompleted ? 'linear-gradient(135deg, #3a3a3a 0%, #1f1f1f 100%)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               borderRadius: '16px',
               padding: '24px',
               marginBottom: '20px',
               color: 'white',
-              boxShadow: '0 8px 32px rgba(102, 126, 234, 0.3)',
+              boxShadow: isCompleted ? '0 8px 32px rgba(0, 0, 0, 0.4)' : '0 8px 32px rgba(102, 126, 234, 0.3)',
               cursor: 'pointer'
             }} onClick={() => handleEditNote(note)}>
               
@@ -258,15 +320,40 @@ const NotesList = ({
 
   // 网格布局
   return (
-    <>
+    <> 
     <Row gutter={[16, 16]}>
-      {filteredNotes.map(note => {
+      {(() => {
+        const isOrganizationalTrainingNote = (n) => (
+          selectedCategory === 'organizational_training' ||
+          n.source === '组织培训' ||
+          n.tags?.includes('组织培训') ||
+          n.category === 'organizational_training' ||
+          n.courseType === 'organizational_training' ||
+          n.title?.includes('【组织培训】')
+        );
+        const allAreOrganizational = filteredNotes.length > 0 && filteredNotes.every(isOrganizationalTrainingNote);
+        const notesToRender = (selectedCategory === 'organizational_training' || allAreOrganizational)
+          ? sortOrganizationalNotes(filteredNotes)
+          : filteredNotes;
+        return notesToRender;
+      })().map(note => {
         const categoryInfo = getCategoryInfo(note.category);
+        const isOrgTraining = (
+          selectedCategory === 'organizational_training' ||
+          note.source === '组织培训' ||
+          note.tags?.includes('组织培训') ||
+          note.category === 'organizational_training' ||
+          note.courseType === 'organizational_training' ||
+          note.title?.includes('【组织培训】')
+        );
+        const trainingStatus = isOrgTraining ? getTrainingStatusInfo(note) : null;
+        const isCompleted = trainingStatus && trainingStatus.status === TRAINING_STATUS.COMPLETED;
         return (
           <Col xs={24} sm={12} lg={8} xl={6} key={note.id}>
             <Card
               className="note-card"
               data-source={note.source}
+              data-training-status={trainingStatus ? trainingStatus.status : undefined}
               hoverable
               onClick={() => handleEditNote(note)}
               style={{ cursor: 'pointer' }}
@@ -386,10 +473,10 @@ const NotesList = ({
                       {note.videoInfo.type === 'single_video' ? (
                         <div className="single-video-progress">
                           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
-                            <Text style={{ fontSize: 12, color: '#666', marginRight: 8 }}>
+                            <Text style={{ fontSize: 12, color: isCompleted ? '#8c8c8c' : '#666', marginRight: 8 }}>
                               🎥 视频学习进度
                             </Text>
-                            <Text style={{ fontSize: 11, color: '#999' }}>
+                            <Text style={{ fontSize: 11, color: isCompleted ? '#8c8c8c' : '#999' }}>
                               {note.videoInfo.progress}%
                             </Text>
                           </div>
@@ -397,14 +484,16 @@ const NotesList = ({
                             percent={note.videoInfo.progress} 
                             size="small" 
                             strokeColor={
-                              note.videoInfo.progress === 100 ? '#52c41a' : 
-                              note.videoInfo.progress >= 50 ? '#1890ff' : '#faad14'
+                              isCompleted ? '#8c8c8c' : (
+                                note.videoInfo.progress === 100 ? '#52c41a' : 
+                                note.videoInfo.progress >= 50 ? '#1890ff' : '#faad14'
+                              )
                             }
                             showInfo={false}
                             style={{ marginBottom: 2 }}
                           />
                           <div style={{ marginTop: 2 }}>
-                            <Text style={{ fontSize: 10, color: '#666' }}>
+                            <Text style={{ fontSize: 10, color: isCompleted ? '#8c8c8c' : '#666' }}>
                               总学时 {(() => {
                                 const d = Number(note.videoInfo.duration || 0);
                                 return Math.round((d / 3600) * 10) / 10;
@@ -426,10 +515,10 @@ const NotesList = ({
                       ) : note.videoInfo.type === 'multi_video' ? (
                         <div className="multi-video-progress">
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                            <Text style={{ fontSize: 12, color: '#666' }}>
+                            <Text style={{ fontSize: 12, color: isCompleted ? '#8c8c8c' : '#666' }}>
                               🎥 视频课程 ({note.videoInfo.totalVideos}个视频)
                             </Text>
-                            <Text style={{ fontSize: 11, color: '#999' }}>
+                            <Text style={{ fontSize: 11, color: isCompleted ? '#8c8c8c' : '#999' }}>
                               {note.videoInfo.overallProgress}%
                             </Text>
                           </div>
@@ -437,17 +526,19 @@ const NotesList = ({
                             percent={note.videoInfo.overallProgress} 
                             size="small" 
                             strokeColor={
-                              note.videoInfo.overallProgress === 100 ? '#52c41a' : 
-                              note.videoInfo.overallProgress >= 50 ? '#1890ff' : '#faad14'
+                              isCompleted ? '#8c8c8c' : (
+                                note.videoInfo.overallProgress === 100 ? '#52c41a' : 
+                                note.videoInfo.overallProgress >= 50 ? '#1890ff' : '#faad14'
+                              )
                             }
                             showInfo={false}
                             style={{ marginBottom: 2 }}
                           />
-                          <Text style={{ fontSize: 10, color: '#aaa' }}>
+                          <Text style={{ fontSize: 10, color: isCompleted ? '#8c8c8c' : '#aaa' }}>
                             已学习 {Math.round(note.videoInfo.watchedDuration / 60)}分钟 / 共 {Math.round(note.videoInfo.totalDuration / 60)}分钟
                           </Text>
                           <div style={{ marginTop: 2 }}>
-                            <Text style={{ fontSize: 10, color: '#666' }}>
+                            <Text style={{ fontSize: 10, color: isCompleted ? '#8c8c8c' : '#666' }}>
                               总学时 {Math.round((note.videoInfo.totalDuration / 3600) * 10) / 10}小时 • 总进度 {note.videoInfo.overallProgress}% • 成绩 {(() => {
                                 const s = (note.score != null ? note.score : (note.videoInfo && note.videoInfo.score != null ? note.videoInfo.score : null));
                                 if (s != null) return `${Math.round(Number(s))}分`;
@@ -486,26 +577,26 @@ const NotesList = ({
                 
                 if (isOrgTraining && hasLearningSchedule) {
                   return (
-                    <div style={{
+                    <div className="learning-time-section" style={{
                       marginTop: 8,
                       marginBottom: 8,
                       padding: '6px 10px',
-                      background: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+                      background: isCompleted ? 'linear-gradient(135deg, #f0f0f0 0%, #d9d9d9 100%)' : 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
                       borderRadius: '6px',
-                      border: '1px solid #91d5ff'
+                      border: isCompleted ? '1px solid #bfbfbf' : '1px solid #91d5ff'
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
                         <span style={{ fontSize: '12px' }}>🕒</span>
-                        <Text style={{ fontSize: '11px', color: '#1890ff', fontWeight: 'bold' }}>学习时间</Text>
+                        <Text style={{ fontSize: '11px', color: isCompleted ? '#8c8c8c' : '#1890ff', fontWeight: 'bold' }}>学习时间</Text>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '10px' }}>
                         <div>
-                          <Text style={{ color: '#52c41a', fontWeight: 'bold', fontSize: '10px' }}>开始：</Text>
-                          <Text style={{ color: '#52c41a', fontSize: '10px' }}>{note.learningSchedule.startTime}</Text>
+                          <Text style={{ color: isCompleted ? '#8c8c8c' : '#52c41a', fontWeight: 'bold', fontSize: '10px' }}>开始：</Text>
+                          <Text style={{ color: isCompleted ? '#8c8c8c' : '#52c41a', fontSize: '10px' }}>{note.learningSchedule.startTime}</Text>
                         </div>
                         <div>
-                          <Text style={{ color: '#f5222d', fontWeight: 'bold', fontSize: '10px' }}>结束：</Text>
-                          <Text style={{ color: '#f5222d', fontSize: '10px' }}>{note.learningSchedule.endTime}</Text>
+                          <Text style={{ color: isCompleted ? '#8c8c8c' : '#f5222d', fontWeight: 'bold', fontSize: '10px' }}>结束：</Text>
+                          <Text style={{ color: isCompleted ? '#8c8c8c' : '#f5222d', fontSize: '10px' }}>{note.learningSchedule.endTime}</Text>
                         </div>
                       </div>
                     </div>

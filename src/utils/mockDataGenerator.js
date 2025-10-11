@@ -344,32 +344,7 @@ class MockDataGenerator {
           duration: '5天'
         }
       },
-      {
-        id: generateId(),
-        title: '【组织培训】班级管理实务',
-        content: '# 班级管理实务\n\n## 课程基本信息\n\n**课程名称：** 班级管理实务\n**课程类型：** 组织培训\n**课程分类：** 学生管理\n**课程状态：** 🔄 进行中\n\n## 课程描述\n\n班级管理的实际操作技巧培训，帮助教师更好地管理班级。\n\n## 学习笔记\n\n*在此处记录学习心得和要点...*',
-        category: 'study',
-        tags: ['组织培训', '班级管理', '学生管理', '管理'],
-        starred: true,
-        source: '组织培训',
-        courseId: 'org_002',
-        courseType: 'organizational_training',
-        videoInfo: {
-          type: 'single_video',
-          url: 'https://example.com/class-management',
-          duration: 2700, // 45分钟
-          progress: 80, // 80%进度
-          instructor: '赵老师'
-        },
-        createdAt: new Date('2024-01-10'),
-        updatedAt: new Date('2024-01-18'),
-        // 模拟学习时间信息 - 进行中的培训
-        learningSchedule: {
-          startTime: '9/26 14:00',
-          endTime: '9/29 18:00',
-          duration: '3天'
-        }
-      },
+      // 已按需求移除第二条：班级管理实务（org_002）
       {
         id: generateId(),
         title: '【组织培训】教育技术应用实践',
