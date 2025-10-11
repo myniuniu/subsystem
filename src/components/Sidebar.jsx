@@ -210,17 +210,12 @@ const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onCli
                  cursor: isDragging ? 'grabbing' : 'grab'
                }}
              />
-            <div className="menu-item-content">
+            <div className="collapsed-item">
               <div className="menu-item-icon">
-                <div
-                  className="icon-wrapper"
-                  style={{
-                    backgroundColor: isGroupActive ? 'transparent' : 'rgba(0, 0, 0, 0.06)',
-                  }}
-                >
+                <div className="icon-wrapper">
                   {Icon && React.createElement(Icon, {
-                    size: 18,
-                    color: isGroupActive ? '#fff' : item.color
+                    size: 22,
+                    color: isGroupActive ? '#3b82f6' : item.color
                   })}
                 </div>
                 {isCollapsed && item.id === 'message-center' && unreadCount > 0 && (
@@ -230,6 +225,12 @@ const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onCli
                   <span className="unread-badge">{downloadingCount}</span>
                 )}
               </div>
+              <span
+                className="collapsed-label"
+                onClick={(e) => { e.stopPropagation(); handleClick(e) }}
+              >
+                {item.shortLabel || item.label || ''}
+              </span>
             </div>
           </div>
         </Tooltip>
@@ -270,8 +271,9 @@ const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onCli
                 <>
                   <span
                     className="menu-item-label"
+                    onClick={(e) => { e.stopPropagation(); handleClick(e) }}
                     style={{
-                      fontWeight: isGroupActive ? 600 : 400,
+                       fontWeight: isGroupActive ? 600 : 400,
                       color: isGroupActive ? 'white' : 'var(--theme-textSecondary)',
                     }}
                   >
@@ -374,6 +376,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
        id: 'smart-notes', 
        icon: Edit, 
        label: '果仁空间', 
+       shortLabel: '果仁空间',
        color: '#52c41a',
        type: 'single'
      },
@@ -381,6 +384,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       id: 'ai-assistant', 
       icon: Bot, 
       label: 'AI智能中心', 
+      shortLabel: 'AI工具',
       color: '#667eea',
       type: 'single'
     },
@@ -388,6 +392,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       id: 'message-center', 
       icon: MessageSquare, 
       label: '消息中心', 
+      shortLabel: '消息',
       color: '#f39c12',
       type: 'single'
     },
@@ -395,6 +400,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       id: 'docs-center', 
       icon: Cloud, 
       label: '云盘', 
+      shortLabel: '云盘',
       color: '#a18cd1',
       type: 'single'
     },
@@ -402,20 +408,16 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       id: 'calendar-center', 
       icon: Calendar, 
       label: '日历中心', 
+      shortLabel: '日历',
       color: '#52c41a',
       type: 'single'
     },
-    { 
-      id: 'home', 
-      icon: Home, 
-      label: '个人工作台', 
-      color: '#667eea',
-      type: 'single' // 单级菜单
-    },
+    
     { 
       id: 'learning-square', 
       icon: GraduationCap, 
       label: '学习广场', 
+      shortLabel: '学习广场',
       color: '#52c41a',
       type: 'single'
     },
@@ -423,6 +425,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
        id: 'ai-tool-house', 
        icon: Bot, 
        label: 'AI工具屋', 
+       shortLabel: 'AI工具',
        color: '#722ed1',
        type: 'single'
      },
@@ -430,6 +433,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
        id: 'theme-template-center', 
        icon: Settings, 
        label: '主题模版', 
+       shortLabel: '主题模版',
        color: '#1890ff',
        type: 'single'
      },
@@ -440,6 +444,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
        id: 'resource-annotation', 
        icon: ClipboardCheck, 
        label: '资源标注', 
+       shortLabel: '资源标注',
        color: '#f759ab',
        type: 'single'
      },
@@ -447,70 +452,43 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
        id: 'student-annotation', 
        icon: UserCheck, 
        label: '学员标注', 
+       shortLabel: '学员标注',
        color: '#722ed1',
        type: 'single'
      },
 
-    {
-      id: 'teaching-management',
-      icon: BookOpen,
-      label: '教学管理',
-      color: '#1890ff',
-      type: 'group', // 分组菜单
-      expanded: true, // 是否展开
-      children: [
-        { id: 'course-management', icon: BookOpen, label: '课程管理', color: '#1890ff' },
-        { id: 'class-management', icon: School, label: '班级管理', color: '#52c41a' },
-        { id: 'student-management', icon: UserCheck, label: '学生管理', color: '#722ed1' },
-        { id: 'homework-center', icon: BookMarked, label: '作业管理中心', color: '#13c2c2' }
-      ]
-    },
+    
     {
       id: 'simulation-system',
       icon: Brain,
       label: '场景模拟仿真系统',
+      shortLabel: '仿真',
       color: '#eb2f96',
       type: 'group',
       expanded: false,
       children: [
         { id: 'resource-library', icon: Database, label: '资源库', color: '#52c41a' },
-
         { id: 'scenario-library', icon: Library, label: '场景模拟', color: '#fa8c16' },
         { id: 'simulation-platform', icon: Users, label: '模拟仿真开放平台', color: '#722ed1' },
         { id: 'my-progress', icon: TrendingUp, label: '我的进度', color: '#1890ff' },
 
       ]
     },
-    {
-      id: 'analytics-assessment',
-      icon: BarChart3,
-      label: '分析评测',
-      color: '#52c41a',
-      type: 'group',
-      expanded: false,
-      children: [
-        { id: 'learning-analytics-center', icon: BarChart3, label: '学情分析中心', color: '#52c41a' },
-        { id: 'assessment-center', icon: BarChart3, label: '能力测评中心', color: '#722ed1' }
-      ]
-    },
+    
     { 
       id: 'meeting-center', 
       icon: Video, 
       label: '会议中心', 
+      shortLabel: '会议',
       color: '#e74c3c',
       type: 'single'
     },
-    { 
-      id: 'lesson-observation', 
-      icon: Eye, 
-      label: '听课评课', 
-      color: '#e74c3c',
-      type: 'single'
-    },
+    
     { 
       id: 'download-center', 
       icon: Download, 
       label: '下载中心', 
+      shortLabel: '下载',
       color: '#ff9a9e',
       type: 'single'
     },
@@ -518,6 +496,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       id: 'app-center', 
       icon: Grid, 
       label: '应用中心', 
+      shortLabel: '应用中心',
       color: '#1890ff',
       type: 'single'
     }

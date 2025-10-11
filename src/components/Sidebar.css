@@ -130,9 +130,9 @@
   right: 0;
   width: 30px;
   height: 100%;
-  z-index: 1;
+  z-index: 0;
   cursor: grab;
-  pointer-events: auto;
+  pointer-events: none;
   transition: all 0.2s ease;
 }
 
@@ -158,6 +158,11 @@
 
 .drag-area:active {
   cursor: grabbing;
+}
+
+/* 仅在悬停菜单项时启用拖拽手柄的事件，减少误伤点击 */
+.menu-item:hover .drag-area {
+  pointer-events: auto;
 }
 
 .menu-group {
@@ -305,6 +310,9 @@
   padding: 12px 8px;
   margin: 6px 4px;
   position: relative;
+  border-radius: 12px;
+  flex-direction: column;
+  align-items: center;
 }
 
 .sidebar.collapsed .menu-item.active {
@@ -314,10 +322,62 @@
 
 .sidebar.collapsed .menu-item-content {
   margin-right: 0;
+  flex-direction: column;
+  align-items: center;
 }
 
 .sidebar.collapsed .menu-item-icon {
   margin-right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 收缩模式下强制竖排布局，确保图标上方、两字标题在下方 */
+.sidebar.collapsed .menu-item .menu-item-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+/* 图标与标题的垂直间距 */
+.sidebar.collapsed .menu-item-icon {
+  margin-bottom: 6px;
+}
+
+/* 隐藏横向的完整标签，避免在收缩模式下显示在图标右侧 */
+.sidebar.collapsed .menu-item-label {
+  display: none !important;
+}
+
+/* 收缩模式激活项图标容器高亮环 */
+.sidebar.collapsed .menu-item.active .menu-item-icon .icon-wrapper {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+/* 收缩模式下图标下方的两字标题样式 */
+.collapsed-label {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1;
+  text-align: center;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* 包裹收缩项的垂直容器，确保图标在上标题在下 */
+.collapsed-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .menu-item-content {
@@ -342,6 +402,21 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   z-index: 1;
+  }
+
+/* 收缩模式下的图标容器背景弱化 */
+.sidebar.collapsed .icon-wrapper {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* 收缩模式下激活态：突出整体背景与标签颜色 */
+.sidebar.collapsed .menu-item.active {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.08));
+}
+
+.sidebar.collapsed .menu-item.active .collapsed-label {
+  color: #3b82f6;
+  font-weight: 600;
 }
 
 .menu-item.active .icon-wrapper {
@@ -354,7 +429,9 @@
   font-size: 14px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  z-index: 1;
+  z-index: 2;
+  pointer-events: auto;
+  cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
