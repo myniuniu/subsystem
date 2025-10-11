@@ -71,6 +71,10 @@ const NotesSidebar = ({
     const isEmojiIcon = category.icon && category.icon.length <= 2;
     const IconComponent = isEmojiIcon ? null : (iconMap[category.icon] || FileTextOutlined);
     const count = getCategoryCount(category);
+    // 系统分类（含未显式标注type的系统项）不显示计数，但保留“组织培训”计数
+    const showCount =
+      category.value === 'organizational_training' ||
+      (category.type && category.type !== 'system');
     
     return (
       <div
@@ -90,7 +94,7 @@ const NotesSidebar = ({
         <span className="category-label">
           {category.value === 'organizational_training' ? '组织培训' : category.label}
         </span>
-        <span className="category-count">{count}</span>
+        {showCount && <span className="category-count">{count}</span>}
         {category.value === 'organizational_training' && (
           <span className="category-ribbon">组织</span>
         )}

@@ -204,6 +204,8 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
     selectedStudent,
     setSelectedStudent
   } = useOperationPanelState(noteCategory);
+  // AI工具版本：用于在收到事件时触发重渲染
+  const [aiToolsVersion, setAiToolsVersion] = useState(0);
   
   const {
     questionConfigVisible,
@@ -260,9 +262,9 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
   // 监听AI工具变化事件
   useEffect(() => {
     const handleAIToolsChanged = () => {
-      // 刷新列表以更新AI工具状态
-      // 这里可以触发重新渲染或更新相关状态
-      console.log('检测到AI工具变化，重新加载工具列表');
+      // 触发重新渲染以刷新可用AI工具
+      setAiToolsVersion(v => v + 1);
+      console.log('检测到AI工具变化，刷新可用AI工具');
     };
     
     window.addEventListener('aiToolsChanged', handleAIToolsChanged);
@@ -304,180 +306,46 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
 
   // 获取可用的AI工具列表
   const getAvailableAITools = () => {
-    // 从AI工具屋获取工具数据
-    const aiToolsConfig = JSON.parse(localStorage.getItem('ai-tools-config') || '{}');
-    const addedAITools = JSON.parse(localStorage.getItem('added-ai-tools-to-panel') || '[]');
-    
-    // AI工具数据 - 从AIToolHouse组件同步
-    const aiTools = [
-      // 培训管理相关工具
-      {
-        id: 'training-plan',
-        name: '培训方案',
-        description: '智能生成培训方案，包含培训目标、内容安排、时间规划等',
-        icon: '培',
-        color: '#0958d9',
-        applicableNoteCategories: ['training_needs_management'],
+    // 为了在 aiToolsVersion 变化时重新计算（不直接使用该值）
+    void aiToolsVersion;
+    // 安全解析 localStorage
+    const safeParse = (key, fallback) => {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return fallback;
+        return JSON.parse(raw);
+      } catch (e) {
+        console.warn(`[OperationPanel] 解析 ${key} 失败，使用回退`, e);
+        return fallback;
+      }
+    };
+    const aiToolsConfig = safeParse('ai-tools-config', {});
+    const addedAITools = safeParse('added-ai-tools-to-panel', []);
+    const aiToolsFromStorage = safeParse('ai_tools', []);
+
+    // 将 ai_tools 结构映射为 OperationPanel 需要的结构
+    // SmartNotes.initializeDefaultAITools 中的字段：id, name, description, icon, category, enabled
+    // 未给出适用分类时，视为通用（所有 noteCategory 均可见）
+    let aiTools = [
+      ...(Array.isArray(aiToolsFromStorage) ? aiToolsFromStorage : []).map(t => ({
+        id: t.id,
+        name: t.name,
+        description: t.description || '',
+        icon: t.icon || '🧠',
+        applicableNoteCategories: Array.isArray(t.applicableNoteCategories)
+          ? t.applicableNoteCategories
+          : undefined,
         menuConfig: {
-          key: 'training-plan',
-          title: '培训方案',
-          icon: '培',
-          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
-          color: '#0958d9'
-        }
-      },
-      {
-        id: 'schedule',
-        name: '课表',
-        description: '智能生成课程表，合理安排培训时间和课程顺序',
-        icon: '课',
-        color: '#2f54eb',
-        applicableNoteCategories: ['training_needs_management'],
-        menuConfig: {
-          key: 'schedule',
-          title: '课表',
-          icon: '课',
+          key: t.id,
+          title: t.name,
+          icon: t.icon || '🧠',
           gradient: 'linear-gradient(135deg, #f0f5ff 0%, #d6e4ff 100%)',
           color: '#2f54eb'
         }
-      },
-      // 教研室分类新增工具
-      {
-        id: 'verbatim-transcript',
-        name: '逐字稿工具',
-        description: '将音视频内容转写为逐字稿，支持段落结构与说话人标注',
-        icon: '稿',
-        color: '#2f54eb',
-        applicableNoteCategories: ['teaching_research_office', 'teaching_design'],
-        menuConfig: {
-          key: 'verbatim-transcript',
-          title: '逐字稿工具',
-          icon: '稿',
-          gradient: 'linear-gradient(135deg, #f0f5ff 0%, #d6e4ff 100%)',
-          color: '#2f54eb'
-        }
-      },
-      // 教育课题分类新增工具
-      {
-        id: 'topic-selection-recommendation',
-        name: '课题选题推荐',
-        description: '根据教师研究方向与资料，智能推荐课题选题',
-        icon: '荐',
-        color: '#1677ff',
-        applicableNoteCategories: ['educational_topics'],
-        menuConfig: {
-          key: 'topic-selection-recommendation',
-          title: '课题选题推荐',
-          icon: '荐',
-          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
-          color: '#1677ff'
-        }
-      },
-      {
-        id: 'topic-selection-evaluation',
-        name: '课题选题评估',
-        description: '评估课题选题的可行性、创新性与价值',
-        icon: '评',
-        color: '#2f54eb',
-        applicableNoteCategories: ['educational_topics'],
-        menuConfig: {
-          key: 'topic-selection-evaluation',
-          title: '课题选题评估',
-          icon: '评',
-          gradient: 'linear-gradient(135deg, #f0f5ff 0%, #d6e4ff 100%)',
-          color: '#2f54eb'
-        }
-      },
-      {
-        id: 'topic-application-guidance',
-        name: '课题申报指导',
-        description: '生成课题申报书结构与撰写建议',
-        icon: '申',
-        color: '#f5222d',
-        applicableNoteCategories: ['educational_topics'],
-        menuConfig: {
-          key: 'topic-application-guidance',
-          title: '课题申报指导',
-          icon: '申',
-          gradient: 'linear-gradient(135deg, #fff1f0 0%, #ffccc7 100%)',
-          color: '#f5222d'
-        }
-      },
-      {
-        id: 'topic-subdivision-guidance',
-        name: '课题细分指导',
-        description: '细化课题方向，明确研究问题与子任务',
-        icon: '细',
-        color: '#fa8c16',
-        applicableNoteCategories: ['educational_topics'],
-        menuConfig: {
-          key: 'topic-subdivision-guidance',
-          title: '课题细分指导',
-          icon: '细',
-          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
-          color: '#fa8c16'
-        }
-      },
-      {
-        id: 'topic-technical-roadmap',
-        name: '课题技术路线图',
-        description: '生成研究技术路线图，梳理方法与流程',
-        icon: '图',
-        color: '#389e0d',
-        applicableNoteCategories: ['educational_topics'],
-        menuConfig: {
-          key: 'topic-technical-roadmap',
-          title: '课题技术路线图',
-          icon: '图',
-          gradient: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
-          color: '#389e0d'
-        }
-      },
-      {
-        id: 'opening-report-guidance',
-        name: '开题报告指导',
-        description: '指导开题报告撰写，提供模板与示例',
-        icon: '开',
-        color: '#13c2c2',
-        applicableNoteCategories: ['educational_topics'],
-        menuConfig: {
-          key: 'opening-report-guidance',
-          title: '开题报告指导',
-          icon: '开',
-          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
-          color: '#13c2c2'
-        }
-      },
-      {
-        id: 'midterm-report-guidance',
-        name: '中期报告指导',
-        description: '生成中期报告框架并给出撰写建议',
-        icon: '中',
-        color: '#722ed1',
-        applicableNoteCategories: ['educational_topics'],
-        menuConfig: {
-          key: 'midterm-report-guidance',
-          title: '中期报告指导',
-          icon: '中',
-          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
-          color: '#722ed1'
-        }
-      },
-      {
-        id: 'final-report-guidance',
-        name: '结题报告指导',
-        description: '生成结题报告结构与内容建议',
-        icon: '结',
-        color: '#d4b106',
-        applicableNoteCategories: ['educational_topics'],
-        menuConfig: {
-          key: 'final-report-guidance',
-          title: '结题报告指导',
-          icon: '结',
-          gradient: 'linear-gradient(135deg, #fffbe6 0%, #fff1b8 100%)',
-          color: '#d4b106'
-        }
-      },
+      }))
+    ];
+    // 硬编码工具回退清单（当 localStorage 不完整时使用）
+    const hardcodedAITools = [
       {
         id: 'topic-paper-guidance',
         name: '课题论文指导',
@@ -1504,14 +1372,52 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
         }
       }
     ];
-    
-    // 过滤掉已添加的AI工具，并根据noteCategory过滤适用的工具
-    let availableTools = aiTools.filter(tool => !addedAITools.includes(tool.id));
-    
-    // 如果有noteCategory，只显示适用于该分类的工具；无配置的直接隐藏
-    if (noteCategory) {
+
+    // 合并回退清单（localStorage 工具不足时）
+    if (!Array.isArray(aiToolsFromStorage) || aiToolsFromStorage.length < 10) {
+      aiTools = [...aiTools, ...hardcodedAITools];
+    }
+    // 去重
+    const seenIds = new Set();
+    aiTools = aiTools.filter(t => {
+      if (!t || !t.id) return false;
+      if (seenIds.has(t.id)) return false;
+      seenIds.add(t.id);
+      return true;
+    });
+
+    // 应用 AI工具屋 的配置覆盖（如有）
+    const configuredTools = aiTools.map(tool => {
+      const cfg = aiToolsConfig?.[tool.id];
+      if (cfg && typeof cfg === 'object') {
+        return {
+          ...tool,
+          menuConfig: {
+            ...tool.menuConfig,
+            ...cfg
+          }
+        };
+      }
+      return tool;
+    });
+
+    // 过滤：已添加去重 + 分类过滤（未声明适用分类视为通用）
+    let availableTools = configuredTools.filter(tool => !addedAITools.includes(tool.id));
+
+    const knownCategories = new Set([
+      'training_needs_management',
+      'training_product_research',
+      'teaching_research_office',
+      'teaching_design',
+      'classroom_integration',
+      'homework_system',
+      'learning_analytics',
+      'educational_topics'
+    ]);
+    if (noteCategory && knownCategories.has(noteCategory)) {
       availableTools = availableTools.filter(tool => {
-        if (!tool.applicableNoteCategories) return false;
+        // 未声明适用分类的工具保留
+        if (!tool.applicableNoteCategories || tool.applicableNoteCategories.length === 0) return true;
         return tool.applicableNoteCategories.includes(noteCategory);
       });
     }
@@ -1528,6 +1434,31 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
     console.log('过滤后可用工具数量:', availableTools.length);
     console.log('可用工具列表:', availableTools.map(t => ({ id: t.id, name: t.name, categories: t.applicableNoteCategories })));
     console.log('================================');
+
+    // 无可用工具时的兜底项
+    if (availableTools.length === 0) {
+      return [
+        {
+          key: 'no-ai-tools',
+          disabled: true,
+          label: (
+            <div style={{ padding: '6px 8px', color: '#999' }}>
+              暂无可用AI工具（请到AI工具屋添加或切换分类）
+            </div>
+          )
+        },
+        {
+          key: 'refresh-ai-tools',
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: 14 }}>🔄</span>
+              <span>刷新</span>
+            </div>
+          ),
+          onClick: () => setAiToolsVersion(v => v + 1)
+        }
+      ];
+    }
     
     return availableTools.map(tool => ({
       key: tool.menuConfig.key,
