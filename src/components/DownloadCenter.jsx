@@ -264,6 +264,8 @@ const DownloadCenter = ({ downloads: propDownloads }) => {
             rowKey="id"
             pagination={false}
             size="middle"
+            tableLayout="fixed"
+            style={{ width: '100%' }}
           />
         ) : (
           <Empty

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Modal, Tooltip } from 'antd'
+import { Modal } from 'antd'
 import {
   DndContext,
   closestCenter,
@@ -197,7 +197,6 @@ const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onCli
   return (
     <div ref={setNodeRef} style={style}>
       {isCollapsed ? (
-        <Tooltip title={item.label} placement="right">
           <div
             className={`menu-item ${item.type === 'group' ? 'menu-group' : ''} ${isGroupActive ? 'active' : ''}`}
             onClick={handleClick}
@@ -233,7 +232,6 @@ const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onCli
               </span>
             </div>
           </div>
-        </Tooltip>
       ) : (
           <div
             className={`menu-item ${item.type === 'group' ? 'menu-group' : ''} ${isGroupActive ? 'active' : ''}`}
@@ -425,7 +423,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
        id: 'ai-tool-house', 
        icon: Bot, 
        label: 'AI工具屋', 
-       shortLabel: 'AI工具',
+       shortLabel: '工具屋',
        color: '#722ed1',
        type: 'single'
      },
