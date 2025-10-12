@@ -260,6 +260,25 @@
   display: none;
 }
 
+/* 收缩模式下二级菜单飞出面板 */
+.submenu-flyout {
+  position: fixed;
+  min-width: 220px;
+  max-width: 280px;
+  max-height: 60vh;
+  overflow: auto;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid var(--theme-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+}
+
+.submenu-flyout .submenu-item {
+  margin: 4px 0;
+}
+
 .expand-icon {
   margin-left: auto;
   transition: transform 0.3s ease;

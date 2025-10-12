@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { Modal } from 'antd'
 import {
   DndContext,
@@ -125,7 +126,7 @@ const SortableSubMenuItem = ({ child, isActive, unreadCount, downloadingCount, o
   )
 }
 
-const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onClick, isCollapsed, onRemove, isDynamic, onToggleExpand, onReorderChildren }) => {
+const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onClick, isCollapsed, onRemove, isDynamic, onToggleExpand, onReorderChildren, onOpenFlyout, onScheduleFlyoutClose }) => {
   const {
     attributes,
     listeners,
@@ -170,7 +171,14 @@ const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onCli
   const handleClick = (e) => {
     if (item.type === 'group') {
       e.stopPropagation()
-      onToggleExpand(item.id)
+      if (isCollapsed) {
+        // 收缩模式下：打开右侧飞出子菜单
+        if (onOpenFlyout) {
+          onOpenFlyout(item.id, e.currentTarget)
+        }
+      } else {
+        onToggleExpand(item.id)
+      }
     } else {
       onClick(item.id)
     }
@@ -190,6 +198,22 @@ const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onCli
     onClick(childId)
   }
 
+  const handleMouseEnter = (e) => {
+    if (isCollapsed && item.type === 'group') {
+      if (onOpenFlyout) {
+        onOpenFlyout(item.id, e.currentTarget)
+      }
+    }
+  }
+
+  const handleMouseLeave = () => {
+    if (isCollapsed && item.type === 'group') {
+      if (onScheduleFlyoutClose) {
+        onScheduleFlyoutClose()
+      }
+    }
+  }
+
   // 检查子菜单中是否有激活项
   const hasActiveChild = item.children && item.children.some(child => isActive === child.id)
   const isGroupActive = item.type === 'single' ? isActive === item.id : (isActive === item.id || hasActiveChild)
@@ -200,6 +224,8 @@ const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onCli
           <div
             className={`menu-item ${item.type === 'group' ? 'menu-group' : ''} ${isGroupActive ? 'active' : ''}`}
             onClick={handleClick}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
           >
             <div 
                className="drag-area"
@@ -345,6 +371,10 @@ const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onCli
 }
 
 const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadingCount = 0, onAddApp, onRemoveApp }) => {
+  const sidebarRef = useRef(null)
+  const flyoutRef = useRef(null)
+  const hoverCloseTimerRef = useRef(null)
+  const [flyout, setFlyout] = useState(null) // { groupId, top }
   const [isCollapsed, setIsCollapsed] = useState(() => {
     const saved = localStorage.getItem('sidebar-collapsed')
     return saved ? JSON.parse(saved) : true // 默认为收缩模式
@@ -707,10 +737,54 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
     const newCollapsed = !isCollapsed
     setIsCollapsed(newCollapsed)
     localStorage.setItem('sidebar-collapsed', JSON.stringify(newCollapsed))
+    if (!newCollapsed) {
+      // 展开侧栏时关闭飞出菜单
+      setFlyout(null)
+    }
   }
 
+  const openFlyout = (groupId, targetEl) => {
+    if (hoverCloseTimerRef.current) {
+      clearTimeout(hoverCloseTimerRef.current)
+      hoverCloseTimerRef.current = null
+    }
+    try {
+      const rect = targetEl.getBoundingClientRect()
+      const sidebarRect = sidebarRef.current ? sidebarRef.current.getBoundingClientRect() : { top: 0, right: 72 }
+      const top = rect.top
+      const left = sidebarRect.right + 8
+      setFlyout({ groupId, top, left })
+    } catch (e) {
+      setFlyout({ groupId, top: 80, left: 88 })
+    }
+  }
+
+  const scheduleFlyoutClose = () => {
+    if (hoverCloseTimerRef.current) {
+      clearTimeout(hoverCloseTimerRef.current)
+    }
+    hoverCloseTimerRef.current = setTimeout(() => {
+      setFlyout(null)
+      hoverCloseTimerRef.current = null
+    }, 250)
+  }
+
+  useEffect(() => {
+    const handleDocClick = (e) => {
+      if (flyoutRef.current && !flyoutRef.current.contains(e.target)) {
+        setFlyout(null)
+      }
+    }
+    if (flyout) {
+      document.addEventListener('click', handleDocClick)
+    }
+    return () => {
+      document.removeEventListener('click', handleDocClick)
+    }
+  }, [flyout])
+
   return (
-    <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+    <div ref={sidebarRef} className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
         <SidebarAvatar isCollapsed={isCollapsed} />
         <button className="collapse-toggle" onClick={toggleCollapse}>
@@ -740,12 +814,64 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
                   isDynamic={isDynamic}
                   onToggleExpand={toggleMenuExpand}
                   onReorderChildren={handleReorderChildren}
+                  onOpenFlyout={openFlyout}
+                  onScheduleFlyoutClose={scheduleFlyoutClose}
                 />
               )
             })}
           </div>
         </SortableContext>
       </DndContext>
+
+      {/* 收缩模式下的二级菜单飞出面板（作为浮层，通过 Portal 渲染到 body） */}
+      {isCollapsed && flyout && (() => {
+        const groupItem = menuItems.find(i => i.id === flyout.groupId)
+        if (!groupItem || !groupItem.children) return null
+        return createPortal(
+          (
+            <div
+              ref={flyoutRef}
+              className="submenu-flyout"
+              style={{ top: flyout.top, left: flyout.left }}
+              onMouseEnter={() => {
+                if (hoverCloseTimerRef.current) {
+                  clearTimeout(hoverCloseTimerRef.current)
+                  hoverCloseTimerRef.current = null
+                }
+              }}
+              onMouseLeave={() => {
+                scheduleFlyoutClose()
+              }}
+            >
+              {groupItem.children.map(child => (
+                <div
+                  key={child.id}
+                  className="submenu-item"
+                  onClick={() => {
+                    // 外部链接类型处理
+                    if (child.type === 'external' && child.url) {
+                      window.open(child.url, '_blank')
+                    } else {
+                      onViewChange(child.id)
+                    }
+                    setFlyout(null)
+                  }}
+                >
+                  <div className="submenu-item-content">
+                    <div className="submenu-item-icon">
+                      <div className="icon-wrapper" style={{ backgroundColor: 'rgba(0, 0, 0, 0.06)' }}>
+                        {child.icon && React.createElement(child.icon, { size: 16, color: child.color })}
+                      </div>
+                    </div>
+                    <span className="submenu-item-label">{child.label}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ),
+          document.body
+        )
+      })()}
     </div>
   )
 }
