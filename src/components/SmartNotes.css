@@ -37,7 +37,7 @@
 }
 
 .sidebar-content {
-  padding: 20px;
+  padding: 20px 20px 0; /* 去掉底部内边距，避免滚动区域下方出现空白 */
   height: 100vh; /* 改为100vh，与整体容器保持一致 */
   overflow: hidden; /* 顶部固定，底部区域单独滚动 */
   display: flex; /* 使顶部与底部形成上下布局 */
@@ -681,7 +681,7 @@
 
 /* 主内容区样式 */
 .notes-content {
-  padding: 24px;
+  padding: 24px 24px 0; /* 去掉底部内边距，消除滚动条下方空白 */
   background: #f5f7fa;
   height: 100vh; /* 改为100vh，与整体容器保持一致 */
   overflow-y: auto; /* 允许纵向滚动 */
@@ -698,7 +698,7 @@
 
 /* 列表视图：减少内边距以让表格充分利用空间 */
 .notes-content.list-mode {
-  padding: 12px; /* 缩小内边距，减少周围留白 */
+  padding: 12px 12px 0; /* 去掉底部内边距，避免滚动容器末端空白 */
 }
 
 /* 让表格在列表视图下充满容器宽度 */

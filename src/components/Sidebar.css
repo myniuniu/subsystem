@@ -5,6 +5,7 @@
   width: 280px;
   transition: width 0.3s ease;
   overflow: hidden;
+  position: relative; /* 允许边缘拖动手柄绝对定位 */
 }
 
 .sidebar.collapsed {
@@ -22,7 +23,7 @@
 
 .sidebar.collapsed .sidebar-header {
   justify-content: center;
-  padding: 0 8px 16px;
+  padding: 0 8px 0; /* 移除底部间距，贴近列表 */
 }
 
 .sidebar-title {
@@ -45,8 +46,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: var(--theme-primary);
   color: white;
@@ -77,7 +78,7 @@
 }
 
 .menu-list {
-  margin-top: 2px;
+  margin-top: -4px; /* 整体上移一些 */
   padding: 0 8px;
   max-height: calc(100vh - 80px);
   overflow-y: auto;
@@ -103,6 +104,7 @@
 
 .sidebar.collapsed .menu-list {
   padding: 0 4px;
+  margin-top: -13px; /* 再上移 3px */
   max-height: calc(100vh - 80px);
   overflow-y: auto;
 }
@@ -265,7 +267,7 @@
   position: fixed;
   min-width: 220px;
   max-width: 280px;
-  max-height: 60vh;
+  max-height: 80vh; /* 提升可视高度以利用底部空间 */
   overflow: auto;
   padding: 8px;
   background: #fff;
@@ -589,4 +591,21 @@
     height: 18px;
     font-size: 12px;
   }
+}
+.sidebar-edge-drag {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 2;
+}
+
+.sidebar-edge-drag:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.sidebar-edge-drag:active {
+  cursor: col-resize;
 }

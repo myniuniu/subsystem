@@ -264,7 +264,7 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
       >
         <div className={`sidebar-title-with-avatar clickable ${isCollapsed ? 'collapsed' : ''}`}>
           <div className="sidebar-avatar">
-            <User size={16} />
+            <User size={20} />
           </div>
           {!isCollapsed && <h4 className="sidebar-title">张老师</h4>}
         </div>

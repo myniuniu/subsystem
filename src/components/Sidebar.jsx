@@ -787,10 +787,38 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
     <div ref={sidebarRef} className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
         <SidebarAvatar isCollapsed={isCollapsed} />
-        <button className="collapse-toggle" onClick={toggleCollapse}>
-          {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-        </button>
       </div>
+      {/* 右侧边缘拖动区域，用于切换展开/收缩 */}
+      <div
+        className="sidebar-edge-drag"
+        onMouseDown={(e) => {
+          const startX = e.clientX
+          const startCollapsed = isCollapsed
+          let toggled = false
+
+          const onMouseMove = (ev) => {
+            const dx = ev.clientX - startX
+            // 在展开状态下向左拖动超过阈值则收缩；在收缩状态下向右拖动超过阈值则展开
+            if (!toggled) {
+              if (!startCollapsed && dx < -24) {
+                toggleCollapse()
+                toggled = true
+              } else if (startCollapsed && dx > 24) {
+                toggleCollapse()
+                toggled = true
+              }
+            }
+          }
+
+          const onMouseUp = () => {
+            document.removeEventListener('mousemove', onMouseMove)
+            document.removeEventListener('mouseup', onMouseUp)
+          }
+
+          document.addEventListener('mousemove', onMouseMove)
+          document.addEventListener('mouseup', onMouseUp)
+        }}
+      />
       
       <DndContext
         sensors={sensors}
