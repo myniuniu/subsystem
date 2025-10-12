@@ -685,3 +685,34 @@
   background: rgba(255, 255, 255, 0.85);
   border-color: rgba(0, 0, 0, 0.2);
 }
+
+/* 收缩模式顶部更多内容提示箭头 */
+.collapsed-top-arrow {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  z-index: 3;
+  pointer-events: auto;
+  cursor: pointer;
+  /* 更轻的底部渐变，降低存在感 */
+  background: linear-gradient(to bottom, rgba(0,0,0,0.06), rgba(0,0,0,0));
+}
+
+.collapsed-top-arrow .arrow-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: none;
+}
+
+.collapsed-top-arrow:hover .arrow-pill {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 0, 0, 0.2);
+}

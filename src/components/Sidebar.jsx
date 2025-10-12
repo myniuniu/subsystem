@@ -32,6 +32,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
+  ChevronUp,
   Grid,
   Users,
   BarChart3,
@@ -374,6 +375,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
   const sidebarRef = useRef(null)
   const menuListRef = useRef(null)
   const [showBottomArrow, setShowBottomArrow] = useState(false)
+  const [showTopArrow, setShowTopArrow] = useState(false)
   const [isMenuHovered, setIsMenuHovered] = useState(false)
   const flyoutRef = useRef(null)
   const hoverCloseTimerRef = useRef(null)
@@ -762,30 +764,33 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
     }
   }
 
-  // 监控菜单列表是否溢出与滚动位置，用于在收缩模式显示底部箭头
-  const updateBottomArrow = () => {
+  // 监控菜单列表是否溢出与滚动位置，用于在收缩模式显示顶部/底部箭头
+  const updateScrollArrows = () => {
     const el = menuListRef.current
     if (!el || !isCollapsed) {
       setShowBottomArrow(false)
+      setShowTopArrow(false)
       return
     }
     const hasOverflow = el.scrollHeight > el.clientHeight + 1
     const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 2
+    const nearTop = el.scrollTop <= 2
     setShowBottomArrow(hasOverflow && !nearBottom && isMenuHovered)
+    setShowTopArrow(hasOverflow && !nearTop && isMenuHovered)
   }
 
   useEffect(() => {
-    updateBottomArrow()
-    const onResize = () => updateBottomArrow()
+    updateScrollArrows()
+    const onResize = () => updateScrollArrows()
     window.addEventListener('resize', onResize)
     const el = menuListRef.current
     if (el) {
-      el.addEventListener('scroll', updateBottomArrow)
+      el.addEventListener('scroll', updateScrollArrows)
     }
     return () => {
       window.removeEventListener('resize', onResize)
       if (el) {
-        el.removeEventListener('scroll', updateBottomArrow)
+        el.removeEventListener('scroll', updateScrollArrows)
       }
     }
   }, [menuItems, isCollapsed, isMenuHovered])
@@ -863,6 +868,21 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
             onMouseEnter={() => setIsMenuHovered(true)}
             onMouseLeave={() => setIsMenuHovered(false)}
           >
+            {isCollapsed && showTopArrow && (
+              <div
+                className="collapsed-top-arrow"
+                onClick={() => {
+                  const el = menuListRef.current
+                  if (el) {
+                    el.scrollBy({ top: -160, behavior: 'smooth' })
+                  }
+                }}
+              >
+                <div className="arrow-pill">
+                  <ChevronUp size={16} color="#999" />
+                </div>
+              </div>
+            )}
             {menuItems.map((item) => {
               const isDynamic = dynamicApps.some(app => app.id === item.id)
               return (
@@ -886,6 +906,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
           </div>
         </SortableContext>
       </DndContext>
+
 
       {isCollapsed && showBottomArrow && (
         <div
