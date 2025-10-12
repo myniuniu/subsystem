@@ -372,6 +372,9 @@ const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onCli
 
 const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadingCount = 0, onAddApp, onRemoveApp }) => {
   const sidebarRef = useRef(null)
+  const menuListRef = useRef(null)
+  const [showBottomArrow, setShowBottomArrow] = useState(false)
+  const [isMenuHovered, setIsMenuHovered] = useState(false)
   const flyoutRef = useRef(null)
   const hoverCloseTimerRef = useRef(null)
   const [flyout, setFlyout] = useState(null) // { groupId, top }
@@ -759,6 +762,34 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
     }
   }
 
+  // 监控菜单列表是否溢出与滚动位置，用于在收缩模式显示底部箭头
+  const updateBottomArrow = () => {
+    const el = menuListRef.current
+    if (!el || !isCollapsed) {
+      setShowBottomArrow(false)
+      return
+    }
+    const hasOverflow = el.scrollHeight > el.clientHeight + 1
+    const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 2
+    setShowBottomArrow(hasOverflow && !nearBottom && isMenuHovered)
+  }
+
+  useEffect(() => {
+    updateBottomArrow()
+    const onResize = () => updateBottomArrow()
+    window.addEventListener('resize', onResize)
+    const el = menuListRef.current
+    if (el) {
+      el.addEventListener('scroll', updateBottomArrow)
+    }
+    return () => {
+      window.removeEventListener('resize', onResize)
+      if (el) {
+        el.removeEventListener('scroll', updateBottomArrow)
+      }
+    }
+  }, [menuItems, isCollapsed, isMenuHovered])
+
   const scheduleFlyoutClose = () => {
     if (hoverCloseTimerRef.current) {
       clearTimeout(hoverCloseTimerRef.current)
@@ -826,7 +857,12 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={menuItems.map(item => item.id)} strategy={verticalListSortingStrategy}>
-          <div className="menu-list">
+          <div 
+            className="menu-list" 
+            ref={menuListRef}
+            onMouseEnter={() => setIsMenuHovered(true)}
+            onMouseLeave={() => setIsMenuHovered(false)}
+          >
             {menuItems.map((item) => {
               const isDynamic = dynamicApps.some(app => app.id === item.id)
               return (
@@ -850,6 +886,22 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
           </div>
         </SortableContext>
       </DndContext>
+
+      {isCollapsed && showBottomArrow && (
+        <div
+          className="collapsed-bottom-arrow"
+          onClick={() => {
+            const el = menuListRef.current
+            if (el) {
+              el.scrollBy({ top: 160, behavior: 'smooth' })
+            }
+          }}
+        >
+          <div className="arrow-pill">
+            <ChevronDown size={16} color="#999" />
+          </div>
+        </div>
+      )}
 
       {/* 收缩模式下的二级菜单飞出面板（作为浮层，通过 Portal 渲染到 body） */}
       {isCollapsed && flyout && (() => {

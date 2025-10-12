@@ -79,34 +79,57 @@
 
 .menu-list {
   margin-top: -4px; /* 整体上移一些 */
-  padding: 0 8px;
+  padding: 0 4px; /* 右侧内边距减小，降低滚动条存在感 */
   max-height: calc(100vh - 80px);
   overflow-y: auto;
+  scrollbar-width: thin; /* Firefox 更细滚动条 */
+  scrollbar-color: rgba(0, 0, 0, 0.1) transparent; /* Firefox 更透明 */
 }
 
 .menu-list::-webkit-scrollbar {
-  width: 6px;
+  width: 1px;
 }
 
 .menu-list::-webkit-scrollbar-track {
   background: transparent;
-  border-radius: 3px;
+  border-radius: 1px;
 }
 
 .menu-list::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 1px;
 }
 
 .menu-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .sidebar.collapsed .menu-list {
-  padding: 0 4px;
+  padding: 0 2px; /* 收缩模式进一步减小右侧内边距 */
   margin-top: -13px; /* 再上移 3px */
   max-height: calc(100vh - 80px);
   overflow-y: auto;
+  /* Firefox/旧版 Edge 隐藏滚动条（仍可滚动） */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* WebKit 浏览器在收缩模式下隐藏滚动条（仍可滚动） */
+.sidebar.collapsed .menu-list::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
+
+/* 收缩模式下，悬停时临时显示超细滚动条，便于操作 */
+.sidebar.collapsed .menu-list:hover {
+  scrollbar-width: thin; /* Firefox 恢复显示为细滚条 */
+}
+.sidebar.collapsed .menu-list:hover::-webkit-scrollbar {
+  width: 1px;
+  height: 1px;
+}
+.sidebar.collapsed .menu-list:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08);
 }
 
 .menu-item {
@@ -275,6 +298,26 @@
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   z-index: 9999;
+  scrollbar-width: thin; /* Firefox 更细滚动条 */
+  scrollbar-color: rgba(0, 0, 0, 0.1) transparent; /* Firefox 更透明 */
+}
+
+.submenu-flyout::-webkit-scrollbar {
+  width: 1px;
+}
+
+.submenu-flyout::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 1px;
+}
+
+.submenu-flyout::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 1px;
+}
+
+.submenu-flyout::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.14);
 }
 
 .submenu-flyout .submenu-item {
@@ -596,7 +639,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  width: 8px;
+  width: 4px; /* 缩窄拖动手柄，减少视觉干扰 */
   height: 100%;
   cursor: col-resize;
   z-index: 2;
@@ -608,4 +651,37 @@
 
 .sidebar-edge-drag:active {
   cursor: col-resize;
+}
+
+/* 收缩模式底部更多内容提示箭头 */
+.collapsed-bottom-arrow {
+  position: absolute;
+  bottom: 6px;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  z-index: 3;
+  pointer-events: auto;
+  cursor: pointer;
+  /* 更轻的顶部渐变，降低存在感 */
+  background: linear-gradient(to top, rgba(0,0,0,0.06), rgba(0,0,0,0));
+}
+
+.collapsed-bottom-arrow .arrow-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: none;
+}
+
+.collapsed-bottom-arrow:hover .arrow-pill {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 0, 0, 0.2);
 }
