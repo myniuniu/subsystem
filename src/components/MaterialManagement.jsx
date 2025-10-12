@@ -532,7 +532,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
         ...examFiles.map(file => `file-${file.id}`),
         ...nonExamFiles.map(file => `file-${file.id}`),
         ...addedTexts.map(text => `text-${text.id}`),
-        ...courseVideos.map(video => `video-${video.id}`),
+        ...displayCourseVideos.map(video => `video-${video.id}`),
         ...links.map(link => `link-${link.id}`),
         ...organizationalCourses.map(course => `course-${course.id}`)
       ];
@@ -658,7 +658,6 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
           border: '1px solid #e9ecef'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ color: '#495057', fontSize: '14px' }}>选择所有来源</span>
             <Tooltip title="重新加载示例数据">
               <Button 
                 type="text" 
@@ -719,10 +718,10 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
             </Tooltip>
             <Checkbox 
               checked={selectedMaterials.length > 0 && selectedMaterials.length === (
-                uploadedFiles.length + addedTexts.length + courseVideos.length + links.length + organizationalCourses.length
+                uploadedFiles.length + addedTexts.length + displayCourseVideos.length + links.length + organizationalCourses.length
               )}
               indeterminate={selectedMaterials.length > 0 && selectedMaterials.length < (
-                uploadedFiles.length + addedTexts.length + courseVideos.length + links.length + organizationalCourses.length
+                uploadedFiles.length + addedTexts.length + displayCourseVideos.length + links.length + organizationalCourses.length
               )}
               onChange={(e) => handleSelectAll(e.target.checked)}
             />
