@@ -381,7 +381,9 @@
 
 .sidebar.collapsed .menu-item.active {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4), 0 2px 8px rgba(0, 0, 0, 0.1);
+  /* 去除收缩模式下的整体光晕与阴影，避免被角标覆盖时仍可见 */
+  box-shadow: none !important;
+  animation: none !important;
 }
 
 .sidebar.collapsed .menu-item-content {
@@ -536,16 +538,21 @@
 
 .sidebar.collapsed .unread-badge {
   position: absolute;
-  top: -6px;
-  right: -6px;
+  top: -9px; /* 更靠外，覆盖面积更小 */
+  right: -9px; /* 更靠外，覆盖面积更小 */
   margin-left: 0;
-  min-width: 16px;
-  height: 16px;
-  font-size: 9px;
+  min-width: 14px; /* 收缩模式进一步缩小角标 */
+  height: 14px;
+  padding: 0 4px; /* 收紧左右留白，适配两位数 */
+  border-radius: 7px; /* 与尺寸匹配的圆角 */
+  font-size: 8px;
+  z-index: 3; /* 保证在图标之上 */
+  pointer-events: none; /* 避免影响拖拽/点击 */
 }
 
 .sidebar.collapsed .menu-item-icon {
   position: relative;
+  overflow: visible; /* 允许角标溢出显示 */
 }
 
 
