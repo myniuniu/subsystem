@@ -1392,7 +1392,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
           footer={null}
           width="90%"
           style={{ maxWidth: '1200px' }}
-          bodyStyle={{ height: '95vh' }}
+          bodyStyle={{ maxHeight: '75vh', overflowY: 'auto' }}
           centered
         >
           {/* 会议布局：左侧视频/共享，右侧成员与聊天 */}
@@ -1402,7 +1402,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               <div style={{
                 background: '#000',
                 borderRadius: 8,
-                height: 630,
+                height: 480,
                 overflow: 'hidden',
                 position: 'relative'
               }}>
@@ -1446,7 +1446,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
             </div>
 
             {/* 右侧成员与聊天 */}
-            <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: 12, height: '100%', minHeight: 0 }}>
+            <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: 12, height: '100%', minHeight: 0, alignItems: 'stretch' }}>
               {/* 成员列表 */}
               <Card size="small" title={<span><TeamOutlined /> 成员</span>}>
                 <Space wrap>
@@ -1465,10 +1465,10 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               <Card 
                 size="small" 
                 title={<span><MessageOutlined /> 会议聊天</span>} 
-                style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
-                bodyStyle={{ padding: 12, display: 'flex', flexDirection: 'column', flex: 1 }}
+                style={{ flex: '1 1 auto', display: 'flex', flexDirection: 'column' }}
+                bodyStyle={{ padding: 12, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}
               >
-                <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+                <div style={{ flex: 1, minHeight: 0, height: '100%', overflowY: 'auto' }}>
                   <List
                     size="small"
                     dataSource={discussionMessages}
@@ -1484,6 +1484,60 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                       </List.Item>
                     )}
                   />
+                </div>
+                {/* 输入与发送区固定在底部 */}
+                <div style={{ marginTop: 12 }}>
+                  <Input.Group compact>
+                    <Input
+                      style={{ width: 'calc(100% - 80px)' }}
+                      placeholder="输入会议聊天内容..."
+                      onPressEnter={(e) => {
+                        if (e.target.value.trim()) {
+                          const newMessage = {
+                            id: Date.now(),
+                            senderId: 'me',
+                            senderName: '我',
+                            content: e.target.value,
+                            time: new Date().toLocaleString('zh-CN', {
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            }),
+                            type: 'text'
+                          };
+                          setDiscussionMessages(prev => [...prev, newMessage]);
+                          e.target.value = '';
+                        }
+                      }}
+                    />
+                    <Button 
+                      type="primary" 
+                      style={{ width: 80 }}
+                      onClick={(e) => {
+                        const input = e.target.parentElement.querySelector('input');
+                        if (input && input.value.trim()) {
+                          const newMessage = {
+                            id: Date.now(),
+                            senderId: 'me',
+                            senderName: '我',
+                            content: input.value,
+                            time: new Date().toLocaleString('zh-CN', {
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            }),
+                            type: 'text'
+                          };
+                          setDiscussionMessages(prev => [...prev, newMessage]);
+                          input.value = '';
+                        }
+                      }}
+                    >
+                      发送
+                    </Button>
+                  </Input.Group>
                 </div>
               </Card>
             </div>
