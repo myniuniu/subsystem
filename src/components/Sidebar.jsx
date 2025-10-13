@@ -879,7 +879,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
                 }}
               >
                 <div className="arrow-pill">
-                  <ChevronUp size={16} color="#999" />
+                  <ChevronUp size={18} color="#3b82f6" />
                 </div>
               </div>
             )}
@@ -919,7 +919,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
           }}
         >
           <div className="arrow-pill">
-            <ChevronDown size={16} color="#999" />
+            <ChevronDown size={18} color="#3b82f6" />
           </div>
         </div>
       )}
