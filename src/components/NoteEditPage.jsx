@@ -1396,7 +1396,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
           centered
         >
           {/* 会议布局：左侧视频/共享，右侧成员与聊天 */}
-          <div style={{ display: 'flex', gap: 12 }}>
+          <div style={{ display: 'flex', gap: 12, height: '100%', minHeight: 0 }}>
             {/* 左侧视频/共享区域 */}
             <div style={{ flex: 3, display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{
@@ -1446,7 +1446,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
             </div>
 
             {/* 右侧成员与聊天 */}
-            <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: 12, height: '100%', minHeight: 0 }}>
               {/* 成员列表 */}
               <Card size="small" title={<span><TeamOutlined /> 成员</span>}>
                 <Space wrap>
@@ -1462,8 +1462,13 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               </Card>
 
               {/* 会议聊天（复用讨论消息） */}
-              <Card size="small" title={<span><MessageOutlined /> 会议聊天</span>} bodyStyle={{ padding: 12 }}>
-                <div style={{ maxHeight: 160, overflowY: 'auto' }}>
+              <Card 
+                size="small" 
+                title={<span><MessageOutlined /> 会议聊天</span>} 
+                style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+                bodyStyle={{ padding: 12, display: 'flex', flexDirection: 'column', flex: 1 }}
+              >
+                <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
                   <List
                     size="small"
                     dataSource={discussionMessages}
