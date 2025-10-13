@@ -6,6 +6,7 @@ import UnifiedAICenter from './components/UnifiedAICenter'
 import AssessmentCenter from './components/AssessmentCenter'
 import DownloadCenter from './components/DownloadCenter'
 import DocsCenter from './components/DocsCenter'
+import AdminCenter from './components/AdminCenter'
 import LessonObservation from './components/LessonObservation'
 import MeetingCenter from './components/MeetingCenter'
 import MessageCenter from './components/MessageCenter'
@@ -290,37 +291,39 @@ function App() {
   }
 
   return (
-    <Layout className="app" style={{ height: '100vh' }}>
+    <Layout className="app" style={{ height: '100vh', background: currentView === 'admin-center' ? '#f5f7fa' : undefined }}>
       <Layout style={{ height: '100vh' }}>
-        <Sider 
-          width="auto"
-          style={{
-            background: 'var(--theme-cardBackground)',
-            backdropFilter: 'blur(10px)',
-            boxShadow: '2px 0 8px rgba(0, 0, 0, 0.1)',
-            borderRight: '1px solid rgba(255, 255, 255, 0.2)',
-            height: '100%',
-            overflow: 'auto',
-            flex: '0 0 auto'
-          }}
-          theme="light"
-        >
-          <Sidebar 
-            onViewChange={handleViewChange}
-            currentView={currentView}
-            unreadMessageCount={unreadMessageCount}
-            downloadingCount={downloadingCount}
-            onAddApp={handleAddAppToMenu}
-            onRemoveApp={handleRemoveAppFromMenu}
-          />
-        </Sider>
+        {currentView !== 'admin-center' && (
+          <Sider 
+            width="auto"
+            style={{
+              background: 'var(--theme-cardBackground)',
+              backdropFilter: 'blur(10px)',
+              boxShadow: '2px 0 8px rgba(0, 0, 0, 0.1)',
+              borderRight: '1px solid rgba(255, 255, 255, 0.2)',
+              height: '100%',
+              overflow: 'auto',
+              flex: '0 0 auto'
+            }}
+            theme="light"
+          >
+            <Sidebar 
+              onViewChange={handleViewChange}
+              currentView={currentView}
+              unreadMessageCount={unreadMessageCount}
+              downloadingCount={downloadingCount}
+              onAddApp={handleAddAppToMenu}
+              onRemoveApp={handleRemoveAppFromMenu}
+            />
+          </Sider>
+        )}
         
         <Layout style={{ height: '100%' }}>
           <Content 
             style={{
               margin: '0', // 移除margin，让内容区域完全填满
               padding: '0',
-              background: 'var(--theme-cardBackground)',
+              background: currentView === 'admin-center' ? 'transparent' : 'var(--theme-cardBackground)',
               backdropFilter: 'blur(10px)',
               borderRadius: '0', // 移除圆角，让内容区域完全贴合
               boxShadow: 'none', // 移除阴影
@@ -410,6 +413,8 @@ function App() {
               <ProgressTestPage />
             ) : currentView === 'theme-template-center' ? (
               <ThemeTemplateCenter onBack={() => handleViewChange('home')} />
+            ) : currentView === 'admin-center' ? (
+              <AdminCenter />
             ) : (
               <MainContent 
                 currentView={currentView}

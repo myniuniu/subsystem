@@ -7,7 +7,8 @@ import {
   Palette,
   CheckCircle,
   Share2,
-  Users
+  Users,
+  Shield
 } from 'lucide-react';
 import { getCurrentTheme, setTheme, getThemeList } from '../utils/themeManager';
 import ThemeShareModal from './ThemeShareModal';
@@ -65,6 +66,11 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
 
   const handleLoginMore = () => {
     setLoginMoreModalVisible(true);
+  };
+
+  const handleOpenAdminCenter = () => {
+    const adminUrl = `${window.location.origin}${window.location.pathname}#admin-center`;
+    window.open(adminUrl, '_blank');
   };
 
   // 下载到桌面弹窗
@@ -251,6 +257,17 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
         </Space>
       ),
       onClick: handleLoginMore
+    },
+    // 管理后台（位于最后）
+    {
+      key: 'admin-center',
+      label: (
+        <Space>
+          <Shield size={16} />
+          <span>管理后台</span>
+        </Space>
+      ),
+      onClick: handleOpenAdminCenter
     }
   ];
 

@@ -1,0 +1,112 @@
+.org-layout {
+  height: calc(100vh - 0px);
+  /* 与 SmartNotes 一致的浅灰背景 */
+  background: #f5f7fa;
+}
+
+.org-sider {
+  background: var(--theme-cardBackground);
+  border-right: 1px solid #e8e8e8;
+  /* 使左侧栏内部按列排列并撑满高度 */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.org-sider-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.org-sider-tools {
+  padding: 10px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.org-tree-wrapper {
+  padding: 8px 8px 12px 8px;
+  /* 让部门树区域填满左侧栏剩余空间并可滚动 */
+  flex: 1;
+  overflow: auto;
+}
+
+.org-content {
+  padding: 8px 12px;
+  /* 让内容区域尽可能占满，避免内部卡片居中产生左右空白 */
+  width: 100%;
+  /* 与左侧菜单栏一致高度，并用于内部垂直布局 */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.org-top-tabs {
+  background: var(--theme-cardBackground);
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 4px 12px;
+  margin-bottom: 12px;
+}
+
+.org-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.org-company-info {
+  margin-left: 16px;
+}
+
+.org-toolbar {
+  margin-top: 12px;
+  display: grid;
+  /* 使工具栏在可用空间内自适应排列，避免固定列宽造成左右空白 */
+  grid-template-columns: minmax(280px, 1fr) 220px 220px auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.org-search {
+  /* 允许搜索框在网格第一列内自适应伸展 */
+  max-width: none;
+}
+
+.org-actions-left > .ant-btn,
+.org-actions-right > .ant-btn {
+  border-radius: 6px;
+}
+
+.org-table-card {
+  background: var(--theme-cardBackground);
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  padding: 0;
+  /* 让表格卡片占满内容区宽度 */
+  width: 100%;
+  /* 在主内容中可伸展占满剩余高度 */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.org-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+/* 主内容区域：分隔线以下的区域，撑满并滚动 */
+.org-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+/* 让 antd 表格在卡片内尽可能填充高度 */
+.org-table-card .ant-table-wrapper {
+  flex: 1;
+}
