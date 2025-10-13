@@ -658,20 +658,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
           border: '1px solid #e9ecef'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Tooltip title="重新加载示例数据">
-              <Button 
-                type="text" 
-                size="small"
-                icon={<RobotOutlined />}
-                onClick={() => {
-                  setCourseVideos(DEFAULT_COURSE_VIDEOS);
-                  message.success('已重新加载7条视频课程记录（包含直播课回放和预约）');
-                }}
-                style={{ color: '#666' }}
-              >
-                初始化
-              </Button>
-            </Tooltip>
+            {/* 原“初始化”按钮已移除 */}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {/* 全局折叠/展开单一图标按钮 */}
@@ -1446,7 +1433,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                 <div style={{ textAlign: 'center', padding: '40px 20px', color: '#999' }}>
                   <FileTextOutlined style={{ fontSize: 32, marginBottom: 16, color: '#ccc' }} />
                   <div style={{ fontSize: 14 }}>暂无资料</div>
-                  <div style={{ fontSize: 12, marginTop: 4 }}>点击上方"添加"按钮添加资料，或点击"初始化"加载示例数据</div>
+                  <div style={{ fontSize: 12, marginTop: 4 }}>点击上方"添加"按钮添加资料，或使用导入功能加载示例数据</div>
                 </div>
               )}
             </div>
