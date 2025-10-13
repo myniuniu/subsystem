@@ -489,6 +489,13 @@
   transform: scale(1.05);
 }
 
+/* 收缩模式下，选中菜单图标不显示外边框/光晕效果 */
+.sidebar.collapsed .menu-item.active .icon-wrapper {
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
 .menu-item-label {
   font-size: 14px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
