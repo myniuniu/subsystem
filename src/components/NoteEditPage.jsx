@@ -1101,8 +1101,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
 
   return (
     <>
-      {/* 直播中提示条（sticky 占位，不遮挡内容）*/}
-      {liveStreams.some(stream => getLiveStreamStatus(stream) === 'live') && (
+      {/* 直播中提示条（仅在“组织培训”分类下显示；sticky 占位，不遮挡内容）*/}
+      {selectedCategory === 'organizational_training' && liveStreams.some(stream => getLiveStreamStatus(stream) === 'live') && (
         <div style={{
           position: 'sticky',
           top: 0,
