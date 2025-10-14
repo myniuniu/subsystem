@@ -15,8 +15,8 @@ dayjs.locale('zh-cn')
 const CalendarCenter = () => {
   const [selectedDate, setSelectedDate] = useState(dayjs())
   const [currentMonth, setCurrentMonth] = useState(dayjs())
-  const [activeView, setActiveView] = useState('month')
-  const [calendarView, setCalendarView] = useState('month') // 'month', 'week', 'day'
+  const [activeView, setActiveView] = useState('week')
+  const [calendarView, setCalendarView] = useState('week') // 'month', 'week', 'day'
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false)
   const [form] = Form.useForm()
   const [previewDate, setPreviewDate] = useState(dayjs()) // 用于日视图预览的日期状态
@@ -88,70 +88,90 @@ const CalendarCenter = () => {
     )
   }
   
-  // 智慧教学平台示例事件数据
-  const [eventList, setEventList] = useState([
-    // 1月份教研活动
-    { id: 1, date: '2025-01-02', title: '新学期教研工作部署会', type: 'meeting', color: 'blue', startTime: '09:00', endTime: '11:00' },
-    { id: 2, date: '2025-01-03', title: '课程标准研讨', type: 'work', color: 'green', startTime: '14:00', endTime: '16:00' },
-    { id: 3, date: '2025-01-06', title: '信息化教学培训', type: 'training', color: 'orange', startTime: '10:00', endTime: '12:00' },
-    { id: 4, date: '2025-01-08', title: '教学质量评估', type: 'business', color: 'red' }, // 全天事件
-    { id: 5, date: '2025-01-10', title: '学科组教研会议', type: 'meeting', color: 'blue', startTime: '15:30', endTime: '17:00' },
-    
-    // 今天的事件（使用当前日期）
-    { id: 100, date: dayjs().format('YYYY-MM-DD'), title: '早会', type: 'meeting', color: 'blue', startTime: '09:00', endTime: '09:30' },
-    { id: 101, date: dayjs().format('YYYY-MM-DD'), title: '项目讨论会', type: 'work', color: 'green', startTime: '10:30', endTime: '12:00' },
-    { id: 102, date: dayjs().format('YYYY-MM-DD'), title: '午餐会议', type: 'business', color: 'red', startTime: '12:30', endTime: '13:30' },
-    { id: 103, date: dayjs().format('YYYY-MM-DD'), title: '团队建设活动', type: 'milestone', color: 'purple' }, // 全天事件
-    { id: 104, date: dayjs().format('YYYY-MM-DD'), title: '技术培训', type: 'training', color: 'orange', startTime: '15:00', endTime: '17:00' },
-    { id: 105, date: dayjs().format('YYYY-MM-DD'), title: '日报总结', type: 'work', color: 'green', startTime: '18:00', endTime: '18:30' },
-    
-    // 其他月份事件
-    { id: 6, date: '2025-01-12', title: '教案设计评审', type: 'work', color: 'green' },
-    { id: 7, date: '2025-01-15', title: '青年教师座谈会', type: 'meeting', color: 'blue' },
-    { id: 8, date: '2025-01-16', title: '课堂观察研讨', type: 'work', color: 'green' },
-    { id: 9, date: '2025-01-17', title: '教学方法交流会', type: 'meeting', color: 'blue' },
-    { id: 10, date: '2025-01-18', title: 'AI辅助教学培训', type: 'training', color: 'orange' },
-    { id: 11, date: '2025-01-20', title: '校际教研交流', type: 'business', color: 'red' },
-    { id: 12, date: '2025-01-22', title: '教学资源建设评审', type: 'work', color: 'green' },
-    { id: 13, date: '2025-01-24', title: '教研组集体研讨', type: 'meeting', color: 'blue' },
-    { id: 14, date: '2025-01-25', title: '教学成果展示会', type: 'milestone', color: 'purple' },
-    { id: 15, date: '2025-01-27', title: '家校合作研讨', type: 'business', color: 'red' },
-    { id: 16, date: '2025-01-28', title: '期末教学总结', type: 'work', color: 'green' },
-    { id: 17, date: '2025-01-29', title: '教育技术应用分享', type: 'training', color: 'orange' },
-    { id: 18, date: '2025-01-30', title: '月度教研总结', type: 'milestone', color: 'purple' },
-    { id: 19, date: '2025-01-31', title: '教师专业发展规划', type: 'meeting', color: 'blue' },
-    
-    // 2月份教研活动
-    { id: 20, date: '2025-02-03', title: '新学期开学准备会', type: 'meeting', color: 'blue' },
-    { id: 21, date: '2025-02-05', title: '新课程实施方案', type: 'work', color: 'green' },
-    { id: 22, date: '2025-02-07', title: '教学计划制定会', type: 'meeting', color: 'blue' },
-    { id: 23, date: '2025-02-10', title: '多媒体教学技能培训', type: 'training', color: 'orange' },
-    { id: 24, date: '2025-02-12', title: '学生学情分析', type: 'business', color: 'red' },
-    { id: 25, date: '2025-02-14', title: '师生互动研讨会', type: 'meeting', color: 'blue' },
-    { id: 26, date: '2025-02-17', title: '教学模式创新研究', type: 'work', color: 'green' },
-    { id: 27, date: '2025-02-19', title: '学期教学目标制定', type: 'milestone', color: 'purple' },
-    { id: 28, date: '2025-02-21', title: '跨学科教学研讨', type: 'meeting', color: 'blue' },
-    { id: 29, date: '2025-02-24', title: '智慧课堂建设培训', type: 'training', color: 'orange' },
-    { id: 30, date: '2025-02-26', title: '教育专家讲座', type: 'business', color: 'red' },
-    { id: 31, date: '2025-02-28', title: '教研月度回顾', type: 'milestone', color: 'purple' },
-    
-    // 9月份教研活动
-    { id: 32, date: '2025-09-02', title: '新学期开学工作会议', type: 'meeting', color: 'blue' },
-    { id: 33, date: '2025-09-03', title: '教学计划审核', type: 'work', color: 'green' },
-    { id: 34, date: '2025-09-05', title: '新教师入职培训', type: 'training', color: 'orange' },
-    { id: 35, date: '2025-09-06', title: '教学质量监控启动', type: 'business', color: 'red' },
-    { id: 36, date: '2025-09-09', title: '教师节庆祝活动', type: 'meeting', color: 'blue' },
-    { id: 37, date: '2025-09-10', title: '优秀教案评选', type: 'work', color: 'green' },
-    { id: 38, date: '2025-09-12', title: '信息技术应用培训', type: 'training', color: 'orange' },
-    { id: 39, date: '2025-09-13', title: '学科教研组会议', type: 'meeting', color: 'blue' },
-    { id: 40, date: '2025-09-16', title: '课程改革研讨', type: 'work', color: 'green' },
-    { id: 41, date: '2025-09-18', title: '教学方法创新培训', type: 'training', color: 'orange' },
-    { id: 42, date: '2025-09-20', title: '校际交流访问', type: 'business', color: 'red' },
-    { id: 43, date: '2025-09-23', title: '教学成果汇报', type: 'milestone', color: 'purple' },
-    { id: 44, date: '2025-09-25', title: '青年教师成长计划', type: 'meeting', color: 'blue' },
-    { id: 45, date: '2025-09-27', title: '教学资源共享会', type: 'work', color: 'green' },
-    { id: 46, date: '2025-09-30', title: '月度教学总结', type: 'milestone', color: 'purple' }
-  ])
+  // 事件列表（通过生成器填充）
+  const [eventList, setEventList] = useState([])
+
+  // 类型与颜色映射（与现有样式一致）
+  const typeColorMap = {
+    meeting: 'blue',
+    work: 'green',
+    training: 'orange',
+    business: 'red',
+    milestone: 'purple',
+  }
+
+  const titlesByType = {
+    meeting: '教研会议',
+    work: '教学工作',
+    training: '培训学习',
+    business: '交流合作',
+    milestone: '重要节点',
+  }
+
+  // 生成测试事件：按当前月与勾选分类，每日不超过3条（支持学习计划类目）
+  const generateTestEvents = (month, categories, maxPerDay = 3) => {
+    const activeCategories = categories.filter(c => c.checked)
+    const start = month.startOf('month')
+    const days = month.daysInMonth()
+    let id = 1
+    const events = []
+    const timeSlots = ['08:00', '09:30', '11:00', '14:00', '16:00', '19:00', '20:30']
+    const timeSlotsEnd = ['09:00', '10:30', '12:00', '15:00', '17:00', '20:00', '21:30']
+
+    const hexToColorName = (hex) => {
+      switch ((hex || '').toLowerCase()) {
+        case '#1890ff': return 'blue'
+        case '#52c41a': return 'green'
+        case '#fa8c16': return 'orange'
+        case '#f5222d': return 'red'
+        case '#722ed1': return 'purple'
+        default: return 'blue'
+      }
+    }
+
+    for (let d = 0; d < days; d++) {
+      const dateStr = start.add(d, 'day').format('YYYY-MM-DD')
+      const count = Math.floor(Math.random() * (maxPerDay + 1))
+      const dayCount = Math.min(count, maxPerDay)
+      const usedSlots = new Set()
+      for (let i = 0; i < dayCount; i++) {
+        const cat = activeCategories[Math.floor(Math.random() * (activeCategories.length || 1))] || { key: 'meeting', label: '教研会议', color: '#1890ff', type: 'meeting' }
+        const type = cat.key
+        const color = typeColorMap[type] || hexToColorName(cat.color)
+
+        // 选择一个未使用的时间段，分布到不同时间
+        let slotIndex = Math.floor(Math.random() * timeSlots.length)
+        let guard = 0
+        while (usedSlots.has(slotIndex) && guard < timeSlots.length) {
+          slotIndex = (slotIndex + 1) % timeSlots.length
+          guard++
+        }
+        usedSlots.add(slotIndex)
+        const startTime = timeSlots[slotIndex]
+        const endTime = timeSlotsEnd[slotIndex]
+
+        // 生成标题：学习计划使用计划标题，其它按映射
+        let title
+        if (cat.type === 'learning-plan') {
+          const planTitle = (cat.planTitle || cat.label || '学习计划').replace(/^学习计划[:：]\s*/, '')
+          title = `${planTitle} 学习任务${i + 1}`
+        } else {
+          title = `${titlesByType[type] || cat.label || '事件'}示例${i + 1}`
+        }
+
+        events.push({
+          id: id++,
+          date: dateStr,
+          title,
+          type, // 与分类key保持一致，便于过滤
+          color,
+          startTime,
+          endTime,
+        })
+      }
+    }
+    return events
+  }
   
   // 教研活动分类
   const [categories, setCategories] = useState([
@@ -162,6 +182,12 @@ const CalendarCenter = () => {
     { key: 'milestone', label: '重要节点', color: '#722ed1', checked: true },
   ])
 
+  // 根据当前月与分类生成测试数据（每日不超过3条）
+  React.useEffect(() => {
+    const generated = generateTestEvents(currentMonth, categories, 3)
+    setEventList(generated)
+  }, [currentMonth, categories])
+
   // 监听日历分类变化事件
   React.useEffect(() => {
     const handleCategoriesChanged = (event) => {
@@ -169,7 +195,43 @@ const CalendarCenter = () => {
       // 合并现有分类和新的学习计划分类
       const existingCategories = categories.filter(cat => cat.type !== 'learning-plan');
       const learningPlanCategories = newCategories.filter(cat => cat.type === 'learning-plan');
-      setCategories([...existingCategories, ...learningPlanCategories]);
+
+      // 工具函数：规范化与双重去重（按ID与标签）
+      const normalize = (cat) => ({
+        ...cat,
+        label: cat.planTitle ? `学习计划: ${cat.planTitle}` : (cat.label?.startsWith('学习计划') ? cat.label : `学习计划: ${cat.label || '未命名'}`)
+      })
+      const dedupeById = (arr) => {
+        const seen = new Set()
+        return arr.filter(cat => {
+          const id = cat.planId ?? cat.key
+          if (!id) return true
+          if (seen.has(id)) return false
+          seen.add(id)
+          return true
+        })
+      }
+      const dedupeByLabel = (arr) => {
+        const picked = new Map()
+        for (const cat of arr) {
+          const label = cat.label || ''
+          if (!picked.has(label)) {
+            picked.set(label, cat)
+          } else {
+            const existing = picked.get(label)
+            // 优先选择有 planId 的项，其次保留已存在项
+            if (!existing.planId && cat.planId) {
+              picked.set(label, cat)
+            }
+          }
+        }
+        return Array.from(picked.values())
+      }
+
+      const normalized = learningPlanCategories.map(normalize)
+      const idDeduped = dedupeById(normalized)
+      const fullyDeduped = dedupeByLabel(idDeduped)
+      setCategories([...existingCategories, ...fullyDeduped])
     };
 
     window.addEventListener('calendarCategoriesChanged', handleCategoriesChanged);
@@ -179,7 +241,43 @@ const CalendarCenter = () => {
     if (savedCategories.length > 0) {
       const existingCategories = categories.filter(cat => cat.type !== 'learning-plan');
       const learningPlanCategories = savedCategories.filter(cat => cat.type === 'learning-plan');
-      setCategories([...existingCategories, ...learningPlanCategories]);
+      // 初始化加载时也进行去重并规范化（ID + 标签 双重去重）
+      const normalize = (cat) => ({
+        ...cat,
+        label: cat.planTitle ? `学习计划: ${cat.planTitle}` : (cat.label?.startsWith('学习计划') ? cat.label : `学习计划: ${cat.label || '未命名'}`)
+      })
+      const dedupeById = (arr) => {
+        const seen = new Set()
+        return arr.filter(cat => {
+          const id = cat.planId ?? cat.key
+          if (!id) return true
+          if (seen.has(id)) return false
+          seen.add(id)
+          return true
+        })
+      }
+      const dedupeByLabel = (arr) => {
+        const picked = new Map()
+        for (const cat of arr) {
+          const label = cat.label || ''
+          if (!picked.has(label)) {
+            picked.set(label, cat)
+          } else {
+            const existing = picked.get(label)
+            if (!existing.planId && cat.planId) {
+              picked.set(label, cat)
+            }
+          }
+        }
+        return Array.from(picked.values())
+      }
+
+      const normalized = learningPlanCategories.map(normalize)
+      const idDeduped = dedupeById(normalized)
+      const fullyDeduped = dedupeByLabel(idDeduped)
+      setCategories([...existingCategories, ...fullyDeduped])
+      // 回写规范化后的去重结果，清理历史重复项
+      localStorage.setItem('calendar-categories', JSON.stringify(fullyDeduped))
     }
 
     return () => {
@@ -191,7 +289,35 @@ const CalendarCenter = () => {
   React.useEffect(() => {
     const learningPlanCategories = categories.filter(cat => cat.type === 'learning-plan');
     if (learningPlanCategories.length > 0) {
-      localStorage.setItem('calendar-categories', JSON.stringify(learningPlanCategories));
+      // 保存前双重去重，避免历史重复项继续累积
+      const dedupeById = (arr) => {
+        const seen = new Set()
+        return arr.filter(cat => {
+          const id = cat.planId ?? cat.key
+          if (!id) return true
+          if (seen.has(id)) return false
+          seen.add(id)
+          return true
+        })
+      }
+      const dedupeByLabel = (arr) => {
+        const picked = new Map()
+        for (const cat of arr) {
+          const label = cat.label || ''
+          if (!picked.has(label)) {
+            picked.set(label, cat)
+          } else {
+            const existing = picked.get(label)
+            if (!existing.planId && cat.planId) {
+              picked.set(label, cat)
+            }
+          }
+        }
+        return Array.from(picked.values())
+      }
+      const idDeduped = dedupeById(learningPlanCategories)
+      const fullyDeduped = dedupeByLabel(idDeduped)
+      localStorage.setItem('calendar-categories', JSON.stringify(fullyDeduped))
     }
   }, [categories]);
 
@@ -371,14 +497,20 @@ const CalendarCenter = () => {
                 
                 return (
                   <DroppableCell key={`${date.format('YYYY-MM-DD')}-${hour}`} date={date} timeSlot={`${hour.toString().padStart(2, '0')}:00`} className="day-slot">
-                    {hour === 9 && filteredEvents.map((event, index) => (
-                      <DraggableEvent key={event.id} event={event} className={`week-event event-${event.color}`}>
-                        <div>
-                          <span className="event-time">09:00</span>
-                          <span className="event-title">{event.title}</span>
-                        </div>
-                      </DraggableEvent>
-                    ))}
+                    {filteredEvents
+                      .filter(event => {
+                        if (!event.startTime) return false
+                        const eventHour = parseInt(String(event.startTime).split(':')[0], 10)
+                        return eventHour === hour
+                      })
+                      .map(event => (
+                        <DraggableEvent key={event.id} event={event} className={`week-event event-${event.color}`}>
+                          <div>
+                            <span className="event-time">{event.startTime}</span>
+                            <span className="event-title">{event.title}</span>
+                          </div>
+                        </DraggableEvent>
+                      ))}
                   </DroppableCell>
                 )
               })}
@@ -556,13 +688,6 @@ const CalendarCenter = () => {
       <div className="calendar-center">
       {/* 顶部工具栏 */}
       <div className="calendar-header">
-        <div className="calendar-nav">
-          <div className="nav-actions">
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleCreateEvent}>
-              创建日程
-            </Button>
-          </div>
-        </div>
         
         <div className="calendar-controls">
           <div className="date-navigation">
@@ -577,25 +702,30 @@ const CalendarCenter = () => {
             )}
             {calendarView === 'day' && selectedDate.format('YYYY年MM月DD日')}
           </div>
-          <div className="view-controls">
-            <Button 
-              type={calendarView === 'month' ? 'primary' : 'default'}
-              onClick={() => setCalendarView('month')}
-            >
-              月
+          <div className="right-actions">
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleCreateEvent}>
+              创建日程
             </Button>
-            <Button 
-              type={calendarView === 'week' ? 'primary' : 'default'}
-              onClick={() => setCalendarView('week')}
-            >
-              周
-            </Button>
-            <Button 
-              type={calendarView === 'day' ? 'primary' : 'default'}
-              onClick={() => setCalendarView('day')}
-            >
-              日
-            </Button>
+            <div className="view-controls">
+              <Button 
+                type={calendarView === 'month' ? 'primary' : 'default'}
+                onClick={() => setCalendarView('month')}
+              >
+                月
+              </Button>
+              <Button 
+                type={calendarView === 'week' ? 'primary' : 'default'}
+                onClick={() => setCalendarView('week')}
+              >
+                周
+              </Button>
+              <Button 
+                type={calendarView === 'day' ? 'primary' : 'default'}
+                onClick={() => setCalendarView('day')}
+              >
+                日
+              </Button>
+            </div>
           </div>
         </div>
       </div>

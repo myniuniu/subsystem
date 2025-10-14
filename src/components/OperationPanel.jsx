@@ -1817,9 +1817,12 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
                 const existingCategories = JSON.parse(localStorage.getItem('calendar-categories') || '[]');
                 
                 // 移除对应的学习计划分类
-                const updatedCategories = existingCategories.filter(cat => 
-                  cat.key !== `learning-plan-${record.id}`
-                );
+                const updatedCategories = existingCategories.filter(cat => {
+                  if (cat.type !== 'learning-plan') return true;
+                  const sameByKey = cat.key === `learning-plan-${record.id}`;
+                  const sameByPlan = cat.planId === record.id;
+                  return !(sameByKey || sameByPlan);
+                });
                 localStorage.setItem('calendar-categories', JSON.stringify(updatedCategories));
                 
                 // 触发日历分类更新事件
@@ -1863,11 +1866,17 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
               };
 
               // 检查是否已存在相同的分类
-              const categoryExists = existingCategories.some(cat => cat.key === newCategory.key);
+              const categoryExists = existingCategories.some(cat => 
+                cat.type === 'learning-plan' && (cat.planId === record.id || cat.key === newCategory.key)
+              );
               
               if (!categoryExists) {
                 // 添加新分类到现有分类中
-                const updatedCategories = [...existingCategories, newCategory];
+                const updatedCategories = [...existingCategories, newCategory].filter((cat, index, arr) => {
+                  if (cat.type !== 'learning-plan') return true;
+                  const id = cat.planId ?? cat.key;
+                  return arr.findIndex(c => (c.planId ?? c.key) === id && c.type === 'learning-plan') === index;
+                });
                 localStorage.setItem('calendar-categories', JSON.stringify(updatedCategories));
                 
                 // 触发日历分类更新事件

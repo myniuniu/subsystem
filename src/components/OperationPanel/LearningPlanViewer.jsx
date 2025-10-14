@@ -42,12 +42,17 @@ const LearningPlanViewer = ({
     }
 
     try {
+      // 必须存在唯一的计划ID，避免产生重复条目
+      if (!planRecord.id) {
+        message.error('学习计划缺少唯一ID，无法同步到日历');
+        return;
+      }
       // 获取现有的日历分类
       const existingCategories = JSON.parse(localStorage.getItem('calendar-categories') || '[]');
       
       // 创建新的日历分类
       const newCategory = {
-        key: `learning-plan-${planRecord.id || Date.now()}`,
+        key: `learning-plan-${planRecord.id}`,
         label: planRecord.title || '学习计划',
         color: '#52c41a',
         checked: true,
@@ -67,7 +72,12 @@ const LearningPlanViewer = ({
       }
 
       // 添加新分类到日历中心
-      const updatedCategories = [...existingCategories, newCategory];
+      // 追加并按planId去重
+      const updatedCategories = [...existingCategories, newCategory].filter((cat, index, arr) => {
+        if (cat.type !== 'learning-plan') return true;
+        const id = cat.planId ?? cat.key;
+        return arr.findIndex(c => (c.planId ?? c.key) === id && c.type === 'learning-plan') === index;
+      });
       localStorage.setItem('calendar-categories', JSON.stringify(updatedCategories));
 
       // 标记该记录已同步
