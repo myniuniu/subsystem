@@ -333,16 +333,7 @@ const NotesList = ({
     <> 
     <Row gutter={[16, 16]}>
       {(() => {
-        const isOrganizationalTrainingNote = (n) => (
-          selectedCategory === 'organizational_training' ||
-          n.source === '组织培训' ||
-          n.tags?.includes('组织培训') ||
-          n.category === 'organizational_training' ||
-          n.courseType === 'organizational_training' ||
-          n.title?.includes('【组织培训】')
-        );
-        const allAreOrganizational = filteredNotes.length > 0 && filteredNotes.every(isOrganizationalTrainingNote);
-        const notesToRender = (selectedCategory === 'organizational_training' || allAreOrganizational)
+        const notesToRender = selectedCategory === 'organizational_training'
           ? sortOrganizationalNotes(filteredNotes)
           : filteredNotes;
         return notesToRender;
@@ -350,11 +341,8 @@ const NotesList = ({
         const categoryInfo = getCategoryInfo(note.category);
         const isOrgTraining = (
           selectedCategory === 'organizational_training' ||
-          note.source === '组织培训' ||
-          note.tags?.includes('组织培训') ||
           note.category === 'organizational_training' ||
-          note.courseType === 'organizational_training' ||
-          note.title?.includes('【组织培训】')
+          note.courseType === 'organizational_training'
         );
         // 固定分类统一显示（知识图谱、能力模型、微专业）
         const fixedCategories = ['knowledge_graph', 'capability_model', 'micro_specialization'];
@@ -442,16 +430,13 @@ const NotesList = ({
                   
                   {/* 组织培训状态显示 */}
                   {(() => {
-                    const isOrgTraining = (
+                    const isOrgTrainingHeader = (
                       selectedCategory === 'organizational_training' ||
-                      note.source === '组织培训' ||
-                      note.tags?.includes('组织培训') ||
                       note.category === 'organizational_training' ||
-                      note.courseType === 'organizational_training' ||
-                      note.title?.includes('【组织培训】')
+                      note.courseType === 'organizational_training'
                     );
                     
-                    if (isOrgTraining) {
+                    if (isOrgTrainingHeader) {
                       try {
                         const trainingStatus = getTrainingStatusInfo(note);
                         

@@ -385,6 +385,8 @@ const SmartNotes = ({ onViewChange }) => {
         );
       } else {
         filtered = filtered.filter(note => note.category === selectedCategory);
+        // 非组织培训分类下，排除组织培训数据，避免分类互相覆盖
+        filtered = filtered.filter(note => note.category !== 'organizational_training' && note.courseType !== 'organizational_training');
       }
     }
     
