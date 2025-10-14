@@ -1,14 +1,15 @@
 /* 应用中心主容器 */
 .app-center {
   height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  /* 与果仁空间内容区保持一致的非蓝色背景 */
+  background: var(--theme-cardBackground);
   display: flex;
   flex-direction: column;
 }
 
 /* 头部样式 */
 .app-center-header {
-  background: white;
+  background: var(--theme-headerBackground);
   padding: 0 24px;
   display: flex;
   justify-content: space-between;
@@ -32,12 +33,12 @@
 
 .header-title .ant-typography {
   margin: 0 !important;
-  color: #262626 !important;
+  color: var(--theme-headerText) !important;
 }
 
 .app-center-header .ant-typography {
   margin: 0;
-  color: #666;
+  color: var(--theme-headerText);
   font-size: 16px;
   font-weight: 400;
 }
@@ -102,7 +103,7 @@
 .app-card {
   border-radius: 20px;
   border: none;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--theme-cardBackground);
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -468,6 +469,18 @@
 /* 过渡效果 */
 .app-center * {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 与果仁空间一致的主按钮样式 */
+.app-center .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3) !important;
+}
+
+.app-center .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff 0%, #69c0ff 100%) !important;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4) !important;
 }
 
 /* 焦点样式 */

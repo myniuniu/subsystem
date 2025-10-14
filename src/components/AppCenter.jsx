@@ -8,7 +8,6 @@ import {
   Typography,
   Row,
   Col,
-  Select,
   Empty,
   message
 } from 'antd'
@@ -33,13 +32,9 @@ import {
 import './AppCenter.css'
 
 const { Title, Text } = Typography
-const { Option } = Select
 
 const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('all')
-  const [selectedGrade, setSelectedGrade] = useState('all')
-  const [selectedSubject, setSelectedSubject] = useState('all')
   const [menuApps, setMenuApps] = useState(() => {
     const saved = localStorage.getItem('added-apps')
     return saved ? JSON.parse(saved) : []
@@ -344,43 +339,7 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
     }
   ]
 
-  // 分类选项
-  const categories = [
-    { value: 'all', label: '全部应用' },
-    { value: 'teaching', label: '教学工具' },
-    { value: 'assessment', label: '考试评测' },
-    { value: 'management', label: '管理系统' },
-    { value: 'tools', label: '实用工具' },
-    { value: 'collaboration', label: '协作平台' },
-    { value: 'analytics', label: '数据分析' },
-    { value: 'media', label: '多媒体' }
-  ]
-
-  // 学段选项
-  const grades = [
-    { value: 'all', label: '全部学段' },
-    { value: '幼儿', label: '幼儿' },
-    { value: '小学', label: '小学' },
-    { value: '初中', label: '初中' },
-    { value: '高中', label: '高中' },
-    { value: '大学', label: '大学' }
-  ]
-
-  // 学科选项
-  const subjects = [
-    { value: 'all', label: '全部学科' },
-    { value: '语文', label: '语文' },
-    { value: '数学', label: '数学' },
-    { value: '英语', label: '英语' },
-    { value: '物理', label: '物理' },
-    { value: '化学', label: '化学' },
-    { value: '生物', label: '生物' },
-    { value: '科学', label: '科学' },
-    { value: '艺术', label: '艺术' },
-    { value: '信息技术', label: '信息技术' },
-    { value: '综合实践', label: '综合实践' },
-    { value: '综合', label: '综合' }
-  ]
+  // 已移除分类/学段/学科下拉选项，保留搜索功能
 
   // 图标映射
   const iconMap = {
@@ -402,16 +361,15 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
     const matchesSearch = app.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          app.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          app.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-    const matchesCategory = selectedCategory === 'all' || app.category === selectedCategory
-    const matchesGrade = selectedGrade === 'all' || app.grade.includes(selectedGrade)
-    const matchesSubject = selectedSubject === 'all' || app.subject.includes(selectedSubject)
-    return matchesSearch && matchesCategory && matchesGrade && matchesSubject
+    return matchesSearch
   })
 
-  // 添加应用到菜单
+  // 添加应用到菜单（统一使用 menuId 存储，避免重复）
   const handleAddToMenu = (app) => {
     try {
-      const newMenuApps = [...menuApps, app.id]
+      const newMenuApps = menuApps.includes(app.menuId)
+        ? menuApps
+        : [...menuApps, app.menuId]
       setMenuApps(newMenuApps)
       localStorage.setItem('added-apps', JSON.stringify(newMenuApps))
       
@@ -430,10 +388,10 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
     }
   }
 
-  // 从菜单移除应用
+  // 从菜单移除应用（兼容旧数据：同时移除 app.id 与 app.menuId）
   const handleRemoveFromMenu = (app) => {
     try {
-      const newMenuApps = menuApps.filter(id => id !== app.id)
+      const newMenuApps = menuApps.filter(id => id !== app.menuId && id !== app.id)
       setMenuApps(newMenuApps)
       localStorage.setItem('added-apps', JSON.stringify(newMenuApps))
       
@@ -447,19 +405,17 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
     }
   }
 
-  // 检查应用是否已添加
-  const isAppAdded = (appId) => {
-    return menuApps.includes(appId)
+  // 检查应用是否已添加（兼容旧数据）
+  const isAppAdded = (app) => {
+    return menuApps.includes(app.menuId) || menuApps.includes(app.id)
   }
 
   return (
     <div className="app-center">
       <div className="app-center-header">
         <div className="header-title">
-          <AppstoreOutlined className="header-icon" />
           <Title level={2} style={{ color: '#262626', margin: 0 }}>应用中心</Title>
         </div>
-        <Text type="secondary">发现和管理教学平台应用</Text>
       </div>
 
       <div className="app-center-filters">
@@ -473,48 +429,6 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
               onChange={(e) => setSearchTerm(e.target.value)}
               onPressEnter={(e) => setSearchTerm(e.target.value)}
             />
-          </Col>
-          <Col>
-            <Select
-              value={selectedCategory}
-              onChange={setSelectedCategory}
-              size="large"
-              style={{ width: 120 }}
-            >
-              {categories.map(category => (
-                <Option key={category.value} value={category.value}>
-                  {category.label}
-                </Option>
-              ))}
-            </Select>
-          </Col>
-          <Col>
-            <Select
-              value={selectedGrade}
-              onChange={setSelectedGrade}
-              size="large"
-              style={{ width: 120 }}
-            >
-              {grades.map(grade => (
-                <Option key={grade.value} value={grade.value}>
-                  {grade.label}
-                </Option>
-              ))}
-            </Select>
-          </Col>
-          <Col>
-            <Select
-              value={selectedSubject}
-              onChange={setSelectedSubject}
-              size="large"
-              style={{ width: 120 }}
-            >
-              {subjects.map(subject => (
-                <Option key={subject.value} value={subject.value}>
-                  {subject.label}
-                </Option>
-              ))}
-            </Select>
           </Col>
         </Row>
       </div>
@@ -530,7 +444,7 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
                   className="app-card"
                   hoverable
                   actions={[
-                    isAppAdded(app.id) ? (
+                    isAppAdded(app) ? (
                       <Button
                         key="remove"
                         type="text"
@@ -611,7 +525,7 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
                     className="app-card"
                     hoverable
                     actions={[
-                      isAppAdded(app.id) ? (
+                      isAppAdded(app) ? (
                         <Button
                           key="remove"
                           type="text"
