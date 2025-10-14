@@ -31,7 +31,7 @@
 }
 
 .org-content {
-  padding: 8px 12px;
+  padding: 6px 8px;
   /* 让内容区域尽可能占满，避免内部卡片居中产生左右空白 */
   width: 100%;
   /* 与左侧菜单栏一致高度，并用于内部垂直布局 */
@@ -81,7 +81,7 @@
 .org-table-card {
   background: var(--theme-cardBackground);
   border: 1px solid #e8e8e8;
-  border-radius: 6px;
+  border-radius: 4px;
   padding: 0;
   /* 让表格卡片占满内容区宽度 */
   width: 100%;

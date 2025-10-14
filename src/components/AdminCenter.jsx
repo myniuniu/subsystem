@@ -57,7 +57,7 @@ const AdminCenter = () => {
           onClick={(e) => setActiveKey(e.key)}
         />
       </Sider>
-      <Content style={{ padding: '8px 12px', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <Content style={{ padding: '0 8px', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {activeKey === 'org-members-departments' ? (
           <OrgMembersDepartments />
         ) : (

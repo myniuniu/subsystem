@@ -167,6 +167,7 @@ const OrgMembersDepartments = () => {
       title: '姓名',
       dataIndex: 'name',
       key: 'name',
+      ellipsis: true,
       render: (text) => (
         <Space>
           <Avatar size={28} style={{ backgroundColor: '#1677ff' }}>
@@ -180,7 +181,7 @@ const OrgMembersDepartments = () => {
       title: '账号状态',
       dataIndex: 'status',
       key: 'status',
-      width: 120,
+      // 让该列参与自适应分配，避免整体宽度受限
       render: (s) => <Tag color="blue">{s}</Tag>
     },
     {
@@ -193,13 +194,14 @@ const OrgMembersDepartments = () => {
       title: '部门',
       dataIndex: 'department',
       key: 'department',
-      width: 260,
+      // 移除固定宽度，允许该列填充剩余空间
+      ellipsis: true,
       render: (d) => <Text>{d}</Text>
     },
     {
       title: '操作',
       key: 'actions',
-      width: 140,
+      width: 160,
       render: () => (
         <Space size={8}>
           <Button type="link">详情</Button>
@@ -365,6 +367,7 @@ const OrgMembersDepartments = () => {
             columns={columns}
             dataSource={filteredMembers}
             pagination={false}
+            tableLayout="fixed"
             style={{ width: '100%' }}
           />
           </div>
