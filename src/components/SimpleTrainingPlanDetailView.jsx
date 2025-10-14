@@ -269,12 +269,7 @@ const SimpleTrainingPlanDetailView = ({ plan }) => {
         {/* 培训课程信息 */}
         <Col span={24}>
           <Card 
-            title={
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <PlayCircleOutlined style={{ color: '#52c41a' }} />
-                <span>培训课程安排</span>
-              </div>
-            }
+            title={<span>培训课程安排</span>}
             size="small"
           >
             <Table 
@@ -290,12 +285,7 @@ const SimpleTrainingPlanDetailView = ({ plan }) => {
         {/* 参训人员信息 */}
         <Col span={24}>
           <Card 
-            title={
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <TeamOutlined style={{ color: '#722ed1' }} />
-                <span>参训人员管理</span>
-              </div>
-            }
+            title={<span>参训人员管理</span>}
             size="small"
           >
             <Table 
@@ -311,12 +301,7 @@ const SimpleTrainingPlanDetailView = ({ plan }) => {
         {/* 培训目标 */}
         <Col span={12}>
           <Card 
-            title={
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <TrophyOutlined style={{ color: '#faad14' }} />
-                <span>培训目标</span>
-              </div>
-            }
+            title={<span>培训目标</span>}
             size="small"
           >
             <List
@@ -339,12 +324,7 @@ const SimpleTrainingPlanDetailView = ({ plan }) => {
         {/* 培训内容 */}
         <Col span={12}>
           <Card 
-            title={
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <FileTextOutlined style={{ color: '#13c2c2' }} />
-                <span>培训内容</span>
-              </div>
-            }
+            title={<span>培训内容</span>}
             size="small"
           >
             <List
@@ -367,12 +347,7 @@ const SimpleTrainingPlanDetailView = ({ plan }) => {
         {/* 培训进度安排 */}
         <Col span={24}>
           <Card 
-            title={
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ClockCircleOutlined style={{ color: '#fa8c16' }} />
-                <span>培训进度安排</span>
-              </div>
-            }
+            title={<span>培训进度安排</span>}
             size="small"
           >
             <Timeline>

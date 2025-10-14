@@ -1448,7 +1448,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
             {/* 右侧成员与聊天 */}
             <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: 12, height: '100%', minHeight: 0, alignItems: 'stretch' }}>
               {/* 成员列表 */}
-              <Card size="small" title={<span><TeamOutlined /> 成员</span>}>
+              <Card size="small" title={<span>成员</span>}>
                 <Space wrap>
                   {Array.from(new Set(['我', ...discussionMessages.map(m => m.senderName).filter(Boolean)]))
                     .slice(0, 12)
@@ -1464,7 +1464,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               {/* 会议聊天（复用讨论消息） */}
               <Card 
                 size="small" 
-                title={<span><MessageOutlined /> 会议聊天</span>} 
+                title={<span>会议聊天</span>} 
                 style={{ flex: '1 1 auto', display: 'flex', flexDirection: 'column' }}
                 bodyStyle={{ padding: 12, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}
               >

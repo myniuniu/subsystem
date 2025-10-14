@@ -22,7 +22,15 @@ import {
   StarFilled,
   ShareAltOutlined,
   PlayCircleOutlined,
-  TagOutlined
+  TagOutlined,
+  FileTextOutlined,
+  FolderOpenOutlined,
+  BookOutlined,
+  UserOutlined,
+  BulbOutlined,
+  NodeIndexOutlined,
+  RadarChartOutlined,
+  ExperimentOutlined
 } from '@ant-design/icons';
 import { TRAINING_STATUS, getTrainingStatusInfo, parseTimeString } from '../utils/trainingStatusUtils';
 
@@ -346,6 +354,30 @@ const NotesList = ({
           note.courseType === 'organizational_training' ||
           note.title?.includes('【组织培训】')
         );
+        // 固定分类统一显示（知识图谱、能力模型、微专业）
+        const fixedCategories = ['knowledge_graph', 'capability_model', 'micro_specialization'];
+        const useSelectedFixed = fixedCategories.includes(selectedCategory);
+        const targetCategory = isOrgTraining
+          ? 'organizational_training'
+          : (useSelectedFixed ? selectedCategory : (note.category || selectedCategory));
+
+        const targetInfo = isOrgTraining ? null : getCategoryInfo(targetCategory);
+        const displayLabel = isOrgTraining ? '组织培训' : (targetInfo?.label || categoryInfo.label);
+        const iconName = isOrgTraining ? '🏢' : (targetInfo?.icon || categoryInfo.icon);
+
+        const iconMap = {
+          FileTextOutlined,
+          FolderOpenOutlined,
+          BookOutlined,
+          UserOutlined,
+          BulbOutlined,
+          StarOutlined,
+          NodeIndexOutlined,
+          RadarChartOutlined,
+          ExperimentOutlined
+        };
+        const isEmojiIcon = typeof iconName === 'string' && iconName.length <= 2;
+        const IconComponent = !isEmojiIcon && typeof iconName === 'string' ? iconMap[iconName] : null;
         const trainingStatus = isOrgTraining ? getTrainingStatusInfo(note) : null;
         const isCompleted = trainingStatus && trainingStatus.status === TRAINING_STATUS.COMPLETED;
         return (
@@ -393,9 +425,17 @@ const NotesList = ({
             >
               <div className="note-header">
                 <div className="note-category">
-                  <span className="category-icon">{categoryInfo.icon}</span>
+                  {isOrgTraining ? (
+                    <span className="category-icon">🏢</span>
+                  ) : isEmojiIcon ? (
+                    <span className="category-icon">{iconName}</span>
+                  ) : IconComponent ? (
+                    <IconComponent className="category-icon" />
+                  ) : (
+                    <FileTextOutlined className="category-icon" />
+                  )}
                   <Text type="secondary" className="category-text">
-                    {categoryInfo.label}
+                    {displayLabel}
                   </Text>
                   
                   {/* 组织培训状态显示 */}

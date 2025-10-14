@@ -175,6 +175,72 @@
   overflow: hidden;
 }
 
+/* 压缩主题详情视图下卡片头部高度约 50% */
+.training-topic-detail-view .ant-card-head {
+  /* 再次压缩头部高度：垂直内边距由 8px 降到 4px */
+  padding: 2px 12px;
+  /* 限制头部最小高度，避免子元素撑高 */
+  min-height: 24px;
+}
+
+/* 训练主题详情视图：压缩标题与额外区域的间距与字号 */
+.training-topic-detail-view .ant-card-head-title {
+  margin: 0;
+  font-size: 16px;
+  line-height: 18px;
+  font-weight: 600;
+}
+/* 标题容器（div）进一步压缩高度，文字更大 */
+.training-topic-detail-view .ant-card-head-title > div {
+  margin: 0;
+  padding: 0;
+  line-height: 18px;
+  gap: 0 !important;
+}
+.training-topic-detail-view .ant-card-head-title > div span {
+  font-size: 16px;
+  font-weight: 600;
+}
+/* 去掉标题栏图标，仅影响标题区域，不影响右侧 extra */
+.training-topic-detail-view .ant-card-head-title .anticon {
+  display: none;
+}
+.training-topic-detail-view .ant-card-extra {
+  margin: 0;
+  padding: 0;
+}
+
+/* 训练主题详情视图：右侧操作区更紧凑 */
+.training-topic-detail-view .ant-card-extra {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.training-topic-detail-view .ant-card-extra .ant-btn {
+  height: 24px;
+  padding: 0 8px;
+  font-size: 12px;
+  border-radius: 4px;
+}
+.training-topic-detail-view .ant-card-extra .ant-btn-icon-only {
+  width: 24px;
+  min-width: 24px;
+}
+.training-topic-detail-view .ant-card-extra .anticon {
+  font-size: 14px;
+}
+.training-topic-detail-view .ant-card-extra .ant-space {
+  gap: 6px;
+}
+.training-topic-detail-view .ant-card-extra .ant-space-item + .ant-space-item {
+  margin-inline-start: 6px;
+}
+.training-topic-detail-view .ant-card-extra .ant-tag {
+  font-size: 12px;
+  line-height: 22px;
+  padding: 0 6px;
+}
+
 .training-topic-detail-view .ant-progress-line {
   transition: all 0.3s ease;
 }
@@ -264,7 +330,13 @@
   }
   
   .training-topic-detail-view .ant-card-head {
-    padding: 16px;
+    /* 移动端同样明显压缩高度 */
+    padding: 8px 12px;
+    min-height: 28px;
+  }
+  .training-topic-detail-view .ant-card-head-title {
+    font-size: 14px;
+    line-height: 18px;
   }
   
   .training-topic-detail-view .ant-card-body {
@@ -281,7 +353,8 @@
 .note-card[data-source="组织培训"] .note-header {
   background: linear-gradient(90deg, rgba(102, 126, 234, 0.1), transparent);
   margin: -16px -16px 12px -16px;
-  padding: 12px 16px;
+  /* 垂直内边距减半，压缩头部高度 */
+  padding: 6px 16px;
   border-radius: 8px 8px 0 0;
 }
 

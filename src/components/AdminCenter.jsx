@@ -1,25 +1,24 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Layout, Card, Typography, Menu } from 'antd'
-import { Network, Gauge, Users, Shield } from 'lucide-react'
+import { Users, Shield } from 'lucide-react'
 import OrgMembersDepartments from './OrgMembersDepartments'
 
 const { Sider, Content } = Layout
 const { Title, Paragraph } = Typography
 
 const AdminCenter = () => {
-  const [activeKey, setActiveKey] = useState('knowledge-graph')
+  const [activeKey, setActiveKey] = useState('org-members-departments')
+
+  // 设置页面标题为“果仁-管理后台”，离开页面时恢复
+  useEffect(() => {
+    const prevTitle = document.title
+    document.title = '果仁-管理后台'
+    return () => {
+      document.title = prevTitle
+    }
+  }, [])
 
   const menuItems = [
-    {
-      key: 'knowledge-graph',
-      label: '知识图谱',
-      icon: <Network size={16} />
-    },
-    {
-      key: 'capability-model',
-      label: '能力模型',
-      icon: <Gauge size={16} />
-    },
     {
       key: 'organization',
       label: '组织架构',
@@ -63,20 +62,10 @@ const AdminCenter = () => {
         ) : (
           <Card style={{ maxWidth: 1000, margin: '0 auto' }}>
             <Title level={3} style={{ marginBottom: 16 }}>
-              {
-                activeKey === 'knowledge-graph' ? '知识图谱' :
-                activeKey === 'capability-model' ? '能力模型' :
-                '组织架构 · 角色管理'
-              }
+              {'组织架构 · 角色管理'}
             </Title>
             <Paragraph type="secondary">
-              {
-                activeKey === 'knowledge-graph'
-                  ? '这里将展示与管理知识图谱的数据与节点关系。'
-                  : activeKey === 'capability-model'
-                  ? '这里将配置与管理能力模型维度与评估规则。'
-                  : '在此配置角色与权限策略，支持角色创建、权限分配与审计。'
-              }
+              {'在此配置角色与权限策略，支持角色创建、权限分配与审计。'}
             </Paragraph>
           </Card>
         )}

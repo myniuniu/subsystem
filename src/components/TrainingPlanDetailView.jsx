@@ -21,12 +21,7 @@ const TrainingPlanDetailView = ({ plan }) => {
   // 渲染需求分析部分
   const renderNeedsAnalysis = () => (
     <Card 
-      title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <ExclamationCircleOutlined style={{ color: '#faad14' }} />
-          <span>培训需求分析</span>
-        </div>
-      }
+      title={<span>培训需求分析</span>}
       style={{ marginBottom: '16px' }}
     >
       <div style={{ marginBottom: '16px' }}>
@@ -108,12 +103,7 @@ const TrainingPlanDetailView = ({ plan }) => {
   // 渲染培训目标部分
   const renderObjectives = () => (
     <Card 
-      title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <StarOutlined style={{ color: '#52c41a' }} />
-          <span>培训目标</span>
-        </div>
-      }
+      title={<span>培训目标</span>}
       style={{ marginBottom: '16px' }}
     >
       <div style={{ marginBottom: '16px' }}>
@@ -169,12 +159,7 @@ const TrainingPlanDetailView = ({ plan }) => {
   // 渲染培训内容部分
   const renderContent = () => (
     <Card 
-      title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <BookOutlined style={{ color: '#1890ff' }} />
-          <span>培训内容设计</span>
-        </div>
-      }
+      title={<span>培训内容设计</span>}
       style={{ marginBottom: '16px' }}
     >
       <div style={{ marginBottom: '16px' }}>
@@ -326,12 +311,7 @@ const TrainingPlanDetailView = ({ plan }) => {
   // 渲染评估体系部分
   const renderEvaluation = () => (
     <Card 
-      title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <FileTextOutlined style={{ color: '#fa8c16' }} />
-          <span>评估体系</span>
-        </div>
-      }
+      title={<span>评估体系</span>}
       style={{ marginBottom: '16px' }}
     >
       <Title level={5}>评估框架</Title>
@@ -396,12 +376,7 @@ const TrainingPlanDetailView = ({ plan }) => {
   // 渲染预期成果部分
   const renderExpectedOutcomes = () => (
     <Card 
-      title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <CheckCircleOutlined style={{ color: '#52c41a' }} />
-          <span>预期成果</span>
-        </div>
-      }
+      title={<span>预期成果</span>}
       style={{ marginBottom: '16px' }}
     >
       <Row gutter={[16, 16]}>
