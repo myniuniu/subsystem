@@ -273,6 +273,7 @@
   height: 8px;
   border-radius: 50%;
   display: inline-block;
+  margin-right: 8px; /* 与文字保持合理间距 */
 }
 
 /* 小日历 */
