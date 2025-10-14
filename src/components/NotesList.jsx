@@ -30,7 +30,9 @@ import {
   BulbOutlined,
   NodeIndexOutlined,
   RadarChartOutlined,
-  ExperimentOutlined
+  ExperimentOutlined,
+  PushpinOutlined,
+  PushpinFilled
 } from '@ant-design/icons';
 import { TRAINING_STATUS, getTrainingStatusInfo, parseTimeString } from '../utils/trainingStatusUtils';
 
@@ -286,13 +288,13 @@ const NotesList = ({
                 <Button 
                   size="small" 
                   style={{ 
-                    background: note.starred ? 'rgba(255,215,0,0.3)' : 'rgba(255,255,255,0.2)', 
+                    background: note.pinned ? 'rgba(250,140,22,0.3)' : 'rgba(255,255,255,0.2)', 
                     border: 'none', 
                     color: 'white'
                   }}
                   onClick={(e) => { e.stopPropagation(); handleToggleStar(note.id); }}
                 >
-                  {note.starred ? '⭐ 已收藏' : '☆ 收藏'}
+                  {note.pinned ? '📌 已置顶' : '📌 置顶'}
                 </Button>
               </div>
               
@@ -399,14 +401,14 @@ const NotesList = ({
                 <Tooltip title="分享主题">
                   <ShareAltOutlined onClick={(e) => { e.stopPropagation(); handleShareTheme(note); }} />
                 </Tooltip>,
-                <Tooltip title={note.starred ? '取消收藏' : '收藏'}>
-                  {note.starred ? (
-                    <StarFilled 
-                      className="star-filled"
+                <Tooltip title={note.pinned ? '取消置顶' : '置顶'}>
+                  {note.pinned ? (
+                    <PushpinFilled 
+                      className="pin-filled"
                       onClick={(e) => { e.stopPropagation(); handleToggleStar(note.id); }} 
                     />
                   ) : (
-                    <StarOutlined 
+                    <PushpinOutlined 
                       onClick={(e) => { e.stopPropagation(); handleToggleStar(note.id); }} 
                     />
                   )}
@@ -476,8 +478,8 @@ const NotesList = ({
                     return null;
                   })()} 
                 </div>
-                {note.starred && (
-                  <StarFilled className="star-badge" />
+                {note.pinned && (
+                  <PushpinFilled className="star-badge" />
                 )}
               </div>
               

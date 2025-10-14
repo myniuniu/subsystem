@@ -61,6 +61,7 @@ import {
   UnorderedListOutlined,
   CalendarOutlined
 } from '@ant-design/icons';
+import { PushpinOutlined, PushpinFilled } from '@ant-design/icons';
 import NoteEditor from './NoteEditor';
 import CategoryTagManager from './CategoryTagManager';
 import AIAssistant from './AIAssistant';
@@ -438,23 +439,35 @@ const SmartNotes = ({ onViewChange }) => {
     }
   };
 
-  // 处理收藏切换
-  const handleToggleStar = async (noteId) => {
+  // 处理置顶切换（每个分类仅允许一个置顶）
+  const handleTogglePin = async (noteId) => {
     try {
       const note = notes.find(n => n.id === noteId);
-      if (note) {
-        const now = new Date().toISOString();
-        const updatedNote = { 
-          ...note, 
-          starred: !note.starred,
-          starredAt: !note.starred ? now : null
-        };
-        await notesService.updateNote(noteId, updatedNote);
-        message.success(updatedNote.starred ? '已收藏' : '已取消收藏');
-        loadData();
+      if (!note) return;
+
+      const now = new Date().toISOString();
+      const category = note.category || selectedCategory;
+      const isCurrentlyPinned = !!note.pinned;
+
+      // 若要置顶该主题，先取消同分类下其他主题的置顶
+      if (!isCurrentlyPinned) {
+        const othersPinned = notes.filter(n => n.id !== noteId && (n.category || selectedCategory) === category && n.pinned);
+        await Promise.all(
+          othersPinned.map(n => notesService.updateNote(n.id, { ...n, pinned: false, pinnedAt: null }))
+        );
       }
+
+      // 更新当前主题的置顶状态
+      const updatedNote = {
+        ...note,
+        pinned: !isCurrentlyPinned,
+        pinnedAt: !isCurrentlyPinned ? now : null
+      };
+      await notesService.updateNote(noteId, updatedNote);
+      message.success(updatedNote.pinned ? '已置顶' : '已取消置顶');
+      loadData();
     } catch (error) {
-      console.error('收藏操作失败:', error);
+      console.error('置顶操作失败:', error);
       message.error('操作失败');
     }
   };
@@ -497,12 +510,12 @@ const SmartNotes = ({ onViewChange }) => {
   }
 
   // 计算当前分类下最近收藏的主题（基于当前分类过滤后的列表）
-  const favoritesInCategory = filteredNotes.filter(n => n.starred);
-  const recentFavoriteNote = favoritesInCategory
+  const pinnedInCategory = filteredNotes.filter(n => n.pinned);
+  const recentFavoriteNote = pinnedInCategory
     .slice()
     .sort((a, b) => {
-      const ta = new Date(a.starredAt || a.updatedAt || a.createdAt || 0).getTime();
-      const tb = new Date(b.starredAt || b.updatedAt || b.createdAt || 0).getTime();
+      const ta = new Date(a.pinnedAt || a.updatedAt || a.createdAt || 0).getTime();
+      const tb = new Date(b.pinnedAt || b.updatedAt || b.createdAt || 0).getTime();
       return tb - ta;
     })[0];
 
@@ -546,14 +559,14 @@ const SmartNotes = ({ onViewChange }) => {
       }
     },
     {
-      title: '收藏',
-      dataIndex: 'starred',
-      key: 'starred',
-      render: (starred, note) => (
-        starred ? (
-          <StarFilled onClick={() => handleToggleStar && handleToggleStar(note.id)} style={{ color: '#faad14', cursor: 'pointer' }} />
+      title: '置顶',
+      dataIndex: 'pinned',
+      key: 'pinned',
+      render: (pinned, note) => (
+        pinned ? (
+          <PushpinFilled onClick={() => handleTogglePin && handleTogglePin(note.id)} style={{ color: '#fa8c16', cursor: 'pointer' }} />
         ) : (
-          <StarOutlined onClick={() => handleToggleStar && handleToggleStar(note.id)} style={{ cursor: 'pointer' }} />
+          <PushpinOutlined onClick={() => handleTogglePin && handleTogglePin(note.id)} style={{ cursor: 'pointer' }} />
         )
       )
     },
@@ -610,7 +623,7 @@ const SmartNotes = ({ onViewChange }) => {
               />
               
             ) : (
-              <Empty description="当前分类下暂无收藏主题" />
+              <Empty description="当前分类下暂无置顶主题" />
             )
           ) : viewMode === 'list' ? (
             <Table
@@ -646,7 +659,7 @@ const SmartNotes = ({ onViewChange }) => {
                 }
               }}
               handleShareTheme={handleShareTheme}
-              handleToggleStar={handleToggleStar}
+              handleToggleStar={handleTogglePin}
               handleDeleteNote={handleDeleteNote}
               getTrainingStatusInfo={getTrainingStatusInfo}
             />

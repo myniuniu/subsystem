@@ -4,7 +4,7 @@ import {
   PlusOutlined,
   AppstoreOutlined,
   UnorderedListOutlined,
-  StarFilled,
+  PushpinFilled,
   ExperimentOutlined
 } from '@ant-design/icons';
 
@@ -44,10 +44,10 @@ const NotesToolbar = ({
                 size="small"
               />
             </Tooltip>
-            <Tooltip title="收藏视图">
+            <Tooltip title="置顶视图">
               <Button
                 type={viewMode === 'favorites' ? 'primary' : 'default'}
-                icon={<StarFilled />}
+                icon={<PushpinFilled />}
                 onClick={() => onViewModeChange('favorites')}
                 size="small"
               />
