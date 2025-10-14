@@ -437,7 +437,7 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
         {/* 推荐应用区域 */}
         <div className="featured-apps">
           <Title level={3}>推荐应用</Title>
-          <Row gutter={[16, 16]}>
+          <Row gutter={[12, 12]}>
             {apps.filter(app => app.featured).map(app => (
               <Col key={app.id} xs={24} sm={12} md={8} lg={6}>
                 <Card
@@ -458,7 +458,7 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
                     ) : (
                       <Button
                         key="add"
-                        type="primary"
+                        className="app-add-btn"
                         size="small"
                         icon={<PlusOutlined />}
                         onClick={() => handleAddToMenu(app)}
@@ -470,7 +470,7 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
                 >
                   <div className="app-card-header">
                     <Avatar
-                      size={48}
+                      size={40}
                       icon={iconMap[app.icon]}
                       style={{ backgroundColor: app.menuColor }}
                     />
@@ -518,7 +518,7 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
               style={{ margin: '40px 0' }}
             />
           ) : (
-            <Row gutter={[16, 16]}>
+            <Row gutter={[12, 12]}>
               {filteredApps.map(app => (
                 <Col key={app.id} xs={24} sm={12} md={8} lg={6}>
                   <Card
@@ -539,7 +539,7 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
                       ) : (
                         <Button
                           key="add"
-                          type="primary"
+                          className="app-add-btn"
                           size="small"
                           icon={<PlusOutlined />}
                           onClick={() => handleAddToMenu(app)}
@@ -551,7 +551,7 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
                   >
                     <div className="app-card-header">
                       <Avatar
-                        size={48}
+                        size={40}
                         icon={iconMap[app.icon]}
                         style={{ backgroundColor: app.menuColor }}
                       />

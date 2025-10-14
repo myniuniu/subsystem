@@ -305,7 +305,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
   });
 
   // 获取可用的AI工具列表
-  const getAvailableAITools = () => {
+  const getAvailableAITools = (searchTerm = '') => {
     // 为了在 aiToolsVersion 变化时重新计算（不直接使用该值）
     void aiToolsVersion;
     // 安全解析 localStorage
@@ -1427,6 +1427,23 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
       const key = tool.menuConfig?.key;
       return key ? !visibleCards.some(card => card.key === key) : true;
     });
+
+    // 搜索过滤（名称/标题/描述/标签）
+    if (searchTerm && typeof searchTerm === 'string') {
+      const term = searchTerm.toLowerCase();
+      availableTools = availableTools.filter(tool => {
+        const name = (tool.name || '').toLowerCase();
+        const title = (tool.menuConfig?.title || '').toLowerCase();
+        const desc = (tool.description || '').toLowerCase();
+        const tags = Array.isArray(tool.tags) ? tool.tags.map(t => (t || '').toLowerCase()) : [];
+        return (
+          name.includes(term) ||
+          title.includes(term) ||
+          desc.includes(term) ||
+          tags.some(t => t.includes(term))
+        );
+      });
+    }
     
     console.log('=== getAvailableAITools 调试信息 ===');
     console.log('当前 noteCategory:', noteCategory);
@@ -1443,7 +1460,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
           disabled: true,
           label: (
             <div style={{ padding: '6px 8px', color: '#999' }}>
-              暂无可用AI工具（请到AI工具屋添加或切换分类）
+              未找到匹配的AI工具（可调整检索或切换分类）
             </div>
           )
         },

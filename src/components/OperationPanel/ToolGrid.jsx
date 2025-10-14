@@ -1,5 +1,5 @@
-import React from 'react';
-import { Card, Dropdown, Button, Typography } from 'antd';
+import React, { useState } from 'react';
+import { Card, Dropdown, Button, Typography, Input } from 'antd';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import DraggableOperationCard from './DraggableOperationCard';
@@ -20,6 +20,7 @@ const ToolGrid = ({
   loadingCards = [], // 新增加载中的卡片列表
   hideEmptySlots = false
 }) => {
+  const [moreMenuSearchTerm, setMoreMenuSearchTerm] = useState('');
   console.log('=== ToolGrid 渲染 ===');
   console.log('visibleCards 详细内容:', visibleCards);
       console.log('visibleCards 长度:', visibleCards?.length);
@@ -78,9 +79,26 @@ const ToolGrid = ({
                 menu={{
                   items: [
                     {
-                      key: 'basic-tools',
-                      type: 'group',
+                      key: 'search-input',
+                      disabled: true,
                       label: (
+                        <div style={{ padding: '8px 8px 4px 8px' }}>
+                          <Input.Search
+                            allowClear
+                            size="small"
+                            placeholder="搜索工具（名称/描述/标签）"
+                            value={moreMenuSearchTerm}
+                            onChange={(e) => setMoreMenuSearchTerm(e.target.value)}
+                            onSearch={(val) => setMoreMenuSearchTerm(val)}
+                          />
+                        </div>
+                      )
+                    },
+                    { type: 'divider' },
+                  {
+                    key: 'basic-tools',
+                    type: 'group',
+                    label: (
                         <div style={{
                           padding: '8px 4px 4px 4px',
                           fontSize: '12px',
@@ -99,6 +117,11 @@ const ToolGrid = ({
                       ),
                       children: OPERATION_CARDS
                         .filter(card => card.key !== 'addTool' && !visibleCards.some(vc => vc.key === card.key))
+                        .filter(card => {
+                          if (!moreMenuSearchTerm) return true;
+                          const term = moreMenuSearchTerm.toLowerCase();
+                          return (card.title || '').toLowerCase().includes(term);
+                        })
                         .map(card => ({
                           key: card.key,
                           label: (
@@ -148,10 +171,11 @@ const ToolGrid = ({
                           🤖 AI工具屋
                         </div>
                       ),
-                      children: getAvailableAITools()
+                      children: getAvailableAITools(moreMenuSearchTerm)
                     }
                   ]
                 }}
+                
                 trigger={['click']}
                 placement="topLeft"
                 overlayClassName="custom-more-tools-dropdown"
@@ -250,6 +274,23 @@ const ToolGrid = ({
             menu={{
               items: [
                 {
+                  key: 'search-input',
+                  disabled: true,
+                  label: (
+                    <div style={{ padding: '8px 8px 4px 8px' }}>
+                      <Input.Search
+                        allowClear
+                        size="small"
+                        placeholder="搜索工具（名称/描述/标签）"
+                        value={moreMenuSearchTerm}
+                        onChange={(e) => setMoreMenuSearchTerm(e.target.value)}
+                        onSearch={(val) => setMoreMenuSearchTerm(val)}
+                      />
+                    </div>
+                  )
+                },
+                { type: 'divider' },
+                {
                   key: 'basic-tools',
                   type: 'group',
                   label: (
@@ -271,6 +312,11 @@ const ToolGrid = ({
                   ),
                   children: OPERATION_CARDS
                     .filter(card => card.key !== 'addTool' && !visibleCards.some(vc => vc.key === card.key))
+                    .filter(card => {
+                      if (!moreMenuSearchTerm) return true;
+                      const term = moreMenuSearchTerm.toLowerCase();
+                      return (card.title || '').toLowerCase().includes(term);
+                    })
                     .map(card => ({
                       key: card.key,
                       label: (
@@ -320,7 +366,7 @@ const ToolGrid = ({
                       🤖 AI工具屋
                     </div>
                   ),
-                  children: getAvailableAITools()
+                  children: getAvailableAITools(moreMenuSearchTerm)
                 }
               ]
             }}
