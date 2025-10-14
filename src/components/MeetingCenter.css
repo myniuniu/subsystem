@@ -24,6 +24,11 @@
   font-size: 16px;
 }
 
+/* 与下载中心/App中心一致的标题卡片样式 */
+.meeting-header-card {
+  margin-bottom: 16px;
+}
+
 .meeting-tabs {
   display: flex;
   gap: 2px;

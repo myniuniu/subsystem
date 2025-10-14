@@ -412,14 +412,19 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
 
   return (
     <div className="app-center">
-      <div className="app-center-header">
-        <div className="header-title">
-          <Title level={2} style={{ color: '#262626', margin: 0 }}>应用中心</Title>
-        </div>
-      </div>
+      <Card className="app-header-card">
+        <Row justify="space-between" align="middle">
+          <Col>
+            <div className="header-title">
+              <AppstoreOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+              <Title level={2} style={{ margin: 0 }}>应用中心</Title>
+            </div>
+          </Col>
+        </Row>
+      </Card>
 
       <div className="app-center-filters">
-        <Row gutter={16} align="middle" style={{ marginBottom: 16 }}>
+        <Row gutter={16} align="middle" style={{ marginBottom: 8 }}>
           <Col flex="auto">
             <Input
               placeholder="搜索应用名称、描述或标签"

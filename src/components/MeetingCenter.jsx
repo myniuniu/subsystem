@@ -1114,10 +1114,16 @@ const MeetingCenter = () => {
 
   return (
     <div className="meeting-center">
-      <div className="meeting-header" style={{ marginBottom: 24 }}>
-        <Title level={2}>会议中心</Title>
-        <Text type="secondary">虚拟会议与研讨平台</Text>
-      </div>
+      <Card className="meeting-header-card">
+        <Row justify="space-between" align="middle">
+          <Col>
+            <Space>
+              <VideoCameraOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+              <Title level={2} style={{ margin: 0 }}>会议中心</Title>
+            </Space>
+          </Col>
+        </Row>
+      </Card>
 
       <Tabs 
         activeKey={activeTab} 

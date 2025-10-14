@@ -557,10 +557,6 @@ const CalendarCenter = () => {
       {/* 顶部工具栏 */}
       <div className="calendar-header">
         <div className="calendar-nav">
-          <div className="nav-tabs">
-            <span className={`nav-tab ${activeView === 'month' ? 'active' : ''}`} 
-                  onClick={() => setActiveView('month')}>日历</span>
-          </div>
           <div className="nav-actions">
             <Button type="primary" icon={<PlusOutlined />} onClick={handleCreateEvent}>
               创建日程
