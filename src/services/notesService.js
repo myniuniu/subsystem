@@ -2,6 +2,7 @@
  * 智能笔记数据服务
  * 提供笔记的CRUD操作和本地存储管理
  */
+import { TRAINING_STATUS, calculateTrainingStatus } from '../utils/trainingStatusUtils';
 
 const STORAGE_KEY = 'smart_notes_data';
 const CATEGORIES_KEY = 'smart_notes_categories';
@@ -2642,6 +2643,56 @@ ${course.description}
 **数据来源：** 学习广场  
 **同步时间：** ${new Date().toLocaleString()}  
 **课程 ID：** ${course.id}`;
+  }
+
+  /**
+   * 将组织培训中“进行中”的主题结束日期统一修改为当年12月31日 23:59
+   * @returns {number} 更新的笔记数量
+   */
+  updateOrgTrainingInProgressEndDateToDecember31() {
+    try {
+      const notes = this.getAllNotes();
+      let updatedCount = 0;
+
+      const updatedNotes = notes.map(note => {
+        // 判断是否为组织培训相关笔记
+        const isOrganizationalTraining = (
+          note?.courseType === 'organizational_training' ||
+          note?.source === '组织培训' ||
+          (note?.tags && note.tags.includes('组织培训')) ||
+          note?.category === 'organizational_training' ||
+          (note?.title && note.title.includes('【组织培训】'))
+        );
+
+        if (isOrganizationalTraining && note?.learningSchedule) {
+          const status = calculateTrainingStatus(note.learningSchedule);
+          if (status === TRAINING_STATUS.IN_PROGRESS) {
+            const newEndTime = '12/31 23:59';
+            const newSchedule = {
+              ...note.learningSchedule,
+              endTime: newEndTime
+            };
+            updatedCount += 1;
+            return {
+              ...note,
+              learningSchedule: newSchedule,
+              updatedAt: new Date().toISOString()
+            };
+          }
+        }
+
+        return note;
+      });
+
+      if (updatedCount > 0) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedNotes));
+      }
+
+      return updatedCount;
+    } catch (error) {
+      console.error('批量更新组织培训进行中主题结束日期失败:', error);
+      return 0;
+    }
   }
 }
 

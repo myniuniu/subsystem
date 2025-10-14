@@ -258,6 +258,16 @@ const SmartNotes = ({ onViewChange }) => {
 
       // 加载笔记
       let notesData = await notesService.getAllNotes();
+      // 统一更新组织培训“进行中”主题的结束日期为12月31日
+      try {
+        const updatedCount = notesService.updateOrgTrainingInProgressEndDateToDecember31();
+        if (updatedCount > 0) {
+          notesData = await notesService.getAllNotes();
+          console.log(`已批量更新组织培训进行中主题结束日期，数量: ${updatedCount}`);
+        }
+      } catch (e) {
+        console.warn('更新组织培训结束日期过程出现问题:', e);
+      }
       console.log('=== 数据加载调试信息 ===');
       console.log('加载的笔记数据:', notesData);
       console.log('总笔记数量:', notesData.length);
