@@ -872,7 +872,9 @@
 }
 /* 系统分类选中态：将左侧竖条再向外贴边 */
 .system-group .category-item.active::before {
-  left: -4px; /* 更贴近容器左侧边框，尽量重合 */
+  left: auto; /* 取消左侧定位 */
+  right: -4px; /* 移到右边，贴近容器右侧边框 */
+  border-radius: 0 8px 8px 0; /* 右侧圆角对齐 */
 }
 
 .category-icon {
