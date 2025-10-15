@@ -749,7 +749,19 @@ const ScenarioLibrary = ({ onViewChange }) => {
       )
     }
 
-    setFilteredScenarios(filtered)
+    const priorityMatchers = [
+      (s) => s.id === 'science_demo_1' || s.title === '科学演示' || s.routePath === '/science-demo',
+      (s) => s.id === '17' || s.title === '心理健康辅导' || s.routePath === '/mental-health-coach' || s.title === '心灵导航'
+    ]
+    const prioritized = []
+    priorityMatchers.forEach(match => {
+      const found = filtered.find(match)
+      if (found && !prioritized.some(p => p.id === found.id)) {
+        prioritized.push(found)
+      }
+    })
+    const rest = filtered.filter(s => !prioritized.some(p => p.id === s.id))
+    setFilteredScenarios([...prioritized, ...rest])
   }, [scenarios, selectedCategory, selectedRole, searchText])
 
   // 获取难度标签颜色
