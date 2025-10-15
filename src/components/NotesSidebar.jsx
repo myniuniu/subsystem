@@ -140,8 +140,8 @@ const NotesSidebar = ({
     const isEmojiIcon = category.icon && category.icon.length <= 2;
     const IconComponent = isEmojiIcon ? null : (iconMap[category.icon] || FileTextOutlined);
     const count = getCategoryCount(category);
-    // 仅非系统分类显示计数（移除所有系统分类计数，包括组织培训）
-    const showCount = category.type && category.type !== 'system';
+    // 显示计数：非系统分类 + 特例（组织培训显示进行中数量）
+    const showCount = (category.value === 'organizational_training') || (category.type && category.type !== 'system');
     
     return (
       <div
