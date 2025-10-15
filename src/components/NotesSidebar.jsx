@@ -61,6 +61,7 @@ const NotesSidebar = ({
   const [isMoveModalVisible, setIsMoveModalVisible] = useState(false);
   const [moveTarget, setMoveTarget] = useState(null); // { type: 'category', value }
   const [moveTargetGroupKey, setMoveTargetGroupKey] = useState(null);
+  const [moveSelectedKey, setMoveSelectedKey] = useState(null);
 
   const iconMap = {
     FileTextOutlined,
@@ -202,7 +203,8 @@ const NotesSidebar = ({
   };
 
   // 为树节点生成标题（不绑定点击，交给 Tree 的 onSelect 处理）
-  const renderTreeNodeTitle = (category) => {
+  const renderTreeNodeTitle = (category, options = {}) => {
+    const { hideActions = false } = options;
     const isEmojiIcon = category.icon && category.icon.length <= 2;
     const IconComponent = isEmojiIcon ? null : (iconMap[category.icon] || FileTextOutlined);
     const count = getCategoryCount(category);
@@ -217,7 +219,7 @@ const NotesSidebar = ({
           <IconComponent className="category-icon" />
         )}
         <span className="category-label">{category.label}</span>
-        {onOpenSystemCategoryManager && (
+        {onOpenSystemCategoryManager && !hideActions && (
           <span className="category-actions">
             <Tooltip title="新增分类">
               <Button
@@ -351,6 +353,7 @@ const NotesSidebar = ({
       setMoveTarget({ type: 'category', value: category.value });
       const loc = findGroupByCategory(groupDefinitions, category.value, 1);
       setMoveTargetGroupKey(loc?.key || null);
+      setMoveSelectedKey(null);
       setIsMoveModalVisible(true);
       return;
     }
@@ -531,8 +534,38 @@ const NotesSidebar = ({
     };
   };
 
-  const treeData = groupDefinitions.map(g => buildGroupNode(g, 1));
+  // 构建“移动到”弹窗使用的树形数据（分组可选，分类不可选）
+  const buildMoveTreeGroupNode = (group, depth = 1) => {
+    const catChildren = (group.childrenValues || [])
+      .map(val => systemCategories.find(c => c.value === val))
+      .filter(Boolean)
+      .map(cat => ({ key: cat.value, title: renderTreeNodeTitle(cat, { hideActions: true }), isLeaf: true, selectable: true, parentGroupKey: group.key }));
+    const subGroupChildren = (group.groups || []).map(sub => buildMoveTreeGroupNode(sub, depth + 1));
+    const isEmojiIcon = group.icon && group.icon.length <= 2;
+    const GroupIconComponent = isEmojiIcon ? null : (iconMap[group.icon] || FolderOpenOutlined);
+    return {
+      key: group.key,
+      title: (
+        <span className="tree-group-title" style={{ fontWeight: 600, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 6 }}>
+          {isEmojiIcon ? (
+            <span className="category-icon">{group.icon}</span>
+          ) : (
+            <GroupIconComponent className="category-icon" />
+          )}
+          <span>{group.title}</span>
+          {depth === 1 && group.templateId ? (
+            <span style={{ marginLeft: 8, fontSize: 12, color: '#94a3b8' }}>已绑定模版</span>
+          ) : null}
+        </span>
+      ),
+      selectable: false,
+      children: [...catChildren, ...subGroupChildren]
+    };
+  };
 
+  const treeData = groupDefinitions.map(g => buildGroupNode(g, 1));
+  const moveTreeData = groupDefinitions.map(g => buildMoveTreeGroupNode(g, 1));
+  
   // 其余未分配的系统分类进入“其他”分组，保证数据完整展示
   const restCategories = systemCategories.filter(c => !assignedValues.has(c.value));
   if (restCategories.length) {
@@ -980,7 +1013,7 @@ const NotesSidebar = ({
         cancelText="取消"
         onOk={() => {
           if (!moveTargetGroupKey) {
-            message.warning('请选择目标分组');
+            message.warning('请选择目标分类');
             return;
           }
           const current = getSystemCategoryConfig();
@@ -995,6 +1028,7 @@ const NotesSidebar = ({
             setIsMoveModalVisible(false);
             setMoveTarget(null);
             setMoveTargetGroupKey(null);
+            setMoveSelectedKey(null);
             setRefreshTick(Date.now());
           } else {
             message.error('操作失败，请稍后重试');
@@ -1004,17 +1038,25 @@ const NotesSidebar = ({
           setIsMoveModalVisible(false);
           setMoveTarget(null);
           setMoveTargetGroupKey(null);
+          setMoveSelectedKey(null);
         }}
       >
-        <Select
-          style={{ width: '100%' }}
-          placeholder="选择目标分组"
-          value={moveTargetGroupKey}
-          onChange={(val) => setMoveTargetGroupKey(val)}
-          options={flattenGroups(groupDefinitions, 1).map(opt => ({
-            value: opt.key,
-            label: `${'— '.repeat(Math.max(opt.depth - 1, 0))}${opt.title}`
-          }))}
+        <div style={{ marginBottom: 8, color: '#64748b' }}>请选择目标分类（将移动到其所在分组）</div>
+        <Tree
+          blockNode
+          showLine={false}
+          defaultExpandAll
+          selectedKeys={moveSelectedKey ? [moveSelectedKey] : []}
+          treeData={moveTreeData}
+          onSelect={(keys, info) => {
+            const key = info?.node?.key;
+            const isLeaf = info?.node?.isLeaf;
+            if (isLeaf && typeof key === 'string') {
+              setMoveSelectedKey(key);
+              const parentKey = info?.node?.parentGroupKey;
+              if (parentKey) setMoveTargetGroupKey(parentKey);
+            }
+          }}
         />
       </Modal>
     </Sider>
