@@ -71,7 +71,8 @@ import NoteCreateModal from './NoteCreateModal';
 import NoteEditPage from './NoteEditPage';
 import ThemeShareModal from './ThemeShareModal';
 import CalendarCenter from './CalendarCenter';
-import NotesSidebar from './NotesSidebar';
+  import NotesSidebar from './NotesSidebar';
+  import SystemCategoryManager from './SystemCategoryManager';
 import NotesToolbar from './NotesToolbar';
 import NotesList from './NotesList';
 
@@ -163,6 +164,9 @@ const SmartNotes = ({ onViewChange }) => {
   const [editMode, setEditMode] = useState('create');
   const [viewMode, setViewMode] = useState('grid');
   const [viewByCategory, setViewByCategory] = useState(DEFAULT_VIEW_BY_CATEGORY);
+  const [systemCategoryConfigVersion, setSystemCategoryConfigVersion] = useState(0);
+  const [isSystemCategoryManagerVisible, setIsSystemCategoryManagerVisible] = useState(false);
+  const [systemCategoryManagerContext, setSystemCategoryManagerContext] = useState(null);
 
   // 初始化时读取按分类的视图映射并应用当前分类的视图
   useEffect(() => {
@@ -204,22 +208,21 @@ const SmartNotes = ({ onViewChange }) => {
 
   // 笔记分类
   const categories = [
-    { value: 'all', label: '全部主题', icon: '📝', type: 'system' },
-    { value: 'work', label: '工作主题', icon: '💼', type: 'system' },
-    { value: 'study', label: '学习主题', icon: '📚', type: 'system' },
-    { value: 'research', label: '研究主题', icon: '🔬', type: 'system' },
-    { value: 'personal', label: '个人主题', icon: '👤', type: 'system' },
-    { value: 'ideas', label: '想法灵感', icon: '💡', type: 'system' },
-    { value: 'meeting', label: '会议记录', icon: '🤝', type: 'system' },
-    { value: 'learning_analytics', label: '学情分析', icon: '📈', type: 'system' },
-    { value: 'educational_topics', label: '教育课题', icon: '📑', type: 'system' },
-    { value: 'classroom_integration', label: '课堂融合', icon: '🧩', type: 'system' },
-    { value: 'learning_square', label: '学习广场', icon: '🎓', type: 'system' },
-    { value: 'teaching_design', label: '教学设计', icon: '🎯', type: 'system' },
-    { value: 'homework_system', label: '课后作业', icon: '📘', type: 'system' },
-    { value: 'teaching_research_office', label: '教研室', icon: '🏫', type: 'system' },
-    { value: 'training_needs_management', label: '培训需求管理', icon: '📋', type: 'system' },
-    { value: 'training_product_development', label: '培训产品研发', icon: '🚀', type: 'system' },
+    { value: 'work', label: '工作主题', icon: 'FolderOpenOutlined', type: 'system' },
+    { value: 'study', label: '学习主题', icon: 'BookOutlined', type: 'system' },
+    { value: 'research', label: '研究主题', icon: 'ExperimentOutlined', type: 'system' },
+    { value: 'personal', label: '个人主题', icon: 'UserOutlined', type: 'system' },
+    { value: 'ideas', label: '想法灵感', icon: 'BulbOutlined', type: 'system' },
+    { value: 'meeting', label: '会议记录', icon: 'TeamOutlined', type: 'system' },
+    { value: 'learning_analytics', label: '学情分析', icon: 'RadarChartOutlined', type: 'system' },
+    { value: 'educational_topics', label: '教育课题', icon: 'FileTextOutlined', type: 'system' },
+    { value: 'classroom_integration', label: '课堂融合', icon: 'NodeIndexOutlined', type: 'system' },
+    { value: 'learning_square', label: '学习广场', icon: 'BookOutlined', type: 'system' },
+    { value: 'teaching_design', label: '教学设计', icon: 'BulbOutlined', type: 'system' },
+    { value: 'homework_system', label: '课后作业', icon: 'FileTextOutlined', type: 'system' },
+    { value: 'teaching_research_office', label: '教研室', icon: 'BookOutlined', type: 'system' },
+    { value: 'training_needs_management', label: '培训需求管理', icon: 'FileTextOutlined', type: 'system' },
+    { value: 'training_product_development', label: '培训产品研发', icon: 'ExperimentOutlined', type: 'system' },
     { value: 'knowledge_graph', label: '知识图谱', icon: 'NodeIndexOutlined', type: 'fixed' },
     { value: 'capability_model', label: '能力模型', icon: 'RadarChartOutlined', type: 'fixed' },
     { value: 'micro_specialization', label: '微专业', icon: 'ExperimentOutlined', type: 'fixed' }
@@ -599,6 +602,11 @@ const SmartNotes = ({ onViewChange }) => {
             onCategoryChange={handleCategoryChange}
             notes={notes}
             categories={categories}
+            onOpenSystemCategoryManager={(context) => {
+              setSystemCategoryManagerContext(context || null);
+              setIsSystemCategoryManagerVisible(true);
+            }}
+            configVersion={systemCategoryConfigVersion}
           />
         )}
 
@@ -668,6 +676,22 @@ const SmartNotes = ({ onViewChange }) => {
           )}
         </Content>
       </Layout>
+
+      {/* 系统分类维护器 */}
+      <SystemCategoryManager
+        visible={isSystemCategoryManagerVisible}
+        onCancel={() => {
+          setIsSystemCategoryManagerVisible(false);
+          setSystemCategoryManagerContext(null);
+        }}
+        onSave={() => {
+          setIsSystemCategoryManagerVisible(false);
+          setSystemCategoryManagerContext(null);
+          setSystemCategoryConfigVersion(v => v + 1);
+        }}
+        categories={categories}
+        managerContext={systemCategoryManagerContext}
+      />
 
       {/* 笔记编辑器模态框 */}
       <Modal

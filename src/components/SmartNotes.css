@@ -106,6 +106,114 @@
 }
 
 /* 分类样式 */
+/* 分类 hover 操作区：新增分类、更多 */
+.notes-sidebar .category-item {
+  display: flex;
+  align-items: center;
+}
+.notes-sidebar .category-item .category-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  margin-left: auto;
+}
+.notes-sidebar .category-item:hover .category-actions {
+  opacity: 1;
+}
+.notes-sidebar .category-item .category-actions .ant-btn {
+  padding: 0;
+  height: 20px;
+}
+.notes-sidebar .category-item .category-actions .anticon {
+  font-size: 14px !important;
+  width: 14px;
+  height: 14px;
+  line-height: 14px;
+  color: #94a3b8;
+  opacity: 0.8;
+}
+.notes-sidebar .category-item .category-actions .ant-btn:hover .anticon {
+  color: #64748b;
+  opacity: 1;
+}
+
+/* 系统分类标题 hover 操作（更多 / 新增一级） */
+.notes-sidebar .category-group-title {
+  position: relative;
+}
+.notes-sidebar .category-group-title .category-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  margin-left: auto;
+}
+.notes-sidebar .category-group-title:hover .category-actions {
+  opacity: 1;
+}
+.notes-sidebar .category-group-title .category-actions .ant-btn {
+  padding: 0;
+  height: 20px;
+}
+.notes-sidebar .category-group-title .category-actions .anticon {
+  font-size: 14px !important;
+  width: 14px;
+  height: 14px;
+  line-height: 14px;
+  color: #94a3b8;
+  opacity: 0.8;
+}
+.notes-sidebar .category-group-title .category-actions .ant-btn:hover .anticon {
+  color: #64748b;
+  opacity: 1;
+}
+/* 树形分组标题悬停显示操作按钮（系统分类树） */
+.notes-sidebar .tree-group-title {
+  position: relative;
+}
+.notes-sidebar .tree-group-title .category-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  margin-left: auto;
+}
+.notes-sidebar .tree-group-title:hover .category-actions {
+  opacity: 1;
+}
+.notes-sidebar .tree-group-title .category-actions .ant-btn {
+  padding: 0;
+  height: 20px;
+}
+.notes-sidebar .tree-group-title .category-actions .anticon {
+  font-size: 14px !important;
+  width: 14px;
+  height: 14px;
+  line-height: 14px;
+  color: #94a3b8;
+  opacity: 0.8;
+}
+.notes-sidebar .tree-group-title .category-actions .ant-btn:hover .anticon {
+  color: #64748b;
+  opacity: 1;
+}
+
+/* 就地更多菜单样式（宽度与快捷键对齐） */
+.notes-sidebar .side-more-menu .ant-dropdown-menu {
+  min-width: 200px;
+}
+.notes-sidebar .side-more-menu .ant-dropdown-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.notes-sidebar .side-more-menu .shortcut {
+  color: #94a3b8;
+}
 /* 组织培训分类特殊样式（基础态更浅、选中态更明显） */
 .organizational-training-category {
   color: #1f2937 !important; /* 深灰文字 */
@@ -552,10 +660,11 @@
   content: '';
   position: absolute;
   top: 0;
-  left: 0;
+  left: -2px; /* 更靠左，贴近外侧边缘 */
   width: 3px;
   height: 100%;
   background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-radius: 8px 0 0 8px;
 }
 
 .category-item.fixed-category:hover {
@@ -572,17 +681,21 @@
 }
 
 .category-item.fixed-category.active::before {
+  left: -2px;
   width: 4px;
   background: linear-gradient(135deg, #1e40af, #1d4ed8);
+  border-radius: 8px 0 0 8px;
 }
 
 .category-item.fixed-category .category-icon {
-  color: #3b82f6;
-  font-size: 16px;
+  color: #94a3b8;
+  font-size: 14px;
+  opacity: 0.8;
 }
 
 .category-item.fixed-category.active .category-icon {
-  color: #1e40af;
+  color: #94a3b8;
+  opacity: 0.8;
 }
 
 .category-item.fixed-category .category-count {
@@ -615,11 +728,13 @@
 }
 
 .category-item.custom-category .category-icon {
-  color: #10b981;
+  color: #94a3b8;
+  opacity: 0.8;
 }
 
 .category-item.custom-category.active .category-icon {
-  color: #065f46;
+  color: #94a3b8;
+  opacity: 0.8;
 }
 
 .category-item.custom-category .category-count {
@@ -686,18 +801,47 @@
 .category-item.active::before {
   content: '';
   position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  left: -2px; /* 更靠左，贴近外侧边缘 */
+  top: 0;
   width: 3px;
-  height: 20px;
+  height: 100%;
   background: #1890ff;
-  border-radius: 0 2px 2px 0;
+  border-radius: 8px 0 0 8px; /* 与容器圆角对齐 */
+}
+/* 系统分类选中态：将左侧竖条再向外贴边 */
+.system-group .category-item.active::before {
+  left: -4px; /* 更贴近容器左侧边框，尽量重合 */
 }
 
 .category-icon {
-  font-size: 16px;
-  margin-right: 8px;
+  font-size: 14px;
+  margin-right: 6px;
+  color: #94a3b8;
+  opacity: 0.8;
+}
+
+/* 统一笔记侧边栏树节点图标尺寸（与专业分类一致） */
+.notes-sidebar .ant-tree .category-icon,
+.notes-sidebar .ant-tree .anticon {
+  font-size: 14px !important;
+  width: 14px;
+  height: 14px;
+  line-height: 14px;
+  margin-right: 6px;
+  color: #94a3b8;
+  opacity: 0.8;
+}
+
+/* 透明维护图标样式（与主页分类图标一致的小号、透明态） */
+.transparent-maintain-icon {
+  font-size: 14px;
+  color: #94a3b8;
+  opacity: 0.5;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+.transparent-maintain-icon:hover {
+  opacity: 0.85;
+  color: #1890ff;
 }
 
 .category-label {
