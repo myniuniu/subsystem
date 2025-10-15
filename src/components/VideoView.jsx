@@ -48,7 +48,8 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
     onBackToMaterials,
     onVideoTimeUpdate,
     onNoteCreated,
-    onToggleWidescreen
+    onToggleWidescreen,
+    onVideoProgressUpdate
   } = handlers;
 
   // 宽屏模式下禁用body滚动
@@ -463,6 +464,7 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
               maxHeight: '100%'
             }}
             onTimeUpdate={onVideoTimeUpdate}
+            onProgressUpdate={onVideoProgressUpdate}
             isWidescreenMode={isWidescreenMode}
             onToggleWidescreen={onToggleWidescreen}
             currentEditorState={{

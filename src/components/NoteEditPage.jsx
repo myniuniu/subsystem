@@ -41,6 +41,7 @@ import CalendarCenter from './CalendarCenter';
 import ClassroomEvaluationFullscreen from './ClassroomEvaluationFullscreen';
 import ThemeSelectModal from './ThemeSelectModal';
 import TrainingPlanViewer from './OperationPanel/TrainingPlanViewer';
+import notesService from '../services/notesService';
 
 // 导入hooks和工具
 import { useNoteEditState } from '../hooks/useNoteEditState';
@@ -1080,6 +1081,46 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         ...prev,
         note: [operationRecord, ...(prev.note || [])]
       }));
+    },
+
+    onVideoProgressUpdate: (videoId, newProgress) => {
+      try {
+        const safeProgress = Math.max(0, Math.min(100, Number(newProgress) || 0));
+
+        // 更新课程视频列表中的该视频进度
+        if (Array.isArray(state.courseVideos)) {
+          state.setCourseVideos(prev => (Array.isArray(prev) ? prev.map(v => (
+            v.id === videoId ? { ...v, progress: safeProgress } : v
+          )) : prev));
+        }
+
+        // 如果当前选中的视频就是该视频，同步其进度以保持 UI 一致
+        state.setSelectedMaterial(prev => {
+          if (!prev) return prev;
+          return prev.id === videoId ? { ...prev, progress: safeProgress } : prev;
+        });
+
+        // 解析需要更新的笔记ID（优先右侧编辑器，其次页面编辑态，最后传入的 note）
+        const noteId = (
+          (state.rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR && state.rightPanelEditingNote?.id) ||
+          (state.showNoteEditor && state.editingNote?.id) ||
+          (state.note?.id)
+        );
+
+        if (noteId) {
+          try {
+            notesService.updateVideoProgress(noteId, videoId, safeProgress);
+          } catch (e) {
+            console.error('更新笔记视频进度失败:', e);
+          }
+        }
+
+        if (safeProgress === 100) {
+          message.success('已完成该视频的观看');
+        }
+      } catch (err) {
+        console.error('onVideoProgressUpdate 处理异常:', err);
+      }
     },
     
     onToggleWidescreen: () => {

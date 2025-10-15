@@ -23,6 +23,7 @@ const VideoPlayer = ({
   embedded = false, 
   style, 
   onTimeUpdate,
+  onProgressUpdate,
   currentEditorState = null, // 新增参数：当前编辑器状态
   isWidescreenMode = false, // 新增参数：是否为宽屏模式
   onToggleWidescreen = null // 新增参数：宽屏模式切换回调
