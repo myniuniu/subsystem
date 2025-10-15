@@ -69,9 +69,32 @@
 /* 底部滚动区域样式：系统分类在此处滚动 */
 .sidebar-bottom {
   flex: 1 1 auto;
-  overflow-y: auto;
+  overflow-y: auto; /* 具备滚动功能 */
   padding-top: 0;
   background: #fff;
+  position: relative; /* 允许底部箭头绝对定位 */
+  /* 默认隐藏滚动条（仍可滚动） */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* 旧版 Edge */
+}
+
+/* WebKit 浏览器默认隐藏滚动条（仍可滚动） */
+.sidebar-bottom::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
+
+/* 悬停时临时显示超细滚动条，便于操作 */
+.sidebar-bottom:hover {
+  scrollbar-width: thin; /* Firefox 显示细滚条 */
+  scrollbar-color: rgba(0, 0, 0, 0.05) transparent; /* 更透明 */
+}
+.sidebar-bottom:hover::-webkit-scrollbar {
+  width: 1px;
+  height: 1px;
+}
+.sidebar-bottom:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.05); /* 更透明 */
 }
 
 /* 顶部区域最后一个分组（系统分类标题）不再额外留白 */
@@ -87,22 +110,61 @@
 /* 顶部“系统分类”标题使用普通组样式，与专业分类一致 */
 
 /* 底部滚动区域的滚动条样式 */
-.sidebar-bottom::-webkit-scrollbar {
-  width: 4px;
+/* 底部箭头与顶部箭头样式（与左侧菜单一致） */
+.notes-sidebar .collapsed-bottom-arrow {
+  position: absolute;
+  bottom: 6px;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  z-index: 3;
+  pointer-events: auto;
+  cursor: pointer;
+  background: linear-gradient(to top, rgba(0,0,0,0.06), rgba(0,0,0,0));
 }
 
-.sidebar-bottom::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 2px;
+.notes-sidebar .collapsed-bottom-arrow .arrow-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.18);
 }
 
-.sidebar-bottom::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 2px;
+.notes-sidebar .collapsed-bottom-arrow:hover .arrow-pill {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
 }
 
-.sidebar-bottom::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+.notes-sidebar .collapsed-top-arrow {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  z-index: 3;
+  pointer-events: auto;
+  cursor: pointer;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.06), rgba(0,0,0,0));
+}
+
+.notes-sidebar .collapsed-top-arrow .arrow-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.18);
 }
 
 /* 分类样式 */

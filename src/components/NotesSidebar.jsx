@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Layout, Input, Tree, Button, Tooltip, Modal, message, Dropdown, Select, Space } from 'antd';
 import {
   BookOutlined,
@@ -18,6 +18,7 @@ import {
   DeleteOutlined,
   ArrowRightOutlined
 } from '@ant-design/icons';
+import { UpOutlined, DownOutlined } from '@ant-design/icons';
 import { TRAINING_STATUS, getTrainingStatusInfo } from '../utils/trainingStatusUtils';
 import { getSystemCategoryConfig, saveSystemCategoryConfig } from '../services/categoryConfigService';
 import { getAvailableTemplates } from '../services/templateService';
@@ -62,6 +63,11 @@ const NotesSidebar = ({
   const [moveTarget, setMoveTarget] = useState(null); // { type: 'category', value }
   const [moveTargetGroupKey, setMoveTargetGroupKey] = useState(null);
   const [moveSelectedKey, setMoveSelectedKey] = useState(null);
+  // 系统分类滚动区域：滚动箭头指示逻辑
+  const sidebarBottomRef = useRef(null);
+  const [showBottomArrow, setShowBottomArrow] = useState(false);
+  const [showTopArrow, setShowTopArrow] = useState(false);
+  const [isBottomHovered, setIsBottomHovered] = useState(false);
 
   const iconMap = {
     FileTextOutlined,
@@ -308,6 +314,35 @@ const NotesSidebar = ({
     }
     return acc;
   };
+
+  // 监控系统分类滚动容器是否溢出与滚动位置，用于显示顶部/底部箭头指示
+  const updateScrollArrows = () => {
+    const el = sidebarBottomRef.current;
+    if (!el) {
+      setShowBottomArrow(false);
+      setShowTopArrow(false);
+      return;
+    }
+    const hasOverflow = el.scrollHeight > el.clientHeight + 1;
+    const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 2;
+    const nearTop = el.scrollTop <= 2;
+    setShowBottomArrow(hasOverflow && !nearBottom && isBottomHovered);
+    setShowTopArrow(hasOverflow && !nearTop && isBottomHovered);
+  };
+
+  useEffect(() => {
+    const el = sidebarBottomRef.current;
+    if (!el) return;
+    const onScroll = () => updateScrollArrows();
+    el.addEventListener('scroll', onScroll);
+    window.addEventListener('resize', onScroll);
+    // 初始化计算
+    updateScrollArrows();
+    return () => {
+      el.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [groupDefinitions, refreshTick, isBottomHovered]);
 
   // 分类的“更多”菜单
   const getCategoryMoreMenuItems = (category) => ([
@@ -667,8 +702,28 @@ const NotesSidebar = ({
           </div>
         </div>
 
-        {/* 底部区域：系统分类树形展示，内容过多时可滚动 */}
-        <div className="sidebar-bottom">
+        {/* 底部区域：系统分类树形展示，内容过多时可滚动（隐藏滚动条 + 箭头指示） */}
+        <div
+          className="sidebar-bottom"
+          ref={sidebarBottomRef}
+          onMouseEnter={() => { setIsBottomHovered(true); updateScrollArrows(); }}
+          onMouseLeave={() => { setIsBottomHovered(false); updateScrollArrows(); }}
+        >
+          {showTopArrow && (
+            <div
+              className="collapsed-top-arrow"
+              onClick={() => {
+                const el = sidebarBottomRef.current;
+                if (el) {
+                  el.scrollBy({ top: -160, behavior: 'smooth' });
+                }
+              }}
+            >
+              <div className="arrow-pill">
+                <UpOutlined style={{ fontSize: 16, color: '#3b82f6' }} />
+              </div>
+            </div>
+          )}
           <div className="category-section">
             <div className="category-group system-group" key="system_categories">
               <Tree
@@ -691,6 +746,21 @@ const NotesSidebar = ({
               />
             </div>
           </div>
+          {showBottomArrow && (
+            <div
+              className="collapsed-bottom-arrow"
+              onClick={() => {
+                const el = sidebarBottomRef.current;
+                if (el) {
+                  el.scrollBy({ top: 160, behavior: 'smooth' });
+                }
+              }}
+            >
+              <div className="arrow-pill">
+                <DownOutlined style={{ fontSize: 16, color: '#3b82f6' }} />
+              </div>
+            </div>
+          )}
         </div>
       </div>
       {/* 新增系统分类弹窗 */}
