@@ -15,6 +15,7 @@ import ThemeShareModal from './ThemeShareModal';
 import LoginMoreModal from './LoginMoreModal';
 import DesktopDownloadModal from './DesktopDownloadModal';
 import './SidebarAvatar.css';
+import { getTotalMedalCount } from '../data/medalsData';
 
 const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
   const [currentTheme, setCurrentTheme] = useState(getCurrentTheme());
@@ -151,6 +152,24 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
         </div>
       ),
       disabled: true
+    },
+    {
+      type: 'divider'
+    },
+    // 我的勋章
+    {
+      key: 'my-medals',
+      label: (
+        <Space>
+          <CheckCircle size={16} />
+          <span>我的勋章</span>
+          <span style={{ marginLeft: 6, fontSize: 12, color: 'var(--theme-primary)' }}>{getTotalMedalCount()} 枚</span>
+        </Space>
+      ),
+      onClick: () => {
+        const url = `${window.location.origin}${window.location.pathname}#my-medals`;
+        window.open(url, '_blank');
+      }
     },
     {
       type: 'divider'

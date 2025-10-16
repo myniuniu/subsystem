@@ -664,7 +664,7 @@ const NotesSidebar = ({
               {/* 系统分类标题（固定在顶部区域，支持悬停操作：更多、新增一级） */}
               <div className="category-group" key="system_categories_header">
                 <div className="category-group-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>系统分类</span>
+                  <span>我的分类</span>
                   {onOpenSystemCategoryManager && (
                     <span className="category-actions">
                       <Tooltip title="新增一级分类">
@@ -682,18 +682,7 @@ const NotesSidebar = ({
                           aria-label="新增一级分类"
                         />
                       </Tooltip>
-                      <Tooltip title="更多">
-                        <Button
-                          type="text"
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onOpenSystemCategoryManager({ parentCategoryValue: selectedCategory || null });
-                          }}
-                          icon={<EllipsisOutlined className="transparent-maintain-icon" />}
-                          aria-label="更多操作"
-                        />
-                      </Tooltip>
+                      {/* 按要求移除系统分类标题右侧的“更多”按钮 */}
                     </span>
                   )}
                 </div>

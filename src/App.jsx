@@ -24,6 +24,7 @@ import MentalHealthCoach from './components/MentalHealthCoach'
 import MyProgress from './components/MyProgress'
 // import CourseSelection from './components/CourseSelection'
 import ScenarioLibrary from './components/ScenarioLibrary'
+import MyMedals from './components/MyMedals'
 import MentalHealthCoaching from './components/MentalHealthCoaching'
 import ScienceDemo from './components/ScienceDemo'
 // import CourseSelectionEditPage from './components/CourseSelectionEditPage'
@@ -385,6 +386,8 @@ function App() {
               <SimulationPlatform onViewChange={handleViewChange} />
             ) : currentView === 'smart-notes' ? (
               <SmartNotes onViewChange={handleViewChange} />
+            ) : currentView === 'my-medals' ? (
+              <MyMedals />
             ) : currentView === 'ai-tool-house' ? (
               <AIToolHouse onAddToOperationPanel={handleAddAIToolToOperationPanel} />
             ) : currentView === 'note-edit-page' ? (
