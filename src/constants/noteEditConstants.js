@@ -368,9 +368,9 @@ export const DEFAULT_COURSE_VIDEOS = [
 
 // 常见问题按钮
 export const COMMON_QUESTIONS = [
-  { key: 'feature', text: '川菜特色？', message: '川菜特色？' },
-  { key: 'cooking', text: '火锅做法？', message: '火锅做法？' },
-  { key: 'snacks', text: '小吃推荐？', message: '小吃推荐？' }
+  { key: 'ds_basic', text: '常见数据结构有哪些？', message: '常见数据结构有哪些？' },
+  { key: 'algo_complexity', text: '算法时间复杂度怎么计算？', message: '算法时间复杂度怎么计算？' },
+  { key: 'react_state', text: 'React 状态管理怎么做？', message: 'React 状态管理怎么做？' }
 ];
 
 // AI工具分类常量
