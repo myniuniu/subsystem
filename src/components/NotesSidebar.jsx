@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Layout, Input, Tree, Button, Tooltip, Modal, message, Dropdown, Select, Space } from 'antd';
 import {
   BookOutlined,
@@ -163,14 +163,13 @@ const NotesSidebar = ({
       category.pinned // 置顶的分类也显示计数
     ) || (category.type && category.type !== 'system');
     
-    // 是否显示“组织”角标
+    // 是否显示“组织”角标：仅对组织培训和培训需求管理，置顶分类不显示
     const showOrgRibbon = (
       category.value === 'organizational_training' || 
-      category.value === 'training_needs_management' ||
-      category.pinned // 置顶的分类也显示“组织”角标
+      category.value === 'training_needs_management'
     );
     
-    // 是否使用组织培训样式
+    // 是否使用组织培训样式：组织培训、培训需求管理、置顶分类
     const useOrgStyle = (
       category.value === 'organizational_training' || 
       category.value === 'training_needs_management' ||
@@ -310,13 +309,51 @@ const NotesSidebar = ({
 
   // 构建系统分类的树形数据（不改动原始 categories，仅分组展示）
   // 读取系统分类分组配置（使用本地存储），随外部版本号变化而刷新
-  const config = getSystemCategoryConfig();
-  const extraCats = (config?.extraCategories || []);
-  const baseSystemCategories = categories.filter(
-    c => c.value !== 'organizational_training' && (!c.type || c.type === 'system')
-  );
-  const systemCategories = [...baseSystemCategories, ...extraCats];
-  const groupDefinitions = config.groups || [];
+  const { config, extraCats, systemCategories, groupDefinitions, pinnedCategoriesFromExtra } = useMemo(() => {
+    const config = getSystemCategoryConfig();
+    const extraCats = (config?.extraCategories || []);
+    
+    // 从 extraCategories 中提取所有value，用于去重
+    const extraCatValues = new Set(extraCats.map(c => c.value));
+    
+    // 过滤掉已经在extraCategories中的分类，避免重复
+    const baseSystemCategories = categories.filter(
+      c => c.value !== 'organizational_training' && 
+           (!c.type || c.type === 'system') &&
+           !extraCatValues.has(c.value)  // 新增：排除已在extraCategories中的
+    );
+    
+    const systemCategories = [...baseSystemCategories, ...extraCats];
+    const groupDefinitions = config.groups || [];
+    
+    // 从 extraCategories 中提取置顶的分类，用于在组织培训区域显示
+    const pinnedCategoriesFromExtra = extraCats.filter(c => c.pinned === true);
+    
+    console.log('=== NotesSidebar 数据加载 ===');
+    console.log('categories prop 长度:', categories.length);
+    console.log('extraCategories 总数:', extraCats.length);
+    console.log('extraCategories 内容:', extraCats);
+    console.log('baseSystemCategories 长度:', baseSystemCategories.length);
+    console.log('systemCategories 总长度:', systemCategories.length);
+    
+    // 检查重复的value
+    const valueCount = {};
+    systemCategories.forEach(c => {
+      valueCount[c.value] = (valueCount[c.value] || 0) + 1;
+    });
+    const duplicates = Object.entries(valueCount).filter(([_, count]) => count > 1);
+    if (duplicates.length > 0) {
+      console.warn('发现重复的分类值:', duplicates);
+      console.warn('重复分类详情:', systemCategories.filter(c => duplicates.some(([v]) => v === c.value)));
+    }
+    
+    console.log('置顶分类数量:', pinnedCategoriesFromExtra.length);
+    console.log('置顶分类内容:', pinnedCategoriesFromExtra);
+    console.log('置顶分类value列表:', pinnedCategoriesFromExtra.map(c => c.value));
+    console.log('========================');
+    
+    return { config, extraCats, systemCategories, groupDefinitions, pinnedCategoriesFromExtra };
+  }, [categories, refreshTick, configVersion]);
 
   // 通用分组操作工具
   const updateGroupByKey = (configObj, targetKey, updater) => {
@@ -459,8 +496,13 @@ const NotesSidebar = ({
       // 置顶到组织区域：将该分类移动到自定义分类区域，并添加特殊样式
       const current = getSystemCategoryConfig();
       
+      console.log('=== 置顶操作开始 ===');
+      console.log('1. 原始category对象:', JSON.stringify(category, null, 2));
+      console.log('2. 当前config:', JSON.stringify(current, null, 2));
+      
       // 1. 从原有的extraCategories中移除
       const existingExtraCategories = (current?.extraCategories || []).filter(c => c.value !== category.value);
+      console.log('3. 过滤后的existingExtraCategories:', JSON.stringify(existingExtraCategories, null, 2));
       
       // 2. 添加到自定义分类列表，并标记为置顶
       const pinnedCategory = {
@@ -469,18 +511,29 @@ const NotesSidebar = ({
         pinned: true,
         pinnedAt: new Date().toISOString()
       };
+      console.log('4. 构造的pinnedCategory:', JSON.stringify(pinnedCategory, null, 2));
       
       let nextConfig = { 
         ...current, 
         extraCategories: [...existingExtraCategories, pinnedCategory]
       };
+      console.log('5. 新的nextConfig.extraCategories:', JSON.stringify(nextConfig.extraCategories, null, 2));
       
       // 3. 从所有分组中移除该分类
       nextConfig = removeCategoryFromAllGroups(nextConfig, category.value);
+      console.log('6. 从分组中移除后的nextConfig:', JSON.stringify(nextConfig, null, 2));
       
       const ok = saveSystemCategoryConfig(nextConfig);
+      console.log('7. saveSystemCategoryConfig 返回值:', ok);
+      
+      // 验证保存后的数据
+      const savedConfig = getSystemCategoryConfig();
+      console.log('8. 保存后立即读取的config:', JSON.stringify(savedConfig, null, 2));
+      console.log('9. 保存后extraCategories中的置顶分类:', savedConfig?.extraCategories?.filter(c => c.pinned === true));
+      console.log('=== 置顶操作结束 ===');
+      
       if (ok) {
-        message.success(`已将“${category.label}”置顶到组织区域`);
+        message.success(`已将"${category.label}"置顶到组织区域`);
         setRefreshTick(Date.now());
       } else {
         message.error('操作失败，请稍后重试');
@@ -783,8 +836,24 @@ const NotesSidebar = ({
   const treeData = groupDefinitions.map(g => buildGroupNode(g, 1));
   const moveTreeData = groupDefinitions.map(g => buildMoveTreeGroupNode(g, 1));
   
-  // 其余未分配的系统分类进入“其他”分组，保证数据完整展示
-  const restCategories = systemCategories.filter(c => !assignedValues.has(c.value));
+  // 其余未分配的系统分类进入"其他"分组，但要排除置顶的分类
+  const pinnedValues = new Set(pinnedCategoriesFromExtra.map(c => c.value));
+  console.log('=== 过滤"其他"分组 ===');
+  console.log('assignedValues:', Array.from(assignedValues));
+  console.log('pinnedValues:', Array.from(pinnedValues));
+  console.log('systemCategories:', systemCategories.map(c => ({ value: c.value, pinned: c.pinned, type: c.type })));
+    
+  const restCategories = systemCategories.filter(c => {
+    const isAssigned = assignedValues.has(c.value);
+    const isPinned = pinnedValues.has(c.value);
+    const shouldInclude = !isAssigned && !isPinned;
+    console.log(`分类 ${c.value}: assigned=${isAssigned}, pinned=${isPinned}, include=${shouldInclude}`);
+    return shouldInclude;
+  });
+    
+  console.log('restCategories (将进入"其他"分组):', restCategories.map(c => c.value));
+  console.log('======================');
+    
   if (restCategories.length) {
     treeData.push({
       key: 'group_other',
@@ -843,9 +912,10 @@ const NotesSidebar = ({
 
               {/* 自定义分类（区分置顶和非置顶） */}
               {(() => {
-                const customCategories = categories.filter(category => category.type === 'custom');
-                const pinnedCategories = customCategories.filter(cat => cat.pinned);
-                const normalCategories = customCategories.filter(cat => !cat.pinned);
+                // 从 categories prop 中获取自定义分类（未置顶的）
+                const customCategories = categories.filter(category => category.type === 'custom' && !category.pinned);
+                // 从 extraCategories 中获取置顶的分类
+                const pinnedCategories = pinnedCategoriesFromExtra;
                 
                 return (
                   <>
@@ -857,10 +927,10 @@ const NotesSidebar = ({
                     ))}
                     
                     {/* 普通自定义分类：显示在自定义分类区域 */}
-                    {normalCategories.length > 0 && (
+                    {customCategories.length > 0 && (
                       <div className="category-group" key="custom_categories">
                         <div className="category-group-title">自定义分类</div>
-                        {normalCategories.map(category => (
+                        {customCategories.map(category => (
                           <div key={category.value}>{renderCategoryItem(category)}</div>
                         ))}
                       </div>

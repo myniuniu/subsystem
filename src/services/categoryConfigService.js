@@ -29,7 +29,10 @@ const normalizeConfig = (config) => {
       value: String(item.value || '').trim(),
       label: String(item.label || '').trim() || String(item.value || '').trim(),
       icon: typeof item.icon === 'string' ? item.icon : 'FileTextOutlined',
-      type: 'system'
+      type: item.type || 'system',  // 保留原有的type，默认为system
+      // 保留置顶相关属性
+      ...(item.pinned !== undefined && { pinned: Boolean(item.pinned) }),
+      ...(item.pinnedAt && { pinnedAt: item.pinnedAt })
     })).filter(item => item.value);
   };
   return {
