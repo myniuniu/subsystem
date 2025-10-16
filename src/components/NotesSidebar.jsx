@@ -138,6 +138,15 @@ const NotesSidebar = ({
         return statusInfo && statusInfo.status === TRAINING_STATUS.IN_PROGRESS;
       }).length;
       return inProgressCount > 0 ? inProgressCount : orgTrainingNotes.length;
+    } else if (category.value === 'training_needs_management') {
+      // 培训需求管理：显示“实施中”的数量
+      const trainingNeedsNotes = notes.filter(note => 
+        note.category === 'training_needs_management'
+      );
+      const implementingCount = trainingNeedsNotes.filter(note => 
+        note.trainingStatus === 'implementing'
+      ).length;
+      return implementingCount > 0 ? implementingCount : trainingNeedsNotes.length;
     } else {
       return notes.filter(note => note.category === category.value).length;
     }
@@ -147,14 +156,32 @@ const NotesSidebar = ({
     const isEmojiIcon = category.icon && category.icon.length <= 2;
     const IconComponent = isEmojiIcon ? null : (iconMap[category.icon] || FileTextOutlined);
     const count = getCategoryCount(category);
-    // 显示计数：非系统分类 + 特例（组织培训显示进行中数量）
-    const showCount = (category.value === 'organizational_training') || (category.type && category.type !== 'system');
+    // 显示计数：非系统分类 + 特例（组织培训和培训需求管理显示进行中数量）
+    const showCount = (
+      category.value === 'organizational_training' || 
+      category.value === 'training_needs_management' ||
+      category.pinned // 置顶的分类也显示计数
+    ) || (category.type && category.type !== 'system');
+    
+    // 是否显示“组织”角标
+    const showOrgRibbon = (
+      category.value === 'organizational_training' || 
+      category.value === 'training_needs_management' ||
+      category.pinned // 置顶的分类也显示“组织”角标
+    );
+    
+    // 是否使用组织培训样式
+    const useOrgStyle = (
+      category.value === 'organizational_training' || 
+      category.value === 'training_needs_management' ||
+      category.pinned // 置顶的分类使用相同样式
+    );
     
     return (
       <div
         key={category.value}
         className={`category-item ${
-          category.value === 'organizational_training' ? 'organizational-training-category' : ''
+          useOrgStyle ? 'organizational-training-category' : ''
         } ${category.type === 'fixed' ? 'fixed-category' : ''} ${
           category.type === 'custom' ? 'custom-category' : ''
         } ${selectedCategory === category.value ? 'active' : ''}`}
@@ -169,10 +196,10 @@ const NotesSidebar = ({
           {category.value === 'organizational_training' ? '组织培训' : category.label}
         </span>
         {showCount && <span className="category-count">{count}</span>}
-        {category.value === 'organizational_training' && (
+        {showOrgRibbon && (
           <span className="category-ribbon">组织</span>
         )}
-        {onOpenSystemCategoryManager && category.type === 'system' && category.value !== 'organizational_training' && (
+        {onOpenSystemCategoryManager && category.type === 'system' && category.value !== 'organizational_training' && category.value !== 'training_needs_management' && (
           <span className="category-actions">
             <Tooltip title="新增分类">
               <Button
@@ -191,6 +218,26 @@ const NotesSidebar = ({
               trigger={["click"]}
               overlayClassName="side-more-menu"
               menu={{ items: getCategoryMoreMenuItems(category), onClick: (ev) => onCategoryMenuClick(ev, category) }}
+            >
+              <Tooltip title="更多">
+                <Button
+                  type="text"
+                  size="small"
+                  onClick={(e) => { e.stopPropagation(); }}
+                  icon={<EllipsisOutlined className="transparent-maintain-icon" />}
+                  aria-label="更多操作"
+                />
+              </Tooltip>
+            </Dropdown>
+          </span>
+        )}
+        {/* 置顶的自定义分类显示“更多”菜单，但不显示“+”按钮 */}
+        {onOpenSystemCategoryManager && category.type === 'custom' && category.pinned && (
+          <span className="category-actions">
+            <Dropdown
+              trigger={["click"]}
+              overlayClassName="side-more-menu"
+              menu={{ items: getPinnedCategoryMoreMenuItems(category), onClick: (ev) => onPinnedCategoryMenuClick(ev, category) }}
             >
               <Tooltip title="更多">
                 <Button
@@ -345,35 +392,51 @@ const NotesSidebar = ({
   }, [groupDefinitions, refreshTick, isBottomHovered]);
 
   // 分类的“更多”菜单
-  const getCategoryMoreMenuItems = (category) => ([
-    {
-      key: 'rename',
-      icon: <EditOutlined />,
-      label: (
-        <span style={{ display: 'flex', justifyContent: 'space-between', width: 180 }}>
-          <span>重命名</span>
-          <span style={{ color: '#94a3b8' }}>⌘⇧R</span>
-        </span>
-      )
-    },
-    {
-      key: 'move',
-      icon: <ArrowRightOutlined />,
-      label: (
-        <span style={{ display: 'flex', justifyContent: 'space-between', width: 180 }}>
-          <span>移动到</span>
-          <span style={{ color: '#94a3b8' }}>⌘⇧P</span>
-        </span>
-      )
-    },
-    { type: 'divider' },
-    {
+  const getCategoryMoreMenuItems = (category) => {
+    const items = [
+      {
+        key: 'rename',
+        icon: <EditOutlined />,
+        label: (
+          <span style={{ display: 'flex', justifyContent: 'space-between', width: 180 }}>
+            <span>重命名</span>
+            <span style={{ color: '#94a3b8' }}>⌘⇧R</span>
+          </span>
+        )
+      },
+      {
+        key: 'move',
+        icon: <ArrowRightOutlined />,
+        label: (
+          <span style={{ display: 'flex', justifyContent: 'space-between', width: 180 }}>
+            <span>移动到</span>
+            <span style={{ color: '#94a3b8' }}>⌘⇧P</span>
+          </span>
+        )
+      }
+    ];
+    
+    // 如果是系统分类（非组织培训和培训需求管理），添加"置顶"选项
+    if (category.type === 'system' && 
+        category.value !== 'organizational_training' && 
+        category.value !== 'training_needs_management') {
+      items.push({
+        key: 'pin-to-top',
+        icon: <StarOutlined />,
+        label: <span>置顶</span>
+      });
+    }
+    
+    items.push({ type: 'divider' });
+    items.push({
       key: 'trash',
       icon: <DeleteOutlined />,
       danger: true,
       label: <span>移至垃圾箱</span>
-    }
-  ]);
+    });
+    
+    return items;
+  };
 
   const onCategoryMenuClick = (e, category) => {
     e?.domEvent?.stopPropagation?.();
@@ -392,6 +455,38 @@ const NotesSidebar = ({
       setIsMoveModalVisible(true);
       return;
     }
+    if (key === 'pin-to-top') {
+      // 置顶到组织区域：将该分类移动到自定义分类区域，并添加特殊样式
+      const current = getSystemCategoryConfig();
+      
+      // 1. 从原有的extraCategories中移除
+      const existingExtraCategories = (current?.extraCategories || []).filter(c => c.value !== category.value);
+      
+      // 2. 添加到自定义分类列表，并标记为置顶
+      const pinnedCategory = {
+        ...category,
+        type: 'custom',
+        pinned: true,
+        pinnedAt: new Date().toISOString()
+      };
+      
+      let nextConfig = { 
+        ...current, 
+        extraCategories: [...existingExtraCategories, pinnedCategory]
+      };
+      
+      // 3. 从所有分组中移除该分类
+      nextConfig = removeCategoryFromAllGroups(nextConfig, category.value);
+      
+      const ok = saveSystemCategoryConfig(nextConfig);
+      if (ok) {
+        message.success(`已将“${category.label}”置顶到组织区域`);
+        setRefreshTick(Date.now());
+      } else {
+        message.error('操作失败，请稍后重试');
+      }
+      return;
+    }
     if (key === 'trash') {
       const current = getSystemCategoryConfig();
       const isExtra = (current?.extraCategories || []).some(c => c.value === category.value);
@@ -407,6 +502,93 @@ const NotesSidebar = ({
         onOk: () => {
           let next = { ...current, extraCategories: (current.extraCategories || []).filter(c => c.value !== category.value) };
           next = removeCategoryFromAllGroups(next, category.value);
+          const ok = saveSystemCategoryConfig(next);
+          if (ok) {
+            message.success('已移至垃圾箱');
+            setRefreshTick(Date.now());
+          } else {
+            message.error('操作失败，请稍后重试');
+          }
+        }
+      });
+    }
+  };
+
+  // 置顶分类的“更多”菜单
+  const getPinnedCategoryMoreMenuItems = (category) => ([
+    {
+      key: 'unpin',
+      icon: <StarOutlined />,
+      label: <span>取消置顶</span>
+    },
+    {
+      key: 'rename',
+      icon: <EditOutlined />,
+      label: (
+        <span style={{ display: 'flex', justifyContent: 'space-between', width: 180 }}>
+          <span>重命名</span>
+          <span style={{ color: '#94a3b8' }}>⌘⇧R</span>
+        </span>
+      )
+    },
+    { type: 'divider' },
+    {
+      key: 'trash',
+      icon: <DeleteOutlined />,
+      danger: true,
+      label: <span>移至垃圾箱</span>
+    }
+  ]);
+
+  const onPinnedCategoryMenuClick = (e, category) => {
+    e?.domEvent?.stopPropagation?.();
+    const { key } = e;
+    
+    if (key === 'unpin') {
+      // 取消置顶：将分类移回系统分类
+      const current = getSystemCategoryConfig();
+      
+      // 移除pinned标记，改回type为'system'
+      const unpinnedCategory = {
+        ...category,
+        type: 'system',
+        pinned: false,
+        pinnedAt: null
+      };
+      
+      const existingExtraCategories = (current?.extraCategories || []).filter(c => c.value !== category.value);
+      
+      const nextConfig = { 
+        ...current, 
+        extraCategories: [...existingExtraCategories, unpinnedCategory]
+      };
+      
+      const ok = saveSystemCategoryConfig(nextConfig);
+      if (ok) {
+        message.success(`已取消“${category.label}”的置顶`);
+        setRefreshTick(Date.now());
+      } else {
+        message.error('操作失败，请稍后重试');
+      }
+      return;
+    }
+    
+    if (key === 'rename') {
+      setRenameTarget({ type: 'category', value: category.value, label: category.label });
+      setRenameLabel(category.label || '');
+      setIsRenameModalVisible(true);
+      return;
+    }
+    
+    if (key === 'trash') {
+      const current = getSystemCategoryConfig();
+      Modal.confirm({
+        title: '确认移至垃圾箱？',
+        content: `分类“${category.label}”将被移除。`,
+        okText: '移除',
+        cancelText: '取消',
+        onOk: () => {
+          const next = { ...current, extraCategories: (current.extraCategories || []).filter(c => c.value !== category.value) };
           const ok = saveSystemCategoryConfig(next);
           if (ok) {
             message.success('已移至垃圾箱');
@@ -626,7 +808,7 @@ const NotesSidebar = ({
             className="search-input"
           />
 
-          {/* 顶部分类列表：组织培训 + 专业分类（位于组织培训下面） */}
+          {/* 顶部分类列表：组织培训 + 培训需求管理 + 专业分类 */}
           <div className="category-section">
             <div className="category-list">
               {/* 固定显示组织培训分类 */}
@@ -635,6 +817,16 @@ const NotesSidebar = ({
                   value: 'organizational_training',
                   label: '组织培训',
                   icon: 'TeamOutlined',
+                  type: 'system'
+                })}
+              </div>
+          
+              {/* 培训需求管理（在组织培训下面） */}
+              <div key="training_needs_management_wrapper">
+                {renderCategoryItem({
+                  value: 'training_needs_management',
+                  label: '培训需求管理',
+                  icon: 'FileTextOutlined',
                   type: 'system'
                 })}
               </div>
@@ -649,17 +841,33 @@ const NotesSidebar = ({
                   ))}
               </div>
 
-              {/* 自定义分类（保持在顶部区域，若存在） */}
-              {categories.filter(category => category.type === 'custom').length > 0 && (
-                <div className="category-group" key="custom_categories">
-                  <div className="category-group-title">自定义分类</div>
-                  {categories
-                    .filter(category => category.type === 'custom')
-                    .map(category => (
-                      <div key={category.value}>{renderCategoryItem(category)}</div>
+              {/* 自定义分类（区分置顶和非置顶） */}
+              {(() => {
+                const customCategories = categories.filter(category => category.type === 'custom');
+                const pinnedCategories = customCategories.filter(cat => cat.pinned);
+                const normalCategories = customCategories.filter(cat => !cat.pinned);
+                
+                return (
+                  <>
+                    {/* 置顶的自定义分类：显示在组织区域，与组织培训、培训需求管理样式一致 */}
+                    {pinnedCategories.map(category => (
+                      <div key={category.value}>
+                        {renderCategoryItem(category)}
+                      </div>
                     ))}
-                </div>
-              )}
+                    
+                    {/* 普通自定义分类：显示在自定义分类区域 */}
+                    {normalCategories.length > 0 && (
+                      <div className="category-group" key="custom_categories">
+                        <div className="category-group-title">自定义分类</div>
+                        {normalCategories.map(category => (
+                          <div key={category.value}>{renderCategoryItem(category)}</div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
 
               {/* 系统分类标题（固定在顶部区域，支持悬停操作：更多、新增一级） */}
               <div className="category-group" key="system_categories_header">

@@ -262,6 +262,79 @@ const SmartNotes = ({ onViewChange }) => {
 
       // 加载笔记
       let notesData = await notesService.getAllNotes();
+      
+      // 数据迁移：为培训需求管理笔记添加trainingStatus和implementationSchedule字段
+      let needsMigration = false;
+      notesData = notesData.map(note => {
+        if (note.category === 'training_needs_management') {
+          let needsUpdate = false;
+          let updatedNote = { ...note };
+          
+          // 添加trainingStatus字段
+          if (!note.trainingStatus) {
+            needsUpdate = true;
+            // 根据笔记标题或内容分配默认状态
+            let defaultStatus = 'planning';
+            if (note.title.includes('骨干') || note.title.includes('已结束')) {
+              defaultStatus = 'completed';
+            } else if (note.title.includes('入职') || note.title.includes('信息技术')) {
+              defaultStatus = 'implementing';
+            }
+            updatedNote.trainingStatus = defaultStatus;
+          }
+          
+          // 添加implementationSchedule字段（仅对实施中和已结束的记录）
+          if (!note.implementationSchedule && (updatedNote.trainingStatus === 'implementing' || updatedNote.trainingStatus === 'completed')) {
+            needsUpdate = true;
+            // 根据状态分配默认时间
+            if (updatedNote.trainingStatus === 'implementing') {
+              if (note.title.includes('入职')) {
+                updatedNote.implementationSchedule = {
+                  startTime: '9/1 09:00',
+                  endTime: '12/31 17:00'
+                };
+              } else if (note.title.includes('信息技术')) {
+                updatedNote.implementationSchedule = {
+                  startTime: '10/1 14:00',
+                  endTime: '11/30 18:00'
+                };
+              } else {
+                // 其他实施中的培训
+                updatedNote.implementationSchedule = {
+                  startTime: '9/15 09:00',
+                  endTime: '11/15 17:00'
+                };
+              }
+            } else if (updatedNote.trainingStatus === 'completed') {
+              if (note.title.includes('骨干')) {
+                updatedNote.implementationSchedule = {
+                  startTime: '7/15 10:00',
+                  endTime: '8/30 16:00'
+                };
+              } else {
+                // 其他已结束的培训
+                updatedNote.implementationSchedule = {
+                  startTime: '6/1 09:00',
+                  endTime: '7/31 17:00'
+                };
+              }
+            }
+          }
+          
+          if (needsUpdate) {
+            needsMigration = true;
+            return updatedNote;
+          }
+        }
+        return note;
+      });
+      
+      // 如果有数据迁移，保存回 localStorage
+      if (needsMigration) {
+        localStorage.setItem('smart_notes_data', JSON.stringify(notesData));
+        console.log('已为培训需求管理笔记添加trainingStatus和implementationSchedule字段');
+      }
+      
       // 统一更新组织培训“进行中”主题的结束日期为12月31日
       try {
         const updatedCount = notesService.updateOrgTrainingInProgressEndDateToDecember31();
@@ -275,6 +348,14 @@ const SmartNotes = ({ onViewChange }) => {
       console.log('=== 数据加载调试信息 ===');
       console.log('加载的笔记数据:', notesData);
       console.log('总笔记数量:', notesData.length);
+      
+      // 检查培训需求管理数据
+      const trainingNeedsNotes = notesData.filter(note => note.category === 'training_needs_management');
+      console.log('培训需求管理笔记数量:', trainingNeedsNotes.length);
+      console.log('培训需求管理笔记详情:', trainingNeedsNotes.map(note => ({
+        title: note.title,
+        trainingStatus: note.trainingStatus
+      })));
       
       // 检查教研室数据
       const teachingResearchNotes = notesData.filter(note => note.category === 'teaching_research_office');

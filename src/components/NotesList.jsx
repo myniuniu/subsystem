@@ -370,6 +370,33 @@ const NotesList = ({
         const IconComponent = !isEmojiIcon && typeof iconName === 'string' ? iconMap[iconName] : null;
         const trainingStatus = isOrgTraining ? getTrainingStatusInfo(note) : null;
         const isCompleted = trainingStatus && trainingStatus.status === TRAINING_STATUS.COMPLETED;
+        
+        // 培训需求管理分类的状态处理
+        const isTrainingNeedsManagement = (
+          selectedCategory === 'training_needs_management' ||
+          note.category === 'training_needs_management'
+        );
+        
+        // 培训需求管理状态配置
+        const trainingNeedsStatusConfig = {
+          planning: { label: '制定中', icon: '📋', color: '#1890ff' },
+          implementing: { label: '实施中', icon: '🔄', color: '#52c41a' },
+          completed: { label: '已结束', icon: '✅', color: '#8c8c8c' }
+        };
+        
+        const needsStatus = isTrainingNeedsManagement && note.trainingStatus 
+          ? trainingNeedsStatusConfig[note.trainingStatus] 
+          : null;
+        
+        // 调试信息
+        if (isTrainingNeedsManagement) {
+          console.log('培训需求管理卡片:', {
+            title: note.title,
+            category: note.category,
+            trainingStatus: note.trainingStatus,
+            needsStatus: needsStatus
+          });
+        }
         return (
           <Col xs={24} sm={12} lg={8} xl={6} key={note.id}>
             <Card
@@ -461,7 +488,27 @@ const NotesList = ({
                       }
                     }
                     return null;
-                  })()} 
+                  })()}
+                  
+                  {/* 培训需求管理状态显示 */}
+                  {needsStatus && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '8px' }}>
+                      <span style={{ fontSize: '10px' }}>{needsStatus.icon}</span>
+                      <Text style={{ fontSize: '10px', color: needsStatus.color, fontWeight: 'bold' }}>
+                        {needsStatus.label}
+                      </Text>
+                    </div>
+                  )}
+                  
+                  {/* 培训需求管理实施时间显示 */}
+                  {isTrainingNeedsManagement && note.implementationSchedule && (note.trainingStatus === 'implementing' || note.trainingStatus === 'completed') && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '8px' }}>
+                      <span style={{ fontSize: '9px' }}>⏰</span>
+                      <Text style={{ fontSize: '9px', color: '#666' }}>
+                        {note.implementationSchedule.startTime} ~ {note.implementationSchedule.endTime}
+                      </Text>
+                    </div>
+                  )} 
                 </div>
                 {note.pinned && (
                   <PushpinFilled className="star-badge" />

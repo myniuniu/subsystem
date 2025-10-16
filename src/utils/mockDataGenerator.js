@@ -337,11 +337,11 @@ class MockDataGenerator {
         },
         createdAt: new Date('2024-01-15'),
         updatedAt: new Date('2024-01-20'),
-        // 模拟学习时间信息 - 进行中的培训
+        // 模拟学习时间信息 - 进行中的培训，结束时间为12月31日
         learningSchedule: {
           startTime: '9/25 09:00',
-          endTime: '9/30 17:00',
-          duration: '5天'
+          endTime: '12/31 17:00',
+          duration: '98天'
         }
       },
       // 已按需求移除第二条：班级管理实务（org_002）
@@ -568,6 +568,7 @@ class MockDataGenerator {
         title: '2025年度教师培训',
         content: '# 2024年度教师培训需求调研概要\n\n- 目标人群：全体教师\n- 重点主题：信息技术、课堂管理、教学创新\n- 建议：分层分类实施，建立效果评估机制',
         category: 'training_needs_management',
+        trainingStatus: 'planning',
         tags: ['培训需求', '教师发展', '调研报告'],
         starred: true,
         createdAt: new Date('2024-02-15'),
@@ -578,6 +579,11 @@ class MockDataGenerator {
         title: '新教师入职培训',
         content: '# 入职培训需求清单\n\n- 教学基本功\n- 学校规章制度\n- 学生管理与沟通',
         category: 'training_needs_management',
+        trainingStatus: 'implementing',
+        implementationSchedule: {
+          startTime: '9/1 09:00',
+          endTime: '12/31 17:00'
+        },
         tags: ['培训需求', '入职培训', '清单'],
         starred: false,
         createdAt: new Date('2024-02-10'),
@@ -588,6 +594,11 @@ class MockDataGenerator {
         title: '骨干教师高端研修',
         content: '# 骨干教师研修需求\n\n- 教改与创新\n- 科研方法\n- 教育技术应用',
         category: 'training_needs_management',
+        trainingStatus: 'completed',
+        implementationSchedule: {
+          startTime: '7/15 10:00',
+          endTime: '8/30 16:00'
+        },
         tags: ['培训需求', '骨干教师', '研修'],
         starred: true,
         createdAt: new Date('2024-02-05'),
@@ -598,6 +609,11 @@ class MockDataGenerator {
         title: '信息技术能力提升培训',
         content: '# 技能提升需求\n\n- 学习平台使用\n- 互动工具应用\n- 资源制作与发布',
         category: 'training_needs_management',
+        trainingStatus: 'implementing',
+        implementationSchedule: {
+          startTime: '10/1 14:00',
+          endTime: '11/30 18:00'
+        },
         tags: ['培训需求', '信息技术', '能力提升'],
         starred: false,
         createdAt: new Date('2024-01-28'),
@@ -608,6 +624,7 @@ class MockDataGenerator {
         title: '教师心理健康教育培训',
         content: '# 心理健康培训需求\n\n- 压力管理\n- 情绪调节\n- 沟通与支持',
         category: 'training_needs_management',
+        trainingStatus: 'planning',
         tags: ['培训需求', '心理健康', '教师支持'],
         starred: false,
         createdAt: new Date('2024-01-20'),
@@ -1156,6 +1173,7 @@ class MockDataGenerator {
         type: 'training-needs',
         category: 'training_needs_management',
         priority: 'high',
+        trainingStatus: 'planning', // 制定中
         description: '基于全校教师问卷与访谈的系统需求分析，明确关键培训主题与人群分层。',
         content: '# 组织培训需求调研报告\n\n- 覆盖对象：全校教师\n- 重点主题：信息技术应用、课堂管理、教学创新\n- 建议：分层分类实施，建立效果评估机制',
         createdAt: new Date('2024-02-15'),
@@ -1169,6 +1187,11 @@ class MockDataGenerator {
         type: 'training-needs',
         category: 'training_needs_management',
         priority: 'medium',
+        trainingStatus: 'implementing', // 实施中
+        implementationSchedule: {
+          startTime: '9/1 09:00',
+          endTime: '12/31 17:00'
+        },
         description: '围绕教学基本功、制度规范、学生管理三大模块的入职培训需求。',
         content: '# 入职培训需求\n\n- 教学基本功\n- 学校规章制度\n- 学生管理与沟通',
         createdAt: new Date('2024-02-10'),
@@ -1182,6 +1205,11 @@ class MockDataGenerator {
         type: 'training-needs',
         category: 'training_needs_management',
         priority: 'high',
+        trainingStatus: 'completed', // 已结束
+        implementationSchedule: {
+          startTime: '7/15 10:00',
+          endTime: '8/30 16:00'
+        },
         description: '针对名师/学科带头人，聚焦教学改革、科研方法与教育技术应用的研修需求。',
         content: '# 骨干教师研修需求\n\n- 教改与创新\n- 科研方法\n- 教育技术应用',
         createdAt: new Date('2024-02-05'),
@@ -1195,6 +1223,11 @@ class MockDataGenerator {
         type: 'training-needs',
         category: 'training_needs_management',
         priority: 'medium',
+        trainingStatus: 'implementing', // 实施中
+        implementationSchedule: {
+          startTime: '10/1 14:00',
+          endTime: '11/30 18:00'
+        },
         description: '分层分类的数字化教学能力建设需求，涵盖平台使用与资源制作。',
         content: '# 技能提升需求\n\n- 学习平台使用\n- 互动工具应用\n- 资源制作与发布',
         createdAt: new Date('2024-01-28'),
@@ -1208,8 +1241,9 @@ class MockDataGenerator {
         type: 'training-needs',
         category: 'training_needs_management',
         priority: 'high',
+        trainingStatus: 'planning', // 制定中
         description: '覆盖压力管理、情绪调节与沟通技巧，支持校园心理健康体系建设。',
-        content: '# 心理健康培训需求\n\n- 压力管理\n- 情绪调节\n- 沟通与支持',
+        content: '# 心理健康培训需求\n\n- 压力管理\n- 情纪调节\n- 沟通与支持',
         createdAt: new Date('2024-01-20'),
         updatedAt: new Date('2024-01-25')
       }
@@ -1452,7 +1486,11 @@ class MockDataGenerator {
         ],
         status: '研发中',
         priority: 'medium',
-        content: `# 混合式培训平台原型设计\n\n- 学习编排\n- 行为分析\n- 互动教学`,
+        content: `# 混合式培训平台原型设计
+
+- 学习编排
+- 行为分析
+- 互动教学`,
         createdAt: new Date('2024-01-24'),
         updatedAt: new Date('2024-01-24')
       },
@@ -1473,7 +1511,11 @@ class MockDataGenerator {
         ],
         status: '规划中',
         priority: 'high',
-        content: `# 教学AI助手产品规划\n\n- 内容生成\n- 学习辅导\n- 效果评估`,
+        content: `# 教学AI助手产品规划
+
+- 内容生成
+- 学习辅导
+- 效果评估`,
         createdAt: new Date('2024-01-21'),
         updatedAt: new Date('2024-01-23')
       }

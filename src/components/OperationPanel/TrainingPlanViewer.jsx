@@ -12,13 +12,17 @@ import {
   message,
   Tabs,
   Space,
-  Table
+  Table,
+  Modal,
+  Input
 } from 'antd';
 import { 
   ReloadOutlined, 
   DownloadOutlined, 
   BookOutlined,
-  ArrowLeftOutlined
+  ArrowLeftOutlined,
+  EditOutlined,
+  SaveOutlined
 } from '@ant-design/icons';
 import { RIGHT_PANEL_VIEWS, VIEW_MODES } from '../../constants/noteEditConstants';
 import { generateComprehensiveTrainingPlan, generateTrainingPlanMarkdown } from '../../utils/trainingPlanGenerator';
@@ -26,6 +30,7 @@ import SimpleTrainingPlanDetailView from '../SimpleTrainingPlanDetailView';
 
 const { Text, Title } = Typography;
 const { TabPane } = Tabs;
+const { TextArea } = Input;
 
 const TrainingPlanViewer = ({
   rightPanelTrainingPlanRecord,
@@ -36,13 +41,130 @@ const TrainingPlanViewer = ({
   isFullscreen = false,
   setCurrentView
 }) => {
+  // 编辑模式状态
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState('');
+
   // 返回上一级
   const handleBack = () => {
     if (isFullscreen && setCurrentView) {
-      setCurrentView(VIEW_MODES.NORMAL);
+      setCurrentView(VIEW_MODES.MATERIALS);
     } else {
       setRightPanelView(RIGHT_PANEL_VIEWS.TRAINING_PLAN_LIST);
     }
+  };
+
+  // 将培训方案转换为 Markdown 格式
+  const convertToMarkdown = (plan) => {
+    let markdown = `# ${plan.title}\n\n`;
+    
+    // 一、培训概述
+    markdown += `## 一、培训概述\n\n`;
+    markdown += `**培训背景：**${plan.overview.background}\n\n`;
+    markdown += `**培训目标：**\n`;
+    plan.overview.objectives.forEach(obj => {
+      markdown += `- ${obj}\n`;
+    });
+    markdown += `\n**培训周期：**${plan.overview.duration}\n\n`;
+    markdown += `**培训对象：**${plan.overview.participants}\n\n`;
+    markdown += `**培训形式：**${plan.overview.format}\n\n`;
+
+    // 二、培训阶段与内容
+    markdown += `## 二、培训阶段与内容\n\n`;
+    plan.phases.forEach((phase, idx) => {
+      markdown += `### ${phase.name}\n\n`;
+      markdown += `**培训重点：**${phase.focus}\n\n`;
+      phase.modules.forEach(module => {
+        markdown += `#### ${module.title}（${module.duration}）\n\n`;
+        markdown += `**培训内容：**\n`;
+        module.content.forEach(item => {
+          markdown += `- ${item}\n`;
+        });
+        markdown += `\n**培训形式：**${module.format}\n\n`;
+        markdown += `**考核方式：**${module.assessment}\n\n`;
+      });
+    });
+
+    // 三、培训进度安排
+    markdown += `## 三、培训进度安排\n\n`;
+    markdown += `| 周次 | 培训内容 | 培训形式 | 学时 |\n`;
+    markdown += `|------|----------|----------|------|\n`;
+    plan.schedule.forEach(item => {
+      markdown += `| ${item.week} | ${item.content} | ${item.type} | ${item.hours}学时 |\n`;
+    });
+    markdown += `\n`;
+
+    // 四、实施方式
+    markdown += `## 四、实施方式\n\n`;
+    markdown += `**培训平台：**${plan.implementation.platform}\n\n`;
+    markdown += `**培训方法：**\n`;
+    plan.implementation.methods.forEach(method => {
+      markdown += `- ${method}\n`;
+    });
+    markdown += `\n**支持保障：**\n`;
+    plan.implementation.support.forEach(item => {
+      markdown += `- ${item}\n`;
+    });
+    markdown += `\n`;
+
+    // 五、考核评价
+    markdown += `## 五、考核评价\n\n`;
+    markdown += `**考核方式：**${plan.assessment.method}\n\n`;
+    markdown += `**考核组成：**\n`;
+    plan.assessment.components.forEach(comp => {
+      markdown += `- ${comp.name}（${comp.weight}）：${comp.description}\n`;
+    });
+    markdown += `\n**评价标准：**\n`;
+    plan.assessment.standards.forEach(standard => {
+      markdown += `- ${standard}\n`;
+    });
+    markdown += `\n`;
+
+    // 六、保障措施
+    markdown += `## 六、保障措施\n\n`;
+    markdown += `**组织保障：**\n`;
+    plan.guarantee.organization.forEach(item => {
+      markdown += `- ${item}\n`;
+    });
+    markdown += `\n**资源保障：**\n`;
+    plan.guarantee.resources.forEach(item => {
+      markdown += `- ${item}\n`;
+    });
+    markdown += `\n**质量保障：**\n`;
+    plan.guarantee.quality.forEach(item => {
+      markdown += `- ${item}\n`;
+    });
+
+    return markdown;
+  };
+
+  // 打开编辑器
+  const handleEdit = () => {
+    const markdown = convertToMarkdown(newTeacherTrainingPlan);
+    setEditContent(markdown);
+    setIsEditing(true);
+  };
+
+  // 保存编辑
+  const handleSave = () => {
+    // 这里可以添加保存逻辑，例如解析 markdown 并更新数据
+    message.success('培训方案已保存');
+    setIsEditing(false);
+    // TODO: 实际应用中需要将 markdown 解析回数据结构并保存
+  };
+
+  // 取消编辑
+  const handleCancelEdit = () => {
+    Modal.confirm({
+      title: '确认取消编辑？',
+      content: '未保存的修改将会丢失',
+      okText: '确认',
+      cancelText: '继续编辑',
+      onOk: () => {
+        setIsEditing(false);
+        setEditContent('');
+      }
+    });
   };
 
   // 新教师入职线上培训方案数据
@@ -323,6 +445,13 @@ const TrainingPlanViewer = ({
             </Button>
             <Title level={4} style={{ margin: 0 }}>{newTeacherTrainingPlan.title}</Title>
           </div>
+          <Button 
+            type="primary"
+            icon={<EditOutlined />}
+            onClick={handleEdit}
+          >
+            编辑
+          </Button>
         </div>
       </div>
 
@@ -590,6 +719,48 @@ const TrainingPlanViewer = ({
           </div>
         </div>
       </div>
+
+      {/* Markdown 编辑器 Modal */}
+      <Modal
+        title="编辑培训方案"
+        open={isEditing}
+        onOk={handleSave}
+        onCancel={handleCancelEdit}
+        width={1000}
+        okText="保存"
+        cancelText="取消"
+        okButtonProps={{ icon: <SaveOutlined /> }}
+        bodyStyle={{ padding: '24px' }}
+      >
+        <div style={{ marginBottom: '12px' }}>
+          <Text type="secondary">
+            使用 Markdown 语法编辑培训方案内容，支持标题、列表、表格等格式。
+          </Text>
+        </div>
+        <TextArea
+          value={editContent}
+          onChange={(e) => setEditContent(e.target.value)}
+          placeholder="请输入培训方案内容..."
+          style={{
+            minHeight: '500px',
+            fontSize: '14px',
+            lineHeight: '1.6',
+            fontFamily: 'Monaco, Consolas, "Courier New", monospace'
+          }}
+          autoSize={{ minRows: 20, maxRows: 30 }}
+        />
+        <div style={{ marginTop: '12px' }}>
+          <Space>
+            <Text type="secondary" style={{ fontSize: '12px' }}>
+              快捷键：
+            </Text>
+            <Tag>标题：# ## ###</Tag>
+            <Tag>列表：- 或 1.</Tag>
+            <Tag>粗体：**文字**</Tag>
+            <Tag>表格：| 列1 | 列2 |</Tag>
+          </Space>
+        </div>
+      </Modal>
     </div>
   );
 };

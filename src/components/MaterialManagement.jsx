@@ -279,6 +279,11 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
 
   // 将层级数据扁平化为额外的视频条目，并与现有courseVideos合并用于显示
   const displayCourseVideos = useMemo(() => {
+    // 培训需求管理分类下不显示任何课程视频（包括层级数据）
+    if (note?.category === 'training_needs_management') {
+      return [];
+    }
+    
     const base = Array.isArray(courseVideos) ? courseVideos : [];
     try {
       const hierarchy = getMockCourseContentHierarchy();
@@ -288,7 +293,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     } catch (e) {
       return base;
     }
-  }, [courseVideos]);
+  }, [courseVideos, note?.category]);
 
   // 所有课程ID用于全局折叠/展开控制（基于 displayCourseVideos）
   const allCourseIds = useMemo(() => {

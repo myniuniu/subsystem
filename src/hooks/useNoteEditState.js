@@ -36,6 +36,11 @@ const subtitleData = [
 export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCategory = null) => {
   // 资料收集相关状态
   const [uploadedFiles, setUploadedFiles] = useState(() => {
+    // 培训需求管理分类下不显示任何文件（优先级最高）
+    if (selectedCategory === 'training_needs_management' || note?.category === 'training_needs_management') {
+      return [];
+    }
+    
     // 默认的试卷文件，在任何模式下都显示
     const defaultFiles = [
       { id: 1, name: '成都火锅制作工艺.pdf', type: 'application/pdf', uploadTime: '刚刚' },
@@ -66,6 +71,18 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   const [showMaterialDetail, setShowMaterialDetail] = useState(false);
   const [currentMaterial, setCurrentMaterial] = useState(null);
   const [links, setLinks] = useState(() => {
+    // 培训需求管理分类下只显示“新教师培训通知”链接（优先级最高）
+    if (selectedCategory === 'training_needs_management' || note?.category === 'training_needs_management') {
+      return [
+        { 
+          id: 'training_notice_001', 
+          url: 'https://example.com/new-teacher-training-notice', 
+          title: '新教师培训通知', 
+          addTime: '刚刚' 
+        }
+      ];
+    }
+    
     const defaultLinks = [
       { id: 2, url: 'https://chengdu-food.com', title: '成都美食攻略网站', addTime: '刚刚' }
     ];
@@ -90,6 +107,11 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   // 文字内容相关状态
   const [textContent, setTextContent] = useState('');
   const [addedTexts, setAddedTexts] = useState(() => {
+    // 培训需求管理分类下不显示任何文本（优先级最高）
+    if (selectedCategory === 'training_needs_management' || note?.category === 'training_needs_management') {
+      return [];
+    }
+    
     const defaultTexts = [
       { id: 3, title: '成都小吃介绍', content: '成都是著名的美食之都，拥有麻婆豆腐、回锅肉、担担面、龙抄手等众多特色小吃...', addTime: '刚刚' }
     ];
@@ -110,6 +132,11 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   const [videoTitle, setVideoTitle] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [courseVideos, setCourseVideos] = useState(() => {
+    // 培训需求管理分类下不显示任何课程视频（优先级最高）
+    if (selectedCategory === 'training_needs_management' || note?.category === 'training_needs_management') {
+      return [];
+    }
+    
     if (mode === 'create') {
       return DEFAULT_COURSE_VIDEOS;
     } else {
