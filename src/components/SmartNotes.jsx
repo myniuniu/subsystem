@@ -457,9 +457,7 @@ const SmartNotes = ({ onViewChange }) => {
         );
       } else if (selectedCategory === 'teaching_design') {
         filtered = filtered.filter(note => 
-          note.category === 'teaching_design' ||
-          note.tags?.includes('教学设计') ||
-          note.source === '教学设计'
+          note.category === 'teaching_design'
         );
       } else if (selectedCategory === 'teaching_research_office') {
         filtered = filtered.filter(note => 
@@ -469,8 +467,15 @@ const SmartNotes = ({ onViewChange }) => {
         );
       } else {
         filtered = filtered.filter(note => note.category === selectedCategory);
-        // 非组织培训分类下，排除组织培训数据，避免分类互相覆盖
-        filtered = filtered.filter(note => note.category !== 'organizational_training' && note.courseType !== 'organizational_training');
+        // 排除其他特殊分类的数据，避免分类互相覆盖
+        filtered = filtered.filter(note => 
+          note.category !== 'organizational_training' && 
+          note.courseType !== 'organizational_training' &&
+          note.category !== 'learning_square' &&
+          note.category !== 'homework_system' &&
+          note.category !== 'teaching_design' &&
+          note.category !== 'teaching_research_office'
+        );
       }
     }
     
