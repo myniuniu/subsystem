@@ -170,7 +170,7 @@ const SystemCategoryManager = ({ visible, onCancel, onSave, categories, managerC
       centered
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Title level={5} style={{ margin: 0 }}>维护系统分类分组，并可为一级分组绑定主题模版</Title>
+        <Title level={5} style={{ margin: 0 }}>维护系统分类分组，并可为一级分组绑定智能体</Title>
         <Space>
           <Button icon={<PlusOutlined />} onClick={handleAddGroup}>新增分组</Button>
           <Button icon={<ReloadOutlined />} onClick={handleResetDefault}>恢复默认</Button>
@@ -255,20 +255,20 @@ const GroupEditor = ({ group, depth, systemCategories, templates, loadingTemplat
       <div style={{ display: 'flex', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
         {depth === 1 ? (
           <div style={{ flex: 1, minWidth: 260 }}>
-            <Text style={{ display: 'block', marginBottom: 6 }}>绑定主题模版（仅一级分组）</Text>
+            <Text style={{ display: 'block', marginBottom: 6 }}>绑定智能体（仅一级分组）</Text>
             <Select
               value={group.templateId}
               onChange={(val) => onUpdate(group.key, (g) => ({ ...g, templateId: val }))}
               loading={loadingTemplates}
               allowClear
-              placeholder="选择一个主题模版（可选）"
+              placeholder="选择一个智能体（可选）"
               style={{ width: '100%' }}
               options={templates.map(t => ({ label: t.name, value: t.id }))}
             />
           </div>
         ) : (
           <div style={{ flex: 1, minWidth: 260 }}>
-            <Text style={{ display: 'block', marginBottom: 6 }}>模版绑定</Text>
+            <Text style={{ display: 'block', marginBottom: 6 }}>智能体绑定</Text>
             <div style={{
               width: '100%',
               padding: '8px 12px',
@@ -276,7 +276,7 @@ const GroupEditor = ({ group, depth, systemCategories, templates, loadingTemplat
               borderRadius: 6,
               color: '#666'
             }}>
-              该层级不支持绑定模版，继承所属一级分组的模版设置
+              该层级不支持绑定智能体，继承所属一级分组的智能体设置
             </div>
           </div>
         )}

@@ -465,8 +465,8 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
     { 
        id: 'theme-template-center', 
        icon: Settings, 
-       label: '主题模版', 
-       shortLabel: '主题模版',
+       label: '智能体', 
+       shortLabel: '智能体',
        color: '#1890ff',
        type: 'single'
      },

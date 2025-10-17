@@ -29,7 +29,7 @@ const defaultTemplates = [
   {
     id: 'training-management',
     name: '培训需求与培训管理',
-    description: '专为教师培训需求分析和培训管理设计的主题模版',
+    description: '专为教师培训需求分析和培训管理设计的智能体',
     category: 'training',
     sourceTypes: ['文档', '视频', '链接'],
     smartTools: ['AI总结', '知识图谱', '学习路径规划'],
@@ -41,7 +41,7 @@ const defaultTemplates = [
   {
     id: 'personal-organization',
     name: '个人组织培训',
-    description: '个人组织和参与培训活动的管理模版',
+    description: '个人组织和参与培训活动的管理智能体',
     category: 'organization',
     sourceTypes: ['文档', '表格', '视频'],
     smartTools: ['进度跟踪', '效果评估', '反馈收集'],
@@ -53,7 +53,7 @@ const defaultTemplates = [
   {
     id: 'personal-work',
     name: '个人工作管理',
-    description: '教师个人工作任务和项目管理模版',
+    description: '教师个人工作任务和项目管理智能体',
     category: 'work',
     sourceTypes: ['文档', '表格', '链接', '图片'],
     smartTools: ['任务规划', '时间管理', '工作总结'],
@@ -65,7 +65,7 @@ const defaultTemplates = [
   {
     id: 'personal-study',
     name: '个人学习提升',
-    description: '教师个人专业发展和学习提升模版',
+    description: '教师个人专业发展和学习提升智能体',
     category: 'study',
     sourceTypes: ['文档', '视频', '链接', '音频'],
     smartTools: ['学习笔记', '知识整理', '复习提醒'],
@@ -77,7 +77,7 @@ const defaultTemplates = [
   {
     id: 'comprehensive-development',
     name: '教师综合能力发展',
-    description: '教师综合素质和能力全面发展模版',
+    description: '教师综合素质和能力全面发展智能体',
     category: 'comprehensive',
     sourceTypes: ['文档', '视频', '链接', '表格', '图片'],
     smartTools: ['能力评估', '发展规划', '成长记录', '反思总结'],
@@ -107,12 +107,12 @@ const ThemeTemplateSelector = ({ visible, onCancel, onSelect }) => {
       if (result.success) {
         setTemplates(result.data);
       } else {
-        message.error(result.message || '获取模版列表失败');
+        message.error(result.message || '获取智能体列表失败');
         setTemplates([]);
       }
     } catch (error) {
-      console.error('加载模版失败:', error);
-      message.error('加载模版失败');
+      console.error('加载智能体失败:', error);
+      message.error('加载智能体失败');
       setTemplates([]);
     } finally {
       setLoading(false);
@@ -131,17 +131,17 @@ const ThemeTemplateSelector = ({ visible, onCancel, onSelect }) => {
 
   const handleConfirm = async () => {
     if (!selectedTemplate) {
-      message.warning('请选择一个主题模版');
+      message.warning('请选择一个智能体');
       return;
     }
     
     try {
-      // 更新模版使用次数
+      // 更新智能体使用次数
       await updateTemplateUsage(selectedTemplate.id);
       onSelect(selectedTemplate);
     } catch (error) {
-      console.error('更新模版使用次数失败:', error);
-      // 即使更新失败，也继续选择模版
+      console.error('更新智能体使用次数失败:', error);
+      // 即使更新失败，也继续选择
       onSelect(selectedTemplate);
     }
     setSelectedTemplate(null);
@@ -239,7 +239,7 @@ const ThemeTemplateSelector = ({ visible, onCancel, onSelect }) => {
 
   return (
     <Modal
-      title="选择主题模版"
+      title="选择智能体"
       open={visible}
       onCancel={handleCancel}
       onOk={handleConfirm}
@@ -250,19 +250,19 @@ const ThemeTemplateSelector = ({ visible, onCancel, onSelect }) => {
     >
       <div style={{ marginBottom: '16px' }}>
         <Text type="secondary">
-          选择一个主题模版来快速初始化对应的来源类型和智能工具，提高您的工作效率。
+          选择一个智能体来快速初始化对应的来源类型和智能工具，提高您的工作效率。
         </Text>
       </div>
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: '40px' }}>
           <Spin size="large">
-            <div style={{ marginTop: 8 }}>加载模版中...</div>
+            <div style={{ marginTop: 8 }}>加载智能体中...</div>
           </Spin>
         </div>
       ) : templates.length === 0 ? (
         <Empty
-          description="暂无可用模版"
+          description="暂无可用智能体"
           image={Empty.PRESENTED_IMAGE_SIMPLE}
         />
       ) : (

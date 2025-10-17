@@ -83,8 +83,8 @@ const ThemeTemplateCenter = ({ onBack }) => {
       const defaultTemplates = [
         {
           id: 'template-1',
-          name: '基础教学模版',
-          description: '适用于基础教学场景的通用模版',
+          name: '基础教学智能体',
+          description: '适用于基础教学场景的通用智能体',
           sourceTypes: ['course-videos', 'uploaded-files', 'added-texts'],
           smartTools: ['knowledge-graph-tool', 'ppt-overview', 'smart-writer'],
           createTime: '2024-01-15 10:00:00',
@@ -94,8 +94,8 @@ const ThemeTemplateCenter = ({ onBack }) => {
         },
         {
           id: 'template-2',
-          name: '研究分析模版',
-          description: '专为学术研究和数据分析设计的模版',
+          name: '研究分析智能体',
+          description: '专为学术研究和数据分析设计的智能体',
           sourceTypes: ['knowledge-graph', 'links', 'uploaded-files'],
           smartTools: ['data-analyst', 'research-helper', 'smart-writer'],
           createTime: '2024-01-14 15:30:00',
@@ -106,7 +106,7 @@ const ThemeTemplateCenter = ({ onBack }) => {
         {
           id: 'template-3',
           name: '培训需求与培训管理',
-          description: '专为培训需求分析和培训项目管理设计的综合模版',
+          description: '专为培训需求分析和培训项目管理设计的综合智能体',
           sourceTypes: ['organizational-courses', 'uploaded-files', 'added-texts', 'links'],
           smartTools: ['data-analyst', 'teaching-assistant', 'efficiency-master', 'smart-writer'],
           createTime: '2024-01-20 14:20:00',
@@ -117,7 +117,7 @@ const ThemeTemplateCenter = ({ onBack }) => {
         {
           id: 'template-4',
           name: '个人组织培训',
-          description: '适用于个人参与组织培训活动的学习和管理模版',
+          description: '适用于个人参与组织培训活动的学习和管理智能体',
           sourceTypes: ['organizational-courses', 'course-videos', 'live-courses', 'uploaded-files'],
           smartTools: ['knowledge-graph-tool', 'teaching-assistant', 'efficiency-master'],
           createTime: '2024-01-18 09:15:00',
@@ -128,7 +128,7 @@ const ThemeTemplateCenter = ({ onBack }) => {
         {
           id: 'template-5',
           name: '个人工作管理',
-          description: '教师个人工作任务管理和效率提升的专用模版',
+          description: '教师个人工作任务管理和效率提升的专用智能体',
           sourceTypes: ['added-texts', 'uploaded-files', 'links'],
           smartTools: ['efficiency-master', 'data-analyst', 'smart-writer'],
           createTime: '2024-01-17 16:45:00',
@@ -139,7 +139,7 @@ const ThemeTemplateCenter = ({ onBack }) => {
         {
           id: 'template-6',
           name: '个人学习提升',
-          description: '教师个人专业发展和持续学习的综合模版',
+          description: '教师个人专业发展和持续学习的综合智能体',
           sourceTypes: ['course-videos', 'knowledge-graph', 'links', 'uploaded-files'],
           smartTools: ['knowledge-graph-tool', 'research-helper', 'smart-writer', 'teaching-assistant'],
           createTime: '2024-01-16 11:30:00',
@@ -150,7 +150,7 @@ const ThemeTemplateCenter = ({ onBack }) => {
         {
           id: 'template-7',
           name: '教师综合能力发展',
-          description: '涵盖教学、科研、管理等多方面的教师综合能力提升模版',
+          description: '涵盖教学、科研、管理等多方面的教师综合能力提升智能体',
           sourceTypes: ['knowledge-graph', 'capability-model', 'course-videos', 'organizational-courses', 'uploaded-files', 'links'],
           smartTools: ['knowledge-graph-tool', 'data-analyst', 'research-helper', 'teaching-assistant', 'efficiency-master', 'smart-writer'],
           createTime: '2024-01-19 13:10:00',
@@ -192,7 +192,7 @@ const ThemeTemplateCenter = ({ onBack }) => {
   const handleDelete = (templateId) => {
     const newTemplates = templates.filter(t => t.id !== templateId);
     saveTemplates(newTemplates);
-    message.success('模版删除成功');
+    message.success('智能体删除成功');
   };
 
   const handleCopy = (template) => {
@@ -206,7 +206,7 @@ const ThemeTemplateCenter = ({ onBack }) => {
     };
     const newTemplates = [...templates, newTemplate];
     saveTemplates(newTemplates);
-    message.success('模版复制成功');
+    message.success('智能体复制成功');
   };
 
   const handleSubmit = async () => {
@@ -222,7 +222,7 @@ const ThemeTemplateCenter = ({ onBack }) => {
             : t
         );
         saveTemplates(newTemplates);
-        message.success('模版更新成功');
+        message.success('智能体更新成功');
       } else {
         // 创建模式
         const newTemplate = {
@@ -235,7 +235,7 @@ const ThemeTemplateCenter = ({ onBack }) => {
         };
         const newTemplates = [...templates, newTemplate];
         saveTemplates(newTemplates);
-        message.success('模版创建成功');
+        message.success('智能体创建成功');
       }
       
       setModalVisible(false);
@@ -278,19 +278,19 @@ const ThemeTemplateCenter = ({ onBack }) => {
           <Tooltip title="查看详情">
             <EyeOutlined />
           </Tooltip>,
-          <Tooltip title="编辑模版">
+          <Tooltip title="编辑智能体">
             <EditOutlined onClick={(e) => { e.stopPropagation(); handleEdit(template); }} />
           </Tooltip>,
-          <Tooltip title="复制模版">
+          <Tooltip title="复制智能体">
             <CopyOutlined onClick={(e) => { e.stopPropagation(); handleCopy(template); }} />
           </Tooltip>,
           <Popconfirm
-            title="确定要删除这个模版吗？"
+            title="确定要删除这个智能体吗？"
             onConfirm={() => handleDelete(template.id)}
             okText="确定"
             cancelText="取消"
           >
-            <Tooltip title="删除模版">
+            <Tooltip title="删除智能体">
               <DeleteOutlined onClick={(e) => e.stopPropagation()} />
             </Tooltip>
           </Popconfirm>
@@ -357,10 +357,10 @@ const ThemeTemplateCenter = ({ onBack }) => {
           <div>
             <Title level={2} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '12px' }}>
               <SettingOutlined style={{ color: '#1890ff' }} />
-              主题模版管理
+              智能体管理
             </Title>
             <Text type="secondary" style={{ marginTop: '8px', display: 'block' }}>
-              管理和配置果仁的主题模版，组合不同的来源类型和智能工具
+              管理和配置果仁的智能体，组合不同的来源类型和智能工具
             </Text>
           </div>
           <Button 
@@ -369,9 +369,9 @@ const ThemeTemplateCenter = ({ onBack }) => {
             size="large"
             onClick={handleCreate}
           >
-            创建模版
+            创建智能体
           </Button>
-        </div>
+          </div>
 
         {/* 统计卡片 */}
         <Row gutter={16} style={{ marginBottom: '24px' }}>
@@ -391,7 +391,7 @@ const ThemeTemplateCenter = ({ onBack }) => {
                   📋
                 </div>
                 <div>
-                  <Text type="secondary">总模版数</Text>
+                  <Text type="secondary">总智能体数</Text>
                   <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1890ff' }}>
                     {templates.length}
                   </div>
@@ -476,8 +476,8 @@ const ThemeTemplateCenter = ({ onBack }) => {
         {/* 模版列表 */}
         <Card>
           <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Title level={4} style={{ margin: 0 }}>模版列表</Title>
-            <Text type="secondary">共 {templates.length} 个模版</Text>
+            <Title level={4} style={{ margin: 0 }}>智能体列表</Title>
+            <Text type="secondary">共 {templates.length} 个智能体</Text>
           </div>
           
           {loading ? (
@@ -488,11 +488,11 @@ const ThemeTemplateCenter = ({ onBack }) => {
             </div>
           ) : templates.length === 0 ? (
             <Empty
-              description="暂无模版"
+              description="暂无智能体"
               image={Empty.PRESENTED_IMAGE_SIMPLE}
             >
               <Button type="primary" onClick={handleCreate}>
-                创建第一个模版
+                创建第一个智能体
               </Button>
             </Empty>
           ) : (
@@ -507,7 +507,7 @@ const ThemeTemplateCenter = ({ onBack }) => {
           title={
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <BulbOutlined style={{ color: '#1890ff' }} />
-              {editingTemplate ? '编辑模版' : '创建模版'}
+              {editingTemplate ? '编辑智能体' : '创建智能体'}
             </div>
           }
           open={modalVisible}
@@ -526,19 +526,19 @@ const ThemeTemplateCenter = ({ onBack }) => {
               <Col span={12}>
                 <Form.Item
                   name="name"
-                  label="模版名称"
-                  rules={[{ required: true, message: '请输入模版名称' }]}
+                  label="智能体名称"
+                  rules={[{ required: true, message: '请输入智能体名称' }]}
                 >
-                  <Input placeholder="请输入模版名称" />
+                  <Input placeholder="请输入智能体名称" />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item
                   name="description"
-                  label="模版描述"
-                  rules={[{ required: true, message: '请输入模版描述' }]}
+                  label="智能体描述"
+                  rules={[{ required: true, message: '请输入智能体描述' }]}
                 >
-                  <Input placeholder="请输入模版描述" />
+                  <Input placeholder="请输入智能体描述" />
                 </Form.Item>
               </Col>
             </Row>

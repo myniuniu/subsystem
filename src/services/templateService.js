@@ -6,7 +6,7 @@ const DEFAULT_TEMPLATES = [
   {
     id: 'training-management',
     name: '培训需求与培训管理',
-    description: '专为教师培训需求分析和培训管理设计的主题模版',
+    description: '专为教师培训需求分析和培训管理设计的智能体',
     category: 'training',
     sourceTypes: ['文档', '视频', '链接'],
     smartTools: ['AI总结', '知识图谱', '学习路径规划'],
@@ -18,7 +18,7 @@ const DEFAULT_TEMPLATES = [
   {
     id: 'personal-organization',
     name: '个人组织培训',
-    description: '个人组织和参与培训活动的管理模版',
+    description: '个人组织和参与培训活动的管理智能体',
     category: 'organization',
     sourceTypes: ['文档', '表格', '视频'],
     smartTools: ['进度跟踪', '效果评估', '反馈收集'],
@@ -30,7 +30,7 @@ const DEFAULT_TEMPLATES = [
   {
     id: 'personal-work',
     name: '个人工作管理',
-    description: '教师个人工作任务和项目管理模版',
+    description: '教师个人工作任务和项目管理智能体',
     category: 'work',
     sourceTypes: ['文档', '表格', '链接', '图片'],
     smartTools: ['任务规划', '时间管理', '工作总结'],
@@ -42,7 +42,7 @@ const DEFAULT_TEMPLATES = [
   {
     id: 'personal-study',
     name: '个人学习提升',
-    description: '教师个人专业发展和学习提升模版',
+    description: '教师个人专业发展和学习提升智能体',
     category: 'study',
     sourceTypes: ['文档', '视频', '链接', '音频'],
     smartTools: ['学习笔记', '知识整理', '复习提醒'],
@@ -54,7 +54,7 @@ const DEFAULT_TEMPLATES = [
   {
     id: 'comprehensive-development',
     name: '教师综合能力发展',
-    description: '教师综合素质和能力全面发展模版',
+    description: '教师综合素质和能力全面发展的智能体',
     category: 'comprehensive',
     sourceTypes: ['文档', '视频', '链接', '表格', '图片'],
     smartTools: ['能力评估', '发展规划', '成长记录', '反思总结'],
@@ -99,7 +99,7 @@ export const getAvailableTemplates = async () => {
     // 首先尝试从localStorage获取
     let templates = getTemplatesFromStorage();
     
-    // 如果没有数据，使用默认模版
+    // 如果没有数据，使用默认
     if (templates.length === 0) {
       templates = DEFAULT_TEMPLATES;
       saveTemplatesToStorage(templates);
@@ -108,14 +108,14 @@ export const getAvailableTemplates = async () => {
     return {
       success: true,
       data: templates,
-      message: '获取模版列表成功'
+      message: '获取智能体列表成功'
     };
   } catch (error) {
-    console.error('获取模版列表失败:', error);
+    console.error('获取智能体列表失败:', error);
     return {
       success: false,
       data: [],
-      message: '获取模版列表失败'
+      message: '获取智能体列表失败'
     };
   }
 };
@@ -130,21 +130,21 @@ export const getTemplateById = async (templateId) => {
       return {
         success: true,
         data: template,
-        message: '获取模版详情成功'
+        message: '获取智能体详情成功'
       };
     } else {
       return {
         success: false,
         data: null,
-        message: '模版不存在'
+        message: '智能体不存在'
       };
     }
   } catch (error) {
-    console.error('获取模版详情失败:', error);
+    console.error('获取智能体详情失败:', error);
     return {
       success: false,
       data: null,
-      message: '获取模版详情失败'
+      message: '获取智能体详情失败'
     };
   }
 };

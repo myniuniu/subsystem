@@ -660,7 +660,7 @@ const NotesSidebar = ({
       {
         key: 'template',
         icon: <BookOutlined />,
-        label: <span>主题模版</span>
+        label: <span>智能体</span>
       },
       { type: 'divider' }
     ] : []),
@@ -689,7 +689,7 @@ const NotesSidebar = ({
     const current = getSystemCategoryConfig();
     if (key === 'template') {
       if (depth !== 1) {
-        message.info('仅一级分组支持绑定主题模版');
+        message.info('仅一级分组支持绑定智能体');
         return;
       }
       setTemplateTargetGroupKey(group.key);
@@ -1200,7 +1200,7 @@ const NotesSidebar = ({
             onChange={(val) => setSelectedTemplateId(val || null)}
             loading={loadingTemplates}
             allowClear
-            placeholder="选择主题模版（仅一级分类可选）"
+            placeholder="选择智能体（仅一级分类可选）"
             style={{ width: '100%', marginTop: 12 }}
             options={(availableTemplates || []).map(t => ({ label: t.name, value: t.id }))}
           />
@@ -1252,7 +1252,7 @@ const NotesSidebar = ({
       {/* 绑定主题模版（仅一级分组） */}
       <Modal
         open={isTemplateModalVisible}
-        title={'绑定主题模版'}
+        title={'绑定智能体'}
         okText="保存"
         cancelText="取消"
         onOk={() => {
@@ -1263,7 +1263,7 @@ const NotesSidebar = ({
           }));
           const ok = saveSystemCategoryConfig(next);
           if (ok) {
-            message.success('已更新主题模版');
+            message.success('已更新智能体');
             setIsTemplateModalVisible(false);
             setTemplateTargetGroupKey(null);
             setSelectedTemplateId(null);
@@ -1283,7 +1283,7 @@ const NotesSidebar = ({
           onChange={(val) => setSelectedTemplateId(val || null)}
           loading={loadingTemplates}
           allowClear
-          placeholder="选择主题模版（仅一级分组）"
+          placeholder="选择智能体（仅一级分组）"
           style={{ width: '100%' }}
           options={(availableTemplates || []).map(t => ({ label: t.name, value: t.id }))}
         />
