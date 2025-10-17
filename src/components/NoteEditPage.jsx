@@ -915,6 +915,55 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
     
     onMoreAction: (action, record) => {
       switch (action) {
+        case 'rename': {
+          // 重命名操作记录
+          let newTitle = record.title;
+          Modal.confirm({
+            title: '重命名',
+            content: (
+              <Input
+                defaultValue={record.title}
+                placeholder="请输入新名称"
+                onChange={(e) => { newTitle = e.target.value; }}
+                onPressEnter={(e) => {
+                  newTitle = e.target.value;
+                  // 模拟点击确定按钮
+                  document.querySelector('.ant-modal-confirm-btns .ant-btn-primary')?.click();
+                }}
+                autoFocus
+              />
+            ),
+            okText: '确定',
+            cancelText: '取消',
+            onOk: () => {
+              if (!newTitle || newTitle.trim() === '') {
+                message.error('名称不能为空');
+                return Promise.reject();
+              }
+              
+              if (newTitle === record.title) {
+                message.info('名称没有变化');
+                return;
+              }
+              
+              // 更新记录标题
+              setOperationRecords(prev => {
+                const newRecords = { ...prev };
+                Object.keys(newRecords).forEach(type => {
+                  if (Array.isArray(newRecords[type])) {
+                    newRecords[type] = newRecords[type].map(r => 
+                      r.id === record.id ? { ...r, title: newTitle.trim() } : r
+                    );
+                  }
+                });
+                return newRecords;
+              });
+              
+              message.success(`已将“${record.title}”重命名为“${newTitle.trim()}”`);
+            }
+          });
+          break;
+        }
         case 'convertToSource': {
           // 将操作记录/笔记转换为资料来源
           const newMaterial = {

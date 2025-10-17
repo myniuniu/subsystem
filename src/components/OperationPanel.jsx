@@ -461,6 +461,19 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
   const getMoreMenuItems = (record) => {
     const commonItems = [
       {
+        key: 'rename',
+        label: (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '16px' }}>✏️</span>
+            <span>重命名</span>
+          </div>
+        ),
+        onClick: (e) => {
+          e?.stopPropagation?.();
+          onMoreAction && onMoreAction('rename', record);
+        }
+      },
+      {
         key: 'copyTo',
         label: (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

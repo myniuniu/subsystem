@@ -22,7 +22,9 @@ import {
   BookOutlined,
   ArrowLeftOutlined,
   EditOutlined,
-  SaveOutlined
+  SaveOutlined,
+  PaperClipOutlined,
+  FileExcelOutlined
 } from '@ant-design/icons';
 import { RIGHT_PANEL_VIEWS, VIEW_MODES } from '../../constants/noteEditConstants';
 import { generateComprehensiveTrainingPlan, generateTrainingPlanMarkdown } from '../../utils/trainingPlanGenerator';
@@ -44,6 +46,41 @@ const TrainingPlanViewer = ({
   // 编辑模式状态
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
+
+  // 下载培训人员清单
+  const handleDownloadParticipantsList = () => {
+    // 模拟生成培训人员清单数据
+    const participants = [
+      { name: '张三', department: '数学组', position: '教师', phone: '13800138001', email: 'zhangsan@school.edu' },
+      { name: '李四', department: '语文组', position: '教师', phone: '13800138002', email: 'lisi@school.edu' },
+      { name: '王五', department: '英语组', position: '教师', phone: '13800138003', email: 'wangwu@school.edu' },
+      { name: '赵六', department: '物理组', position: '教师', phone: '13800138004', email: 'zhaoliu@school.edu' },
+      { name: '孙七', department: '化学组', position: '教师', phone: '13800138005', email: 'sunqi@school.edu' },
+      { name: '周八', department: '生物组', position: '教师', phone: '13800138006', email: 'zhouba@school.edu' },
+      { name: '吴九', department: '历史组', position: '教师', phone: '13800138007', email: 'wujiu@school.edu' },
+      { name: '郑十', department: '地理组', position: '教师', phone: '13800138008', email: 'zhengshi@school.edu' }
+    ];
+
+    // 生成CSV格式的内容
+    let csvContent = '\uFEFF'; // 添加BOM头，确保Excel正确识别UTF-8编码
+    csvContent += '姓名,部门,职位,联系电话,电子邮箱\n';
+    participants.forEach(p => {
+      csvContent += `${p.name},${p.department},${p.position},${p.phone},${p.email}\n`;
+    });
+
+    // 创建Blob并下载
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', '新教师入职培训-培训人员清单.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    message.success('培训人员清单已下载');
+  };
 
   // 返回上一级
   const handleBack = () => {
@@ -514,6 +551,38 @@ const TrainingPlanViewer = ({
                 </Card>
               </Col>
             </Row>
+            
+            {/* 培训人员清单附件 */}
+            <Card 
+              size="small" 
+              style={{ marginTop: '16px', background: '#fafafa' }}
+              title={
+                <Space>
+                  <PaperClipOutlined style={{ color: '#1890ff' }} />
+                  <Text strong>培训人员清单</Text>
+                </Space>
+              }
+            >
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Space>
+                    <FileExcelOutlined style={{ fontSize: '20px', color: '#52c41a' }} />
+                    <div>
+                      <Text strong>新教师入职培训-培训人员清单.csv</Text>
+                      <br />
+                      <Text type="secondary" style={{ fontSize: '12px' }}>包含8名培训人员的详细信息（姓名、部门、职位、联系方式）</Text>
+                    </div>
+                  </Space>
+                  <Button 
+                    type="primary" 
+                    icon={<DownloadOutlined />}
+                    onClick={handleDownloadParticipantsList}
+                  >
+                    下载清单
+                  </Button>
+                </div>
+              </Space>
+            </Card>
           </div>
 
           {/* 培训阶段 */}
