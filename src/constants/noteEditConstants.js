@@ -104,6 +104,7 @@ export const RIGHT_PANEL_VIEWS = {
   TRAINING_PLAN_VIEWER: 'training_plan_viewer',
   TRAINING_REPORT_VIEWER: 'training_report_viewer',
   TRAINING_DASHBOARD_VIEWER: 'training_dashboard_viewer',
+  TRAINING_SETTINGS_VIEWER: 'training_settings_viewer',
   VIDEO_PLAYER: 'video_player'
 };
 
@@ -177,15 +178,15 @@ export const MESSAGE_TYPES = {
 
 // 操作菜单项常量
 export const MORE_MENU_ACTIONS = {
+  RENAME: 'rename',
+  CONVERT_TO_SOURCE: 'convertToSource',
+  OPEN_IN_NEW_WINDOW: 'openInNewWindow',
   MARK_STUDY_RESULT: 'markStudyResult',
   UNMARK_STUDY_RESULT: 'unmarkStudyResult',
-  CONVERT_TO_SOURCE: 'convertToSource',
-  DELETE: 'delete',
-  RENAME: 'rename',
-  VIEW: 'view',
-  OPEN_IN_NEW_WINDOW: 'openInNewWindow',
   COPY_TO: 'copyTo',
-  MOVE_TO: 'moveTo'
+  MOVE_TO: 'moveTo',
+  DELETE: 'delete',
+  OPEN_TRAINING_SETTINGS: 'openTrainingSettings'
 };
 
 // 时间格式正则表达式

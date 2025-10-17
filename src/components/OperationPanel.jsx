@@ -49,6 +49,7 @@ import VideoPlayer from './VideoPlayer';
 import TrainingDashboardViewer from './OperationPanel/TrainingDashboardViewer';
 import ToolGrid from './OperationPanel/ToolGrid';
 import { createGetAvailableAITools } from './OperationPanel/getAvailableAITools.jsx';
+import TrainingTypeSettingsViewer from './OperationPanel/TrainingTypeSettingsViewer';
 
 // 导入自定义Hooks
 import { 
@@ -642,6 +643,29 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
 
     // 培训方案类型添加提交按钮
     if (record.type === 'training-plan') {
+      const commonWithSettings = (() => {
+        const idx = commonItems.findIndex(i => i.key === 'markAgentCorpus');
+        const settingsItem = {
+          key: MORE_MENU_ACTIONS.OPEN_TRAINING_SETTINGS,
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>⚙️</span>
+              <span>方案配置</span>
+            </div>
+          ),
+          onClick: (e) => {
+            e?.stopPropagation?.();
+            onMoreAction && onMoreAction(MORE_MENU_ACTIONS.OPEN_TRAINING_SETTINGS, record);
+          }
+        };
+        if (idx !== -1) {
+          const arr = [...commonItems];
+          arr.splice(idx + 1, 0, settingsItem);
+          return arr;
+        }
+        return [settingsItem, ...commonItems];
+      })();
+
       return [
         {
           key: 'submit',
@@ -669,7 +693,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
             onMoreAction && onMoreAction('convertToSource', record);
           }
         },
-        ...commonItems
+        ...commonWithSettings
       ];
     }
 
@@ -949,6 +973,15 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
         setRightPanelView={setRightPanelView}
         setRightPanelTrainingPlanRecord={setRightPanelTrainingPlanRecord}
         setRightPanelTrainingPlanContent={setRightPanelTrainingPlanContent}
+      />
+    );
+  }
+
+  if (rightPanelView === RIGHT_PANEL_VIEWS.TRAINING_SETTINGS_VIEWER) {
+    return (
+      <TrainingTypeSettingsViewer 
+        record={rightPanelTrainingPlanRecord}
+        setRightPanelView={setRightPanelView}
       />
     );
   }

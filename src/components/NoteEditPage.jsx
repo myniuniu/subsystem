@@ -1034,6 +1034,10 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
             message.error('新窗口打开失败');
           }
           break;
+        case MORE_MENU_ACTIONS.OPEN_TRAINING_SETTINGS:
+          state.setRightPanelTrainingPlanRecord && state.setRightPanelTrainingPlanRecord(record);
+          state.setRightPanelView && state.setRightPanelView(RIGHT_PANEL_VIEWS.TRAINING_SETTINGS_VIEWER);
+          break;
         case 'submit':
           // 提交培训方案
           message.loading('正在提交培训方案...', 1);
