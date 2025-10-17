@@ -640,31 +640,29 @@ const TrainingPlanViewer = ({
                 {
                   title: '周次',
                   dataIndex: 'week',
-                  key: 'week',
-                  width: '15%'
+                  key: 'week'
                 },
                 {
                   title: '培训内容',
                   dataIndex: 'content',
-                  key: 'content',
-                  width: '40%'
+                  key: 'content'
                 },
                 {
                   title: '培训形式',
                   dataIndex: 'type',
-                  key: 'type',
-                  width: '25%'
+                  key: 'type'
                 },
                 {
                   title: '学时',
                   dataIndex: 'hours',
                   key: 'hours',
-                  width: '20%',
                   render: (hours) => `${hours}学时`
                 }
               ]}
               pagination={false}
               size="small"
+              style={{ width: '100%' }}
+              tableLayout="fixed"
             />
           </div>
 
