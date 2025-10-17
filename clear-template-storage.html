@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>清除智能体列表数据</title>
+</head>
+<body>
+  <h1>清除智能体列表数据</h1>
+  <p>将清除本地存储中的智能体列表数据（theme-templates），并返回主页以加载新的默认列表。</p>
+  <script>
+    try {
+      localStorage.removeItem('theme-templates');
+      alert('已清除智能体列表数据，将返回主页并加载新的默认列表');
+    } catch (e) {
+      alert('清除失败：' + e.message);
+    } finally {
+      // 重定向回首页（Vite Dev Server 默认入口）
+      window.location.href = '/';
+    }
+  </script>
+</body>
+</html>
