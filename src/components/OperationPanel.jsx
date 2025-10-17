@@ -6,13 +6,20 @@ import {
   Card,
   Dropdown,
   Modal,
-  Tooltip
+  Tooltip,
+  Space
 } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
   ArrowLeftOutlined,
-  DeleteOutlined
+  DeleteOutlined,
+  UpOutlined,
+  DownOutlined,
+  LeftOutlined,
+  RightOutlined,
+  ColumnWidthOutlined,
+  MenuUnfoldOutlined
 } from '@ant-design/icons';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -207,6 +214,16 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
   } = useOperationPanelState(noteCategory);
   // AI工具版本：用于在收到事件时触发重渲染
   const [aiToolsVersion, setAiToolsVersion] = useState(0);
+  
+  // 收起/展开状态
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  
+  // 通知父组件收起状态变化
+  useEffect(() => {
+    if (state.setOperationPanelCollapsed) {
+      state.setOperationPanelCollapsed(isCollapsed);
+    }
+  }, [isCollapsed, state]);
   
   const {
     questionConfigVisible,
@@ -925,11 +942,11 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
 
   // 主要内容区域 - 使用工具网格组件
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: isCollapsed ? '52px' : 'auto', transition: 'width 0.3s ease' }}>
       <DndProvider backend={HTML5Backend}>
         <div style={{ 
-          padding: '16px', 
-          paddingBottom: '12px',
+          padding: isCollapsed ? '2px 0' : '16px', 
+          paddingBottom: isCollapsed ? '2px' : '12px',
           display: 'flex',
           flexDirection: 'column'
         }}>
@@ -937,57 +954,253 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
           {/* 操作面板标题和编辑按钮 */}
           <div style={{ 
             display: 'flex', 
-            justifyContent: 'space-between', 
+            justifyContent: isCollapsed ? 'center' : 'space-between', 
             alignItems: 'center',
             marginBottom: '16px'
           }}>
-            <Title level={4} style={{ margin: 0, color: '#1890ff' }}>
-              🔧 智能工具
-            </Title>
-            <Button
-              type={isEditMode ? 'primary' : 'default'}
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => setIsEditMode(!isEditMode)}
-              style={{
-                fontSize: '12px',
-                height: '28px',
-                borderRadius: '6px'
-              }}
-            >
-              {isEditMode ? '完成编辑' : '编辑'}
-            </Button>
+            {!isCollapsed && (
+              <Title level={4} style={{ margin: 0, color: '#1890ff' }}>
+                🔧 智能工具
+              </Title>
+            )}
+            <Space size={8}>
+              {!isCollapsed && (
+                <Button
+                  type={isEditMode ? 'primary' : 'default'}
+                  size="small"
+                  icon={<EditOutlined />}
+                  onClick={() => setIsEditMode(!isEditMode)}
+                  style={{
+                    fontSize: '12px',
+                    height: '28px',
+                    borderRadius: '6px'
+                  }}
+                >
+                  {isEditMode ? '完成编辑' : '编辑'}
+                </Button>
+              )}
+              <Tooltip title={isCollapsed ? '展开' : '收起'}>
+                <Button
+                  type="text"
+                  size="small"
+                  icon={isCollapsed ? <MenuUnfoldOutlined /> : <ColumnWidthOutlined />}
+                  onClick={() => setIsCollapsed(!isCollapsed)}
+                  style={{
+                    fontSize: '12px',
+                    height: '28px',
+                    width: '28px',
+                    borderRadius: '6px',
+                    background: '#f5f5f5'
+                  }}
+                />
+              </Tooltip>
+            </Space>
           </div>
 
           {/* 工具网格 */}
-          <ToolGrid 
-            visibleCards={visibleCards}
-            setVisibleCards={setVisibleCards}
-            isEditMode={isEditMode}
-            hasSourceData={hasSourceData}
-            sourceInfo={sourceInfo}
-            showCardSelector={showCardSelector}
-            setShowCardSelector={setShowCardSelector}
-            onCardClick={handleCardClick}
-            onAddCard={handleAddCard}
-            onRemoveCard={handleRemoveCard}
-            onMoveCard={moveCardPosition}
-            onAddAITool={handleAddAITool}
-            getAvailableAITools={getAvailableAITools}
-            loadingCards={loadingCards}
-            hideEmptySlots={hideEmptySlots}
-          />
+          {!isCollapsed && (
+            <ToolGrid 
+              visibleCards={visibleCards}
+              setVisibleCards={setVisibleCards}
+              isEditMode={isEditMode}
+              hasSourceData={hasSourceData}
+              sourceInfo={sourceInfo}
+              showCardSelector={showCardSelector}
+              setShowCardSelector={setShowCardSelector}
+              onCardClick={handleCardClick}
+              onAddCard={handleAddCard}
+              onRemoveCard={handleRemoveCard}
+              onMoveCard={moveCardPosition}
+              onAddAITool={handleAddAITool}
+              getAvailableAITools={getAvailableAITools}
+              loadingCards={loadingCards}
+              hideEmptySlots={hideEmptySlots}
+            />
+          )}
+          
+          {/* 收起后显示为垂直侧边栏 */}
+          {isCollapsed && (
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              gap: '3px',
+              alignItems: 'center',
+              paddingTop: '2px'
+            }}>
+              {/* 智能工具区域标题图标 */}
+              <Tooltip title="智能工具" placement="right">
+                <div style={{
+                  width: '34px',
+                  height: '34px',
+                  background: 'linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%)',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '16px',
+                  cursor: 'default',
+                  marginBottom: '3px',
+                  border: '1.5px solid #7986cb'
+                }}>
+                  🔧
+                </div>
+              </Tooltip>
+              
+              {/* 工具卡片列表 */}
+              {visibleCards && visibleCards.length > 0 && visibleCards.filter(card => card.key !== 'addTool').map((card, index) => {
+                const isLoading = loadingCards && typeof loadingCards.has === 'function' && loadingCards.has(card.key);
+                return (
+                <Tooltip key={card.key} title={card.title} placement="right">
+                  <div
+                    onClick={() => !isLoading && handleCardClick(card)}
+                    style={{
+                      width: '34px',
+                      height: '34px',
+                      background: card.gradient || '#f5f5f5',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '15px',
+                      cursor: isLoading ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                      opacity: hasSourceData || card.key === 'addTool' ? 1 : 0.5,
+                      position: 'relative'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isLoading) {
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                        e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.1)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)';
+                    }}
+                  >
+                    {card.icon}
+                    {isLoading && (
+                      <div style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <div style={{
+                          width: '12px',
+                          height: '12px',
+                          border: '2px solid #1890ff',
+                          borderTopColor: 'transparent',
+                          borderRadius: '50%',
+                          animation: 'spin 0.8s linear infinite'
+                        }} />
+                      </div>
+                    )}
+                  </div>
+                </Tooltip>
+                );
+              })}
+              
+              {/* 分隔线 */}
+              <div style={{
+                width: '22px',
+                height: '1px',
+                background: '#e0e0e0',
+                margin: '2px 0'
+              }} />
+              
+              {/* 操作记录区域标题图标 */}
+              <Tooltip title="操作记录" placement="right">
+                <div style={{
+                  width: '34px',
+                  height: '34px',
+                  background: 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '16px',
+                  cursor: 'default',
+                  marginBottom: '3px',
+                  border: '1.5px solid #ffb74d'
+                }}>
+                  📝
+                </div>
+              </Tooltip>
+              
+              {/* 操作记录列表（最多显示8个） */}
+              {operationRecords && Object.values(operationRecords).flat().slice(0, 8).map(record => {
+                const getIcon = (type) => {
+                  const iconMap = {
+                    'audio': '🎧',
+                    'video': '🎥',
+                    'mindmap': '🧠',
+                    'report': '📊',
+                    'ppt': '📊',
+                    'webcode': '💻',
+                    'scenario': '🎭',
+                    'note': '📝',
+                    'question': '❓',
+                    'learning-plan': '📅',
+                    'grading': '✅',
+                    'knowledge-graph': '🕸️',
+                    'training-plan': '🎯',
+                    'classroom-evaluation': '📊'
+                  };
+                  return iconMap[type] || '📄';
+                };
+                
+                return (
+                  <Tooltip key={record.id} title={record.title} placement="right">
+                    <div
+                      onClick={() => onRecordClick && onRecordClick(record)}
+                      style={{
+                        width: '34px',
+                        height: '34px',
+                        background: '#f5f5f5',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '15px',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                        e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.1)';
+                        e.currentTarget.style.background = '#e3f2fd';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)';
+                        e.currentTarget.style.background = '#f5f5f5';
+                      }}
+                    >
+                      {getIcon(record.type)}
+                    </div>
+                  </Tooltip>
+                );
+              })}
+            </div>
+          )}
         </div>
       </DndProvider>
       
       {/* 操作记录区域 */}
-      <div style={{ 
-        padding: '20px', 
-        borderTop: '1px solid #f0f0f0', 
-        flex: 1, 
-        display: 'flex', 
-        flexDirection: 'column' 
-      }}>
+      {!isCollapsed && (
+        <div style={{ 
+          padding: '20px', 
+          borderTop: '1px solid #f0f0f0', 
+          flex: 1, 
+          display: 'flex', 
+          flexDirection: 'column' 
+        }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>📝 操作记录</Title>
           <Dropdown
@@ -1206,6 +1419,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
           )}
         </div>
       </div>
+      )}
 
       {/* 模态框组件 */}
       <QuestionConfigModal

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, Button, Tooltip, Typography, Modal, Form, Switch, Select, InputNumber, Input, Tag } from 'antd';
-import { DeleteOutlined, SettingOutlined, PlusOutlined } from '@ant-design/icons';
+import { DeleteOutlined, SettingOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { useDrag, useDrop } from 'react-dnd';
 
 const { Text } = Typography;
@@ -388,7 +388,13 @@ const DraggableOperationCard = ({
           </Form.Item>
           
           {/* 第四行：课程圈选 + 培训人员圈选 */}
-          <Form.Item label="课程圈选">
+          <Form.Item 
+            label={
+              <Tooltip title="在资源标注模块维护" placement="top">
+                <span>课程圈选 <QuestionCircleOutlined style={{ color: '#8c8c8c', fontSize: '12px' }} /></span>
+              </Tooltip>
+            }
+          >
             <Select
               mode="tags"
               value={config.courseSelection}
@@ -401,7 +407,13 @@ const DraggableOperationCard = ({
             />
           </Form.Item>
           
-          <Form.Item label="培训人员圈选">
+          <Form.Item 
+            label={
+              <Tooltip title="在学员标注模块维护" placement="top">
+                <span>培训人员圈选 <QuestionCircleOutlined style={{ color: '#8c8c8c', fontSize: '12px' }} /></span>
+              </Tooltip>
+            }
+          >
             <Select
               mode="tags"
               value={config.participantSelection}

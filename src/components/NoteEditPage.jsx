@@ -185,6 +185,9 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [mouseDownPos, setMouseDownPos] = useState({ x: 0, y: 0 });
+  
+  // 操作面板收起状态
+  const [operationPanelCollapsed, setOperationPanelCollapsed] = useState(false);
 
   // 会议控制函数
   const startVideoCall = async () => {
@@ -1392,6 +1395,10 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
             {/* 右侧操作区域 */}
             <div style={{ 
               flex: (() => {
+                // 收起状态下减小 flex 值
+                if (operationPanelCollapsed) {
+                  return 0.23; // 收起时占用很小的宽度（容器宽度52px）
+                }
                 const baseRatio = currentView === VIEW_MODES.VIDEO ? 3 : (state.viewMode === VIEW_MODES.MAP ? 3 : 2.5);
                 // 当右侧为视频播放器时，仅将中间减少的30%（1.5）加给右侧，左侧保持不变
                 if (state.rightPanelView === RIGHT_PANEL_VIEWS.VIDEO_PLAYER) {
@@ -1412,7 +1419,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               transition: 'flex 0.3s ease'
             }}>
               <OperationPanel 
-                state={state}
+                state={{ ...state, setOperationPanelCollapsed }}
                 handlers={operationHandlers}
                 hideEmptySlots
                 selectedCategory={selectedCategory}
