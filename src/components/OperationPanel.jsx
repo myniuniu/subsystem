@@ -247,6 +247,43 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
     sourceInfo
   } = useSourceDataCheck({ uploadedFiles, addedTexts, courseVideos, links });
 
+  // 通用函数：添加记录并模拟生成过程
+  const addRecordWithGenerating = (recordType, record, callbacks = {}) => {
+    // 添加生成中状态
+    const recordWithGenerating = {
+      ...record,
+      isGenerating: true
+    };
+    
+    // 添加到记录中
+    const newRecords = { ...operationRecords };
+    if (!newRecords[recordType]) {
+      newRecords[recordType] = [];
+    }
+    newRecords[recordType].unshift(recordWithGenerating);
+    setOperationRecords(newRecords);
+    
+    // 3秒后取消生成中状态
+    setTimeout(() => {
+      setOperationRecords(prev => {
+        const updated = { ...prev };
+        if (updated[recordType]) {
+          updated[recordType] = updated[recordType].map(r => 
+            r.id === record.id ? { ...r, isGenerating: false } : r
+          );
+        }
+        return updated;
+      });
+      
+      // 执行回调
+      if (callbacks.onComplete) {
+        callbacks.onComplete();
+      }
+    }, 3000);
+    
+    return recordWithGenerating;
+  };
+
   // 新建笔记类型选择下拉菜单状态（靠近按钮显示）
   const [noteTypeDropdownVisible, setNoteTypeDropdownVisible] = useState(false);
 
@@ -1133,8 +1170,20 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
               </Tooltip>
               
               {/* 操作记录列表（最多显示8个） */}
-              {operationRecords && Object.values(operationRecords).flat().slice(0, 8).map(record => {
-                const getIcon = (type) => {
+              {operationRecords && Object.values(operationRecords).flat().slice(0, 8).map(record => {                
+                const getIcon = (type, isGenerating) => {
+                  // 如果正在生成，显示旋转图标
+                  if (isGenerating) {
+                    return (
+                      <div style={{
+                        animation: 'spin 1s linear infinite',
+                        fontSize: '15px'
+                      }}>
+                        🔄
+                      </div>
+                    );
+                  }
+                  
                   const iconMap = {
                     'audio': '🎧',
                     'video': '🎥',
@@ -1155,34 +1204,39 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
                 };
                 
                 return (
-                  <Tooltip key={record.id} title={record.title} placement="right">
+                  <Tooltip key={record.id} title={record.isGenerating ? '正在生成...' : record.title} placement="right">
                     <div
-                      onClick={() => onRecordClick && onRecordClick(record)}
+                      onClick={() => !record.isGenerating && onRecordClick && onRecordClick(record)}
                       style={{
                         width: '34px',
                         height: '34px',
-                        background: '#f5f5f5',
+                        background: record.isGenerating ? '#e6f7ff' : '#f5f5f5',
                         borderRadius: '8px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontSize: '15px',
-                        cursor: 'pointer',
+                        cursor: record.isGenerating ? 'not-allowed' : 'pointer',
                         transition: 'all 0.3s ease',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                        opacity: record.isGenerating ? 0.7 : 1
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'scale(1.05)';
-                        e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.1)';
-                        e.currentTarget.style.background = '#e3f2fd';
+                        if (!record.isGenerating) {
+                          e.currentTarget.style.transform = 'scale(1.05)';
+                          e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.1)';
+                          e.currentTarget.style.background = '#e3f2fd';
+                        }
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'scale(1)';
-                        e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)';
-                        e.currentTarget.style.background = '#f5f5f5';
+                        if (!record.isGenerating) {
+                          e.currentTarget.style.transform = 'scale(1)';
+                          e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)';
+                          e.currentTarget.style.background = '#f5f5f5';
+                        }
                       }}
                     >
-                      {getIcon(record.type)}
+                      {getIcon(record.type, record.isGenerating)}
                     </div>
                   </Tooltip>
                 );
@@ -1246,7 +1300,20 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
         
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {Object.values(operationRecords).flat().map(record => {
-            const getIcon = (type) => {
+            const getIcon = (type, isGenerating) => {
+              // 如果正在生成，显示旋转图标
+              if (isGenerating) {
+                return (
+                  <div style={{
+                    animation: 'spin 1s linear infinite',
+                    fontSize: '10px',
+                    color: '#1890ff'
+                  }}>
+                    🔄
+                  </div>
+                );
+              }
+              
               switch(type) {
                 case 'audio': return '音';
                 case 'video': return '视';
@@ -1271,11 +1338,18 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
                 size="small" 
                 style={{ 
                   marginBottom: '8px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
+                  cursor: record.isGenerating ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s ease',
+                  opacity: record.isGenerating ? 0.7 : 1,
+                  background: record.isGenerating ? '#e6f7ff' : '#fff'
                 }}
                 styles={{ body: { padding: '8px 12px' } }}
                 onClick={(e) => {
+                  // 生成中不可点击
+                  if (record.isGenerating) {
+                    return;
+                  }
+                  
                   // 检查点击的目标是否是下拉菜单相关的元素
                   const target = e.target;
                   const isDropdownClick = target.closest('.ant-dropdown') || 
@@ -1293,7 +1367,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
                     <div style={{
                       width: '20px',
                       height: '20px',
-                      backgroundColor: '#f0f0f0',
+                      backgroundColor: record.isGenerating ? '#91d5ff' : '#f0f0f0',
                       borderRadius: '4px',
                       display: 'flex',
                       alignItems: 'center',
@@ -1303,12 +1377,12 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
                       marginRight: '8px',
                       flexShrink: 0
                     }}>
-                      {getIcon(record.type)}
+                      {getIcon(record.type, record.isGenerating)}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                        <Text ellipsis style={{ fontSize: '12px', fontWeight: 500, flex: 1 }}>
-                          {record.title}
+                        <Text ellipsis style={{ fontSize: '12px', fontWeight: 500, flex: 1, color: record.isGenerating ? '#1890ff' : 'inherit' }}>
+                          {record.isGenerating ? '正在生成...' : record.title}
                         </Text>
                         {/* 显示研修成果标记状态 */}
                         {record.tags && record.tags.includes('研修成果') && (
@@ -1427,23 +1501,19 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
         onClose={() => setQuestionConfigVisible(false)}
         materialCount={sourceInfo?.total || 0}
         onConfirm={(operationRecord) => {
-          // 添加到操作记录中
-          const newRecords = { ...operationRecords };
-          if (!newRecords.question) {
-            newRecords.question = [];
-          }
-          newRecords.question.unshift(operationRecord);
-          setOperationRecords(newRecords);
-          
-          // 设置右侧面板显示
-          setRightPanelQuestionRecord(operationRecord);
-          setRightPanelQuestionContent(operationRecord.content);
-          setRightPanelView('QUESTION_VIEWER');
+          // 使用通用函数添加记录
+          addRecordWithGenerating('question', operationRecord, {
+            onComplete: () => {
+              // 生成完成后设置右侧面板显示
+              setRightPanelQuestionRecord(operationRecord);
+              setRightPanelQuestionContent(operationRecord.content);
+              setRightPanelView('QUESTION_VIEWER');
+              message.success('试题生成成功！');
+            }
+          });
           
           // 关闭弹窗
           setQuestionConfigVisible(false);
-          
-          message.success('试题生成成功！');
         }}
       />
 
@@ -1470,23 +1540,19 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
             }
           };
 
-          // 添加到记录中
-          const newRecords = { ...operationRecords };
-          if (!newRecords['learning-plan']) {
-            newRecords['learning-plan'] = [];
-          }
-          newRecords['learning-plan'].unshift(learningPlanRecord);
-          setOperationRecords(newRecords);
-          
-          // 设置右侧面板显示
-          setRightPanelLearningPlanRecord(learningPlanRecord);
-          setRightPanelLearningPlanContent(learningPlanRecord.content);
-          setRightPanelView('LEARNING_PLAN_VIEWER');
+          // 使用通用函数添加记录
+          addRecordWithGenerating('learning-plan', learningPlanRecord, {
+            onComplete: () => {
+              // 生成完成后设置右侧面板显示
+              setRightPanelLearningPlanRecord(learningPlanRecord);
+              setRightPanelLearningPlanContent(learningPlanRecord.content);
+              setRightPanelView('LEARNING_PLAN_VIEWER');
+              message.success('学习计划生成成功！');
+            }
+          });
           
           // 关闭弹窗
           setLearningPlanModalVisible(false);
-          
-          message.success('学习计划生成成功！');
         }}
       />
 
@@ -1517,23 +1583,19 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
             }
           };
 
-          // 添加到记录中
-          const newRecords = { ...operationRecords };
-          if (!newRecords.report) {
-            newRecords.report = [];
-          }
-          newRecords.report.unshift(reportRecord);
-          setOperationRecords(newRecords);
-          
-          // 设置右侧面板显示 - 报告可以使用笔记编辑器查看
-          setRightPanelEditingNote(reportRecord);
-          setRightPanelNoteContent(reportRecord.content);
-          setRightPanelView(RIGHT_PANEL_VIEWS.NOTE_EDITOR);
+          // 使用通用函数添加记录
+          addRecordWithGenerating('report', reportRecord, {
+            onComplete: () => {
+              // 生成完成后设置右侧面板显示 - 报告可以使用笔记编辑器查看
+              setRightPanelEditingNote(reportRecord);
+              setRightPanelNoteContent(reportRecord.content);
+              setRightPanelView(RIGHT_PANEL_VIEWS.NOTE_EDITOR);
+              message.success(`${reportTitle}生成成功！`);
+            }
+          });
           
           // 关闭弹窗
           setReportSelectionVisible(false);
-          
-          message.success(`${reportTitle}生成成功！`);
         }}
       />
 
@@ -1565,18 +1627,15 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
             evaluationConfig: evaluationConfig
           };
 
-          // 添加到记录中
-          const newRecords = { ...operationRecords };
-          if (!newRecords['classroom-evaluation']) {
-            newRecords['classroom-evaluation'] = [];
-          }
-          newRecords['classroom-evaluation'].unshift(evaluationRecord);
-          setOperationRecords(newRecords);
+          // 使用通用函数添加记录
+          addRecordWithGenerating('classroom-evaluation', evaluationRecord, {
+            onComplete: () => {
+              message.success('课堂评价记录生成成功！');
+            }
+          });
           
           // 关闭弹窗
           setClassroomEvaluationVisible(false);
-          
-          message.success('课堂评价记录生成成功！');
         }}
       />
     </div>

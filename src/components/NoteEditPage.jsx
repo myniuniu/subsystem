@@ -541,20 +541,35 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
             // 生成完整的培训方案
             const comprehensivePlan = generateComprehensiveTrainingPlan(trainingData);
             
-            // 创建包含完整内容的记录
+            // 创建包含完整内容的记录，并添加生成中状态
             const trainingPlanRecord = {
               ...newRecord,
               content: comprehensivePlan,
               id: `training_plan_${Date.now()}`,
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(),
+              isGenerating: true  // 添加生成中状态
             };
 
+            // 添加到记录中
             setOperationRecords(prev => ({
               ...prev,
               [operationType]: [trainingPlanRecord, ...(prev[operationType] || [])]
             }));
             
-            message.success(`${operationTitles[operationType]}已生成并添加到操作记录`);
+            // 3秒后取消生成中状态
+            setTimeout(() => {
+              setOperationRecords(prev => {
+                const updated = { ...prev };
+                if (updated[operationType]) {
+                  updated[operationType] = updated[operationType].map(r => 
+                    r.id === trainingPlanRecord.id ? { ...r, isGenerating: false } : r
+                  );
+                }
+                return updated;
+              });
+              
+              message.success(`${operationTitles[operationType]}已生成并添加到操作记录`);
+            }, 3000);
           } catch (error) {
             console.error('生成培训方案失败:', error);
             message.error('生成培训方案失败，请重试');

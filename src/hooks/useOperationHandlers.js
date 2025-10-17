@@ -27,6 +27,43 @@ export const useOperationHandlers = ({
   onMoreAction
 }) => {
   
+  // 通用函数：添加记录并模拟生成过程
+  const addRecordWithGenerating = (recordType, record, callbacks = {}) => {
+    // 添加生成中状态
+    const recordWithGenerating = {
+      ...record,
+      isGenerating: true
+    };
+    
+    // 添加到记录中
+    const newRecords = { ...operationRecords };
+    if (!newRecords[recordType]) {
+      newRecords[recordType] = [];
+    }
+    newRecords[recordType].unshift(recordWithGenerating);
+    setOperationRecords(newRecords);
+    
+    // 3秒后取消生成中状态
+    setTimeout(() => {
+      setOperationRecords(prev => {
+        const updated = { ...prev };
+        if (updated[recordType]) {
+          updated[recordType] = updated[recordType].map(r => 
+            r.id === record.id ? { ...r, isGenerating: false } : r
+          );
+        }
+        return updated;
+      });
+      
+      // 执行回调
+      if (callbacks.onComplete) {
+        callbacks.onComplete();
+      }
+    }, 3000);
+    
+    return recordWithGenerating;
+  };
+  
   // 处理阅卷工具
   const handleGradingToolAction = () => {
     // 生成阅卷记录
@@ -88,20 +125,16 @@ export const useOperationHandlers = ({
       }
     };
 
-    // 添加到记录中
-    const newRecords = { ...operationRecords };
-    if (!newRecords.grading) {
-      newRecords.grading = [];
-    }
-    newRecords.grading.unshift(gradingRecord);
-    setOperationRecords(newRecords);
-    
-    // 设置右侧面板显示
-    setRightPanelGradingRecord(gradingRecord);
-    setRightPanelGradingContent(gradingRecord.content);
-    setRightPanelView('GRADING_VIEWER');
-    
-    message.success('智能阅卷完成，已生成详细报告！');
+    // 使用通用函数添加记录
+    addRecordWithGenerating('grading', gradingRecord, {
+      onComplete: () => {
+        // 生成完成后设置右侧面板显示
+        setRightPanelGradingRecord(gradingRecord);
+        setRightPanelGradingContent(gradingRecord.content);
+        setRightPanelView('GRADING_VIEWER');
+        message.success('智能阅卷完成，已生成详细报告！');
+      }
+    });
   };
 
   // 处理培训报表工具
@@ -133,20 +166,16 @@ export const useOperationHandlers = ({
       }
     };
 
-    // 添加到记录中
-    const newRecords = { ...operationRecords };
-    if (!newRecords['training-report']) {
-      newRecords['training-report'] = [];
-    }
-    newRecords['training-report'].unshift(trainingReportRecord);
-    setOperationRecords(newRecords);
-    
-    // 设置右侧面板显示
-    setRightPanelTrainingReportRecord(trainingReportRecord);
-    setRightPanelTrainingReportContent(trainingReportRecord.content);
-    setRightPanelView('TRAINING_REPORT_VIEWER');
-    
-    message.success('培训报告生成成功！');
+    // 使用通用函数添加记录
+    addRecordWithGenerating('training-report', trainingReportRecord, {
+      onComplete: () => {
+        // 生成完成后设置右侧面板显示
+        setRightPanelTrainingReportRecord(trainingReportRecord);
+        setRightPanelTrainingReportContent(trainingReportRecord.content);
+        setRightPanelView('TRAINING_REPORT_VIEWER');
+        message.success('培训报告生成成功！');
+      }
+    });
   };
 
   // 处理工具点击
