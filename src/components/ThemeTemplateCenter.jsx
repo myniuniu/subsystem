@@ -19,7 +19,8 @@ import {
   Tooltip,
   Badge,
   Empty,
-  Spin
+  Spin,
+  Avatar
 } from 'antd';
 import {
   PlusOutlined,
@@ -73,12 +74,22 @@ const ThemeTemplateCenter = ({ onBack }) => {
     loadTemplates();
   }, []);
 
+  // 根据名称返回默认本地头像URL
+  const getDefaultAvatarUrl = (name = '') => {
+    const n = String(name);
+    if (n.includes('教研')) return '/images/agents/teacher.svg';
+    if (n.includes('班主任')) return '/images/agents/headteacher.svg';
+    if (n.includes('辅导员')) return '/images/agents/counselor.svg';
+    if (n.includes('督学')) return '/images/agents/supervisor.svg';
+    if (n.includes('校长')) return '/images/agents/principal.svg';
+    if (n.includes('科研')) return '/images/agents/researcher.svg';
+    return '/images/agents/teacher.svg';
+  };
+
   const loadTemplates = () => {
     setLoading(true);
-    // 从localStorage加载模版数据
     const savedTemplates = JSON.parse(localStorage.getItem('theme-templates') || '[]');
-    
-    // 如果没有数据，创建一些示例模版
+
     if (savedTemplates.length === 0) {
       const defaultTemplates = [
         {
@@ -90,7 +101,8 @@ const ThemeTemplateCenter = ({ onBack }) => {
           createTime: '2024-01-15 10:00:00',
           updateTime: '2024-01-15 10:00:00',
           creator: '系统管理员',
-          usageCount: 15
+          usageCount: 15,
+          avatarUrl: '/images/agents/teacher.svg'
         },
         {
           id: 'template-2',
@@ -101,7 +113,8 @@ const ThemeTemplateCenter = ({ onBack }) => {
           createTime: '2024-01-14 15:30:00',
           updateTime: '2024-01-16 09:20:00',
           creator: '班主任',
-          usageCount: 12
+          usageCount: 12,
+          avatarUrl: '/images/agents/headteacher.svg'
         },
         {
           id: 'template-3',
@@ -112,7 +125,8 @@ const ThemeTemplateCenter = ({ onBack }) => {
           createTime: '2024-01-20 14:20:00',
           updateTime: '2024-01-20 14:20:00',
           creator: '辅导员',
-          usageCount: 9
+          usageCount: 9,
+          avatarUrl: '/images/agents/counselor.svg'
         },
         {
           id: 'template-4',
@@ -123,7 +137,8 @@ const ThemeTemplateCenter = ({ onBack }) => {
           createTime: '2024-01-18 09:15:00',
           updateTime: '2024-01-18 09:15:00',
           creator: '督导办',
-          usageCount: 6
+          usageCount: 6,
+          avatarUrl: '/images/agents/supervisor.svg'
         },
         {
           id: 'template-5',
@@ -134,7 +149,8 @@ const ThemeTemplateCenter = ({ onBack }) => {
           createTime: '2024-01-17 16:45:00',
           updateTime: '2024-01-17 16:45:00',
           creator: '校长办公室',
-          usageCount: 11
+          usageCount: 11,
+          avatarUrl: '/images/agents/principal.svg'
         },
         {
           id: 'template-6',
@@ -145,13 +161,19 @@ const ThemeTemplateCenter = ({ onBack }) => {
           createTime: '2024-01-16 11:30:00',
           updateTime: '2024-01-16 11:30:00',
           creator: '科研处',
-          usageCount: 14
+          usageCount: 14,
+          avatarUrl: '/images/agents/researcher.svg'
         }
       ];
       localStorage.setItem('theme-templates', JSON.stringify(defaultTemplates));
       setTemplates(defaultTemplates);
     } else {
-      setTemplates(savedTemplates);
+      // 对已有模板回填头像URL
+      const normalized = savedTemplates.map(t => ({
+        ...t,
+        avatarUrl: t.avatarUrl || getDefaultAvatarUrl(t.name)
+      }));
+      setTemplates(normalized);
     }
     setLoading(false);
   };
@@ -173,7 +195,8 @@ const ThemeTemplateCenter = ({ onBack }) => {
       name: template.name,
       description: template.description,
       sourceTypes: template.sourceTypes,
-      smartTools: template.smartTools
+      smartTools: template.smartTools,
+      avatarUrl: template.avatarUrl
     });
     setModalVisible(true);
   };
@@ -202,21 +225,21 @@ const ThemeTemplateCenter = ({ onBack }) => {
     try {
       const values = await form.validateFields();
       const now = new Date().toLocaleString();
-      
+      const avatarUrl = (values.avatarUrl || '').trim() || getDefaultAvatarUrl(values.name);
+
       if (editingTemplate) {
-        // 编辑模式
         const newTemplates = templates.map(t => 
           t.id === editingTemplate.id 
-            ? { ...t, ...values, updateTime: now }
+            ? { ...t, ...values, avatarUrl, updateTime: now }
             : t
         );
         saveTemplates(newTemplates);
         message.success('智能体更新成功');
       } else {
-        // 创建模式
         const newTemplate = {
           id: `template-${Date.now()}`,
           ...values,
+          avatarUrl,
           createTime: now,
           updateTime: now,
           creator: '当前用户',
@@ -287,21 +310,22 @@ const ThemeTemplateCenter = ({ onBack }) => {
       >
         <div className="template-card-header">
           <div className="template-icon">
-            <BulbOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+            {template.avatarUrl ? (
+              <Avatar shape="square" size={32} src={template.avatarUrl} />
+            ) : (
+              <Avatar shape="square" size={32} icon={<BulbOutlined />} />
+            )}
           </div>
           <div className="template-info">
-            <Title level={5} style={{ margin: 0, fontSize: '16px' }}>
+            <Title level={5} style={{ margin: 0, fontSize: '16px', lineHeight: '32px' }}>
               {template.name}
             </Title>
-            <Text type="secondary" style={{ fontSize: '12px' }}>
-              {template.description}
-            </Text>
-          </div>
-          <div className="template-usage">
-            <Badge count={template.usageCount} showZero color="#52c41a" />
           </div>
         </div>
-
+        <Text type="secondary" style={{ fontSize: '12px' }}>
+          {template.description}
+        </Text>
+        
         <Divider style={{ margin: '12px 0' }} />
 
         <div className="template-content">
@@ -340,7 +364,7 @@ const ThemeTemplateCenter = ({ onBack }) => {
 
   return (
     <Layout style={{ height: '100%', background: '#f5f7fa' }}>
-      <div style={{ padding: '24px', height: '100%', overflow: 'auto' }}>
+      <div className="theme-template-center" style={{ padding: '24px', height: '100%', overflow: 'auto' }}>
         {/* 页面头部 */}
         <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
@@ -531,6 +555,18 @@ const ThemeTemplateCenter = ({ onBack }) => {
                 </Form.Item>
               </Col>
             </Row>
+
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  name="avatarUrl"
+                  label="形象图片URL"
+                >
+                  <Input placeholder="请输入图片链接（不填则使用默认图标）" />
+                </Form.Item>
+              </Col>
+            </Row
+            >
 
             <Divider orientation="left">来源类型配置</Divider>
             <Form.Item

@@ -57,9 +57,9 @@
 /* 卡片头部样式 */
 .theme-template-center .template-card-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .theme-template-center .template-icon {
@@ -73,13 +73,17 @@
   flex-shrink: 0;
 }
 
+.theme-template-center .template-info .ant-typography {
+  margin-bottom: 0;
+}
+
 .theme-template-center .template-info {
   flex: 1;
   min-width: 0;
 }
 
 .theme-template-center .template-info .ant-typography {
-  margin-bottom: 4px;
+  margin-bottom: 0;
 }
 
 .theme-template-center .template-usage {
@@ -229,13 +233,13 @@
   }
   
   .theme-template-center .template-card-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
   }
   
   .theme-template-center .template-icon {
-    align-self: center;
+    align-self: auto;
   }
 }
 
@@ -305,172 +309,409 @@
   font-size: 16px;
   font-weight: 600;
   color: #1890ff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
-
-.template-card .ant-card-body {
-  padding: 16px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.template-card-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.template-description {
-  color: #666;
-  margin-bottom: 12px;
-  font-size: 14px;
-  line-height: 1.5;
-  max-height: 42px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-
-.template-labels {
-  margin-bottom: 12px;
-  max-height: 120px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #d9d9d9 transparent;
-}
-
-.template-labels::-webkit-scrollbar {
-  width: 4px;
-}
-
-.template-labels::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.template-labels::-webkit-scrollbar-thumb {
-  background-color: #d9d9d9;
-  border-radius: 2px;
-}
-
-.template-labels::-webkit-scrollbar-thumb:hover {
-  background-color: #bfbfbf;
-}
-
-.template-labels h4 {
-  font-size: 12px;
-  color: #999;
-  margin: 0 0 4px 0;
-  font-weight: 500;
-}
-
-.template-labels .ant-tag {
-  margin: 2px 4px 2px 0;
-  font-size: 11px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  line-height: 1.2;
-}
-
-.template-card-footer {
-  border-top: 1px solid #f0f0f0;
-  padding: 12px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #fafafa;
-  margin: 0 -16px -16px -16px;
-  border-radius: 0 0 8px 8px;
-}
-
-.template-meta {
-  font-size: 12px;
-  color: #999;
-  flex: 1;
-  overflow: hidden;
-}
-
-.template-meta div {
-  margin-bottom: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.template-actions {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.template-actions .ant-btn {
-  padding: 4px 8px;
-  height: auto;
-  font-size: 12px;
-  border-radius: 4px;
-}
-
-/* 响应式设计 */
-@media (max-width: 1200px) {
-  .template-card .ant-card-head-title {
-    font-size: 15px;
+  .theme-template-center .template-info .ant-typography {
+    margin-bottom: 0;
   }
   
-  .template-description {
-    font-size: 13px;
+  .theme-template-center .template-info {
+    flex: 1;
+    min-width: 0;
   }
-}
-
-@media (max-width: 768px) {
+  
+  .theme-template-center .template-info .ant-typography {
+    margin-bottom: 0;
+  }
+  
+  .theme-template-center .template-usage {
+    flex-shrink: 0;
+  }
+  
+  /* 卡片内容样式 */
+  .theme-template-center .template-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .theme-template-center .template-section {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .theme-template-center .template-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+  }
+  
+  .theme-template-center .template-tags .ant-tag {
+    margin: 0;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    line-height: 1.2;
+  }
+  
+  /* 卡片底部样式 */
+  .theme-template-center .template-footer {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .theme-template-center .template-footer .ant-typography {
+    margin: 0;
+  }
+  
+  /* 原有样式保持 */
+  .theme-template-center .ant-table-thead > tr > th {
+    background: #fafafa;
+    font-weight: 600;
+    color: #262626;
+  }
+  
+  .theme-template-center .ant-table-tbody > tr:hover > td {
+    background: #f5f7fa;
+  }
+  
+  .theme-template-center .ant-tag {
+    border-radius: 6px;
+    margin: 2px;
+    font-size: 12px;
+    padding: 2px 8px;
+    border: none;
+  }
+  
+  .theme-template-center .ant-btn {
+    border-radius: 6px;
+  }
+  
+  .theme-template-center .ant-btn-primary {
+    background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+    border: none;
+    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+  }
+  
+  .theme-template-center .ant-btn-primary:hover {
+    background: linear-gradient(135deg, #40a9ff 0%, #69c0ff 100%);
+    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
+  }
+  
+  .theme-template-center .ant-modal-header {
+    border-radius: 12px 12px 0 0;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
+  }
+  
+  .theme-template-center .ant-modal-content {
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  
+  .theme-template-center .ant-divider-horizontal.ant-divider-with-text-left::before {
+    width: 5%;
+  }
+  
+  .theme-template-center .ant-divider-horizontal.ant-divider-with-text-left::after {
+    width: 95%;
+  }
+  
+  .theme-template-center .ant-checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+  }
+  
+  .theme-template-center .ant-checkbox-wrapper:hover {
+    background-color: #f0f9ff;
+  }
+  
+  .theme-template-center .ant-checkbox-wrapper .ant-checkbox-checked .ant-checkbox-inner {
+    background-color: #1890ff;
+    border-color: #1890ff;
+  }
+  
+  .theme-template-center .ant-badge {
+    font-weight: 600;
+  }
+  
+  .theme-template-center .ant-badge-count {
+    border-radius: 10px;
+    min-width: 20px;
+    height: 20px;
+    line-height: 20px;
+    font-size: 12px;
+  }
+  
+  /* 响应式设计 */
+  @media (max-width: 1200px) {
+    .theme-template-center .ant-col-8 {
+      flex: 0 0 50%;
+      max-width: 50%;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .theme-template-center .ant-col-8 {
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
+    
+    .theme-template-center .ant-col-6 {
+      flex: 0 0 50%;
+      max-width: 50%;
+    }
+    
+    .theme-template-center .template-card-header {
+      flex-direction: row;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .theme-template-center .template-icon {
+      align-self: auto;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .theme-template-center .ant-col-6 {
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
+    
+    .theme-template-center .template-card .ant-card-body {
+      padding: 12px;
+    }
+    
+    .theme-template-center .template-tags .ant-tag {
+      font-size: 9px;
+      padding: 1px 4px;
+    }
+  }
+  
+  /* 动画效果 */
+  .theme-template-center .ant-card {
+    animation: fadeInUp 0.3s ease-out;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .theme-template-center .ant-table-row {
+    transition: all 0.2s ease;
+  }
+  
+  .theme-template-center .ant-btn-text:hover {
+    background-color: rgba(24, 144, 255, 0.1);
+  }
+  
+  /* 卡片布局样式 */
   .template-card {
-    margin-bottom: 12px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .template-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
   }
   
   .template-card .ant-card-head {
-    padding: 10px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 12px 16px;
+    min-height: auto;
+  }
+  
+  .template-card .ant-card-head-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1890ff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   
   .template-card .ant-card-body {
-    padding: 12px;
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  .template-card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  .template-description {
+    color: #666;
+    margin-bottom: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    max-height: 42px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  
+  .template-labels {
+    margin-bottom: 12px;
+    max-height: 120px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #d9d9d9 transparent;
+  }
+  
+  .template-labels::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .template-labels::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .template-labels::-webkit-scrollbar-thumb {
+    background-color: #d9d9d9;
+    border-radius: 2px;
+  }
+  
+  .template-labels::-webkit-scrollbar-thumb:hover {
+    background-color: #bfbfbf;
+  }
+  
+  .template-labels h4 {
+    font-size: 12px;
+    color: #999;
+    margin: 0 0 4px 0;
+    font-weight: 500;
+  }
+  
+  .template-labels .ant-tag {
+    margin: 2px 4px 2px 0;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    line-height: 1.2;
   }
   
   .template-card-footer {
-    padding: 10px 12px;
-    margin: 0 -12px -12px -12px;
+    border-top: 1px solid #f0f0f0;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fafafa;
+    margin: 0 -16px -16px -16px;
+    border-radius: 0 0 8px 8px;
+  }
+  
+  .template-meta {
+    font-size: 12px;
+    color: #999;
+    flex: 1;
+    overflow: hidden;
+  }
+  
+  .template-meta div {
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   
   .template-actions {
-    gap: 6px;
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
   }
   
   .template-actions .ant-btn {
-    padding: 3px 6px;
-    font-size: 11px;
+    padding: 4px 8px;
+    height: auto;
+    font-size: 12px;
+    border-radius: 4px;
   }
-}
-
-/* 自定义滚动条 */
-.theme-template-center ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-.theme-template-center ::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
-}
-
-.theme-template-center ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
-}
-
-.theme-template-center ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
+  
+  /* 响应式设计 */
+  @media (max-width: 1200px) {
+    .template-card .ant-card-head-title {
+      font-size: 15px;
+    }
+    
+    .template-description {
+      font-size: 13px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .template-card {
+      margin-bottom: 12px;
+    }
+    
+    .template-card .ant-card-head {
+      padding: 10px 12px;
+    }
+    
+    .template-card .ant-card-body {
+      padding: 12px;
+    }
+    
+    .template-card-footer {
+      padding: 10px 12px;
+      margin: 0 -12px -12px -12px;
+    }
+    
+    .template-actions {
+      gap: 6px;
+    }
+    
+    .template-actions .ant-btn {
+      padding: 3px 6px;
+      font-size: 11px;
+    }
+  }
+  
+  /* 自定义滚动条 */
+  .theme-template-center ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .theme-template-center ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+  
+  .theme-template-center ::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+  }
+  
+  .theme-template-center ::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
