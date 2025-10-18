@@ -509,21 +509,24 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
         }
       },
       {
-        key: 'markAgentCorpus',
+        key: (Array.isArray(record.tags) && record.tags.includes('语料')) ? 'unmarkAgentCorpus' : 'markAgentCorpus',
         label: (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '16px' }}>🧠</span>
-            <span>智能体语料</span>
+            <span>{(Array.isArray(record.tags) && record.tags.includes('语料')) ? '取消智能体语料' : '智能体语料'}</span>
           </div>
         ),
         onClick: (e) => {
           e?.stopPropagation?.();
-          const alreadyMarked = Array.isArray(record.tags) && record.tags.includes('语料');
-          if (alreadyMarked) {
-            message.info('该记录已标记为语料');
-            return;
+          const isMarked = Array.isArray(record.tags) && record.tags.includes('语料');
+          const updatedRecord = { ...record };
+          if (isMarked) {
+            updatedRecord.tags = (record.tags || []).filter(tag => tag !== '语料');
+            message.success('已取消标记智能体语料');
+          } else {
+            updatedRecord.tags = [...(record.tags || []), '语料'];
+            message.success('已标记为语料');
           }
-          const updatedRecord = { ...record, tags: [...(record.tags || []), '语料'] };
           setOperationRecords(prev => {
             const newRecords = { ...prev };
             Object.keys(newRecords).forEach(type => {
@@ -533,9 +536,38 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
             });
             return newRecords;
           });
-          message.success('已标记为语料');
         }
       },
+      ...(record.type === 'note' && record.subType === 'document' ? [{
+        key: (Array.isArray(record.tags) && record.tags.includes('标注')) ? 'unmarkAgentAnnotation' : 'markAgentAnnotation',
+        label: (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '16px' }}>🏷️</span>
+            <span>{(Array.isArray(record.tags) && record.tags.includes('标注')) ? '取消智能体标注' : '智能体标注'}</span>
+          </div>
+        ),
+        onClick: (e) => {
+          e?.stopPropagation?.();
+          const isMarked = Array.isArray(record.tags) && record.tags.includes('标注');
+          const updatedRecord = { ...record };
+          if (isMarked) {
+            updatedRecord.tags = (record.tags || []).filter(tag => tag !== '标注');
+            message.success('已取消“标注”标识');
+          } else {
+            updatedRecord.tags = [...(record.tags || []), '标注'];
+            message.success('已添加“标注”标识');
+          }
+          setOperationRecords(prev => {
+            const newRecords = { ...prev };
+            Object.keys(newRecords).forEach(type => {
+              if (Array.isArray(newRecords[type])) {
+                newRecords[type] = newRecords[type].map(r => r.id === record.id ? updatedRecord : r);
+              }
+            });
+            return newRecords;
+          });
+        }
+      }] : []),
       { type: 'divider' },
       {
         key: 'delete',
@@ -1494,6 +1526,25 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
                           }}>
                             <span>🧠</span>
                             <span>语料</span>
+                          </div>
+                        )}
+                        {/* 显示标注标记状态（文档型笔记） */}
+                        {record.tags && record.tags.includes('标注') && (
+                          <div style={{
+                            background: 'linear-gradient(135deg, #fff0f6 0%, #ffadd2 100%)',
+                            color: '#c41d7f',
+                            fontSize: '8px',
+                            padding: '1px 4px',
+                            borderRadius: '8px',
+                            fontWeight: 'bold',
+                            border: '1px solid #eb2f96',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '2px',
+                            flexShrink: 0
+                          }}>
+                            <span>🏷️</span>
+                            <span>标注</span>
                           </div>
                         )}
                         {record.type === 'training-plan' && record.isSubmitted && (

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Button,
   Typography,
@@ -15,14 +15,15 @@ import {
   RobotOutlined,
   UserOutlined
 } from '@ant-design/icons';
-import { COMMON_QUESTIONS } from '../constants/noteEditConstants';
+import { COMMON_QUESTIONS, CATEGORY_COMMON_QUESTIONS } from '../constants/noteEditConstants';
 import { generateSummaryContent } from '../utils/noteEditUtils';
 import notesService from '../services/notesService';
 
+import { getCategoryKey, getAiTitleForCategory, getAiIconForCategory } from '../constants/categoryMeta';
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 
-const AIChat = ({ state, handlers }) => {
+const AIChat = ({ state, handlers, selectedCategory }) => {
   const {
     messages,
     setMessages,
@@ -41,6 +42,26 @@ const AIChat = ({ state, handlers }) => {
   } = state;
 
   const { onSaveToNote } = handlers;
+  const [iconError, setIconError] = useState(false);
+
+  // 基于分类动态选择常见问题
+  // const normalizeCategory = (val) => {
+  //   if (!val) return val;
+  //   const map = {
+  //     organizational_training: ['organizational_training', '组织培训', '培训管理'],
+  //     training_needs_management: ['training_needs_management', '培训需求管理'],
+  //     teaching_research_office: ['teaching_research_office', '教研室']
+  //   };
+  //   for (const key in map) {
+  //     if (map[key].includes(val)) return key;
+  //   }
+  //   return val;
+  // };
+
+  const currentCategory = getCategoryKey(state?.note?.category, selectedCategory);
+  const aiTitleLabel = getAiTitleForCategory(currentCategory);
+  const categoryIcon = getAiIconForCategory(currentCategory);
+  const questionsToShow = (CATEGORY_COMMON_QUESTIONS[currentCategory] || CATEGORY_COMMON_QUESTIONS.default);
 
   // 发送消息
   const handleSendMessage = async () => {
@@ -154,7 +175,7 @@ const AIChat = ({ state, handlers }) => {
     const newRecord = {
       id: Date.now(),
       title: userQuestion || `AI问答笔记 - ${new Date().toLocaleString()}`,
-      source: 'AI智能问答',
+      source: aiTitleLabel,
       time: '刚刚',
       type: 'note',
       content: content
@@ -228,9 +249,16 @@ const AIChat = ({ state, handlers }) => {
       height: '100%'
     }}>
       <div style={{ padding: '20px', borderBottom: '1px solid #f0f0f0' }}>
-        <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
-          💬 智能问答
-        </Title>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {categoryIcon && !iconError ? (
+            <img src={categoryIcon} alt="AI助手" onError={() => setIconError(true)} style={{ width: 20, height: 20, borderRadius: '50%' }} />
+          ) : (
+            <span style={{ fontSize: '16px' }}>💬</span>
+          )}
+          <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
+            {aiTitleLabel}
+          </Title>
+        </div>
       </div>
       
       {/* 摘要区域 */}
@@ -372,7 +400,7 @@ const AIChat = ({ state, handlers }) => {
         {/* 常见问题按钮 */}
         <div style={{ padding: '16px 20px 0 20px' }}>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', overflow: 'hidden' }}>
-            {COMMON_QUESTIONS.map(question => (
+            {questionsToShow.map(question => (
               <Button 
                 key={question.key}
                 size="small" 

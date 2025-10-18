@@ -11,7 +11,9 @@ export const DEFAULT_SYSTEM_CATEGORY_CONFIG = {
     { key: 'group_general', title: '通用主题', templateId: null, icon: 'FolderOpenOutlined', childrenValues: ['work', 'personal', 'ideas', 'meeting'], groups: [] },
     { key: 'group_management', title: '管理与培训', templateId: null, icon: 'FolderOpenOutlined', childrenValues: ['training_needs_management', 'training_product_development'], groups: [] }
   ],
-  extraCategories: []
+  extraCategories: [
+    { value: 'teaching_research_office', label: '教研室', icon: 'BookOutlined', type: 'custom', pinned: true }
+  ]
 };
 
 // 归一化补全分组结构：仅一级分组允许 templateId，其余层级强制为 null

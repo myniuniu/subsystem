@@ -61,6 +61,7 @@ import {
   createNewNoteRecord,
   convertTimeToLinks
 } from '../utils/noteEditUtils';
+import { getCategoryKey, getAiTitleForCategory } from '../constants/categoryMeta';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -418,10 +419,13 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
 
   const aiChatHandlers = {
     onSaveToNote: (content, userQuestion) => {
+      const currentCategory = getCategoryKey(state?.note?.category, selectedCategory);
+      const sourceLabel = getAiTitleForCategory(currentCategory);
+
       const newRecord = {
         id: Date.now(),
         title: userQuestion || `AI问答笔记 - ${new Date().toLocaleString()}`,
-        source: 'AI智能问答',
+        source: sourceLabel,
         time: '刚刚',
         type: 'note',
         content: content
@@ -1457,6 +1461,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               <AIChat 
                 state={state}
                 handlers={aiChatHandlers}
+                selectedCategory={selectedCategory}
               />
             </div>
 

@@ -120,16 +120,16 @@
   height: 0px;
 }
 
-/* 收缩模式下，悬停时临时显示超细滚动条，便于操作 */
+/* 收缩模式下，悬停仍隐藏滚动条，仅显示上下箭头 */
 .sidebar.collapsed .menu-list:hover {
-  scrollbar-width: thin; /* Firefox 恢复显示为细滚条 */
+  scrollbar-width: none; /* Firefox 隐藏滚动条 */
 }
 .sidebar.collapsed .menu-list:hover::-webkit-scrollbar {
-  width: 1px;
-  height: 1px;
+  width: 0px;
+  height: 0px;
 }
 .sidebar.collapsed .menu-list:hover::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.08);
+  background: transparent;
 }
 
 .menu-item {

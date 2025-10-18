@@ -9,6 +9,8 @@ const CATEGORIES_KEY = 'smart_notes_categories';
 const TAGS_KEY = 'smart_notes_tags';
 // 一次性迁移标记：移除组织培训第二条（org_002）
 const MIGRATION_REMOVE_ORG_002_KEY = 'migration_remove_org_002_done';
+// 一次性迁移标记：修复组织培训笔记的分类为稳定键
+const MIGRATION_FIX_ORG_CATEGORY_KEY = 'migration_fix_org_category_done';
 
 // 默认分类
 const DEFAULT_CATEGORIES = [
@@ -1452,6 +1454,31 @@ class NotesService {
     } catch (e) {
       console.error('执行迁移移除 org_002 笔记失败:', e);
     }
+    // 一次性迁移：修复组织培训相关笔记的分类为稳定键
+    try {
+      const migrated2 = localStorage.getItem(MIGRATION_FIX_ORG_CATEGORY_KEY);
+      if (!migrated2) {
+        const notes = this.getAllNotes();
+        if (Array.isArray(notes) && notes.length > 0) {
+          const updatedNotes = notes.map(n => {
+            const isOrgTraining = (
+              n?.courseType === 'organizational_training' ||
+              n?.source === '组织培训' ||
+              (n?.tags && n.tags.includes('组织培训')) ||
+              (n?.title && n.title.includes('【组织培训】'))
+            );
+            if (isOrgTraining && n?.category === 'study') {
+              return { ...n, category: 'organizational_training', updatedAt: new Date().toISOString() };
+            }
+            return n;
+          });
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedNotes));
+        }
+        localStorage.setItem(MIGRATION_FIX_ORG_CATEGORY_KEY, 'true');
+      }
+    } catch (e) {
+      console.error('执行迁移修复组织培训分类失败:', e);
+    }
   }
 
   // 加载固定分类的模拟数据
@@ -2144,7 +2171,7 @@ class NotesService {
           const noteData = {
             title: `【组织培训】${course.title}`,
             content: this.generateCourseNoteContent(course),
-            category: 'study',
+            category: 'organizational_training',
             tags: this.generateCourseTags(course),
             source: '组织培训',
             courseId: course.id,

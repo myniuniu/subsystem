@@ -751,12 +751,18 @@ const AIAssistant = ({
   );
 
   // 推荐问题列表
-  const suggestedQuestions = [
-    '主要观点？',
-    '关键概念？',
-    '如何应用？'
-  ];
-
+  const suggestedQuestions = note?.category === 'teaching_research_office'
+    ? [
+        '小学体育游戏化教学的核心目标是什么？',
+        '如何为低年级设计安全、参与度高的体育游戏？',
+        '如何评估游戏化教学的课堂效果和体能提升？'
+      ]
+    : [
+        '主要观点？',
+        '关键概念？',
+        '如何应用？'
+      ];
+  
   // 处理推荐问题点击
   const handleSuggestedQuestion = (suggestedQ) => {
     setQuestion(suggestedQ);

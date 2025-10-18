@@ -374,6 +374,16 @@ export const COMMON_QUESTIONS = [
   { key: 'react_state', text: 'React 状态管理怎么做？', message: 'React 状态管理怎么做？' }
 ];
 
+// 新增：按分类的常见问题映射（保持向后兼容）
+export const CATEGORY_COMMON_QUESTIONS = {
+  teaching_research_office: [
+    { key: 'pe_goal', text: '游戏化教学的核心目标是什么？', message: '游戏化教学的核心目标是什么？' },
+    { key: 'low_grade_design', text: '如何设计适合低年级的体育游戏？', message: '如何设计适合低年级的体育游戏？' },
+    { key: 'effect_evaluation', text: '如何评估游戏化教学效果？', message: '如何评估游戏化教学效果？' }
+  ],
+  default: COMMON_QUESTIONS
+};
+
 // AI工具分类常量
 export const AI_TOOL_CATEGORIES = {
   ALL: 'all',

@@ -46,20 +46,29 @@ const TrainingPlanViewer = ({
   // 编辑模式状态
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
-
+  // 新增：人员清单弹窗状态与数据
+  const [participantsModalVisible, setParticipantsModalVisible] = useState(false);
+  const participantsList = [
+    { name: '张三', department: '数学组', position: '教师', phone: '13800138001', email: 'zhangsan@school.edu' },
+    { name: '李四', department: '语文组', position: '教师', phone: '13800138002', email: 'lisi@school.edu' },
+    { name: '王五', department: '英语组', position: '教师', phone: '13800138003', email: 'wangwu@school.edu' },
+    { name: '赵六', department: '物理组', position: '教师', phone: '13800138004', email: 'zhaoliu@school.edu' },
+    { name: '孙七', department: '化学组', position: '教师', phone: '13800138005', email: 'sunqi@school.edu' },
+    { name: '周八', department: '生物组', position: '教师', phone: '13800138006', email: 'zhouba@school.edu' },
+    { name: '吴九', department: '历史组', position: '教师', phone: '13800138007', email: 'wujiu@school.edu' },
+    { name: '郑十', department: '地理组', position: '教师', phone: '13800138008', email: 'zhengshi@school.edu' }
+  ];
+  const participantColumnsModal = [
+    { title: '姓名', dataIndex: 'name', key: 'name' },
+    { title: '部门', dataIndex: 'department', key: 'department' },
+    { title: '职位', dataIndex: 'position', key: 'position' },
+    { title: '联系电话', dataIndex: 'phone', key: 'phone' },
+    { title: '电子邮箱', dataIndex: 'email', key: 'email' }
+  ];
   // 下载培训人员清单
   const handleDownloadParticipantsList = () => {
     // 模拟生成培训人员清单数据
-    const participants = [
-      { name: '张三', department: '数学组', position: '教师', phone: '13800138001', email: 'zhangsan@school.edu' },
-      { name: '李四', department: '语文组', position: '教师', phone: '13800138002', email: 'lisi@school.edu' },
-      { name: '王五', department: '英语组', position: '教师', phone: '13800138003', email: 'wangwu@school.edu' },
-      { name: '赵六', department: '物理组', position: '教师', phone: '13800138004', email: 'zhaoliu@school.edu' },
-      { name: '孙七', department: '化学组', position: '教师', phone: '13800138005', email: 'sunqi@school.edu' },
-      { name: '周八', department: '生物组', position: '教师', phone: '13800138006', email: 'zhouba@school.edu' },
-      { name: '吴九', department: '历史组', position: '教师', phone: '13800138007', email: 'wujiu@school.edu' },
-      { name: '郑十', department: '地理组', position: '教师', phone: '13800138008', email: 'zhengshi@school.edu' }
-    ];
+    const participants = participantsList;
 
     // 生成CSV格式的内容
     let csvContent = '\uFEFF'; // 添加BOM头，确保Excel正确识别UTF-8编码
@@ -80,6 +89,11 @@ const TrainingPlanViewer = ({
     document.body.removeChild(link);
     
     message.success('培训人员清单已下载');
+  };
+
+  // 查看培训人员清单（弹窗）
+  const handleViewParticipantsList = () => {
+    setParticipantsModalVisible(true);
   };
 
   // 返回上一级
@@ -573,16 +587,36 @@ const TrainingPlanViewer = ({
                       <Text type="secondary" style={{ fontSize: '12px' }}>包含8名培训人员的详细信息（姓名、部门、职位、联系方式）</Text>
                     </div>
                   </Space>
-                  <Button 
-                    type="primary" 
-                    icon={<DownloadOutlined />}
-                    onClick={handleDownloadParticipantsList}
-                  >
-                    下载清单
-                  </Button>
+                  <Space>
+                    <Button onClick={handleViewParticipantsList}>查看清单</Button>
+                    <Button 
+                      type="primary" 
+                      icon={<DownloadOutlined />}
+                      onClick={handleDownloadParticipantsList}
+                    >
+                      下载清单
+                    </Button>
+                  </Space>
                 </div>
               </Space>
             </Card>
+
+            <Modal
+              title="培训人员清单"
+              open={participantsModalVisible}
+              onCancel={() => setParticipantsModalVisible(false)}
+              footer={[
+                <Button key="close" onClick={() => setParticipantsModalVisible(false)}>关闭</Button>
+              ]}
+              width={720}
+            >
+              <Table
+                columns={participantColumnsModal}
+                dataSource={participantsList.map((p, idx) => ({ ...p, key: idx + 1 }))}
+                pagination={false}
+                size="small"
+              />
+            </Modal>
           </div>
 
           {/* 培训阶段 */}

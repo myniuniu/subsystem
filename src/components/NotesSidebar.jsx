@@ -156,12 +156,12 @@ const NotesSidebar = ({
     const isEmojiIcon = category.icon && category.icon.length <= 2;
     const IconComponent = isEmojiIcon ? null : (iconMap[category.icon] || FileTextOutlined);
     const count = getCategoryCount(category);
-    // 显示计数：非系统分类 + 特例（组织培训和培训需求管理显示进行中数量）
+    // 显示计数：非系统分类 + 特例（组织培训和培训需求管理显示进行中数量）；置顶后不显示数字
+    const isPinned = !!category.pinned;
     const showCount = (
       category.value === 'organizational_training' || 
-      category.value === 'training_needs_management' ||
-      category.pinned // 置顶的分类也显示计数
-    ) || (category.type && category.type !== 'system');
+      category.value === 'training_needs_management'
+    ) || (!isPinned && (category.type && category.type !== 'system'));
     
     // 是否显示“组织”角标：仅对组织培训和培训需求管理，置顶分类不显示
     const showOrgRibbon = (
@@ -182,8 +182,8 @@ const NotesSidebar = ({
         className={`category-item ${
           useOrgStyle ? 'organizational-training-category' : ''
         } ${category.type === 'fixed' ? 'fixed-category' : ''} ${
-          category.type === 'custom' ? 'custom-category' : ''
-        } ${selectedCategory === category.value ? 'active' : ''}`}
+          category.type === 'custom' && !category.pinned ? 'custom-category' : ''
+        } ${isPinned ? 'pinned-category' : ''} ${selectedCategory === category.value ? 'active' : ''}`}
         onClick={() => onCategoryChange(category.value)}
       >
         {isEmojiIcon ? (
@@ -198,7 +198,29 @@ const NotesSidebar = ({
         {showOrgRibbon && (
           <span className="category-ribbon">组织</span>
         )}
-        {onOpenSystemCategoryManager && category.type === 'system' && category.value !== 'organizational_training' && category.value !== 'training_needs_management' && (
+        {isPinned && (
+          <span className="category-ribbon">置顶</span>
+        )}
+        {onOpenSystemCategoryManager && isPinned && (
+          <span className="category-actions">
+            <Dropdown
+              trigger={["click"]}
+              overlayClassName="side-more-menu"
+              menu={{ items: getPinnedCategoryMoreMenuItems(category), onClick: (ev) => onPinnedCategoryMenuClick(ev, category) }}
+            >
+              <Tooltip title="更多">
+                <Button
+                  type="text"
+                  size="small"
+                  onClick={(e) => { e.stopPropagation(); }}
+                  icon={<EllipsisOutlined className="transparent-maintain-icon" />}
+                  aria-label="更多操作"
+                />
+              </Tooltip>
+            </Dropdown>
+          </span>
+        )}
+        {onOpenSystemCategoryManager && category.type === 'system' && !isPinned && category.value !== 'organizational_training' && category.value !== 'training_needs_management' && (
           <span className="category-actions">
             <Tooltip title="新增分类">
               <Button
@@ -217,26 +239,6 @@ const NotesSidebar = ({
               trigger={["click"]}
               overlayClassName="side-more-menu"
               menu={{ items: getCategoryMoreMenuItems(category), onClick: (ev) => onCategoryMenuClick(ev, category) }}
-            >
-              <Tooltip title="更多">
-                <Button
-                  type="text"
-                  size="small"
-                  onClick={(e) => { e.stopPropagation(); }}
-                  icon={<EllipsisOutlined className="transparent-maintain-icon" />}
-                  aria-label="更多操作"
-                />
-              </Tooltip>
-            </Dropdown>
-          </span>
-        )}
-        {/* 置顶的自定义分类显示“更多”菜单，但不显示“+”按钮 */}
-        {onOpenSystemCategoryManager && category.type === 'custom' && category.pinned && (
-          <span className="category-actions">
-            <Dropdown
-              trigger={["click"]}
-              overlayClassName="side-more-menu"
-              menu={{ items: getPinnedCategoryMoreMenuItems(category), onClick: (ev) => onPinnedCategoryMenuClick(ev, category) }}
             >
               <Tooltip title="更多">
                 <Button
@@ -326,34 +328,16 @@ const NotesSidebar = ({
     const systemCategories = [...baseSystemCategories, ...extraCats];
     const groupDefinitions = config.groups || [];
     
-    // 从 extraCategories 中提取置顶的分类，用于在组织培训区域显示
-    const pinnedCategoriesFromExtra = extraCats.filter(c => c.pinned === true);
+    // 从 extraCategories 中提取置顶的分类，用于在组织培训区域显示（排除固定的组织培训/培训需求管理）
+    const pinnedCategoriesFromExtra = extraCats.filter(c => c.pinned === true && c.value !== 'organizational_training' && c.value !== 'training_needs_management');
     
     console.log('=== NotesSidebar 数据加载 ===');
     console.log('categories prop 长度:', categories.length);
     console.log('extraCategories 总数:', extraCats.length);
     console.log('extraCategories 内容:', extraCats);
     console.log('baseSystemCategories 长度:', baseSystemCategories.length);
-    console.log('systemCategories 总长度:', systemCategories.length);
-    
-    // 检查重复的value
-    const valueCount = {};
-    systemCategories.forEach(c => {
-      valueCount[c.value] = (valueCount[c.value] || 0) + 1;
-    });
-    const duplicates = Object.entries(valueCount).filter(([_, count]) => count > 1);
-    if (duplicates.length > 0) {
-      console.warn('发现重复的分类值:', duplicates);
-      console.warn('重复分类详情:', systemCategories.filter(c => duplicates.some(([v]) => v === c.value)));
-    }
-    
-    console.log('置顶分类数量:', pinnedCategoriesFromExtra.length);
-    console.log('置顶分类内容:', pinnedCategoriesFromExtra);
-    console.log('置顶分类value列表:', pinnedCategoriesFromExtra.map(c => c.value));
-    console.log('========================');
-    
     return { config, extraCats, systemCategories, groupDefinitions, pinnedCategoriesFromExtra };
-  }, [categories, refreshTick, configVersion]);
+  }, [categories, configVersion, refreshTick]);
 
   // 通用分组操作工具
   const updateGroupByKey = (configObj, targetKey, updater) => {
@@ -389,6 +373,21 @@ const NotesSidebar = ({
       if (sub) return sub;
     }
     return null;
+  };
+
+  // 新增：查找某分类所在的所有分组key（用于置顶/取消置顶时恢复位置）
+  const findAllGroupKeysByCategory = (groups = [], selectedVal) => {
+    const keys = [];
+    const walk = (gs = []) => {
+      for (const g of gs) {
+        if ((g.childrenValues || []).includes(selectedVal)) {
+          keys.push(g.key);
+        }
+        walk(g.groups || []);
+      }
+    };
+    walk(groups);
+    return keys;
   };
 
   const flattenGroups = (groups = [], depth = 1, acc = []) => {
@@ -504,12 +503,18 @@ const NotesSidebar = ({
       const existingExtraCategories = (current?.extraCategories || []).filter(c => c.value !== category.value);
       console.log('3. 过滤后的existingExtraCategories:', JSON.stringify(existingExtraCategories, null, 2));
       
+      // 记录置顶前的原分组位置
+      const originalGroupKeys = findAllGroupKeysByCategory(current?.groups || [], category.value);
+      console.log('3.1 原分组keys:', originalGroupKeys);
+      
       // 2. 添加到自定义分类列表，并标记为置顶
       const pinnedCategory = {
         ...category,
         type: 'custom',
         pinned: true,
-        pinnedAt: new Date().toISOString()
+        pinnedAt: new Date().toISOString(),
+        // 保存原分组key，用于取消置顶时恢复
+        originalGroupKeys
       };
       console.log('4. 构造的pinnedCategory:', JSON.stringify(pinnedCategory, null, 2));
       
@@ -519,9 +524,9 @@ const NotesSidebar = ({
       };
       console.log('5. 新的nextConfig.extraCategories:', JSON.stringify(nextConfig.extraCategories, null, 2));
       
-      // 3. 从所有分组中移除该分类
-      nextConfig = removeCategoryFromAllGroups(nextConfig, category.value);
-      console.log('6. 从分组中移除后的nextConfig:', JSON.stringify(nextConfig, null, 2));
+      // 3. 保留该分类在原分组中（不移除，以便在原分类里仍然保留）
+      // nextConfig = removeCategoryFromAllGroups(nextConfig, category.value);
+      console.log('6. 保留在原分组，避免从树中消失');
       
       const ok = saveSystemCategoryConfig(nextConfig);
       console.log('7. saveSystemCategoryConfig 返回值:', ok);
@@ -533,7 +538,7 @@ const NotesSidebar = ({
       console.log('=== 置顶操作结束 ===');
       
       if (ok) {
-        message.success(`已将"${category.label}"置顶到组织区域`);
+        message.success(`已将"${category.label}"置顶到组织区域，并保留在原分组`);
         setRefreshTick(Date.now());
       } else {
         message.error('操作失败，请稍后重试');
@@ -598,7 +603,7 @@ const NotesSidebar = ({
     const { key } = e;
     
     if (key === 'unpin') {
-      // 取消置顶：将分类移回系统分类
+      // 取消置顶：将分类移回系统分类，并恢复到原分组
       const current = getSystemCategoryConfig();
       
       // 移除pinned标记，改回type为'system'
@@ -611,14 +616,32 @@ const NotesSidebar = ({
       
       const existingExtraCategories = (current?.extraCategories || []).filter(c => c.value !== category.value);
       
-      const nextConfig = { 
+      let nextConfig = { 
         ...current, 
         extraCategories: [...existingExtraCategories, unpinnedCategory]
       };
       
+      // 尝试恢复到置顶前的原分组位置
+      let restoreKeys = Array.isArray(category?.originalGroupKeys) ? category.originalGroupKeys.filter(Boolean) : [];
+      if (!restoreKeys.length) {
+        // 历史数据可能没有记录原分组，回退到第一个一级分组，避免进入“其他”
+        const fallbackKey = current?.groups?.[0]?.key || null;
+        if (fallbackKey) restoreKeys = [fallbackKey];
+        console.log('未找到originalGroupKeys，使用回退分组:', fallbackKey);
+      } else {
+        console.log('使用originalGroupKeys恢复分组:', restoreKeys);
+      }
+      
+      restoreKeys.forEach(k => {
+        nextConfig = updateGroupByKey(nextConfig, k, (g) => ({
+          ...g,
+          childrenValues: Array.from(new Set([ ...(g.childrenValues || []), category.value ]))
+        }));
+      });
+      
       const ok = saveSystemCategoryConfig(nextConfig);
       if (ok) {
-        message.success(`已取消“${category.label}”的置顶`);
+        message.success(`已取消“${category.label}”的置顶并恢复到原分组`);
         setRefreshTick(Date.now());
       } else {
         message.error('操作失败，请稍后重试');
@@ -836,6 +859,9 @@ const NotesSidebar = ({
   const treeData = groupDefinitions.map(g => buildGroupNode(g, 1));
   const moveTreeData = groupDefinitions.map(g => buildMoveTreeGroupNode(g, 1));
   
+  // 移除“我的分类”树中的“置顶”分组以避免重复显示
+  // （顶部区域仍显示置顶分类，这里不重复渲染）
+  
   // 其余未分配的系统分类进入"其他"分组，但要排除置顶的分类
   const pinnedValues = new Set(pinnedCategoriesFromExtra.map(c => c.value));
   console.log('=== 过滤"其他"分组 ===');
@@ -900,6 +926,13 @@ const NotesSidebar = ({
                 })}
               </div>
 
+              {/* 置顶的自定义分类：显示在培训需求管理下面 */}
+              {pinnedCategoriesFromExtra.map(category => (
+                <div key={category.value}>
+                  {renderCategoryItem(category)}
+                </div>
+              ))}
+
               {/* 专业分类（在组织培训下面） */}
               <div className="category-group" key="fixed_categories">
                 <div className="category-group-title">专业分类</div>
@@ -914,18 +947,9 @@ const NotesSidebar = ({
               {(() => {
                 // 从 categories prop 中获取自定义分类（未置顶的）
                 const customCategories = categories.filter(category => category.type === 'custom' && !category.pinned);
-                // 从 extraCategories 中获取置顶的分类
-                const pinnedCategories = pinnedCategoriesFromExtra;
                 
                 return (
                   <>
-                    {/* 置顶的自定义分类：显示在组织区域，与组织培训、培训需求管理样式一致 */}
-                    {pinnedCategories.map(category => (
-                      <div key={category.value}>
-                        {renderCategoryItem(category)}
-                      </div>
-                    ))}
-                    
                     {/* 普通自定义分类：显示在自定义分类区域 */}
                     {customCategories.length > 0 && (
                       <div className="category-group" key="custom_categories">

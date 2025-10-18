@@ -22,6 +22,7 @@
     "@lexical/markdown": "^0.36.1",
     "@lexical/react": "^0.36.1",
     "@lexical/rich-text": "^0.36.1",
+    "@reduxjs/toolkit": "^2.9.1",
     "@wangeditor/editor": "^5.1.23",
     "antd": "^5.27.3",
     "chart.js": "^4.2.1",

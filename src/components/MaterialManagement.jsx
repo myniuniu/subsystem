@@ -279,11 +279,32 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
 
   // 将层级数据扁平化为额外的视频条目，并与现有courseVideos合并用于显示
   const displayCourseVideos = useMemo(() => {
-    // 培训需求管理分类下不显示任何课程视频（包括层级数据）
-    if (note?.category === 'training_needs_management') {
-      return [];
+    // 若是“培训需求管理”，优先不显示任何视频
+    if (note?.category === 'training_needs_management') return [];
+
+    // 若是“教研室”，阻止将多视频合并为层级，直接平铺显示，不引入层级扩展
+    if (note?.category === 'teaching_research_office') {
+      return (Array.isArray(courseVideos) ? courseVideos : []).map(v => {
+        if (v?.videoInfo?.type === 'multi_video') {
+          const total = v?.videoInfo?.totalVideos || 0;
+          return Array.from({ length: Math.max(total, 1) }).map((_, idx) => ({
+            id: `${v.id}-${idx + 1}`,
+            title: `${v.title} - 片段${idx + 1}`,
+            courseId: v.courseId,
+            courseTitle: v.courseTitle,
+            url: v.url,
+            addTime: v.addTime,
+            duration: Math.round((v?.videoInfo?.totalDuration || 0) / Math.max(total, 1)) + '秒',
+            instructor: v.instructor,
+            progress: Math.round((v?.videoInfo?.overallProgress || 0) / Math.max(total, 1)),
+            videoInfo: { type: 'single_video' }
+          }));
+        }
+        return v;
+      }).flat();
     }
-    
+
+    // 其他分类：保留原本逻辑，基础视频 + 层级扁平化扩展
     const base = Array.isArray(courseVideos) ? courseVideos : [];
     try {
       const hierarchy = getMockCourseContentHierarchy();

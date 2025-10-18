@@ -84,17 +84,16 @@
   height: 0px;
 }
 
-/* 悬停时临时显示超细滚动条，便于操作 */
+/* 悬停仍隐藏滚动条，仅显示上下箭头 */
 .sidebar-bottom:hover {
-  scrollbar-width: thin; /* Firefox 显示细滚条 */
-  scrollbar-color: rgba(0, 0, 0, 0.05) transparent; /* 更透明 */
+  scrollbar-width: none; /* Firefox 隐藏滚动条 */
 }
 .sidebar-bottom:hover::-webkit-scrollbar {
-  width: 1px;
-  height: 1px;
+  width: 0px;
+  height: 0px;
 }
 .sidebar-bottom:hover::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.05); /* 更透明 */
+  background: transparent;
 }
 
 /* 顶部区域最后一个分组（系统分类标题）不再额外留白 */
@@ -112,7 +111,7 @@
 /* 底部滚动区域的滚动条样式 */
 /* 底部箭头与顶部箭头样式（与左侧菜单一致） */
 .notes-sidebar .collapsed-bottom-arrow {
-  position: absolute;
+  position: sticky; /* 置底且随滚动保持在容器底部 */
   bottom: 6px;
   left: 0;
   right: 0;
@@ -285,6 +284,9 @@
   margin-bottom: 8px !important;
   position: relative;
   overflow: hidden;
+  /* 高度缩减约 30% */
+  padding-top: 4.2px;
+  padding-bottom: 4.2px;
 }
 
 /* 视频进度条相关样式 */
@@ -347,7 +349,7 @@
 
 /* 压缩主题详情视图下卡片头部高度约 50% */
 .training-topic-detail-view .ant-card-head {
-  /* 再次压缩头部高度：垂直内边距由 8px 降到 4px */
+  /* 再次压缩头部高度：垂直内边距由 8px 降至 4px */
   padding: 2px 12px;
   /* 限制头部最小高度，避免子元素撑高 */
   min-height: 24px;
@@ -611,7 +613,7 @@
   background: #eef2ff; /* 图标圆形底 */
   border: 1px solid #c7d2fe;
   border-radius: 50%;
-  padding: 6px;
+  padding: 4px; /* 与置顶分类一致，统一高度 */
   margin-right: 8px;
 }
 
@@ -645,6 +647,18 @@
   background: #3b82f6 !important;
   color: #ffffff !important;
   border-color: #2563eb !important;
+}
+
+/* 组织培训分类置顶项：压缩高度并减少间距，仅影响置顶项 */
+.organizational-training-category.pinned-category {
+  padding-top: 3.6px;
+  padding-bottom: 3.6px;
+  margin-bottom: 2px;
+}
+
+/* 置顶项图标圆形底的内边距收紧，匹配整体高度缩减 */
+.organizational-training-category.pinned-category .category-icon {
+  padding: 4px;
 }
 
 /* 组织培训分类右上角角标（Ribbon） */
@@ -716,6 +730,9 @@
   border: 1px solid #e2e8f0;
   position: relative;
   overflow: hidden;
+  /* 高度缩减约 30% */
+  padding-top: 4.2px;
+  padding-bottom: 4.2px;
 }
 
 .category-item.fixed-category::before {

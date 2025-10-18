@@ -56,6 +56,10 @@ export default function TrainingTypeSettingsViewer({ record, setRightPanelView }
     });
   };
 
+  // 统一右侧对齐的行样式：使用 flex + 自动左间距保证右贴齐
+  const rowStyle = { display: 'flex', alignItems: 'center', width: '100%', gap: 12 };
+  const switchStyle = { marginLeft: 'auto' };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
       <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -70,10 +74,10 @@ export default function TrainingTypeSettingsViewer({ record, setRightPanelView }
               <Title level={5} style={{ margin: 0 }}>视频防作弊</Title>
 
               <div style={{ padding: '8px 0' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', columnGap: 12 }}>
+                <div style={rowStyle}>
                   <Text>防挂机验证</Text>
                   <Switch
-                    style={{ justifySelf: 'end' }}
+                    style={switchStyle}
                     checked={settings.antiCheat.afkVerification}
                     onChange={(v) => updateSetting('antiCheat.afkVerification', v)}
                   />
@@ -82,10 +86,10 @@ export default function TrainingTypeSettingsViewer({ record, setRightPanelView }
               </div>
 
               <div style={{ padding: '8px 0' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', columnGap: 12 }}>
+                <div style={rowStyle}>
                   <Text>防快进设置</Text>
                   <Switch
-                    style={{ justifySelf: 'end' }}
+                    style={switchStyle}
                     checked={settings.antiCheat.disableSeekOnFirstPlay}
                     onChange={(v) => updateSetting('antiCheat.disableSeekOnFirstPlay', v)}
                   />
@@ -94,10 +98,10 @@ export default function TrainingTypeSettingsViewer({ record, setRightPanelView }
               </div>
 
               <div style={{ padding: '8px 0' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', columnGap: 12 }}>
+                <div style={rowStyle}>
                   <Text>防倍速设置</Text>
                   <Switch
-                    style={{ justifySelf: 'end' }}
+                    style={switchStyle}
                     checked={settings.antiCheat.restrictSpeedUntilCompletion}
                     onChange={(v) => updateSetting('antiCheat.restrictSpeedUntilCompletion', v)}
                   />
@@ -122,10 +126,10 @@ export default function TrainingTypeSettingsViewer({ record, setRightPanelView }
             <Space direction="vertical" size={16} style={{ width: '100%' }}>
               <Title level={5} style={{ margin: 0 }}>内容保护配置</Title>
               <div style={{ padding: '8px 0' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', columnGap: 12 }}>
+                <div style={rowStyle}>
                   <Text>开启防录屏跑马灯</Text>
                   <Switch
-                    style={{ justifySelf: 'end' }}
+                    style={switchStyle}
                     checked={settings.contentProtection.watermarkEnabled}
                     onChange={(v) => updateSetting('contentProtection.watermarkEnabled', v)}
                   />

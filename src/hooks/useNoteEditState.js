@@ -40,20 +40,27 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
     if (selectedCategory === 'training_needs_management' || note?.category === 'training_needs_management') {
       return [];
     }
-    
+    const isTeachingResearch = (selectedCategory === 'teaching_research_office' || note?.category === 'teaching_research_office');
     // 默认的试卷文件，在任何模式下都显示
-    const defaultFiles = [
-      { id: 1, name: '成都火锅制作工艺.pdf', type: 'application/pdf', uploadTime: '刚刚' },
+    const examDefaults = [
       { id: 4, name: '数学综合试卷-期末考试.pdf', type: 'application/pdf', uploadTime: '2分钟前', isPaper: true, paperType: '期末考试', subject: '数学' },
       { id: 5, name: '语文阅读理解试卷.pdf', type: 'application/pdf', uploadTime: '5分钟前', isPaper: true, paperType: '专项练习', subject: '语文' }
     ];
-    
+    const defaultFiles = isTeachingResearch ? [
+      { id: 111, name: '教研室会议纪要-2025-01-10.pdf', type: 'application/pdf', uploadTime: '刚刚' },
+      { id: 112, name: '小学体育游戏化教学研究方案.docx', type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', uploadTime: '1分钟前' },
+      { id: 113, name: '游戏化教学研究综述.pdf', type: 'application/pdf', uploadTime: '2分钟前' },
+      ...examDefaults
+    ] : [
+      { id: 1, name: '成都火锅制作工艺.pdf', type: 'application/pdf', uploadTime: '刚刚' },
+      ...examDefaults
+    ];
     if (mode === 'create') {
       return defaultFiles;
     } else {
       // 编辑模式下，如果有传入的文件则使用，否则使用默认文件
       const existingFiles = note?.materials?.files;
-      if (existingFiles && existingFiles.length > 0) {
+      if (Array.isArray(existingFiles) && existingFiles.length > 0) {
         return existingFiles;
       } else {
         return defaultFiles;
@@ -74,24 +81,22 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
     // 培训需求管理分类下只显示“新教师培训通知”链接（优先级最高）
     if (selectedCategory === 'training_needs_management' || note?.category === 'training_needs_management') {
       return [
-        { 
-          id: 'training_notice_001', 
-          url: 'https://example.com/new-teacher-training-notice', 
-          title: '新教师培训通知', 
-          addTime: '刚刚' 
-        }
+        { id: 'training_notice_001', url: 'https://example.com/new-teacher-training-notice', title: '新教师培训通知', addTime: '刚刚' }
       ];
     }
-    
-    const defaultLinks = [
+    const isTeachingResearch = (selectedCategory === 'teaching_research_office' || note?.category === 'teaching_research_office');
+    const defaultLinks = isTeachingResearch ? [
+      { id: 'tre_001', url: 'https://example.com/小学体育游戏化教学模式-课题介绍', title: '课题介绍：小学体育游戏化教学模式研究', addTime: '刚刚' },
+      { id: 'tre_002', url: 'https://example.com/教研室-体育组-活动通知', title: '教研室活动通知：体育组研讨会安排', addTime: '1分钟前' },
+      { id: 'tre_003', url: 'https://example.com/学科教学研究资源库-体育', title: '资源库：体育学科教学研究资料', addTime: '3分钟前' }
+    ] : [
       { id: 2, url: 'https://chengdu-food.com', title: '成都美食攻略网站', addTime: '刚刚' }
     ];
-    
     if (mode === 'create') {
       return defaultLinks;
     } else {
       const existingLinks = note?.materials?.links;
-      if (existingLinks && existingLinks.length > 0) {
+      if (Array.isArray(existingLinks) && existingLinks.length > 0) {
         return existingLinks;
       } else {
         return defaultLinks;
@@ -111,16 +116,19 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
     if (selectedCategory === 'training_needs_management' || note?.category === 'training_needs_management') {
       return [];
     }
-    
-    const defaultTexts = [
+    const isTeachingResearch = (selectedCategory === 'teaching_research_office' || note?.category === 'teaching_research_office');
+    const defaultTexts = isTeachingResearch ? [
+      { id: 21, title: '研究方案摘要', content: '本研究聚焦小学体育游戏化教学模式，通过设计与实施教学游戏，期待提升学生参与度与学习效果。', addTime: '刚刚' },
+      { id: 22, title: '教研活动安排', content: '教研室计划于每周三开展主题研讨，安排课题分工与阶段评审。', addTime: '2分钟前' },
+      { id: 23, title: '问卷设计要点', content: '围绕学习兴趣、课堂参与、体能提升等维度设计问卷，建议采用李克特量表。', addTime: '5分钟前' }
+    ] : [
       { id: 3, title: '成都小吃介绍', content: '成都是著名的美食之都，拥有麻婆豆腐、回锅肉、担担面、龙抄手等众多特色小吃...', addTime: '刚刚' }
     ];
-    
     if (mode === 'create') {
       return defaultTexts;
     } else {
       const existingTexts = note?.materials?.texts;
-      if (existingTexts && existingTexts.length > 0) {
+      if (Array.isArray(existingTexts) && existingTexts.length > 0) {
         return existingTexts;
       } else {
         return defaultTexts;
@@ -136,15 +144,19 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
     if (selectedCategory === 'training_needs_management' || note?.category === 'training_needs_management') {
       return [];
     }
-    
+    const isTeachingResearch = (selectedCategory === 'teaching_research_office' || note?.category === 'teaching_research_office');
+    const teachingResearchVideos = [
+      { id: 301, title: '小学体育：游戏化教学示范课', courseId: 401, courseTitle: '小学体育游戏化教学', url: 'https://www.bilibili.com/video/BV1PEgame001', addTime: '2025-01-12 09:30', duration: '40分钟', instructor: '体育组王老师', progress: 50, videoInfo: { type: 'single_video', progress: 50, duration: 2400, instructor: '王老师' } },
+      { id: 302, title: '体育课堂游戏设计与实施', courseId: 401, courseTitle: '小学体育游戏化教学', url: 'https://www.bilibili.com/video/BV1PEgame002', addTime: '2025-01-12 10:20', duration: '55分钟', instructor: '体育组李老师', progress: 20, videoInfo: { type: 'multi_video', totalVideos: 3, totalDuration: 3300, watchedDuration: 660, overallProgress: 20 } }
+    ];
     if (mode === 'create') {
-      return DEFAULT_COURSE_VIDEOS;
+      return isTeachingResearch ? teachingResearchVideos : DEFAULT_COURSE_VIDEOS;
     } else {
       const actualVideos = note?.materials?.videos;
-      if (actualVideos && actualVideos.length > 0) {
+      if (Array.isArray(actualVideos) && actualVideos.length > 0) {
         return actualVideos;
       } else {
-        return DEFAULT_COURSE_VIDEOS;
+        return isTeachingResearch ? teachingResearchVideos : DEFAULT_COURSE_VIDEOS;
       }
     }
   });
