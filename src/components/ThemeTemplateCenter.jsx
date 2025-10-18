@@ -62,6 +62,16 @@ const SMART_TOOLS = [
   { value: 'efficiency-master', label: '效率大师', icon: '⚡', color: '#13c2c2' }
 ];
 
+// 新增：知识库选项配置（下拉多选）
+const KNOWLEDGE_BASES = [
+  { value: 'teaching-research-kb', label: '教研知识库', icon: '📚', color: '#1890ff' },
+  { value: 'headteacher-kb', label: '班主任知识库', icon: '👨‍🏫', color: '#52c41a' },
+  { value: 'counselor-kb', label: '辅导员知识库', icon: '🧑‍💼', color: '#722ed1' },
+  { value: 'supervisor-kb', label: '督学知识库', icon: '🛡️', color: '#fa8c16' },
+  { value: 'principal-kb', label: '校长知识库', icon: '🏫', color: '#eb2f96' },
+  { value: 'scientific-research-kb', label: '科研知识库', icon: '🔬', color: '#f5222d' }
+];
+
 const ThemeTemplateCenter = ({ onBack }) => {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -98,6 +108,7 @@ const ThemeTemplateCenter = ({ onBack }) => {
           description: '面向教学与教研场景的通用智能体',
           sourceTypes: ['knowledge-graph', 'course-videos', 'uploaded-files', 'links'],
           smartTools: ['knowledge-graph-tool', 'teaching-assistant', 'smart-writer'],
+          knowledgeBases: ['teaching-research-kb'],
           createTime: '2024-01-15 10:00:00',
           updateTime: '2024-01-15 10:00:00',
           creator: '系统管理员',
@@ -110,6 +121,7 @@ const ThemeTemplateCenter = ({ onBack }) => {
           description: '面向班级管理与家校沟通的班主任辅助智能体',
           sourceTypes: ['organizational-courses', 'uploaded-files', 'added-texts'],
           smartTools: ['efficiency-master', 'grading-assistant', 'teaching-assistant'],
+          knowledgeBases: ['headteacher-kb'],
           createTime: '2024-01-14 15:30:00',
           updateTime: '2024-01-16 09:20:00',
           creator: '班主任',
@@ -122,6 +134,7 @@ const ThemeTemplateCenter = ({ onBack }) => {
           description: '面向学生思想政治与事务管理的辅导员智能体',
           sourceTypes: ['uploaded-files', 'links', 'added-texts'],
           smartTools: ['smart-writer', 'efficiency-master', 'teaching-assistant'],
+          knowledgeBases: ['counselor-kb'],
           createTime: '2024-01-20 14:20:00',
           updateTime: '2024-01-20 14:20:00',
           creator: '辅导员',
@@ -134,6 +147,7 @@ const ThemeTemplateCenter = ({ onBack }) => {
           description: '面向督导评估与质量监测的督学智能体',
           sourceTypes: ['capability-model', 'links', 'uploaded-files'],
           smartTools: ['data-analyst', 'knowledge-graph-tool', 'efficiency-master'],
+          knowledgeBases: ['supervisor-kb'],
           createTime: '2024-01-18 09:15:00',
           updateTime: '2024-01-18 09:15:00',
           creator: '督导办',
@@ -146,6 +160,7 @@ const ThemeTemplateCenter = ({ onBack }) => {
           description: '面向学校治理与决策支持的校长智能体',
           sourceTypes: ['organizational-courses', 'course-videos', 'links'],
           smartTools: ['data-analyst', 'efficiency-master', 'smart-writer'],
+          knowledgeBases: ['principal-kb'],
           createTime: '2024-01-17 16:45:00',
           updateTime: '2024-01-17 16:45:00',
           creator: '校长办公室',
@@ -158,6 +173,7 @@ const ThemeTemplateCenter = ({ onBack }) => {
           description: '面向课题研究与成果管理的科研智能体',
           sourceTypes: ['knowledge-graph', 'links', 'uploaded-files', 'added-texts'],
           smartTools: ['research-helper', 'data-analyst', 'knowledge-graph-tool'],
+          knowledgeBases: ['scientific-research-kb'],
           createTime: '2024-01-16 11:30:00',
           updateTime: '2024-01-16 11:30:00',
           creator: '科研处',
@@ -196,6 +212,7 @@ const ThemeTemplateCenter = ({ onBack }) => {
       description: template.description,
       sourceTypes: template.sourceTypes,
       smartTools: template.smartTools,
+      knowledgeBases: template.knowledgeBases || [],
       avatarUrl: template.avatarUrl
     });
     setModalVisible(true);
@@ -275,6 +292,16 @@ const ThemeTemplateCenter = ({ onBack }) => {
     ) : <Tag key={tool}>{tool}</Tag>;
   };
 
+  // 新增：知识库标签渲染
+  const getKnowledgeBaseTag = (kb) => {
+    const config = KNOWLEDGE_BASES.find(k => k.value === kb || k.label === kb);
+    return config ? (
+      <Tag color={config.color} key={kb}>
+        {config.icon} {config.label}
+      </Tag>
+    ) : <Tag key={kb}>{kb}</Tag>;
+  };
+
   // 渲染模版卡片
   const renderTemplateCard = (template) => (
     <Col xs={24} sm={12} lg={8} xl={6} key={template.id}>
@@ -348,6 +375,19 @@ const ThemeTemplateCenter = ({ onBack }) => {
               )}
             </div>
           </div>
+
+          {/* 新增：知识库展示 */}
+          {Array.isArray(template.knowledgeBases) && template.knowledgeBases.length > 0 && (
+            <div className="template-section" style={{ marginTop: '12px' }}>
+              <Text strong style={{ fontSize: '12px', color: '#666' }}>知识库</Text>
+              <div className="template-tags" style={{ marginTop: '6px' }}>
+                {template.knowledgeBases.slice(0, 3).map(kb => getKnowledgeBaseTag(kb))}
+                {template.knowledgeBases.length > 3 && (
+                  <Tag style={{ fontSize: '10px' }}>+{template.knowledgeBases.length - 3}</Tag>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="template-footer">
@@ -608,6 +648,19 @@ const ThemeTemplateCenter = ({ onBack }) => {
                   ))}
                 </Row>
               </Checkbox.Group>
+            </Form.Item>
+
+            {/* 新增：知识库配置（下拉多选） */}
+            <Divider orientation="left">知识库配置</Divider>
+            <Form.Item
+              name="knowledgeBases"
+              label="选择知识库（多选）"
+            >
+              <Select mode="multiple" placeholder="请选择相关知识库" allowClear>
+                {KNOWLEDGE_BASES.map(kb => (
+                  <Option key={kb.value} value={kb.value}>{kb.label}</Option>
+                ))}
+              </Select>
             </Form.Item>
           </Form>
         </Modal>

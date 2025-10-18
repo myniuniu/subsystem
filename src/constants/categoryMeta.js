@@ -16,8 +16,29 @@ export const CATEGORY_META = {
 };
 
 export const getCategoryKey = (noteCategory, selectedCategory) => {
-  // 坚持只用稳定 key，避免名称匹配；直接优先 note.category，否则使用 selectedCategory
-  return noteCategory || selectedCategory || null;
+  // 归一化中文名称为稳定 key，并优先使用 selectedCategory
+  const normalize = (key) => {
+    if (!key) return null;
+    const map = {
+      '组织培训': 'organizational_training',
+      '培训需求管理': 'training_needs_management',
+      '教学研究室': 'teaching_research_office',
+      '学习广场': 'learning_square',
+      // 系统固定分类中文 -> 稳定 key
+      '工作主题': 'work',
+      '学习主题': 'study',
+      '个人主题': 'personal',
+      '想法灵感': 'ideas',
+      '收藏主题': 'starred',
+      '能力模型': 'capability_model',
+      '知识图谱': 'knowledge_graph',
+      '微专业': 'micro_major'
+    };
+    return map[key] || key;
+  };
+  const selected = normalize(selectedCategory);
+  const note = normalize(noteCategory);
+  return selected || note || null;
 };
 
 export const getAiTitleForCategory = (key) => {

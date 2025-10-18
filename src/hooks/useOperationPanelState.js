@@ -452,8 +452,12 @@ export const useOperationPanelState = (noteCategory = null) => {
         return null;
       }).filter(Boolean);
 
-      console.log('教研室分类，返回的卡片:', teachingCards);
-      return teachingCards;
+      // 额外加入基础工具中的“场景模拟”卡片
+      const scenarioCard = OPERATION_CARDS.find(card => card.key === 'scenario');
+      const finalCards = scenarioCard ? [...teachingCards, scenarioCard] : teachingCards;
+
+      console.log('教研室分类，返回的卡片:', finalCards);
+      return finalCards;
     }
 
     // 如果是教学设计分类，默认注入并仅显示教学设计相关工具
