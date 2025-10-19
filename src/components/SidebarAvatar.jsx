@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dropdown, Space, message } from 'antd';
 import { 
   User, 
@@ -8,7 +8,8 @@ import {
   CheckCircle,
   Share2,
   Users,
-  Shield
+  Shield,
+  Search
 } from 'lucide-react';
 import { getCurrentTheme, setTheme, getThemeList } from '../utils/themeManager';
 import ThemeShareModal from './ThemeShareModal';
@@ -16,6 +17,7 @@ import LoginMoreModal from './LoginMoreModal';
 import DesktopDownloadModal from './DesktopDownloadModal';
 import './SidebarAvatar.css';
 import { getTotalMedalCount } from '../data/medalsData';
+import GlobalSearchModal from './GlobalSearchModal.jsx';
 
 const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
   const [currentTheme, setCurrentTheme] = useState(getCurrentTheme());
@@ -27,6 +29,42 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
     email: 'zhang.teacher@edu.cn',
     avatar: null
   });
+  // 新增：全局搜索弹窗状态
+  const [searchModalVisible, setSearchModalVisible] = useState(false);
+  // 新增：展开态内联搜索框状态与快捷键
+  const [searchInlineValue, setSearchInlineValue] = useState('');
+  const inputRef = useRef(null);
+  const LS_KEY = 'global_search_history_v1';
+
+  const pushHistory = (text) => {
+    if (!text) return;
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      const arr = raw ? JSON.parse(raw) : [];
+      const next = [text, ...arr.filter(h => h !== text)].slice(0, 10);
+      localStorage.setItem(LS_KEY, JSON.stringify(next));
+    } catch {}
+  };
+
+  const triggerGlobalSearch = (q) => {
+    const detail = { query: q, module: 'global', time: Date.now() };
+    window.dispatchEvent(new CustomEvent('globalSearch', { detail }));
+  };
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        if (isCollapsed) {
+          setSearchModalVisible(true);
+        } else {
+          inputRef.current?.focus();
+        }
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isCollapsed]);
 
   useEffect(() => {
     // 监听主题变更事件
@@ -292,19 +330,53 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
 
   return (
     <>
-      <Dropdown
-        menu={{ items: userMenuItems }}
-        placement="bottomLeft"
-        trigger={['click']}
-        overlayClassName="sidebar-avatar-dropdown"
-      >
-        <div className={`sidebar-title-with-avatar clickable ${isCollapsed ? 'collapsed' : ''}`}>
-          <div className="sidebar-avatar">
-            <User size={20} />
+      <div className={`sidebar-avatar-stack ${isCollapsed ? 'collapsed' : ''}`}>
+        <Dropdown
+          menu={{ items: userMenuItems }}
+          placement="bottomLeft"
+          trigger={['click']}
+          overlayClassName="sidebar-avatar-dropdown"
+        >
+          <div className={`sidebar-title-with-avatar clickable ${isCollapsed ? 'collapsed' : ''}`}>
+            <div className="sidebar-avatar">
+              <User size={20} />
+            </div>
+            {!isCollapsed && <h4 className="sidebar-title">张老师</h4>}
           </div>
-          {!isCollapsed && <h4 className="sidebar-title">张老师</h4>}
-        </div>
-      </Dropdown>
+        </Dropdown>
+
+        {/* 搜索入口：折叠显示图标，展开显示输入框 */}
+        {isCollapsed ? (
+          <div 
+            className={`sidebar-search-trigger collapsed`}
+            onClick={() => setSearchModalVisible(true)}
+            title="搜索"
+          >
+            <Search size={24} />
+          </div>
+        ) : (
+          <div className="sidebar-search-input-row" title="搜索">
+            <Search size={18} className="sidebar-search-input-icon" />
+            <input
+              ref={inputRef}
+              className="sidebar-search-input"
+              type="text"
+              placeholder="搜索 (⌘+K)"
+              value={searchInlineValue}
+              onChange={(e) => setSearchInlineValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const q = searchInlineValue.trim();
+                  if (!q) return;
+                  pushHistory(q);
+                  triggerGlobalSearch(q);
+                  setSearchModalVisible(true);
+                }
+              }}
+            />
+          </div>
+        )}
+      </div>
 
       <DesktopDownloadModal
         open={downloadModalVisible}
@@ -322,6 +394,13 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
       <LoginMoreModal
         open={loginMoreModalVisible}
         onCancel={() => setLoginMoreModalVisible(false)}
+      />
+
+      {/* 全局搜索弹窗 */}
+      <GlobalSearchModal 
+        open={searchModalVisible}
+        onClose={() => setSearchModalVisible(false)}
+        defaultQuery={searchInlineValue}
       />
     </>
   );

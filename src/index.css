@@ -100,6 +100,19 @@ body {
   border: none !important;
 }
 
+/* 防止使用 prefix/suffix 的 affix 包裹出现双重边框 */
+.ant-input-affix-wrapper .ant-input {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.ant-input-affix-wrapper-focused .ant-input,
+.ant-input-affix-wrapper .ant-input:focus {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
 /* 禁用状态样式 */
 .ant-input:disabled,
 .ant-input-affix-wrapper-disabled,
