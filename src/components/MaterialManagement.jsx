@@ -124,7 +124,41 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     setLocalTitle(note?.title || '');
   }, [note?.id, note?.title]);
 
-  // 自动注入“教师心理健康教育培训”预设来源数据
+  // 重命名弹窗状态与处理
+  const [renameModalVisible, setRenameModalVisible] = useState(false);
+  const [renameTarget, setRenameTarget] = useState({ type: '', id: null });
+  const [renameValue, setRenameValue] = useState('');
+  const openRename = (type, id, initialValue) => {
+    setRenameTarget({ type, id });
+    setRenameValue(initialValue || '');
+    setRenameModalVisible(true);
+  };
+  const handleConfirmRename = () => {
+    const value = (renameValue || '').trim();
+    if (!value) {
+      message.warning('请输入新名称');
+      return;
+    }
+    switch (renameTarget.type) {
+      case 'file':
+        setUploadedFiles(prev => prev.map(f => f.id === renameTarget.id ? { ...f, name: value } : f));
+        message.success('文件重命名成功');
+        break;
+      case 'link':
+        setLinks(prev => prev.map(l => l.id === renameTarget.id ? { ...l, title: value } : l));
+        message.success('链接重命名成功');
+        break;
+      case 'text':
+        setAddedTexts(prev => prev.map(t => t.id === renameTarget.id ? { ...t, title: value } : t));
+        message.success('文本重命名成功');
+        break;
+      default:
+        break;
+    }
+    setRenameModalVisible(false);
+  };
+
+    // 自动注入“教师心理健康教育培训”预设来源数据
   useEffect(() => {
     const isTarget =
       note?.category === 'training_needs_management' &&
@@ -1402,13 +1436,51 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                       size="small" 
                       style={{ 
                         marginBottom: 8,
-                        border: '1px solid #e8e8e8'
+                        border: '1px solid #e8e8e8',
+                        position: 'relative'
                       }}
                       bodyStyle={{ padding: '8px 12px' }}
+                      onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`file-${file.id}`]: true }))}
+                      onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`file-${file.id}`]: false }))}
                     >
+                      {/* 悬停操作图标 - More 菜单（试卷文件） */}
+                      <div style={{ position: 'absolute', top: 6, right: 8, display: 'flex', gap: 8, background: 'rgba(255,255,255,0.85)', borderRadius: 4, padding: '2px 6px', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', opacity: hoveredItems?.[`file-${file.id}`] ? 1 : 0, transition: 'opacity 0.2s' }}>
+
+                      </div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
-                          <FileTextOutlined style={{ color: '#722ed1', marginRight: 8, fontSize: 16 }} />
+                          {hoveredItems?.[`file-${file.id}`] ? (
+                            <Dropdown
+                              trigger={['click']}
+                              placement="bottomLeft"
+                              menu={{
+                                items: [
+                                  { key: 'rename', label: '重命名', icon: <EditOutlined /> },
+                                  { key: 'delete', label: '删除', icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />, danger: true }
+                                ],
+                                onClick: ({ key }) => {
+                                  if (key === 'rename') {
+                                    openRename('file', file.id, getFileDisplayName(file.name));
+                                  }
+                                  if (key === 'delete') {
+                                    Modal.confirm({
+                                      title: '确认删除该文件？',
+                                      okText: '删除',
+                                      okType: 'danger',
+                                      cancelText: '取消',
+                                      onOk: () => handleDeleteFile(file.id)
+                                    });
+                                  }
+                                }
+                              }}
+                            >
+                              <Tooltip title="更多">
+                                <MoreOutlined style={{ color: '#8c8c8c', marginRight: 8, fontSize: 16 }} onClick={(e) => e.stopPropagation()} />
+                              </Tooltip>
+                            </Dropdown>
+                          ) : (
+                            <FileTextOutlined style={{ color: '#722ed1', marginRight: 8, fontSize: 16 }} />
+                          )}
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
                               {getFileDisplayName(file.name)} <Tag color="purple" style={{ marginLeft: 6 }}>试卷</Tag>
@@ -1449,13 +1521,51 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                       size="small" 
                       style={{ 
                         marginBottom: 8,
-                        border: '1px solid #e8e8e8'
+                        border: '1px solid #e8e8e8',
+                        position: 'relative'
                       }}
                       bodyStyle={{ padding: '8px 12px' }}
+                      onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`file-${file.id}`]: true }))}
+                      onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`file-${file.id}`]: false }))}
                     >
+                      {/* 悬停操作图标 - More 菜单（普通文件） */}
+                      <div style={{ position: 'absolute', top: 6, right: 8, display: 'flex', gap: 8, background: 'rgba(255,255,255,0.85)', borderRadius: 4, padding: '2px 6px', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', opacity: hoveredItems?.[`file-${file.id}`] ? 1 : 0, transition: 'opacity 0.2s' }}>
+
+                      </div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
-                          <FileTextOutlined style={{ color: '#52c41a', marginRight: 8, fontSize: 16 }} />
+                          {hoveredItems?.[`file-${file.id}`] ? (
+                            <Dropdown
+                              trigger={['click']}
+                              placement="bottomLeft"
+                              menu={{
+                                items: [
+                                  { key: 'rename', label: '重命名', icon: <EditOutlined /> },
+                                  { key: 'delete', label: '删除', icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />, danger: true }
+                                ],
+                                onClick: ({ key }) => {
+                                  if (key === 'rename') {
+                                    openRename('file', file.id, getFileDisplayName(file.name));
+                                  }
+                                  if (key === 'delete') {
+                                    Modal.confirm({
+                                      title: '确认删除该文件？',
+                                      okText: '删除',
+                                      okType: 'danger',
+                                      cancelText: '取消',
+                                      onOk: () => handleDeleteFile(file.id)
+                                    });
+                                  }
+                                }
+                              }}
+                            >
+                              <Tooltip title="更多">
+                                <MoreOutlined style={{ color: '#8c8c8c', marginRight: 8, fontSize: 16 }} onClick={(e) => e.stopPropagation()} />
+                              </Tooltip>
+                            </Dropdown>
+                          ) : (
+                            <FileTextOutlined style={{ color: '#52c41a', marginRight: 8, fontSize: 16 }} />
+                          )}
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
                               {getFileDisplayName(file.name)}
@@ -1496,13 +1606,51 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                       size="small" 
                       style={{ 
                         marginBottom: 8,
-                        border: '1px solid #e8e8e8'
+                        border: '1px solid #e8e8e8',
+                        position: 'relative'
                       }}
                       bodyStyle={{ padding: '8px 12px' }}
+                      onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`link-${link.id}`]: true }))}
+                      onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`link-${link.id}`]: false }))}
                     >
+                      {/* 悬停操作图标 - More 菜单（链接） */}
+                      <div style={{ position: 'absolute', top: 6, right: 8, display: 'flex', gap: 8, background: 'rgba(255,255,255,0.85)', borderRadius: 4, padding: '2px 6px', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', opacity: hoveredItems?.[`link-${link.id}`] ? 1 : 0, transition: 'opacity 0.2s' }}>
+
+                      </div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
-                          <LinkOutlined style={{ color: '#1890ff', marginRight: 8, fontSize: 16 }} />
+                          {hoveredItems?.[`link-${link.id}`] ? (
+                            <Dropdown
+                              trigger={['click']}
+                              placement="bottomLeft"
+                              menu={{
+                                items: [
+                                  { key: 'rename', label: '重命名', icon: <EditOutlined /> },
+                                  { key: 'delete', label: '删除', icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />, danger: true }
+                                ],
+                                onClick: ({ key }) => {
+                                  if (key === 'rename') {
+                                    openRename('link', link.id, link.title || link.url);
+                                  }
+                                  if (key === 'delete') {
+                                    Modal.confirm({
+                                      title: '确认删除该链接？',
+                                      okText: '删除',
+                                      okType: 'danger',
+                                      cancelText: '取消',
+                                      onOk: () => handleDeleteLink(link.id)
+                                    });
+                                  }
+                                }
+                              }}
+                            >
+                              <Tooltip title="更多">
+                                <MoreOutlined style={{ color: '#8c8c8c', marginRight: 8, fontSize: 16 }} onClick={(e) => e.stopPropagation()} />
+                              </Tooltip>
+                            </Dropdown>
+                          ) : (
+                            <LinkOutlined style={{ color: '#1890ff', marginRight: 8, fontSize: 16 }} />
+                          )}
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
                               {link.title}
@@ -1543,13 +1691,51 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                       size="small" 
                       style={{ 
                         marginBottom: 8,
-                        border: '1px solid #e8e8e8'
+                        border: '1px solid #e8e8e8',
+                        position: 'relative'
                       }}
                       bodyStyle={{ padding: '8px 12px' }}
+                      onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`text-${text.id}`]: true }))}
+                      onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`text-${text.id}`]: false }))}
                     >
+                      {/* 悬停操作图标 - More 菜单（文本） */}
+                      <div style={{ position: 'absolute', top: 6, right: 8, display: 'flex', gap: 8, background: 'rgba(255,255,255,0.85)', borderRadius: 4, padding: '2px 6px', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', opacity: hoveredItems?.[`text-${text.id}`] ? 1 : 0, transition: 'opacity 0.2s' }}>
+
+                      </div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
-                          <FileTextOutlined style={{ color: '#faad14', marginRight: 8, fontSize: 16 }} />
+                          {hoveredItems?.[`text-${text.id}`] ? (
+                            <Dropdown
+                              trigger={['click']}
+                              placement="bottomLeft"
+                              menu={{
+                                items: [
+                                  { key: 'rename', label: '重命名', icon: <EditOutlined /> },
+                                  { key: 'delete', label: '删除', icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />, danger: true }
+                                ],
+                                onClick: ({ key }) => {
+                                  if (key === 'rename') {
+                                    openRename('text', text.id, text.title || '文本');
+                                  }
+                                  if (key === 'delete') {
+                                    Modal.confirm({
+                                      title: '确认删除该文本？',
+                                      okText: '删除',
+                                      okType: 'danger',
+                                      cancelText: '取消',
+                                      onOk: () => handleDeleteText(text.id)
+                                    });
+                                  }
+                                }
+                              }}
+                            >
+                              <Tooltip title="更多">
+                                <MoreOutlined style={{ color: '#8c8c8c', marginRight: 8, fontSize: 16 }} onClick={(e) => e.stopPropagation()} />
+                              </Tooltip>
+                            </Dropdown>
+                          ) : (
+                            <FileTextOutlined style={{ color: '#faad14', marginRight: 8, fontSize: 16 }} />
+                          )}
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
                               {text.title}
@@ -1581,6 +1767,25 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
           )}
         </div>
       </div>
+
+      {/* 重命名弹窗 */}
+      <Modal
+        title="重命名"
+        open={renameModalVisible}
+        onOk={handleConfirmRename}
+        onCancel={() => setRenameModalVisible(false)}
+        okText="确定"
+        cancelText="取消"
+        destroyOnClose
+      >
+        <Input
+          autoFocus
+          placeholder="请输入新名称"
+          value={renameValue}
+          onChange={(e) => setRenameValue(e.target.value)}
+          onPressEnter={handleConfirmRename}
+        />
+      </Modal>
 
       {/* 资料添加弹窗 */}
       <MaterialAddPage 
