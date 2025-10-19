@@ -55,6 +55,8 @@ import {
   checkVideoWebsiteType
 } from '../utils/noteEditUtils';
 
+import notesService from '../services/notesService';
+
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
@@ -114,6 +116,66 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     setShowExploreModal,
     materials
   } = state;
+
+  // 本地标题编辑状态
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [localTitle, setLocalTitle] = useState(note?.title || '');
+  useEffect(() => {
+    setLocalTitle(note?.title || '');
+  }, [note?.id, note?.title]);
+
+  // 自动注入“教师心理健康教育培训”预设来源数据
+  useEffect(() => {
+    const isTarget =
+      note?.category === 'training_needs_management' &&
+      ((note?.title || '').includes('教师心理健康教育培训') || (note?.title || '').includes('教师心理健康教育'));
+
+    if (!isTarget) return;
+
+    const nowISO = new Date().toISOString();
+
+    // 注入链接（视频与网站）
+    const seedLinks = [
+      { id: Date.now() + 1, url: 'https://www.bilibili.com/video/BV1Xa4y1Q7xx', type: 'video', platform: 'B站', title: '教师心理健康教育培训专题视频（B站）', addTime: nowISO },
+      { id: Date.now() + 2, url: 'https://www.xiaohongshu.com/explore/66abcdef1234567890', type: 'video', platform: '小红书', title: '教师心理健康辅导示范课（小红书）', addTime: nowISO },
+      { id: Date.now() + 3, url: 'https://www.moe.gov.cn/', type: 'website', platform: '普通网站', title: '教育部中小学教师心理健康指导纲要', addTime: nowISO }
+    ];
+    const linksToAdd = seedLinks.filter(s => !(Array.isArray(links) ? links : []).some(l => l.url === s.url || l.title === s.title));
+    if (linksToAdd.length) setLinks(prev => [...prev, ...linksToAdd]);
+
+    // 注入文本内容
+    const seedTexts = [
+      { title: '培训目标与核心能力', content: '建立教师自我调适与沟通支持能力，提升识别与干预意识。' },
+      { title: '风险识别清单（校园场景）', content: '早期征兆：睡眠障碍、注意力下降、社交退缩、情绪波动等。' },
+      { title: '干预流程与家校协同', content: '班主任初评→校心理老师跟进→家校沟通→外部资源转介→过程记录。' }
+    ];
+    const textsToAdd = seedTexts
+      .filter(s => !(Array.isArray(addedTexts) ? addedTexts : []).some(t => t.title === s.title))
+      .map(s => ({ id: Date.now() + Math.floor(Math.random() * 100000), content: s.content, type: 'text', title: s.title, addTime: nowISO }));
+    if (textsToAdd.length) setAddedTexts(prev => [...prev, ...textsToAdd]);
+
+    // 注入文件（试卷与普通资料）
+    const seedFiles = [
+      { name: '心理健康教育培训试卷（教师版）.pdf', type: 'application/pdf', size: 256 * 1024, isPaper: true },
+      { name: '心理健康教育测评题库.docx', type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', size: 512 * 1024, isPaper: true },
+      { name: '心理健康教育课程讲义.pdf', type: 'application/pdf', size: 768 * 1024, isPaper: false },
+      { name: '教师心理健康筛查工具说明.docx', type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', size: 280 * 1024, isPaper: false }
+    ];
+    const filesToAdd = seedFiles
+      .filter(s => !(Array.isArray(uploadedFiles) ? uploadedFiles : []).some(f => f.name === s.name))
+      .map(s => ({ id: Date.now() + Math.floor(Math.random() * 100000), name: s.name, size: s.size, type: s.type, isPaper: s.isPaper, uploadTime: nowISO, content: '文件内容预览...' }));
+    if (filesToAdd.length) setUploadedFiles(prev => [...prev, ...filesToAdd]);
+
+    // 注入组织课程
+    const seedCourses = [
+      { title: '教师心理健康基础培训', instructor: '校心理健康中心', duration: '6小时', description: '识别常见心理问题、压力管理与同伴支持' },
+      { title: '危机干预与家校协同', instructor: '市教研院专家', duration: '4小时', description: '校园危机识别、干预流程与家校沟通要点' }
+    ];
+    const coursesToAdd = seedCourses
+      .filter(s => !(Array.isArray(organizationalCourses) ? organizationalCourses : []).some(c => c.title === s.title))
+      .map(s => ({ id: Date.now() + Math.floor(Math.random() * 100000), title: s.title, instructor: s.instructor, duration: s.duration, description: s.description, addedAt: new Date().toLocaleString(), type: 'course' }));
+    if (coursesToAdd.length) setOrganizationalCourses(prev => [...prev, ...coursesToAdd]);
+  }, [note?.id, note?.title, note?.category]);
 
   const {
     onPlayVideo,
@@ -595,6 +657,41 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     message.success(`已删除 ${selectedMaterials.length} 个资料`);
   };
 
+  // 保存标题
+  const handleSaveTitle = async () => {
+    const trimmed = (localTitle || '').trim();
+    if (!trimmed) {
+      message.warning('标题不能为空');
+      setLocalTitle(note?.title || '');
+      setIsEditingTitle(false);
+      return;
+    }
+    if (trimmed === (note?.title || '')) {
+      setIsEditingTitle(false);
+      return;
+    }
+    try {
+      if (note?.id) {
+        const updated = await notesService.updateNote(note.id, { title: trimmed });
+        setLocalTitle(updated.title);
+      } else {
+        setLocalTitle(trimmed);
+      }
+      if (state?.setEditingNote) {
+        state.setEditingNote(prev => {
+          if (!prev) return prev;
+          if (note?.id && prev.id !== note.id) return prev;
+          return { ...prev, title: trimmed };
+        });
+      }
+      message.success('主题标题已更新');
+    } catch (e) {
+      message.error(`更新失败: ${e.message || e}`);
+    } finally {
+      setIsEditingTitle(false);
+    }
+  };
+
   return (
     <div style={{ 
       flex: currentView === 'video' ? 4 : (viewMode === 'map' ? 4 : 2.5), 
@@ -609,9 +706,27 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
       <div style={{ padding: '20px', flex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
-              {note?.title || '未命名主题'}
-            </Title>
+            {isEditingTitle ? (
+              <Input
+                size="small"
+                value={localTitle}
+                autoFocus
+                onChange={(e) => setLocalTitle(e.target.value)}
+                onPressEnter={() => handleSaveTitle()}
+                onBlur={() => handleSaveTitle()}
+                placeholder="请输入主题标题"
+                style={{ width: 260 }}
+              />
+            ) : (
+              <Title
+                level={5}
+                style={{ margin: 0, color: '#1f1f1f', cursor: 'pointer' }}
+                onClick={() => setIsEditingTitle(true)}
+                title="点击编辑标题"
+              >
+                {localTitle || '未命名主题'}
+              </Title>
+            )}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {onBack && (
@@ -714,8 +829,8 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                   collapsedSections.links &&
                   collapsedSections.texts &&
                   collapsedGroups.size === allCourseIds.length
-                    ? <DownOutlined />
-                    : <RightOutlined />
+                  ? <DownOutlined />
+                  : <RightOutlined />
                 )}
                 style={{ fontSize: '12px', height: 'auto', padding: '2px 8px' }}
               >
@@ -1486,4 +1601,3 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
 };
 
 export default MaterialManagement;
-  // 分组折叠状态 & 汇总计算

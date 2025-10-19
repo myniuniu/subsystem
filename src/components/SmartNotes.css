@@ -281,12 +281,12 @@
   border: 1px solid #c7d2fe !important; /* 边框更浅 */
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15) !important; /* 阴影更轻 */
   font-weight: 600 !important;
-  margin-bottom: 8px !important;
+  margin-bottom: 4px !important; /* 间距更紧凑 */
   position: relative;
   overflow: hidden;
-  /* 高度缩减约 30% */
-  padding-top: 4.2px;
-  padding-bottom: 4.2px;
+  /* 与“教研室”统一高度 */
+  padding-top: 3.6px;
+  padding-bottom: 3.6px;
 }
 
 /* 视频进度条相关样式 */
