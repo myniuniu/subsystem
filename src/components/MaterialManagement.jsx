@@ -1456,11 +1456,30 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                               menu={{
                                 items: [
                                   { key: 'rename', label: '重命名', icon: <EditOutlined /> },
+                                  { key: 'convertToOperationRecord', label: '转为操作记录', icon: <FileTextOutlined /> },
                                   { key: 'delete', label: '删除', icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />, danger: true }
                                 ],
                                 onClick: ({ key }) => {
                                   if (key === 'rename') {
                                     openRename('file', file.id, getFileDisplayName(file.name));
+                                  }
+                                  if (key === 'convertToOperationRecord') {
+                                    const displayName = getFileDisplayName(file.name);
+                                    const newRecord = {
+                                      id: Date.now(),
+                                      title: `转化自试卷文件：${displayName}`,
+                                      source: '资料：试卷文件',
+                                      time: '刚刚',
+                                      type: 'note',
+                                      subType: 'material',
+                                      content: `<div style="padding:12px;">\n          <h3>📄 ${displayName}</h3>\n          <p style="color:#666;">已由试卷文件转为操作记录</p>\n          <p style=\"color:#999;font-size:12px;\">类型：${file.type || '未知'} • 大小：${Math.round((file.size || 0)/1024)}KB</p>\n        </div>`,
+                                      materialRef: { type: 'file', id: file.id, isPaper: true }
+                                    };
+                                    state.setOperationRecords(prev => ({
+                                      ...prev,
+                                      note: [newRecord, ...((prev && prev.note) ? prev.note : [])]
+                                    }));
+                                    message.success('已转为操作记录');
                                   }
                                   if (key === 'delete') {
                                     Modal.confirm({
@@ -1541,11 +1560,30 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                               menu={{
                                 items: [
                                   { key: 'rename', label: '重命名', icon: <EditOutlined /> },
+                                  { key: 'convertToOperationRecord', label: '转为操作记录', icon: <FileTextOutlined /> },
                                   { key: 'delete', label: '删除', icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />, danger: true }
                                 ],
                                 onClick: ({ key }) => {
                                   if (key === 'rename') {
                                     openRename('file', file.id, getFileDisplayName(file.name));
+                                  }
+                                  if (key === 'convertToOperationRecord') {
+                                    const displayName = getFileDisplayName(file.name);
+                                    const newRecord = {
+                                      id: Date.now(),
+                                      title: `转化自文件：${displayName}`,
+                                      source: '资料：文件',
+                                      time: '刚刚',
+                                      type: 'note',
+                                      subType: 'material',
+                                      content: `<div style="padding:12px;">\n          <h3>📄 ${displayName}</h3>\n          <p style="color:#666;">已由文件转为操作记录</p>\n          <p style=\"color:#999;font-size:12px;\">类型：${file.type || '未知'} • 大小：${Math.round((file.size || 0)/1024)}KB</p>\n        </div>`,
+                                      materialRef: { type: 'file', id: file.id, isPaper: false }
+                                    };
+                                    state.setOperationRecords(prev => ({
+                                      ...prev,
+                                      note: [newRecord, ...((prev && prev.note) ? prev.note : [])]
+                                    }));
+                                    message.success('已转为操作记录');
                                   }
                                   if (key === 'delete') {
                                     Modal.confirm({
@@ -1626,11 +1664,30 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                               menu={{
                                 items: [
                                   { key: 'rename', label: '重命名', icon: <EditOutlined /> },
+                                  { key: 'convertToOperationRecord', label: '转为操作记录', icon: <LinkOutlined /> },
                                   { key: 'delete', label: '删除', icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />, danger: true }
                                 ],
                                 onClick: ({ key }) => {
                                   if (key === 'rename') {
                                     openRename('link', link.id, link.title || link.url);
+                                  }
+                                  if (key === 'convertToOperationRecord') {
+                                    const displayTitle = link.title || link.url;
+                                    const newRecord = {
+                                      id: Date.now(),
+                                      title: `转化自链接：${displayTitle}`,
+                                      source: '资料：链接',
+                                      time: '刚刚',
+                                      type: 'note',
+                                      subType: 'material',
+                                      content: `<div style="padding:12px;">\n          <h3>🔗 ${displayTitle}</h3>\n          <p style="color:#666;">已由链接转为操作记录</p>\n          <p style=\"font-size:12px;\"><a href=\"${link.url}\" target=\"_blank\" rel=\"noopener noreferrer\">${link.url}</a></p>\n        </div>`,
+                                      materialRef: { type: 'link', id: link.id, url: link.url }
+                                    };
+                                    state.setOperationRecords(prev => ({
+                                      ...prev,
+                                      note: [newRecord, ...((prev && prev.note) ? prev.note : [])]
+                                    }));
+                                    message.success('已转为操作记录');
                                   }
                                   if (key === 'delete') {
                                     Modal.confirm({
@@ -1711,11 +1768,30 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                               menu={{
                                 items: [
                                   { key: 'rename', label: '重命名', icon: <EditOutlined /> },
+                                  { key: 'convertToOperationRecord', label: '转为操作记录', icon: <FileTextOutlined /> },
                                   { key: 'delete', label: '删除', icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />, danger: true }
                                 ],
                                 onClick: ({ key }) => {
                                   if (key === 'rename') {
                                     openRename('text', text.id, text.title || '文本');
+                                  }
+                                  if (key === 'convertToOperationRecord') {
+                                    const displayTitle = text.title || '文本';
+                                    const newRecord = {
+                                      id: Date.now(),
+                                      title: `转化自文本：${displayTitle}`,
+                                      source: '资料：文本',
+                                      time: '刚刚',
+                                      type: 'note',
+                                      subType: 'material',
+                                      content: `<div style="padding:12px;">\n          <h3>📝 ${displayTitle}</h3>\n          <p style=\"color:#666;\">已由文本转为操作记录</p>\n          <div style=\"color:#333;font-size:13px;white-space:pre-wrap;\">${(text.content || '').slice(0,200)}</div>\n        </div>`,
+                                      materialRef: { type: 'text', id: text.id }
+                                    };
+                                    state.setOperationRecords(prev => ({
+                                      ...prev,
+                                      note: [newRecord, ...((prev && prev.note) ? prev.note : [])]
+                                    }));
+                                    message.success('已转为操作记录');
                                   }
                                   if (key === 'delete') {
                                     Modal.confirm({
