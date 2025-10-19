@@ -381,6 +381,18 @@ export const CATEGORY_COMMON_QUESTIONS = {
     { key: 'low_grade_design', text: '如何设计适合低年级的体育游戏？', message: '如何设计适合低年级的体育游戏？' },
     { key: 'effect_evaluation', text: '如何评估游戏化教学效果？', message: '如何评估游戏化教学效果？' }
   ],
+  training_needs_management: [
+    { key: 'mh_symptoms', text: '教师常见心理困扰有哪些课堂表现？', message: '教师常见心理困扰有哪些课堂表现？' },
+    { key: 'mh_modules', text: '如何设计教师心理健康培训的核心模块？', message: '如何设计教师心理健康培训的核心模块？' },
+    { key: 'mh_stress_training', text: '压力管理与情绪调节的训练如何开展？', message: '压力管理与情绪调节的训练如何开展？' },
+    { key: 'mh_crisis_referral', text: '如何建立校内危机识别与转介流程？', message: '如何建立校内危机识别与转介流程？' },
+    { key: 'mh_evaluation', text: '培训效果如何评估与持续跟踪？', message: '培训效果如何评估与持续跟踪？' }
+  ],
+  organizational_training: [
+    { key: 'mh_focus', text: '组织层面如何推动教师心理健康培训？', message: '组织层面如何推动教师心理健康培训？' },
+    { key: 'mh_support', text: '如何建立同伴支持与校内心理支持体系？', message: '如何建立同伴支持与校内心理支持体系？' },
+    { key: 'mh_policy', text: '心理危机应对与政策流程如何落实？', message: '心理危机应对与政策流程如何落实？' }
+  ],
   default: COMMON_QUESTIONS
 };
 

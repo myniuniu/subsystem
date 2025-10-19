@@ -18,6 +18,7 @@ import {
 } from 'antd';
 import { ArrowLeftOutlined, MessageOutlined, VideoCameraOutlined, AudioOutlined, AudioMutedOutlined, StopOutlined, ShareAltOutlined, TeamOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import { getNewTeacherTrainingMessages } from '../data/trainingDiscussionMessages';
 
 // 导入重构后的组件
 import MaterialManagement from './MaterialManagement';
@@ -333,32 +334,43 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
     }
   }, [isMouseDown, dragOffset, mouseDownPos]);
   
-  const [discussionMessages, setDiscussionMessages] = useState([
-    {
-      id: 1,
-      senderId: 'user1',
-      senderName: '张老师',
-      content: '这个主题的内容很有深度，值得深入讨论',
-      time: '2024-01-15 14:30',
-      type: 'text'
-    },
-    {
-      id: 2,
-      senderId: 'user2',
-      senderName: '李主任',
-      content: '同意张老师的观点，建议增加实践案例',
-      time: '2024-01-15 15:15',
-      type: 'text'
-    },
-    {
-      id: 3,
-      senderId: 'user3',
-      senderName: '王同事',
-      content: '我这里有一些相关资料，可以分享给大家',
-      time: '2024-01-15 16:20',
-      type: 'text'
+  const [discussionMessages, setDiscussionMessages] = useState(() => (
+    selectedCategory === 'organizational_training'
+      ? getNewTeacherTrainingMessages()
+      : [
+          {
+            id: 1,
+            senderId: 'user1',
+            senderName: '张老师',
+            content: '这个主题的内容很有深度，值得深入讨论',
+            time: '2024-01-15 14:30',
+            type: 'text'
+          },
+          {
+            id: 2,
+            senderId: 'user2',
+            senderName: '李主任',
+            content: '同意张老师的观点，建议增加实践案例',
+            time: '2024-01-15 15:15',
+            type: 'text'
+          },
+          {
+            id: 3,
+            senderId: 'user3',
+            senderName: '王同事',
+            content: '我这里有一些相关资料，可以分享给大家',
+            time: '2024-01-15 16:20',
+            type: 'text'
+          }
+        ]
+  ));
+
+  // 在组织培训分类变化时保持消息与培训群一致
+  useEffect(() => {
+    if (selectedCategory === 'organizational_training') {
+      setDiscussionMessages(getNewTeacherTrainingMessages());
     }
-  ]);
+  }, [selectedCategory]);
 
   // 初始化可用工具数据
   useEffect(() => {

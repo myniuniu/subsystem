@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ContactList from './ContactList';
 import ChatWindow from './ChatWindow';
 import './MessageCenter.css';
+import { getNewTeacherTrainingMessages } from '../data/trainingDiscussionMessages';
 
 const MessageCenter = ({ contacts: propContacts }) => {
   // 联系人数据 - 使用传入的props或默认数据
@@ -64,6 +65,22 @@ const MessageCenter = ({ contacts: propContacts }) => {
       lastMessage: '下周教学计划讨论',
       lastTime: '2024-01-14 15:20',
       unreadCount: 5,
+      online: true
+    },
+    {
+      id: 'new_teacher_training',
+      name: '新教师教学方法培训',
+      type: 'group',
+      avatar: '🎓',
+      lastMessage: '欢迎加入培训群，请先查看公告与日程',
+      lastTime: new Date().toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      unreadCount: 8,
       online: true
     },
     // 新增30个不同姓氏的联系人
@@ -634,120 +651,10 @@ const MessageCenter = ({ contacts: propContacts }) => {
         }),
         type: 'text'
       }
-    ]
+    ],
+    new_teacher_training: getNewTeacherTrainingMessages()
   });
 
-  // 为传入的主题会话联系人生成更真实的模拟对话（一次性初始化）
-  useEffect(() => {
-    const contactsList = propContacts || [];
-    const topicContacts = contactsList.filter(c => c.type === 'topic');
-    if (topicContacts.length === 0) return;
-
-    const formatTime = (offsetMinutes) => {
-      return new Date(Date.now() - offsetMinutes * 60 * 1000).toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    };
-
-    setMessageHistory(prev => {
-      const additions = {};
-      topicContacts.forEach((contact, idx) => {
-        if (!prev[contact.id]) {
-          additions[contact.id] = [
-            {
-              id: Date.now() + idx * 10 + 1,
-              senderId: 'host',
-              senderName: '主持人',
-              content: `大家好，今天我们重点讨论「${contact.name}」的产品研发进展与下一步安排。`,
-              time: formatTime(120),
-              type: 'text'
-            },
-            {
-              id: Date.now() + idx * 10 + 2,
-              senderId: 'product_manager',
-              senderName: '产品经理',
-              content: '需求调研已完成，课程设计初稿也已整理出框架，计划下周启动试点。',
-              time: formatTime(105),
-              type: 'text'
-            },
-            {
-              id: Date.now() + idx * 10 + 3,
-              senderId: '张老师',
-              senderName: '张老师',
-              content: '建议增加实践环节并准备课堂演练材料，试点班级可安排在周三下午。',
-              time: formatTime(98),
-              type: 'text'
-            },
-            {
-              id: Date.now() + idx * 10 + 6,
-              senderId: 'me',
-              senderName: '我',
-              content: '我这边准备了教案细化稿和演练素材，稍后分享链接。',
-              time: formatTime(100),
-              type: 'text'
-            },
-            {
-              id: Date.now() + idx * 10 + 7,
-              senderId: 'zhouli',
-              senderName: '丁敏',
-              content: '收到～我也会补充课堂观察表模板。',
-              time: formatTime(99),
-              type: 'text'
-            },
-            {
-              id: Date.now() + idx * 10 + 8,
-              senderId: 'yuanwei',
-              senderName: '贾凯',
-              content: '收到，试点班级的协调我来跟进。',
-              time: formatTime(99),
-              type: 'text'
-            },
-            {
-              id: Date.now() + idx * 10 + 9,
-              senderId: 'me',
-              senderName: '我',
-              content: '初步定的：阿里部署给网院业务用，华为云平台给国人通业务用——两个云、两套平台。',
-              time: formatTime(95),
-              type: 'text'
-            },
-            {
-              id: Date.now() + idx * 10 + 4,
-              senderId: '教研助理',
-              senderName: '教研助理',
-              content: '我来整理会议纪要与行动清单，包含试点范围、资源准备与评估指标。',
-              time: formatTime(92),
-              type: 'text'
-            },
-            {
-              id: Date.now() + idx * 10 + 10,
-              senderId: 'host',
-              senderName: '主持人',
-              content: '好的，继续按上述安排推进，资源清单由助理汇总后共享给大家。',
-              time: formatTime(88),
-              type: 'text'
-            },
-            {
-              id: Date.now() + idx * 10 + 5,
-              senderId: 'host',
-              senderName: '主持人',
-              content: '结论：本周完成教案细化与演练材料准备；下周三组织试点并收集课堂观察数据。',
-              time: formatTime(85),
-              type: 'text'
-            }
-          ];
-        }
-      });
-
-      if (Object.keys(additions).length === 0) return prev;
-      return { ...prev, ...additions };
-    });
-  }, [propContacts]);
-
-  // 当消息历史变化时，动态更新联系人最近摘要（lastMessage/lastTime）
   useEffect(() => {
     setContacts(prev => {
       if (!prev || prev.length === 0) return prev;

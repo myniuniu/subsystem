@@ -176,10 +176,26 @@ function App() {
       lastTime: '2024-01-14 15:20',
       unreadCount: 5,
       online: true
+    },
+    {
+      id: 'new_teacher_training',
+      name: '新教师教学方法培训',
+      type: 'group',
+      avatar: '🎓',
+      lastMessage: '欢迎加入培训群，请先查看公告与日程',
+      lastTime: new Date().toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      unreadCount: 8,
+      online: true
     }
   ];
 
-  const [contacts] = useState([...defaultContacts, ...getTrainingProductDevelopmentTopicContacts()])
+  const [contacts] = useState(defaultContacts)
   
   // 下载中心数据
   const [downloads] = useState([

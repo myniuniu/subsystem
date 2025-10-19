@@ -1626,7 +1626,18 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
         break;
     }
 
-    return smartNote;
+    // 主题化为“教师心理健康教育培训”
+smartNote.tags = Array.from(new Set([...(smartNote.tags || []), '教师心理健康教育', '教师培训', '心理健康', '压力管理', '危机干预']));
+smartNote.summary = `${(smartNote.summary || '').replace(/。$/, '。')}（主题：教师心理健康教育培训，关注压力管理、危机识别与转介、同伴支持、课堂情绪调节等。）`;
+smartNote.possibleQuestions = [
+  '教师常见心理困扰有哪些课堂表现？',
+  '如何设计教师心理健康培训的核心模块与活动？',
+  '适用的评估工具与筛查流程有哪些？',
+  '如何建立校内同伴支持与危机转介机制？',
+  '培训效果应如何评估与持续跟踪？'
+];
+
+return smartNote;
   };
 
   // 批量生成智能需求

@@ -98,6 +98,7 @@ const CalendarCenter = () => {
     training: 'orange',
     business: 'red',
     milestone: 'purple',
+    new_teacher_methods_training: 'orange',
   }
 
   const titlesByType = {
@@ -106,6 +107,7 @@ const CalendarCenter = () => {
     training: '培训学习',
     business: '交流合作',
     milestone: '重要节点',
+    new_teacher_methods_training: '新教师教学方法培训',
   }
 
   // 生成测试事件：按当前月与勾选分类，每日不超过3条（支持学习计划类目）
@@ -170,6 +172,31 @@ const CalendarCenter = () => {
         })
       }
     }
+    // 专题：新教师教学方法培训主题事件（固定时间分布）
+    const specialType = 'new_teacher_methods_training'
+    const hasSpecialCat = activeCategories.some(c => c.key === specialType)
+    if (hasSpecialCat) {
+      const scheduleDefs = [
+        { offset: 3, title: '线上直播课程：课堂设计与互动', startTime: '19:00', endTime: '20:30' },
+        { offset: 8, title: '录播视频：教学组织与提问技巧' },
+        { offset: 15, title: '在线研讨：小组讨论与同伴互评', startTime: '20:00', endTime: '21:30' },
+        { offset: 22, title: '实践作业：提交微课教学方案', startTime: '18:00', endTime: '19:00' },
+      ]
+      scheduleDefs.forEach(def => {
+        if (def.offset <= days) {
+          const dateStrFixed = start.add(def.offset - 1, 'day').format('YYYY-MM-DD')
+          events.push({
+            id: id++,
+            date: dateStrFixed,
+            title: def.title,
+            type: specialType,
+            color: typeColorMap[specialType] || 'orange',
+            startTime: def.startTime,
+            endTime: def.endTime,
+          })
+        }
+      })
+    }
     return events
   }
   
@@ -180,6 +207,7 @@ const CalendarCenter = () => {
     { key: 'training', label: '培训学习', color: '#fa8c16', checked: true },
     { key: 'business', label: '交流合作', color: '#f5222d', checked: true },
     { key: 'milestone', label: '重要节点', color: '#722ed1', checked: true },
+    { key: 'new_teacher_methods_training', label: '新教师教学方法培训', color: '#13c2c2', checked: true },
   ])
 
   // 根据当前月与分类生成测试数据（每日不超过3条）
@@ -416,6 +444,11 @@ const CalendarCenter = () => {
         cat.key === key ? { ...cat, checked } : cat
       )
     )
+  }
+
+  // 全选/取消全选控件逻辑
+  const toggleAllCategories = (checked) => {
+    setCategories(prev => prev.map(cat => ({ ...cat, checked })))
   }
 
   // 导航到上个时间段
@@ -746,7 +779,17 @@ const CalendarCenter = () => {
           </div>
           
           <div className="sidebar-section">
-            <div className="section-title">我的日历</div>
+            <div className="section-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Checkbox
+                checked={categories.length > 0 && categories.every(cat => cat.checked)}
+                indeterminate={!(categories.length > 0 && categories.every(cat => cat.checked)) && categories.some(cat => cat.checked)}
+                onChange={(e) => toggleAllCategories(e.target.checked)}
+                title="全选/取消全选"
+              >
+                全选
+              </Checkbox>
+              <span>我的日历</span>
+            </div>
             <div className="calendar-categories">
               {categories.map((category) => (
                 <div key={category.key} className="category-item">
