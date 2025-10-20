@@ -18,6 +18,8 @@ import DesktopDownloadModal from './DesktopDownloadModal';
 import './SidebarAvatar.css';
 import { getTotalMedalCount } from '../data/medalsData';
 import GlobalSearchModal from './GlobalSearchModal.jsx';
+import notesService from '../services/notesService';
+import { searchSuggestions } from '../data/searchSuggestions';
 
 const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
   const [currentTheme, setCurrentTheme] = useState(getCurrentTheme());
@@ -35,6 +37,7 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
   const [searchInlineValue, setSearchInlineValue] = useState('');
   const inputRef = useRef(null);
   const LS_KEY = 'global_search_history_v1';
+  const FREQ_KEY = 'global_search_freq_v1';
 
   const pushHistory = (text) => {
     if (!text) return;
@@ -43,12 +46,65 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
       const arr = raw ? JSON.parse(raw) : [];
       const next = [text, ...arr.filter(h => h !== text)].slice(0, 10);
       localStorage.setItem(LS_KEY, JSON.stringify(next));
+      const freqRaw = localStorage.getItem(FREQ_KEY);
+      const freq = freqRaw ? JSON.parse(freqRaw) : {};
+      freq[text] = (freq[text] || 0) + 1;
+      localStorage.setItem(FREQ_KEY, JSON.stringify(freq));
     } catch {}
   };
 
   const triggerGlobalSearch = (q) => {
     const detail = { query: q, module: 'global', time: Date.now() };
     window.dispatchEvent(new CustomEvent('globalSearch', { detail }));
+  };
+
+  const [inlineResults, setInlineResults] = useState(null);
+  const [topFrequentTerms, setTopFrequentTerms] = useState([]);
+
+  useEffect(() => {
+    try {
+      const freqRaw = localStorage.getItem(FREQ_KEY);
+      if (!freqRaw) { setTopFrequentTerms([]); return; }
+      const freq = JSON.parse(freqRaw);
+      const sorted = Object.entries(freq)
+        .sort((a,b)=>b[1]-a[1])
+        .slice(0,8)
+        .map(([term])=>term);
+      setTopFrequentTerms(sorted);
+    } catch {
+      setTopFrequentTerms([]);
+    }
+  }, [searchInlineValue, inlineResults]);
+
+  const performInlineSearch = async (q) => {
+    const query = q.trim();
+    if (!query) return;
+    pushHistory(query);
+    triggerGlobalSearch(query);
+    // 笔记
+    let notes = [];
+    try {
+      const allNotes = await notesService.getAllNotes();
+      const term = query.toLowerCase();
+      notes = (allNotes || []).filter(n => {
+        const t = (n.title || '').toLowerCase();
+        const c = (n.content || '').toLowerCase();
+        const tags = Array.isArray(n.tags) ? n.tags.join(' ').toLowerCase() : '';
+        return t.includes(term) || c.includes(term) || tags.includes(term);
+      }).slice(0, 8);
+    } catch {}
+    // 联系人与群组
+    const term = query.toLowerCase();
+    const contacts = searchSuggestions.filter(s => s.type === 'user' && s.name.toLowerCase().includes(term)).slice(0, 8);
+    const groups = searchSuggestions.filter(s => s.type === 'group' && s.name.toLowerCase().includes(term)).slice(0, 8);
+    setInlineResults({
+      query,
+      groups: [
+        { key: 'notes', title: '笔记', items: notes.map(n => ({ id: n.id, title: n.title })) },
+        { key: 'contacts', title: '联系人', items: contacts.map(u => ({ id: u.id, title: u.name })) },
+        { key: 'groups', title: '群组', items: groups.map(g => ({ id: g.id, title: g.name })) }
+      ]
+    });
   };
 
   useEffect(() => {
@@ -355,26 +411,64 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
             <Search size={24} />
           </div>
         ) : (
-          <div className="sidebar-search-input-row" title="搜索">
-            <Search size={18} className="sidebar-search-input-icon" />
-            <input
-              ref={inputRef}
-              className="sidebar-search-input"
-              type="text"
-              placeholder="搜索 (⌘+K)"
-              value={searchInlineValue}
-              onChange={(e) => setSearchInlineValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  const q = searchInlineValue.trim();
-                  if (!q) return;
-                  pushHistory(q);
-                  triggerGlobalSearch(q);
-                  setSearchModalVisible(true);
-                }
-              }}
-            />
-          </div>
+          <>
+            <div className="sidebar-search-input-row" title="搜索">
+              <Search size={18} className="sidebar-search-input-icon" />
+              <input
+                ref={inputRef}
+                className="sidebar-search-input"
+                type="text"
+                placeholder="搜索 (⌘+K)"
+                value={searchInlineValue}
+                onChange={(e) => setSearchInlineValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    performInlineSearch(searchInlineValue);
+                  }
+                }}
+              />
+            </div>
+            <div className="sidebar-inline-panel" style={{ marginTop: 8 }}>
+              {!inlineResults ? (
+                <div>
+                  <div style={{ fontSize: 12, color: 'var(--theme-text-secondary)', marginBottom: 6 }}>常用</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {topFrequentTerms.length === 0 ? (
+                      <span style={{ fontSize: 12, color: 'var(--theme-text-tertiary)' }}>暂无数据</span>
+                    ) : topFrequentTerms.map(term => (
+                      <button
+                        key={term}
+                        className="chip"
+                        style={{ padding: '4px 8px', borderRadius: 12, border: '1px solid var(--theme-border)', background: 'transparent', cursor: 'pointer' }}
+                        onClick={() => { setSearchInlineValue(term); performInlineSearch(term); }}
+                      >
+                        {term}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  {inlineResults.groups.map(group => (
+                    <div key={group.key} style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 12, color: 'var(--theme-text-secondary)', marginBottom: 6 }}>{group.title}</div>
+                      {group.items.length === 0 ? (
+                        <div style={{ fontSize: 12, color: 'var(--theme-text-tertiary)' }}>无匹配结果</div>
+                      ) : (
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                          {group.items.map(item => (
+                            <li key={item.id} style={{ padding: '6px 0', borderBottom: '1px dashed var(--theme-border-light)' }}>
+                              <span style={{ fontSize: 13 }}>{item.title}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
 
