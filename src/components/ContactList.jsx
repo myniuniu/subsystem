@@ -44,6 +44,9 @@ const ContactList = ({
             className={`contact-item ${activeContact === contact.id ? 'active' : ''}`}
             onClick={() => onContactSelect(contact.id)}
           >
+            {contact.id === 'new_teacher_training' && (
+              <span className="category-ribbon">组织</span>
+            )}
             <div className="contact-avatar">
               {contact.avatar ? (
                 // 检查是否是emoji或图片URL

@@ -349,6 +349,36 @@ const CalendarCenter = () => {
     }
   }, [categories]);
 
+  // 新增：响应外部“打开成员日历”事件，切换到日视图并仅显示“新教师教学方法培训”
+  React.useEffect(() => {
+    const handleOpenMemberCalendar = (e) => {
+      // 切换到日视图
+      setCalendarView('day')
+      // 仅勾选“新教师教学方法培训”类型
+      setCategories(prev => prev.map(cat => ({
+        ...cat,
+        checked: cat.key === 'new_teacher_methods_training'
+      })))
+      // 优先定位到最近的“新教师教学方法培训”事件日期（若无则今天）
+      const todayStr = dayjs().format('YYYY-MM-DD')
+      const upcoming = eventList
+        .filter(ev => ev.type === 'new_teacher_methods_training' && ev.date >= todayStr)
+        .sort((a, b) => a.date.localeCompare(b.date))
+      const next = upcoming[0]
+      if (next) {
+        setSelectedDate(dayjs(next.date))
+        setCurrentMonth(dayjs(next.date))
+      } else {
+        setSelectedDate(dayjs())
+        setCurrentMonth(dayjs())
+      }
+    }
+    window.addEventListener('openMemberCalendar', handleOpenMemberCalendar)
+    return () => {
+      window.removeEventListener('openMemberCalendar', handleOpenMemberCalendar)
+    }
+  }, [eventList])
+
   // 获取指定日期的事件
   const getListData = (value) => {
     const dateStr = value.format('YYYY-MM-DD')

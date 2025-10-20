@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Input, Button, Space, Modal } from 'antd';
-import { MessageSquare, Send, MoreVertical, Type, Smile, AtSign, Scissors, HelpCircle, Maximize2, FileText } from 'lucide-react';
+import { MessageSquare, Send, MoreVertical, Type, Smile, AtSign, Scissors, HelpCircle, Maximize2, FileText, Search, Video, UserPlus, Calendar, X } from 'lucide-react';
 import './ChatWindow.css';
+import CalendarCenter from './CalendarCenter.jsx';
 
 const ChatWindow = ({ 
   activeContact,
@@ -14,6 +15,11 @@ const ChatWindow = ({
   onSimulateMe
 }) => {
   const [showTemplateModal, setShowTemplateModal] = useState(false);
+  // 新增：搜索与日历侧栏状态
+  const [showSearchPanel, setShowSearchPanel] = useState(false);
+  const [showCalendarPanel, setShowCalendarPanel] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchTab, setSearchTab] = useState('消息');
   
   // 模板数据
   const templates = [
@@ -76,183 +82,315 @@ const ChatWindow = ({
     );
   }
 
+  // 会话标题栏按钮交互
+  const handleConversationSearch = () => {
+    setShowSearchPanel(true);
+    setShowCalendarPanel(false);
+    window.dispatchEvent(new CustomEvent('conversationSearchOpen', { detail: { chatId: activeContact } }));
+  };
+  const handleStartVideoMeeting = () => {
+    window.dispatchEvent(new CustomEvent('startVideoMeeting', { detail: { chatId: activeContact } }));
+  };
+  const handleAddMember = () => {
+    window.dispatchEvent(new CustomEvent('addChatMember', { detail: { chatId: activeContact } }));
+  };
+  const handleMemberCalendar = () => {
+    setShowCalendarPanel(true);
+    setShowSearchPanel(false);
+    window.dispatchEvent(new CustomEvent('openMemberCalendar', { detail: { chatId: activeContact } }));
+  };
+  const closeSearchPanel = () => {
+    setShowSearchPanel(false);
+    setSearchQuery('');
+  };
+  const closeCalendarPanel = () => {
+    setShowCalendarPanel(false);
+  };
+
+  // 简单的消息搜索（仅“消息”标签展示）
+  const filteredMessages = (messages || []).filter(m => {
+    if (!searchQuery) return false;
+    const text = (m.content || '') + (m.senderName || '') + (m.time || '');
+    return text.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
   return (
-    <div className="chat-panel">
-      {/* 聊天头部 */}
-      <div className="chat-header">
-        <div className="chat-contact-info">
-          <div className="contact-avatar small">
-            {currentContact.avatar ? (
-              // 检查是否是emoji或图片URL
-              currentContact.avatar.startsWith('http') || currentContact.avatar.startsWith('/') ? (
-                <img src={currentContact.avatar} alt="" />
+    <div className={`chat-panel ${showSearchPanel ? 'split' : ''} ${showCalendarPanel ? 'calendar-split' : ''}`}>
+      {/* 左侧聊天主内容 */}
+      <div className="chat-main">
+        {/* 聊天头部 */}
+        <div className="chat-header">
+          <div className="chat-contact-info">
+            <div className="contact-avatar small">
+              {currentContact.avatar ? (
+                // 检查是否是emoji或图片URL
+                currentContact.avatar.startsWith('http') || currentContact.avatar.startsWith('/') ? (
+                  <img src={currentContact.avatar} alt="" />
+                ) : (
+                  <div className="avatar-placeholder emoji-avatar">
+                    {currentContact.avatar}
+                  </div>
+                )
               ) : (
-                <div className="avatar-placeholder emoji-avatar">
-                  {currentContact.avatar}
+                <div className="avatar-placeholder">
+                  {currentContact.name?.charAt(0)}
                 </div>
-              )
-            ) : (
-              <div className="avatar-placeholder">
-                {currentContact.name?.charAt(0)}
+              )}
+            </div>
+            <div className="contact-details">
+              <div className="contact-name">
+                {currentContact.name}
               </div>
-            )}
+              <div className="contact-status">
+                {currentContact.online ? '在线' : '离线'}
+              </div>
+            </div>
           </div>
-          <div className="contact-details">
-            <div className="contact-name">
-              {currentContact.name}
-            </div>
-            <div className="contact-status">
-              {currentContact.online ? '在线' : '离线'}
-            </div>
+          
+          <div className="chat-actions">
+            <button className="action-btn" title="会话搜索" onClick={handleConversationSearch}>
+              <Search size={16} />
+            </button>
+            <button className="action-btn" title="发起视频会议" onClick={handleStartVideoMeeting}>
+              <Video size={16} />
+            </button>
+            <button className="action-btn" title="添加群成员" onClick={handleAddMember}>
+              <UserPlus size={16} />
+            </button>
+            <button className="action-btn" title="成员日历" onClick={handleMemberCalendar}>
+              <Calendar size={16} />
+            </button>
+            <button className="action-btn" title="更多">
+              <MoreVertical size={16} />
+            </button>
           </div>
         </div>
         
-        <div className="chat-actions">
-          <button className="action-btn" title="更多">
-            <MoreVertical size={16} />
-          </button>
+        {/* 聊天消息区域 */}
+        <div className="chat-messages">
+          {messages.length === 0 ? (
+            <div className="empty-chat">
+              <MessageSquare size={48} />
+              <p>开始对话吧</p>
+            </div>
+          ) : (
+            messages.map(message => {
+              const isGroupChat = currentContact?.type === 'group' || currentContact?.type === 'topic';
+              // 计算显示的发言人名称
+              const displaySenderName = (
+                message.senderName ||
+                (message.senderId === 'me'
+                  ? '我'
+                  : (typeof message.senderId === 'string' && message.senderId)
+                    || currentContact?.name
+                    || '对方')
+              );
+
+              return (
+                <div 
+                  key={message.id}
+                  className={`message-bubble ${message.senderId === 'me' ? 'sent' : 'received'}`}
+                >
+                  {isGroupChat && (
+                    <div className="message-sender">
+                      <span className="message-avatar">
+                        {(displaySenderName || '').charAt(0)}
+                      </span>
+                      <span className="message-author">{displaySenderName}</span>
+                    </div>
+                  )}
+                  <div className="message-content">
+                    {message.content}
+                  </div>
+                  <div className="message-time">
+                    {message.time}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+        
+        {/* 聊天输入框 */}
+        <div className="chat-input">
+          <Input
+            placeholder="输入消息..."
+            value={newMessage}
+            onChange={(e) => onMessageChange(e.target.value)}
+            onPressEnter={onKeyPress}
+            size="large"
+            suffix={
+              <Space size={4}>
+                <Button 
+                  type="dashed" 
+                  size="small" 
+                  title="模拟我对话"
+                  onClick={onSimulateMe}
+                >模拟我</Button>
+                <Button 
+                  type="text" 
+                  size="small" 
+                  icon={<Type size={16} />} 
+                  title="字体大小"
+                />
+                <Button 
+                  type="text" 
+                  size="small" 
+                  icon={<Smile size={16} />} 
+                  title="表情符号"
+                />
+                <Button 
+                  type="text" 
+                  size="小" 
+                  icon={<AtSign size={16} />} 
+                  title="@提及"
+                />
+                <Button 
+                  type="text" 
+                  size="small" 
+                  icon={<Scissors size={16} />} 
+                  title="剪切工具"
+                />
+                <Button 
+                  type="text" 
+                  size="small" 
+                  icon={<HelpCircle size={16} />} 
+                  title="帮助"
+                />
+                <Button 
+                  type="text" 
+                  size="small" 
+                  icon={<FileText size={16} />} 
+                  title="模板"
+                  onClick={() => setShowTemplateModal(true)}
+                />
+                <Button 
+                  type="text" 
+                  size="small" 
+                  icon={<Maximize2 size={16} />} 
+                  title="全屏"
+                />
+                <Button 
+                  type="primary"
+                  size="small"
+                  icon={<Send size={16} />}
+                  onClick={onSendMessage}
+                  disabled={!newMessage.trim()}
+                />
+              </Space>
+            }
+          />
         </div>
       </div>
-      
-      {/* 聊天消息区域 */}
-      <div className="chat-messages">
-        {messages.length === 0 ? (
-          <div className="empty-chat">
-            <MessageSquare size={48} />
-            <p>开始对话吧</p>
-          </div>
-        ) : (
-          messages.map(message => {
-            const isGroupChat = currentContact?.type === 'group' || currentContact?.type === 'topic';
-            // 计算显示的发言人名称
-            const displaySenderName = (
-              message.senderName ||
-              (message.senderId === 'me'
-                ? '我'
-                : (typeof message.senderId === 'string' && message.senderId)
-                  || currentContact?.name
-                  || '对方')
-            );
 
-            return (
-              <div 
-                key={message.id}
-                className={`message-bubble ${message.senderId === 'me' ? 'sent' : 'received'}`}
-              >
-                {isGroupChat && (
-                  <div className="message-sender">
-                    <span className="message-avatar">
-                      {(displaySenderName || '').charAt(0)}
-                    </span>
-                    <span className="message-author">{displaySenderName}</span>
-                  </div>
-                )}
-                <div className="message-content">
-                  {message.content}
-                </div>
-                <div className="message-time">
-                  {message.time}
-                </div>
+      {/* 右侧搜索面板 */}
+      {showSearchPanel && (
+        <div className="search-panel">
+          <div className="search-header">
+            <div className="search-title">搜索会话内容</div>
+            <button className="search-close-btn" title="关闭搜索" onClick={closeSearchPanel}>
+              <X size={16} />
+            </button>
+          </div>
+
+          <div className="search-toolbar">
+            <div className="search-tabs">
+              {['消息','云文档','文件','图片/视频','链接'].map(tab => (
+                <button
+                  key={tab}
+                  className={`tab-item ${searchTab === tab ? 'active' : ''}`}
+                  onClick={() => setSearchTab(tab)}
+                >{tab}</button>
+              ))}
+            </div>
+            <div className="search-input-box">
+              <Input
+                placeholder="搜索"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                prefix={<Search size={16} />}
+              />
+            </div>
+            <div className="search-filters">
+              <button className="filter-chip">来自用户</button>
+              <button className="filter-chip">时间</button>
+              <button className="filter-chip">高级搜索</button>
+            </div>
+          </div>
+
+          <div className="search-results">
+            {searchTab !== '消息' ? (
+              <div className="search-empty">
+                <div className="empty-illustration">🔎</div>
+                <div className="empty-text">暂未接入{searchTab}搜索，后续可扩展</div>
               </div>
-            );
-          })
-        )}
-      </div>
-      
-      {/* 聊天输入框 */}
-      <div className="chat-input">
-        <Input
-          placeholder="输入消息..."
-          value={newMessage}
-          onChange={(e) => onMessageChange(e.target.value)}
-          onPressEnter={onKeyPress}
-          size="large"
-          suffix={
-            <Space size={4}>
-              <Button 
-                type="dashed" 
-                size="small" 
-                title="模拟我对话"
-                onClick={onSimulateMe}
-              >模拟我</Button>
-              <Button 
-                type="text" 
-                size="small" 
-                icon={<Type size={16} />} 
-                title="字体大小"
-              />
-              <Button 
-                type="text" 
-                size="small" 
-                icon={<Smile size={16} />} 
-                title="表情符号"
-              />
-              <Button 
-                type="text" 
-                size="small" 
-                icon={<AtSign size={16} />} 
-                title="@提及"
-              />
-              <Button 
-                type="text" 
-                size="small" 
-                icon={<Scissors size={16} />} 
-                title="剪切工具"
-              />
-              <Button 
-                type="text" 
-                size="small" 
-                icon={<HelpCircle size={16} />} 
-                title="帮助"
-              />
-              <Button 
-                type="text" 
-                size="small" 
-                icon={<FileText size={16} />} 
-                title="模板"
-                onClick={() => setShowTemplateModal(true)}
-              />
-              <Button 
-                type="text" 
-                size="small" 
-                icon={<Maximize2 size={16} />} 
-                title="全屏"
-              />
-              <Button 
-                type="primary"
-                size="small"
-                icon={<Send size={16} />}
-                onClick={onSendMessage}
-                disabled={!newMessage.trim()}
-              />
-            </Space>
-          }
-        />
-      </div>
+            ) : (
+              !searchQuery ? (
+                <div className="search-empty">
+                  <div className="empty-illustration">🌀</div>
+                  <div className="empty-text">输入关键词或使用过滤器提高查找精度</div>
+                </div>
+              ) : (
+                filteredMessages.length === 0 ? (
+                  <div className="search-empty">
+                    <div className="empty-illustration">📭</div>
+                    <div className="empty-text">未找到相关消息</div>
+                  </div>
+                ) : (
+                  <div className="result-list">
+                    {filteredMessages.map(item => (
+                      <div key={item.id} className="result-item">
+                        <div className="result-meta">
+                          <span className="result-author">{item.senderName || (item.senderId === 'me' ? '我' : '对方')}</span>
+                          <span className="result-time">{item.time}</span>
+                        </div>
+                        <div className="result-content">{item.content}</div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              )
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 右侧日历面板（3:7） */}
+      {showCalendarPanel && (
+        <div className="calendar-panel">
+          <div className="calendar-panel-header">
+            <div className="calendar-panel-title">主题日历</div>
+            <button className="calendar-close-btn" title="关闭日历" onClick={closeCalendarPanel}>
+              <X size={16} />
+            </button>
+          </div>
+          <div className="calendar-panel-body">
+            <CalendarCenter />
+          </div>
+        </div>
+      )}
       
       {/* 模板选择Modal */}
       <Modal
-        title="选择模板"
         open={showTemplateModal}
+        title="选择文档模板"
         onCancel={() => setShowTemplateModal(false)}
-        footer={null}
-        width={1000}
-        className="template-modal"
+        onOk={() => setShowTemplateModal(false)}
       >
-        <div className="template-content">
-          {templates.map((category, categoryIndex) => (
-            <div key={categoryIndex} className="template-category">
-              <h4 className="template-category-title">{category.category}</h4>
-              <div className="template-grid">
-                {category.templates.map((template) => (
-                  <div 
-                    key={template.id} 
-                    className="template-card"
-                    onClick={() => handleTemplateSelect(template)}
+        <div className="template-grid">
+          {templates.map(group => (
+            <div key={group.category} className="template-group">
+              <h4>{group.category}</h4>
+              <div className="template-list">
+                {group.templates.map(tpl => (
+                  <button 
+                    key={tpl.id} 
+                    className="template-item"
+                    onClick={() => handleTemplateSelect(tpl)}
                   >
-                    <h5 className="template-title">{template.title}</h5>
-                    <p className="template-description">{template.description}</p>
-                  </div>
+                    <div className="template-title">{tpl.title}</div>
+                    <div className="template-desc">{tpl.description}</div>
+                  </button>
                 ))}
               </div>
             </div>

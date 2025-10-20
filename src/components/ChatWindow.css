@@ -499,7 +499,6 @@
 .template-card:hover::before {
   opacity: 1;
 }
-
 .template-title {
   font-size: 14px;
   font-weight: 600;
@@ -582,4 +581,341 @@
 .message-author {
   font-weight: 600;
   color: #2c3e50;
+}
+/* 分栏布局（6:4） */
+.chat-panel.split {
+  flex-direction: row;
+}
+/* 保证容器高度撑满，便于输入框置底 */
+.chat-panel { height: 100%; }
+
+.chat-main {
+  flex: 1 1 auto;
+  max-width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 仅在 split 状态下应用 6:4 宽度（覆盖早前规则） */
+.chat-panel.split .chat-main {
+  flex: 0 0 60%;
+  max-width: 60%;
+  border-right: 1px solid rgba(52, 152, 219, 0.1);
+}
+
+.chat-panel.split .search-panel {
+  flex: 0 0 40%;
+  max-width: 40%;
+  height: 100%;
+}
+
+/* 恢复 search-panel 的基础布局样式 */
+.search-panel {
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(248, 249, 250, 0.92));
+  backdrop-filter: blur(10px);
+}
+
+.search-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 0 8px !important;
+  height: 36px !important; /* 提高高度 */
+  border-bottom: 1px solid rgba(52, 152, 219, 0.1);
+  background: none !important;
+}
+
+.search-title {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 16px; /* 增大字号 */
+  line-height: 36px; /* 与头部高度匹配 */
+}
+
+.search-close-btn {
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 2px;
+  height: 28px; /* 略增尺寸以适配更高头部 */
+  width: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #7f8c8d;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.search-close-btn svg {
+  width: 14px !important; /* 与按钮尺寸匹配 */
+  height: 14px !important;
+}
+
+.search-toolbar {
+  padding: 12px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-bottom: 1px solid rgba(52, 152, 219, 0.08);
+}
+
+.search-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tab-item {
+  padding: 6px 10px;
+  font-size: 13px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(52, 152, 219, 0.08);
+  color: #2c3e50;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.tab-item:hover {
+  background: rgba(52, 152, 219, 0.16);
+}
+.tab-item.active {
+  background: linear-gradient(135deg, #3498db, #9b59b6);
+  color: #fff;
+}
+
+.search-input-box .ant-input-affix-wrapper {
+  width: 100%;
+  border-radius: 10px;
+}
+
+.search-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-chip {
+  padding: 6px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(52, 152, 219, 0.2);
+  background: rgba(52, 152, 219, 0.06);
+  color: #2c3e50;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.filter-chip:hover {
+  background: rgba(52, 152, 219, 0.12);
+}
+
+.search-results {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 20px;
+}
+
+.search-results::-webkit-scrollbar {
+  width: 6px;
+}
+.search-results::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, rgba(52,152,219,0.3), rgba(155,89,182,0.3));
+  border-radius: 3px;
+}
+
+.search-empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #7f8c8d;
+  text-align: center;
+}
+.empty-illustration {
+  font-size: 42px;
+  margin-bottom: 12px;
+}
+.empty-text {
+  font-size: 14px;
+}
+
+.result-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.result-item {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.result-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #95a5a6;
+  margin-bottom: 6px;
+}
+.result-author {
+  font-weight: 600;
+  color: #2c3e50;
+}
+.result-content {
+  font-size: 14px;
+  color: #1f2937;
+}
+
+/* 新增：日历面板（3:7）布局 */
+.chat-panel.calendar-split {
+  flex-direction: row;
+}
+
+.chat-panel.calendar-split .chat-main {
+  flex: 0 0 30%;
+  max-width: 30%;
+  border-right: 1px solid rgba(52, 152, 219, 0.1);
+}
+
+.calendar-panel {
+  flex: 0 0 70%;
+  max-width: 70%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(248, 249, 250, 0.92));
+  backdrop-filter: blur(10px);
+}
+
+.calendar-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 0 8px !important;
+  height: 36px !important;
+  border-bottom: 1px solid rgba(52, 152, 219, 0.1);
+  background: none !important;
+}
+
+.calendar-panel-title {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 16px;
+  line-height: 36px;
+}
+
+.calendar-close-btn {
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 2px;
+  height: 28px;
+  width: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #7f8c8d;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.calendar-close-btn svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.calendar-panel-body {
+  flex: 1;
+  overflow: hidden; /* 防止内部日历横向滚动 */
+}
+
+/* 嵌入日历模块的精简样式（只显示主区/日视图） */
+.calendar-panel-body .calendar-center { height: 100%; }
+.calendar-panel-body .calendar-center .calendar-content { margin: 0; }
+.calendar-panel-body .calendar-center .calendar-sidebar { display: none; }
+.result-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #95a5a6;
+  margin-bottom: 6px;
+}
+.result-author {
+  font-weight: 600;
+  color: #2c3e50;
+}
+.result-content {
+  font-size: 14px;
+  color: #1f2937;
+}
+
+/* 新增：日历面板（3:7）布局 */
+.chat-panel.calendar-split {
+  flex-direction: row;
+}
+
+.chat-panel.calendar-split .chat-main {
+  flex: 0 0 30%;
+  max-width: 30%;
+  border-right: 1px solid rgba(52, 152, 219, 0.1);
+}
+
+.calendar-panel {
+  flex: 0 0 70%;
+  max-width: 70%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(248, 249, 250, 0.92));
+  backdrop-filter: blur(10px);
+}
+
+.calendar-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 0 8px !important;
+  height: 36px !important;
+  border-bottom: 1px solid rgba(52, 152, 219, 0.1);
+  background: none !important;
+}
+
+.calendar-panel-title {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 16px;
+  line-height: 36px;
+}
+
+.calendar-close-btn {
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 2px;
+  height: 28px;
+  width: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #7f8c8d;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.calendar-close-btn svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.calendar-panel-body {
+  flex: 1;
+  overflow: hidden; /* 防止内部日历横向滚动 */
 }
