@@ -1,0 +1,34 @@
+.training-detail-root {
+  padding: 16px 16px 0;
+}
+
+.td-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.td-summary-card {
+  border-radius: 10px;
+}
+
+.td-subtext {
+  color: var(--theme-textSecondary);
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.td-tabs .ant-tabs-nav-list {
+  gap: 12px;
+}
+
+.td-chart-card {
+  border-radius: 10px;
+}
+
+.td-chart-title {
+  font-weight: 600;
+  color: var(--theme-textPrimary);
+  margin-bottom: 8px;
+}

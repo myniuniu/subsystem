@@ -1,0 +1,8 @@
+.model-training-template-root { height: 100%; overflow-y: auto; padding: 16px; box-sizing: border-box; }
+.mtpl-card { background: var(--theme-cardBackground); border-radius: 12px; }
+.mtpl-option-card { border: 1px solid rgba(124,97,255,0.25); border-radius: 8px; padding: 16px; min-height: 100px; position: relative; cursor: pointer; background: #fff; }
+.mtpl-option-card.active { box-shadow: 0 0 0 2px rgba(124,97,255,0.35) inset; }
+.mtpl-option-check { position: absolute; right: 12px; top: 12px; }
+.mtpl-option-title { font-weight: 600; margin-bottom: 6px; }
+.mtpl-option-desc { color: var(--theme-textSecondary); font-size: 13px; line-height: 1.6; }
+.mtpl-subtitle { font-weight: 600; margin-top: 8px; }

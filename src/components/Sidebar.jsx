@@ -455,6 +455,22 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       type: 'single'
     },
     { 
+      id: 'ai-experience', 
+      icon: Eye, 
+      label: 'AI体验', 
+      shortLabel: 'AI体验',
+      color: '#13c2c2',
+      type: 'single'
+    },
+    { 
+      id: 'model-registry',
+      icon: Library,
+      label: '模型管理',
+      shortLabel: '模型管理',
+      color: '#a0d911',
+      type: 'single'
+    },
+    { 
        id: 'ai-tool-house', 
        icon: Bot, 
        label: 'AI工具屋', 

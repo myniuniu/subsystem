@@ -1,0 +1,8 @@
+.ai-experience{height:100%;padding:16px;display:flex;flex-direction:column}
+.ai-exp-header{margin-bottom:12px}
+.feature-card .ant-card-body{display:flex;flex-direction:column;gap:8px}
+.paint-canvas{width:100%;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.08);background:#f7fafc}
+.game-box{position:relative;height:120px;background:#f5f7ff;border:1px solid #e6f0ff;border-radius:8px;overflow:hidden}
+.game-box.large{height:160px}
+.game-track{position:absolute;left:8px;right:8px;top:50%;height:2px;background:#cfe1ff;transform:translateY(-50%)}
+.game-ball{position:absolute;top:50%;transform:translate(-50%,-50%);width:24px;height:24px;border-radius:50%;background:#4f46e5;box-shadow:0 2px 6px rgba(0,0,0,0.15)}

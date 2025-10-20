@@ -41,7 +41,11 @@ import StudentAnnotationPage from './components/StudentAnnotationPage'
 import LearningSquare from './components/LearningSquare'
 import ProgressTestPage from './components/ProgressTestPage'
 import ThemeTemplateCenter from './components/ThemeTemplateCenter'
+import AIExperience from './components/AIExperience'
 import PWAInstallButton from './components/PWAInstallButton'
+import ModelRegistry from './components/ModelRegistry'
+import ModelTrainingTemplate from './components/ModelTrainingTemplate'
+import ModelTrainingDetail from './components/ModelTrainingDetail'
 
 import './App.css'
 import notesService from './services/notesService'
@@ -400,6 +404,14 @@ function App() {
               <MyEvaluation onBack={() => setCurrentView('home')} />
             ) : currentView === 'simulation-platform' ? (
               <SimulationPlatform onViewChange={handleViewChange} />
+            ) : currentView === 'model-training-template' ? (
+              <ModelTrainingTemplate />
+            ) : currentView === 'model-training-detail' ? (
+              <ModelTrainingDetail />
+            ) : currentView === 'ai-experience' ? (
+              <AIExperience />
+            ) : currentView === 'model-registry' ? (
+              <ModelRegistry />
             ) : currentView === 'smart-notes' ? (
               <SmartNotes onViewChange={handleViewChange} />
             ) : currentView === 'my-medals' ? (
