@@ -14,7 +14,10 @@ import {
   Space,
   Table,
   Modal,
-  Input
+  Input,
+  Popover,
+  Select,
+  Divider
 } from 'antd';
 import { 
   ReloadOutlined, 
@@ -24,7 +27,8 @@ import {
   EditOutlined,
   SaveOutlined,
   PaperClipOutlined,
-  FileExcelOutlined
+  FileExcelOutlined,
+  PlusOutlined
 } from '@ant-design/icons';
 import { RIGHT_PANEL_VIEWS, VIEW_MODES } from '../../constants/noteEditConstants';
 import { generateComprehensiveTrainingPlan, generateTrainingPlanMarkdown } from '../../utils/trainingPlanGenerator';
@@ -65,6 +69,35 @@ const TrainingPlanViewer = ({
     { title: '联系电话', dataIndex: 'phone', key: 'phone' },
     { title: '电子邮箱', dataIndex: 'email', key: 'email' }
   ];
+  
+  // 标签管理与关联
+  const [tagsModalVisible, setTagsModalVisible] = useState(false);
+  const [tagAssignments, setTagAssignments] = useState(() => {
+    const depts = Array.from(new Set(participantsList.map(p => p.department)));
+    const map = {};
+    depts.forEach(dep => {
+      map[dep] = participantsList.filter(p => p.department === dep).map(p => p.name);
+    });
+    return map;
+  });
+  const [tags, setTags] = useState(() => Object.keys(tagAssignments).map(dep => ({ key: dep, label: dep, color: 'blue' })));
+  const [editingTagKey, setEditingTagKey] = useState(null);
+  const [newTagName, setNewTagName] = useState('');
+  const handleAddTag = () => {
+    const name = (newTagName || '').trim();
+    if (!name) {
+      message.warning('请输入标签名称');
+      return;
+    }
+    if (tags.some(t => t.label === name || t.key === name)) {
+      message.warning('标签已存在');
+      return;
+    }
+    setTags(prev => [...prev, { key: name, label: name, color: 'blue' }]);
+    setTagAssignments(prev => ({ ...prev, [name]: [] }));
+    setNewTagName('');
+    message.success('已添加标签');
+  };
   // 下载培训人员清单
   const handleDownloadParticipantsList = () => {
     // 模拟生成培训人员清单数据
@@ -566,14 +599,14 @@ const TrainingPlanViewer = ({
               </Col>
             </Row>
             
-            {/* 培训人员清单附件 */}
+            {/* 培训人员标签视图 */}
             <Card 
-              size="small" 
+              size="小" 
               style={{ marginTop: '16px', background: '#fafafa' }}
               title={
                 <Space>
                   <PaperClipOutlined style={{ color: '#1890ff' }} />
-                  <Text strong>培训人员清单</Text>
+                  <Text strong>培训人员标签</Text>
                 </Space>
               }
             >
@@ -582,13 +615,13 @@ const TrainingPlanViewer = ({
                   <Space>
                     <FileExcelOutlined style={{ fontSize: '20px', color: '#52c41a' }} />
                     <div>
-                      <Text strong>新教师入职培训-培训人员清单.csv</Text>
+                      <Text strong>标签清单</Text>
                       <br />
-                      <Text type="secondary" style={{ fontSize: '12px' }}>包含8名培训人员的详细信息（姓名、部门、职位、联系方式）</Text>
+                      <Text type="secondary" style={{ fontSize: '12px' }}>点击标签实时查看对应人员；可打开管理进行编辑</Text>
                     </div>
                   </Space>
                   <Space>
-                    <Button onClick={handleViewParticipantsList}>查看清单</Button>
+                    <Button icon={<EditOutlined />} onClick={() => setTagsModalVisible(true)}>管理标签</Button>
                     <Button 
                       type="primary" 
                       icon={<DownloadOutlined />}
@@ -598,24 +631,102 @@ const TrainingPlanViewer = ({
                     </Button>
                   </Space>
                 </div>
+                <div style={{ marginTop: 12 }}>
+                  <Space wrap>
+                    {tags.map(tag => (
+                      <Popover
+                        key={tag.key}
+                        title={`${tag.label}（${(tagAssignments[tag.key] || []).length}人）`}
+                        content={
+                          <div style={{ maxWidth: 280 }}>
+                            {(tagAssignments[tag.key] || []).length === 0
+                              ? <Text type="secondary">暂无人员</Text>
+                              : <List 
+                                  size="small" 
+                                  dataSource={tagAssignments[tag.key]} 
+                                  renderItem={(name) => (<List.Item style={{ padding: '4px 0' }}>{name}</List.Item>)} 
+                                />
+                            }
+                          </div>
+                        }
+                        trigger="click"
+                      >
+                        <Tag color="blue" style={{ cursor: 'pointer' }}>{tag.label}</Tag>
+                      </Popover>
+                    ))}
+                  </Space>
+                </div>
               </Space>
             </Card>
 
             <Modal
-              title="培训人员清单"
-              open={participantsModalVisible}
-              onCancel={() => setParticipantsModalVisible(false)}
+              title="管理培训人员标签"
+              open={tagsModalVisible}
+              onCancel={() => { setTagsModalVisible(false); setEditingTagKey(null); }}
               footer={[
-                <Button key="close" onClick={() => setParticipantsModalVisible(false)}>关闭</Button>
+                <Button key="close" onClick={() => { setTagsModalVisible(false); setEditingTagKey(null); }}>关闭</Button>
               ]}
               width={720}
             >
-              <Table
-                columns={participantColumnsModal}
-                dataSource={participantsList.map((p, idx) => ({ ...p, key: idx + 1 }))}
-                pagination={false}
-                size="small"
-              />
+              <Space direction="vertical" style={{ width: '100%' }}>
+                {tags.map(tag => (
+                  <Card 
+                    key={tag.key} 
+                    size="small"
+                    title={
+                      <Space>
+                        <Tag color="blue">{tag.label}</Tag>
+                        <Text type="secondary">（{(tagAssignments[tag.key] || []).length}人）</Text>
+                      </Space>
+                    }
+                    extra={
+                      <Button 
+                        type="link" 
+                        icon={<EditOutlined />} 
+                        onClick={() => setEditingTagKey(editingTagKey === tag.key ? null : tag.key)}
+                      >
+                        {editingTagKey === tag.key ? '收起' : '编辑'}
+                      </Button>
+                    }
+                  >
+                    <div style={{ marginBottom: 8 }}>
+                      <Text type="secondary">已关联人员：</Text>
+                      <Space wrap>
+                        {(tagAssignments[tag.key] || []).map(name => (<Tag key={name}>{name}</Tag>))}
+                      </Space>
+                    </div>
+                    {editingTagKey === tag.key && (
+                      <div>
+                        <Text strong>调整人员：</Text>
+                        <Select
+                          mode="multiple"
+                          style={{ width: '100%', marginTop: 8 }}
+                          value={tagAssignments[tag.key] || []}
+                          onChange={(vals) => setTagAssignments(prev => ({ ...prev, [tag.key]: vals }))}
+                          options={participantsList.map(p => ({ label: p.name, value: p.name }))}
+                          placeholder="选择关联人员"
+                        />
+                        <div style={{ marginTop: 8 }}>
+                          <Text strong>重命名标签：</Text>
+                          <Input
+                            value={tag.label}
+                            onChange={(e) => {
+                              const newLabel = e.target.value;
+                              setTags(prev => prev.map(t => t.key === tag.key ? { ...t, label: newLabel } : t));
+                            }}
+                            placeholder="输入新的标签名称"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+                ))}
+                <Divider />
+                <Space>
+                  <Input placeholder="新标签名称" value={newTagName} onChange={(e) => setNewTagName(e.target.value)} style={{ width: 240 }} />
+                  <Button type="primary" icon={<PlusOutlined />} onClick={handleAddTag}>添加标签</Button>
+                </Space>
+              </Space>
             </Modal>
           </div>
 
