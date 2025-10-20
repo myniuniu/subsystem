@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Input, Button, Space, Modal } from 'antd';
-import { MessageSquare, Send, MoreVertical, Type, Smile, AtSign, Scissors, HelpCircle, Maximize2, FileText, Search, Video, UserPlus, Calendar, X } from 'lucide-react';
+import { Input, Button, Space, Modal, Tooltip } from 'antd';
+import { MessageSquare, Send, MoreVertical, Type, Smile, AtSign, Scissors, HelpCircle, Maximize2, FileText, Search, Video, UserPlus, Calendar, X, Mic, MicOff, VideoOff, Settings, Volume2, VolumeX, ChevronRight, Users, User, Layers } from 'lucide-react';
 import './ChatWindow.css';
 import CalendarCenter from './CalendarCenter.jsx';
 
@@ -14,14 +14,26 @@ const ChatWindow = ({
   onKeyPress,
   onSimulateMe
 }) => {
-  const [showTemplateModal, setShowTemplateModal] = useState(false);
-  // 新增：搜索与日历侧栏状态
-  const [showSearchPanel, setShowSearchPanel] = useState(false);
-  const [showCalendarPanel, setShowCalendarPanel] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchTab, setSearchTab] = useState('消息');
-  
-  // 模板数据
+  const [showSearchPanel, setShowSearchPanel] = useState(false);
+  const [showCalendarPanel, setShowCalendarPanel] = useState(false);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+
+  // 会议弹窗相关状态
+  const [showMeetingModal, setShowMeetingModal] = useState(false);
+  const [meetingTitle, setMeetingTitle] = useState('新教师教学方法培训');
+  const [micEnabled, setMicEnabled] = useState(false);
+  const [cameraEnabled, setCameraEnabled] = useState(false);
+  const [speakerMuted, setSpeakerMuted] = useState(true);
+  const [speakerVolume, setSpeakerVolume] = useState(30);
+  // 添加成员弹窗相关状态
+  const [showAddMembersModal, setShowAddMembersModal] = useState(false);
+  const [selectedAddMembers, setSelectedAddMembers] = useState([]);
+  const [addMembersSearch, setAddMembersSearch] = useState('');
+  const currentContact = contacts.find(c => c.id === activeContact);
+
+  // 模板数据与处理函数（保持原有功能）
   const templates = [
     {
       category: '学术写作',
@@ -60,27 +72,12 @@ const ChatWindow = ({
       ]
     }
   ];
-  
-  const currentContact = contacts.find(c => c.id === activeContact);
-  
-  // 处理模板选择
+
   const handleTemplateSelect = (template) => {
     const templateMessage = `请帮我使用"${template.title}"模板创作内容。模板描述：${template.description}`;
     onMessageChange(templateMessage);
     setShowTemplateModal(false);
   };
-
-  if (!activeContact || !currentContact) {
-    return (
-      <div className="chat-panel">
-        <div className="no-chat-selected">
-          <MessageSquare size={64} />
-          <h3>选择一个联系人开始聊天</h3>
-          <p>从左侧选择联系人或群组开始对话</p>
-        </div>
-      </div>
-    );
-  }
 
   // 会话标题栏按钮交互
   const handleConversationSearch = () => {
@@ -89,9 +86,11 @@ const ChatWindow = ({
     window.dispatchEvent(new CustomEvent('conversationSearchOpen', { detail: { chatId: activeContact } }));
   };
   const handleStartVideoMeeting = () => {
+    setShowMeetingModal(true);
     window.dispatchEvent(new CustomEvent('startVideoMeeting', { detail: { chatId: activeContact } }));
   };
   const handleAddMember = () => {
+    setShowAddMembersModal(true);
     window.dispatchEvent(new CustomEvent('addChatMember', { detail: { chatId: activeContact } }));
   };
   const handleMemberCalendar = () => {
@@ -123,7 +122,6 @@ const ChatWindow = ({
           <div className="chat-contact-info">
             <div className="contact-avatar small">
               {currentContact.avatar ? (
-                // 检查是否是emoji或图片URL
                 currentContact.avatar.startsWith('http') || currentContact.avatar.startsWith('/') ? (
                   <img src={currentContact.avatar} alt="" />
                 ) : (
@@ -151,9 +149,11 @@ const ChatWindow = ({
             <button className="action-btn" title="会话搜索" onClick={handleConversationSearch}>
               <Search size={16} />
             </button>
-            <button className="action-btn" title="发起视频会议" onClick={handleStartVideoMeeting}>
-              <Video size={16} />
-            </button>
+            <Tooltip title="会议">
+              <button className="action-btn" title="会议" onClick={handleStartVideoMeeting}>
+                <Video size={16} />
+              </button>
+            </Tooltip>
             <button className="action-btn" title="添加群成员" onClick={handleAddMember}>
               <UserPlus size={16} />
             </button>
@@ -176,7 +176,6 @@ const ChatWindow = ({
           ) : (
             messages.map(message => {
               const isGroupChat = currentContact?.type === 'group' || currentContact?.type === 'topic';
-              // 计算显示的发言人名称
               const displaySenderName = (
                 message.senderName ||
                 (message.senderId === 'me'
@@ -214,69 +213,21 @@ const ChatWindow = ({
         {/* 聊天输入框 */}
         <div className="chat-input">
           <Input
-            placeholder="输入消息..."
             value={newMessage}
             onChange={(e) => onMessageChange(e.target.value)}
-            onPressEnter={onKeyPress}
-            size="large"
+            onPressEnter={onSendMessage}
+            placeholder="输入消息，支持 @人、#话题、/命令"
+            allowClear
             suffix={
-              <Space size={4}>
-                <Button 
-                  type="dashed" 
-                  size="small" 
-                  title="模拟我对话"
-                  onClick={onSimulateMe}
-                >模拟我</Button>
-                <Button 
-                  type="text" 
-                  size="small" 
-                  icon={<Type size={16} />} 
-                  title="字体大小"
-                />
-                <Button 
-                  type="text" 
-                  size="small" 
-                  icon={<Smile size={16} />} 
-                  title="表情符号"
-                />
-                <Button 
-                  type="text" 
-                  size="小" 
-                  icon={<AtSign size={16} />} 
-                  title="@提及"
-                />
-                <Button 
-                  type="text" 
-                  size="small" 
-                  icon={<Scissors size={16} />} 
-                  title="剪切工具"
-                />
-                <Button 
-                  type="text" 
-                  size="small" 
-                  icon={<HelpCircle size={16} />} 
-                  title="帮助"
-                />
-                <Button 
-                  type="text" 
-                  size="small" 
-                  icon={<FileText size={16} />} 
-                  title="模板"
-                  onClick={() => setShowTemplateModal(true)}
-                />
-                <Button 
-                  type="text" 
-                  size="small" 
-                  icon={<Maximize2 size={16} />} 
-                  title="全屏"
-                />
-                <Button 
-                  type="primary"
-                  size="small"
-                  icon={<Send size={16} />}
-                  onClick={onSendMessage}
-                  disabled={!newMessage.trim()}
-                />
+              <Space>
+                <Button type="text" size="small" icon={<Type size={16} />} title="文本工具" />
+                <Button type="text" size="small" icon={<Smile size={16} />} title="表情" />
+                <Button type="text" size="small" icon={<AtSign size={16} />} title="@提及" />
+                <Button type="text" size="small" icon={<Scissors size={16} />} title="剪切板" />
+                <Button type="text" size="small" icon={<HelpCircle size={16} />} title="帮助" />
+                <Button type="text" size="small" icon={<FileText size={16} />} title="模板" onClick={() => setShowTemplateModal(true)} />
+                <Button type="text" size="small" icon={<Maximize2 size={16} />} title="全屏" />
+                <Button type="primary" size="small" icon={<Send size={16} />} onClick={onSendMessage} disabled={!newMessage.trim()} />
               </Space>
             }
           />
@@ -305,16 +256,11 @@ const ChatWindow = ({
             </div>
             <div className="search-input-box">
               <Input
-                placeholder="搜索"
+                placeholder="搜索关键词..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                prefix={<Search size={16} />}
+                onChange={e => setSearchQuery(e.target.value)}
+                allowClear
               />
-            </div>
-            <div className="search-filters">
-              <button className="filter-chip">来自用户</button>
-              <button className="filter-chip">时间</button>
-              <button className="filter-chip">高级搜索</button>
             </div>
           </div>
 
@@ -369,6 +315,145 @@ const ChatWindow = ({
           </div>
         </div>
       )}
+      
+      {/* 添加群成员弹窗 */}
+      <Modal
+        open={showAddMembersModal}
+        onCancel={() => setShowAddMembersModal(false)}
+        footer={null}
+        width={820}
+        className="add-members-modal"
+        title={null}
+      >
+        <div className="add-members-body">
+          <div className="add-left">
+            <div className="add-search">
+              <Input
+                allowClear
+                placeholder="搜索"
+                value={addMembersSearch}
+                onChange={(e) => setAddMembersSearch(e.target.value)}
+                prefix={<Search size={16} />}
+              />
+            </div>
+            <div className="add-categories">
+              <button className="add-category">
+                <div className="cat-left">
+                  <Users size={18} color="#22c55e" />
+                  <span>组织内联系人</span>
+                </div>
+                <ChevronRight size={16} className="cat-right" />
+              </button>
+              <button className="add-category">
+                <div className="cat-left">
+                  <User size={18} color="#4c8df8" />
+                  <span>外部联系人</span>
+                </div>
+                <ChevronRight size={16} className="cat-right" />
+              </button>
+              <button className="add-category">
+                <div className="cat-left">
+                  <Layers size={18} color="#22c55e" />
+                  <span>我管理的群组</span>
+                </div>
+                <ChevronRight size={16} className="cat-right" />
+              </button>
+            </div>
+            <div className="add-bottom-left">
+              <Button>批量导入</Button>
+            </div>
+          </div>
+          <div className="add-right">
+            <div className="add-selected-title">已选：{selectedAddMembers.length} 人</div>
+            <div className="add-selected-list">
+              {selectedAddMembers.length === 0 ? (
+                <div className="add-empty">暂无选择</div>
+              ) : (
+                <div>/* 已选成员列表 */</div>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="add-members-footer">
+          <Button onClick={() => setShowAddMembersModal(false)}>取消</Button>
+          <Button type="primary" disabled={selectedAddMembers.length === 0}>
+            确定(⌘+Enter)
+          </Button>
+        </div>
+      </Modal>
+
+      {/* 会议弹窗 */}
+      <Modal 
+        open={showMeetingModal}
+        onCancel={() => setShowMeetingModal(false)}
+        footer={null}
+        width={820}
+        className="meeting-modal"
+      >
+        <div className="meeting-title">
+          <Input 
+            value={meetingTitle}
+            onChange={(e) => setMeetingTitle(e.target.value)}
+            bordered={false}
+            className="meeting-title-input"
+          />
+        </div>
+        <div className="meeting-preview">
+          <button className="preview-settings-btn" title="背景设置">
+            <Settings size={16} />
+          </button>
+          <div className="preview-avatar">
+            {currentContact?.avatar ? (
+              currentContact.avatar.startsWith('http') || currentContact.avatar.startsWith('/') ? (
+                <img src={currentContact.avatar} alt="avatar" />
+              ) : (
+                <div className="emoji-avatar-large">{currentContact.avatar}</div>
+              )
+            ) : (
+              <div className="initial-avatar-large">{(currentContact?.name || '群').charAt(0)}</div>
+            )}
+          </div>
+        </div>
+        <div className="meeting-controls">
+          <div className="device-controls">
+            <button 
+              className={`device-btn ${micEnabled ? '' : 'muted'}`} 
+              title={micEnabled ? '麦克风已开启' : '麦克风已关闭'}
+              onClick={() => setMicEnabled(v => !v)}
+            >
+              {micEnabled ? <Mic size={16} /> : <MicOff size={16} />}
+              <span className="device-label">麦克风</span>
+            </button>
+            <button 
+              className={`device-btn ${cameraEnabled ? '' : 'muted'}`} 
+              title={cameraEnabled ? '摄像头已开启' : '摄像头已关闭'}
+              onClick={() => setCameraEnabled(v => !v)}
+            >
+              {cameraEnabled ? <Video size={16} /> : <VideoOff size={16} />}
+              <span className="device-label">摄像头</span>
+            </button>
+            <div className="volume-control">
+              <button 
+                className={`device-btn ${speakerMuted ? 'muted' : ''}`} 
+                title={speakerMuted ? '扬声器已静音' : '扬声器'}
+                onClick={() => setSpeakerMuted(v => !v)}
+              >
+                {speakerMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+              </button>
+              <input 
+                type="range" 
+                min="0" 
+                max="100" 
+                value={speakerVolume} 
+                onChange={(e) => setSpeakerVolume(Number(e.target.value))}
+              />
+            </div>
+          </div>
+          <Button type="primary" size="large" className="start-meeting-btn" onClick={() => setShowMeetingModal(false)}>
+            开始会议
+          </Button>
+        </div>
+      </Modal>
       
       {/* 模板选择Modal */}
       <Modal
