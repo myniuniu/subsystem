@@ -54,7 +54,7 @@ import { generateTrainingProductDevelopmentData } from './data/trainingProductDe
 const { Sider, Content } = Layout
 
 function App() {
-  const [currentView, setCurrentView] = useState('smart-notes') // 'home', 'chat', 'image', 'search', etc.
+  const [currentView, setCurrentView] = useState('resource-library') // 'home', 'chat', 'image', 'search', etc.
   const [messages, setMessages] = useState([])
   
   // 页面状态管理
@@ -388,7 +388,7 @@ function App() {
               <StudentManagement />
             ) : currentView === 'simulation-center' ? (
               <SimulationCenter />
-            ) : currentView === 'resource-library' ? (
+            ) : (currentView === 'resource-library' || currentView === 'simulation-resource-library') ? (
               <ResourceLibrary />
             ) : currentView === 'mental-health-coach' ? (
               <MentalHealthCoach onNavigate={setCurrentView} />
