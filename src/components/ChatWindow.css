@@ -228,9 +228,14 @@
   position: relative;
   transition: all 0.2s ease;
   min-height: 36px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  display: inline-block;
+  white-space: normal;
+}
+
+/* 短消息强制单行显示 */
+.message-bubble .message-content.single-line {
+  white-space: nowrap;
+  word-break: keep-all;
 }
 
 .message-bubble .message-sender {
@@ -266,6 +271,14 @@
   border-bottom-left-radius: 4px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e9ecef;
+}
+
+/* 群聊消息内容与用户名左对齐（避免与头像对齐） */
+.message-bubble.group.received .message-content {
+  margin-left: 32px; /* 24px 头像 + 8px 间距 */
+}
+.message-bubble.group.sent .message-content {
+  margin-right: 32px; /* 发送方对称处理，避免与头像错位 */
 }
 
 .message-bubble:hover .message-content {

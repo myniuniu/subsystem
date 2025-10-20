@@ -185,20 +185,35 @@ const ChatWindow = ({
                     || '对方')
               );
 
+              // 模拟彩色头像：根据用户名哈希生成稳定的渐变色
+              const avatarPalettes = [
+                ['#4C8DF8', '#5EA0FF'],
+                ['#34C759', '#2ECC71'],
+                ['#FF9F0A', '#FF7F50'],
+                ['#AF52DE', '#9B59B6'],
+                ['#FF3B30', '#E74C3C'],
+                ['#00C7BE', '#1ABC9C'],
+                ['#5856D6', '#6C5CE7'],
+                ['#FFCC00', '#F1C40F']
+              ];
+              const hash = (displaySenderName || '').split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+              const palette = avatarPalettes[hash % avatarPalettes.length];
+              const avatarBg = `linear-gradient(135deg, ${palette[0]}, ${palette[1]})`;
+
               return (
                 <div 
                   key={message.id}
-                  className={`message-bubble ${message.senderId === 'me' ? 'sent' : 'received'}`}
+                  className={`message-bubble ${message.senderId === 'me' ? 'sent' : 'received'} ${isGroupChat ? 'group' : ''}`}
                 >
                   {isGroupChat && (
                     <div className="message-sender">
-                      <span className="message-avatar">
+                      <span className="message-avatar" style={{ background: avatarBg }}>
                         {(displaySenderName || '').charAt(0)}
                       </span>
                       <span className="message-author">{displaySenderName}</span>
                     </div>
                   )}
-                  <div className="message-content">
+                  <div className={`message-content ${typeof message.content === 'string' && !message.content.includes('\n') && message.content.trim().length <= 16 ? 'single-line' : ''}`}>
                     {message.content}
                   </div>
                   <div className="message-time">
