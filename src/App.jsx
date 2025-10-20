@@ -54,7 +54,7 @@ import { generateTrainingProductDevelopmentData } from './data/trainingProductDe
 const { Sider, Content } = Layout
 
 function App() {
-  const [currentView, setCurrentView] = useState('resource-library') // 'home', 'chat', 'image', 'search', etc.
+  const [currentView, setCurrentView] = useState('smart-notes') // 默认进入果仁空间
   const [messages, setMessages] = useState([])
   
   // 页面状态管理
