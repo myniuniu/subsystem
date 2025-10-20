@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { message } from 'antd';
 import dayjs from 'dayjs';
-import { OPERATION_CARDS } from '../constants/noteEditConstants';
+import { OPERATION_CARDS, OPERATION_TYPES } from '../constants/noteEditConstants';
 
 // 操作面板状态管理Hook
 export const useOperationPanelState = (noteCategory = null) => {
@@ -454,7 +454,8 @@ export const useOperationPanelState = (noteCategory = null) => {
 
       // 额外加入基础工具中的“场景模拟”卡片
       const scenarioCard = OPERATION_CARDS.find(card => card.key === 'scenario');
-      const finalCards = scenarioCard ? [...teachingCards, scenarioCard] : teachingCards;
+      const behaviorCard = OPERATION_CARDS.find(card => card.key === OPERATION_TYPES.CLASSROOM_BEHAVIOR_ANALYSIS);
+      const finalCards = scenarioCard ? [...teachingCards, scenarioCard, behaviorCard].filter(Boolean) : [...teachingCards, behaviorCard].filter(Boolean);
 
       console.log('教研室分类，返回的卡片:', finalCards);
       return finalCards;

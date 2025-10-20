@@ -914,6 +914,16 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         return;
       }
       
+      // 新增：课堂行为分析记录点击，右侧打开行为分析查看器
+      if (record.type === 'classroom-behavior-analysis') {
+        console.log('课堂行为分析记录点击，record.content存在:', !!record.content);
+        
+        // 课堂行为分析基于来源信息展示，无需设置额外右侧状态
+        state.setRightPanelView(RIGHT_PANEL_VIEWS.CLASSROOM_BEHAVIOR_ANALYSIS_VIEWER);
+        message.success('在右侧显示课堂行为分析');
+        return;
+      }
+      
       if (record.type === 'classroom-evaluation') {
         console.log('课堂评价记录点击，record.content存在:', !!record.content);
         console.log('record.evaluationConfig存在:', !!record.evaluationConfig);

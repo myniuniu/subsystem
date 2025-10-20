@@ -23,7 +23,8 @@ export const OPERATION_TYPES = {
   LEARNING_PLAN: 'learning-plan',
   GRADING: 'grading',
   CLASSROOM_EVALUATION: 'classroom-evaluation',
-  TRAINING_DASHBOARD: 'training-dashboard'
+  TRAINING_DASHBOARD: 'training-dashboard',
+  CLASSROOM_BEHAVIOR_ANALYSIS: 'classroom-behavior-analysis'
 };
 
 // 操作按钮标题映射
@@ -44,7 +45,8 @@ export const OPERATION_TITLES = {
   [OPERATION_TYPES.LEARNING_PLAN]: '学习计划',
   [OPERATION_TYPES.GRADING]: '阅卷工具',
   [OPERATION_TYPES.CLASSROOM_EVALUATION]: '课堂评价',
-  [OPERATION_TYPES.TRAINING_DASHBOARD]: '培训报表'
+  [OPERATION_TYPES.TRAINING_DASHBOARD]: '培训报表',
+  [OPERATION_TYPES.CLASSROOM_BEHAVIOR_ANALYSIS]: '课堂行为分析'
 };
 
 // 材料类型图标映射
@@ -70,7 +72,8 @@ export const MATERIAL_ICONS = {
   [OPERATION_TYPES.LEARNING_PLAN]: '计',
   [OPERATION_TYPES.GRADING]: '阅',
   [OPERATION_TYPES.CLASSROOM_EVALUATION]: '评',
-  [OPERATION_TYPES.TRAINING_DASHBOARD]: '报'
+  [OPERATION_TYPES.TRAINING_DASHBOARD]: '报',
+  [OPERATION_TYPES.CLASSROOM_BEHAVIOR_ANALYSIS]: '行'
 };
 
 // 网站类型常量
@@ -105,6 +108,7 @@ export const RIGHT_PANEL_VIEWS = {
   TRAINING_REPORT_VIEWER: 'training_report_viewer',
   TRAINING_DASHBOARD_VIEWER: 'training_dashboard_viewer',
   TRAINING_SETTINGS_VIEWER: 'training_settings_viewer',
+  CLASSROOM_BEHAVIOR_ANALYSIS_VIEWER: 'classroomBehaviorAnalysisViewer',
   VIDEO_PLAYER: 'video_player'
 };
 
@@ -485,6 +489,13 @@ export const OPERATION_CARDS = [
     icon: '场',
     gradient: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)',
     color: '#7b1fa2'
+  },
+  {
+    key: OPERATION_TYPES.CLASSROOM_BEHAVIOR_ANALYSIS,
+    title: '课堂行为分析',
+    icon: '行',
+    gradient: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+    color: '#1d4ed8'
   },
   {
     key: OPERATION_TYPES.QUESTION,

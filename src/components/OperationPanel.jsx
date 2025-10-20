@@ -43,6 +43,7 @@ import QuestionViewer from './OperationPanel/QuestionViewer';
 import GradingViewer from './OperationPanel/GradingViewer';
 import LearningPlanViewer from './OperationPanel/LearningPlanViewer';
 import ClassroomEvaluationViewer from './OperationPanel/ClassroomEvaluationViewer';
+import ClassroomBehaviorAnalysisViewer from './OperationPanel/ClassroomBehaviorAnalysisViewer';
 import TrainingPlanViewer from './OperationPanel/TrainingPlanViewer';
 import TrainingReportViewer from './OperationPanel/TrainingReportViewer';
 import VideoPlayer from './VideoPlayer';
@@ -993,6 +994,15 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
         setRightPanelView={setRightPanelView}
         setRightPanelNoteRecord={setRightPanelEditingNote}
         setRightPanelNoteContent={setRightPanelNoteContent}
+      />
+    );
+  }
+
+  if (rightPanelView === RIGHT_PANEL_VIEWS.CLASSROOM_BEHAVIOR_ANALYSIS_VIEWER) {
+    return (
+      <ClassroomBehaviorAnalysisViewer 
+        sourceInfo={sourceInfo}
+        setRightPanelView={setRightPanelView}
       />
     );
   }

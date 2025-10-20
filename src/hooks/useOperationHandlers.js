@@ -1,5 +1,5 @@
 import { message, Modal } from 'antd';
-import { OPERATION_TYPES } from '../constants/noteEditConstants';
+import { OPERATION_TYPES, RIGHT_PANEL_VIEWS } from '../constants/noteEditConstants';
 
 // 操作处理逻辑Hook
 export const useOperationHandlers = ({
@@ -128,11 +128,8 @@ export const useOperationHandlers = ({
     // 使用通用函数添加记录
     addRecordWithGenerating('grading', gradingRecord, {
       onComplete: () => {
-        // 生成完成后设置右侧面板显示
-        setRightPanelGradingRecord(gradingRecord);
-        setRightPanelGradingContent(gradingRecord.content);
-        setRightPanelView('GRADING_VIEWER');
-        message.success('智能阅卷完成，已生成详细报告！');
+        // 生成完成，不自动打开右侧面板
+        message.success('智能阅卷完成，记录已添加。点击查看详情');
       }
     });
   };
@@ -140,7 +137,7 @@ export const useOperationHandlers = ({
   // 处理培训报表工具
   const handleTrainingDashboardToolAction = () => {
     // 直接切换到培训报表视图
-    setRightPanelView('TRAINING_DASHBOARD_VIEWER');
+    setRightPanelView(RIGHT_PANEL_VIEWS.TRAINING_DASHBOARD_VIEWER);
     message.success('培训报表工具已启动！');
   };
 
@@ -169,11 +166,8 @@ export const useOperationHandlers = ({
     // 使用通用函数添加记录
     addRecordWithGenerating('training-report', trainingReportRecord, {
       onComplete: () => {
-        // 生成完成后设置右侧面板显示
-        setRightPanelTrainingReportRecord(trainingReportRecord);
-        setRightPanelTrainingReportContent(trainingReportRecord.content);
-        setRightPanelView('TRAINING_REPORT_VIEWER');
-        message.success('培训报告生成成功！');
+        // 生成完成，不自动打开右侧面板
+        message.success('培训报告生成成功，记录已添加。点击查看详情');
       }
     });
   };
@@ -211,10 +205,36 @@ export const useOperationHandlers = ({
     } else if (card.key === 'grading') {
       // 阅卷工具处理
       handleGradingToolAction();
-    } else if (card.key === 'classroom-evaluation') {
+    } else if (card.key === OPERATION_TYPES.CLASSROOM_EVALUATION) {
       // 课堂评价工具处理
       message.info(`正在启动课堂评价工具（基于${sourceInfo?.total || 0}个数据源）`);
       setClassroomEvaluationVisible(true);
+    } else if (card.key === OPERATION_TYPES.CLASSROOM_BEHAVIOR_ANALYSIS) {
+      // 课堂行为分析工具处理：生成一条操作记录并打开查看器
+      const behaviorRecord = {
+        id: `behavior_${Date.now()}`,
+        type: OPERATION_TYPES.CLASSROOM_BEHAVIOR_ANALYSIS,
+        title: '课堂行为分析',
+        source: sourceInfo?.details || '基于当前数据源',
+        time: new Date().toLocaleString('zh-CN'),
+        content: `<div style="padding: 20px; text-align: center;">
+          <h3>🎯 课堂行为分析</h3>
+          <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的行为分析</p>
+          <p style="color: #999; font-size: 14px;">${sourceInfo?.details || '数据源分析'} • ${new Date().toLocaleString('zh-CN')}</p>
+        </div>`,
+        analysisData: {
+          activity: 76,
+          participation: 68,
+          focus: 82,
+          disciplineEvents: 5
+        }
+      };
+      addRecordWithGenerating(OPERATION_TYPES.CLASSROOM_BEHAVIOR_ANALYSIS, behaviorRecord, {
+        onComplete: () => {
+          // 生成完成，不自动打开右侧面板
+          message.success('课堂行为分析已生成，记录已添加。点击查看详情');
+        }
+      });
     } else if (card.key === 'training-report') {
       // 培训报告工具处理
       handleTrainingReportToolAction();

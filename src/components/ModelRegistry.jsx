@@ -125,6 +125,24 @@ export default function ModelRegistry() {
     });
   };
 
+  // 新增：部署模型
+  const handleDeploy = (record) => {
+    if (record.status === 'terminated') {
+      message.info('该模型已终止，无法部署');
+      return;
+    }
+    Modal.confirm({
+      title: '确认部署模型？',
+      content: '部署后将标记为已部署（本地演示）。',
+      onOk: () => {
+        const next = registry.map(m => m.id === record.id ? { ...m, status: 'deployed', updatedAt: new Date().toISOString() } : m);
+        setRegistry(next);
+        saveRegistry(next);
+        message.success('模型已部署');
+      },
+    });
+  };
+
   const copyCode = (code) => {
     try {
       navigator.clipboard.writeText(code);
@@ -173,6 +191,7 @@ export default function ModelRegistry() {
         <Button size='small' onClick={() => openDetail(r)}>查看</Button>
         <Button danger size='small' onClick={() => handleDelete(r.id)}>删除</Button>
         <Button size='small' onClick={() => handleTerminate(r)} disabled={r.status === 'terminated'}>终止训练</Button>
+        <Button size='small' onClick={() => handleDeploy(r)} disabled={r.status === 'terminated'}>部署模型</Button>
       </Space>
     ) },
   ];
@@ -269,6 +288,7 @@ export default function ModelRegistry() {
                       <Button size='small' onClick={(e) => { e.stopPropagation(); openDetail(m); }}>查看</Button>
                       <Button danger size='small' onClick={(e) => { e.stopPropagation(); handleDelete(m.id); }}>删除</Button>
                       <Button size='small' onClick={(e) => { e.stopPropagation(); handleTerminate(m); }} disabled={m.status === 'terminated'}>终止训练</Button>
+                      <Button size='small' onClick={(e) => { e.stopPropagation(); handleDeploy(m); }} disabled={m.status === 'terminated'}>部署模型</Button>
                     </Space>
                   </Space>
                 </Card>

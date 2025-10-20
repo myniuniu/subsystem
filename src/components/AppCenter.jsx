@@ -336,6 +336,42 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
       menuId: 'app-store',
       menuLabel: '应用商店',
       menuColor: '#52c41a'
+    },
+    {
+      id: 'ai-experience-app',
+      name: 'AI体验',
+      description: '探索AI交互与体验功能入口',
+      icon: 'DashboardOutlined',
+      category: 'lab',
+      tags: ['实验室'],
+      grade: ['小学', '初中', '高中', '大学'],
+      subject: ['综合'],
+      rating: 4.3,
+      downloads: 1200,
+      version: 'v1.0.0',
+      developer: 'AI体验组',
+      featured: false,
+      menuId: 'ai-experience',
+      menuLabel: 'AI体验',
+      menuColor: '#13c2c2'
+    },
+    {
+      id: 'model-registry-app',
+      name: '模型管理',
+      description: '管理与实验模型配置及版本',
+      icon: 'AppstoreOutlined',
+      category: 'lab',
+      tags: ['实验室'],
+      grade: ['小学', '初中', '高中', '大学'],
+      subject: ['综合'],
+      rating: 4.2,
+      downloads: 800,
+      version: 'v1.0.0',
+      developer: '模型实验室',
+      featured: false,
+      menuId: 'model-registry',
+      menuLabel: '模型管理',
+      menuColor: '#a0d911'
     }
   ]
 
@@ -484,12 +520,17 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
                       <Text type="secondary">{app.developer}</Text>
                     </div>
                     {app.featured && (
-                      <Tag className="featured-tag" color="gold">
-                        推荐
-                      </Tag>
-                    )}
-                  </div>
-                  <div className="app-description">
+                        <Tag className="featured-tag" color="gold">
+                          推荐
+                        </Tag>
+                      )}
+                      {app.tags && app.tags.includes('实验室') && (
+                        <Tag className="lab-tag" color="purple">
+                          实验室
+                        </Tag>
+                      )}
+                    </div>
+                    <div className="app-description">
                     {app.description}
                   </div>
                   <div className="app-grade-subject">
@@ -567,6 +608,11 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
                       {app.featured && (
                         <Tag className="featured-tag" color="gold">
                           推荐
+                        </Tag>
+                      )}
+                      {app.tags && app.tags.includes('实验室') && (
+                        <Tag className="lab-tag" color="purple">
+                          实验室
                         </Tag>
                       )}
                     </div>
