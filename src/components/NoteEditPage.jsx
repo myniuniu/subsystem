@@ -25,6 +25,7 @@ import MaterialManagement from './MaterialManagement';
 import AIChat from './AIChat';
 import OperationPanel from './OperationPanel';
 import VideoView from './VideoView';
+import ChatWindow from './ChatWindow';
 
 // 导入原有组件
 import MaterialAddPage from './MaterialAddPage';
@@ -170,6 +171,11 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
   const [showMessageCenter, setShowMessageCenter] = useState(false);
   const [unreadMessageCount, setUnreadMessageCount] = useState(3); // 模拟未读消息数量
   const [isGroupCreated, setIsGroupCreated] = useState(false); // 群组创建状态
+  const [newChatMessage, setNewChatMessage] = useState('');
+  
+  // 对话框宽度随分栏动态调整
+  const [isChatSplit, setIsChatSplit] = useState(false);
+  const modalWidth = isChatSplit ? '75%' : '45%';
   
   // 会议相关状态
   const [showMeetingModal, setShowMeetingModal] = useState(false);
@@ -190,6 +196,24 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
   
   // 操作面板收起状态
   const [operationPanelCollapsed, setOperationPanelCollapsed] = useState(false);
+
+  // 监听聊天工具打开/关闭以动态加宽/恢复
+  useEffect(() => {
+    const openSearch = () => setIsChatSplit(true);
+    const openCalendar = () => setIsChatSplit(true);
+    const closeSearch = () => setIsChatSplit(false);
+    const closeCalendar = () => setIsChatSplit(false);
+    window.addEventListener('conversationSearchOpen', openSearch);
+    window.addEventListener('openMemberCalendar', openCalendar);
+    window.addEventListener('conversationSearchClose', closeSearch);
+    window.addEventListener('closeMemberCalendar', closeCalendar);
+    return () => {
+      window.removeEventListener('conversationSearchOpen', openSearch);
+      window.removeEventListener('openMemberCalendar', openCalendar);
+      window.removeEventListener('conversationSearchClose', closeSearch);
+      window.removeEventListener('closeMemberCalendar', closeCalendar);
+    };
+  }, []);
 
   // 会议控制函数
   const startVideoCall = async () => {
@@ -1869,161 +1893,46 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
        </div>
        
        {/* 消息讨论弹窗 */}
-       <div
-         style={{
-           position: 'fixed',
-           bottom: '90px', // 在悬浮图标上方
-           right: '24px',
-           width: '400px',
-           height: '500px',
-           backgroundColor: 'white',
-           borderRadius: '12px',
-           boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
-           border: '1px solid #e8e8e8',
-           zIndex: 1001,
-           display: showMessageCenter ? 'flex' : 'none',
-           flexDirection: 'column',
-           overflow: 'hidden'
-         }}
+       <Modal
+         open={showMessageCenter}
+         footer={null}
+         onCancel={() => { setShowMessageCenter(false); setUnreadMessageCount(0); setIsChatSplit(false); }}
+         width={modalWidth}
+         centered
+         destroyOnClose
+         title={null}
+         className="discussion-modal"
+         bodyStyle={{ height: 'calc(70vh + 15px)', overflowY: 'hidden', padding: 0 }}
        >
-         {/* 标题栏 */}
-         <div style={{
-           padding: '16px 20px',
-           borderBottom: '1px solid #f0f0f0',
-           backgroundColor: '#fafafa',
-           display: 'flex',
-           alignItems: 'center',
-           justifyContent: 'space-between'
-         }}>
-         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-           <MessageOutlined style={{ color: '#1890ff' }} />
-           <span style={{ fontWeight: 'bold' }}>主题讨论</span>
-           <Badge count={unreadMessageCount} size="small" />
-         </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Button 
-              type="link"
-              size="small"
-              icon={<VideoCameraOutlined />}
-              onClick={() => setShowMeetingModal(true)}
-            >
-              会议
-            </Button>
-            <Button 
-              type="text" 
-              size="small"
-              onClick={() => {
-                setShowMessageCenter(false);
-                setUnreadMessageCount(0);
-              }}
-              style={{ color: '#999' }}
-            >
-              ✕
-            </Button>
-          </div>
-        </div>
-          {/* 消息列表区域 */}
-          <div style={{ 
-            flex: 1, 
-            padding: '16px', 
-            overflowY: 'auto',
-            borderBottom: '1px solid #f0f0f0'
-          }}>
-            <List
-              dataSource={discussionMessages}
-              renderItem={(msg) => (
-                <List.Item style={{ padding: '12px 0', border: 'none' }}>
-                  <div style={{ width: '100%' }}>
-                    <div style={{ 
-                      display: 'flex', 
-                      justifyContent: 'space-between', 
-                      marginBottom: '8px' 
-                    }}>
-                      <Typography.Text strong style={{ color: '#1890ff' }}>
-                        {msg.senderName}
-                      </Typography.Text>
-                      <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
-                        {msg.time}
-                      </Typography.Text>
-                    </div>
-                    <Typography.Text style={{ 
-                      fontSize: '14px', 
-                      lineHeight: '1.5',
-                      display: 'block',
-                      padding: '8px 12px',
-                      backgroundColor: '#f6f8ff',
-                      borderRadius: '8px',
-                      border: '1px solid #e6f0ff'
-                    }}>
-                      {msg.content}
-                    </Typography.Text>
-                  </div>
-                </List.Item>
-              )}
-            />
-          </div>
-          
-          {/* 消息输入区域 */}
-          <div style={{ 
-            padding: '16px', 
-            backgroundColor: '#fafafa',
-            borderTop: '1px solid #f0f0f0'
-          }}>
-            <Input.Group compact>
-              <Input
-                style={{ width: 'calc(100% - 80px)' }}
-                placeholder="输入您的讨论内容..."
-                onPressEnter={(e) => {
-                  if (e.target.value.trim()) {
-                    const newMessage = {
-                      id: Date.now(),
-                      senderId: 'me',
-                      senderName: '我',
-                      content: e.target.value,
-                      time: new Date().toLocaleString('zh-CN', {
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      }),
-                      type: 'text'
-                    };
-                    setDiscussionMessages(prev => [...prev, newMessage]);
-                    e.target.value = '';
-                    message.success('消息发送成功');
-                  }
-                }}
-              />
-              <Button 
-                type="primary" 
-                style={{ width: '80px' }}
-                onClick={(e) => {
-                  const input = e.target.parentElement.querySelector('input');
-                  if (input && input.value.trim()) {
-                    const newMessage = {
-                      id: Date.now(),
-                      senderId: 'me',
-                      senderName: '我',
-                      content: input.value,
-                      time: new Date().toLocaleString('zh-CN', {
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      }),
-                      type: 'text'
-                    };
-                    setDiscussionMessages(prev => [...prev, newMessage]);
-                    input.value = '';
-                    message.success('消息发送成功');
-                  }
-                }}
-              >
-                发送
-              </Button>
-            </Input.Group>
-          </div>
-        </div>
+         <ChatWindow
+            activeContact={selectedCategory === 'organizational_training' ? 'new_teacher_methods_training' : 'topic_discussion'}
+            contacts={selectedCategory === 'organizational_training' 
+              ? [{ id: 'new_teacher_methods_training', name: '新教师教学方法培训', type: 'topic', avatar: '🧑‍🏫', online: true }]
+              : [{ id: 'topic_discussion', name: '主题讨论', type: 'topic', avatar: '💬', online: true }]}
+            messages={discussionMessages}
+            newMessage={newChatMessage}
+            onMessageChange={setNewChatMessage}
+            onSendMessage={() => {
+              if (!newChatMessage.trim()) return;
+              const newMsg = {
+                id: Date.now(),
+                senderId: 'me',
+                senderName: '我',
+                content: newChatMessage,
+                time: new Date().toLocaleString('zh-CN', {
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                }),
+                type: 'text'
+              };
+              setDiscussionMessages(prev => [...prev, newMsg]);
+              setNewChatMessage('');
+              message.success('消息发送成功');
+            }}
+          />
+       </Modal>
      </>
    );
  };

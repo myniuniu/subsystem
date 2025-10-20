@@ -90,6 +90,8 @@ const CalendarCenter = () => {
   
   // 事件列表（通过生成器填充）
   const [eventList, setEventList] = useState([])
+  const eventListRef = React.useRef([])
+  React.useEffect(() => { eventListRef.current = eventList }, [eventList])
 
   // 类型与颜色映射（与现有样式一致）
   const typeColorMap = {
@@ -202,12 +204,12 @@ const CalendarCenter = () => {
   
   // 教研活动分类
   const [categories, setCategories] = useState([
-    { key: 'meeting', label: '教研会议', color: '#1890ff', checked: true },
-    { key: 'work', label: '教学工作', color: '#52c41a', checked: true },
-    { key: 'training', label: '培训学习', color: '#fa8c16', checked: true },
-    { key: 'business', label: '交流合作', color: '#f5222d', checked: true },
-    { key: 'milestone', label: '重要节点', color: '#722ed1', checked: true },
-    { key: 'new_teacher_methods_training', label: '新教师教学方法培训', color: '#13c2c2', checked: true },
+    { key: 'meeting', label: '教研会议', color: '#1890ff', checked: true, disabled: false },
+    { key: 'work', label: '教学工作', color: '#52c41a', checked: true, disabled: false },
+    { key: 'training', label: '培训学习', color: '#fa8c16', checked: true, disabled: false },
+    { key: 'business', label: '交流合作', color: '#f5222d', checked: true, disabled: false },
+    { key: 'milestone', label: '重要节点', color: '#722ed1', checked: true, disabled: false },
+    { key: 'new_teacher_methods_training', label: '新教师教学方法培训', color: '#13c2c2', checked: true, disabled: false },
   ])
 
   // 根据当前月与分类生成测试数据（每日不超过3条）
@@ -351,33 +353,35 @@ const CalendarCenter = () => {
 
   // 新增：响应外部“打开成员日历”事件，切换到日视图并仅显示“新教师教学方法培训”
   React.useEffect(() => {
-    const handleOpenMemberCalendar = (e) => {
+    const onOpenMemberCalendar = () => {
       // 切换到日视图
       setCalendarView('day')
-      // 仅勾选“新教师教学方法培训”类型
-      setCategories(prev => prev.map(cat => ({
-        ...cat,
-        checked: cat.key === 'new_teacher_methods_training'
-      })))
-      // 优先定位到最近的“新教师教学方法培训”事件日期（若无则今天）
+      // 仅勾选并启用“新教师教学方法培训”，其他禁用且取消勾选
+      setCategories(prev => prev.map(cat => (
+        cat.key === 'new_teacher_methods_training'
+          ? { ...cat, checked: true, disabled: false }
+          : { ...cat, checked: false, disabled: true }
+      )))
+      // 定位到最近的“新教师教学方法培训”事件日期（若无则今天）
       const todayStr = dayjs().format('YYYY-MM-DD')
-      const upcoming = eventList
+      const upcoming = (eventListRef.current || [])
         .filter(ev => ev.type === 'new_teacher_methods_training' && ev.date >= todayStr)
         .sort((a, b) => a.date.localeCompare(b.date))
       const next = upcoming[0]
-      if (next) {
-        setSelectedDate(dayjs(next.date))
-        setCurrentMonth(dayjs(next.date))
-      } else {
-        setSelectedDate(dayjs())
-        setCurrentMonth(dayjs())
-      }
+      const target = next ? dayjs(next.date) : dayjs()
+      setSelectedDate(target)
+      setCurrentMonth(target)
     }
-    window.addEventListener('openMemberCalendar', handleOpenMemberCalendar)
+    const onCloseMemberCalendar = () => {
+      setCategories(prev => prev.map(cat => ({ ...cat, disabled: false })))
+    }
+    window.addEventListener('openMemberCalendar', onOpenMemberCalendar)
+    window.addEventListener('closeMemberCalendar', onCloseMemberCalendar)
     return () => {
-      window.removeEventListener('openMemberCalendar', handleOpenMemberCalendar)
+      window.removeEventListener('openMemberCalendar', onOpenMemberCalendar)
+      window.removeEventListener('closeMemberCalendar', onCloseMemberCalendar)
     }
-  }, [eventList])
+  }, [])
 
   // 获取指定日期的事件
   const getListData = (value) => {
@@ -469,16 +473,20 @@ const CalendarCenter = () => {
 
   // 处理分类复选框变化
   const handleCategoryChange = (key, checked) => {
-    setCategories(prev => 
-      prev.map(cat => 
-        cat.key === key ? { ...cat, checked } : cat
-      )
-    )
+    setCategories(prev => prev.map(cat => {
+      if (cat.key === key) {
+        if (cat.disabled) return cat
+        return { ...cat, checked }
+      }
+      return cat
+    }))
   }
 
   // 全选/取消全选控件逻辑
   const toggleAllCategories = (checked) => {
-    setCategories(prev => prev.map(cat => ({ ...cat, checked })))
+    setCategories(prev => prev.map(cat => (
+      cat.disabled ? cat : { ...cat, checked }
+    )))
   }
 
   // 导航到上个时间段
@@ -822,18 +830,18 @@ const CalendarCenter = () => {
             </div>
             <div className="calendar-categories">
               {categories.map((category) => (
-                <div key={category.key} className="category-item">
-                  <Checkbox 
-                    checked={category.checked}
-                    onChange={(e) => handleCategoryChange(category.key, e.target.checked)}
-                  >
-                    <span 
-                      className="category-dot" 
-                      style={{ backgroundColor: category.color }}
-                    ></span>
-                    {category.label}
-                  </Checkbox>
-                </div>
+                <Checkbox
+                  key={category.key}
+                  checked={category.checked}
+                  disabled={category.disabled}
+                  onChange={(e) => handleCategoryChange(category.key, e.target.checked)}
+                >
+                  <span 
+                    className="category-dot" 
+                    style={{ backgroundColor: category.color }}
+                  ></span>
+                  {category.label}
+                </Checkbox>
               ))}
             </div>
           </div>

@@ -21,3 +21,15 @@
     radial-gradient(circle at 50% 50%, rgba(46, 204, 113, 0.03) 0%, transparent 50%);
   pointer-events: none;
 }
+
+/* 让聊天面板在消息中心页内撑满视窗，使输入栏可贴底 */
+.message-center .chat-panel {
+  height: 100vh; /* 覆盖 ChatWindow.css 中的 70vh */
+  overflow: hidden;
+}
+.message-center .chat-main {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}

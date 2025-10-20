@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Input, Button, Space, Modal, Tooltip } from 'antd';
-import { MessageSquare, Send, MoreVertical, Type, Smile, AtSign, Scissors, HelpCircle, Maximize2, FileText, Search, Video, UserPlus, Calendar, X, Mic, MicOff, VideoOff, Settings, Volume2, VolumeX, ChevronRight, Users, User, Layers } from 'lucide-react';
+import { MessageSquare, Send, MoreVertical, Type, Smile, AtSign, Scissors, HelpCircle, Maximize2, FileText, Search, Video, UserPlus, Calendar, X, Mic, MicOff, VideoOff, Settings, Volume2, VolumeX, ChevronRight, Users, User, Layers, Folder, Pin, Megaphone } from 'lucide-react';
 import './ChatWindow.css';
 import CalendarCenter from './CalendarCenter.jsx';
 
@@ -32,6 +32,8 @@ const ChatWindow = ({
   const [selectedAddMembers, setSelectedAddMembers] = useState([]);
   const [addMembersSearch, setAddMembersSearch] = useState('');
   const currentContact = contacts.find(c => c.id === activeContact);
+  const isGroupHeader = currentContact?.type === 'group' || currentContact?.type === 'topic';
+  const [groupHeaderTab, setGroupHeaderTab] = useState('消息');
 
   // 模板数据与处理函数（保持原有功能）
   const templates = [
@@ -96,14 +98,19 @@ const ChatWindow = ({
   const handleMemberCalendar = () => {
     setShowCalendarPanel(true);
     setShowSearchPanel(false);
-    window.dispatchEvent(new CustomEvent('openMemberCalendar', { detail: { chatId: activeContact } }));
+    // 延迟到下一轮事件循环，确保 CalendarCenter 已挂载并注册监听
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('openMemberCalendar', { detail: { chatId: activeContact } }));
+    }, 0);
   };
   const closeSearchPanel = () => {
     setShowSearchPanel(false);
     setSearchQuery('');
+    window.dispatchEvent(new CustomEvent('conversationSearchClose', { detail: { chatId: activeContact } }));
   };
   const closeCalendarPanel = () => {
     setShowCalendarPanel(false);
+    window.dispatchEvent(new CustomEvent('closeMemberCalendar', { detail: { chatId: activeContact } }));
   };
 
   // 简单的消息搜索（仅“消息”标签展示）
@@ -139,9 +146,54 @@ const ChatWindow = ({
               <div className="contact-name">
                 {currentContact.name}
               </div>
-              <div className="contact-status">
-                {currentContact.online ? '在线' : '离线'}
-              </div>
+              {isGroupHeader ? (
+                <div className="group-header-tabs">
+                  <button
+                    className={`group-tab ${groupHeaderTab === '消息' ? 'active' : ''}`}
+                    onClick={() => setGroupHeaderTab('消息')}
+                    title="消息"
+                  >
+                    <MessageSquare size={16} className="tab-icon messages" />
+                    <span>消息</span>
+                  </button>
+                  <button
+                    className={`group-tab ${groupHeaderTab === '云文档' ? 'active' : ''}`}
+                    onClick={() => setGroupHeaderTab('云文档')}
+                    title="云文档"
+                  >
+                    <FileText size={16} className="tab-icon docs" />
+                    <span>云文档</span>
+                  </button>
+                  <button
+                    className={`group-tab ${groupHeaderTab === '文件' ? 'active' : ''}`}
+                    onClick={() => setGroupHeaderTab('文件')}
+                    title="文件"
+                  >
+                    <Folder size={16} className="tab-icon files" />
+                    <span>文件</span>
+                  </button>
+                  <button
+                    className={`group-tab ${groupHeaderTab === 'Pin' ? 'active' : ''}`}
+                    onClick={() => setGroupHeaderTab('Pin')}
+                    title="Pin"
+                  >
+                    <Pin size={16} className="tab-icon pin" />
+                    <span>Pin</span>
+                  </button>
+                  <button
+                    className={`group-tab ${groupHeaderTab === '群公告' ? 'active' : ''}`}
+                    onClick={() => setGroupHeaderTab('群公告')}
+                    title="群公告"
+                  >
+                    <Megaphone size={16} className="tab-icon notice" />
+                    <span>群公告</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="contact-status">
+                  {currentContact.online ? '在线' : '离线'}
+                </div>
+              )}
             </div>
           </div>
           
