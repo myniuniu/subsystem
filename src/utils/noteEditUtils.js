@@ -1,25 +1,50 @@
 import { message } from 'antd';
 import { TIME_REGEX, MATERIAL_ICONS, OPERATION_TYPES, MARK_COLORS, MARK_NAMES, MARK_ICONS } from '../constants/noteEditConstants';
 
-// 获取直播流状态
+// 获取直播流状态（live / scheduled / ended）
 export const getLiveStreamStatus = (stream) => {
-  // 为了演示直播功能，这里暂时返回'live'状态
-  return 'live';
-  
-  // 实际使用时可以恢复下面的时间判断逻辑
-  /*
-  const now = new Date();
-  const startTime = new Date(stream.startTime);
-  const endTime = new Date(stream.endTime);
-  
-  if (now < startTime) {
-    return 'pending';
-  } else if (now >= startTime && now <= endTime) {
-    return 'live';
-  } else {
-    return 'ended';
+  try {
+    if (!stream || typeof stream !== 'object') return 'scheduled';
+
+    // 1) 优先使用显式状态字段
+    const rawStatus = String(stream.status || stream.liveStatus || stream.state || '')
+      .trim()
+      .toLowerCase();
+    if (['live', 'streaming', 'on_air', 'ongoing'].includes(rawStatus)) return 'live';
+    if (['scheduled', 'upcoming', 'pending', 'not_started', 'ready'].includes(rawStatus)) return 'scheduled';
+    if (['ended', 'finished', 'completed', 'offline'].includes(rawStatus)) return 'ended';
+
+    // 2) 时间推断：支持 schedule/date + startTime/endTime 的组合
+    const now = new Date();
+    const dateStr = stream?.schedule?.date || stream?.liveDate || stream?.date || null;
+    const startStr = stream?.schedule?.start || stream?.schedule?.startTime || stream?.startTime || stream?.start_at || stream?.startAt || null;
+    const endStr = stream?.schedule?.end || stream?.schedule?.endTime || stream?.endTime || stream?.end_at || stream?.endAt || null;
+
+    const parseDateTime = (d, t) => {
+      if (d && t) {
+        // 例如：'2025-01-28' + '19:00'
+        return new Date(`${d} ${t}`);
+      }
+      if (t) return new Date(t);
+      if (d) return new Date(d);
+      return null;
+    };
+
+    const startTime = parseDateTime(dateStr, startStr);
+    const endTime = parseDateTime(dateStr, endStr);
+
+    if (startTime && now < startTime) return 'scheduled';
+    if (startTime && endTime) {
+      if (now >= startTime && now <= endTime) return 'live';
+      if (now > endTime) return 'ended';
+    }
+    if (startTime && !endTime && now >= startTime) return 'live';
+
+    // 3) 回退缺省：按“未开始”处理
+    return 'scheduled';
+  } catch {
+    return 'scheduled';
   }
-  */
 };
 
 // 时间格式化函数

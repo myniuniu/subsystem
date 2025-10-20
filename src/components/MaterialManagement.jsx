@@ -45,7 +45,7 @@ import KnowledgeGraphMindMap from './KnowledgeGraphMindMap.jsx';
     AppstoreOutlined
   } from '@ant-design/icons';
 import { Grid, Map as MapIcon } from 'lucide-react';
-import { VIEW_MODES, DEFAULT_COURSE_VIDEOS } from '../constants/noteEditConstants';
+import { VIEW_MODES } from '../constants/noteEditConstants';
 import { getMockCourseContentHierarchy, flattenCourseContentToVideos } from '../utils/mockCourseData';
 import { 
   generateSmartNote, 
@@ -112,6 +112,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     knowledgeCategories,
     currentView,
     liveStreams,
+    setLiveStreams,
     showExploreModal,
     setShowExploreModal,
     materials
@@ -158,11 +159,19 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     setRenameModalVisible(false);
   };
 
-    // 自动注入“教师心理健康教育培训”预设来源数据
+    // 自动注入“新教师教学方法培训”预设来源数据
   useEffect(() => {
+    const keywords = ['新教师教学方法培训', '新教师教学方法', '教学方法培训'];
+    const matchesTitle = keywords.some(k => (note?.title || '').includes(k));
+
+    const isOrgTraining =
+      note?.category === 'organizational_training' ||
+      note?.courseType === 'organizational_training' ||
+      note?.source === '组织培训' ||
+      (Array.isArray(note?.tags) && note.tags.includes('组织培训'));
+
     const isTarget =
-      note?.category === 'training_needs_management' &&
-      ((note?.title || '').includes('教师心理健康教育培训') || (note?.title || '').includes('教师心理健康教育'));
+      (note?.category === 'training_needs_management' || isOrgTraining) && matchesTitle;
 
     if (!isTarget) return;
 
@@ -170,18 +179,18 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
 
     // 注入链接（视频与网站）
     const seedLinks = [
-      { id: Date.now() + 1, url: 'https://www.bilibili.com/video/BV1Xa4y1Q7xx', type: 'video', platform: 'B站', title: '教师心理健康教育培训专题视频（B站）', addTime: nowISO },
-      { id: Date.now() + 2, url: 'https://www.xiaohongshu.com/explore/66abcdef1234567890', type: 'video', platform: '小红书', title: '教师心理健康辅导示范课（小红书）', addTime: nowISO },
-      { id: Date.now() + 3, url: 'https://www.moe.gov.cn/', type: 'website', platform: '普通网站', title: '教育部中小学教师心理健康指导纲要', addTime: nowISO }
+      { id: Date.now() + 1, url: 'https://www.bilibili.com/video/BV1Nt411m7TM', type: 'video', platform: 'B站', title: '课堂组织与互动教学示范课（B站）', addTime: nowISO },
+      { id: Date.now() + 2, url: 'https://www.xiaohongshu.com/explore/66abcdeef0123456789', type: 'video', platform: '小红书', title: '备课与教学设计案例（小红书）', addTime: nowISO },
+      { id: Date.now() + 3, url: 'https://www.moe.gov.cn/jyb_xxgk/zcwj/', type: 'website', platform: '普通网站', title: '教育部教师培训与课堂教学指导文件', addTime: nowISO }
     ];
     const linksToAdd = seedLinks.filter(s => !(Array.isArray(links) ? links : []).some(l => l.url === s.url || l.title === s.title));
     if (linksToAdd.length) setLinks(prev => [...prev, ...linksToAdd]);
 
     // 注入文本内容
     const seedTexts = [
-      { title: '培训目标与核心能力', content: '建立教师自我调适与沟通支持能力，提升识别与干预意识。' },
-      { title: '风险识别清单（校园场景）', content: '早期征兆：睡眠障碍、注意力下降、社交退缩、情绪波动等。' },
-      { title: '干预流程与家校协同', content: '班主任初评→校心理老师跟进→家校沟通→外部资源转介→过程记录。' }
+      { title: '教学三对齐（目标-活动-评价）', content: '明确学习目标，设计匹配的课堂活动，制定可测的评价方式。' },
+      { title: '新教师课堂管理要点', content: '建立班级规则、关注学生差异、维护课堂节奏与秩序。' },
+      { title: '互动教学技巧清单', content: '提问、同伴互评、小组合作、课堂反馈、即时纠错等策略。' }
     ];
     const textsToAdd = seedTexts
       .filter(s => !(Array.isArray(addedTexts) ? addedTexts : []).some(t => t.title === s.title))
@@ -190,10 +199,10 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
 
     // 注入文件（试卷与普通资料）
     const seedFiles = [
-      { name: '心理健康教育培训试卷（教师版）.pdf', type: 'application/pdf', size: 256 * 1024, isPaper: true },
-      { name: '心理健康教育测评题库.docx', type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', size: 512 * 1024, isPaper: true },
-      { name: '心理健康教育课程讲义.pdf', type: 'application/pdf', size: 768 * 1024, isPaper: false },
-      { name: '教师心理健康筛查工具说明.docx', type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', size: 280 * 1024, isPaper: false }
+      { name: '新教师教学方法培训试卷（通用版）.pdf', type: 'application/pdf', size: 256 * 1024, isPaper: true },
+      { name: '课堂管理案例库.docx', type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', size: 512 * 1024, isPaper: true },
+      { name: '教学设计模板.pdf', type: 'application/pdf', size: 768 * 1024, isPaper: false },
+      { name: '互动教学技巧汇总.docx', type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', size: 280 * 1024, isPaper: false }
     ];
     const filesToAdd = seedFiles
       .filter(s => !(Array.isArray(uploadedFiles) ? uploadedFiles : []).some(f => f.name === s.name))
@@ -202,14 +211,31 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
 
     // 注入组织课程
     const seedCourses = [
-      { title: '教师心理健康基础培训', instructor: '校心理健康中心', duration: '6小时', description: '识别常见心理问题、压力管理与同伴支持' },
-      { title: '危机干预与家校协同', instructor: '市教研院专家', duration: '4小时', description: '校园危机识别、干预流程与家校沟通要点' }
+      { title: '新教师教学方法培训（基础）', instructor: '教务处', duration: '6小时', description: '课堂组织、互动教学与规则建立' },
+      { title: '教学设计与课堂管理提升', instructor: '市教研院专家', duration: '4小时', description: '教学三对齐、案例分析与作业设计' }
     ];
     const coursesToAdd = seedCourses
       .filter(s => !(Array.isArray(organizationalCourses) ? organizationalCourses : []).some(c => c.title === s.title))
       .map(s => ({ id: Date.now() + Math.floor(Math.random() * 100000), title: s.title, instructor: s.instructor, duration: s.duration, description: s.description, addedAt: new Date().toLocaleString(), type: 'course' }));
     if (coursesToAdd.length) setOrganizationalCourses(prev => [...prev, ...coursesToAdd]);
-  }, [note?.id, note?.title, note?.category]);
+
+    // 注入一条“直播课”到直播课分类（仅在目标主题下）
+    const seedLiveStream = {
+      id: 'org_ntm_stream_001',
+      title: '新教师教学方法培训第一期 · 直播',
+      instructor: '教务处王老师',
+      startTime: '2025-01-28 19:00',
+      endTime: '2025-01-28 20:30',
+      url: 'https://live.example.com/upcoming/org-ntm-session1',
+      platform: '',
+      participants: 256,
+      status: 'scheduled'
+    };
+    const hasLiveStream = (Array.isArray(liveStreams) ? liveStreams : []).some(s => s.id === seedLiveStream.id || s.title === seedLiveStream.title);
+    if (!hasLiveStream && typeof setLiveStreams === 'function') {
+      setLiveStreams(prev => [...(Array.isArray(prev) ? prev : []), seedLiveStream]);
+    }
+  }, [note?.id, note?.title, note?.category, note?.courseType, note?.source, note?.tags]);
 
   const {
     onPlayVideo,
@@ -289,9 +315,10 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
   const [highlightVideoId, setHighlightVideoId] = useState(null);
   // 课程视频视图模式：平铺视图 或 层级视图
   const [videoViewMode, setVideoViewMode] = useState('flat');
-  // 各来源类型分区折叠状态（课程视频、考试文件、普通文件、链接、文本）
+  // 各来源类型分区折叠状态（课程视频、直播课、考试文件、普通文件、链接、文本）
   const [collapsedSections, setCollapsedSections] = useState({
     videos: false,
+    live: false,
     examFiles: false,
     files: false,
     links: false,
@@ -318,11 +345,11 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
 
   // 全部展开/全部折叠
   const expandAllSections = () => {
-    setCollapsedSections({ videos: false, examFiles: false, files: false, links: false, texts: false });
+    setCollapsedSections({ videos: false, live: false, examFiles: false, files: false, links: false, texts: false });
     setCollapsedGroups(new Set());
   };
   const collapseAllSections = () => {
-    setCollapsedSections({ videos: true, examFiles: true, files: true, links: true, texts: true });
+    setCollapsedSections({ videos: true, live: true, examFiles: true, files: true, links: true, texts: true });
     setCollapsedGroups(new Set(allCourseIds));
   };
 
@@ -375,8 +402,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
 
   // 将层级数据扁平化为额外的视频条目，并与现有courseVideos合并用于显示
   const displayCourseVideos = useMemo(() => {
-    // 若是“培训需求管理”，优先不显示任何视频
-    if (note?.category === 'training_needs_management') return [];
+    // 允许在“培训需求管理”下显示层级课程视频
 
     // 若是“教研室”，阻止将多视频合并为层级，直接平铺显示，不引入层级扩展
     if (note?.category === 'teaching_research_office') {
@@ -400,17 +426,36 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
       }).flat();
     }
 
-    // 其他分类：保留原本逻辑，基础视频 + 层级扁平化扩展
+    // 所有分类：基础视频 + 层级扁平化扩展；在“组织培训/新教师教学方法培训”场景下仅保留对应主题视频
     const base = Array.isArray(courseVideos) ? courseVideos : [];
+    let filteredBase = base;
+
+    const isOrgMethodTheme = (
+      note?.category === 'organizational_training' ||
+      note?.courseType === 'organizational_training' ||
+      note?.source === '组织培训' ||
+      (note?.tags && note.tags.includes('组织培训')) ||
+      (note?.title && (note.title.includes('新教师教学方法培训') || note.title.includes('新教师教学方法')))
+    );
+
+    if (isOrgMethodTheme) {
+      const keywords = ['新教师教学方法培训', '新教师教学方法', '教学方法培训'];
+      filteredBase = base.filter(v => {
+        const text = `${v.courseTitle || ''} ${v.title || ''}`.toLowerCase();
+        const idText = `${v.courseId || ''}`.toLowerCase();
+        return keywords.some(k => text.includes(k.toLowerCase())) || idText.includes('org_ntm');
+      });
+    }
+
     try {
       const hierarchy = getMockCourseContentHierarchy();
       const extra = flattenCourseContentToVideos(hierarchy);
-      const existingIds = new Set(base.map(v => v.id));
-      return base.concat(extra.filter(v => !existingIds.has(v.id)));
+      const existingIds = new Set(filteredBase.map(v => v.id));
+      return filteredBase.concat(extra.filter(v => !existingIds.has(v.id)));
     } catch (e) {
-      return base;
+      return filteredBase;
     }
-  }, [courseVideos, note?.category]);
+  }, [courseVideos, note?.category, note?.title, note?.source, note?.courseType, note?.tags]);
 
   // 所有课程ID用于全局折叠/展开控制（基于 displayCourseVideos）
   const allCourseIds = useMemo(() => {
@@ -656,7 +701,8 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
         ...addedTexts.map(text => `text-${text.id}`),
         ...displayCourseVideos.map(video => `video-${video.id}`),
         ...links.map(link => `link-${link.id}`),
-        ...organizationalCourses.map(course => `course-${course.id}`)
+        ...organizationalCourses.map(course => `course-${course.id}`),
+        ...(Array.isArray(liveStreams) ? liveStreams.map(stream => `live-${stream.id}`) : [])
       ];
       setSelectedMaterials(allMaterialIds);
     } else {
@@ -684,6 +730,12 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
           break;
         case 'course':
           setOrganizationalCourses(prev => prev.filter(course => course.id !== numId));
+          break;
+        case 'live':
+          setLiveStreams(prev => {
+            const matchId = isNaN(numId) ? id : numId;
+            return (Array.isArray(prev) ? prev.filter(stream => stream.id !== matchId) : []);
+          });
           break;
       }
     });
@@ -837,13 +889,14 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {/* 全局折叠/展开单一图标按钮 */}
-            <Tooltip title={collapsedSections.videos && collapsedSections.examFiles && collapsedSections.files && collapsedSections.links && collapsedSections.texts && collapsedGroups.size === allCourseIds.length ? '全部展开' : '全部折叠'}>
+            <Tooltip title={collapsedSections.videos && collapsedSections.live && collapsedSections.examFiles && collapsedSections.files && collapsedSections.links && collapsedSections.texts && collapsedGroups.size === allCourseIds.length ? '全部展开' : '全部折叠'}>
               <Button 
                 size="small"
                 type="default"
                 onClick={() => {
                   const allCollapsed = (
                     collapsedSections.videos &&
+                    collapsedSections.live &&
                     collapsedSections.examFiles &&
                     collapsedSections.files &&
                     collapsedSections.links &&
@@ -858,6 +911,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                 }}
                 icon={(
                   collapsedSections.videos &&
+                  collapsedSections.live &&
                   collapsedSections.examFiles &&
                   collapsedSections.files &&
                   collapsedSections.links &&
@@ -870,6 +924,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
               >
                 {(
                   collapsedSections.videos &&
+                  collapsedSections.live &&
                   collapsedSections.examFiles &&
                   collapsedSections.files &&
                   collapsedSections.links &&
@@ -880,10 +935,10 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
             </Tooltip>
             <Checkbox 
               checked={selectedMaterials.length > 0 && selectedMaterials.length === (
-                uploadedFiles.length + addedTexts.length + displayCourseVideos.length + links.length + organizationalCourses.length
+                uploadedFiles.length + addedTexts.length + displayCourseVideos.length + links.length + organizationalCourses.length + liveStreams.length
               )}
               indeterminate={selectedMaterials.length > 0 && selectedMaterials.length < (
-                uploadedFiles.length + addedTexts.length + displayCourseVideos.length + links.length + organizationalCourses.length
+                uploadedFiles.length + addedTexts.length + displayCourseVideos.length + links.length + organizationalCourses.length + liveStreams.length
               )}
               onChange={(e) => handleSelectAll(e.target.checked)}
             />
@@ -1411,6 +1466,71 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                       ))}
                     </div>
                    ))}
+                </div>
+              )}
+
+              {/* 直播课列表 */}
+              {Array.isArray(liveStreams) && liveStreams.length > 0 && (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {collapsedSections.live ? (
+                        <RightOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('live')} />
+                      ) : (
+                        <DownOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('live')} />
+                      )}
+                      <Text strong style={{ fontSize: '12px', color: '#666' }}>
+                        📺 直播课 ({liveStreams.length})
+                      </Text>
+                    </div>
+                  </div>
+                  {!collapsedSections.live && liveStreams.map(stream => {
+                    const status = getLiveStreamStatus(stream);
+                    return (
+                      <Card 
+                        key={`live-${stream.id}`}
+                        size="small" 
+                        style={{ marginBottom: 8, border: '1px solid #e8e8e8' }}
+                        bodyStyle={{ padding: '8px 12px' }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                            {status === 'live' ? (
+                              <PlayCircleOutlined style={{ color: '#ff4d4f', marginRight: 8, fontSize: 16 }} />
+                            ) : (
+                              <ClockCircleOutlined style={{ color: '#faad14', marginRight: 8, fontSize: 16 }} />
+                            )}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
+                                {stream.title}
+                              </Text>
+                              <Text type="secondary" style={{ fontSize: 10 }}>
+                                {(() => {
+                                  const dateText = (stream.schedule?.date || stream.liveDate || '时间未定');
+                                  const platformText = (stream.platform || '').trim();
+                                  return platformText && platformText !== '钉钉直播' ? `${platformText} • ${dateText}` : dateText;
+                                })()}
+                              </Text>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                                <Tag color={status === 'live' ? 'red' : 'gold'}>
+                                  {status === 'live' ? '直播中' : (status === 'scheduled' ? '已预约' : '已结束')}
+                                </Tag>
+                                {stream.url && (
+                                  <Button type="link" size="small" onClick={(e) => { e.stopPropagation(); onViewMaterial(stream, 'live'); }}>
+                                    进入直播间
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <Checkbox
+                            checked={selectedMaterials.includes(`live-${stream.id}`)}
+                            onChange={(e) => handleSelectMaterial(`live-${stream.id}`, e.target.checked)}
+                          />
+                        </div>
+                      </Card>
+                    );
+                  })}
                 </div>
               )}
 

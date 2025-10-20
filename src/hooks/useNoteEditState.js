@@ -36,8 +36,18 @@ const subtitleData = [
 export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCategory = null) => {
   // 资料收集相关状态
   const [uploadedFiles, setUploadedFiles] = useState(() => {
-    // 培训需求管理分类下不显示任何文件（优先级最高）
-    if (selectedCategory === 'training_needs_management' || note?.category === 'training_needs_management') {
+    // 培训需求管理或组织培训主题下不显示默认文件（优先级最高）
+    const keywords = ['新教师教学方法培训', '新教师教学方法', '教学方法培训'];
+    const matchesTitle = keywords.some(k => (note?.title || '').includes(k));
+    const isOrgTraining =
+      selectedCategory === 'organizational_training' ||
+      note?.category === 'organizational_training' ||
+      note?.courseType === 'organizational_training' ||
+      note?.source === '组织培训' ||
+      (Array.isArray(note?.tags) && note.tags.includes('组织培训')) ||
+      matchesTitle;
+
+    if (selectedCategory === 'training_needs_management' || note?.category === 'training_needs_management' || isOrgTraining) {
       return [];
     }
     const isTeachingResearch = (selectedCategory === 'teaching_research_office' || note?.category === 'teaching_research_office');
@@ -78,11 +88,24 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   const [showMaterialDetail, setShowMaterialDetail] = useState(false);
   const [currentMaterial, setCurrentMaterial] = useState(null);
   const [links, setLinks] = useState(() => {
-    // 培训需求管理分类下只显示“新教师培训通知”链接（优先级最高）
+    // 培训需求管理分类下只显示“新教师培训通知”；组织培训主题不注入无关默认链接
+    const keywords = ['新教师教学方法培训', '新教师教学方法', '教学方法培训'];
+    const matchesTitle = keywords.some(k => (note?.title || '').includes(k));
+    const isOrgTraining =
+      selectedCategory === 'organizational_training' ||
+      note?.category === 'organizational_training' ||
+      note?.courseType === 'organizational_training' ||
+      note?.source === '组织培训' ||
+      (Array.isArray(note?.tags) && note.tags.includes('组织培训')) ||
+      matchesTitle;
+
     if (selectedCategory === 'training_needs_management' || note?.category === 'training_needs_management') {
       return [
         { id: 'training_notice_001', url: 'https://example.com/new-teacher-training-notice', title: '新教师培训通知', addTime: '刚刚' }
       ];
+    }
+    if (isOrgTraining) {
+      return [];
     }
     const isTeachingResearch = (selectedCategory === 'teaching_research_office' || note?.category === 'teaching_research_office');
     const defaultLinks = isTeachingResearch ? [
@@ -112,8 +135,18 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   // 文字内容相关状态
   const [textContent, setTextContent] = useState('');
   const [addedTexts, setAddedTexts] = useState(() => {
-    // 培训需求管理分类下不显示任何文本（优先级最高）
-    if (selectedCategory === 'training_needs_management' || note?.category === 'training_needs_management') {
+    // 培训需求管理或组织培训主题下不显示默认文本（优先级最高）
+    const keywords = ['新教师教学方法培训', '新教师教学方法', '教学方法培训'];
+    const matchesTitle = keywords.some(k => (note?.title || '').includes(k));
+    const isOrgTraining =
+      selectedCategory === 'organizational_training' ||
+      note?.category === 'organizational_training' ||
+      note?.courseType === 'organizational_training' ||
+      note?.source === '组织培训' ||
+      (Array.isArray(note?.tags) && note.tags.includes('组织培训')) ||
+      matchesTitle;
+
+    if (selectedCategory === 'training_needs_management' || note?.category === 'training_needs_management' || isOrgTraining) {
       return [];
     }
     const isTeachingResearch = (selectedCategory === 'teaching_research_office' || note?.category === 'teaching_research_office');
@@ -270,8 +303,8 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
       instructor: '张教授',
       startTime: '2025-01-25 14:00',
       endTime: '2025-01-25 16:00',
-      url: 'https://dingtalk.com/live/123456',
-      platform: '钉钉直播',
+      url: 'https://live.example.com/live/123456',
+      platform: '',
       participants: 156,
       status: 'live'
     }

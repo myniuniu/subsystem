@@ -2673,7 +2673,10 @@ ${course.description}
   }
 
   /**
-   * 将组织培训中“进行中”的主题结束日期统一修改为当年12月31日 23:59
+   * 将组织培训中“进行中”的主题结束日期按主题默认值更新：
+   * - 新教师教学方法培训：当年12月31日 23:59
+   * - 信息技术与教学创新：当年09月31日 23:59
+   * 其他组织培训主题保持原值不变
    * @returns {number} 更新的笔记数量
    */
   updateOrgTrainingInProgressEndDateToDecember31() {
@@ -2694,17 +2697,27 @@ ${course.description}
         if (isOrganizationalTraining && note?.learningSchedule) {
           const status = calculateTrainingStatus(note.learningSchedule);
           if (status === TRAINING_STATUS.IN_PROGRESS) {
-            const newEndTime = '12/31 23:59';
-            const newSchedule = {
-              ...note.learningSchedule,
-              endTime: newEndTime
-            };
-            updatedCount += 1;
-            return {
-              ...note,
-              learningSchedule: newSchedule,
-              updatedAt: new Date().toISOString()
-            };
+            const title = (note?.title || '');
+            let newEndTime = null;
+
+            if (title.includes('新教师教学方法培训') || title.includes('新教师教学方法')) {
+              newEndTime = '12/31 23:59';
+            } else if (title.includes('信息技术与教学创新')) {
+              newEndTime = '09/31 23:59';
+            }
+
+            if (newEndTime) {
+              const newSchedule = {
+                ...note.learningSchedule,
+                endTime: newEndTime
+              };
+              updatedCount += 1;
+              return {
+                ...note,
+                learningSchedule: newSchedule,
+                updatedAt: new Date().toISOString()
+              };
+            }
           }
         }
 
