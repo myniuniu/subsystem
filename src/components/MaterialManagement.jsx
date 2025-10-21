@@ -42,7 +42,8 @@ import KnowledgeGraphMindMap from './KnowledgeGraphMindMap.jsx';
     DownOutlined,
     RightOutlined,
     FolderOutlined,
-    AppstoreOutlined
+    AppstoreOutlined,
+    ExclamationCircleOutlined
   } from '@ant-design/icons';
 import { Grid, Map as MapIcon } from 'lucide-react';
 import { VIEW_MODES } from '../constants/noteEditConstants';
@@ -875,6 +876,94 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
       overallProgress,
       avgScore
     };
+  };
+
+  // 阶段分类汇总（学时与成绩）
+  const computePhaseCategorySummary = (phase) => {
+    const m = phase?.materials || {};
+    const videos = Array.isArray(m.videos) ? m.videos : [];
+    const lives = Array.isArray(m.live) ? m.live : [];
+    const exams = Array.isArray(m.exam) ? m.exam : [];
+    const linksArr = Array.isArray(m.links) ? m.links : [];
+    const textsArr = Array.isArray(m.texts) ? m.texts : [];
+    const projectsArr = Array.isArray(m.trainingProjects) ? m.trainingProjects : [];
+
+    const videoSummary = computeGroupSummary(videos);
+    // 视频成绩总和（如果有）
+    let videoScoreSum = 0;
+    videos.forEach(v => {
+      const info = v.videoInfo || {};
+      const s = v.score != null ? Number(v.score) : (info && info.score != null ? Number(info.score) : null);
+      if (!isNaN(s)) videoScoreSum += s;
+    });
+
+    // 直播学时：按 startTime/endTime 估算时长
+    const parseDate = (str) => {
+      try {
+        const t = Date.parse(String(str).replace(/-/g, '/'));
+        return isNaN(t) ? null : new Date(t);
+      } catch (e) { return null; }
+    };
+    let liveMinutes = 0;
+    lives.forEach(s => {
+      const st = parseDate(s.startTime);
+      const et = parseDate(s.endTime);
+      if (st && et) {
+        const diff = Math.max(0, (et.getTime() - st.getTime()) / 60000);
+        liveMinutes += Math.round(diff);
+      } else {
+        // 无法解析则按90分钟估算
+        liveMinutes += 90;
+      }
+    });
+    const liveHours = Math.round((liveMinutes / 60) * 10) / 10;
+
+    // 考试成绩：如果文件有 score 字段则累加，否则为0
+    let examScoreSum = 0;
+    exams.forEach(f => {
+      const s = f.score != null ? Number(f.score) : 0;
+      if (!isNaN(s)) examScoreSum += s;
+    });
+
+    // 其它分类默认不计学时与成绩，仅展示存在与否（保持为0）
+    const categories = [];
+    if (videos.length > 0) categories.push({ key: 'videos', label: '课程视频', hours: videoSummary.totalHours || 0, score: (videoScoreSum > 0 ? videoScoreSum : (videoSummary.avgScore ?? null)) });
+    if (lives.length > 0) categories.push({ key: 'live', label: '直播课程', hours: liveHours || 0, score: null });
+    if (exams.length > 0) categories.push({ key: 'exam', label: '考试/试卷', hours: 0, score: examScoreSum });
+    if (linksArr.length > 0) categories.push({ key: 'links', label: '阅读材料', hours: 0, score: null });
+    if (textsArr.length > 0) categories.push({ key: 'texts', label: '反思文本', hours: 0, score: null });
+    if (projectsArr.length > 0) categories.push({ key: 'projects', label: '培训项目', hours: 0, score: null });
+
+    const totalHours = categories.reduce((sum, c) => sum + (Number(c.hours) || 0), 0);
+    const totalScore = categories.reduce((sum, c) => {
+      const s = (c.score == null ? 0 : Number(c.score));
+      return isNaN(s) ? sum : sum + s;
+    }, 0);
+
+    return { categories, totalHours: Math.round(totalHours * 10) / 10, totalScore };
+  };
+
+  // 阶段达标评估：结合视频进度与考试成绩
+  const assessPhasePass = (phase) => {
+    const videos = phase?.materials?.videos || [];
+    const summary = computeGroupSummary(videos);
+    const ps = computePhaseCategorySummary(phase);
+    const examCat = ps?.categories?.find(c => c.key === 'exam');
+    const examScore = examCat?.score;
+    const totalHours = ps?.totalHours ?? (phase?.hours ?? 0);
+
+    const progress = Number(summary?.overallProgress || 0);
+    const PASS_PROGRESS = 60; // 进度达标阈值（%）
+    const PASS_SCORE = 60;    // 成绩达标阈值（分）
+
+    const passProgress = progress >= PASS_PROGRESS;
+    const passScore = (examScore == null) ? true : Number(examScore) >= PASS_SCORE;
+    const pass = passProgress && passScore;
+
+    const completedMinutes = Math.round((summary?.totalMinutes || 0) * progress / 100);
+    const tooltip = `考试：${summary?.totalMinutes || 0}分钟；已完成：${completedMinutes}分钟；进度：${progress}%；学时：${totalHours}；成绩：${examScore == null ? '未评分' : examScore + '分'}`;
+
+    return { pass, tooltip, progress, examScore, totalHours, completedMinutes };
   };
 
   // 将层级数据扁平化为额外的视频条目，并与现有courseVideos合并用于显示
@@ -1710,11 +1799,44 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                           <Text type="secondary" style={{ fontSize: 12, color: '#666' }}>
                             {phase.startTime || '未定'} • {phase.endTime || '未定'}
                           </Text>
+                          {(phaseViewCompactMode || collapsedPhases.has(phase.id)) && (() => {
+                            const status = assessPhasePass(phase);
+                            if (status.pass) return null;
+                            return (
+                              <Tooltip title={status.tooltip}>
+                                <Tag color="red" style={{ marginLeft: 8 }}>
+                                  <ExclamationCircleOutlined style={{ marginRight: 4 }} /> 未达标
+                                </Tag>
+                              </Tooltip>
+                            );
+                          })()}
                         </div>
                       </div>
 
+                      {!(phaseViewCompactMode || collapsedPhases.has(phase.id)) && (() => {
+                        const ps = computePhaseCategorySummary(phase);
+                        if (!ps || !Array.isArray(ps.categories) || ps.categories.length === 0) return null;
+                        return (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 10px', background: '#fffbe6', border: '1px solid #ffe58f', borderRadius: 6, margin: '6px 0' }}>
+                            {ps.categories.map((c, idx) => (
+                              <div key={`phase-${phase.id}-cat-${c.key}`} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <Text style={{ fontSize: 12, color: '#614700' }}>{c.label}：</Text>
+                                <Text style={{ fontSize: 12, color: '#333' }}>学时：{(c.hours ?? 0)}</Text>
+                                <Text style={{ fontSize: 12, color: '#333' }}>成绩：{(c.score == null ? '未评分' : `${c.score}分`)}</Text>
+                                {idx < ps.categories.length - 1 && <Divider type="vertical" />}
+                              </div>
+                            ))}
+                            <Divider type="vertical" />
+                            <Text style={{ fontSize: 12, color: '#333' }}>总学时：{ps.totalHours}</Text>
+                            <Divider type="vertical" />
+                            <Text style={{ fontSize: 12, color: '#333' }}>总成绩：{ps.totalScore}分</Text>
+                          </div>
+                        );
+                      })()}
+
                       {!(phaseViewCompactMode || collapsedPhases.has(phase.id)) && (
                         <div style={{ padding: '8px', background: '#fafafa', borderTop: '1px dashed #f0f0f0', borderRadius: '0 0 8px 8px' }}>
+                          {/* 分类汇总已移动到标题下方显示，避免标题右侧拥挤 */}
                           {/* 阶段内 - 课程视频 */}
                           {Array.isArray(phase.materials?.videos) && phase.materials.videos.length > 0 && (
                             <div style={{ marginTop: 8, background: '#ffffff', border: '1px solid #f0f0f0', borderLeft: '2px solid #91d5ff', borderRadius: 6, padding: 8 }}>
