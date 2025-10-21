@@ -173,7 +173,7 @@
   padding: 8px 12px;
   margin: 8px 12px;
   border-radius: 8px;
-  color: var(--theme-textPrimary);
+  color: var(--theme-primary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -201,7 +201,7 @@
 }
 
 .sidebar-search-input-icon {
-  color: #9aa0a6;
+  color: var(--theme-primary);
   flex-shrink: 0;
 }
 
@@ -228,8 +228,8 @@
 }
 
 /* 在栈容器中重置上下间距，保持顶部对齐 */
-.sidebar-avatar-stack .sidebar-search-trigger { margin: 6px 0 0 0; }
-.sidebar-avatar-stack.collapsed .sidebar-search-trigger { margin: 8px 0 0 0; }
+.sidebar-avatar-stack .sidebar-search-trigger { margin: 6px 0 10px 0; }
+.sidebar-avatar-stack.collapsed .sidebar-search-trigger { margin: 8px 0 12px 0; }
 
 /* 折叠态 hover 效果 */
 .sidebar-search-trigger:hover {
