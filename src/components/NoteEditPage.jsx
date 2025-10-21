@@ -450,10 +450,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         state.setLeftPanelTrainingPlanRecord(project);
         state.setLeftPanelTrainingPlanContent({ pdfUrl });
         setCurrentView(VIEW_MODES.TRAINING_PLAN_THREE_COLUMN);
-        message.success(`打开培训方案：${project.title}`);
       } catch (err) {
         console.error('打开培训方案失败:', err);
-        message.error('打开培训方案失败');
       }
     },
     onKnowledgeNodeClick: (node) => {

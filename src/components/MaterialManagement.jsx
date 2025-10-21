@@ -613,6 +613,41 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     // 最后回退：仅显示课程名
     return courseTitle;
   };
+
+  const buildTreeDataFromVideos = (videos) => {
+    const chapterMap = new Map();
+    (Array.isArray(videos) ? videos : []).forEach(v => {
+      const at = String(v.addTime || '').trim();
+      const chMatch = at.match(/第\d+章/);
+      const secMatch = at.match(/第\d+节/);
+      const chTitle = chMatch ? chMatch[0] : '未分章';
+      const secTitle = secMatch ? secMatch[0] : '未分节';
+      const chKey = `ch-${chTitle}`;
+      const secKey = `sec-${chTitle}-${secTitle}`;
+      if (!chapterMap.has(chKey)) {
+        chapterMap.set(chKey, { key: chKey, type: 'chapter', title: chTitle, children: [] });
+      }
+      const chNode = chapterMap.get(chKey);
+      let secNode = chNode.children.find(c => c.key === secKey);
+      if (!secNode) {
+        secNode = { key: secKey, type: 'section', title: secTitle, videoCount: 0, children: [] };
+        chNode.children.push(secNode);
+      }
+      secNode.videoCount += 1;
+      secNode.children.push({
+        key: `v-${v.id}`,
+        type: 'video',
+        title: v.title,
+        videoId: v.id,
+        instructor: v.instructor,
+        progress: v.progress || 0,
+        duration: v.duration,
+        score: v.score
+      });
+    });
+    return Array.from(chapterMap.values());
+  };
+
   // 分组折叠状态 & 汇总计算（需在组件函数体内）
   const [collapsedGroups, setCollapsedGroups] = useState(new Set());
   const [hierarchyOpenCourses, setHierarchyOpenCourses] = useState(new Set());
@@ -636,7 +671,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     files: true,
     links: true,
     texts: true,
-    trainingProjects: false
+    trainingProjects: true
   });
   const toggleSection = (key) => {
     setCollapsedSections(prev => ({ ...prev, [key]: !prev[key] }));
@@ -907,6 +942,22 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     });
     return Array.from(ids);
   }, [displayCourseVideos]);
+
+  // 首次初始化：默认全部折叠（课程分组与阶段）并保证按钮显示“全部展开”
+  const initializedCollapseRef = useRef({ groups: false, phases: false });
+  useEffect(() => {
+    if (!initializedCollapseRef.current.groups && Array.isArray(allCourseIds) && allCourseIds.length > 0) {
+      setCollapsedGroups(new Set(allCourseIds));
+      initializedCollapseRef.current.groups = true;
+    }
+  }, [allCourseIds]);
+
+  useEffect(() => {
+    if (isOrgTrainingView && !initializedCollapseRef.current.phases && Array.isArray(enrichedTrainingPhases) && enrichedTrainingPhases.length > 0) {
+      setCollapsedPhases(new Set(enrichedTrainingPhases.map(p => p.id)));
+      initializedCollapseRef.current.phases = true;
+    }
+  }, [isOrgTrainingView, enrichedTrainingPhases]);
 
   // 将上传文件按是否为试卷分组
   const examFiles = useMemo(() => {
@@ -1790,8 +1841,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                   })()}
                                   {(videoViewMode === 'hierarchy' || hierarchyOpenCourses.has(group.courseId)) && (() => {
                                     const course = resolveHierarchyCourse(group.courseId, group.courseTitle);
-                                    if (!course) return null;
-                                    const treeData = (course.chapters || []).map(ch => ({
+                                    const treeData = course ? (course.chapters || []).map(ch => ({
                                       key: `ch-${ch.id}`,
                                       type: 'chapter',
                                       title: ch.title,
@@ -1811,7 +1861,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                           score: v.score
                                         }))
                                       }))
-                                    }));
+                                    })) : buildTreeDataFromVideos(group.videos);
                                     const expanderState = new Map();
                                     const expanderFn = new Map();
                                     const columns = [
@@ -2387,29 +2437,27 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                       })()}
                     {(videoViewMode === 'hierarchy' || hierarchyOpenCourses.has(group.courseId)) && (() => {
                       const course = resolveHierarchyCourse(group.courseId, group.courseTitle);
-                      if (!course) return null;
-
-                      const treeData = (course.chapters || []).map(ch => ({
-                        key: `ch-${ch.id}`,
-                        type: 'chapter',
-                        title: ch.title,
-                        children: (ch.sections || []).map(sec => ({
-                          key: `sec-${sec.id}`,
-                          type: 'section',
-                          title: sec.title,
-                          videoCount: (sec.videos || []).length,
-                          children: (sec.videos || []).map(v => ({
-                            key: `v-${v.id}`,
-                            type: 'video',
-                            title: v.title,
-                            videoId: v.id,
-                            instructor: v.instructor,
-                            progress: v.progress || 0,
-                            duration: v.duration,
-                            score: v.score
-                          }))
-                        }))
-                      }));
+              const treeData = course ? (course.chapters || []).map(ch => ({
+                key: `ch-${ch.id}`,
+                type: 'chapter',
+                title: ch.title,
+                children: (ch.sections || []).map(sec => ({
+                  key: `sec-${sec.id}`,
+                  type: 'section',
+                  title: sec.title,
+                  videoCount: (sec.videos || []).length,
+                  children: (sec.videos || []).map(v => ({
+                    key: `v-${v.id}`,
+                    type: 'video',
+                    title: v.title,
+                    videoId: v.id,
+                    instructor: v.instructor,
+                    progress: v.progress || 0,
+                    duration: v.duration,
+                    score: v.score
+                  }))
+                }))
+              })) : buildTreeDataFromVideos(group.videos);
 
                       // 用于把展开/收缩控制内联到名称列
                       const expanderState = new Map();
