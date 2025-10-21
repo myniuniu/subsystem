@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Layout,
   Input,
@@ -302,6 +302,235 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     });
   }, [note?.id, note?.category, note?.courseType, note?.source, note?.tags]);
 
+  // 组织培训：按阶段注入考试类素材（试卷）
+  useEffect(() => {
+    const isOrgTraining =
+      note?.category === 'organizational_training' ||
+      note?.courseType === 'organizational_training' ||
+      note?.source === '组织培训' ||
+      (Array.isArray(note?.tags) && note.tags.includes('组织培训'));
+
+    const matchesTitle = /新教师教学方法培训|新教师教学方法|教学方法培训/.test(note?.title || '');
+    if (!isOrgTraining || !matchesTitle) return;
+
+    const nowISO = new Date().toISOString();
+    const seeds = [
+      { id: 'exam_phase_1_online_test', name: '学校文化与制度｜在线测试（100分）.pdf', type: 'application/pdf', size: 200 * 1024, isPaper: true, fullScore: 100, examType: '在线测试', phaseId: 1, uploadTime: nowISO },
+      { id: 'exam_phase_2_lesson_plan', name: '教学基本规范｜教案设计作业（100分）.docx', type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', size: 220 * 1024, isPaper: true, fullScore: 100, examType: '教案设计作业', phaseId: 2, uploadTime: nowISO },
+      { id: 'exam_phase_3_case_report', name: '学生管理基础｜案例分析报告（100分）.pdf', type: 'application/pdf', size: 210 * 1024, isPaper: true, fullScore: 100, examType: '案例分析报告', phaseId: 3, uploadTime: nowISO },
+      { id: 'exam_phase_4_practical_assessment', name: '教育技术应用｜实操考核（100分）.pdf', type: 'application/pdf', size: 230 * 1024, isPaper: true, fullScore: 100, examType: '实操考核', phaseId: 4, uploadTime: nowISO }
+    ];
+
+    setUploadedFiles(prev => {
+      const list = Array.isArray(prev) ? prev : [];
+      const nameSet = new Set(list.map(f => f.name));
+      const idSet = new Set(list.map(f => f.id));
+      const newOnes = seeds.filter(s => !nameSet.has(s.name) && !idSet.has(s.id));
+      if (newOnes.length === 0) return list;
+      return [...list, ...newOnes];
+    });
+  }, [note?.id, note?.title, note?.category, note?.courseType, note?.source, note?.tags]);
+
+  // 组织培训：补充第一阶段直播讲座，并为第二阶段注入“教学基本规范”录播
+  useEffect(() => {
+    const isOrgTraining =
+      note?.category === 'organizational_training' ||
+      note?.courseType === 'organizational_training' ||
+      note?.source === '组织培训' ||
+      (Array.isArray(note?.tags) && note.tags.includes('组织培训'));
+
+    const matchesTitle = /新教师教学方法培训|新教师教学方法|教学方法培训/.test(note?.title || '');
+    if (!isOrgTraining || !matchesTitle) return;
+
+    // 第一阶段：直播讲座数据补充（显式指定 phaseId: 1）
+    const phase1Lecture = {
+      id: 'org_ntm_phase1_lecture_001',
+      title: '学校文化与制度 · 直播讲座',
+      instructor: '校长办公室刘老师',
+      startTime: '2025-02-05 19:00',
+      endTime: '2025-02-05 20:30',
+      url: 'https://live.example.com/org-ntm-phase1-lecture',
+      platform: '',
+      participants: 300,
+      status: 'scheduled',
+      phaseId: 1
+    };
+    if (typeof setLiveStreams === 'function') {
+      setLiveStreams(prev => {
+        const list = Array.isArray(prev) ? prev : [];
+        const exists = list.some(s => s.id === phase1Lecture.id || s.title === phase1Lecture.title);
+        return exists ? list : [phase1Lecture, ...list];
+      });
+    }
+
+    // 第二阶段：注入“教学基本规范”录播视频
+    const normVideos = [
+      { id: 'org_ntm_norms_001', title: '教学基本规范（课堂纪律与仪表）', url: 'https://video.example.com/norms-1', courseId: 'org_ntm_course_norms', courseTitle: '新教师教学方法培训', addTime: '第2章 · 第1节', instructor: '教务处', videoInfo: { type: 'single_video', duration: 1800, progress: 0 } },
+      { id: 'org_ntm_norms_002', title: '教学基本规范（备课与作业设计）', url: 'https://video.example.com/norms-2', courseId: 'org_ntm_course_norms', courseTitle: '新教师教学方法培训', addTime: '第2章 · 第2节', instructor: '教务处', videoInfo: { type: 'single_video', duration: 2100, progress: 0 } },
+      { id: 'org_ntm_norms_003', title: '教学基本规范（课堂提问与评价）', url: 'https://video.example.com/norms-3', courseId: 'org_ntm_course_norms', courseTitle: '新教师教学方法培训', addTime: '第2章 · 第3节', instructor: '教务处', videoInfo: { type: 'single_video', duration: 2400, progress: 0 } }
+    ];
+    if (typeof setCourseVideos === 'function') {
+      setCourseVideos(prev => {
+        const list = Array.isArray(prev) ? prev : [];
+        const idSet = new Set(list.map(v => v.id));
+        const titleSet = new Set(list.map(v => v.title));
+        const newOnes = normVideos.filter(v => !idSet.has(v.id) && !titleSet.has(v.title));
+        if (newOnes.length === 0) return list;
+        return [...list, ...newOnes];
+      });
+    }
+  }, [note?.id, note?.title, note?.category, note?.courseType, note?.source, note?.tags]);
+
+  // 组织培训：初始化“教学基本规范”课程视频的学习进度
+  useEffect(() => {
+    const isOrgTraining =
+      note?.category === 'organizational_training' ||
+      note?.courseType === 'organizational_training' ||
+      note?.source === '组织培训' ||
+      (Array.isArray(note?.tags) && note.tags.includes('组织培训'));
+
+    const matchesTitle = /新教师教学方法培训|新教师教学方法|教学方法培训/.test(note?.title || '');
+    if (!isOrgTraining || !matchesTitle) return;
+
+    if (typeof setCourseVideos === 'function') {
+      setCourseVideos(prev => {
+        const list = Array.isArray(prev) ? prev : [];
+        const updated = list.map(v => {
+          const isNormCourse = (v.courseId === 'org_ntm_course_norms') || (v.title && v.title.startsWith('教学基本规范'));
+          if (!isNormCourse) return v;
+          const vi = v.videoInfo || {};
+          const alreadyHasProgress = vi.progress != null && Number(vi.progress) > 0;
+          if (alreadyHasProgress) return v;
+          const defaultsById = {
+            org_ntm_norms_001: { duration: vi.duration ?? 1800, progress: 30 },
+            org_ntm_norms_002: { duration: vi.duration ?? 2100, progress: 55 },
+            org_ntm_norms_003: { duration: vi.duration ?? 2400, progress: 20 }
+          };
+          const d = defaultsById[v.id] || { duration: vi.duration ?? 1800, progress: 25 };
+          return { ...v, videoInfo: { 
+            ...vi,
+            type: vi.type || 'single_video',
+            duration: vi.duration ?? d.duration,
+            progress: (vi.progress != null ? vi.progress : d.progress)
+          } };
+        });
+        return updated;
+      });
+    }
+  }, [note?.id, note?.title, note?.category, note?.courseType, note?.source, note?.tags]);
+
+  // 组织培训：为其他阶段补充模拟数据（直播、录播、链接、文本、项目）
+  useEffect(() => {
+    const isOrgTraining =
+      note?.category === 'organizational_training' ||
+      note?.courseType === 'organizational_training' ||
+      note?.source === '组织培训' ||
+      (Array.isArray(note?.tags) && note.tags.includes('组织培训'));
+
+    const matchesTitle = /新教师教学方法培训|新教师教学方法|教学方法培训/.test(note?.title || '');
+    if (!isOrgTraining || !matchesTitle) return;
+
+    const nowISO = new Date().toISOString();
+
+    // 直播课：第3/4/5/11/12阶段
+    const liveSeeds = [
+      { id: 'org_ntm_phase3_live_001', title: '学生管理基础 · 班级纪律与规则', instructor: '德育处王老师', startTime: '2025-02-12 19:00', endTime: '2025-02-12 20:30', url: 'https://live.example.com/org-ntm-phase3-live', platform: '', participants: 200, status: 'scheduled', phaseId: 3 },
+      { id: 'org_ntm_phase4_live_001', title: '教育技术应用 · 工具演示', instructor: '信息中心张老师', startTime: '2025-02-19 19:00', endTime: '2025-02-19 20:00', url: 'https://live.example.com/org-ntm-phase4-demo', platform: '', participants: 180, status: 'scheduled', phaseId: 4 },
+      { id: 'org_ntm_phase5_lecture_001', title: '教学设计进阶 · 专题讲座', instructor: '教研室李老师', startTime: '2025-02-26 19:00', endTime: '2025-02-26 20:30', url: 'https://live.example.com/org-ntm-phase5-lecture', platform: '', participants: 220, status: 'scheduled', phaseId: 5 },
+      { id: 'org_ntm_phase11_live_001', title: '家校沟通艺术 · 情景演练', instructor: '心理中心吴老师', startTime: '2025-03-26 19:00', endTime: '2025-03-26 20:00', url: 'https://live.example.com/org-ntm-phase11-live', platform: '', participants: 160, status: 'scheduled', phaseId: 11 },
+      { id: 'org_ntm_phase12_live_001', title: '教师职业规划 · 导师指导', instructor: '人事处赵老师', startTime: '2025-04-02 19:00', endTime: '2025-04-02 20:00', url: 'https://live.example.com/org-ntm-phase12-live', platform: '', participants: 140, status: 'scheduled', phaseId: 12 }
+    ];
+    if (typeof setLiveStreams === 'function') {
+      setLiveStreams(prev => {
+        const list = Array.isArray(prev) ? prev : [];
+        const idSet = new Set(list.map(s => s.id));
+        const titleSet = new Set(list.map(s => s.title));
+        const newOnes = liveSeeds.filter(s => !idSet.has(s.id) && !titleSet.has(s.title));
+        return newOnes.length === 0 ? list : [...newOnes, ...list];
+      });
+    }
+
+    // 录播视频：第6阶段示范课观摩
+    const demoVideos = [
+      { id: 'org_ntm_demo_001', title: '示范课观摩：课堂导入与活动组织', url: 'https://video.example.com/demo-1', courseId: 'org_ntm_course_demo', courseTitle: '示范课观摩', addTime: '第6章 · 第1节', instructor: '骨干教师', videoInfo: { type: 'single_video', duration: 1800, progress: 0 } },
+      { id: 'org_ntm_demo_002', title: '示范课观摩：板书与节奏控制', url: 'https://video.example.com/demo-2', courseId: 'org_ntm_course_demo', courseTitle: '示范课观摩', addTime: '第6章 · 第2节', instructor: '骨干教师', videoInfo: { type: 'single_video', duration: 2100, progress: 0 } }
+    ];
+    if (typeof setCourseVideos === 'function') {
+      setCourseVideos(prev => {
+        const list = Array.isArray(prev) ? prev : [];
+        const idSet = new Set(list.map(v => v.id));
+        const titleSet = new Set(list.map(v => v.title));
+        const newOnes = demoVideos.filter(v => !idSet.has(v.id) && !titleSet.has(v.title));
+        return newOnes.length === 0 ? list : [...list, ...newOnes];
+      });
+    }
+
+    // 链接：第9阶段理论学习
+    const linkSeeds = [
+      { id: Date.now() + 101, url: 'https://www.example.com/bruner-cognitive-discovery', type: 'website', platform: '普通网站', title: '教育理论精读：布鲁纳的认知发现学习', addTime: nowISO },
+      { id: Date.now() + 102, url: 'https://www.example.com/educational-psychology-basics', type: 'website', platform: '普通网站', title: '教育心理学基础简读', addTime: nowISO }
+    ];
+    if (typeof setLinks === 'function') {
+      const linksArr = Array.isArray(links) ? links : [];
+      const toAdd = linkSeeds.filter(s => !linksArr.some(l => l.url === s.url || l.title === s.title));
+      if (toAdd.length) setLinks(prev => [...prev, ...toAdd]);
+    }
+
+    // 文本：第7阶段案例研讨 & 第8阶段反思写作（分配逻辑在 useMemo 中按关键字）
+    const textSeeds = [
+      { title: '案例研讨：课堂管理冲突处理', content: '案例背景、冲突诱因、教师干预策略、效果评估与改进建议。' },
+      { title: '反思写作：一次失败的提问活动', content: '回顾教学目标、提问设计、课堂反馈与自我改进计划。' }
+    ];
+    if (typeof setAddedTexts === 'function') {
+      const textsArr = Array.isArray(addedTexts) ? addedTexts : [];
+      const toAdd = textSeeds
+        .filter(s => !textsArr.some(t => t.title === s.title))
+        .map(s => ({ id: Date.now() + Math.floor(Math.random() * 100000), content: s.content, type: 'text', title: s.title, addTime: nowISO }));
+      if (toAdd.length) setAddedTexts(prev => [...prev, ...toAdd]);
+    }
+
+    // 项目：移除指定的两条示例项目
+    if (typeof setTrainingProjects === 'function') {
+      setTrainingProjects(prev => {
+        const list = Array.isArray(prev) ? prev : [];
+        const removed = list.filter(
+          p =>
+            p.id !== 'tp_org_course_dev_001' &&
+            p.id !== 'tp_org_course_dev_show_001' &&
+            p.title !== '校本课程开发项目任务书' &&
+            p.title !== '校本课程成果展示会'
+        );
+        return removed;
+      });
+    }
+  }, [note?.id, note?.title, note?.category, note?.courseType, note?.source, note?.tags]);
+
+  // 组织培训：补充第5/6阶段考试试卷
+  useEffect(() => {
+    const isOrgTraining =
+      note?.category === 'organizational_training' ||
+      note?.courseType === 'organizational_training' ||
+      note?.source === '组织培训' ||
+      (Array.isArray(note?.tags) && note.tags.includes('组织培训'));
+
+    const matchesTitle = /新教师教学方法培训|新教师教学方法|教学方法培训/.test(note?.title || '');
+    if (!isOrgTraining || !matchesTitle) return;
+
+    const nowISO = new Date().toISOString();
+    const extraSeeds = [
+      { id: 'exam_phase_5_topic_lecture_assessment', name: '教学设计进阶｜专题讲座研修作业（100分）.docx', type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', size: 240 * 1024, isPaper: true, fullScore: 100, examType: '研修作业', phaseId: 5, uploadTime: nowISO },
+      { id: 'exam_phase_6_demo_observation_sheet', name: '课堂教学技能｜示范课观摩记录表（100分）.pdf', type: 'application/pdf', size: 260 * 1024, isPaper: true, fullScore: 100, examType: '观摩记录表', phaseId: 6, uploadTime: nowISO }
+    ];
+
+    setUploadedFiles(prev => {
+      const list = Array.isArray(prev) ? prev : [];
+      const nameSet = new Set(list.map(f => f.name));
+      const idSet = new Set(list.map(f => f.id));
+      const newOnes = extraSeeds.filter(s => !nameSet.has(s.name) && !idSet.has(s.id));
+      return newOnes.length === 0 ? list : [...list, ...newOnes];
+    });
+  }, [note?.id, note?.title, note?.category, note?.courseType, note?.source, note?.tags]);
+
   // 课程层级结构索引（章/节数量摘要）
   const courseStructureIndex = useMemo(() => {
     let index = new Map();
@@ -335,9 +564,30 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     return map;
   }, []);
 
+  // 课程层级ID/对象解析：兼容不同 courseId 命名（如 org_ntm_course_* -> org_ntm）
+  const resolveHierarchyCourse = (courseId, courseTitle) => {
+    const direct = courseHierarchyMap.get(courseId);
+    if (direct) return direct;
+    for (const [hid, course] of courseHierarchyMap.entries()) {
+      if ((courseId && String(courseId).includes(hid)) || (courseTitle && String(courseTitle).includes(course.title))) {
+        return course;
+      }
+    }
+    return null;
+  };
+  const resolveHierarchyId = (courseId, courseTitle) => {
+    if (courseStructureIndex.has(courseId)) return courseId;
+    for (const [hid, course] of courseHierarchyMap.entries()) {
+      if ((courseId && String(courseId).includes(hid)) || (courseTitle && String(courseTitle).includes(course.title))) {
+        return hid;
+      }
+    }
+    return courseId;
+  };
+
   // 计算视频的层次路径（课程/章/节），用于鼠标悬停提示
   const getVideoHierarchyPath = (courseId, video) => {
-    const course = courseHierarchyMap.get(courseId);
+    const course = resolveHierarchyCourse(courseId, video?.courseTitle);
     const courseTitle = video?.courseTitle || course?.title || '未知课程';
 
     // 如果能在课程层级中找到该视频，返回 课程 / 章 / 节
@@ -368,14 +618,23 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
   const [highlightVideoId, setHighlightVideoId] = useState(null);
   // 课程视频视图模式：平铺视图 或 层级视图
   const [videoViewMode, setVideoViewMode] = useState('flat');
+
+  // 是否处于“组织培训”视图（用于阶段分组）
+  const isOrgTrainingView = (
+    note?.category === 'organizational_training' ||
+    note?.courseType === 'organizational_training' ||
+    note?.source === '组织培训' ||
+    (Array.isArray(note?.tags) && note.tags.includes('组织培训'))
+  );
+
   // 各来源类型分区折叠状态（课程视频、直播课、考试文件、普通文件、链接、文本、培训项目）
   const [collapsedSections, setCollapsedSections] = useState({
-    videos: false,
-    live: false,
-    examFiles: false,
-    files: false,
-    links: false,
-    texts: false,
+    videos: true,
+    live: true,
+    examFiles: true,
+    files: true,
+    links: true,
+    texts: true,
     trainingProjects: false
   });
   const toggleSection = (key) => {
@@ -396,16 +655,139 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     });
   };
 
+  // 组织培训：阶段定义与折叠状态
+  const trainingPhases = [
+    { id: 1, week: '第1阶段', content: '学校文化与制度', type: '直播讲座', hours: 6 },
+    { id: 2, week: '第2阶段', content: '教学基本规范', type: '录播视频', hours: 6 },
+    { id: 3, week: '第3阶段', content: '学生管理基础', type: '直播课程', hours: 6 },
+    { id: 4, week: '第4阶段', content: '教育技术应用', type: '操作演示', hours: 6 },
+    { id: 5, week: '第5阶段', content: '教学设计进阶', type: '专题讲座', hours: 8 },
+    { id: 6, week: '第6阶段', content: '课堂教学技能', type: '示范课观摩', hours: 8 },
+    { id: 7, week: '第7阶段', content: '差异化教学', type: '案例研讨', hours: 8 },
+    { id: 8, week: '第8阶段', content: '教学反思与改进', type: '反思写作', hours: 8 },
+    { id: 9, week: '第9阶段', content: '教育科研入门', type: '理论学习', hours: 8 },
+    { id: 10, week: '第10阶段', content: '校本课程开发', type: '项目学习', hours: 8 },
+    { id: 11, week: '第11阶段', content: '家校沟通艺术', type: '情景演练', hours: 8 },
+    { id: 12, week: '第12阶段', content: '教师职业规划', type: '导师指导', hours: 8 }
+  ];
+
+  // 阶段时间：根据笔记的开始日期（note.phaseStartDate 或 note.startDate），每阶段默认1周
+  const formatDateShort = (d) => {
+    try {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    } catch (e) {
+      return '';
+    }
+  };
+
+  const enrichedTrainingPhases = useMemo(() => {
+    const baseISO = note?.phaseStartDate || note?.startDate;
+    let base;
+    try {
+      base = baseISO ? new Date(baseISO) : new Date();
+      if (isNaN(base.getTime())) base = new Date();
+    } catch (e) {
+      base = new Date();
+    }
+    return trainingPhases.map((p, idx) => {
+      const start = new Date(base.getTime());
+      start.setDate(start.getDate() + idx * 7);
+      const end = new Date(start.getTime());
+      end.setDate(end.getDate() + 6);
+      return { ...p, startTime: formatDateShort(start), endTime: formatDateShort(end) };
+    });
+  }, [note?.phaseStartDate, note?.startDate]);
+  const [collapsedPhases, setCollapsedPhases] = useState(new Set());
+  const togglePhase = (phaseId) => {
+    // 若处于紧凑模式，手动展开/折叠单个阶段时关闭紧凑模式
+    setPhaseViewCompactMode(false);
+    setCollapsedPhases(prev => {
+      const next = new Set(prev);
+      if (next.has(phaseId)) next.delete(phaseId); else next.add(phaseId);
+      return next;
+    });
+  };
+
+  // 阶段素材分配（在组织培训下生效）
+  const phaseMaterials = useMemo(() => {
+    if (!isOrgTrainingView) return [];
+
+    // 录播/示范视频：来自课程视频中非 live 类别
+    const recordedVideos = (Array.isArray(courseVideos) ? courseVideos : []).filter(v => !String(v.type || '').startsWith('live'));
+    // 直播课：来自 liveStreams
+    const lives = Array.isArray(liveStreams) ? liveStreams : [];
+
+    // 初始化所有阶段（含考试/试卷）
+    const phaseMap = new Map(enrichedTrainingPhases.map(p => [p.id, { ...p, materials: { videos: [], live: [], links: [], texts: [], trainingProjects: [], exam: [] } }]));
+
+    // 录播视频：含“示范/观摩”归入第6阶段；含“规范”归入第2阶段；其余默认归入第3阶段
+    recordedVideos.forEach(v => {
+      const isDemo = /示范|观摩/.test(v.title || '') || /示范|观摩/.test(v.courseTitle || '');
+      const isNorms = /规范/.test(v.title || '') || /规范/.test(v.courseTitle || '');
+      const targetId = isDemo ? 6 : (isNorms ? 2 : 3);
+      const bucket = phaseMap.get(targetId);
+      if (bucket) bucket.materials.videos.push(v);
+    });
+
+    // 直播课：优先按 phaseId 分配；无则标题含“讲座”归入第1阶段，否则归入第3阶段
+    lives.forEach(s => {
+      const isLecture = /讲座/.test(s.title || '') || /讲座/.test(s.topic || '');
+      const targetId = (typeof s.phaseId !== 'undefined') ? s.phaseId : (isLecture ? 1 : 3);
+      const bucket = phaseMap.get(targetId);
+      if (bucket) bucket.materials.live.push(s);
+    });
+
+    // 考试/试卷：按 phaseId 归入对应阶段
+    const phaseExamFiles = (Array.isArray(uploadedFiles) ? uploadedFiles : []).filter(f => f.isPaper && (typeof f.phaseId !== 'undefined'));
+    phaseExamFiles.forEach(file => {
+      const bucket = phaseMap.get(file.phaseId);
+      if (bucket) bucket.materials.exam.push(file);
+    });
+
+    // 理论学习：把链接作为阅读材料归入第9周
+    if (Array.isArray(links) && links.length > 0) {
+      const p9 = phaseMap.get(9);
+      if (p9) p9.materials.links = links;
+    }
+
+    // 反思写作/案例研讨：根据内容关键字分配到第7/第8周
+    if (Array.isArray(addedTexts) && addedTexts.length > 0) {
+      const p7 = phaseMap.get(7);
+      const p8 = phaseMap.get(8);
+      const caseTexts = addedTexts.filter(t => /案例|研讨/.test(((t.title || '') + (t.content || ''))));
+      const otherTexts = addedTexts.filter(t => !caseTexts.includes(t));
+      if (p7 && caseTexts.length > 0) p7.materials.texts = caseTexts;
+      if (p8 && otherTexts.length > 0) p8.materials.texts = otherTexts;
+    }
+
+    // 项目学习：置顶的培训项目归入第10周（仍保留置顶区）
+    if (Array.isArray(trainingProjects) && trainingProjects.length > 0) {
+      const p10 = phaseMap.get(10);
+      if (p10) p10.materials.trainingProjects = trainingProjects;
+    }
+
+    return Array.from(phaseMap.values());
+  }, [isOrgTrainingView, courseVideos, liveStreams, trainingProjects, links, addedTexts, enrichedTrainingPhases, uploadedFiles]);
 
   // 全部展开/全部折叠
   const expandAllSections = () => {
     setCollapsedSections({ videos: false, live: false, examFiles: false, files: false, links: false, texts: false, trainingProjects: false });
     setCollapsedGroups(new Set());
+    if (isOrgTrainingView) setCollapsedPhases(new Set());
   };
   const collapseAllSections = () => {
     setCollapsedSections({ videos: true, live: true, examFiles: true, files: true, links: true, texts: true, trainingProjects: true });
     setCollapsedGroups(new Set(allCourseIds));
+    if (isOrgTrainingView) setCollapsedPhases(new Set(enrichedTrainingPhases.map(p => p.id)));
   };
+
+  // 阶段视图专用控制：仅影响阶段折叠
+  const expandAllPhases = () => setCollapsedPhases(new Set());
+  const collapseAllPhases = () => setCollapsedPhases(new Set(enrichedTrainingPhases.map(p => p.id)));
+  const [phaseViewCompactMode, setPhaseViewCompactMode] = useState(true);
 
   const scrollToVideoCard = (videoId) => {
     try {
@@ -932,6 +1314,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
         <Divider style={{ margin: '16px 0' }} />
         
         {/* 选择所有来源 */}
+        {!isOrgTrainingView && (
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -1029,6 +1412,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
             )}
           </div>
         </div>
+        )}
 
         {/* 资料列表内容区域 */}
         <div style={{ 
@@ -1161,8 +1545,699 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                   ))}
                 </div>
               )}
+              {/* 组织培训下：阶段分组视图 */}
+              {isOrgTrainingView && phaseMaterials.length > 0 && (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#f8f9fa', borderRadius: 8, border: '1px solid #e9ecef', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Text strong style={{ fontSize: '12px', color: '#666' }}>📆 阶段视图</Text>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Button
+                        size="small"
+                        type="default"
+                        icon={(phaseViewCompactMode || collapsedPhases.size === enrichedTrainingPhases.length) ? <RightOutlined /> : <DownOutlined />}
+                        style={{ fontSize: '12px', height: 'auto', padding: '2px 10px', borderRadius: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}
+                        onClick={() => {
+                          const allCollapsed = phaseViewCompactMode || collapsedPhases.size === enrichedTrainingPhases.length;
+                          if (allCollapsed) {
+                            setPhaseViewCompactMode(false);
+                            expandAllPhases();
+                          } else {
+                            setPhaseViewCompactMode(true);
+                            collapseAllPhases();
+                          }
+                        }}
+                      >
+                        {(phaseViewCompactMode || collapsedPhases.size === enrichedTrainingPhases.length) ? '全部展开' : '全部折叠'}
+                      </Button>
+                      <Checkbox
+                        checked={phaseViewCompactMode}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setPhaseViewCompactMode(checked);
+                          if (checked) {
+                            collapseAllPhases();
+                          } else {
+                            expandAllPhases();
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                  {phaseMaterials.map(phase => (
+                    <div key={`phase-${phase.id}`} style={{ marginBottom: 14, border: '1px solid #e8e8e8', borderLeft: '2px solid #91d5ff', borderRadius: 8, background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 8px 6px 8px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4, flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            {(phaseViewCompactMode || collapsedPhases.has(phase.id)) ? (
+                              <RightOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => togglePhase(phase.id)} />
+                            ) : (
+                              <DownOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => togglePhase(phase.id)} />
+                            )}
+                            <Text strong style={{ fontSize: 13 }}>
+                              {phase.id}｜{phase.content}
+                            </Text>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                            {(() => {
+                              const m = phase.materials || {};
+                              const tagSpecs = [
+                                { key: 'live', present: Array.isArray(m.live) && m.live.length > 0, label: '直播课程', color: 'cyan' },
+                                { key: 'videos', present: Array.isArray(m.videos) && m.videos.length > 0, label: '课程视频', color: 'geekblue' },
+                                { key: 'exam', present: Array.isArray(m.exam) && m.exam.length > 0, label: '考试/试卷', color: 'purple' },
+                                { key: 'links', present: Array.isArray(m.links) && m.links.length > 0, label: '阅读材料', color: 'blue' },
+                                { key: 'texts', present: Array.isArray(m.texts) && m.texts.length > 0, label: '文本', color: 'gold' },
+                                { key: 'projects', present: Array.isArray(m.trainingProjects) && m.trainingProjects.length > 0, label: '培训项目', color: 'green' }
+                              ];
+                              return tagSpecs
+                                .filter(t => t.present)
+                                .map(t => (<Tag color={t.color} key={`phase-${phase.id}-tag-${t.key}`}>{t.label}</Tag>))
+                                .concat([<Tag color="geekblue" key={`phase-${phase.id}-hours`}>{phase.hours}学时</Tag>]);
+                            })()}
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <Text type="secondary" style={{ fontSize: 12, color: '#666' }}>
+                            {phase.startTime || '未定'} • {phase.endTime || '未定'}
+                          </Text>
+                        </div>
+                      </div>
+
+                      {!(phaseViewCompactMode || collapsedPhases.has(phase.id)) && (
+                        <div style={{ padding: '8px', background: '#fafafa', borderTop: '1px dashed #f0f0f0', borderRadius: '0 0 8px 8px' }}>
+                          {/* 阶段内 - 课程视频 */}
+                          {Array.isArray(phase.materials?.videos) && phase.materials.videos.length > 0 && (
+                            <div style={{ marginTop: 8, background: '#ffffff', border: '1px solid #f0f0f0', borderLeft: '2px solid #91d5ff', borderRadius: 6, padding: 8 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                                <Text strong style={{ fontSize: 12, color: '#666' }}>📹 课程视频 ({phase.materials.videos.length})</Text>
+                                <Button.Group>
+                                  <Tooltip title="平铺视图">
+                                    <Button 
+                                      size="small"
+                                      type={videoViewMode === 'flat' ? 'primary' : 'default'}
+                                      icon={<AppstoreOutlined />}
+                                      onClick={() => setVideoViewMode('flat')}
+                                    />
+                                  </Tooltip>
+                                  <Tooltip title="层级视图">
+                                    <Button 
+                                      size="small"
+                                      type={videoViewMode === 'hierarchy' ? 'primary' : 'default'}
+                                      icon={<NodeIndexOutlined />}
+                                      onClick={() => setVideoViewMode('hierarchy')}
+                                    />
+                                  </Tooltip>
+                                </Button.Group>
+                              </div>
+
+                              {isOrgTrainingView && (() => {
+                                const summaryAll = computeGroupSummary(phase.materials.videos);
+                                const completedMinutes = Math.round(summaryAll.totalMinutes * (summaryAll.overallProgress || 0) / 100);
+                                return (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 10px', background: '#f7f9fc', border: '1px solid #e6f4ff', borderRadius: 6, marginBottom: 8 }}>
+                                    <Text style={{ fontSize: 12, color: '#333' }}>考试：{summaryAll.totalMinutes}分钟</Text>
+                                    <Text style={{ fontSize: 12, color: '#333' }}>已完成：{completedMinutes}分钟</Text>
+                                    <div style={{ width: 140 }}>
+                                      <Progress percent={summaryAll.overallProgress} size="small" showInfo={false} />
+                                    </div>
+                                    <Tooltip title={`整体进度：${summaryAll.overallProgress}%`}>
+                                      <Text style={{ fontSize: 11, color: '#1890ff' }}>{summaryAll.overallProgress}%</Text>
+                                    </Tooltip>
+                                    <Divider type="vertical" />
+                                    <Text style={{ fontSize: 12, color: '#333' }}>学时：{phase.hours ?? summaryAll.totalHours}</Text>
+                                    <Divider type="vertical" />
+                                    <Text style={{ fontSize: 12, color: '#333' }}>成绩：{summaryAll.avgScore != null ? `${summaryAll.avgScore}分` : '未评分'}</Text>
+                                  </div>
+                                );
+                              })()}
+
+                              {Object.values(phase.materials.videos.reduce((groups, v) => {
+                                const cid = v.courseId || v.id;
+                                if (!groups[cid]) {
+                                  groups[cid] = {
+                                    courseId: cid,
+                                    courseTitle: v.courseTitle || v.title,
+                                    instructor: v.instructor,
+                                    videos: []
+                                  };
+                                }
+                                groups[cid].videos.push(v);
+                                return groups;
+                              }, {})).map(group => (
+                                <div key={`phase-${phase.id}-course-${group.courseId}`} style={{ marginBottom: 8, border: '1px solid #e8e8e8', borderRadius: 8, padding: 8, background: '#fff' }}>
+                                  {(() => {
+                                    const summary = computeGroupSummary(group.videos);
+                                    const collapsed = collapsedGroups.has(group.courseId);
+                                    return (
+                                      <div style={{ margin: '4px 0' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            {collapsed ? (
+                                              <RightOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleGroup(group.courseId)} />
+                                            ) : (
+                                              <DownOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleGroup(group.courseId)} />
+                                            )}
+                                            <Text strong style={{ fontSize: 13, cursor: 'pointer' }} onClick={() => toggleGroup(group.courseId)}>
+                                              {group.courseTitle}
+                                            </Text>
+                                          </div>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            {videoViewMode === 'flat' && (
+                                              <Tooltip title={hierarchyOpenCourses.has(group.courseId) ? '隐藏层级' : '显示层级'}>
+                                                <NodeIndexOutlined style={{ fontSize: 14, color: '#1890ff', cursor: 'pointer' }} onClick={() => toggleHierarchy(group.courseId)} />
+                                              </Tooltip>
+                                            )}
+                                            <Tooltip title="选择本课程">
+                                              <Checkbox
+                                                checked={group.videos.every(v => selectedMaterials.includes(`video-${v.id}`))}
+                                                indeterminate={group.videos.some(v => selectedMaterials.includes(`video-${v.id}`)) && !group.videos.every(v => selectedMaterials.includes(`video-${v.id}`))}
+                                                onChange={(e) => {
+                                                  const checked = e.target.checked;
+                                                  group.videos.forEach(v => handleSelectMaterial(`video-${v.id}`, checked));
+                                                }}
+                                              />
+                                            </Tooltip>
+                                          </div>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                            <Text type="secondary" style={{ fontSize: 11 }}>
+                                              {(group.instructor || '未知讲师')} • {group.videos.length}个视频 • 总学时{summary.totalHours}小时
+                                            </Text>
+                                            <Text type="secondary" style={{ fontSize: 11 }}>
+                                              • 成绩 {summary.avgScore != null ? `${summary.avgScore}分` : '未评分'}
+                                            </Text>
+                                            {(() => {
+                                              const struct = courseStructureIndex.get(group.courseId) || courseStructureIndex.get(resolveHierarchyId(group.courseId, group.courseTitle));
+                                              if (!struct) return null;
+                                              return (
+                                                <Text type="secondary" style={{ fontSize: 11 }}>
+                                                  • 章{struct.chapterCount} • 节{struct.sectionCount}
+                                                </Text>
+                                              );
+                                            })()}
+                                          </div>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            <div style={{ width: 140 }}>
+                                              <Progress percent={summary.overallProgress} size="small" showInfo={false} />
+                                            </div>
+                                            <Tooltip title={`整体进度：${summary.overallProgress}%`}>
+                                              <Text style={{ fontSize: 10, color: '#1890ff' }}>{summary.overallProgress}%</Text>
+                                            </Tooltip>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })()}
+                                  {(videoViewMode === 'hierarchy' || hierarchyOpenCourses.has(group.courseId)) && (() => {
+                                    const course = resolveHierarchyCourse(group.courseId, group.courseTitle);
+                                    if (!course) return null;
+                                    const treeData = (course.chapters || []).map(ch => ({
+                                      key: `ch-${ch.id}`,
+                                      type: 'chapter',
+                                      title: ch.title,
+                                      children: (ch.sections || []).map(sec => ({
+                                        key: `sec-${sec.id}`,
+                                        type: 'section',
+                                        title: sec.title,
+                                        videoCount: (sec.videos || []).length,
+                                        children: (sec.videos || []).map(v => ({
+                                          key: `v-${v.id}`,
+                                          type: 'video',
+                                          title: v.title,
+                                          videoId: v.id,
+                                          instructor: v.instructor,
+                                          progress: v.progress || 0,
+                                          duration: v.duration,
+                                          score: v.score
+                                        }))
+                                      }))
+                                    }));
+                                    const expanderState = new Map();
+                                    const expanderFn = new Map();
+                                    const columns = [
+                                      {
+                                        title: '名称',
+                                        dataIndex: 'title',
+                                        key: 'title',
+                                        render: (text, record) => {
+                                          const iconStyle = { fontSize: 14, color: '#8c8c8c' };
+                                          const icon = record.type === 'video'
+                                            ? <PlayCircleOutlined style={{ ...iconStyle, color: '#1890ff' }} />
+                                            : record.type === 'chapter'
+                                            ? <FolderOutlined style={iconStyle} />
+                                            : <NodeIndexOutlined style={iconStyle} />;
+                                          const name = record.type === 'video'
+                                            ? <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{text}</Text>
+                                            : <Text strong style={{ fontSize: 12 }}>{text}</Text>;
+                                          const isExpandable = Array.isArray(record.children) && record.children.length > 0;
+                                          const isExpanded = expanderState.get(record.key);
+                                          const switcher = isExpandable ? (
+                                            <span
+                                              className="mm-switcher"
+                                              onClick={(e) => {
+                                                const fn = expanderFn.get(record.key);
+                                                if (fn) fn(record, e);
+                                                e.stopPropagation();
+                                              }}
+                                            >
+                                              {isExpanded ? <DownOutlined /> : <RightOutlined />}
+                                            </span>
+                                          ) : null;
+                                          const depth = record.type === 'chapter' ? 0 : (record.type === 'section' ? 1 : 2);
+                                          let left = null;
+                                          if (record.type === 'video') {
+                                            const percent = Math.round(record.progress || 0);
+                                            const durationMin = Math.floor((record.duration || 0) / 60);
+                                            const subtitle = `讲师：${record.instructor || '未知讲师'} • 进度 ${percent}%${Number.isFinite(durationMin) && durationMin > 0 ? ` • 时长 ${durationMin}分钟` : ''}`;
+                                            left = (
+                                              <div className="mm-title" style={{ marginLeft: `${depth * 16}px`, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                                                {switcher}
+                                                <span className="mm-icon">{icon}</span>
+                                                <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+                                                  {name}
+                                                  <Text type="secondary" style={{ fontSize: 10 }}>
+                                                    {subtitle}
+                                                  </Text>
+                                                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                                                    <div className="mm-inline-progress" aria-label="学习进度" style={{ flex: '0 0 120px' }}>
+                                                      <div className="mm-inline-progress__bar" style={{ width: `${percent}%` }} />
+                                                    </div>
+                                                    <Text type="secondary" style={{ fontSize: 10 }}>{percent}%</Text>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            );
+                                          } else {
+                                            left = (
+                                              <div className="mm-title" style={{ marginLeft: `${depth * 16}px` }}>
+                                                {switcher}
+                                                <span className="mm-icon">{icon}</span>
+                                                <span className="mm-name">{name}</span>
+                                              </div>
+                                            );
+                                          }
+                                          let right = null;
+                                          return (
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                                              {left}
+                                              {right}
+                                            </div>
+                                          );
+                                        }
+                                      }
+                                    ];
+                                    return (
+                                      <div className="mm-shell" style={{ padding: 0, margin: '6px 0' }}>
+                                        <Table
+                                          columns={columns}
+                                          dataSource={treeData}
+                                          size="small"
+                                          pagination={false}
+                                          rowKey="key"
+                                          showHeader={false}
+                                          className="mm-table"
+                                          style={{ width: '100%' }}
+                                          tableLayout="fixed"
+                                          defaultExpandAllRows
+                                          rowClassName={(record) => `mm-row mm-${record.type} mm-level-${record.type === 'chapter' ? 0 : (record.type === 'section' ? 1 : 2)}`}
+                                          expandable={{
+                                            indentSize: 12,
+                                            expandRowByClick: true,
+                                            expandIcon: ({ expanded, onExpand, record }) => {
+                                              expanderState.set(record.key, expanded);
+                                              expanderFn.set(record.key, onExpand);
+                                              return null;
+                                            }
+                                          }}
+                                          onRow={(record) => ({
+                                            onClick: () => {
+                                              if (record.type === 'video' && record.videoId) {
+                                                const videoObj = (group && Array.isArray(group.videos))
+                                                  ? group.videos.find(v => v.id === record.videoId)
+                                                  : null;
+                                                if (videoObj) {
+                                                  onPlayVideo(videoObj);
+                                                } else {
+                                                  scrollToVideoCard(record.videoId);
+                                                }
+                                              }
+                                            }
+                                          })}
+                                        />
+                                      </div>
+                                    );
+                                  })()}
+                                  {!collapsedGroups.has(group.courseId) && videoViewMode === 'flat' && group.videos.map(video => (
+                                    <Tooltip title={getVideoHierarchyPath(group.courseId, video)} placement="top" key={`phase-${phase.id}-video-${video.id}`}>
+                                      <Card 
+                                        id={`video-card-${video.id}`}
+                                        size="small" 
+                                        style={{ 
+                                          marginBottom: 8,
+                                          cursor: 'pointer',
+                                          border: '1px solid #e8e8e8',
+                                          ...(highlightVideoId === video.id ? { boxShadow: '0 0 0 2px #1890ff', borderColor: '#1890ff' } : {})
+                                        }}
+                                        bodyStyle={{ padding: '8px 12px' }}
+                                        onClick={() => onPlayVideo(video)}
+                                      >
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                                            {video.type === 'live_replay' ? (
+                                              <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>
+                                                <PlayCircleOutlined style={{ color: '#ff4d4f', marginRight: 4, fontSize: 16 }} />
+                                                <span style={{ 
+                                                  background: '#ff4d4f', 
+                                                  color: 'white', 
+                                                  fontSize: '8px', 
+                                                  padding: '1px 4px', 
+                                                  borderRadius: '2px',
+                                                  marginRight: 4
+                                                }}>LIVE</span>
+                                              </div>
+                                            ) : video.type === 'live_scheduled' ? (
+                                              <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>
+                                                <ClockCircleOutlined style={{ color: '#faad14', marginRight: 4, fontSize: 16 }} />
+                                                <span style={{ 
+                                                  background: '#faad14', 
+                                                  color: 'white', 
+                                                  fontSize: '8px', 
+                                                  padding: '1px 4px', 
+                                                  borderRadius: '2px',
+                                                  marginRight: 4
+                                                }}>预约</span>
+                                              </div>
+                                            ) : (
+                                              <PlayCircleOutlined style={{ color: '#1890ff', marginRight: 8, fontSize: 16 }} />
+                                            )}
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                              <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
+                                                {video.title}
+                                              </Text>
+                                              <Text type="secondary" style={{ fontSize: 10 }}>
+                                                {video.type === 'live_replay' ? (
+                                                  `回放 • ${video.liveDate} • ${video.instructor || '未知讲师'} • ${video.audience || 0}人观看`
+                                                ) : video.type === 'live_scheduled' ? (
+                                                  `预约直播 • ${video.scheduleDate} • ${video.instructor || '未知讲师'} • ${video.registered || 0}/${video.maxAudience || 0}人`
+                                                ) : (
+                                                  `${video.addTime} • ${video.instructor || '未知讲师'}`
+                                                )}
+                                              </Text>
+                                              {video.videoInfo && (
+                                                <div style={{ marginTop: '4px' }}>
+                                                  {video.videoInfo.type === 'single_video' ? (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                      <Text style={{ fontSize: '8px', color: '#666', minWidth: '50px' }}>
+                                                        学习进度
+                                                      </Text>
+                                                      <div style={{ 
+                                                        flex: 1, 
+                                                        height: '4px', 
+                                                        backgroundColor: '#f0f0f0', 
+                                                        borderRadius: '2px',
+                                                        overflow: 'hidden'
+                                                      }}>
+                                                        <div style={{
+                                                          width: `${video.videoInfo.progress || 0}%`,
+                                                          height: '100%',
+                                                          backgroundColor: '#1890ff',
+                                                          borderRadius: '2px',
+                                                          transition: 'width 0.3s ease'
+                                                        }} />
+                                                      </div>
+                                                      <Text style={{ fontSize: '8px', color: '#1890ff', fontWeight: 'bold', minWidth: '25px' }}>
+                                                        {video.videoInfo.progress || 0}%
+                                                      </Text>
+                                                    </div>
+                                                  ) : (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                      <Text style={{ fontSize: '8px', color: '#666', minWidth: '50px' }}>
+                                                        学习进度
+                                                      </Text>
+                                                      <div style={{ 
+                                                        flex: 1, 
+                                                        height: '4px', 
+                                                        backgroundColor: '#f0f0f0', 
+                                                        borderRadius: '2px',
+                                                        overflow: 'hidden'
+                                                      }}>
+                                                        <div style={{
+                                                          width: `${video.videoInfo.overallProgress || 0}%`,
+                                                          height: '100%',
+                                                          backgroundColor: '#1890ff',
+                                                          borderRadius: '2px',
+                                                          transition: 'width 0.3s ease'
+                                                        }} />
+                                                      </div>
+                                                      <Text style={{ fontSize: '8px', color: '#1890ff', fontWeight: 'bold', minWidth: '25px' }}>
+                                                        {video.videoInfo.overallProgress || 0}%
+                                                      </Text>
+                                                      <Text style={{ fontSize: '8px', color: '#999', marginLeft: '4px' }}>
+                                                        ({video.videoInfo.totalVideos || 0}个视频)
+                                                      </Text>
+                                                    </div>
+                                                  )}
+                                                  {video.videoInfo.type === 'multi_video' && (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                                                      <Text style={{ fontSize: '8px', color: '#666', minWidth: '50px' }}>
+                                                        时长信息
+                                                      </Text>
+                                                      <Text style={{ fontSize: '8px', color: '#999' }}>
+                                                        已学习 {Math.floor((video.videoInfo.watchedDuration || 0) / 60)}分钟 / 
+                                                        总计 {Math.floor((video.videoInfo.totalDuration || 0) / 60)}分钟
+                                                      </Text>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              )}
+                                              {showPlannedLabels && video.plannedStartTime && (
+                                                <div 
+                                                  key={`planned-label-${video.id}-${Date.now()}`}
+                                                  style={{
+                                                    background: 'linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%)',
+                                                    color: '#1890ff',
+                                                    fontSize: '8px',
+                                                    padding: '1px 4px',
+                                                    borderRadius: '8px',
+                                                    fontWeight: 'bold',
+                                                    border: '1px solid #40a9ff',
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '2px',
+                                                    marginTop: '2px'
+                                                  }}>
+                                                  <ClockCircleOutlined style={{ fontSize: '8px' }} />
+                                                  <span>计划 {video.plannedStartTime}</span>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </div>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                            <Checkbox
+                                              checked={selectedMaterials.includes(`video-${video.id}`)}
+                                              onChange={(e) => {
+                                                e.stopPropagation();
+                                                handleSelectMaterial(`video-${video.id}`, e.target.checked);
+                                              }}
+                                              onClick={(e) => e.stopPropagation()}
+                                            />
+                                          </div>
+                                        </div>
+                                      </Card>
+                                    </Tooltip>
+                                  ))}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* 阶段内 - 直播课 */}
+                          {Array.isArray(phase.materials?.live) && phase.materials.live.length > 0 && (
+                            <div style={{ marginTop: 12, background: '#ffffff', border: '1px solid #f0f0f0', borderLeft: '2px solid #87e8de', borderRadius: 6, padding: 8 }}>
+                              <Text strong style={{ fontSize: 12, color: '#666' }}>📺 直播课 ({phase.materials.live.length})</Text>
+                              {phase.materials.live.map(stream => {
+                                const status = getLiveStreamStatus(stream);
+                                return (
+                                  <Card 
+                                    key={`phase-${phase.id}-live-${stream.id}`}
+                                    size="small" 
+                                    style={{ marginTop: 6, border: '1px solid #e8e8e8' }}
+                                    bodyStyle={{ padding: '8px 12px' }}
+                                  >
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                                        {status === 'live' ? (
+                                          <PlayCircleOutlined style={{ color: '#ff4d4f', marginRight: 8, fontSize: 16 }} />
+                                        ) : (
+                                          <ClockCircleOutlined style={{ color: '#faad14', marginRight: 8, fontSize: 16 }} />
+                                        )}
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                          <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
+                                            {stream.title}
+                                          </Text>
+                                          <Text type="secondary" style={{ fontSize: 10 }}>
+                                            {(() => {
+                                              const dateText = (stream.schedule?.date || stream.liveDate || '时间未定');
+                                              const platformText = (stream.platform || '').trim();
+                                              return platformText && platformText !== '钉钉直播' ? `${platformText} • ${dateText}` : dateText;
+                                            })()}
+                                          </Text>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                                            <Tag color={status === 'live' ? 'red' : (status === 'scheduled' ? 'gold' : 'blue')}>
+                                              {status === 'live' ? '直播中' : (status === 'scheduled' ? '已预约' : '已结束')}
+                                            </Tag>
+                                            {status === 'live' && stream.url && (
+                                              <Button
+                                                type="link"
+                                                size="small"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  window.open(stream.url, '_blank');
+                                                }}
+                                              >
+                                                进入直播间
+                                              </Button>
+                                            )}
+                                            {status === 'ended' && (stream.replayUrl || stream.url) && (
+                                              <Button
+                                                type="link"
+                                                size="small"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  const video = {
+                                                    id: `replay-${stream.id}`,
+                                                    title: stream.title + ' 回放',
+                                                    type: 'live_replay',
+                                                    liveDate: stream.liveDate,
+                                                    url: stream.replayUrl || stream.url,
+                                                    instructor: stream.instructor,
+                                                    audience: stream.audience
+                                                  };
+                                                  onPlayVideo(video);
+                                                }}
+                                              >
+                                                播放回放
+                                              </Button>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <Checkbox
+                                        checked={selectedMaterials.includes(`live-${stream.id}`)}
+                                        onChange={(e) => handleSelectMaterial(`live-${stream.id}`, e.target.checked)}
+                                        onClick={(e) => e.stopPropagation()}
+                                      />
+                                    </div>
+                                  </Card>
+                                );
+                              })}
+                            </div>
+                          )}
+
+                          {/* 阶段内 - 考试/试卷 */}
+                          {Array.isArray(phase.materials?.exam) && phase.materials.exam.length > 0 && (
+                            <div style={{ marginTop: 12, background: '#ffffff', border: '1px solid #f0f0f0', borderLeft: '2px solid #d3adf7', borderRadius: 6, padding: 8 }}>
+                              <Text strong style={{ fontSize: 12, color: '#666' }}>🎓 考试/试卷 ({phase.materials.exam.length})</Text>
+                              {phase.materials.exam.map(file => (
+                                <Card
+                                  key={`phase-${phase.id}-exam-${file.id}`}
+                                  size="small"
+                                  style={{ marginTop: 6, border: '1px solid #e8e8e8', position: 'relative' }}
+                                  bodyStyle={{ padding: '8px 12px' }}
+                                  onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`file-${file.id}`]: true }))}
+                                  onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`file-${file.id}`]: false }))}
+                                >
+                                  <div style={{ position: 'absolute', top: 6, right: 8, display: 'flex', gap: 8, background: 'rgba(255,255,255,0.85)', borderRadius: 4, padding: '2px 6px', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', opacity: hoveredItems?.[`file-${file.id}`] ? 1 : 0, transition: 'opacity 0.2s' }}>
+                                  </div>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                                      {hoveredItems?.[`file-${file.id}`] ? (
+                                        <Dropdown
+                                          trigger={['click']}
+                                          placement="bottomLeft"
+                                          menu={{
+                                            items: [
+                                              { key: 'rename', label: '重命名', icon: <EditOutlined /> },
+                                              { key: 'convertToOperationRecord', label: '转为操作记录', icon: <FileTextOutlined /> },
+                                              { key: 'delete', label: '删除', icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />, danger: true }
+                                            ],
+                                            onClick: ({ key }) => {
+                                              if (key === 'rename') {
+                                                openRename('file', file.id, getFileDisplayName(file.name));
+                                              }
+                                              if (key === 'convertToOperationRecord') {
+                                                const displayName = getFileDisplayName(file.name);
+                                                const newRecord = {
+                                                  id: Date.now(),
+                                                  title: `转化自试卷文件：${displayName}`,
+                                                  source: '资料：试卷文件',
+                                                  time: '刚刚',
+                                                  type: 'note',
+                                                  subType: 'material',
+                                                  content: `<div style="padding:12px;">\n          <h3>📄 ${displayName}</h3>\n          <p style="color:#666;">已由试卷文件转为操作记录</p>\n          <p style=\"color:#999;font-size:12px;\">类型：${file.type || '未知'} • 大小：${Math.round((file.size || 0) / 1024)}KB</p>` ,
+                                                  materialRef: { type: 'file', id: file.id, isPaper: true }
+                                                };
+                                                state.setOperationRecords(prev => ({
+                                                  ...prev,
+                                                  note: [newRecord, ...((prev && prev.note) ? prev.note : [])]
+                                                }));
+                                                message.success('已转为操作记录');
+                                              }
+                                              if (key === 'delete') {
+                                                Modal.confirm({
+                                                  title: '确认删除该文件？',
+                                                  okText: '删除',
+                                                  okType: 'danger',
+                                                  cancelText: '取消',
+                                                  onOk: () => handleDeleteFile(file.id)
+                                                });
+                                              }
+                                            }
+                                          }}
+                                        >
+                                          <Tooltip title="更多">
+                                            <MoreOutlined style={{ color: '#8c8c8c', marginRight: 8, fontSize: 16 }} onClick={(e) => e.stopPropagation()} />
+                                          </Tooltip>
+                                        </Dropdown>
+                                      ) : (
+                                        <FileTextOutlined style={{ color: '#722ed1', marginRight: 8, fontSize: 16 }} />
+                                      )}
+                                      <div style={{ flex: 1, minWidth: 0 }}>
+                                        <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
+                                          {getFileDisplayName(file.name)} <Tag color="purple" style={{ marginLeft: 6 }}>试卷</Tag>
+                                        </Text>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                          {file.examType && (
+                                            <Tag color="blue">考核：{file.examType}</Tag>
+                                          )}
+                                          <Tag color="geekblue">满分 {file.fullScore || 100}分</Tag>
+                                        </div>
+                                        <Text type="secondary" style={{ fontSize: 10 }}>
+                                          {file.uploadTime}
+                                        </Text>
+                                      </div>
+                                    </div>
+                                    <Checkbox
+                                      checked={selectedMaterials.includes(`file-${file.id}`)}
+                                      onChange={(e) => handleSelectMaterial(`file-${file.id}`, e.target.checked)}
+                                      onClick={(e) => e.stopPropagation()}
+                                    />
+                                  </div>
+                                </Card>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* 课程视频列表（按课程分组，支持一课多视频） */}
-              {displayCourseVideos.length > 0 && (
+              {!isOrgTrainingView && displayCourseVideos.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1251,7 +2326,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                   • 成绩 {summary.avgScore != null ? `${summary.avgScore}分` : '未评分'}
                                 </Text>
                                 {(() => {
-                                  const struct = courseStructureIndex.get(group.courseId);
+                                  const struct = courseStructureIndex.get(group.courseId) || courseStructureIndex.get(resolveHierarchyId(group.courseId, group.courseTitle));
                                   if (!struct) return null;
                                   return (
                                     <Text type="secondary" style={{ fontSize: 11 }}>
@@ -1273,7 +2348,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                         );
                       })()}
                     {(videoViewMode === 'hierarchy' || hierarchyOpenCourses.has(group.courseId)) && (() => {
-                      const course = courseHierarchyMap.get(group.courseId);
+                      const course = resolveHierarchyCourse(group.courseId, group.courseTitle);
                       if (!course) return null;
 
                       const treeData = (course.chapters || []).map(ch => ({
@@ -1599,7 +2674,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
               )}
 
               {/* 直播课列表 */}
-              {Array.isArray(liveStreams) && liveStreams.length > 0 && (
+              {!isOrgTrainingView && Array.isArray(liveStreams) && liveStreams.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1691,7 +2766,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
 
               {/* 文件列表 */}
               {/* 考试/试卷列表（从上传文件中筛选 isPaper:true） */}
-              {examFiles.length > 0 && (
+              {!isOrgTrainingView && examFiles.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1794,317 +2869,11 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                 </div>
               )}
 
-              {/* 文件列表（不包含试卷） */}
-              {nonExamFiles.length > 0 && (
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {collapsedSections.files ? (
-                        <RightOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('files')} />
-                      ) : (
-                        <DownOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('files')} />
-                      )}
-                      <Text strong style={{ fontSize: '12px', color: '#666' }}>
-                        📄 文件 ({nonExamFiles.length})
-                      </Text>
-                    </div>
-                  </div>
-                  {!collapsedSections.files && nonExamFiles.map(file => (
-                    <Card 
-                      key={`file-${file.id}`}
-                      size="small" 
-                      style={{ 
-                        marginBottom: 8,
-                        border: '1px solid #e8e8e8',
-                        position: 'relative'
-                      }}
-                      bodyStyle={{ padding: '8px 12px' }}
-                      onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`file-${file.id}`]: true }))}
-                      onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`file-${file.id}`]: false }))}
-                    >
-                      {/* 悬停操作图标 - More 菜单（普通文件） */}
-                      <div style={{ position: 'absolute', top: 6, right: 8, display: 'flex', gap: 8, background: 'rgba(255,255,255,0.85)', borderRadius: 4, padding: '2px 6px', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', opacity: hoveredItems?.[`file-${file.id}`] ? 1 : 0, transition: 'opacity 0.2s' }}>
+              
 
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
-                          {hoveredItems?.[`file-${file.id}`] ? (
-                            <Dropdown
-                              trigger={['click']}
-                              placement="bottomLeft"
-                              menu={{
-                                items: [
-                                  { key: 'rename', label: '重命名', icon: <EditOutlined /> },
-                                  { key: 'convertToOperationRecord', label: '转为操作记录', icon: <FileTextOutlined /> },
-                                  { key: 'delete', label: '删除', icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />, danger: true }
-                                ],
-                                onClick: ({ key }) => {
-                                  if (key === 'rename') {
-                                    openRename('file', file.id, getFileDisplayName(file.name));
-                                  }
-                                  if (key === 'convertToOperationRecord') {
-                                    const displayName = getFileDisplayName(file.name);
-                                    const newRecord = {
-                                      id: Date.now(),
-                                      title: `转化自文件：${displayName}`,
-                                      source: '资料：文件',
-                                      time: '刚刚',
-                                      type: 'note',
-                                      subType: 'material',
-                                      content: `<div style="padding:12px;">\n          <h3>📄 ${displayName}</h3>\n          <p style="color:#666;">已由文件转为操作记录</p>\n          <p style=\"color:#999;font-size:12px;\">类型：${file.type || '未知'} • 大小：${Math.round((file.size || 0)/1024)}KB</p>\n        </div>`,
-                                      materialRef: { type: 'file', id: file.id, isPaper: false }
-                                    };
-                                    state.setOperationRecords(prev => ({
-                                      ...prev,
-                                      note: [newRecord, ...((prev && prev.note) ? prev.note : [])]
-                                    }));
-                                    message.success('已转为操作记录');
-                                  }
-                                  if (key === 'delete') {
-                                    Modal.confirm({
-                                      title: '确认删除该文件？',
-                                      okText: '删除',
-                                      okType: 'danger',
-                                      cancelText: '取消',
-                                      onOk: () => handleDeleteFile(file.id)
-                                    });
-                                  }
-                                }
-                              }}
-                            >
-                              <Tooltip title="更多">
-                                <MoreOutlined style={{ color: '#8c8c8c', marginRight: 8, fontSize: 16 }} onClick={(e) => e.stopPropagation()} />
-                              </Tooltip>
-                            </Dropdown>
-                          ) : (
-                            <FileTextOutlined style={{ color: '#52c41a', marginRight: 8, fontSize: 16 }} />
-                          )}
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
-                              {getFileDisplayName(file.name)}
-                            </Text>
-                            <Text type="secondary" style={{ fontSize: 10 }}>
-                              {file.uploadTime}
-                            </Text>
-                          </div>
-                        </div>
-                        <Checkbox
-                          checked={selectedMaterials.includes(`file-${file.id}`)}
-                          onChange={(e) => handleSelectMaterial(`file-${file.id}`, e.target.checked)}
-                        />
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
+              
 
-              {/* 链接列表 */}
-              {links.length > 0 && (
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {collapsedSections.links ? (
-                        <RightOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('links')} />
-                      ) : (
-                        <DownOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('links')} />
-                      )}
-                      <Text strong style={{ fontSize: '12px', color: '#666' }}>
-                        🔗 链接 ({links.length})
-                      </Text>
-                    </div>
-                  </div>
-                  {!collapsedSections.links && links.map(link => (
-                    <Card 
-                      key={`link-${link.id}`}
-                      size="small" 
-                      style={{ 
-                        marginBottom: 8,
-                        border: '1px solid #e8e8e8',
-                        position: 'relative'
-                      }}
-                      bodyStyle={{ padding: '8px 12px' }}
-                      onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`link-${link.id}`]: true }))}
-                      onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`link-${link.id}`]: false }))}
-                    >
-                      {/* 悬停操作图标 - More 菜单（链接） */}
-                      <div style={{ position: 'absolute', top: 6, right: 8, display: 'flex', gap: 8, background: 'rgba(255,255,255,0.85)', borderRadius: 4, padding: '2px 6px', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', opacity: hoveredItems?.[`link-${link.id}`] ? 1 : 0, transition: 'opacity 0.2s' }}>
-
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
-                          {hoveredItems?.[`link-${link.id}`] ? (
-                            <Dropdown
-                              trigger={['click']}
-                              placement="bottomLeft"
-                              menu={{
-                                items: [
-                                  { key: 'rename', label: '重命名', icon: <EditOutlined /> },
-                                  { key: 'convertToOperationRecord', label: '转为操作记录', icon: <LinkOutlined /> },
-                                  { key: 'delete', label: '删除', icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />, danger: true }
-                                ],
-                                onClick: ({ key }) => {
-                                  if (key === 'rename') {
-                                    openRename('link', link.id, link.title || link.url);
-                                  }
-                                  if (key === 'convertToOperationRecord') {
-                                    const displayTitle = link.title || link.url;
-                                    const newRecord = {
-                                      id: Date.now(),
-                                      title: `转化自链接：${displayTitle}`,
-                                      source: '资料：链接',
-                                      time: '刚刚',
-                                      type: 'note',
-                                      subType: 'material',
-                                      content: `<div style="padding:12px;">\n          <h3>🔗 ${displayTitle}</h3>\n          <p style="color:#666;">已由链接转为操作记录</p>\n          <p style=\"font-size:12px;\"><a href=\"${link.url}\" target=\"_blank\" rel=\"noopener noreferrer\">${link.url}</a></p>\n        </div>`,
-                                      materialRef: { type: 'link', id: link.id, url: link.url }
-                                    };
-                                    state.setOperationRecords(prev => ({
-                                      ...prev,
-                                      note: [newRecord, ...((prev && prev.note) ? prev.note : [])]
-                                    }));
-                                    message.success('已转为操作记录');
-                                  }
-                                  if (key === 'delete') {
-                                    Modal.confirm({
-                                      title: '确认删除该链接？',
-                                      okText: '删除',
-                                      okType: 'danger',
-                                      cancelText: '取消',
-                                      onOk: () => handleDeleteLink(link.id)
-                                    });
-                                  }
-                                }
-                              }}
-                            >
-                              <Tooltip title="更多">
-                                <MoreOutlined style={{ color: '#8c8c8c', marginRight: 8, fontSize: 16 }} onClick={(e) => e.stopPropagation()} />
-                              </Tooltip>
-                            </Dropdown>
-                          ) : (
-                            <LinkOutlined style={{ color: '#1890ff', marginRight: 8, fontSize: 16 }} />
-                          )}
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
-                              {link.title}
-                            </Text>
-                            <Text type="secondary" style={{ fontSize: 10 }}>
-                              {link.addTime}
-                            </Text>
-                          </div>
-                        </div>
-                        <Checkbox
-                          checked={selectedMaterials.includes(`link-${link.id}`)}
-                          onChange={(e) => handleSelectMaterial(`link-${link.id}`, e.target.checked)}
-                        />
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
-
-              {/* 文本内容列表 */}
-              {addedTexts.length > 0 && (
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {collapsedSections.texts ? (
-                        <RightOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('texts')} />
-                      ) : (
-                        <DownOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('texts')} />
-                      )}
-                      <Text strong style={{ fontSize: '12px', color: '#666' }}>
-                        📝 文本 ({addedTexts.length})
-                      </Text>
-                    </div>
-                  </div>
-                  {!collapsedSections.texts && addedTexts.map(text => (
-                    <Card 
-                      key={`text-${text.id}`}
-                      size="small" 
-                      style={{ 
-                        marginBottom: 8,
-                        border: '1px solid #e8e8e8',
-                        position: 'relative'
-                      }}
-                      bodyStyle={{ padding: '8px 12px' }}
-                      onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`text-${text.id}`]: true }))}
-                      onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`text-${text.id}`]: false }))}
-                    >
-                      {/* 悬停操作图标 - More 菜单（文本） */}
-                      <div style={{ position: 'absolute', top: 6, right: 8, display: 'flex', gap: 8, background: 'rgba(255,255,255,0.85)', borderRadius: 4, padding: '2px 6px', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', opacity: hoveredItems?.[`text-${text.id}`] ? 1 : 0, transition: 'opacity 0.2s' }}>
-
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
-                          {hoveredItems?.[`text-${text.id}`] ? (
-                            <Dropdown
-                              trigger={['click']}
-                              placement="bottomLeft"
-                              menu={{
-                                items: [
-                                  { key: 'rename', label: '重命名', icon: <EditOutlined /> },
-                                  { key: 'convertToOperationRecord', label: '转为操作记录', icon: <FileTextOutlined /> },
-                                  { key: 'delete', label: '删除', icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />, danger: true }
-                                ],
-                                onClick: ({ key }) => {
-                                  if (key === 'rename') {
-                                    openRename('text', text.id, text.title || '文本');
-                                  }
-                                  if (key === 'convertToOperationRecord') {
-                                    const displayTitle = text.title || '文本';
-                                    const newRecord = {
-                                      id: Date.now(),
-                                      title: `转化自文本：${displayTitle}`,
-                                      source: '资料：文本',
-                                      time: '刚刚',
-                                      type: 'note',
-                                      subType: 'material',
-                                      content: `<div style="padding:12px;">\n          <h3>📝 ${displayTitle}</h3>\n          <p style=\"color:#666;\">已由文本转为操作记录</p>\n          <div style=\"color:#333;font-size:13px;white-space:pre-wrap;\">${(text.content || '').slice(0,200)}</div>\n        </div>`,
-                                      materialRef: { type: 'text', id: text.id }
-                                    };
-                                    state.setOperationRecords(prev => ({
-                                      ...prev,
-                                      note: [newRecord, ...((prev && prev.note) ? prev.note : [])]
-                                    }));
-                                    message.success('已转为操作记录');
-                                  }
-                                  if (key === 'delete') {
-                                    Modal.confirm({
-                                      title: '确认删除该文本？',
-                                      okText: '删除',
-                                      okType: 'danger',
-                                      cancelText: '取消',
-                                      onOk: () => handleDeleteText(text.id)
-                                    });
-                                  }
-                                }
-                              }}
-                            >
-                              <Tooltip title="更多">
-                                <MoreOutlined style={{ color: '#8c8c8c', marginRight: 8, fontSize: 16 }} onClick={(e) => e.stopPropagation()} />
-                              </Tooltip>
-                            </Dropdown>
-                          ) : (
-                            <FileTextOutlined style={{ color: '#faad14', marginRight: 8, fontSize: 16 }} />
-                          )}
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
-                              {text.title}
-                            </Text>
-                            <Text type="secondary" style={{ fontSize: 10 }}>
-                              {text.addTime}
-                            </Text>
-                          </div>
-                        </div>
-                        <Checkbox
-                          checked={selectedMaterials.includes(`text-${text.id}`)}
-                          onChange={(e) => handleSelectMaterial(`text-${text.id}`, e.target.checked)}
-                        />
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
+              
 
               {/* 空状态显示 */}
               {courseVideos.length === 0 && examFiles.length === 0 && nonExamFiles.length === 0 && links.length === 0 && addedTexts.length === 0 && trainingProjects.length === 0 && (
