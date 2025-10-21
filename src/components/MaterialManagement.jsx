@@ -56,6 +56,7 @@ import {
 } from '../utils/noteEditUtils';
 
 import notesService from '../services/notesService';
+import './MaterialManagement.css';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -702,9 +703,14 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
   }, [note?.phaseStartDate, note?.startDate]);
   const [collapsedPhases, setCollapsedPhases] = useState(new Set());
   const togglePhase = (phaseId) => {
-    // 若处于紧凑模式，手动展开/折叠单个阶段时关闭紧凑模式
+    // 若处于紧凑模式，首次点击应仅展开当前阶段、折叠其他阶段
+    const wasCompact = phaseViewCompactMode;
     setPhaseViewCompactMode(false);
     setCollapsedPhases(prev => {
+      if (wasCompact) {
+        const allIds = enrichedTrainingPhases.map(p => p.id);
+        return new Set(allIds.filter(id => id !== phaseId));
+      }
       const next = new Set(prev);
       if (next.has(phaseId)) next.delete(phaseId); else next.add(phaseId);
       return next;
@@ -1229,7 +1235,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
       flexDirection: 'column',
       transition: 'flex 0.3s ease'
     }}>
-      <div style={{ padding: '20px', flex: 1 }}>
+      <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {isEditingTitle ? (
@@ -1415,10 +1421,9 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
         )}
 
         {/* 资料列表内容区域 */}
-        <div style={{ 
-          height: liveStreams.some(stream => getLiveStreamStatus(stream) === 'live')
-            ? 'calc(100vh - 332px)' 
-            : 'calc(100vh - 280px)',
+        <div className="mm-scroll" style={{ 
+          flex: 1,
+          minHeight: 0,
           overflowY: 'auto'
         }}>
           {/* 根据视图模式显示不同内容 */}

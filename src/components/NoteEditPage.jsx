@@ -1278,57 +1278,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
 
   return (
     <>
-      {/* 直播中提示条（仅在“组织培训”分类下显示；sticky 占位，不遮挡内容）*/}
-      {selectedCategory === 'organizational_training' && liveStreams.some(stream => getLiveStreamStatus(stream) === 'live') && (
-        <div style={{
-          position: 'sticky',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1000,
-          background: 'linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%)',
-          color: 'white',
-          padding: '12px 20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-          animation: 'pulse 2s infinite'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ 
-              width: 8, 
-              height: 8, 
-              borderRadius: '50%', 
-              background: 'white',
-              animation: 'blink 1.5s infinite'
-            }} />
-            <span style={{ fontSize: 14, fontWeight: 500 }}>
-              🎥 现在有直播课正在进行中！
-            </span>
-            <Button 
-              type="default"
-              size="small"
-              onClick={() => {
-                const liveStream = liveStreams.find(stream => getLiveStreamStatus(stream) === 'live');
-                if (liveStream?.url) {
-                  window.open(liveStream.url, '_blank');
-                }
-              }}
-              style={{
-                background: 'rgba(255,255,255,0.2)',
-                border: '1px solid rgba(255,255,255,0.3)',
-                color: 'white',
-                fontSize: 12,
-                height: 28
-              }}
-            >
-              点击进入直播间
-            </Button>
-          </div>
-        </div>
-      )}
-      
+
       <style>
         {`
           .subtitle-menu-item:hover {
@@ -1348,7 +1298,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
       
       <div style={{ 
         display: 'flex', 
-        height: 'calc(100vh - 64px)', 
+        height: '100%', 
         background: '#f5f5f5',
         transition: 'height 0.3s ease',
         overflow: 'hidden'
@@ -1476,7 +1426,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               <div style={{ 
                 flex: 4, 
                 background: '#fff', 
-                margin: '16px 0 16px 16px', 
+                margin: '16px 0 0 16px', 
                 borderRadius: '8px', 
                 overflow: 'hidden', 
                 display: 'flex', 
@@ -1496,7 +1446,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               <div style={{ 
                 flex: 4.6, 
                 background: '#fff', 
-                margin: '16px 0 16px 16px', 
+                margin: '16px 0 0 16px', 
                 borderRadius: '8px', 
                 overflow: 'hidden', 
                 display: 'flex', 
@@ -1527,7 +1477,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               <div style={{ 
                 flex: 4, 
                 background: '#fff', 
-                margin: '16px 0 16px 16px', 
+                margin: '16px 0 0 16px', 
                 borderRadius: '8px', 
                 overflow: 'hidden', 
                 display: 'flex', 
@@ -1577,7 +1527,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 return baseRatio;
               })(), 
               background: '#fff', 
-              margin: '16px 16px 16px 0', 
+              margin: '16px 16px 0 0', 
               borderRadius: '8px', 
               overflow: 'hidden', 
               display: 'flex', 

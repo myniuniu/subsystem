@@ -1,0 +1,31 @@
+/* MaterialManagement scrollbars */
+
+.mm-scroll {
+  /* Firefox */
+  scrollbar-width: thin; /* thin / auto / none */
+  scrollbar-color: rgba(0, 0, 0, 0.18) transparent; /* thumb color / track color */
+
+  /* iOS momentum scrolling */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* WebKit-based browsers (Chrome, Edge, Safari) */
+.mm-scroll::-webkit-scrollbar {
+  width: 6px; /* thinner scrollbar */
+  height: 6px;
+  background: transparent; /* transparent track background */
+}
+
+.mm-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18); /* more transparent */
+  border-radius: 3px;
+}
+
+.mm-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.32); /* slightly darker on hover for affordance */
+}
+
+.mm-scroll::-webkit-scrollbar-track {
+  background: transparent; /* keep track transparent */
+}
