@@ -1459,7 +1459,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                     icon={<ArrowLeftOutlined />} 
                     onClick={() => setCurrentView(VIEW_MODES.MATERIALS)}
                   >
-                    返回资料区
+                    返回
                   </Button>
                 </div>
                 <TrainingPlanViewer 

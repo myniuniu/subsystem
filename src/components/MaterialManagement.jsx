@@ -1144,12 +1144,28 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
         ...displayCourseVideos.map(video => `video-${video.id}`),
         ...links.map(link => `link-${link.id}`),
         ...organizationalCourses.map(course => `course-${course.id}`),
-        ...(Array.isArray(liveStreams) ? liveStreams.map(stream => `live-${stream.id}`) : []),
-        ...(Array.isArray(trainingProjects) ? trainingProjects.map(p => `project-${p.id}`) : [])
+        ...(Array.isArray(liveStreams) ? liveStreams.map(stream => `live-${stream.id}`) : [])
       ];
       setSelectedMaterials(allMaterialIds);
     } else {
       setSelectedMaterials([]);
+    }
+  };
+
+  const handleSelectPhaseAll = (checked) => {
+    const phaseIds = Array.from(new Set(
+      (Array.isArray(phaseMaterials) ? phaseMaterials : []).flatMap(phase => [
+        ...(Array.isArray(phase.materials?.videos) ? phase.materials.videos.map(v => `video-${v.id}`) : []),
+        ...(Array.isArray(phase.materials?.live) ? phase.materials.live.map(s => `live-${s.id}`) : []),
+        ...(Array.isArray(phase.materials?.links) ? phase.materials.links.map(l => `link-${l.id}`) : []),
+        ...(Array.isArray(phase.materials?.texts) ? phase.materials.texts.map(t => `text-${t.id}`) : []),
+        ...(Array.isArray(phase.materials?.exam) ? phase.materials.exam.map(f => `file-${f.id}`) : []),
+      ])
+    ));
+    if (checked) {
+      setSelectedMaterials(prev => Array.from(new Set([...(Array.isArray(prev) ? prev : []), ...phaseIds])));
+    } else {
+      setSelectedMaterials(prev => (Array.isArray(prev) ? prev.filter(id => !phaseIds.includes(id)) : []));
     }
   };
 
@@ -1577,16 +1593,33 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                         {(phaseViewCompactMode || collapsedPhases.size === enrichedTrainingPhases.length) ? '全部展开' : '全部折叠'}
                       </Button>
                       <Checkbox
-                        checked={phaseViewCompactMode}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          setPhaseViewCompactMode(checked);
-                          if (checked) {
-                            collapseAllPhases();
-                          } else {
-                            expandAllPhases();
-                          }
-                        }}
+                        checked={(() => {
+                          const phaseIds = Array.from(new Set(
+                            (Array.isArray(phaseMaterials) ? phaseMaterials : []).flatMap(phase => [
+                              ...(Array.isArray(phase.materials?.videos) ? phase.materials.videos.map(v => `video-${v.id}`) : []),
+                              ...(Array.isArray(phase.materials?.live) ? phase.materials.live.map(s => `live-${s.id}`) : []),
+                              ...(Array.isArray(phase.materials?.links) ? phase.materials.links.map(l => `link-${l.id}`) : []),
+                              ...(Array.isArray(phase.materials?.texts) ? phase.materials.texts.map(t => `text-${t.id}`) : []),
+                              ...(Array.isArray(phase.materials?.exam) ? phase.materials.exam.map(f => `file-${f.id}`) : []),
+                            ])
+                          ));
+                          return phaseIds.length > 0 && phaseIds.every(id => selectedMaterials.includes(id));
+                        })()}
+                        indeterminate={(() => {
+                          const phaseIds = Array.from(new Set(
+                            (Array.isArray(phaseMaterials) ? phaseMaterials : []).flatMap(phase => [
+                              ...(Array.isArray(phase.materials?.videos) ? phase.materials.videos.map(v => `video-${v.id}`) : []),
+                              ...(Array.isArray(phase.materials?.live) ? phase.materials.live.map(s => `live-${s.id}`) : []),
+                              ...(Array.isArray(phase.materials?.links) ? phase.materials.links.map(l => `link-${l.id}`) : []),
+                              ...(Array.isArray(phase.materials?.texts) ? phase.materials.texts.map(t => `text-${t.id}`) : []),
+                              ...(Array.isArray(phase.materials?.exam) ? phase.materials.exam.map(f => `file-${f.id}`) : []),
+                            ])
+                          ));
+                          const count = phaseIds.filter(id => selectedMaterials.includes(id)).length;
+                          return count > 0 && count < phaseIds.length;
+                        })()}
+                        onChange={(e) => handleSelectPhaseAll(e.target.checked)}
+                        onClick={(e) => e.stopPropagation()}
                       />
                     </div>
                   </div>
