@@ -219,10 +219,10 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
       .map(s => ({ id: Date.now() + Math.floor(Math.random() * 100000), title: s.title, instructor: s.instructor, duration: s.duration, description: s.description, addedAt: new Date().toLocaleString(), type: 'course' }));
     if (coursesToAdd.length) setOrganizationalCourses(prev => [...prev, ...coursesToAdd]);
 
-    // 注入一条“直播课”到直播课分类（仅在目标主题下）
+    // 注入“直播课”到直播课分类（仅在目标主题下）
     const seedLiveStream = {
       id: 'org_ntm_stream_001',
-      title: '新教师教学方法培训第一期 · 直播',
+      title: '新教师教学方法培训第二期 · 直播',
       instructor: '教务处王老师',
       startTime: '2025-01-28 19:00',
       endTime: '2025-01-28 20:30',
@@ -231,9 +231,34 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
       participants: 256,
       status: 'scheduled'
     };
+    // 追加一条“已结束-回放”示例，用于演示点击即可播放
+    const seedLiveReplay = {
+      id: 'org_ntm_stream_001_replay',
+      title: '新教师教学方法培训第一期 · 回放',
+      instructor: '教务处王老师',
+      startTime: '2025-01-28 19:00',
+      endTime: '2025-01-28 20:30',
+      // 使用本地可播放 mp4 资源，确保点击后直接播放
+      replayUrl: '/assets/2.mp4',
+      url: '/assets/2.mp4',
+      platform: '',
+      participants: 256,
+      status: 'ended'
+    };
     const hasLiveStream = (Array.isArray(liveStreams) ? liveStreams : []).some(s => s.id === seedLiveStream.id || s.title === seedLiveStream.title);
-    if (!hasLiveStream && typeof setLiveStreams === 'function') {
-      setLiveStreams(prev => [...(Array.isArray(prev) ? prev : []), seedLiveStream]);
+    const hasLiveReplay = (Array.isArray(liveStreams) ? liveStreams : []).some(s => s.id === seedLiveReplay.id || s.title === seedLiveReplay.title);
+    if (typeof setLiveStreams === 'function') {
+      setLiveStreams(prev => {
+        const base = Array.isArray(prev) ? prev : [];
+        const next = [...base];
+        if (!hasLiveStream) next.push(seedLiveStream);
+        if (!hasLiveReplay) next.push(seedLiveReplay);
+        // 删除最后两条直播数据（当长度≥5）
+        if (next.length >= 5) {
+          return next.slice(0, next.length - 2);
+        }
+        return next;
+      });
     }
   }, [note?.id, note?.title, note?.category, note?.courseType, note?.source, note?.tags]);
 
@@ -1512,12 +1537,38 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                 })()}
                               </Text>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                                <Tag color={status === 'live' ? 'red' : 'gold'}>
+                                <Tag color={status === 'live' ? 'red' : (status === 'scheduled' ? 'gold' : 'blue')}>
                                   {status === 'live' ? '直播中' : (status === 'scheduled' ? '已预约' : '已结束')}
                                 </Tag>
-                                {stream.url && (
-                                  <Button type="link" size="small" onClick={(e) => { e.stopPropagation(); onViewMaterial(stream, 'live'); }}>
+                                {status === 'live' && stream.url && (
+                                  <Button
+                                    type="link"
+                                    size="small"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      window.open(stream.url, '_blank');
+                                    }}
+                                  >
                                     进入直播间
+                                  </Button>
+                                )}
+                                {status === 'ended' && (stream.replayUrl || stream.url) && (
+                                  <Button
+                                    type="link"
+                                    size="small"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const video = {
+                                        id: `replay-${stream.id}`,
+                                        title: `${stream.title}`,
+                                        url: stream.replayUrl || stream.url,
+                                        videoUrl: stream.replayUrl || stream.url,
+                                        instructor: stream.instructor
+                                      };
+                                      onViewMaterial(video, 'video');
+                                    }}
+                                  >
+                                    观看回放
                                   </Button>
                                 )}
                               </div>
