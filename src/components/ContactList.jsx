@@ -1,44 +1,146 @@
-import React from 'react';
-import { Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MoreVertical, Pin, Bell, X } from 'lucide-react';
+import { Dropdown, Tooltip } from 'antd';
 import './ContactList.css';
 
 const ContactList = ({ 
   contacts, 
   activeContact, 
-  onContactSelect, 
-  searchTerm, 
-  onSearchChange,
+  onContactSelect,
   totalUnreadCount 
 }) => {
-  // 获取过滤后的联系人
-  const getFilteredContacts = () => {
-    if (!searchTerm) return contacts;
-    return contacts.filter(contact => 
-      contact.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  // 置顶会话状态管理
+  const [pinnedContacts, setPinnedContacts] = useState([]);
+
+  // 监听置顶事件
+  useEffect(() => {
+    const handleContactPin = (event) => {
+      const { contactId } = event.detail;
+      const contact = contacts.find(c => c.id === contactId);
+      if (contact && !pinnedContacts.find(p => p.id === contactId)) {
+        setPinnedContacts(prev => [...prev, contact]);
+      }
+    };
+
+    window.addEventListener('contactPin', handleContactPin);
+    return () => window.removeEventListener('contactPin', handleContactPin);
+  }, [contacts, pinnedContacts]);
+
+  // 初始化默认置顶：系统消息与张老师
+  useEffect(() => {
+    if (!contacts || contacts.length === 0) return;
+    if (pinnedContacts.length > 0) return; // 避免覆盖用户操作
+    const defaultPinnedIds = ['system', 'user1'];
+    const initialPinned = contacts.filter(c => defaultPinnedIds.includes(c.id));
+    if (initialPinned.length) {
+      setPinnedContacts(initialPinned);
+    }
+  }, [contacts]);
+
+  // 取消置顶
+  const unpinContact = (contactId) => {
+    setPinnedContacts(prev => prev.filter(c => c.id !== contactId));
+  };
+
+  // 获取联系人（保留置顶会话在列表中）
+  const getUnpinnedContacts = () => {
+    return contacts;
+  };
+
+  // 事件派发辅助（交互占位，便于后续接入真实逻辑）
+  const dispatchAction = (type, contact) => {
+    window.dispatchEvent(new CustomEvent(type, { detail: { contactId: contact.id } }));
+  };
+
+  // 更多菜单项（按截图配置）
+  const getMoreMenuItems = (contact) => ([
+    { key: 'pin', label: '置顶', icon: <Pin size={16} />, onClick: () => dispatchAction('contactPin', contact) },
+    { key: 'clearUnread', label: '清除未读', icon: <Bell size={16} />, onClick: () => dispatchAction('contactClearUnread', contact) },
+    { key: 'mark', label: '标记', icon: <span className="menu-icon-flag" /> },
+    {
+      key: 'tags',
+      label: '标签',
+      icon: <span className="menu-icon-tag" />,
+      children: [
+        { key: 'tag-study', label: '学习', onClick: () => dispatchAction('contactTagStudy', contact) },
+        { key: 'tag-work', label: '工作', onClick: () => dispatchAction('contactTagWork', contact) },
+        { key: 'tag-important', label: '重要', onClick: () => dispatchAction('contactTagImportant', contact) },
+      ]
+    },
+    { key: 'notify', label: '允许消息通知', icon: <Bell size={16} />, onClick: () => dispatchAction('contactAllowNotify', contact) },
+    { key: 'collapse', label: '移入“折叠的会话”', icon: <span className="menu-icon-archive" />, onClick: () => dispatchAction('contactMoveToCollapsed', contact) },
+    { key: 'complete', label: '完成', icon: <span className="menu-icon-check" />, onClick: () => dispatchAction('contactComplete', contact) },
+    { type: 'divider' },
+    { key: 'openSidebar', label: '在导航栏打开', icon: <span className="menu-icon-sidebar" />, onClick: () => dispatchAction('contactOpenInSidebar', contact) },
+    { key: 'openWindow', label: '在独立窗口打开', icon: <span className="menu-icon-external" />, onClick: () => dispatchAction('contactOpenInWindow', contact) },
+  ]);
+
+  // 置顶区用的“更多”菜单：将“置顶”替换为“取消置顶”
+  const getMoreMenuItemsPinned = (contact) => {
+    const items = getMoreMenuItems(contact).filter(item => item.key !== 'pin');
+    return [
+      { key: 'unpin', label: '取消置顶', icon: <X size={16} />, onClick: () => unpinContact(contact.id) },
+      ...items,
+    ];
   };
 
   return (
     <div className="contacts-panel">
       <div className="contacts-header">
         <h2>消息</h2>
-        {totalUnreadCount > 0 && (
-          <span className="unread-badge">{totalUnreadCount}</span>
-        )}
       </div>
       
-      <div className="search-box">
-        <Search size={16} />
-        <input
-          type="text"
-          placeholder="搜索联系人..."
-          value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
-        />
-      </div>
+      {/* 置顶区域 */}
+      {pinnedContacts.length > 0 && (
+        <div className="pinned-section">
+          <div className="pinned-grid">
+            {pinnedContacts.map(contact => {
+              const displayName = contact.name && contact.name.length > 4 
+                ? `${contact.name.slice(0, 4)}…` 
+                : contact.name;
+              return (
+                <div 
+                  key={`pinned-${contact.id}`}
+                  className={`pinned-item ${activeContact === contact.id ? 'active' : ''}`}
+                  onClick={() => onContactSelect(contact.id)}
+                >
+                  <div className="pinned-icon">
+                    {contact.avatar ? (
+                      contact.avatar.startsWith('http') || contact.avatar.startsWith('/') ? (
+                        <img src={contact.avatar} alt={contact.name} />
+                      ) : (
+                        <div className="avatar-placeholder emoji-avatar">
+                          {contact.avatar}
+                        </div>
+                      )
+                    ) : (
+                      <div className="avatar-placeholder">
+                        {contact.name?.charAt(0)}
+                      </div>
+                    )}
+                    {/* 悬停显示更多 */}
+                    <div className="pinned-actions" onClick={(e) => e.stopPropagation()}>
+                      <Dropdown
+                        trigger={["click"]}
+                        placement="bottomRight"
+                        menu={{ items: getMoreMenuItemsPinned(contact) }}
+                      >
+                        <button className="pinned-more-btn" title="更多">
+                          <MoreVertical size={16} />
+                        </button>
+                      </Dropdown>
+                    </div>
+                  </div>
+                  <div className="pinned-name">{displayName}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
       
       <div className="contacts-list">
-        {getFilteredContacts().map(contact => (
+        {getUnpinnedContacts().map(contact => (
           <div 
             key={contact.id}
             className={`contact-item ${activeContact === contact.id ? 'active' : ''}`}
@@ -76,13 +178,36 @@ const ContactList = ({
                 <div className="unread-count">{contact.unreadCount}</div>
               )}
             </div>
+
+            {/* 悬停操作区：置顶、通知、更多 */}
+            <div className="contact-actions" onClick={(e) => e.stopPropagation()}>
+              <Tooltip title="置顶">
+                <button className="action-icon" onClick={() => dispatchAction('contactPin', contact)}>
+                  <Pin size={16} />
+                </button>
+              </Tooltip>
+              <Tooltip title="允许消息通知">
+                <button className="action-icon" onClick={() => dispatchAction('contactAllowNotify', contact)}>
+                  <Bell size={16} />
+                </button>
+              </Tooltip>
+              <Dropdown
+                trigger={["click"]}
+                placement="bottomRight"
+                menu={{ items: getMoreMenuItems(contact) }}
+              >
+                <button className="action-icon" title="更多">
+                  <MoreVertical size={16} />
+                </button>
+              </Dropdown>
+            </div>
           </div>
         ))}
         
-        {getFilteredContacts().length === 0 && (
+        {getUnpinnedContacts().length === 0 && pinnedContacts.length === 0 && (
           <div className="empty-contacts">
             <div className="empty-icon">👥</div>
-            <p>未找到联系人</p>
+            <p>暂无会话</p>
           </div>
         )}
       </div>

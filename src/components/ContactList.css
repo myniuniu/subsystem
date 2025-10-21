@@ -102,6 +102,208 @@
   transform: translateY(-50%) scale(1.1);
 }
 
+/* 置顶区域 */
+.pinned-section {
+  border-bottom: 1px solid rgba(52, 152, 219, 0.1);
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.02), rgba(155, 89, 182, 0.02));
+  margin: 0 4px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  overflow: hidden;
+}
+
+.pinned-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 8px;
+}
+
+.pinned-item {
+  width: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pinned-item:hover {
+  transform: translateY(-2px);
+}
+
+.pinned-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(52, 152, 219, 0.25);
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.12);
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.04), rgba(155, 89, 182, 0.04));
+  position: relative;
+}
+
+/* 置顶项悬停操作（更多） */
+.pinned-actions {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  opacity: 0; /* 默认隐藏 */
+  pointer-events: none;
+  z-index: 2;
+  transition: all 0.2s ease;
+}
+
+.pinned-item:hover .pinned-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.pinned-more-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.35);
+  cursor: pointer;
+}
+
+.pinned-item:hover .pinned-more-btn {
+  filter: brightness(1.05);
+  transform: scale(1.06);
+}
+
+.pinned-more-btn:hover {
+  background: linear-gradient(135deg, #3fa7ee, #2c82c9);
+}
+.pinned-icon .avatar-placeholder,
+.pinned-icon img {
+  width: 40px;
+  height: 40px;
+  box-shadow: none;
+}
+
+.pinned-name {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #2c3e50;
+  max-width: 64px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pinned-item.active .pinned-icon {
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+.pinned-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2c3e50;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pinned-count {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 18px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(52, 152, 219, 0.3);
+}
+
+.pinned-contacts {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.pinned-contact-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  border-bottom: 1px solid rgba(52, 152, 219, 0.05);
+}
+
+.pinned-contact-item:last-child {
+  border-bottom: none;
+}
+
+.pinned-contact-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.08), rgba(155, 89, 182, 0.08));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.pinned-contact-item:hover {
+  transform: translateX(2px);
+}
+
+.pinned-contact-item:hover::before {
+  opacity: 1;
+}
+
+.pinned-contact-item.active {
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.12), rgba(155, 89, 182, 0.1));
+  border-left: 3px solid #3498db;
+  transform: translateX(2px);
+}
+
+.pinned-contact-item.active::before {
+  opacity: 0;
+}
+
+/* 取消置顶按钮 */
+.unpin-action {
+  margin-left: auto;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.pinned-contact-item:hover .unpin-action {
+  opacity: 1;
+}
+
+.unpin-btn {
+  background: rgba(231, 76, 60, 0.1);
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #e74c3c;
+}
+
+.unpin-btn:hover {
+  background: rgba(231, 76, 60, 0.2);
+  transform: scale(1.1);
+}
+
 /* 联系人列表 */
 .contacts-list {
   flex: 1;
@@ -411,3 +613,51 @@
     font-size: 12px;
   }
 }
+
+/* 悬停操作区（右侧） */
+.contact-actions {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 8px;
+  padding: 4px 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.contact-item:hover .contact-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+.action-icon {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.action-icon:hover { 
+  background: rgba(22, 119, 255, 0.12);
+  color: #1677ff;
+}
+.action-icon svg { width: 16px; height: 16px; }
+
+/* 菜单图标占位（用CSS颜色区分） */
+.menu-icon-flag::before { content: "⚑"; color: #475569; }
+.menu-icon-tag::before { content: "🏷"; color: #0ea5e9; }
+.menu-icon-archive::before { content: "🗂"; color: #f59e0b; }
+.menu-icon-check::before { content: "✓"; color: #22c55e; font-weight: 700; }
+.menu-icon-sidebar::before { content: "▤"; color: #64748b; }
+.menu-icon-external::before { content: "⇱"; color: #ef4444; }

@@ -190,8 +190,31 @@ const ChatWindow = ({
                   </button>
                 </div>
               ) : (
-                <div className="contact-status">
-                  {currentContact.online ? '在线' : '离线'}
+                <div className="group-header-tabs">
+                  <button
+                    className={`group-tab ${groupHeaderTab === '消息' ? 'active' : ''}`}
+                    onClick={() => setGroupHeaderTab('消息')}
+                    title="消息"
+                  >
+                    <MessageSquare size={16} className="tab-icon messages" />
+                    <span>消息</span>
+                  </button>
+                  <button
+                    className={`group-tab ${groupHeaderTab === '云文档' ? 'active' : ''}`}
+                    onClick={() => setGroupHeaderTab('云文档')}
+                    title="云文档"
+                  >
+                    <FileText size={16} className="tab-icon docs" />
+                    <span>云文档</span>
+                  </button>
+                  <button
+                    className={`group-tab ${groupHeaderTab === '文件' ? 'active' : ''}`}
+                    onClick={() => setGroupHeaderTab('文件')}
+                    title="文件"
+                  >
+                    <Folder size={16} className="tab-icon files" />
+                    <span>文件</span>
+                  </button>
                 </div>
               )}
             </div>

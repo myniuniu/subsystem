@@ -684,7 +684,7 @@ const MessageCenter = ({ contacts: propContacts }) => {
 
   const [activeContact, setActiveContact] = useState('system');
   const [newMessage, setNewMessage] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+
 
   // 模拟“我”的多条消息，用于快速演示
   const simulateMyMessages = (count = 3) => {
@@ -840,13 +840,7 @@ const MessageCenter = ({ contacts: propContacts }) => {
     return messageHistory[activeContact] || [];
   };
 
-  // 获取过滤后的联系人
-  const getFilteredContacts = () => {
-    if (!searchTerm) return contacts;
-    return contacts.filter(contact => 
-      contact.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  };
+
 
   // 获取总未读数
   const getTotalUnreadCount = () => {
@@ -865,8 +859,6 @@ const MessageCenter = ({ contacts: propContacts }) => {
         contacts={contacts}
         activeContact={activeContact}
         onContactSelect={setActiveContact}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
         totalUnreadCount={getTotalUnreadCount()}
       />
       
