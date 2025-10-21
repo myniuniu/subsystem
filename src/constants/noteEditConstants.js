@@ -93,7 +93,8 @@ export const VIEW_MODES = {
   LEARNING_PLAN_CALENDAR: 'learning_plan_calendar',
   LEARNING_PLAN_THREE_COLUMN: 'learning_plan_three_column',
   CLASSROOM_EVALUATION_FULLSCREEN: 'classroom_evaluation_fullscreen',
-  TRAINING_PLAN_FULLSCREEN: 'training_plan_fullscreen'
+  TRAINING_PLAN_FULLSCREEN: 'training_plan_fullscreen',
+  TRAINING_PLAN_THREE_COLUMN: 'training_plan_three_column'
 };
 
 // 右侧面板视图常量

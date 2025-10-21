@@ -350,6 +350,10 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   const [rightPanelTrainingPlanRecord, setRightPanelTrainingPlanRecord] = useState(null);
   const [rightPanelTrainingPlanContent, setRightPanelTrainingPlanContent] = useState('');
 
+  // 左侧培训方案查看状态（内联）
+  const [leftPanelTrainingPlanRecord, setLeftPanelTrainingPlanRecord] = useState(null);
+  const [leftPanelTrainingPlanContent, setLeftPanelTrainingPlanContent] = useState(null);
+
   // 能力模型相关状态
   const [capabilityMap, setCapabilityMap] = useState(null);
   const [capabilityVideos, setCapabilityVideos] = useState([]);
@@ -615,6 +619,12 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
     setRightPanelTrainingPlanRecord,
     rightPanelTrainingPlanContent,
     setRightPanelTrainingPlanContent,
+
+    // 左侧培训方案状态
+    leftPanelTrainingPlanRecord,
+    setLeftPanelTrainingPlanRecord,
+    leftPanelTrainingPlanContent,
+    setLeftPanelTrainingPlanContent,
 
     // 能力模型和知识图谱状态
     capabilityMap,

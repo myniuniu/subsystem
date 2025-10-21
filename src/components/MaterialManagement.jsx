@@ -274,6 +274,34 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
 
   // 添加计划标识显示状态管理
   const [showPlannedLabels, setShowPlannedLabels] = useState(false);
+
+  // 组织培训：置顶培训项目注入（来源于“培训需求管理”生成的培训方案）
+  const [trainingProjects, setTrainingProjects] = useState([]);
+  useEffect(() => {
+    const isOrgTraining =
+      note?.category === 'organizational_training' ||
+      note?.courseType === 'organizational_training' ||
+      note?.source === '组织培训' ||
+      (Array.isArray(note?.tags) && note.tags.includes('组织培训'));
+    if (!isOrgTraining) return;
+
+    const nowISO = new Date().toISOString();
+    const seedProj = {
+      id: 'tp_org_new_teacher_online_001',
+      title: '新教师入职线上培训具体方案',
+      category: 'training_project',
+      originCategory: 'training_needs_management',
+      sourceType: '培训方案',
+      pinned: true,
+      addTime: nowISO
+    };
+    setTrainingProjects(prev => {
+      const list = Array.isArray(prev) ? prev : [];
+      if (list.some(p => p.title === seedProj.title)) return list;
+      return [seedProj, ...list];
+    });
+  }, [note?.id, note?.category, note?.courseType, note?.source, note?.tags]);
+
   // 课程层级结构索引（章/节数量摘要）
   const courseStructureIndex = useMemo(() => {
     let index = new Map();
@@ -340,14 +368,15 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
   const [highlightVideoId, setHighlightVideoId] = useState(null);
   // 课程视频视图模式：平铺视图 或 层级视图
   const [videoViewMode, setVideoViewMode] = useState('flat');
-  // 各来源类型分区折叠状态（课程视频、直播课、考试文件、普通文件、链接、文本）
+  // 各来源类型分区折叠状态（课程视频、直播课、考试文件、普通文件、链接、文本、培训项目）
   const [collapsedSections, setCollapsedSections] = useState({
     videos: false,
     live: false,
     examFiles: false,
     files: false,
     links: false,
-    texts: false
+    texts: false,
+    trainingProjects: false
   });
   const toggleSection = (key) => {
     setCollapsedSections(prev => ({ ...prev, [key]: !prev[key] }));
@@ -370,11 +399,11 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
 
   // 全部展开/全部折叠
   const expandAllSections = () => {
-    setCollapsedSections({ videos: false, live: false, examFiles: false, files: false, links: false, texts: false });
+    setCollapsedSections({ videos: false, live: false, examFiles: false, files: false, links: false, texts: false, trainingProjects: false });
     setCollapsedGroups(new Set());
   };
   const collapseAllSections = () => {
-    setCollapsedSections({ videos: true, live: true, examFiles: true, files: true, links: true, texts: true });
+    setCollapsedSections({ videos: true, live: true, examFiles: true, files: true, links: true, texts: true, trainingProjects: true });
     setCollapsedGroups(new Set(allCourseIds));
   };
 
@@ -727,7 +756,8 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
         ...displayCourseVideos.map(video => `video-${video.id}`),
         ...links.map(link => `link-${link.id}`),
         ...organizationalCourses.map(course => `course-${course.id}`),
-        ...(Array.isArray(liveStreams) ? liveStreams.map(stream => `live-${stream.id}`) : [])
+        ...(Array.isArray(liveStreams) ? liveStreams.map(stream => `live-${stream.id}`) : []),
+        ...(Array.isArray(trainingProjects) ? trainingProjects.map(p => `project-${p.id}`) : [])
       ];
       setSelectedMaterials(allMaterialIds);
     } else {
@@ -755,6 +785,9 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
           break;
         case 'course':
           setOrganizationalCourses(prev => prev.filter(course => course.id !== numId));
+          break;
+        case 'project':
+          setTrainingProjects(prev => prev.filter(p => p.id !== id));
           break;
         case 'live':
           setLiveStreams(prev => {
@@ -805,7 +838,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
 
   return (
     <div style={{ 
-      flex: currentView === 'video' ? 4 : (viewMode === 'map' ? 4 : 2.5), 
+      flex: (currentView === 'video' || currentView === VIEW_MODES.TRAINING_PLAN_THREE_COLUMN) ? 4 : (viewMode === 'map' ? 4 : 2.5), 
       background: '#fff', 
       margin: '16px 0 16px 16px', 
       borderRadius: '8px', 
@@ -914,7 +947,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {/* 全局折叠/展开单一图标按钮 */}
-            <Tooltip title={collapsedSections.videos && collapsedSections.live && collapsedSections.examFiles && collapsedSections.files && collapsedSections.links && collapsedSections.texts && collapsedGroups.size === allCourseIds.length ? '全部展开' : '全部折叠'}>
+            <Tooltip title={collapsedSections.videos && collapsedSections.live && collapsedSections.examFiles && collapsedSections.files && collapsedSections.links && collapsedSections.texts && collapsedSections.trainingProjects && collapsedGroups.size === allCourseIds.length ? '全部展开' : '全部折叠'}>
               <Button 
                 size="small"
                 type="default"
@@ -926,6 +959,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                     collapsedSections.files &&
                     collapsedSections.links &&
                     collapsedSections.texts &&
+                    collapsedSections.trainingProjects &&
                     collapsedGroups.size === allCourseIds.length
                   );
                   if (allCollapsed) {
@@ -941,6 +975,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                   collapsedSections.files &&
                   collapsedSections.links &&
                   collapsedSections.texts &&
+                  collapsedSections.trainingProjects &&
                   collapsedGroups.size === allCourseIds.length
                   ? <DownOutlined />
                   : <RightOutlined />
@@ -954,16 +989,17 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                   collapsedSections.files &&
                   collapsedSections.links &&
                   collapsedSections.texts &&
+                  collapsedSections.trainingProjects &&
                   collapsedGroups.size === allCourseIds.length
                 ) ? '全部展开' : '全部折叠'}
               </Button>
             </Tooltip>
             <Checkbox 
               checked={selectedMaterials.length > 0 && selectedMaterials.length === (
-                uploadedFiles.length + addedTexts.length + displayCourseVideos.length + links.length + organizationalCourses.length + liveStreams.length
+                uploadedFiles.length + addedTexts.length + displayCourseVideos.length + links.length + organizationalCourses.length + liveStreams.length + (trainingProjects?.length || 0)
               )}
               indeterminate={selectedMaterials.length > 0 && selectedMaterials.length < (
-                uploadedFiles.length + addedTexts.length + displayCourseVideos.length + links.length + organizationalCourses.length + liveStreams.length
+                uploadedFiles.length + addedTexts.length + displayCourseVideos.length + links.length + organizationalCourses.length + liveStreams.length + (trainingProjects?.length || 0)
               )}
               onChange={(e) => handleSelectAll(e.target.checked)}
             />
@@ -1057,6 +1093,74 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
           ) : (
             /* 卡片模式 - 原有的资料列表显示 */
             <div>
+              {/* 培训项目（置顶） */}
+              {trainingProjects.length > 0 && (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {collapsedSections.trainingProjects ? (
+                        <RightOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('trainingProjects')} />
+                      ) : (
+                        <DownOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('trainingProjects')} />
+                      )}
+                      <Text strong style={{ fontSize: '12px', color: '#666' }}>
+                        📌 培训项目 ({trainingProjects.length})
+                      </Text>
+                    </div>
+                  </div>
+                  {!collapsedSections.trainingProjects && trainingProjects.map(p => (
+                    <Card
+                      key={`project-${p.id}`}
+                      size="small"
+                      style={{ marginBottom: 8, border: '1px solid #e8e8e8', position: 'relative' }}
+                      bodyStyle={{ padding: '8px 12px' }}
+                      onClick={() => handlers?.onViewTrainingProject && handlers.onViewTrainingProject(p)}
+                      onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`project-${p.id}`]: true }))}
+                      onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`project-${p.id}`]: false }))}
+                    >
+                      <div style={{ position: 'absolute', top: 6, right: 8, display: 'flex', gap: 8, background: 'rgba(255,255,255,0.85)', borderRadius: 4, padding: '2px 6px', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', opacity: hoveredItems?.[`project-${p.id}`] ? 1 : 0, transition: 'opacity 0.2s', pointerEvents: hoveredItems?.[`project-${p.id}`] ? 'auto' : 'none' }}>
+                        {hoveredItems?.[`project-${p.id}`] ? (
+                          <Dropdown
+                            trigger={['click']}
+                            placement="bottomLeft"
+                            menu={{
+                              items: [
+                                {
+                                  key: 'delete',
+                                  icon: <DeleteOutlined />,
+                                  label: '删除',
+                                  onClick: () => setTrainingProjects(prev => prev.filter(x => x.id !== p.id))
+                                }
+                              ]
+                            }}
+                          >
+                            <Button type="link" size="small" icon={<MoreOutlined />} onClick={(e) => e.stopPropagation()} />
+                          </Dropdown>
+                        ) : (
+                          <></>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0, gap: 8, cursor: 'pointer' }} onClick={() => handlers?.onViewTrainingProject && handlers.onViewTrainingProject(p)}>
+                          {p.pinned && <Tag color="gold">置顶</Tag>}
+                          <Text strong style={{ fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {p.title}
+                          </Text>
+                          <Tag color="blue">{p.sourceType || '培训方案'}</Tag>
+                          <Text type="secondary" style={{ fontSize: 10 }}>
+                            {p.addTime}
+                          </Text>
+                        </div>
+                        <Checkbox
+                          checked={selectedMaterials.includes(`project-${p.id}`)}
+                          onChange={(e) => handleSelectMaterial(`project-${p.id}`, e.target.checked)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
               {/* 课程视频列表（按课程分组，支持一课多视频） */}
               {displayCourseVideos.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
@@ -2003,7 +2107,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
               )}
 
               {/* 空状态显示 */}
-              {courseVideos.length === 0 && examFiles.length === 0 && nonExamFiles.length === 0 && links.length === 0 && addedTexts.length === 0 && (
+              {courseVideos.length === 0 && examFiles.length === 0 && nonExamFiles.length === 0 && links.length === 0 && addedTexts.length === 0 && trainingProjects.length === 0 && (
                 <div style={{ textAlign: 'center', padding: '40px 20px', color: '#999' }}>
                   <FileTextOutlined style={{ fontSize: 32, marginBottom: 16, color: '#ccc' }} />
                   <div style={{ fontSize: 14 }}>暂无资料</div>

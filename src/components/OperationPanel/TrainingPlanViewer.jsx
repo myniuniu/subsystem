@@ -45,7 +45,8 @@ const TrainingPlanViewer = ({
   setRightPanelTrainingPlanRecord,
   setRightPanelTrainingPlanContent,
   isFullscreen = false,
-  setCurrentView
+  setCurrentView,
+  hideButtons = false
 }) => {
   // 编辑模式状态
   const [isEditing, setIsEditing] = useState(false);
@@ -512,32 +513,34 @@ const TrainingPlanViewer = ({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* 头部操作栏 */}
-      <div style={{ 
-        padding: '16px', 
-        borderBottom: '1px solid #f0f0f0',
-        background: '#fff'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      {/* 头部操作栏（可隐藏） */}
+      {!hideButtons && (
+        <div style={{ 
+          padding: '16px', 
+          borderBottom: '1px solid #f0f0f0',
+          background: '#fff'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Button 
+                icon={<ArrowLeftOutlined />} 
+                onClick={handleBack}
+                type="text"
+              >
+                返回
+              </Button>
+              <Title level={4} style={{ margin: 0 }}>{newTeacherTrainingPlan.title}</Title>
+            </div>
             <Button 
-              icon={<ArrowLeftOutlined />} 
-              onClick={handleBack}
-              type="text"
+              type="primary"
+              icon={<EditOutlined />}
+              onClick={handleEdit}
             >
-              返回
+              编辑
             </Button>
-            <Title level={4} style={{ margin: 0 }}>{newTeacherTrainingPlan.title}</Title>
           </div>
-          <Button 
-            type="primary"
-            icon={<EditOutlined />}
-            onClick={handleEdit}
-          >
-            编辑
-          </Button>
         </div>
-      </div>
+      )}
 
       {/* 主要内容区域 */}
       <div style={{ 
@@ -620,16 +623,18 @@ const TrainingPlanViewer = ({
                       <Text type="secondary" style={{ fontSize: '12px' }}>点击标签实时查看对应人员；可打开管理进行编辑</Text>
                     </div>
                   </Space>
-                  <Space>
-                    <Button icon={<EditOutlined />} onClick={() => setTagsModalVisible(true)}>管理标签</Button>
-                    <Button 
-                      type="primary" 
-                      icon={<DownloadOutlined />}
-                      onClick={handleDownloadParticipantsList}
-                    >
-                      下载清单
-                    </Button>
-                  </Space>
+                  {!hideButtons && (
+                    <Space>
+                      <Button icon={<EditOutlined />} onClick={() => setTagsModalVisible(true)}>管理标签</Button>
+                      <Button 
+                        type="primary" 
+                        icon={<DownloadOutlined />}
+                        onClick={handleDownloadParticipantsList}
+                      >
+                        下载清单
+                      </Button>
+                    </Space>
+                  )}
                 </div>
                 <div style={{ marginTop: 12 }}>
                   <Space wrap>

@@ -16,7 +16,7 @@ import {
   Avatar,
   Space
 } from 'antd';
-import { ArrowLeftOutlined, MessageOutlined, VideoCameraOutlined, AudioOutlined, AudioMutedOutlined, StopOutlined, ShareAltOutlined, TeamOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, DownloadOutlined, MessageOutlined, VideoCameraOutlined, AudioOutlined, AudioMutedOutlined, StopOutlined, ShareAltOutlined, TeamOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { getNewTeacherTrainingMessages } from '../data/trainingDiscussionMessages';
 
@@ -43,6 +43,7 @@ import CalendarCenter from './CalendarCenter';
 import ClassroomEvaluationFullscreen from './ClassroomEvaluationFullscreen';
 import ThemeSelectModal from './ThemeSelectModal';
 import TrainingPlanViewer from './OperationPanel/TrainingPlanViewer';
+import SimpleTrainingPlanDetailView from './SimpleTrainingPlanDetailView';
 import notesService from '../services/notesService';
 
 // 导入hooks和工具
@@ -440,6 +441,20 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
     },
     onCapabilityVideoClick: (video) => {
       console.log('点击能力视频:', video);
+    },
+    onViewTrainingProject: (project) => {
+      try {
+        // 显示原始 PDF，确保与“新教师入职线上培训具体方案”内容一模一样
+        const pdfUrl = new URL('../../assets/新教师入职线上培训具体方案.pdf', import.meta.url).href;
+
+        state.setLeftPanelTrainingPlanRecord(project);
+        state.setLeftPanelTrainingPlanContent({ pdfUrl });
+        setCurrentView(VIEW_MODES.TRAINING_PLAN_THREE_COLUMN);
+        message.success(`打开培训方案：${project.title}`);
+      } catch (err) {
+        console.error('打开培训方案失败:', err);
+        message.error('打开培训方案失败');
+      }
     },
     onKnowledgeNodeClick: (node) => {
       console.log('点击知识节点:', node);
@@ -1474,6 +1489,38 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                   habits={['morning', 'evening']}
                   selectedDate={dayjs()}
                   onDateChange={(date) => console.log('日期变更:', date)}
+                />
+              </div>
+            ) : currentView === VIEW_MODES.TRAINING_PLAN_THREE_COLUMN ? (
+              /* 培训方案三栏模式：占据左侧区域 */
+              <div style={{ 
+                flex: 4.6, 
+                background: '#fff', 
+                margin: '16px 0 16px 16px', 
+                borderRadius: '8px', 
+                overflow: 'hidden', 
+                display: 'flex', 
+                flexDirection: 'column',
+                transition: 'flex 0.3s ease'
+              }}>
+                <div style={{ padding: '8px 12px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', background: '#fafafa' }}>
+                  <Button 
+                    size="small"
+                    icon={<ArrowLeftOutlined />} 
+                    onClick={() => setCurrentView(VIEW_MODES.MATERIALS)}
+                  >
+                    返回资料区
+                  </Button>
+                </div>
+                <TrainingPlanViewer 
+                  rightPanelTrainingPlanRecord={state.leftPanelTrainingPlanRecord}
+                  rightPanelTrainingPlanContent={state.leftPanelTrainingPlanContent}
+                  setRightPanelView={state.setRightPanelView}
+                  setRightPanelTrainingPlanRecord={state.setLeftPanelTrainingPlanRecord}
+                  setRightPanelTrainingPlanContent={state.setLeftPanelTrainingPlanContent}
+                  isFullscreen={true}
+                  setCurrentView={setCurrentView}
+                  hideButtons={true}
                 />
               </div>
             ) : (
