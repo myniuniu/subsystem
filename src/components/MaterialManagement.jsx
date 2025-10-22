@@ -43,7 +43,8 @@ import KnowledgeGraphMindMap from './KnowledgeGraphMindMap.jsx';
     RightOutlined,
     FolderOutlined,
     AppstoreOutlined,
-    ExclamationCircleOutlined
+    ExclamationCircleOutlined,
+    CheckCircleOutlined
   } from '@ant-design/icons';
 import { Grid, Map as MapIcon } from 'lucide-react';
 import { VIEW_MODES } from '../constants/noteEditConstants';
@@ -672,7 +673,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     files: true,
     links: true,
     texts: true,
-    trainingProjects: true
+    trainingProjects: false
   });
   const toggleSection = (key) => {
     setCollapsedSections(prev => ({ ...prev, [key]: !prev[key] }));
@@ -932,7 +933,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     if (exams.length > 0) categories.push({ key: 'exam', label: '考试/试卷', hours: 0, score: examScoreSum });
     if (linksArr.length > 0) categories.push({ key: 'links', label: '阅读材料', hours: 0, score: null });
     if (textsArr.length > 0) categories.push({ key: 'texts', label: '反思文本', hours: 0, score: null });
-    if (projectsArr.length > 0) categories.push({ key: 'projects', label: '培训项目', hours: 0, score: null });
+    if (projectsArr.length > 0) categories.push({ key: 'projects', label: '培训项目资料', hours: 0, score: null });
 
     const totalHours = categories.reduce((sum, c) => sum + (Number(c.hours) || 0), 0);
     const totalScore = categories.reduce((sum, c) => {
@@ -1649,7 +1650,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                         <DownOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('trainingProjects')} />
                       )}
                       <Text strong style={{ fontSize: '12px', color: '#666' }}>
-                        📌 培训项目 ({trainingProjects.length})
+                        📌 培训项目资料 ({trainingProjects.length})
                       </Text>
                     </div>
                   </div>
@@ -1687,7 +1688,6 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0, gap: 8, cursor: 'pointer' }} onClick={() => handlers?.onViewTrainingProject && handlers.onViewTrainingProject(p)}>
-                          {p.pinned && <Tag color="gold">置顶</Tag>}
                           <Text strong style={{ fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {p.title}
                           </Text>
@@ -1711,7 +1711,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                 <div style={{ marginBottom: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#f8f9fa', borderRadius: 8, border: '1px solid #e9ecef', marginBottom: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <Text strong style={{ fontSize: '12px', color: '#666' }}>📆 阶段视图</Text>
+                      <Text strong style={{ fontSize: '12px', color: '#666' }}>📦 模块</Text>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <Button
@@ -1786,7 +1786,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                 { key: 'exam', present: Array.isArray(m.exam) && m.exam.length > 0, label: '考试/试卷', color: 'purple' },
                                 { key: 'links', present: Array.isArray(m.links) && m.links.length > 0, label: '阅读材料', color: 'blue' },
                                 { key: 'texts', present: Array.isArray(m.texts) && m.texts.length > 0, label: '文本', color: 'gold' },
-                                { key: 'projects', present: Array.isArray(m.trainingProjects) && m.trainingProjects.length > 0, label: '培训项目', color: 'green' }
+                                { key: 'projects', present: Array.isArray(m.trainingProjects) && m.trainingProjects.length > 0, label: '培训项目资料', color: 'green' }
                               ];
                               return tagSpecs
                                 .filter(t => t.present)
@@ -1795,18 +1795,23 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                             })()}
                           </div>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
                           <Text type="secondary" style={{ fontSize: 12, color: '#666' }}>
                             {phase.startTime || '未定'} • {phase.endTime || '未定'}
                           </Text>
                           {(phaseViewCompactMode || collapsedPhases.has(phase.id)) && (() => {
                             const status = assessPhasePass(phase);
-                            if (status.pass) return null;
+                            const barColor = status.pass ? '#52c41a' : '#ff4d4f';
                             return (
                               <Tooltip title={status.tooltip}>
-                                <Tag color="red" style={{ marginLeft: 8 }}>
-                                  <ExclamationCircleOutlined style={{ marginRight: 4 }} /> 未达标
-                                </Tag>
+                                <div style={{ width: 120 }}>
+                                  <Progress
+                                    percent={Math.round(status.progress ?? 0)}
+                                    showInfo={false}
+                                    size="small"
+                                    strokeColor={barColor}
+                                  />
+                                </div>
                               </Tooltip>
                             );
                           })()}
@@ -1816,20 +1821,27 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                       {!(phaseViewCompactMode || collapsedPhases.has(phase.id)) && (() => {
                         const ps = computePhaseCategorySummary(phase);
                         if (!ps || !Array.isArray(ps.categories) || ps.categories.length === 0) return null;
+                        const categories = ps.categories;
                         return (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 10px', background: '#fffbe6', border: '1px solid #ffe58f', borderRadius: 6, margin: '6px 0' }}>
-                            {ps.categories.map((c, idx) => (
-                              <div key={`phase-${phase.id}-cat-${c.key}`} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <Text style={{ fontSize: 12, color: '#614700' }}>{c.label}：</Text>
-                                <Text style={{ fontSize: 12, color: '#333' }}>学时：{(c.hours ?? 0)}</Text>
-                                <Text style={{ fontSize: 12, color: '#333' }}>成绩：{(c.score == null ? '未评分' : `${c.score}分`)}</Text>
-                                {idx < ps.categories.length - 1 && <Divider type="vertical" />}
+                          <div style={{ padding: '8px 10px', background: '#fffbe6', border: '1px solid #ffe58f', borderRadius: 6, margin: '6px 0' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+                              {categories.map((c) => (
+                                <div key={`phase-${phase.id}-cat-${c.key}`} style={{ background: '#ffffff', border: '1px solid #f0e1a0', borderRadius: 6, padding: '6px 8px' }}>
+                                  <Text style={{ fontSize: 12, color: '#614700', fontWeight: 600 }}>{c.label}</Text>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+                                    <Text style={{ fontSize: 12, color: '#333' }}>学时：{(c.hours ?? 0)}</Text>
+                                    <Text style={{ fontSize: 12, color: '#333' }}>成绩：{(c.score == null ? '未评分' : `${c.score}分`)}</Text>
+                                  </div>
+                                </div>
+                              ))}
+                              <div style={{ background: '#ffffff', border: '1px dashed #ffe58f', borderRadius: 6, padding: '6px 8px' }}>
+                                <Text style={{ fontSize: 12, color: '#614700', fontWeight: 600 }}>总计</Text>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+                                  <Text style={{ fontSize: 12, color: '#333' }}>总学时：{ps.totalHours}</Text>
+                                  <Text style={{ fontSize: 12, color: '#333' }}>总成绩：{ps.totalScore}分</Text>
+                                </div>
                               </div>
-                            ))}
-                            <Divider type="vertical" />
-                            <Text style={{ fontSize: 12, color: '#333' }}>总学时：{ps.totalHours}</Text>
-                            <Divider type="vertical" />
-                            <Text style={{ fontSize: 12, color: '#333' }}>总成绩：{ps.totalScore}分</Text>
+                            </div>
                           </div>
                         );
                       })()}

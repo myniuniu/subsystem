@@ -544,91 +544,16 @@ const NotesList = ({
                 if (shouldShow && hasVideoInfo) {
                   return (
                     <div className="video-progress-section" style={{ marginTop: 12, marginBottom: 8 }}>
-                      {note.videoInfo.type === 'single_video' ? (
-                        <div className="single-video-progress">
-                          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
-                            <Text style={{ fontSize: 12, color: isCompleted ? '#8c8c8c' : '#666', marginRight: 8 }}>
-                              🎥 视频学习进度
-                            </Text>
-                            <Text style={{ fontSize: 11, color: isCompleted ? '#8c8c8c' : '#999' }}>
-                              {note.videoInfo.progress}%
-                            </Text>
-                          </div>
-                          <Progress 
-                            percent={note.videoInfo.progress} 
-                            size="small" 
-                            strokeColor={
-                              isCompleted ? '#8c8c8c' : (
-                                note.videoInfo.progress === 100 ? '#52c41a' : 
-                                note.videoInfo.progress >= 50 ? '#1890ff' : '#faad14'
-                              )
-                            }
-                            showInfo={false}
-                            style={{ marginBottom: 2 }}
-                          />
-                          <div style={{ marginTop: 2 }}>
-                            <Text style={{ fontSize: 10, color: isCompleted ? '#8c8c8c' : '#666' }}>
-                              总学时 {(() => {
-                                const d = Number(note.videoInfo.duration || 0);
-                                return Math.round((d / 3600) * 10) / 10;
-                              })()}小时 • 总进度 {note.videoInfo.progress}% • 成绩 {(() => {
-                                const s = (note.score != null ? note.score : (note.videoInfo && note.videoInfo.score != null ? note.videoInfo.score : null));
-                                if (s != null) return `${Math.round(Number(s))}分`;
-                                const baseStr = String(note.id || note.title || 'note') + '-score';
-                                let hash = 0;
-                                for (let i = 0; i < baseStr.length; i++) {
-                                  hash = ((hash << 5) - hash) + baseStr.charCodeAt(i);
-                                  hash |= 0;
-                                }
-                                const rnd = Math.abs(hash % 100) + 1; // 1~100
-                                return `${rnd}分`;
-                              })()}
-                            </Text>
-                          </div>
-                        </div>
-                      ) : note.videoInfo.type === 'multi_video' ? (
-                        <div className="multi-video-progress">
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                            <Text style={{ fontSize: 12, color: isCompleted ? '#8c8c8c' : '#666' }}>
-                              🎥 视频课程 ({note.videoInfo.totalVideos}个视频)
-                            </Text>
-                            <Text style={{ fontSize: 11, color: isCompleted ? '#8c8c8c' : '#999' }}>
-                              {note.videoInfo.overallProgress}%
-                            </Text>
-                          </div>
-                          <Progress 
-                            percent={note.videoInfo.overallProgress} 
-                            size="small" 
-                            strokeColor={
-                              isCompleted ? '#8c8c8c' : (
-                                note.videoInfo.overallProgress === 100 ? '#52c41a' : 
-                                note.videoInfo.overallProgress >= 50 ? '#1890ff' : '#faad14'
-                              )
-                            }
-                            showInfo={false}
-                            style={{ marginBottom: 2 }}
-                          />
-                          <Text style={{ fontSize: 10, color: isCompleted ? '#8c8c8c' : '#aaa' }}>
-                            已学习 {Math.round(note.videoInfo.watchedDuration / 60)}分钟 / 共 {Math.round(note.videoInfo.totalDuration / 60)}分钟
-                          </Text>
-                          <div style={{ marginTop: 2 }}>
-                            <Text style={{ fontSize: 10, color: isCompleted ? '#8c8c8c' : '#666' }}>
-                              总学时 {Math.round((note.videoInfo.totalDuration / 3600) * 10) / 10}小时 • 总进度 {note.videoInfo.overallProgress}% • 成绩 {(() => {
-                                const s = (note.score != null ? note.score : (note.videoInfo && note.videoInfo.score != null ? note.videoInfo.score : null));
-                                if (s != null) return `${Math.round(Number(s))}分`;
-                                const baseStr = String(note.id || note.title || 'note') + '-score';
-                                let hash = 0;
-                                for (let i = 0; i < baseStr.length; i++) {
-                                  hash = ((hash << 5) - hash) + baseStr.charCodeAt(i);
-                                  hash |= 0;
-                                }
-                                const rnd = Math.abs(hash % 100) + 1; // 1~100
-                                return `${rnd}分`;
-                              })()}
-                            </Text>
-                          </div>
-                        </div>
-                      ) : null}
+                      <Progress
+                        percent={(() => {
+                          const vi = note.videoInfo || {};
+                          if (vi.type === 'single_video') return vi.progress || 0;
+                          if (vi.type === 'multi_video') return vi.overallProgress || 0;
+                          return 0;
+                        })()}
+                        size="small"
+                        showInfo
+                      />
                     </div>
                   );
                 }
