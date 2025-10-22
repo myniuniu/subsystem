@@ -46,6 +46,7 @@ import PWAInstallButton from './components/PWAInstallButton'
 import ModelRegistry from './components/ModelRegistry'
 import ModelTrainingTemplate from './components/ModelTrainingTemplate'
 import ModelTrainingDetail from './components/ModelTrainingDetail'
+import MyCertificates from './components/MyCertificates'
 
 import './App.css'
 import notesService from './services/notesService'
@@ -414,6 +415,8 @@ function App() {
               <ModelRegistry />
             ) : currentView === 'smart-notes' ? (
               <SmartNotes onViewChange={handleViewChange} />
+            ) : currentView === 'my-certificates' ? (
+              <MyCertificates />
             ) : currentView === 'my-medals' ? (
               <MyMedals />
             ) : currentView === 'ai-tool-house' ? (

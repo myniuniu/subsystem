@@ -896,7 +896,7 @@ const NotesSidebar = ({
         <div className="sidebar-top">
           {/* 搜索框 */}
           <Search
-            placeholder="搜索笔记..."
+            placeholder="搜索主题"
             allowClear
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}

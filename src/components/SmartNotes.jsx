@@ -82,6 +82,7 @@ import mockDataGenerator from '../utils/mockDataGenerator';
 import { TRAINING_STATUS, getTrainingStatusInfo } from '../utils/trainingStatusUtils';
 import { generateTrainingProductDevelopmentData } from '../data/trainingProductDevelopmentData';
 import './SmartNotes.css';
+import certificateService from '../services/certificateService';
 
 const { Content, Sider } = Layout;
 const { Search } = Input;
@@ -395,6 +396,74 @@ const SmartNotes = ({ onViewChange }) => {
       // 检查localStorage原始数据
       const rawData = localStorage.getItem('smart_notes_data');
       console.log('localStorage原始数据长度:', rawData ? rawData.length : 0);
+
+      // 在初始化阶段，模拟“已结束主题”的两种证书场景
+      try {
+        const orgNotes = Array.isArray(notesData) ? notesData.filter(note => (
+          note?.courseType === 'organizational_training' ||
+          note?.source === '组织培训' ||
+          (note?.tags && note.tags.includes('组织培训')) ||
+          note?.category === 'organizational_training' ||
+          (note?.title && note.title.includes('【组织培训】'))
+        )) : [];
+
+        orgNotes.forEach(note => {
+          try {
+            const ts = getTrainingStatusInfo(note);
+            if (!ts || !ts.isCompleted) return; // 只针对已结束的主题
+            // 使用稳定的规则为部分主题颁发证书（其余保持未颁证），用于演示
+            const key = String(note.id || note.title || '');
+            const sum = Array.from(key).reduce((a, ch) => a + ch.charCodeAt(0), 0);
+            const shouldIssue = (sum % 2) === 0; // 偶数：颁证；奇数：不颁证
+            if (shouldIssue) {
+              certificateService.ensureCertificateForTopic({ topicId: note.id, topicTitle: note.title });
+            }
+          } catch (e) {}
+        });
+      } catch (e) {
+        console.warn('初始化证书演示数据失败:', e);
+      }
+
+      // 一次性迁移：精确将“信息技术与教学创新”改为达标并取消证书
+      try {
+        const MIGRATION_KEY = 'migration_mark_it_tech_innov_achieved_and_cancel_cert_done';
+        const alreadyDone = localStorage.getItem(MIGRATION_KEY) === 'true';
+        if (!alreadyDone) {
+          const orgNotes = Array.isArray(notesData) ? notesData.filter(note => (
+            note?.courseType === 'organizational_training' ||
+            note?.source === '组织培训' ||
+            (note?.tags && note.tags.includes('组织培训')) ||
+            note?.category === 'organizational_training' ||
+            (note?.title && note.title.includes('【组织培训】'))
+          )) : [];
+
+          const target = orgNotes.find(note => (note?.title || '').includes('信息技术与教学创新'));
+
+          if (target) {
+            const vi = { ...(target.videoInfo || {}) };
+            if (vi.type === 'single_video') {
+              vi.progress = 100;
+            } else if (vi.type === 'multi_video' && Array.isArray(vi.videos)) {
+              vi.videos = vi.videos.map(v => ({ ...v, progress: 100 }));
+              const totalDuration = vi.totalDuration || vi.videos.reduce((sum, v) => sum + (v.duration || 0), 0);
+              vi.totalDuration = totalDuration;
+              vi.watchedDuration = totalDuration;
+              vi.overallProgress = 100;
+            } else if (!vi.type) {
+              vi.type = 'single_video';
+              vi.progress = 100;
+            }
+
+            await notesService.updateNote(target.id, { videoInfo: vi });
+            try { certificateService.removeCertificateByTopic(target.id); } catch (e) {}
+            localStorage.setItem(MIGRATION_KEY, 'true');
+            notesData = await notesService.getAllNotes();
+            console.log('已将“信息技术与教学创新”设置为已达标并取消证书');
+          }
+        }
+      } catch (e) {
+        console.warn('设置“信息技术与教学创新”为达标并取消证书时出错:', e);
+      }
 
       // 无数据时自动生成（避免与首次强制生成重复提示）
       try {

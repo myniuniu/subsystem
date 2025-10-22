@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>清除站点存储（localStorage/IndexedDB）</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial; padding: 24px; }
+    .card { max-width: 860px; margin: 0 auto; border: 1px solid #e6e6e6; border-radius: 12px; padding: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+    h1 { margin: 0 0 12px; font-size: 20px; }
+    .desc { color: #555; margin-bottom: 16px; }
+    .section { margin-top: 16px; }
+    .options { display: grid; grid-template-columns: repeat(2, minmax(240px, 1fr)); gap: 12px; }
+    label { display: flex; align-items: center; gap: 8px; }
+    .btns { display: flex; gap: 12px; margin-top: 16px; }
+    button { padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 8px; background: #fafafa; cursor: pointer; }
+    button.primary { background: #1677ff; border-color: #1677ff; color: #fff; }
+    .log { background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 10px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; white-space: pre-wrap; margin-top: 16px; }
+    .success { color: #389e0d; }
+    .warn { color: #fa8c16; }
+    .error { color: #cf1322; }
+    .tip { font-size: 12px; color: #888; }
+    ul { padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>清除站点存储（localStorage/IndexedDB）</h1>
+    <div class="desc">按需删除当前源的浏览器存储。谨慎操作，删除后不可恢复。</div>
+
+    <div class="section">
+      <div class="options">
+        <label><input type="checkbox" id="optLS"> 同时清理 localStorage（包括所有键值对）</label>
+        <label><input type="checkbox" id="optIDB"> 同时清理 IndexedDB（删除所有数据库）</label>
+      </div>
+      <div class="tip">提示：大多数现代浏览器支持列举并删除 IndexedDB 数据库；若不支持，将给出说明与替代建议。</div>
+    </div>
+
+    <div class="btns">
+      <button class="primary" id="runBtn">执行清理</button>
+      <button id="backBtn">返回主应用</button>
+    </div>
+
+    <div id="result" class="log">就绪</div>
+
+    <div class="section">
+      <strong>说明</strong>
+      <ul>
+        <li>localStorage：用于保存应用配置、草稿等；清除后这些数据将重置。</li>
+        <li>IndexedDB：用于保存较大或结构化数据；清除后相关离线数据将丢失。</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const logEl = document.getElementById('result');
+    const optLS = document.getElementById('optLS');
+    const optIDB = document.getElementById('optIDB');
+
+    const log = (msg, cls = '') => {
+      const time = new Date().toLocaleTimeString();
+      logEl.innerHTML += `\n[${time}] ${msg}`;
+      if (cls) logEl.className = `log ${cls}`;
+    };
+
+    function clearLocalStorage() {
+      try {
+        const before = localStorage.length;
+        localStorage.clear();
+        log(`localStorage：已清除所有键（共 ${before} 项）`, 'success');
+        return { count: before };
+      } catch (e) {
+        log(`localStorage 清理失败：${e.message}`, 'error');
+        return { count: 0, error: e };
+      }
+    }
+
+    function deleteDB(name) {
+      return new Promise((resolve) => {
+        try {
+          const req = indexedDB.deleteDatabase(name);
+          req.onsuccess = () => resolve({ name, status: 'success' });
+          req.onerror = () => resolve({ name, status: 'error' });
+          req.onblocked = () => resolve({ name, status: 'blocked' });
+        } catch (e) {
+          resolve({ name, status: 'error', error: e });
+        }
+      });
+    }
+
+    async function clearIndexedDB() {
+      if (!('indexedDB' in window)) {
+        log('IndexedDB：环境不支持（或被禁用）', 'warn');
+        return { total: 0 };
+      }
+      try {
+        if (typeof indexedDB.databases !== 'function') {
+          log('IndexedDB：当前浏览器不支持列举数据库；无法自动删除所有。', 'warn');
+          log('可在浏览器设置或开发者工具 Application → IndexedDB 手动删除。');
+          return { total: 0 };
+        }
+        const dbs = await indexedDB.databases();
+        const names = (dbs || []).map(d => d.name).filter(Boolean);
+        let success = 0, blocked = 0, failed = 0;
+        for (const n of names) {
+          const r = await deleteDB(n);
+          if (r.status === 'success') success++; else if (r.status === 'blocked') blocked++; else failed++;
+        }
+        log(`IndexedDB：删除成功 ${success}/${names.length}，阻塞 ${blocked}，失败 ${failed}`, success === names.length ? 'success' : failed ? 'error' : 'warn');
+        return { total: names.length, success, blocked, failed };
+      } catch (e) {
+        log(`IndexedDB 清理异常：${e.message}`, 'error');
+        return { total: 0, error: e };
+      }
+    }
+
+    async function runCleanup() {
+      const doLS = optLS.checked;
+      const doIDB = optIDB.checked;
+      if (!doLS && !doIDB) {
+        logEl.innerHTML = '开始清理...';
+        log('未选择任何存储项目；未执行删除。', 'warn');
+        return;
+      }
+      const ok = confirm('此操作将删除所选本地数据，且不可恢复。确认继续？');
+      if (!ok) return;
+
+      logEl.innerHTML = '开始清理...';
+      if (doLS) clearLocalStorage();
+      if (doIDB) await clearIndexedDB();
+      log('—— 存储清理完成 ——', 'success');
+      log('建议返回主应用并刷新以加载最新资源');
+    }
+
+    document.getElementById('runBtn').addEventListener('click', runCleanup);
+    document.getElementById('backBtn').addEventListener('click', () => {
+      const backUrl = window.location.origin + '/';
+      window.location.href = backUrl;
+    });
+  </script>
+</body>
+</html>

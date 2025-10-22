@@ -527,6 +527,15 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
     },
     
     { 
+      id: 'my-certificates',
+      icon: FileText,
+      label: '我的证书',
+      shortLabel: '证书',
+      color: '#1890ff',
+      type: 'single'
+    },
+    
+    { 
       id: 'download-center', 
       icon: Download, 
       label: '下载中心', 

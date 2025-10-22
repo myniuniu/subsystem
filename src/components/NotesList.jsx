@@ -35,6 +35,7 @@ import {
   PushpinFilled
 } from '@ant-design/icons';
 import { TRAINING_STATUS, getTrainingStatusInfo, parseTimeString } from '../utils/trainingStatusUtils';
+import certificateService from '../services/certificateService';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -227,6 +228,34 @@ const NotesList = ({
                 >
                   继续学习
                 </Button>
+                {(() => {
+                  const vi = note.videoInfo;
+                  const hasVideoPercent = vi && (
+                    (vi.type === 'single_video' && typeof vi.progress === 'number') ||
+                    (vi.type === 'multi_video' && typeof vi.overallProgress === 'number')
+                  );
+                  const rawPercent = hasVideoPercent
+                    ? (vi.type === 'single_video' ? vi.progress : vi.overallProgress)
+                    : (typeof trainingStatus?.currentProgress === 'number' ? trainingStatus.currentProgress : 0);
+                  const percent = Math.round(rawPercent);
+                  const isAchieved = percent === 100;
+                  const hasCert = !!certificateService.getCertificateByTopic(note.id);
+                  if (!isAchieved || !hasCert) return null;
+                  return (
+                    <Button 
+                      ghost
+                      size="small"
+                      icon={<FileTextOutlined />}
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        window.location.hash = 'my-certificates';
+                      }}
+                      style={{ borderColor: 'rgba(255,255,255,0.8)', color: 'white', marginLeft: 8 }}
+                    >
+                      查看证书
+                    </Button>
+                  );
+                })()}
               </div>
               
               {/* 进度区域 */}
@@ -440,33 +469,34 @@ const NotesList = ({
                 </Popconfirm>
               ]}
             >
-              {(() => {
-                 const isOrgTraining = (
-                   selectedCategory === 'organizational_training' ||
-                   note.category === 'organizational_training' ||
-                   note.courseType === 'organizational_training' ||
-                   note.source === '组织培训'
-                 );
-                 if (!isOrgTraining) return null;
-                 try {
-                   const ts = getTrainingStatusInfo(note);
-                   const vi = note.videoInfo;
-                   const hasVideoPercent = vi && (
-                     (vi.type === 'single_video' && typeof vi.progress === 'number') ||
-                     (vi.type === 'multi_video' && typeof vi.overallProgress === 'number')
-                   );
-                   const rawPercent = hasVideoPercent
-                     ? (vi.type === 'single_video' ? vi.progress : vi.overallProgress)
-                     : (typeof ts?.currentProgress === 'number' ? ts.currentProgress : 0);
-                   const percent = Math.round(rawPercent);
-                   const isAchieved = percent === 100; // 严格按 100% 判定
-                   const isCompleted = ts?.status === TRAINING_STATUS.COMPLETED;
-                   if (isAchieved) return (<div className="achieved-seal">已达标</div>);
-                   if (isCompleted && percent < 100) return (<div className="not-achieved-seal">未达标</div>);
-                   return null;
-                 } catch (e) { return null; }
-               })()}
-              <div className="note-header" style={{ flexWrap: 'wrap' }}>
+              {isOrgTraining && (() => {
+                try {
+                  const vi = note.videoInfo;
+                  const percent = vi
+                    ? (vi.type === 'single_video' ? (vi.progress || 0) : (vi.overallProgress || 0))
+                    : (typeof getTrainingStatusInfo(note)?.currentProgress === 'number' ? getTrainingStatusInfo(note).currentProgress : 0);
+                  const ts = getTrainingStatusInfo(note);
+                  const hasCert = !!certificateService.getCertificateByTopic(note.id);
+                  const isCompleted = ts?.isCompleted;
+                  const p = Math.round(percent);
+                  return (
+                    <>
+                      {isCompleted && p === 100 && hasCert && (
+                        <div className="achieved-seal">已颁证</div>
+                      )}
+                      {isCompleted && p === 100 && !hasCert && (
+                        <div className="achieved-seal">已达标</div>
+                      )}
+                      {isCompleted && p < 100 && (
+                        <div className="not-achieved-seal">未达标</div>
+                      )}
+                    </>
+                  );
+                } catch (e) {
+                  return null;
+                }
+              })()}
+              <div className="note-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
                 <div className="note-category">
                   {isOrgTraining ? (
                     <span className="category-icon">🏢</span>
@@ -480,144 +510,98 @@ const NotesList = ({
                   <Text type="secondary" className="category-text">
                     {displayLabel}
                   </Text>
-                  
-                  {/* 组织培训状态显示 */}
-                  {(() => {
-                    const isOrgTrainingHeader = (
-                      selectedCategory === 'organizational_training' ||
-                      note.category === 'organizational_training' ||
-                      note.courseType === 'organizational_training'
-                    );
-                    
-                    if (isOrgTrainingHeader) {
-                      try {
-                        const trainingStatus = getTrainingStatusInfo(note);
-                        
-                        if (trainingStatus) {
-                          const { statusConfig, isInProgress, remainingDays } = trainingStatus;
-                          return (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '8px' }}>
-                              <span style={{ fontSize: '12px' }}>{statusConfig.icon}</span>
-                              <Text style={{ fontSize: '12px', color: statusConfig.color, fontWeight: 'bold' }}>
-                                {statusConfig.label}
-                              </Text>
-                            </div>
-                          );
-                        }
-                      } catch (error) {
-                        console.error('获取培训状态失败:', error);
-                      }
-                    }
-                    return null;
-                  })()}
-                  
-                  {/* 培训需求管理状态显示 */}
-                  {needsStatus && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '8px' }}>
-                      <span style={{ fontSize: '10px' }}>{needsStatus.icon}</span>
-                      <Text style={{ fontSize: '10px', color: needsStatus.color, fontWeight: 'bold' }}>
-                        {needsStatus.label}
-                      </Text>
-                    </div>
-                  )}
-                  
-                  {/* 培训需求管理实施时间显示 */}
-                  {isTrainingNeedsManagement && note.implementationSchedule && (note.trainingStatus === 'implementing' || note.trainingStatus === 'completed') && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '8px' }}>
-                      <span style={{ fontSize: '9px' }}>⏰</span>
-                      <Text style={{ fontSize: '9px', color: '#666' }}>
-                        {note.implementationSchedule.startTime} ~ {note.implementationSchedule.endTime}
-                      </Text>
-                    </div>
-                  )} 
-
-                  {/* 组织培训视频进度（标题栏内） */}
-                  {(() => {
-                    const shouldShowProgress = (
-                      selectedCategory === 'organizational_training' ||
-                      note.category === 'organizational_training' ||
-                      note.courseType === 'organizational_training' ||
-                      note.source === '组织培训'
-                    );
-                    const vi = note.videoInfo;
-                    if (shouldShowProgress && vi) {
-                      const percent = vi.type === 'single_video' ? (vi.progress || 0) : (vi.type === 'multi_video' ? (vi.overallProgress || 0) : 0);
+                  {isOrgTraining && (() => {
+                    try {
                       const ts = getTrainingStatusInfo(note);
-                      const statusColor = ts?.status === TRAINING_STATUS.NOT_STARTED
-                        ? '#FFD666' // 柔和黄
-                        : (ts?.status === TRAINING_STATUS.IN_PROGRESS ? '#95de64' : undefined); // 柔和绿
-                      return (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 8 }}>
-                          <Progress percent={percent} size="small" showInfo={false} style={{ width: 120 }} strokeColor={statusColor} />
-                          <Text style={{ fontSize: 12, color: statusColor ? (ts?.status === TRAINING_STATUS.NOT_STARTED ? '#AD8B00' : '#3f8c2a') : '#999' }}>{percent}%</Text>
-                        </div>
-                      );
-                    }
-                    return null;
-                  })()} 
-                </div>
-                {note.pinned && (
-                  <PushpinFilled className="star-badge" />
-                )}
-                {/* 标题栏第二行：开始/结束时间与剩余天数 */}
-                {(() => {
-                  const isOrgTrainingSecond = (
-                    selectedCategory === 'organizational_training' ||
-                    note.category === 'organizational_training' ||
-                    note.courseType === 'organizational_training' ||
-                    note.source === '组织培训'
-                  );
-                  const ts = getTrainingStatusInfo(note);
-                  const hasSchedule = note.learningSchedule && note.learningSchedule.startTime && note.learningSchedule.endTime;
-                  if (isOrgTrainingSecond && (hasSchedule || (ts?.isInProgress && ts?.remainingDays > 0))) {
-                    const start = note.learningSchedule?.startTime;
-                    const end = note.learningSchedule?.endTime;
-                    const isCompleted = ts?.status === TRAINING_STATUS.COMPLETED;
-                    const color = isCompleted ? '#8c8c8c' : '#666';
-                    const remainText = ts?.isInProgress && ts?.remainingDays > 0 ? ` · 剩余${ts.remainingDays}天` : '';
-                    return (
-                      <div className="note-header-second" style={{ flexBasis: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontSize: 11 }}>⏰</span>
-                          <Text style={{ fontSize: 12, color }}>
-                            {(() => {
-                              const fmt = (s) => {
-                                const d = parseTimeString(s);
-                                if (!d || isNaN(d.getTime())) return s;
-                                const y = d.getFullYear();
-                                const m = String(d.getMonth() + 1).padStart(2, '0');
-                                const dd = String(d.getDate()).padStart(2, '0');
-                                return `${y}/${m}/${dd}`;
-                              };
-                              return `${fmt(start)} 至 ${fmt(end)}`;
-                            })()}
+                      return ts ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '8px' }}>
+                          <span style={{ fontSize: '12px' }}>{ts.statusConfig.icon}</span>
+                          <Text style={{ fontSize: '12px', color: ts.statusConfig.color, fontWeight: 'bold' }}>
+                            {ts.statusConfig.label}
                           </Text>
                         </div>
-                        {ts?.isInProgress && ts?.remainingDays > 0 ? (
-                          <Text style={{ fontSize: 12, color: '#f5222d', fontWeight: 'bold' }}>剩余{ts.remainingDays}天</Text>
-                        ) : (
-                          <span />
-                        )}
+                      ) : null;
+                    } catch (error) {
+                      console.error('获取培训状态失败:', error);
+                      return null;
+                    }
+                  })()}
+                  {isOrgTraining && (() => {
+                    const vi = note.videoInfo;
+                    const percent = vi
+                      ? (vi.type === 'single_video' ? (vi.progress || 0) : (vi.overallProgress || 0))
+                      : (typeof getTrainingStatusInfo(note)?.currentProgress === 'number' ? getTrainingStatusInfo(note).currentProgress : 0);
+                    return (
+                      <div style={{ marginLeft: 8 }}>
+                        <div style={{ width: 110 }}>
+                          <Progress percent={Math.round(percent)} size="small" />
+                        </div>
                       </div>
                     );
-                  }
-                  return null;
-                })()}
+                  })()}
+                </div>
+                {/* 进度条与状态紧挨显示：移至左侧分类区域中 */}
+                  {isOrgTraining && (() => {
+                    const schedule = note.learningSchedule || {};
+                    const ts = getTrainingStatusInfo(note);
+                    const s = parseTimeString(schedule.startTime);
+                    const e = parseTimeString(schedule.endTime);
+                    const fmt = (d) => d ? `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}` : '';
+                    const vi = note.videoInfo;
+                    const percent = vi
+                      ? (vi.type === 'single_video' ? (vi.progress || 0) : (vi.overallProgress || 0))
+                      : (typeof ts?.currentProgress === 'number' ? ts.currentProgress : 0);
+                    const isAchieved = Math.round(percent) === 100;
+                    const hasCert = !!certificateService.getCertificateByTopic(note.id);
+                    // 第二行元素：时间段、仅进行中显示剩余天数、查看证书
+                    if (!s && !e && !(ts && ts.isInProgress && ts.remainingDays > 0) && !(isAchieved && hasCert)) return null;
+                    const dateStr = `${s ? fmt(s) : ''}${s && e ? ' 至 ' : ''}${e ? fmt(e) : ''}`;
+                    const showRemain = ts && ts.isInProgress && ts.remainingDays > 0;
+                    return (
+                      <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                        {dateStr && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ fontSize: 14 }}>⏰</span>
+                            <Text type="secondary" style={{ fontSize: 12 }}>{dateStr}</Text>
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          {showRemain && (
+                            <Text style={{ fontSize: 12, color: '#f5222d' }}>
+                              剩余{ts.remainingDays}天
+                            </Text>
+                          )}
+                          {(isAchieved && hasCert) && (
+                            <Button 
+                              type="link"
+                              size="small"
+                              icon={<FileTextOutlined />}
+                              onClick={(e) => { 
+                                e.stopPropagation(); 
+                                window.location.hash = 'my-certificates';
+                              }}
+                            >
+                              查看证书
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
               </div>
               
               <Title level={5} className="note-title" ellipsis={{ rows: 2 }}>
                 {note.title}
               </Title>
 
-              {/* 已移至标题栏第二行：开始/结束时间以及剩余天数 */}
               
-              <Paragraph 
-                className="note-content" 
-                ellipsis={{ rows: 3 }}
-                type="secondary"
-              >
-                {note.content}
-              </Paragraph>
+               <Paragraph 
+                 className="note-content" 
+                 ellipsis={{ rows: 3 }}
+                 type="secondary"
+               >
+                 {note.content}
+               </Paragraph>
               
               <div className="note-tags">
                 {note.tags?.slice(0, 3).map(tag => (

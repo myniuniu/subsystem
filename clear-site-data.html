@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>清除站点数据（缓存/SW + 可选存储）</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial; padding: 24px; }
+    .card { max-width: 900px; margin: 0 auto; border: 1px solid #e6e6e6; border-radius: 12px; padding: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+    h1 { margin: 0 0 12px; font-size: 20px; }
+    .desc { color: #555; margin-bottom: 16px; }
+    .section { margin-top: 16px; }
+    .options { display: grid; grid-template-columns: repeat(2, minmax(280px, 1fr)); gap: 12px; }
+    label { display: flex; align-items: center; gap: 8px; }
+    .btns { display: flex; gap: 12px; margin-top: 16px; }
+    button { padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 8px; background: #fafafa; cursor: pointer; }
+    button.primary { background: #1677ff; border-color: #1677ff; color: #fff; }
+    .log { background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 10px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; white-space: pre-wrap; margin-top: 16px; }
+    .success { color: #389e0d; }
+    .warn { color: #fa8c16; }
+    .error { color: #cf1322; }
+    .tip { font-size: 12px; color: #888; }
+    ul { padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>清除站点数据（缓存/SW + 可选存储）</h1>
+    <div class="desc">一键删除当前源的 Cache Storage 并注销 Service Worker；可选同时清空 localStorage 与 IndexedDB。删除后不可恢复，请谨慎操作。</div>
+
+    <div class="section">
+      <strong>可选开关</strong>
+      <div class="options">
+        <label><input type="checkbox" id="optLS"> 同时清理 localStorage（清空所有键值对）</label>
+        <label><input type="checkbox" id="optIDB"> 同时清理 IndexedDB（删除所有数据库）</label>
+      </div>
+      <div class="tip">说明：缓存与 Service Worker 始终会清理；localStorage/IndexedDB 仅在勾选时执行。若浏览器不支持枚举 IndexedDB，将给出替代提示。</div>
+    </div>
+
+    <div class="btns">
+      <button class="primary" id="runBtn">执行清理</button>
+      <button id="backBtn">返回主应用</button>
+    </div>
+
+    <div id="result" class="log">就绪</div>
+
+    <div class="section">
+      <strong>影响范围</strong>
+      <ul>
+        <li>Cache Storage：删除所有缓存条目；刷新后将重新拉取最新静态资源。</li>
+        <li>Service Worker：注销所有注册；应用将回退到非离线模式，刷新后可重新注册。</li>
+        <li>localStorage（可选）：清除本地配置、草稿等键值数据；重置为默认状态。</li>
+        <li>IndexedDB（可选）：删除结构化/离线数据；如应用数据仓库、缓存索引等。</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const logEl = document.getElementById('result');
+    const optLS = document.getElementById('optLS');
+    const optIDB = document.getElementById('optIDB');
+
+    const log = (msg, cls = '') => {
+      const time = new Date().toLocaleTimeString();
+      logEl.innerHTML += `\n[${time}] ${msg}`;
+      if (cls) logEl.className = `log ${cls}`;
+    };
+
+    async function clearCaches() {
+      try {
+        const keys = await caches.keys();
+        let removed = 0;
+        for (const k of keys) {
+          const ok = await caches.delete(k);
+          if (ok) removed++;
+        }
+        log(`Cache Storage：删除 ${removed}/${keys.length} 个缓存`, 'success');
+        return { removed, total: keys.length };
+      } catch (e) {
+        log(`Cache 清理失败：${e.message}`, 'error');
+        return { removed: 0, total: 0, error: e };
+      }
+    }
+
+    async function unregisterSW() {
+      if (!('serviceWorker' in navigator)) {
+        log('Service Worker：当前环境不支持（或未启用）', 'warn');
+        return { count: 0 };
+      }
+      try {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        let count = 0;
+        for (const r of regs) {
+          await r.unregister();
+          count++;
+        }
+        log(`Service Worker：已注销 ${count} 个注册`, 'success');
+        return { count };
+      } catch (e) {
+        log(`Service Worker 注销失败：${e.message}`, 'error');
+        return { count: 0, error: e };
+      }
+    }
+
+    function clearLocalStorage() {
+      try {
+        const before = localStorage.length;
+        localStorage.clear();
+        log(`localStorage：已清除所有键（共 ${before} 项）`, 'success');
+        return { count: before };
+      } catch (e) {
+        log(`localStorage 清理失败：${e.message}`, 'error');
+        return { count: 0, error: e };
+      }
+    }
+
+    function deleteDB(name) {
+      return new Promise((resolve) => {
+        try {
+          const req = indexedDB.deleteDatabase(name);
+          req.onsuccess = () => resolve({ name, status: 'success' });
+          req.onerror = () => resolve({ name, status: 'error' });
+          req.onblocked = () => resolve({ name, status: 'blocked' });
+        } catch (e) {
+          resolve({ name, status: 'error', error: e });
+        }
+      });
+    }
+
+    async function clearIndexedDB() {
+      if (!('indexedDB' in window)) {
+        log('IndexedDB：环境不支持（或被禁用）', 'warn');
+        return { total: 0 };
+      }
+      try {
+        if (typeof indexedDB.databases !== 'function') {
+          log('IndexedDB：当前浏览器不支持列举数据库；无法自动删除所有。', 'warn');
+          log('可在浏览器设置或开发者工具 Application → IndexedDB 手动删除。');
+          return { total: 0 };
+        }
+        const dbs = await indexedDB.databases();
+        const names = (dbs || []).map(d => d.name).filter(Boolean);
+        let success = 0, blocked = 0, failed = 0;
+        for (const n of names) {
+          const r = await deleteDB(n);
+          if (r.status === 'success') success++; else if (r.status === 'blocked') blocked++; else failed++;
+        }
+        log(`IndexedDB：删除成功 ${success}/${names.length}，阻塞 ${blocked}，失败 ${failed}`, success === names.length ? 'success' : failed ? 'error' : 'warn');
+        return { total: names.length, success, blocked, failed };
+      } catch (e) {
+        log(`IndexedDB 清理异常：${e.message}`, 'error');
+        return { total: 0, error: e };
+      }
+    }
+
+    async function runCleanup() {
+      const doLS = optLS.checked;
+      const doIDB = optIDB.checked;
+
+      const strongText = [
+        '将执行以下操作：',
+        '• 删除 Cache Storage（所有缓存条目）',
+        '• 注销所有 Service Worker',
+        doLS ? '• 清空 localStorage（所有键值）' : null,
+        doIDB ? '• 删除 IndexedDB（所有数据库）' : null,
+        '',
+        '此操作不可恢复，是否继续？'
+      ].filter(Boolean).join('\n');
+      const ok = confirm(strongText);
+      if (!ok) return;
+
+      logEl.innerHTML = '开始清理...';
+      await clearCaches();
+      await unregisterSW();
+      if (doLS) clearLocalStorage();
+      if (doIDB) await clearIndexedDB();
+      log('—— 清理完成 ——', 'success');
+      log('建议返回主应用并刷新以加载最新资源');
+    }
+
+    document.getElementById('runBtn').addEventListener('click', runCleanup);
+    document.getElementById('backBtn').addEventListener('click', () => {
+      const backUrl = window.location.origin + '/';
+      window.location.href = backUrl;
+    });
+  </script>
+</body>
+</html>
