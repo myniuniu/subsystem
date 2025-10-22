@@ -6,12 +6,13 @@ const STORAGE_KEY = 'smartnotes_system_category_config';
 export const DEFAULT_SYSTEM_CATEGORY_CONFIG = {
   groups: [
     { key: 'group_learning', title: '学习相关', templateId: null, icon: 'FolderOpenOutlined', childrenValues: ['study', 'learning_square', 'learning_analytics'], groups: [] },
-    { key: 'group_teaching', title: '教学相关', templateId: null, icon: 'FolderOpenOutlined', childrenValues: ['teaching_design', 'classroom_integration', 'homework_system', 'teaching_research_office'], groups: [] },
+    { key: 'group_teaching', title: '教学相关', templateId: null, icon: 'FolderOpenOutlined', childrenValues: ['teaching_design', 'classroom_integration', 'homework_system', 'teaching_research_office', 'e_pbl'], groups: [] },
     { key: 'group_research', title: '科研与教育', templateId: null, icon: 'FolderOpenOutlined', childrenValues: ['research', 'educational_topics'], groups: [] },
     { key: 'group_general', title: '通用主题', templateId: null, icon: 'FolderOpenOutlined', childrenValues: ['work', 'personal', 'ideas', 'meeting'], groups: [] },
     { key: 'group_management', title: '管理与培训', templateId: null, icon: 'FolderOpenOutlined', childrenValues: ['training_needs_management', 'training_product_development'], groups: [] }
   ],
   extraCategories: [
+    { value: 'e_pbl', label: 'E-PBL', icon: 'BookOutlined', type: 'system', pinned: true },
     { value: 'teaching_research_office', label: '教研室', icon: 'BookOutlined', type: 'custom', pinned: true }
   ]
 };
@@ -46,13 +47,42 @@ const normalizeConfig = (config) => {
 export const getSystemCategoryConfig = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULT_SYSTEM_CATEGORY_CONFIG;
-    const parsed = JSON.parse(raw);
-    // 结构容错与归一化
-    if (!parsed || !Array.isArray(parsed.groups)) {
-      return DEFAULT_SYSTEM_CATEGORY_CONFIG;
+    // 基础配置（默认或归一化后的用户配置）
+    let baseConfig;
+    if (!raw) {
+      baseConfig = DEFAULT_SYSTEM_CATEGORY_CONFIG;
+    } else {
+      const parsed = JSON.parse(raw);
+      if (!parsed || !Array.isArray(parsed.groups)) {
+        baseConfig = DEFAULT_SYSTEM_CATEGORY_CONFIG;
+      } else {
+        baseConfig = normalizeConfig(parsed);
+      }
     }
-    return normalizeConfig(parsed);
+
+    // 确保 e_pbl 在“教学相关”一级分组下
+    const ensureGroups = (groups = []) => groups.map(g => {
+      if (g.key === 'group_teaching') {
+        const setChildren = new Set(g.childrenValues || []);
+        setChildren.add('e_pbl');
+        return { ...g, childrenValues: Array.from(setChildren), groups: ensureGroups(g.groups || []) };
+      }
+      return { ...g, groups: ensureGroups(g.groups || []) };
+    });
+
+    // 确保 e_pbl 分类默认置顶（extraCategories）
+    const extra = Array.isArray(baseConfig.extraCategories) ? baseConfig.extraCategories : [];
+    const hasEPBL = extra.some(c => c.value === 'e_pbl');
+    const nextExtra = hasEPBL
+      ? extra.map(c => c.value === 'e_pbl' ? { ...c, pinned: true } : c)
+      : [{ value: 'e_pbl', label: 'E-PBL', icon: 'BookOutlined', type: 'system', pinned: true }, ...extra];
+
+    const ensured = {
+      groups: ensureGroups(baseConfig.groups || []),
+      extraCategories: nextExtra
+    };
+
+    return ensured;
   } catch (e) {
     console.error('读取系统分类配置失败:', e);
     return DEFAULT_SYSTEM_CATEGORY_CONFIG;

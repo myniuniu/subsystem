@@ -13,6 +13,15 @@ export const useOperationPanelState = (noteCategory = null) => {
   // 根据分类过滤工具的函数
   const getFilteredCards = (category) => {
     console.log('getFilteredCards 被调用，分类:', category);
+
+    // E-PBL 分类：仅显示“E-PBL策划”
+    if (category === 'e_pbl') {
+      const card = OPERATION_CARDS.find(card => card.key === 'e-pbl-planning');
+      const result = card ? [card] : [];
+      console.log('E-PBL分类，返回的卡片:', result);
+      return result;
+    }
+
     // 组织培训分类：仅默认显示指定的六个工具
     if (category === 'organizational_training') {
       const allowedKeys = [

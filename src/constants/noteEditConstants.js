@@ -561,6 +561,14 @@ export const OPERATION_CARDS = [
     gradient: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
     color: '#0369a1'
   },
+  // 新增：E-PBL策划卡片
+  {
+    key: 'e-pbl-planning',
+    title: 'E-PBL策划',
+    icon: '策',
+    gradient: 'linear-gradient(135deg, #fffbe6 0%, #ffe58f 100%)',
+    color: '#faad14'
+  },
   {
     key: 'addTool',
     title: '添加工具',

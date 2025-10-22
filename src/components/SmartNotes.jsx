@@ -220,6 +220,7 @@ const SmartNotes = ({ onViewChange }) => {
     { value: 'classroom_integration', label: '课堂融合', icon: 'NodeIndexOutlined', type: 'system' },
     { value: 'learning_square', label: '学习广场', icon: 'BookOutlined', type: 'system' },
     { value: 'teaching_design', label: '教学设计', icon: 'BulbOutlined', type: 'system' },
+    { value: 'e_pbl', label: 'E-PBL', icon: 'BookOutlined', type: 'system' },
     { value: 'homework_system', label: '课后作业', icon: 'FileTextOutlined', type: 'system' },
     { value: 'teaching_research_office', label: '教研室', icon: 'BookOutlined', type: 'system' },
     { value: 'training_needs_management', label: '培训需求管理', icon: 'FileTextOutlined', type: 'system' },
@@ -293,6 +294,86 @@ const SmartNotes = ({ onViewChange }) => {
 
       // 加载笔记
       let notesData = await notesService.getAllNotes();
+
+      // 初始化 E-PBL 分类说明主题（一次性）
+      try {
+        const EPBL_KEY = 'migration_epbl_intro_created';
+        const already = localStorage.getItem(EPBL_KEY) === 'true';
+        const hasEpblIntro = Array.isArray(notesData) && notesData.some(n => n.category === 'e_pbl' && (n.title || '').includes('分类说明'));
+        if (!already && !hasEpblIntro) {
+          const intro = await notesService.createNote({
+            title: '【E-PBL】分类说明',
+            content: `# E-PBL 分类说明\n\n- E-PBL（教育项目式学习）相关主题入口。\n- 介绍参见：[E-PBL 项目式学习](https://aic-fe.bnu.edu.cn/gnhz/gnhzepbl/index.html)\n\n可在此记录项目式学习的教学设计、实施过程、评估与反思等内容。`,
+            category: 'e_pbl',
+            tags: ['教学', 'E-PBL', '项目式学习']
+          });
+          await notesService.updateNote(intro.id, { pinned: true, pinnedAt: new Date().toISOString() });
+          localStorage.setItem(EPBL_KEY, 'true');
+          // 重新获取最新数据，确保置顶状态生效
+          notesData = await notesService.getAllNotes();
+        }
+      } catch (e) {
+        console.warn('初始化 E-PBL 分类说明主题失败:', e);
+      }
+
+      // 同步 E-PBL 分类仅保留指定四个主题
+      try {
+        const desiredEpblTitles = [
+          '“神奇动物在哪里” 项目式学习',
+          '“少年派的奇幻漂流”项目式学习',
+          '为什么有些人喝了咖啡反而更困?',
+          '社区智能灭火垃圾桶'
+        ];
+        const isDesired = (title) => desiredEpblTitles.includes(String(title || '').trim());
+        const epblNotes = Array.isArray(notesData) ? notesData.filter(n => n.category === 'e_pbl') : [];
+
+        // 删除 E-PBL 分类下非指定主题
+        for (const note of epblNotes) {
+          if (!isDesired(note.title)) {
+            try { notesService.deleteNote(note.id); } catch (e) { console.warn('删除非指定 E-PBL 主题失败:', e); }
+          }
+        }
+
+        // 创建缺失的四个主题（若不存在则创建）
+        const existingTitles = new Set((Array.isArray(notesData) ? notesData : []).filter(n => n.category === 'e_pbl').map(n => String(n.title || '').trim()));
+        const createIfMissing = async (title, content) => {
+          if (!existingTitles.has(title)) {
+            try {
+              await notesService.createNote({
+                title,
+                content,
+                category: 'e_pbl',
+                tags: ['E-PBL', '项目式学习']
+              });
+            } catch (e) { console.warn('创建指定 E-PBL 主题失败:', title, e); }
+          }
+        };
+        await createIfMissing('“神奇动物在哪里” 项目式学习', '# 项目式学习：神奇动物在哪里\n\n围绕电影或文本素材开展跨学科探究，设计任务、分组协作、制作成果展示。');
+        await createIfMissing('“少年派的奇幻漂流”项目式学习', '# 项目式学习：少年派的奇幻漂流\n\n结合文学与科学视角，开展主题探究与作品创作，强调合作与反思。');
+        await createIfMissing('为什么有些人喝了咖啡反而更困?', '# 科学探究：咖啡因与困倦\n\n从生理机制、个体差异与习惯因素展开探究，提出假设并设计验证。');
+        await createIfMissing('社区智能灭火垃圾桶', '# 工程项目：智能灭火垃圾桶\n\n围绕社区安全与工程设计，完成方案设计、原型制作与测试评估。');
+
+        // 重新获取最新数据以反映删除/新增
+        notesData = await notesService.getAllNotes();
+
+        // 去重：每个指定标题仅保留最新一条（按updatedAt降序）
+        const latestByTitle = new Map();
+        const epblDesiredNotes = notesData.filter(n => n.category === 'e_pbl' && isDesired(n.title));
+        epblDesiredNotes.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+        for (const note of epblDesiredNotes) {
+          const key = String(note.title || '').trim();
+          if (!latestByTitle.has(key)) {
+            latestByTitle.set(key, note);
+          } else {
+            try { await notesService.deleteNote(note.id); } catch (e) { console.warn('删除重复 E-PBL 主题失败:', e); }
+          }
+        }
+
+        // 重新获取数据以反映去重删除
+        notesData = await notesService.getAllNotes();
+      } catch (e) {
+        console.warn('同步 E-PBL 指定主题失败:', e);
+      }
       
       // 数据迁移：为培训需求管理笔记添加trainingStatus和implementationSchedule字段
       let needsMigration = false;
