@@ -258,6 +258,36 @@ const SmartNotes = ({ onViewChange }) => {
         } else {
           message.error('首次加载模拟数据生成失败');
         }
+        // 确保未开始的组织培训主题存在（避免模拟数据覆盖）
+        try {
+          const notesAfterInit = await notesService.getAllNotes();
+          const hasDefault = Array.isArray(notesAfterInit) && notesAfterInit.some(n => (
+            n?.courseId === 'org_default_not_started' ||
+            (typeof n?.title === 'string' && n.title.trim() === '【组织培训】未开始主题')
+          ));
+          if (!hasDefault) {
+            const today = new Date();
+            const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+            const dateStr = `${tomorrow.getMonth() + 1}/${tomorrow.getDate()}`;
+            const baseTags = ['组织培训', '教师培训', '未开始', '待开班', '培训安排', '教学策略', '班级管理', '教学评估', '教育技术'];
+            const content = `# 教师培训 · 未开始主题\n\n## 主题简介\n- 面向教师的组织化培训，作为预备入口，当前未开始。\n- 聚焦教学能力提升、班级管理与教学评估，包含教育技术应用。\n\n## 培训目标\n- 明确教学目标与评价标准\n- 完成资料准备与设备测试\n- 制定时间计划与提醒机制\n\n## 模块目录\n- 新教师入职导引\n- 班级管理实务\n- 教学设计与策略\n- 教学评估与反馈\n- 教育技术与信息化\n\n## 标签\n${baseTags.map(t => `- ${t}`).join('\n')}\n\n## 说明\n- 当前进度为 0%\n- 状态：未开始\n- 开班后自动转入“进行中”\n\n——\n来源：组织培训系统\n课程ID：org_default_not_started`;
+            await notesService.createNote({
+              title: '【组织培训】未开始主题',
+              content,
+              category: 'organizational_training',
+              tags: baseTags,
+              source: '组织培训',
+              courseId: 'org_default_not_started',
+              courseType: 'organizational_training',
+              learningSchedule: {
+                startTime: `${dateStr} 09:00`,
+                endTime: `${dateStr} 17:00`
+              }
+            });
+          }
+        } catch (e) {
+          console.warn('确保未开始主题卡片存在失败:', e);
+        }
       }
 
       // 加载笔记
@@ -377,6 +407,37 @@ const SmartNotes = ({ onViewChange }) => {
           if (result && result.success) {
             notesData = await notesService.getAllNotes();
             message.success('已自动生成模拟数据');
+            // 自动生成后再确保默认未开始主题存在
+            try {
+              const hasDefault = Array.isArray(notesData) && notesData.some(n => (
+                n?.courseId === 'org_default_not_started' ||
+                (typeof n?.title === 'string' && n.title.trim() === '【组织培训】未开始主题')
+              ));
+              if (!hasDefault) {
+                const today = new Date();
+                const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+                const dateStr = `${tomorrow.getMonth() + 1}/${tomorrow.getDate()}`;
+                const baseTags = ['组织培训', '教师培训', '未开始', '待开班', '培训安排', '教学策略', '班级管理', '教学评估', '教育技术'];
+                const content = `# 教师培训 · 未开始主题\n\n## 主题简介\n- 面向教师的组织化培训，作为预备入口，当前未开始。\n- 聚焦教学能力提升、班级管理与教学评估，包含教育技术应用。\n\n## 培训目标\n- 明确教学目标与评价标准\n- 完成资料准备与设备测试\n- 制定时间计划与提醒机制\n\n## 模块目录\n- 新教师入职导引\n- 班级管理实务\n- 教学设计与策略\n- 教学评估与反馈\n- 教育技术与信息化\n\n## 标签\n${baseTags.map(t => `- ${t}`).join('\n')}\n\n## 说明\n- 当前进度为 0%\n- 状态：未开始\n- 开班后自动转入“进行中”\n\n——\n来源：组织培训系统\n课程ID：org_default_not_started`;
+                await notesService.createNote({
+                  title: '【组织培训】未开始主题',
+                  content,
+                  category: 'organizational_training',
+                  tags: baseTags,
+                  source: '组织培训',
+                  courseId: 'org_default_not_started',
+                  courseType: 'organizational_training',
+                  learningSchedule: {
+                    startTime: `${dateStr} 09:00`,
+                    endTime: `${dateStr} 17:00`
+                  }
+                });
+                // 重新获取最新数据
+                notesData = await notesService.getAllNotes();
+              }
+            } catch (e) {
+              console.warn('确保默认未开始主题存在失败:', e);
+            }
           } else {
             message.error('自动生成模拟数据失败');
           }

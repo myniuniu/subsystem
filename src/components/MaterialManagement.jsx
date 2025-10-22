@@ -1712,6 +1712,17 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#f8f9fa', borderRadius: 8, border: '1px solid #e9ecef', marginBottom: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Text strong style={{ fontSize: '12px', color: '#666' }}>📦 模块</Text>
+                      {(() => {
+                        const overallProgress = (Array.isArray(phaseMaterials) && phaseMaterials.length > 0)
+                          ? Math.round(phaseMaterials.reduce((sum, p) => sum + (assessPhasePass(p)?.progress ?? 0), 0) / phaseMaterials.length)
+                          : 0;
+                        const progressBg = 'var(--theme-primary, #1890ff)';
+                        return (
+                          <div style={{ width: 160, height: 6, background: '#edf2f7', borderRadius: 999, overflow: 'hidden', marginLeft: 10 }}>
+                            <div style={{ width: `${overallProgress}%`, height: '100%', background: progressBg }} />
+                          </div>
+                        );
+                      })()}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <Button
@@ -1801,7 +1812,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                           </Text>
                           {(phaseViewCompactMode || collapsedPhases.has(phase.id)) && (() => {
                             const status = assessPhasePass(phase);
-                            const barColor = status.pass ? '#52c41a' : '#ff4d4f';
+                            const barColor = '#1890ff';
                             return (
                               <Tooltip title={status.tooltip}>
                                 <div style={{ width: 120 }}>
@@ -1882,7 +1893,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                     <Text style={{ fontSize: 12, color: '#333' }}>考试：{summaryAll.totalMinutes}分钟</Text>
                                     <Text style={{ fontSize: 12, color: '#333' }}>已完成：{completedMinutes}分钟</Text>
                                     <div style={{ width: 140 }}>
-                                      <Progress percent={summaryAll.overallProgress} size="small" showInfo={false} />
+                                      <Progress percent={summaryAll.overallProgress} size="small" showInfo={false} strokeColor="#1890ff" />
                                     </div>
                                     <Tooltip title={`整体进度：${summaryAll.overallProgress}%`}>
                                       <Text style={{ fontSize: 11, color: '#1890ff' }}>{summaryAll.overallProgress}%</Text>
@@ -1963,7 +1974,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                           </div>
                                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                             <div style={{ width: 140 }}>
-                                              <Progress percent={summary.overallProgress} size="small" showInfo={false} />
+                                              <Progress percent={summary.overallProgress} size="small" showInfo={false} strokeColor="#1890ff" />
                                             </div>
                                             <Tooltip title={`整体进度：${summary.overallProgress}%`}>
                                               <Text style={{ fontSize: 10, color: '#1890ff' }}>{summary.overallProgress}%</Text>
@@ -2559,7 +2570,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <div style={{ width: 140 }}>
-                                  <Progress percent={summary.overallProgress} size="small" showInfo={false} />
+                                  <Progress percent={summary.overallProgress} size="small" showInfo={false} strokeColor="#1890ff" />
                                 </div>
                                 <Tooltip title={`整体进度：${summary.overallProgress}%`}>
                                   <Text style={{ fontSize: 10, color: '#1890ff' }}>{summary.overallProgress}%</Text>

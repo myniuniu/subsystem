@@ -440,7 +440,33 @@ const NotesList = ({
                 </Popconfirm>
               ]}
             >
-              <div className="note-header">
+              {(() => {
+                 const isOrgTraining = (
+                   selectedCategory === 'organizational_training' ||
+                   note.category === 'organizational_training' ||
+                   note.courseType === 'organizational_training' ||
+                   note.source === '组织培训'
+                 );
+                 if (!isOrgTraining) return null;
+                 try {
+                   const ts = getTrainingStatusInfo(note);
+                   const vi = note.videoInfo;
+                   const hasVideoPercent = vi && (
+                     (vi.type === 'single_video' && typeof vi.progress === 'number') ||
+                     (vi.type === 'multi_video' && typeof vi.overallProgress === 'number')
+                   );
+                   const rawPercent = hasVideoPercent
+                     ? (vi.type === 'single_video' ? vi.progress : vi.overallProgress)
+                     : (typeof ts?.currentProgress === 'number' ? ts.currentProgress : 0);
+                   const percent = Math.round(rawPercent);
+                   const isAchieved = percent === 100; // 严格按 100% 判定
+                   const isCompleted = ts?.status === TRAINING_STATUS.COMPLETED;
+                   if (isAchieved) return (<div className="achieved-seal">已达标</div>);
+                   if (isCompleted && percent < 100) return (<div className="not-achieved-seal">未达标</div>);
+                   return null;
+                 } catch (e) { return null; }
+               })()}
+              <div className="note-header" style={{ flexWrap: 'wrap' }}>
                 <div className="note-category">
                   {isOrgTraining ? (
                     <span className="category-icon">🏢</span>
@@ -471,15 +497,10 @@ const NotesList = ({
                           const { statusConfig, isInProgress, remainingDays } = trainingStatus;
                           return (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '8px' }}>
-                              <span style={{ fontSize: '10px' }}>{statusConfig.icon}</span>
-                              <Text style={{ fontSize: '10px', color: statusConfig.color, fontWeight: 'bold' }}>
+                              <span style={{ fontSize: '12px' }}>{statusConfig.icon}</span>
+                              <Text style={{ fontSize: '12px', color: statusConfig.color, fontWeight: 'bold' }}>
                                 {statusConfig.label}
                               </Text>
-                              {isInProgress && remainingDays > 0 && (
-                                <Text style={{ fontSize: '9px', color: '#f5222d', fontWeight: 'bold' }}>
-                                  剩余{remainingDays}天
-                                </Text>
-                              )}
                             </div>
                           );
                         }
@@ -509,15 +530,86 @@ const NotesList = ({
                       </Text>
                     </div>
                   )} 
+
+                  {/* 组织培训视频进度（标题栏内） */}
+                  {(() => {
+                    const shouldShowProgress = (
+                      selectedCategory === 'organizational_training' ||
+                      note.category === 'organizational_training' ||
+                      note.courseType === 'organizational_training' ||
+                      note.source === '组织培训'
+                    );
+                    const vi = note.videoInfo;
+                    if (shouldShowProgress && vi) {
+                      const percent = vi.type === 'single_video' ? (vi.progress || 0) : (vi.type === 'multi_video' ? (vi.overallProgress || 0) : 0);
+                      const ts = getTrainingStatusInfo(note);
+                      const statusColor = ts?.status === TRAINING_STATUS.NOT_STARTED
+                        ? '#FFD666' // 柔和黄
+                        : (ts?.status === TRAINING_STATUS.IN_PROGRESS ? '#95de64' : undefined); // 柔和绿
+                      return (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 8 }}>
+                          <Progress percent={percent} size="small" showInfo={false} style={{ width: 120 }} strokeColor={statusColor} />
+                          <Text style={{ fontSize: 12, color: statusColor ? (ts?.status === TRAINING_STATUS.NOT_STARTED ? '#AD8B00' : '#3f8c2a') : '#999' }}>{percent}%</Text>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()} 
                 </div>
                 {note.pinned && (
                   <PushpinFilled className="star-badge" />
                 )}
+                {/* 标题栏第二行：开始/结束时间与剩余天数 */}
+                {(() => {
+                  const isOrgTrainingSecond = (
+                    selectedCategory === 'organizational_training' ||
+                    note.category === 'organizational_training' ||
+                    note.courseType === 'organizational_training' ||
+                    note.source === '组织培训'
+                  );
+                  const ts = getTrainingStatusInfo(note);
+                  const hasSchedule = note.learningSchedule && note.learningSchedule.startTime && note.learningSchedule.endTime;
+                  if (isOrgTrainingSecond && (hasSchedule || (ts?.isInProgress && ts?.remainingDays > 0))) {
+                    const start = note.learningSchedule?.startTime;
+                    const end = note.learningSchedule?.endTime;
+                    const isCompleted = ts?.status === TRAINING_STATUS.COMPLETED;
+                    const color = isCompleted ? '#8c8c8c' : '#666';
+                    const remainText = ts?.isInProgress && ts?.remainingDays > 0 ? ` · 剩余${ts.remainingDays}天` : '';
+                    return (
+                      <div className="note-header-second" style={{ flexBasis: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 11 }}>⏰</span>
+                          <Text style={{ fontSize: 12, color }}>
+                            {(() => {
+                              const fmt = (s) => {
+                                const d = parseTimeString(s);
+                                if (!d || isNaN(d.getTime())) return s;
+                                const y = d.getFullYear();
+                                const m = String(d.getMonth() + 1).padStart(2, '0');
+                                const dd = String(d.getDate()).padStart(2, '0');
+                                return `${y}/${m}/${dd}`;
+                              };
+                              return `${fmt(start)} 至 ${fmt(end)}`;
+                            })()}
+                          </Text>
+                        </div>
+                        {ts?.isInProgress && ts?.remainingDays > 0 ? (
+                          <Text style={{ fontSize: 12, color: '#f5222d', fontWeight: 'bold' }}>剩余{ts.remainingDays}天</Text>
+                        ) : (
+                          <span />
+                        )}
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
               
               <Title level={5} className="note-title" ellipsis={{ rows: 2 }}>
                 {note.title}
               </Title>
+
+              {/* 已移至标题栏第二行：开始/结束时间以及剩余天数 */}
               
               <Paragraph 
                 className="note-content" 
@@ -536,74 +628,10 @@ const NotesList = ({
                 )}
               </div>
               
-              {/* 视频进度条 - 仅在组织培训分类下显示 */}
-              {(() => {
-                const shouldShow = (selectedCategory === 'organizational_training' || note.source === '组织培训');
-                const hasVideoInfo = !!note.videoInfo;
-                
-                if (shouldShow && hasVideoInfo) {
-                  return (
-                    <div className="video-progress-section" style={{ marginTop: 12, marginBottom: 8 }}>
-                      <Progress
-                        percent={(() => {
-                          const vi = note.videoInfo || {};
-                          if (vi.type === 'single_video') return vi.progress || 0;
-                          if (vi.type === 'multi_video') return vi.overallProgress || 0;
-                          return 0;
-                        })()}
-                        size="small"
-                        showInfo
-                      />
-                    </div>
-                  );
-                }
-                
-                return null;
-              })()}
+              {/* 视频进度已移动到标题栏（组织培训分类） */}
               
-              {/* 组织学习时间显示 */}
-              {(() => {
-                const isOrgTraining = (
-                  selectedCategory === 'organizational_training' ||
-                  note.source === '组织培训' ||
-                  note.tags?.includes('组织培训') ||
-                  note.category === 'organizational_training' ||
-                  note.courseType === 'organizational_training' ||
-                  note.title?.includes('【组织培训】')
-                );
-                
-                const hasLearningSchedule = !!note.learningSchedule;
-                
-                if (isOrgTraining && hasLearningSchedule) {
-                  return (
-                    <div className="learning-time-section" style={{
-                      marginTop: 8,
-                      marginBottom: 8,
-                      padding: '6px 10px',
-                      background: isCompleted ? 'linear-gradient(135deg, #f0f0f0 0%, #d9d9d9 100%)' : 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
-                      borderRadius: '6px',
-                      border: isCompleted ? '1px solid #bfbfbf' : '1px solid #91d5ff'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '12px' }}>🕒</span>
-                        <Text style={{ fontSize: '11px', color: isCompleted ? '#8c8c8c' : '#1890ff', fontWeight: 'bold' }}>学习时间</Text>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '10px' }}>
-                        <div>
-                          <Text style={{ color: isCompleted ? '#8c8c8c' : '#52c41a', fontWeight: 'bold', fontSize: '10px' }}>开始：</Text>
-                          <Text style={{ color: isCompleted ? '#8c8c8c' : '#52c41a', fontSize: '10px' }}>{note.learningSchedule.startTime}</Text>
-                        </div>
-                        <div>
-                          <Text style={{ color: isCompleted ? '#8c8c8c' : '#f5222d', fontWeight: 'bold', fontSize: '10px' }}>结束：</Text>
-                          <Text style={{ color: isCompleted ? '#8c8c8c' : '#f5222d', fontSize: '10px' }}>{note.learningSchedule.endTime}</Text>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }
-                
-                return null;
-              })()}
+              {/* 组织学习时间显示 - 已移动到标题栏第二行，删除正文区域 */}
+              {/* 原区域已移除 */}
             </Card>
           </Col>
         );
