@@ -61,6 +61,18 @@ const { Text, Title } = Typography;
 const { TabPane } = Tabs;
 const { TextArea } = Input;
 
+// 培训形式：选项与字符串<->数组转换工具
+const DEFAULT_FORMAT_OPTIONS = [
+  '线上直播课程', '录播视频', '在线研讨', '实践作业', '考试测评',
+  '工作坊', '专题讲座', '案例研讨', '小组讨论', '实地调研'
+];
+const parseFormats = (val) => Array.isArray(val)
+  ? val
+  : (typeof val === 'string'
+    ? val.split(/[+，,、]/).map(s => s.trim()).filter(Boolean)
+    : []);
+const joinFormats = (arr) => (arr || []).join(' + ');
+
 // 可拖拽的模块卡片（用于阶段内模块排序）
 const SortableModuleCard = ({ id, mod, pIdx, mIdx, globalIndex, setVisualDraft }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
@@ -98,8 +110,16 @@ const SortableModuleCard = ({ id, mod, pIdx, mIdx, globalIndex, setVisualDraft }
           onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, duration: e.target.value } : mo) } : ph))} />
       </Space>
       <Space style={{ width: '100%', marginBottom: 8 }}>
-        <Input style={{ flex: 1 }} value={mod.format} placeholder="培训形式"
-          onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, format: e.target.value } : mo) } : ph))} />
+        <Select
+          mode="tags"
+          style={{ flex: 1 }}
+          placeholder="培训形式（可多选，可自定义）"
+          value={parseFormats(mod.format)}
+          onChange={(vals) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx
+            ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, format: joinFormats(vals) } : mo) }
+            : ph))}
+          options={DEFAULT_FORMAT_OPTIONS.map(v => ({ value: v, label: v }))}
+        />
         <Input style={{ flex: 1 }} value={mod.assessment} placeholder="考核方式"
           onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, assessment: e.target.value } : mo) } : ph))} />
       </Space>
@@ -743,10 +763,13 @@ const TrainingPlanViewer = ({
               />
             </Space>
             <Space style={{ width: '100%', marginBottom: 8 }}>
-              <Input
-                value={visualDraft.format}
-                onChange={(e) => setVisualDraft(prev => ({ ...prev, format: e.target.value }))}
-                placeholder="培训形式"
+              <Select
+                mode="tags"
+                style={{ flex: 1 }}
+                placeholder="培训形式（可多选，可自定义）"
+                value={parseFormats(visualDraft.format)}
+                onChange={(vals) => setVisualDraft(prev => ({ ...prev, format: joinFormats(vals) }))}
+                options={DEFAULT_FORMAT_OPTIONS.map(v => ({ value: v, label: v }))}
               />
             </Space>
           </div>
@@ -1166,6 +1189,3 @@ const TrainingPlanViewer = ({
 };
 
 export default TrainingPlanViewer;
-
-
-// 统一的部分编辑弹窗状态与方法（JSON直接编辑）
