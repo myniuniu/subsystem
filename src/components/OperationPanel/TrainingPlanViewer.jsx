@@ -42,10 +42,81 @@ import AssessmentSection from './AssessmentSection';
 import GuaranteeSection from './GuaranteeSection';
 import TagsSection from './TagsSection';
 import ImplementationPlan from './ImplementationPlan';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const { Text, Title } = Typography;
 const { TabPane } = Tabs;
 const { TextArea } = Input;
+
+// 可拖拽的模块卡片（用于阶段内模块排序）
+const SortableModuleCard = ({ id, mod, pIdx, mIdx, globalIndex, setVisualDraft }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.85 : 1,
+  };
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ ...style, marginBottom: 12, padding: 10, border: '1px dashed #e8e8e8', borderLeft: '2px solid #b7eb8f', borderRadius: 6, background: '#fafafa' }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div
+            {...attributes}
+            {...listeners}
+            style={{ cursor: isDragging ? 'grabbing' : 'grab', width: 16, height: 16, borderRadius: 2, background: '#d9d9d9' }}
+            title="拖拽排序"
+          />
+          <span style={{ color: '#595959' }}>{`模块 ${globalIndex}`}</span>
+        </div>
+        <Space size="small">
+          <Button size="small" onClick={() => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: [...ph.modules.slice(0, mIdx), { title: '', duration: '', content: [], format: '', assessment: '' }, ...ph.modules.slice(mIdx)] } : ph))}>在上方插入</Button>
+          <Button size="small" onClick={() => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: [...ph.modules.slice(0, mIdx + 1), { title: '', duration: '', content: [], format: '', assessment: '' }, ...ph.modules.slice(mIdx + 1)] } : ph))}>在下方插入</Button>
+          <Button danger size="small" onClick={() => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.filter((_, j) => j !== mIdx) } : ph))}>删除模块</Button>
+        </Space>
+      </div>
+
+      <Space style={{ width: '100%', marginBottom: 8 }}>
+        <Input style={{ flex: 1 }} value={mod.title} placeholder="模块标题"
+          onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, title: e.target.value } : mo) } : ph))} />
+        <Input style={{ width: 160 }} value={mod.duration} placeholder="时长"
+          onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, duration: e.target.value } : mo) } : ph))} />
+      </Space>
+      <Space style={{ width: '100%', marginBottom: 8 }}>
+        <Input style={{ flex: 1 }} value={mod.format} placeholder="培训形式"
+          onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, format: e.target.value } : mo) } : ph))} />
+        <Input style={{ flex: 1 }} value={mod.assessment} placeholder="考核方式"
+          onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, assessment: e.target.value } : mo) } : ph))} />
+      </Space>
+
+      <Typography.Title level={5} style={{ marginTop: 8 }}>内容条目</Typography.Title>
+      {(mod.content || []).map((cItem, cIdx) => (
+        <Space key={cIdx} style={{ width: '100%', marginBottom: 8 }}>
+          <Input style={{ flex: 1 }} value={cItem} placeholder="内容"
+            onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, content: mo.content.map((ci, k) => k === cIdx ? e.target.value : ci) } : mo) } : ph))} />
+          <Button danger onClick={() => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, content: mo.content.filter((_, k) => k !== cIdx) } : mo) } : ph))}>删除</Button>
+        </Space>
+      ))}
+      <Button type="dashed" icon={<PlusOutlined />} onClick={() => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, content: [...(mo.content || []), ''] } : mo) } : ph))}>添加内容</Button>
+    </div>
+  );
+};
 
 const TrainingPlanViewer = ({
   rightPanelTrainingPlanRecord,
@@ -62,6 +133,14 @@ const TrainingPlanViewer = ({
   const [editContent, setEditContent] = useState('');
   // 新增：人员清单弹窗状态与数据
   const [participantsModalVisible, setParticipantsModalVisible] = useState(false);
+
+  // dnd-kit 拖拽传感器（用于阶段内模块拖拽排序）
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
   const participantsList = [
     { name: '张三', department: '数学组', position: '教师', phone: '13800138001', email: 'zhangsan@school.edu' },
     { name: '李四', department: '语文组', position: '教师', phone: '13800138002', email: 'lisi@school.edu' },
@@ -242,7 +321,7 @@ const TrainingPlanViewer = ({
 
   // 打开编辑器
   const handleEdit = () => {
-    const markdown = convertToMarkdown(newTeacherTrainingPlan);
+    const markdown = convertToMarkdown(plan);
     setEditContent(markdown);
     setIsEditing(true);
   };
@@ -528,6 +607,318 @@ const TrainingPlanViewer = ({
     }
   };
 
+  // 引入方案可编辑状态
+  const [plan, setPlan] = useState(newTeacherTrainingPlan);
+  // 统一的部分编辑弹窗状态与方法（JSON直接编辑）
+  const [sectionEditorVisible, setSectionEditorVisible] = useState(false);
+  const [editingSectionKey, setEditingSectionKey] = useState(null);
+  const [sectionDraft, setSectionDraft] = useState('');
+  const [editMode, setEditMode] = useState('visual');
+  const [visualDraft, setVisualDraft] = useState(null);
+  const [inlineVisualEditing, setInlineVisualEditing] = useState(false);
+  const openSectionEditor = (key) => {
+    try {
+      setEditingSectionKey(key);
+      const sectionData = plan[key];
+      setSectionDraft(JSON.stringify(sectionData, null, 2));
+      setVisualDraft(JSON.parse(JSON.stringify(sectionData)));
+      setEditMode('json');
+      setSectionEditorVisible(true);
+    } catch (e) {
+      message.error('无法打开该部分内容');
+    }
+  };
+  const saveSectionEdit = () => {
+    if (!editingSectionKey) return;
+    try {
+      if (editMode === 'json') {
+        const parsed = JSON.parse(sectionDraft);
+        setPlan(prev => ({ ...prev, [editingSectionKey]: parsed }));
+      } else {
+        setPlan(prev => ({ ...prev, [editingSectionKey]: visualDraft }));
+      }
+      setSectionEditorVisible(false);
+      setEditingSectionKey(null);
+      message.success('已保存该部分内容');
+    } catch (e) {
+      message.error(editMode === 'json' ? 'JSON格式错误，请检查' : '保存失败，请检查表单内容');
+    }
+  };
+
+  // 内联可视化编辑控制
+  const openInlineVisualEditor = (key) => {
+    try {
+      setEditingSectionKey(key);
+      const sectionData = plan[key];
+      setVisualDraft(JSON.parse(JSON.stringify(sectionData)));
+      setInlineVisualEditing(true);
+      setEditMode('visual');
+    } catch (e) {
+      message.error('无法打开可视化编辑');
+    }
+  };
+  const cancelInlineVisualEdit = () => {
+    setInlineVisualEditing(false);
+    setEditingSectionKey(null);
+    setVisualDraft(null);
+  };
+  const saveInlineVisualEdit = () => {
+    if (!editingSectionKey) return;
+    try {
+      setPlan(prev => ({ ...prev, [editingSectionKey]: visualDraft }));
+      cancelInlineVisualEdit();
+      message.success('已保存该部分内容');
+    } catch (e) {
+      message.error('保存失败，请检查表单内容');
+    }
+  };
+
+  // 可视化编辑器渲染
+  const renderVisualEditor = () => {
+    if (!editingSectionKey || !visualDraft) {
+      return <Text type="secondary">请选择左侧需要编辑的部分。</Text>;
+    }
+
+    const renderStringList = (label, arrKey, placeholder = '请输入条目') => (
+      <div style={{ marginBottom: 16 }}>
+        <Title level={5} style={{ marginBottom: 8 }}>{label}</Title>
+        {(visualDraft[arrKey] || []).map((item, idx) => (
+          <Space key={idx} style={{ width: '100%', marginBottom: 8 }} align="start">
+            <Input
+              style={{ flex: 1 }}
+              value={item}
+              placeholder={placeholder}
+              onChange={(e) => {
+                const val = e.target.value;
+                setVisualDraft(prev => ({
+                  ...prev,
+                  [arrKey]: prev[arrKey].map((x, i) => i === idx ? val : x)
+                }));
+              }}
+            />
+            <Button danger onClick={() => {
+              setVisualDraft(prev => ({
+                ...prev,
+                [arrKey]: prev[arrKey].filter((_, i) => i !== idx)
+              }));
+            }}>删除</Button>
+          </Space>
+        ))}
+        <Button type="dashed" icon={<PlusOutlined />} onClick={() => {
+          setVisualDraft(prev => ({
+            ...prev,
+            [arrKey]: [...(prev[arrKey] || []), '']
+          }));
+        }}>添加一项</Button>
+      </div>
+    );
+
+    switch (editingSectionKey) {
+      case 'overview':
+        return (
+          <div>
+            <Title level={5}>培训背景</Title>
+            <TextArea
+              rows={4}
+              value={visualDraft.background}
+              onChange={(e) => setVisualDraft(prev => ({ ...prev, background: e.target.value }))}
+              placeholder="请输入培训背景"
+              style={{ marginBottom: 16 }}
+            />
+            <Title level={5}>培训目标</Title>
+            {renderStringList('目标条目', 'objectives', '请输入目标')}
+            <Space style={{ width: '100%', marginBottom: 8 }}>
+              <Input
+                value={visualDraft.duration}
+                onChange={(e) => setVisualDraft(prev => ({ ...prev, duration: e.target.value }))}
+                placeholder="培训周期（如：3个月/12周）"
+              />
+            </Space>
+            <Space style={{ width: '100%', marginBottom: 8 }}>
+              <Input
+                value={visualDraft.participants}
+                onChange={(e) => setVisualDraft(prev => ({ ...prev, participants: e.target.value }))}
+                placeholder="培训对象"
+              />
+            </Space>
+            <Space style={{ width: '100%', marginBottom: 8 }}>
+              <Input
+                value={visualDraft.format}
+                onChange={(e) => setVisualDraft(prev => ({ ...prev, format: e.target.value }))}
+                placeholder="培训形式"
+              />
+            </Space>
+          </div>
+        );
+      case 'implementation':
+        return (
+          <div>
+            <Title level={5}>培训平台</Title>
+            <Input
+              value={visualDraft.platform}
+              onChange={(e) => setVisualDraft(prev => ({ ...prev, platform: e.target.value }))}
+              placeholder="请输入培训平台"
+              style={{ marginBottom: 16 }}
+            />
+            {renderStringList('培训方法', 'methods', '请输入方法')}
+            {renderStringList('支持保障', 'support', '请输入保障项')}
+          </div>
+        );
+      case 'assessment':
+        return (
+          <div>
+            <Title level={5}>考核方式</Title>
+            <Input
+              value={visualDraft.method}
+              onChange={(e) => setVisualDraft(prev => ({ ...prev, method: e.target.value }))}
+              placeholder="请输入考核方式"
+              style={{ marginBottom: 16 }}
+            />
+            <Title level={5}>考核组成</Title>
+            {(visualDraft.components || []).map((comp, idx) => (
+              <div key={idx} style={{ marginBottom: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6 }}>
+                <Space style={{ width: '100%', marginBottom: 8 }}>
+                  <Input
+                    style={{ flex: 1 }}
+                    value={comp.name}
+                    placeholder="名称"
+                    onChange={(e) => setVisualDraft(prev => ({
+                      ...prev,
+                      components: prev.components.map((c, i) => i === idx ? { ...c, name: e.target.value } : c)
+                    }))}
+                  />
+                  <Input
+                    style={{ width: 120 }}
+                    value={comp.weight}
+                    placeholder="权重"
+                    onChange={(e) => setVisualDraft(prev => ({
+                      ...prev,
+                      components: prev.components.map((c, i) => i === idx ? { ...c, weight: e.target.value } : c)
+                    }))}
+                  />
+                </Space>
+                <TextArea
+                  rows={2}
+                  value={comp.description}
+                  placeholder="描述"
+                  onChange={(e) => setVisualDraft(prev => ({
+                    ...prev,
+                    components: prev.components.map((c, i) => i === idx ? { ...c, description: e.target.value } : c)
+                  }))}
+                />
+                <div style={{ textAlign: 'right', marginTop: 8 }}>
+                  <Button danger size="small" onClick={() => setVisualDraft(prev => ({
+                    ...prev,
+                    components: prev.components.filter((_, i) => i !== idx)
+                  }))}>删除</Button>
+                </div>
+              </div>
+            ))}
+            <Button type="dashed" icon={<PlusOutlined />} onClick={() => setVisualDraft(prev => ({
+              ...prev,
+              components: [...(prev.components || []), { name: '', weight: '', description: '' }]
+            }))}>添加组成</Button>
+
+            {renderStringList('评价标准', 'standards', '请输入标准')}
+          </div>
+        );
+      case 'guarantee':
+        return (
+          <div>
+            {renderStringList('组织保障', 'organization', '请输入组织保障项')}
+            {renderStringList('资源保障', 'resources', '请输入资源保障项')}
+            {renderStringList('质量保障', 'quality', '请输入质量保障项')}
+          </div>
+        );
+      case 'schedule':
+        return (
+          <div>
+            <Title level={5}>培训进度安排</Title>
+            {(visualDraft || []).map((row, idx) => (
+              <div key={idx} style={{ marginBottom: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6 }}>
+                <Space style={{ width: '100%', marginBottom: 8 }}>
+                  <Input style={{ width: 120 }} value={row.week} placeholder="周次"
+                    onChange={(e) => setVisualDraft(prev => prev.map((r, i) => i === idx ? { ...r, week: e.target.value } : r))} />
+                  <Input style={{ flex: 1 }} value={row.content} placeholder="内容"
+                    onChange={(e) => setVisualDraft(prev => prev.map((r, i) => i === idx ? { ...r, content: e.target.value } : r))} />
+                  <Input style={{ width: 160 }} value={row.type} placeholder="形式"
+                    onChange={(e) => setVisualDraft(prev => prev.map((r, i) => i === idx ? { ...r, type: e.target.value } : r))} />
+                  <Input style={{ width: 120 }} value={row.hours} placeholder="学时"
+                    onChange={(e) => setVisualDraft(prev => prev.map((r, i) => i === idx ? { ...r, hours: e.target.value } : r))} />
+                  <Button danger onClick={() => setVisualDraft(prev => prev.filter((_, i) => i !== idx))}>删除</Button>
+                </Space>
+              </div>
+            ))}
+            <Button type="dashed" icon={<PlusOutlined />} onClick={() => setVisualDraft(prev => ([...prev, { week: '', content: '', type: '', hours: '' }]))}>添加一行</Button>
+          </div>
+        );
+      case 'phases':
+        return (
+          <div>
+            <Title level={5}>培训阶段与内容</Title>
+            {(visualDraft || []).map((phase, pIdx) => (
+              <div key={pIdx} style={{ marginBottom: 16, padding: 12, border: '1px solid #f0f0f0', borderLeft: '3px solid #91d5ff', borderRadius: 6, background: '#fff' }}>
+                <Space style={{ width: '100%', marginBottom: 8 }}>
+                  <Input style={{ flex: 1 }} value={phase.name} placeholder="阶段名称"
+                    onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, name: e.target.value } : ph))} />
+                </Space>
+                <TextArea rows={2} value={phase.focus} placeholder="阶段重点"
+                  onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, focus: e.target.value } : ph))} />
+
+                <Divider orientation="left" style={{ margin: '12px 0' }}>模块</Divider>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={({ active, over }) => {
+                    if (over && active.id !== over.id) {
+                      const fromIndex = parseInt(String(active.id).split('-').pop(), 10);
+                      const toIndex = parseInt(String(over.id).split('-').pop(), 10);
+                      setVisualDraft(prev => prev.map((ph, i) => {
+                        if (i !== pIdx) return ph;
+                        const modules = [...(ph.modules || [])];
+                        const [m] = modules.splice(fromIndex, 1);
+                        modules.splice(toIndex, 0, m);
+                        return { ...ph, modules };
+                      }));
+                    }
+                  }}
+                >
+                  <SortableContext
+                    items={(phase.modules || []).map((_, index) => `${pIdx}-module-${index}`)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {(phase.modules || []).map((mod, mIdx) => {
+                      const baseIndex = (visualDraft || []).slice(0, pIdx).reduce((acc, ph) => acc + ((ph.modules || []).length), 0);
+                      const globalIndex = baseIndex + mIdx + 1;
+                      return (
+                        <SortableModuleCard
+                          key={`${pIdx}-module-${mIdx}`}
+                          id={`${pIdx}-module-${mIdx}`}
+                          mod={mod}
+                          pIdx={pIdx}
+                          mIdx={mIdx}
+                          globalIndex={globalIndex}
+                          setVisualDraft={setVisualDraft}
+                        />
+                      );
+                    })}
+                  </SortableContext>
+                </DndContext>
+                <Button type="dashed" icon={<PlusOutlined />} onClick={() => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: [...(ph.modules || []), { title: '', duration: '', content: [], format: '', assessment: '' }] } : ph))}>添加模块</Button>
+
+                <div style={{ textAlign: 'right', marginTop: 8 }}>
+                  <Button danger onClick={() => setVisualDraft(prev => prev.filter((_, i) => i !== pIdx))}>删除阶段</Button>
+                </div>
+              </div>
+            ))}
+            <Button type="dashed" icon={<PlusOutlined />} onClick={() => setVisualDraft(prev => ([...prev, { name: '', focus: '', modules: [] }]))}>添加阶段</Button>
+          </div>
+        );
+      default:
+        return <Text type="secondary">暂未支持该部分的可视化编辑，请切换到 JSON 模式。</Text>;
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* 头部操作栏（可隐藏） */}
@@ -546,7 +937,7 @@ const TrainingPlanViewer = ({
               >
                 返回
               </Button>
-              <Title level={4} style={{ margin: 0 }}>{newTeacherTrainingPlan.title}</Title>
+              <Title level={4} style={{ margin: 0 }}>{plan.title}</Title>
             </div>
             <Space>
               <Button 
@@ -584,25 +975,157 @@ const TrainingPlanViewer = ({
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
           }}>
             {/* 方案概述 */}
-            <TrainingOverview overview={newTeacherTrainingPlan.overview} />
+            <div style={{ textAlign: 'right', marginBottom: 8 }}>
+              <Space size="small">
+                <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('overview')}>
+                  可视化编辑
+                </Button>
+                <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('overview'); }}>
+                  JSON编辑
+                </Button>
+              </Space>
+            </div>
+            {inlineVisualEditing && editingSectionKey==='overview' ? (
+              <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
+                {renderVisualEditor()}
+                <div style={{ textAlign: 'right', marginTop: 8 }}>
+                  <Space>
+                    <Button onClick={cancelInlineVisualEdit}>取消</Button>
+                    <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
+                  </Space>
+                </div>
+              </div>
+            ) : (
+              <TrainingOverview overview={plan.overview} />
+            )}
 
             {/* 标签清单 */}
             <TagsSection participantsList={participantsList} />
 
             {/* 培训阶段与内容 */}
-            <TrainingPhases phases={newTeacherTrainingPlan.phases} />
+            <div style={{ textAlign: 'right', marginBottom: 8 }}>
+              <Space size="small">
+                <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('phases')}>
+                  可视化编辑
+                </Button>
+                <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('phases'); }}>
+                  JSON编辑
+                </Button>
+              </Space>
+            </div>
+            {inlineVisualEditing && editingSectionKey==='phases' ? (
+              <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
+                {renderVisualEditor()}
+                <div style={{ textAlign: 'right', marginTop: 8 }}>
+                  <Space>
+                    <Button onClick={cancelInlineVisualEdit}>取消</Button>
+                    <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
+                  </Space>
+                </div>
+              </div>
+            ) : (
+              <TrainingPhases phases={plan.phases} />
+            )}
 
             {/* 详细时间安排 */}
-            <TrainingSchedule schedule={newTeacherTrainingPlan.schedule} />
+            <div style={{ textAlign: 'right', marginBottom: 8 }}>
+              <Space size="small">
+                <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('schedule')}>
+                  可视化编辑
+                </Button>
+                <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('schedule'); }}>
+                  JSON编辑
+                </Button>
+              </Space>
+            </div>
+            {inlineVisualEditing && editingSectionKey==='schedule' ? (
+              <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
+                {renderVisualEditor()}
+                <div style={{ textAlign: 'right', marginTop: 8 }}>
+                  <Space>
+                    <Button onClick={cancelInlineVisualEdit}>取消</Button>
+                    <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
+                  </Space>
+                </div>
+              </div>
+            ) : (
+              <TrainingSchedule schedule={plan.schedule} />
+            )}
 
             {/* 实施保障 */}
-            <ImplementationSection implementation={newTeacherTrainingPlan.implementation} />
+            <div style={{ textAlign: 'right', marginBottom: 8 }}>
+              <Space size="small">
+                <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('implementation')}>
+                  可视化编辑
+                </Button>
+                <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('implementation'); }}>
+                  JSON编辑
+                </Button>
+              </Space>
+            </div>
+            {inlineVisualEditing && editingSectionKey==='implementation' ? (
+              <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
+                {renderVisualEditor()}
+                <div style={{ textAlign: 'right', marginTop: 8 }}>
+                  <Space>
+                    <Button onClick={cancelInlineVisualEdit}>取消</Button>
+                    <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
+                  </Space>
+                </div>
+              </div>
+            ) : (
+              <ImplementationSection implementation={plan.implementation} />
+            )}
 
             {/* 考核与评价 */}
-            <AssessmentSection assessment={newTeacherTrainingPlan.assessment} />
+            <div style={{ textAlign: 'right', marginBottom: 8 }}>
+              <Space size="small">
+                <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('assessment')}>
+                  可视化编辑
+                </Button>
+                <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('assessment'); }}>
+                  JSON编辑
+                </Button>
+              </Space>
+            </div>
+            {inlineVisualEditing && editingSectionKey==='assessment' ? (
+              <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
+                {renderVisualEditor()}
+                <div style={{ textAlign: 'right', marginTop: 8 }}>
+                  <Space>
+                    <Button onClick={cancelInlineVisualEdit}>取消</Button>
+                    <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
+                  </Space>
+                </div>
+              </div>
+            ) : (
+              <AssessmentSection assessment={plan.assessment} />
+            )}
 
             {/* 保障措施 */}
-            <GuaranteeSection guarantee={newTeacherTrainingPlan.guarantee} />
+            <div style={{ textAlign: 'right', marginBottom: 8 }}>
+              <Space size="small">
+                <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('guarantee')}>
+                  可视化编辑
+                </Button>
+                <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('guarantee'); }}>
+                  JSON编辑
+                </Button>
+              </Space>
+            </div>
+            {inlineVisualEditing && editingSectionKey==='guarantee' ? (
+              <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
+                {renderVisualEditor()}
+                <div style={{ textAlign: 'right', marginTop: 8 }}>
+                  <Space>
+                    <Button onClick={cancelInlineVisualEdit}>取消</Button>
+                    <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
+                  </Space>
+                </div>
+              </div>
+            ) : (
+              <GuaranteeSection guarantee={plan.guarantee} />
+            )}
           </div>
         </div>
       ) : (
@@ -618,25 +1141,157 @@ const TrainingPlanViewer = ({
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
             }}>
               {/* 方案概述 */}
-              <TrainingOverview overview={newTeacherTrainingPlan.overview} />
+              <div style={{ textAlign: 'right', marginBottom: 8 }}>
+                <Space size="small">
+                  <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('overview')}>
+                    可视化编辑
+                  </Button>
+                  <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('overview'); }}>
+                    JSON编辑
+                  </Button>
+                </Space>
+              </div>
+              {inlineVisualEditing && editingSectionKey==='overview' ? (
+                <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
+                  {renderVisualEditor()}
+                  <div style={{ textAlign: 'right', marginTop: 8 }}>
+                    <Space>
+                      <Button onClick={cancelInlineVisualEdit}>取消</Button>
+                      <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
+                    </Space>
+                  </div>
+                </div>
+              ) : (
+                <TrainingOverview overview={plan.overview} />
+              )}
 
               {/* 标签清单 */}
               <TagsSection participantsList={participantsList} />
 
               {/* 培训阶段与内容 */}
-              <TrainingPhases phases={newTeacherTrainingPlan.phases} />
+              <div style={{ textAlign: 'right', marginBottom: 8 }}>
+                <Space size="small">
+                  <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('phases')}>
+                    可视化编辑
+                  </Button>
+                  <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('phases'); }}>
+                    JSON编辑
+                  </Button>
+                </Space>
+              </div>
+              {inlineVisualEditing && editingSectionKey==='phases' ? (
+                <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
+                  {renderVisualEditor()}
+                  <div style={{ textAlign: 'right', marginTop: 8 }}>
+                    <Space>
+                      <Button onClick={cancelInlineVisualEdit}>取消</Button>
+                      <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
+                    </Space>
+                  </div>
+                </div>
+              ) : (
+                <TrainingPhases phases={plan.phases} />
+              )}
 
               {/* 详细时间安排 */}
-              <TrainingSchedule schedule={newTeacherTrainingPlan.schedule} />
+              <div style={{ textAlign: 'right', marginBottom: 8 }}>
+                <Space size="small">
+                  <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('schedule')}>
+                    可视化编辑
+                  </Button>
+                  <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('schedule'); }}>
+                    JSON编辑
+                  </Button>
+                </Space>
+              </div>
+              {inlineVisualEditing && editingSectionKey==='schedule' ? (
+                <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
+                  {renderVisualEditor()}
+                  <div style={{ textAlign: 'right', marginTop: 8 }}>
+                    <Space>
+                      <Button onClick={cancelInlineVisualEdit}>取消</Button>
+                      <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
+                    </Space>
+                  </div>
+                </div>
+              ) : (
+                <TrainingSchedule schedule={plan.schedule} />
+              )}
 
               {/* 实施保障 */}
-              <ImplementationSection implementation={newTeacherTrainingPlan.implementation} />
+              <div style={{ textAlign: 'right', marginBottom: 8 }}>
+                <Space size="small">
+                   <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('implementation')}>
+                     可视化编辑
+                   </Button>
+                   <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('implementation'); }}>
+                     JSON编辑
+                   </Button>
+                 </Space>
+              </div>
+              {inlineVisualEditing && editingSectionKey==='implementation' ? (
+                <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
+                  {renderVisualEditor()}
+                  <div style={{ textAlign: 'right', marginTop: 8 }}>
+                    <Space>
+                      <Button onClick={cancelInlineVisualEdit}>取消</Button>
+                      <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
+                    </Space>
+                  </div>
+                </div>
+              ) : (
+                <ImplementationSection implementation={plan.implementation} />
+              )}
 
               {/* 考核与评价 */}
-              <AssessmentSection assessment={newTeacherTrainingPlan.assessment} />
+              <div style={{ textAlign: 'right', marginBottom: 8 }}>
+                <Space size="small">
+                  <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('assessment')}>
+                    可视化编辑
+                  </Button>
+                  <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('assessment'); }}>
+                    JSON编辑
+                  </Button>
+                </Space>
+              </div>
+              {inlineVisualEditing && editingSectionKey==='assessment' ? (
+                <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
+                  {renderVisualEditor()}
+                  <div style={{ textAlign: 'right', marginTop: 8 }}>
+                    <Space>
+                      <Button onClick={cancelInlineVisualEdit}>取消</Button>
+                      <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
+                    </Space>
+                  </div>
+                </div>
+              ) : (
+                <AssessmentSection assessment={plan.assessment} />
+              )}
 
               {/* 保障措施 */}
-              <GuaranteeSection guarantee={newTeacherTrainingPlan.guarantee} />
+            <div style={{ textAlign: 'right', marginBottom: 8 }}>
+              <Space size="small">
+                <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('guarantee')}>
+                  可视化编辑
+                </Button>
+                <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('guarantee'); }}>
+                  JSON编辑
+                </Button>
+              </Space>
+            </div>
+            {inlineVisualEditing && editingSectionKey==='guarantee' ? (
+              <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
+                {renderVisualEditor()}
+                <div style={{ textAlign: 'right', marginTop: 8 }}>
+                  <Space>
+                    <Button onClick={cancelInlineVisualEdit}>取消</Button>
+                    <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
+                  </Space>
+                </div>
+              </div>
+            ) : (
+              <GuaranteeSection guarantee={plan.guarantee} />
+            )}
             </div>
           </div>
 
@@ -657,6 +1312,29 @@ const TrainingPlanViewer = ({
         </div>
       )}
 
+      {/* 部分编辑器（JSON）Modal */}
+       <Modal
+         title={editingSectionKey ? `编辑：${editingSectionKey}` : '编辑部分'}
+         open={sectionEditorVisible}
+         onOk={saveSectionEdit}
+         onCancel={() => setSectionEditorVisible(false)}
+         width={900}
+         okText="保存"
+         cancelText="取消"
+         okButtonProps={{ icon: <SaveOutlined /> }}
+         bodyStyle={{ padding: '16px' }}
+       >
+         <div style={{ marginBottom: 8 }}>
+           <Text type="secondary">直接以 JSON 格式编辑该部分内容，保存后左侧视图将立即更新。</Text>
+         </div>
+         <TextArea
+           value={sectionDraft}
+           onChange={(e) => setSectionDraft(e.target.value)}
+           rows={18}
+           placeholder={`请粘贴或编辑 JSON 内容，例如 {\n  \"platform\": \"学校在线培训平台\",\n  \"methods\": [\n    \"直播课程\"\n  ]\n}`}
+         />
+       </Modal>
+ 
       {/* Markdown 编辑器 Modal */}
       <Modal
         title="编辑培训方案"
@@ -703,3 +1381,6 @@ const TrainingPlanViewer = ({
 };
 
 export default TrainingPlanViewer;
+
+
+// 统一的部分编辑弹窗状态与方法（JSON直接编辑）

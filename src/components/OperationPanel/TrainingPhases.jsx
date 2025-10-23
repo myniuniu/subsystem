@@ -16,11 +16,12 @@ const normalizeFormats = (fmt) => {
 };
 
 const TrainingPhases = ({ phases }) => {
+  let modCounter = 0; // 跨阶段自然编号计数器
   return (
     <div style={{ marginBottom: '32px' }}>
       <Title level={3}>二、培训阶段与内容</Title>
       {phases.map((phase, phaseIdx) => (
-        <div key={phaseIdx} style={{ marginBottom: '24px' }}>
+        <div key={phaseIdx} style={{ marginBottom: '24px', borderLeft: '3px solid #91d5ff', paddingLeft: '12px' }}>
           <Title level={4}>{phase.name}</Title>
           <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>
             培训重点：{phase.focus}
@@ -31,12 +32,13 @@ const TrainingPhases = ({ phases }) => {
               size="small" 
               title={
                 <Space>
+                  <Tag color="geekblue">{`模块 ${++modCounter}`}</Tag>
                   <BookOutlined style={{ color: '#1890ff' }} />
                   <Text strong>{module.title}</Text>
                   <Tag color="blue">{module.duration}</Tag>
                 </Space>
               }
-              style={{ marginBottom: '12px' }}
+              style={{ marginBottom: '12px', borderLeft: '2px solid #b7eb8f' }}
             >
               <div style={{ marginBottom: '12px' }}>
                 <Text strong>培训内容：</Text>

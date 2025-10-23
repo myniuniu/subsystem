@@ -709,7 +709,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                     <DownOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => togglePhase(phase.id)} />
                                   )}
                                   <Text strong style={{ fontSize: 13 }}>
-                                    {phase.id}｜{phase.content}
+                                    模块 {phase.id}｜{phase.content}
                                   </Text>
                                 </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
