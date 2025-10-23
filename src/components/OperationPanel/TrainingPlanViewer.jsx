@@ -28,11 +28,20 @@ import {
   SaveOutlined,
   PaperClipOutlined,
   FileExcelOutlined,
-  PlusOutlined
+  PlusOutlined,
+  SettingOutlined
 } from '@ant-design/icons';
 import { RIGHT_PANEL_VIEWS, VIEW_MODES } from '../../constants/noteEditConstants';
 import { generateComprehensiveTrainingPlan, generateTrainingPlanMarkdown } from '../../utils/trainingPlanGenerator';
 import SimpleTrainingPlanDetailView from '../SimpleTrainingPlanDetailView';
+import TrainingOverview from './TrainingOverview';
+import TrainingPhases from './TrainingPhases';
+import TrainingSchedule from './TrainingSchedule';
+import ImplementationSection from './ImplementationSection';
+import AssessmentSection from './AssessmentSection';
+import GuaranteeSection from './GuaranteeSection';
+import TagsSection from './TagsSection';
+import ImplementationPlan from './ImplementationPlan';
 
 const { Text, Title } = Typography;
 const { TabPane } = Tabs;
@@ -137,6 +146,12 @@ const TrainingPlanViewer = ({
     } else {
       setRightPanelView(RIGHT_PANEL_VIEWS.TRAINING_PLAN_LIST);
     }
+  };
+
+  // 分屏：右侧实施方案显示/隐藏
+  const [showImplementationPlan, setShowImplementationPlan] = useState(false);
+  const handleConfigureImplementation = () => {
+    setShowImplementationPlan(prev => !prev);
   };
 
   // 将培训方案转换为 Markdown 格式
@@ -531,411 +546,114 @@ const TrainingPlanViewer = ({
               </Button>
               <Title level={4} style={{ margin: 0 }}>{newTeacherTrainingPlan.title}</Title>
             </div>
-            <Button 
-              type="primary"
-              icon={<EditOutlined />}
-              onClick={handleEdit}
-            >
-              编辑
-            </Button>
+            <Space>
+              <Button 
+                icon={<SettingOutlined />} 
+                onClick={handleConfigureImplementation}
+              >
+                配置实施方案
+              </Button>
+              <Button 
+                type="primary"
+                icon={<EditOutlined />}
+                onClick={handleEdit}
+              >
+                编辑
+              </Button>
+            </Space>
           </div>
         </div>
       )}
 
       {/* 主要内容区域 */}
-      <div style={{ 
-        flex: 1, 
-        padding: '24px',
-        overflow: 'auto',
-        background: '#f5f5f5'
-      }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          background: '#fff',
-          padding: '32px',
-          borderRadius: '8px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+      {!showImplementationPlan ? (
+        <div style={{ 
+          flex: 1, 
+          padding: '24px',
+          overflow: 'auto',
+          background: '#f5f5f5'
         }}>
-          {/* 方案概述 */}
-          <div style={{ marginBottom: '32px' }}>
-            <Title level={3}>一、培训概述</Title>
-            <div style={{ marginBottom: '16px' }}>
-              <Text strong>培训背景：</Text>
-              <Text>{newTeacherTrainingPlan.overview.background}</Text>
-            </div>
-            <div style={{ marginBottom: '16px' }}>
-              <Text strong>培训目标：</Text>
-              <ul style={{ marginTop: '8px', paddingLeft: '24px' }}>
-                {newTeacherTrainingPlan.overview.objectives.map((obj, idx) => (
-                  <li key={idx} style={{ marginBottom: '8px' }}>
-                    <Text>{obj}</Text>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <Row gutter={16} style={{ marginTop: '16px' }}>
-              <Col span={6}>
-                <Card size="small">
-                  <Statistic 
-                    title="培训周期" 
-                    value={newTeacherTrainingPlan.overview.duration}
-                    valueStyle={{ fontSize: '16px' }}
-                  />
-                </Card>
-              </Col>
-              <Col span={6}>
-                <Card size="small">
-                  <Statistic 
-                    title="培训对象" 
-                    value={newTeacherTrainingPlan.overview.participants}
-                    valueStyle={{ fontSize: '16px' }}
-                  />
-                </Card>
-              </Col>
-              <Col span={12}>
-                <Card size="small">
-                  <Text strong>培训形式：</Text>
-                  <br />
-                  <Text style={{ fontSize: '14px' }}>{newTeacherTrainingPlan.overview.format}</Text>
-                </Card>
-              </Col>
-            </Row>
-            
-            {/* 培训人员标签视图 */}
-            <Card 
-              size="小" 
-              style={{ marginTop: '16px', background: '#fafafa' }}
-              title={
-                <Space>
-                  <PaperClipOutlined style={{ color: '#1890ff' }} />
-                  <Text strong>培训人员标签</Text>
-                </Space>
-              }
-            >
-              <Space direction="vertical" style={{ width: '100%' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Space>
-                    <FileExcelOutlined style={{ fontSize: '20px', color: '#52c41a' }} />
-                    <div>
-                      <Text strong>标签清单</Text>
-                      <br />
-                      <Text type="secondary" style={{ fontSize: '12px' }}>点击标签实时查看对应人员；可打开管理进行编辑</Text>
-                    </div>
-                  </Space>
-                  {!hideButtons && (
-                    <Space>
-                      <Button icon={<EditOutlined />} onClick={() => setTagsModalVisible(true)}>管理标签</Button>
-                      <Button 
-                        type="primary" 
-                        icon={<DownloadOutlined />}
-                        onClick={handleDownloadParticipantsList}
-                      >
-                        下载清单
-                      </Button>
-                    </Space>
-                  )}
-                </div>
-                <div style={{ marginTop: 12 }}>
-                  <Space wrap>
-                    {tags.map(tag => (
-                      <Popover
-                        key={tag.key}
-                        title={`${tag.label}（${(tagAssignments[tag.key] || []).length}人）`}
-                        content={
-                          <div style={{ maxWidth: 280 }}>
-                            {(tagAssignments[tag.key] || []).length === 0
-                              ? <Text type="secondary">暂无人员</Text>
-                              : <List 
-                                  size="small" 
-                                  dataSource={tagAssignments[tag.key]} 
-                                  renderItem={(name) => (<List.Item style={{ padding: '4px 0' }}>{name}</List.Item>)} 
-                                />
-                            }
-                          </div>
-                        }
-                        trigger="click"
-                      >
-                        <Tag color="blue" style={{ cursor: 'pointer' }}>{tag.label}</Tag>
-                      </Popover>
-                    ))}
-                  </Space>
-                </div>
-              </Space>
-            </Card>
+          <div style={{
+            maxWidth: '1200px',
+            margin: '0 auto',
+            background: '#fff',
+            padding: '32px',
+            borderRadius: '8px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            {/* 方案概述 */}
+            <TrainingOverview overview={newTeacherTrainingPlan.overview} />
 
-            <Modal
-              title="管理培训人员标签"
-              open={tagsModalVisible}
-              onCancel={() => { setTagsModalVisible(false); setEditingTagKey(null); }}
-              footer={[
-                <Button key="close" onClick={() => { setTagsModalVisible(false); setEditingTagKey(null); }}>关闭</Button>
-              ]}
-              width={720}
-            >
-              <Space direction="vertical" style={{ width: '100%' }}>
-                {tags.map(tag => (
-                  <Card 
-                    key={tag.key} 
-                    size="small"
-                    title={
-                      <Space>
-                        <Tag color="blue">{tag.label}</Tag>
-                        <Text type="secondary">（{(tagAssignments[tag.key] || []).length}人）</Text>
-                      </Space>
-                    }
-                    extra={
-                      <Button 
-                        type="link" 
-                        icon={<EditOutlined />} 
-                        onClick={() => setEditingTagKey(editingTagKey === tag.key ? null : tag.key)}
-                      >
-                        {editingTagKey === tag.key ? '收起' : '编辑'}
-                      </Button>
-                    }
-                  >
-                    <div style={{ marginBottom: 8 }}>
-                      <Text type="secondary">已关联人员：</Text>
-                      <Space wrap>
-                        {(tagAssignments[tag.key] || []).map(name => (<Tag key={name}>{name}</Tag>))}
-                      </Space>
-                    </div>
-                    {editingTagKey === tag.key && (
-                      <div>
-                        <Text strong>调整人员：</Text>
-                        <Select
-                          mode="multiple"
-                          style={{ width: '100%', marginTop: 8 }}
-                          value={tagAssignments[tag.key] || []}
-                          onChange={(vals) => setTagAssignments(prev => ({ ...prev, [tag.key]: vals }))}
-                          options={participantsList.map(p => ({ label: p.name, value: p.name }))}
-                          placeholder="选择关联人员"
-                        />
-                        <div style={{ marginTop: 8 }}>
-                          <Text strong>重命名标签：</Text>
-                          <Input
-                            value={tag.label}
-                            onChange={(e) => {
-                              const newLabel = e.target.value;
-                              setTags(prev => prev.map(t => t.key === tag.key ? { ...t, label: newLabel } : t));
-                            }}
-                            placeholder="输入新的标签名称"
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </Card>
-                ))}
-                <Divider />
-                <Space>
-                  <Input placeholder="新标签名称" value={newTagName} onChange={(e) => setNewTagName(e.target.value)} style={{ width: 240 }} />
-                  <Button type="primary" icon={<PlusOutlined />} onClick={handleAddTag}>添加标签</Button>
-                </Space>
-              </Space>
-            </Modal>
-          </div>
+            {/* 标签清单 */}
+            <TagsSection participantsList={participantsList} />
 
-          {/* 培训阶段 */}
-          <div style={{ marginBottom: '32px' }}>
-            <Title level={3}>二、培训阶段与内容</Title>
-            {newTeacherTrainingPlan.phases.map((phase, phaseIdx) => (
-              <div key={phaseIdx} style={{ marginBottom: '24px' }}>
-                <Title level={4}>{phase.name}</Title>
-                <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>
-                  培训重点：{phase.focus}
-                </Text>
-                {phase.modules.map((module, moduleIdx) => (
-                  <Card 
-                    key={moduleIdx}
-                    size="small" 
-                    title={
-                      <Space>
-                        <BookOutlined style={{ color: '#1890ff' }} />
-                        <Text strong>{module.title}</Text>
-                        <Tag color="blue">{module.duration}</Tag>
-                      </Space>
-                    }
-                    style={{ marginBottom: '12px' }}
-                  >
-                    <div style={{ marginBottom: '12px' }}>
-                      <Text strong>培训内容：</Text>
-                      <ul style={{ marginTop: '8px', paddingLeft: '24px' }}>
-                        {module.content.map((item, idx) => (
-                          <li key={idx} style={{ marginBottom: '4px' }}>
-                            <Text>{item}</Text>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div style={{ marginBottom: '8px' }}>
-                      <Text strong>培训形式：</Text>
-                      <Text> {module.format}</Text>
-                    </div>
-                    <div>
-                      <Text strong>考核方式：</Text>
-                      <Text> {module.assessment}</Text>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            ))}
-          </div>
+            {/* 培训阶段与内容 */}
+            <TrainingPhases phases={newTeacherTrainingPlan.phases} />
 
-          {/* 培训进度安排 */}
-          <div style={{ marginBottom: '32px' }}>
-            <Title level={3}>三、培训进度安排</Title>
-            <Table 
-              dataSource={newTeacherTrainingPlan.schedule}
-              columns={[
-                {
-                  title: '周次',
-                  dataIndex: 'week',
-                  key: 'week'
-                },
-                {
-                  title: '培训内容',
-                  dataIndex: 'content',
-                  key: 'content'
-                },
-                {
-                  title: '培训形式',
-                  dataIndex: 'type',
-                  key: 'type'
-                },
-                {
-                  title: '学时',
-                  dataIndex: 'hours',
-                  key: 'hours',
-                  render: (hours) => `${hours}学时`
-                }
-              ]}
-              pagination={false}
-              size="small"
-              style={{ width: '100%' }}
-              tableLayout="fixed"
-            />
-          </div>
+            {/* 详细时间安排 */}
+            <TrainingSchedule schedule={newTeacherTrainingPlan.schedule} />
 
-          {/* 实施方式 */}
-          <div style={{ marginBottom: '32px' }}>
-            <Title level={3}>四、实施方式</Title>
-            <div style={{ marginBottom: '16px' }}>
-              <Text strong>培训平台：</Text>
-              <Text>{newTeacherTrainingPlan.implementation.platform}</Text>
-            </div>
-            <div style={{ marginBottom: '16px' }}>
-              <Text strong>培训方法：</Text>
-              <ul style={{ marginTop: '8px', paddingLeft: '24px' }}>
-                {newTeacherTrainingPlan.implementation.methods.map((method, idx) => (
-                  <li key={idx} style={{ marginBottom: '8px' }}>
-                    <Text>{method}</Text>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <Text strong>支持保障：</Text>
-              <ul style={{ marginTop: '8px', paddingLeft: '24px' }}>
-                {newTeacherTrainingPlan.implementation.support.map((item, idx) => (
-                  <li key={idx} style={{ marginBottom: '8px' }}>
-                    <Text>{item}</Text>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+            {/* 实施保障 */}
+            <ImplementationSection implementation={newTeacherTrainingPlan.implementation} />
 
-          {/* 考核评价 */}
-          <div style={{ marginBottom: '32px' }}>
-            <Title level={3}>五、考核评价</Title>
-            <div style={{ marginBottom: '16px' }}>
-              <Text strong>考核方式：</Text>
-              <Text>{newTeacherTrainingPlan.assessment.method}</Text>
-            </div>
-            <div style={{ marginBottom: '16px' }}>
-              <Text strong>考核组成：</Text>
-              <Row gutter={16} style={{ marginTop: '12px' }}>
-                {newTeacherTrainingPlan.assessment.components.map((comp, idx) => (
-                  <Col span={6} key={idx}>
-                    <Card size="small">
-                      <Statistic 
-                        title={comp.name}
-                        value={comp.weight}
-                        valueStyle={{ fontSize: '20px', color: '#1890ff' }}
-                      />
-                      <Text type="secondary" style={{ fontSize: '12px' }}>
-                        {comp.description}
-                      </Text>
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
-            </div>
-            <div>
-              <Text strong>评价标准：</Text>
-              <ul style={{ marginTop: '8px', paddingLeft: '24px' }}>
-                {newTeacherTrainingPlan.assessment.standards.map((standard, idx) => (
-                  <li key={idx} style={{ marginBottom: '8px' }}>
-                    <Text>{standard}</Text>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+            {/* 考核与评价 */}
+            <AssessmentSection assessment={newTeacherTrainingPlan.assessment} />
 
-          {/* 保障措施 */}
-          <div>
-            <Title level={3}>六、保障措施</Title>
-            <Row gutter={16}>
-              <Col span={8}>
-                <Card 
-                  size="small" 
-                  title="组织保障"
-                  headStyle={{ background: '#f0f0f0' }}
-                >
-                  <ul style={{ paddingLeft: '20px', margin: 0 }}>
-                    {newTeacherTrainingPlan.guarantee.organization.map((item, idx) => (
-                      <li key={idx} style={{ marginBottom: '8px' }}>
-                        <Text>{item}</Text>
-                      </li>
-                    ))}
-                  </ul>
-                </Card>
-              </Col>
-              <Col span={8}>
-                <Card 
-                  size="small" 
-                  title="资源保障"
-                  headStyle={{ background: '#f0f0f0' }}
-                >
-                  <ul style={{ paddingLeft: '20px', margin: 0 }}>
-                    {newTeacherTrainingPlan.guarantee.resources.map((item, idx) => (
-                      <li key={idx} style={{ marginBottom: '8px' }}>
-                        <Text>{item}</Text>
-                      </li>
-                    ))}
-                  </ul>
-                </Card>
-              </Col>
-              <Col span={8}>
-                <Card 
-                  size="small" 
-                  title="质量保障"
-                  headStyle={{ background: '#f0f0f0' }}
-                >
-                  <ul style={{ paddingLeft: '20px', margin: 0 }}>
-                    {newTeacherTrainingPlan.guarantee.quality.map((item, idx) => (
-                      <li key={idx} style={{ marginBottom: '8px' }}>
-                        <Text>{item}</Text>
-                      </li>
-                    ))}
-                  </ul>
-                </Card>
-              </Col>
-            </Row>
+            {/* 保障措施 */}
+            <GuaranteeSection guarantee={newTeacherTrainingPlan.guarantee} />
           </div>
         </div>
-      </div>
+      ) : (
+        <div style={{ flex: 1, display: 'flex', overflow: 'hidden', background: '#f5f5f5' }}>
+          {/* 左侧原方案 */}
+          <div style={{ flex: 1, padding: '24px', overflow: 'auto' }}>
+            <div style={{
+              maxWidth: '1200px',
+              margin: '0 auto',
+              background: '#fff',
+              padding: '32px',
+              borderRadius: '8px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }}>
+              {/* 方案概述 */}
+              <TrainingOverview overview={newTeacherTrainingPlan.overview} />
+
+              {/* 标签清单 */}
+              <TagsSection participantsList={participantsList} />
+
+              {/* 培训阶段与内容 */}
+              <TrainingPhases phases={newTeacherTrainingPlan.phases} />
+
+              {/* 详细时间安排 */}
+              <TrainingSchedule schedule={newTeacherTrainingPlan.schedule} />
+
+              {/* 实施保障 */}
+              <ImplementationSection implementation={newTeacherTrainingPlan.implementation} />
+
+              {/* 考核与评价 */}
+              <AssessmentSection assessment={newTeacherTrainingPlan.assessment} />
+
+              {/* 保障措施 */}
+              <GuaranteeSection guarantee={newTeacherTrainingPlan.guarantee} />
+            </div>
+          </div>
+
+          {/* 右侧实施方案空白页 */}
+          <div style={{ flex: 1, padding: '24px', overflow: 'auto', borderLeft: '1px solid #f0f0f0' }}>
+            <div style={{
+              maxWidth: '1200px',
+              margin: '0 auto',
+              background: '#fff',
+              minHeight: '100%',
+              padding: '32px',
+              borderRadius: '8px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }}>
+              <ImplementationPlan plan={newTeacherTrainingPlan} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Markdown 编辑器 Modal */}
       <Modal
