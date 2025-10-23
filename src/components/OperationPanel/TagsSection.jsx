@@ -71,83 +71,14 @@ const TagsSection = ({ participantsList }) => {
 
   return (
     <div style={{ marginBottom: '32px' }}>
-      <Title level={3}>标签清单</Title>
+      <Title level={3}>参训人员</Title>
       <Card size="small" style={{ marginBottom: '16px' }}>
         <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' }}>
-          {Object.entries(departmentCounts).map(([dept, count]) => (
-            <Tag key={dept} color="blue">{dept}：{count}人</Tag>
+          {availableTags.map(tag => (
+            <Tag key={tag} color="blue">{tag}</Tag>
           ))}
         </div>
-        <div style={{ marginTop:'12px' }}>
-          <Space>
-            <Button onClick={() => setManagerOpen(true)}>管理标签</Button>
-            <Button onClick={handleDownloadCSV}>下载清单</Button>
-          </Space>
-        </div>
       </Card>
-
-      <Modal
-        open={managerOpen}
-        title="管理标签"
-        width={900}
-        onCancel={() => setManagerOpen(false)}
-        onOk={() => setManagerOpen(false)}
-      >
-        <Space direction="vertical" style={{ width: '100%' }} size="large">
-          <div>
-            <Text strong>现有标签：</Text>
-            <div style={{ marginTop: '8px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {availableTags.map(tag => (
-                <Tag key={tag} color={editingTagKey === tag ? 'processing' : 'default'} onClick={() => setEditingTagKey(tag)} style={{ cursor:'pointer' }}>{tag}</Tag>
-              ))}
-            </div>
-          </div>
-          <div>
-            <Text strong>新增标签：</Text>
-            <Space style={{ marginTop: '8px' }}>
-              <Input value={newTagName} onChange={(e) => setNewTagName(e.target.value)} placeholder="输入标签名" style={{ width: 240 }} />
-              <Button type="primary" onClick={handleAddTag}>新增</Button>
-            </Space>
-          </div>
-          <div>
-            <Text strong>人员列表：</Text>
-            <Table 
-              columns={participantColumns}
-              dataSource={participantsList}
-              size="small"
-              pagination={{ pageSize: 5 }}
-              rowKey={(r, i) => i}
-              style={{ marginTop: '8px' }}
-            />
-          </div>
-          <div>
-            <Text strong>为标签分配人员：</Text>
-            <Space style={{ marginTop: '8px' }}>
-              <Select
-                placeholder="选择标签"
-                value={editingTagKey}
-                onChange={(v) => setEditingTagKey(v)}
-                options={availableTags.map(k => ({ label: k, value: k }))}
-                style={{ width: 200 }}
-              />
-              <Select
-                mode="multiple"
-                allowClear
-                style={{ minWidth: 360 }}
-                placeholder="选择人员"
-                value={editingTagKey ? tagAssignments[editingTagKey] : []}
-                onChange={(names) => editingTagKey && handleAssignTag(editingTagKey, names)}
-                options={participantNames.map(n => ({ label: n, value: n }))}
-              />
-            </Space>
-            {editingTagKey && (
-              <div style={{ marginTop: '12px' }}>
-                <Text type="secondary">已分配：{(tagAssignments[editingTagKey] || []).join('、') || '无'}</Text>
-              </div>
-            )}
-          </div>
-        </Space>
-      </Modal>
     </div>
   );
 };

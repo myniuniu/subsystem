@@ -159,7 +159,7 @@ export function createMockOrganizationPersonnelTree() {
   const techDepartment = new OrganizationCategoryNode({
     id: 'tech_department',
     name: '技术部门',
-    personnelType: PersonnelType.TECH,
+    personnelType: PersonnelType.STAFF,
     description: '学校技术支持人员',
     icon: '💻',
     color: '#722ed1'
@@ -169,7 +169,7 @@ export function createMockOrganizationPersonnelTree() {
     id: 'tech_001',
     name: '赵工程师',
     personnelId: 'per_tech_001',
-    personnelType: PersonnelType.TECH,
+    personnelType: PersonnelType.STAFF,
     department: '技术部门',
     position: '网络工程师',
     annotationStatus: AnnotationStatus.REVIEWED,
@@ -194,7 +194,7 @@ export function createMockOrganizationPersonnelTree() {
   const studentDepartment = new OrganizationCategoryNode({
     id: 'student_department',
     name: '学生管理部门',
-    personnelType: PersonnelType.STUDENT_MANAGER,
+    personnelType: PersonnelType.STAFF,
     description: '学生事务管理人员',
     icon: '👥',
     color: '#fa8c16'
@@ -204,7 +204,7 @@ export function createMockOrganizationPersonnelTree() {
     id: 'student_mgr_001',
     name: '孙老师',
     personnelId: 'per_student_001',
-    personnelType: PersonnelType.STUDENT_MANAGER,
+    personnelType: PersonnelType.STAFF,
     department: '学生管理部门',
     position: '班主任',
     annotationStatus: AnnotationStatus.COMPLETED,
@@ -225,17 +225,84 @@ export function createMockOrganizationPersonnelTree() {
 
   studentDepartment.addChild(studentManager1);
 
+  // 5. 新增：产品部与设计部分类
+  const productDepartment = new OrganizationCategoryNode({
+    id: 'product_department',
+    name: '产品部',
+    personnelType: PersonnelType.STAFF,
+    description: '产品策划与管理',
+    icon: '🧩',
+    color: '#13c2c2'
+  });
+  const designDepartment = new OrganizationCategoryNode({
+    id: 'design_department',
+    name: '设计部',
+    personnelType: PersonnelType.STAFF,
+    description: 'UI/UX设计与规范',
+    icon: '🎨',
+    color: '#eb2f96'
+  });
+
+  // 批量生成多标签人员：一次性初始化
+  const tagPool = [
+    '技术部','产品部','设计部','教学部门',
+    '数学','物理','化学','生物','英语','地理','历史',
+    '高中','函数','导数','实验','电磁感应',
+    '新入职','骨干','待确认','已确认','UI','交互','需求','策略','网络维护','系统管理'
+  ];
+  const names = ['张','李','王','赵','钱','孙','周','吴','郑','冯','陈','褚','卫','蒋','沈','韩','杨'];
+  const positions = ['教师','助教','产品经理','产品策划','UI设计师','交互设计师','前端工程师','后端工程师','测试工程师','运维工程师'];
+
+  // 生成并分配到各部门
+  let seq = 1000;
+  const pick = (arr, n) => {
+    const res = new Set();
+    while (res.size < n) res.add(arr[Math.floor(Math.random() * arr.length)]);
+    return Array.from(res);
+  };
+  const makeNode = (dept, typeLabel) => {
+    const name = `${names[Math.floor(Math.random() * names.length)]}${Math.floor(Math.random() * 100)}`;
+    const pos = positions[Math.floor(Math.random() * positions.length)];
+    const idBase = `per_${dept}_${seq++}`;
+    return new PersonnelAnnotationNode({
+      id: `node_${dept}_${seq}`,
+      name,
+      personnelId: idBase,
+      personnelType: dept === '教学部门' ? PersonnelType.TEACHER : PersonnelType.STAFF,
+      department: dept,
+      position: pos,
+      email: `${idBase}@company.com`,
+      annotationStatus: [AnnotationStatus.PENDING, AnnotationStatus.IN_PROGRESS, AnnotationStatus.COMPLETED, AnnotationStatus.REVIEWED][Math.floor(Math.random() * 4)],
+      tags: pick(tagPool, 3).concat([typeLabel]).filter(Boolean),
+      annotations: [],
+      confidence: 0.8 + Math.random() * 0.2,
+      quality: 3.5 + Math.random() * 1.5,
+      relevance: 3.5 + Math.random() * 1.5,
+      annotatorId: 'system_seed'
+    });
+  };
+
+  // 批量添加：每部门 15 人
+  for (let i = 0; i < 15; i++) teachingDepartment.addChild(makeNode('教学部门', '教师')); 
+  for (let i = 0; i < 15; i++) techDepartment.addChild(makeNode('技术部门', '技术')); 
+  for (let i = 0; i < 15; i++) productDepartment.addChild(makeNode('产品部', '产品'));
+  for (let i = 0; i < 15; i++) designDepartment.addChild(makeNode('设计部', '设计'));
+
   // 将所有部门添加到管理器
   manager.addNode(teachingDepartment);
   manager.addNode(adminDepartment);
   manager.addNode(techDepartment);
   manager.addNode(studentDepartment);
+  manager.addNode(productDepartment);
+  manager.addNode(designDepartment);
 
   // 更新所有部门的统计信息
-  [teachingDepartment, adminDepartment, techDepartment, studentDepartment].forEach(department => {
+  [teachingDepartment, adminDepartment, techDepartment, studentDepartment, productDepartment, designDepartment].forEach(department => {
     department.updateStats();
   });
 
+  // 关键修复：重建节点映射，确保人员子节点可检索
+  manager.rebuildNodeMap();
   return manager;
 }
 

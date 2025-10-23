@@ -72,6 +72,8 @@ const TrainingPlanViewer = ({
     { name: '吴九', department: '历史组', position: '教师', phone: '13800138007', email: 'wujiu@school.edu' },
     { name: '郑十', department: '地理组', position: '教师', phone: '13800138008', email: 'zhengshi@school.edu' }
   ];
+  // 左侧参训人员标签（去重后）
+  const leftTags = Array.from(new Set(participantsList.map(p => p.department)));
   const participantColumnsModal = [
     { title: '姓名', dataIndex: 'name', key: 'name' },
     { title: '部门', dataIndex: 'department', key: 'department' },
@@ -606,7 +608,7 @@ const TrainingPlanViewer = ({
       ) : (
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden', background: '#f5f5f5' }}>
           {/* 左侧原方案 */}
-          <div style={{ flex: 1, padding: '24px', overflow: 'auto' }}>
+          <div style={{ flex: 4, padding: '24px', overflow: 'auto' }}>
             <div style={{
               maxWidth: '1200px',
               margin: '0 auto',
@@ -639,7 +641,7 @@ const TrainingPlanViewer = ({
           </div>
 
           {/* 右侧实施方案空白页 */}
-          <div style={{ flex: 1, padding: '24px', overflow: 'auto', borderLeft: '1px solid #f0f0f0' }}>
+          <div style={{ flex: 6, padding: '24px', overflow: 'auto', borderLeft: '1px solid #f0f0f0' }}>
             <div style={{
               maxWidth: '1200px',
               margin: '0 auto',
@@ -649,7 +651,7 @@ const TrainingPlanViewer = ({
               borderRadius: '8px',
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
             }}>
-              <ImplementationPlan plan={newTeacherTrainingPlan} />
+              <ImplementationPlan plan={newTeacherTrainingPlan} externalTagSeeds={leftTags} initialSelectedTags={leftTags} />
             </div>
           </div>
         </div>

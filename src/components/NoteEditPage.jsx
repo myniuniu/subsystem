@@ -74,7 +74,7 @@ const { Option } = Select;
 // 使用公开路径，确保地址为 '/assets/2.mp4'
 const VIDEO_OVERVIEW_URL = '/assets/2.mp4';
 
-const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', selectedTemplate = null, selectedCategory = null }) => {
+const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', selectedTemplate = null, selectedCategory = null, initialView = null }) => {
   // 注册全局时间链接点击处理，使文本中的时间码点击可跳转视频
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -408,6 +408,83 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
   useEffect(() => {
     console.log('currentView 变化为:', currentView);
   }, [currentView]);
+
+  // 通过 initialView 初始化到指定视图（用于调试）
+  useEffect(() => {
+    if (!initialView) return;
+    if (initialView === 'training-plan-fullscreen') {
+      const record = {
+        id: Date.now(),
+        title: '新教师入职线上培训具体方案',
+        type: 'training-plan',
+        source: '调试路径',
+        time: '刚刚'
+      };
+      state.setRightPanelTrainingPlanRecord(record);
+      const defaultContent = {
+        title: record.title,
+        overview: '本培训方案旨在提升参训人员的专业技能和综合素质。',
+        schedule: [
+          {
+            id: 1,
+            title: '基础理论学习',
+            duration: '2小时',
+            type: 'video',
+            description: '学习相关理论知识和基础概念',
+            videos: [
+              { id: 'v1', title: '理论基础第一讲', duration: '30分钟' },
+              { id: 'v2', title: '理论基础第二讲', duration: '30分钟' },
+              { id: 'v3', title: '案例分析', duration: '60分钟' }
+            ]
+          },
+          {
+            id: 2,
+            title: '实践操作训练',
+            duration: '3小时',
+            type: 'practice',
+            description: '通过实际操作加深理解',
+            videos: [
+              { id: 'v4', title: '操作演示', duration: '90分钟' },
+              { id: 'v5', title: '实践指导', duration: '90分钟' }
+            ]
+          },
+          {
+            id: 3,
+            title: '综合评估',
+            duration: '1小时',
+            type: 'assessment',
+            description: '对学习成果进行综合评估',
+            videos: [
+              { id: 'v6', title: '评估说明', duration: '60分钟' }
+            ]
+          }
+        ],
+        participants: [
+          { id: 1, name: '张三', department: '技术部', position: '工程师', status: '已报名' },
+          { id: 2, name: '李四', department: '产品部', position: '产品经理', status: '已报名' },
+          { id: 3, name: '王五', department: '设计部', position: 'UI设计师', status: '待确认' },
+          { id: 4, name: '赵六', department: '运营部', position: '运营专员', status: '已报名' }
+        ],
+        totalDuration: '6小时',
+        startDate: '2024-01-15',
+        endDate: '2024-01-17',
+        location: '培训中心A座201室'
+      };
+      state.setRightPanelTrainingPlanContent(defaultContent);
+      setCurrentView(VIEW_MODES.TRAINING_PLAN_FULLSCREEN);
+    } else if (initialView === 'training-plan-three-column') {
+      const record = {
+        id: Date.now(),
+        title: '新教师入职线上培训具体方案',
+        type: 'training-plan',
+        source: '调试路径',
+        time: '刚刚'
+      };
+      state.setLeftPanelTrainingPlanRecord(record);
+      state.setLeftPanelTrainingPlanContent({ title: record.title });
+      setCurrentView(VIEW_MODES.TRAINING_PLAN_THREE_COLUMN);
+    }
+  }, []);
 
   // 调试：监控 selectedScenarios 变化
   useEffect(() => {

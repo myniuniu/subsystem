@@ -426,6 +426,12 @@ function App() {
                 onBack={() => handleViewChange('smart-notes')}
                 onViewChange={handleViewChange}
               />
+            ) : currentView === 'note-edit-page-training-plan' ? (
+              <NoteEditPage 
+                onBack={() => handleViewChange('smart-notes')}
+                onViewChange={handleViewChange}
+                initialView="training-plan-fullscreen"
+              />
             ) : currentView === 'resource-annotation' ? (
               <ResourceAnnotationPage 
                 onBack={() => handleViewChange('home')}
