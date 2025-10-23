@@ -5,13 +5,13 @@ const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 // 该组件封装“标签清单”和“管理标签”相关逻辑
-const TagsSection = ({ participantsList }) => {
+const TagsSection = ({ participantsList, tags }) => {
   const [managerOpen, setManagerOpen] = useState(false);
   const [editingTagKey, setEditingTagKey] = useState(null);
   const [tagMap, setTagMap] = useState(() => {
     // 初始为各部门标签
     const init = {};
-    participantsList.forEach(p => {
+    (participantsList || []).forEach(p => {
       if (!init[p.department]) init[p.department] = p.department;
     });
     // 增加一个通用标签
@@ -27,7 +27,7 @@ const TagsSection = ({ participantsList }) => {
 
   const departmentCounts = useMemo(() => {
     const counts = {};
-    participantsList.forEach(p => {
+    (participantsList || []).forEach(p => {
       counts[p.department] = (counts[p.department] || 0) + 1;
     });
     return counts;
@@ -43,7 +43,7 @@ const TagsSection = ({ participantsList }) => {
 
   const handleDownloadCSV = () => {
     const headers = ['姓名','部门','职位','资历','联系方式'];
-    const rows = participantsList.map(p => [p.name, p.department, p.position, p.experience, p.contact]);
+    const rows = (participantsList || []).map(p => [p.name, p.department, p.position, p.experience, p.contact]);
     const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -54,7 +54,8 @@ const TagsSection = ({ participantsList }) => {
   };
 
   const availableTags = Object.keys(tagMap);
-  const participantNames = participantsList.map(p => p.name);
+  const displayTags = (Array.isArray(tags) && tags.length) ? tags : availableTags;
+  const participantNames = (participantsList || []).map(p => p.name);
 
   const handleAssignTag = (tagKey, names) => {
     setTagAssignments(prev => ({ ...prev, [tagKey]: names }));
@@ -74,7 +75,7 @@ const TagsSection = ({ participantsList }) => {
       <Title level={3}>参训人员</Title>
       <Card size="small" style={{ marginBottom: '16px' }}>
         <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' }}>
-          {availableTags.map(tag => (
+          {displayTags.map(tag => (
             <Tag key={tag} color="blue">{tag}</Tag>
           ))}
         </div>

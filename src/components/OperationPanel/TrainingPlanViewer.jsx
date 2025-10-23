@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Card, 
   Button, 
@@ -170,7 +170,7 @@ const TrainingPlanViewer = ({
     { name: '郑十', department: '地理组', position: '教师', phone: '13800138008', email: 'zhengshi@school.edu' }
   ];
   // 左侧参训人员标签（去重后）
-  const leftTags = Array.from(new Set(participantsList.map(p => p.department)));
+  const initialLeftTags = Array.from(new Set(participantsList.map(p => p.department)));
   const participantColumnsModal = [
     { title: '姓名', dataIndex: 'name', key: 'name' },
     { title: '部门', dataIndex: 'department', key: 'department' },
@@ -562,6 +562,8 @@ const TrainingPlanViewer = ({
       { week: '第11周', content: '家校沟通艺术', type: '情景演练', hours: 8 },
       { week: '第12周', content: '教师职业规划', type: '导师指导', hours: 8 }
     ],
+    participants: participantsList,
+    participantTags: initialLeftTags,
     implementation: {
       platform: '学校在线培训平台',
       methods: [
@@ -611,6 +613,7 @@ const TrainingPlanViewer = ({
     },
     guarantee: {
       organization: [
+        '成立新教师培训小组',
         '成立新教师培训领导小组',
         '明确各部门职责分工',
         '建立培训档案管理制度'
@@ -630,6 +633,13 @@ const TrainingPlanViewer = ({
 
   // 引入方案可编辑状态
   const [plan, setPlan] = useState(newTeacherTrainingPlan);
+  // 基于方案中的参训人员动态生成左侧标签
+  const leftTags = useMemo(() => {
+  if (Array.isArray(plan.participantTags) && plan.participantTags.length) {
+    return Array.from(new Set(plan.participantTags));
+  }
+  return Array.from(new Set(((plan.participants || []).map(p => p.department))));
+}, [plan.participantTags, plan.participants]);
   // 统一的部分编辑弹窗状态与方法（JSON直接编辑）
   const [sectionEditorVisible, setSectionEditorVisible] = useState(false);
   const [editingSectionKey, setEditingSectionKey] = useState(null);
@@ -640,7 +650,10 @@ const TrainingPlanViewer = ({
   const openSectionEditor = (key) => {
     try {
       setEditingSectionKey(key);
-      const sectionData = plan[key];
+      let sectionData = plan[key];
+      if (sectionData === undefined) {
+        sectionData = (key === 'participants' || key === 'participantTags') ? [] : {};
+      }
       setSectionDraft(JSON.stringify(sectionData, null, 2));
       setVisualDraft(JSON.parse(JSON.stringify(sectionData)));
       setEditMode('json');
@@ -670,7 +683,10 @@ const TrainingPlanViewer = ({
   const openInlineVisualEditor = (key) => {
     try {
       setEditingSectionKey(key);
-      const sectionData = plan[key];
+      let sectionData = plan[key];
+      if (sectionData === undefined) {
+        sectionData = (key === 'participants' || key === 'participantTags') ? [] : {};
+      }
       setVisualDraft(JSON.parse(JSON.stringify(sectionData)));
       setInlineVisualEditing(true);
       setEditMode('visual');
@@ -772,6 +788,20 @@ const TrainingPlanViewer = ({
                 options={DEFAULT_FORMAT_OPTIONS.map(v => ({ value: v, label: v }))}
               />
             </Space>
+          </div>
+        );
+      case 'participantTags':
+        return (
+          <div>
+            <Title level={5}>参训人员标签</Title>
+            {(Array.isArray(visualDraft) ? visualDraft : []).map((t, idx) => (
+              <Space key={idx} style={{ width: '100%', marginBottom: 8 }}>
+                <Input style={{ flex: 1 }} value={t} placeholder="请输入标签名称"
+                  onChange={(e) => setVisualDraft(prev => prev.map((x, i) => i === idx ? e.target.value : x))} />
+                <Button danger onClick={() => setVisualDraft(prev => prev.filter((_, i) => i !== idx))}>删除</Button>
+              </Space>
+            ))}
+            <Button type="dashed" icon={<PlusOutlined />} onClick={() => setVisualDraft(prev => ([...(Array.isArray(prev) ? prev : []), '']))}>添加标签</Button>
           </div>
         );
       case 'implementation':
@@ -1002,8 +1032,16 @@ const TrainingPlanViewer = ({
               renderContent={() => <TrainingOverview overview={plan.overview} />}
             />
 
-            {/* 标签清单 */}
-            <TagsSection participantsList={participantsList} />
+            {/* 参训人员（标签） */}
+            <SectionHeader
+              sectionKey="participantTags"
+              onVisualEdit={() => openInlineVisualEditor('participantTags')}
+              onJsonEdit={() => { setEditMode('json'); openSectionEditor('participantTags'); }}
+            />
+            <InlineEditableSection
+              sectionKey="participantTags"
+              renderContent={() => <TagsSection tags={plan.participantTags || []} />}
+            />
 
             {/* 培训阶段与内容 */}
             <SectionHeader
@@ -1084,8 +1122,16 @@ const TrainingPlanViewer = ({
                   renderContent={() => <TrainingOverview overview={plan.overview} />}
                 />
 
-                {/* 标签清单 */}
-                <TagsSection participantsList={participantsList} />
+                {/* 参训人员（标签） */}
+                <SectionHeader
+                  sectionKey="participantTags"
+                  onVisualEdit={() => openInlineVisualEditor('participantTags')}
+                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('participantTags'); }}
+                />
+                <InlineEditableSection
+                  sectionKey="participantTags"
+                  renderContent={() => <TagsSection tags={plan.participantTags || []} />}
+                />
 
                 {/* 培训阶段与内容 */}
                 <SectionHeader
@@ -1155,7 +1201,7 @@ const TrainingPlanViewer = ({
                   borderRadius: '8px',
                   boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                 }}>
-                  <ImplementationPlan plan={newTeacherTrainingPlan} externalTagSeeds={leftTags} initialSelectedTags={leftTags} />
+                  <ImplementationPlan plan={plan} externalTagSeeds={leftTags} initialSelectedTags={leftTags} />
                 </div>
               </div>
             </div>
