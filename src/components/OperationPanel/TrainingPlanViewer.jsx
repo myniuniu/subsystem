@@ -24,7 +24,6 @@ import {
   DownloadOutlined, 
   BookOutlined,
   ArrowLeftOutlined,
-  EditOutlined,
   SaveOutlined,
   PaperClipOutlined,
   FileExcelOutlined,
@@ -129,8 +128,7 @@ const TrainingPlanViewer = ({
   hideButtons = false
 }) => {
   // 编辑模式状态
-  const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState('');
+  
   // 新增：人员清单弹窗状态与数据
   const [participantsModalVisible, setParticipantsModalVisible] = useState(false);
 
@@ -235,6 +233,30 @@ const TrainingPlanViewer = ({
     setShowImplementationPlan(prev => !prev);
   };
 
+  // 提取的通用区块组件：编辑按钮头部与内联可视化编辑切换
+  const SectionHeader = ({ sectionKey, onVisualEdit, onJsonEdit }) => (
+    <div style={{ textAlign: 'right', marginBottom: 8 }}>
+      <Space size="small">
+        <Button size="small" type="link" icon={<SettingOutlined />} onClick={onVisualEdit}>可视化编辑</Button>
+        <Button size="small" type="link" onClick={onJsonEdit}>JSON编辑</Button>
+      </Space>
+    </div>
+  );
+
+  const InlineEditableSection = ({ sectionKey, renderContent }) => (
+    (inlineVisualEditing && editingSectionKey === sectionKey) ? (
+      <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
+        <div style={{ position: 'sticky', top: 0, zIndex: 10, background: '#fafafa', paddingBottom: 8, marginBottom: 12, borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'center' }}>
+          <Space>
+            <Button onClick={cancelInlineVisualEdit}>取消</Button>
+            <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
+          </Space>
+        </div>
+        {renderVisualEditor()}
+      </div>
+    ) : renderContent()
+  );
+
   // 将培训方案转换为 Markdown 格式
   const convertToMarkdown = (plan) => {
     let markdown = `# ${plan.title}\n\n`;
@@ -320,33 +342,12 @@ const TrainingPlanViewer = ({
   };
 
   // 打开编辑器
-  const handleEdit = () => {
-    const markdown = convertToMarkdown(plan);
-    setEditContent(markdown);
-    setIsEditing(true);
-  };
+
 
   // 保存编辑
-  const handleSave = () => {
-    // 这里可以添加保存逻辑，例如解析 markdown 并更新数据
-    message.success('培训方案已保存');
-    setIsEditing(false);
-    // TODO: 实际应用中需要将 markdown 解析回数据结构并保存
-  };
+
 
   // 取消编辑
-  const handleCancelEdit = () => {
-    Modal.confirm({
-      title: '确认取消编辑？',
-      content: '未保存的修改将会丢失',
-      okText: '确认',
-      cancelText: '继续编辑',
-      onOk: () => {
-        setIsEditing(false);
-        setEditContent('');
-      }
-    });
-  };
 
   // 新教师入职线上培训方案数据
   const newTeacherTrainingPlan = {
@@ -946,13 +947,6 @@ const TrainingPlanViewer = ({
               >
                 配置实施方案
               </Button>
-              <Button 
-                type="primary"
-                icon={<EditOutlined />}
-                onClick={handleEdit}
-              >
-                编辑
-              </Button>
             </Space>
           </div>
         </div>
@@ -975,409 +969,200 @@ const TrainingPlanViewer = ({
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
           }}>
             {/* 方案概述 */}
-            <div style={{ textAlign: 'right', marginBottom: 8 }}>
-              <Space size="small">
-                <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('overview')}>
-                  可视化编辑
-                </Button>
-                <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('overview'); }}>
-                  JSON编辑
-                </Button>
-              </Space>
-            </div>
-            {inlineVisualEditing && editingSectionKey==='overview' ? (
-              <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
-                {renderVisualEditor()}
-                <div style={{ textAlign: 'right', marginTop: 8 }}>
-                  <Space>
-                    <Button onClick={cancelInlineVisualEdit}>取消</Button>
-                    <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
-                  </Space>
-                </div>
-              </div>
-            ) : (
-              <TrainingOverview overview={plan.overview} />
-            )}
+            <SectionHeader
+              sectionKey="overview"
+              onVisualEdit={() => openInlineVisualEditor('overview')}
+              onJsonEdit={() => { setEditMode('json'); openSectionEditor('overview'); }}
+            />
+            <InlineEditableSection
+              sectionKey="overview"
+              renderContent={() => <TrainingOverview overview={plan.overview} />}
+            />
 
             {/* 标签清单 */}
             <TagsSection participantsList={participantsList} />
 
             {/* 培训阶段与内容 */}
-            <div style={{ textAlign: 'right', marginBottom: 8 }}>
-              <Space size="small">
-                <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('phases')}>
-                  可视化编辑
-                </Button>
-                <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('phases'); }}>
-                  JSON编辑
-                </Button>
-              </Space>
-            </div>
-            {inlineVisualEditing && editingSectionKey==='phases' ? (
-              <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
-                {renderVisualEditor()}
-                <div style={{ textAlign: 'right', marginTop: 8 }}>
-                  <Space>
-                    <Button onClick={cancelInlineVisualEdit}>取消</Button>
-                    <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
-                  </Space>
-                </div>
-              </div>
-            ) : (
-              <TrainingPhases phases={plan.phases} />
-            )}
+            <SectionHeader
+              sectionKey="phases"
+              onVisualEdit={() => openInlineVisualEditor('phases')}
+              onJsonEdit={() => { setEditMode('json'); openSectionEditor('phases'); }}
+            />
+            <InlineEditableSection
+              sectionKey="phases"
+              renderContent={() => <TrainingPhases phases={plan.phases} />}
+            />
 
             {/* 详细时间安排 */}
-            <div style={{ textAlign: 'right', marginBottom: 8 }}>
-              <Space size="small">
-                <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('schedule')}>
-                  可视化编辑
-                </Button>
-                <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('schedule'); }}>
-                  JSON编辑
-                </Button>
-              </Space>
-            </div>
-            {inlineVisualEditing && editingSectionKey==='schedule' ? (
-              <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
-                {renderVisualEditor()}
-                <div style={{ textAlign: 'right', marginTop: 8 }}>
-                  <Space>
-                    <Button onClick={cancelInlineVisualEdit}>取消</Button>
-                    <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
-                  </Space>
-                </div>
-              </div>
-            ) : (
-              <TrainingSchedule schedule={plan.schedule} />
-            )}
+            <SectionHeader
+              sectionKey="schedule"
+              onVisualEdit={() => openInlineVisualEditor('schedule')}
+              onJsonEdit={() => { setEditMode('json'); openSectionEditor('schedule'); }}
+            />
+            <InlineEditableSection
+              sectionKey="schedule"
+              renderContent={() => <TrainingSchedule schedule={plan.schedule} />}
+            />
 
             {/* 实施保障 */}
-            <div style={{ textAlign: 'right', marginBottom: 8 }}>
-              <Space size="small">
-                <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('implementation')}>
-                  可视化编辑
-                </Button>
-                <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('implementation'); }}>
-                  JSON编辑
-                </Button>
-              </Space>
-            </div>
-            {inlineVisualEditing && editingSectionKey==='implementation' ? (
-              <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
-                {renderVisualEditor()}
-                <div style={{ textAlign: 'right', marginTop: 8 }}>
-                  <Space>
-                    <Button onClick={cancelInlineVisualEdit}>取消</Button>
-                    <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
-                  </Space>
-                </div>
-              </div>
-            ) : (
-              <ImplementationSection implementation={plan.implementation} />
-            )}
+            <SectionHeader
+              sectionKey="implementation"
+              onVisualEdit={() => openInlineVisualEditor('implementation')}
+              onJsonEdit={() => { setEditMode('json'); openSectionEditor('implementation'); }}
+            />
+            <InlineEditableSection
+              sectionKey="implementation"
+              renderContent={() => <ImplementationSection implementation={plan.implementation} />}
+            />
 
             {/* 考核与评价 */}
-            <div style={{ textAlign: 'right', marginBottom: 8 }}>
-              <Space size="small">
-                <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('assessment')}>
-                  可视化编辑
-                </Button>
-                <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('assessment'); }}>
-                  JSON编辑
-                </Button>
-              </Space>
-            </div>
-            {inlineVisualEditing && editingSectionKey==='assessment' ? (
-              <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
-                {renderVisualEditor()}
-                <div style={{ textAlign: 'right', marginTop: 8 }}>
-                  <Space>
-                    <Button onClick={cancelInlineVisualEdit}>取消</Button>
-                    <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
-                  </Space>
-                </div>
-              </div>
-            ) : (
-              <AssessmentSection assessment={plan.assessment} />
-            )}
+            <SectionHeader
+              sectionKey="assessment"
+              onVisualEdit={() => openInlineVisualEditor('assessment')}
+              onJsonEdit={() => { setEditMode('json'); openSectionEditor('assessment'); }}
+            />
+            <InlineEditableSection
+              sectionKey="assessment"
+              renderContent={() => <AssessmentSection assessment={plan.assessment} />}
+            />
 
             {/* 保障措施 */}
-            <div style={{ textAlign: 'right', marginBottom: 8 }}>
-              <Space size="small">
-                <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('guarantee')}>
-                  可视化编辑
-                </Button>
-                <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('guarantee'); }}>
-                  JSON编辑
-                </Button>
-              </Space>
+            <SectionHeader
+              sectionKey="guarantee"
+              onVisualEdit={() => openInlineVisualEditor('guarantee')}
+              onJsonEdit={() => { setEditMode('json'); openSectionEditor('guarantee'); }}
+            />
+            <InlineEditableSection
+              sectionKey="guarantee"
+              renderContent={() => <GuaranteeSection guarantee={plan.guarantee} />}
+            />
             </div>
-            {inlineVisualEditing && editingSectionKey==='guarantee' ? (
-              <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
-                {renderVisualEditor()}
-                <div style={{ textAlign: 'right', marginTop: 8 }}>
-                  <Space>
-                    <Button onClick={cancelInlineVisualEdit}>取消</Button>
-                    <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
-                  </Space>
+          </div>
+        ) : (
+          <div style={{ flex: 1, display: 'flex', overflow: 'hidden', background: '#f5f5f5' }}>
+            {/* 左侧原方案 */}
+            <div style={{ flex: 4, padding: '24px', overflow: 'auto' }}>
+              <div style={{
+                maxWidth: '1200px',
+                margin: '0 auto',
+                background: '#fff',
+                padding: '32px',
+                borderRadius: '8px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+              }}>
+                {/* 方案概述 */}
+                <SectionHeader
+                  sectionKey="overview"
+                  onVisualEdit={() => openInlineVisualEditor('overview')}
+                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('overview'); }}
+                />
+                <InlineEditableSection
+                  sectionKey="overview"
+                  renderContent={() => <TrainingOverview overview={plan.overview} />}
+                />
+
+                {/* 标签清单 */}
+                <TagsSection participantsList={participantsList} />
+
+                {/* 培训阶段与内容 */}
+                <SectionHeader
+                  sectionKey="phases"
+                  onVisualEdit={() => openInlineVisualEditor('phases')}
+                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('phases'); }}
+                />
+                <InlineEditableSection
+                  sectionKey="phases"
+                  renderContent={() => <TrainingPhases phases={plan.phases} />}
+                />
+
+                {/* 详细时间安排 */}
+                <SectionHeader
+                  sectionKey="schedule"
+                  onVisualEdit={() => openInlineVisualEditor('schedule')}
+                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('schedule'); }}
+                />
+                <InlineEditableSection
+                  sectionKey="schedule"
+                  renderContent={() => <TrainingSchedule schedule={plan.schedule} />}
+                />
+
+                {/* 实施保障 */}
+                <SectionHeader
+                  sectionKey="implementation"
+                  onVisualEdit={() => openInlineVisualEditor('implementation')}
+                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('implementation'); }}
+                />
+                <InlineEditableSection
+                  sectionKey="implementation"
+                  renderContent={() => <ImplementationSection implementation={plan.implementation} />}
+                />
+
+                {/* 考核与评价 */}
+                <SectionHeader
+                  sectionKey="assessment"
+                  onVisualEdit={() => openInlineVisualEditor('assessment')}
+                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('assessment'); }}
+                />
+                <InlineEditableSection
+                  sectionKey="assessment"
+                  renderContent={() => <AssessmentSection assessment={plan.assessment} />}
+                />
+
+                {/* 保障措施 */}
+                <SectionHeader
+                  sectionKey="guarantee"
+                  onVisualEdit={() => openInlineVisualEditor('guarantee')}
+                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('guarantee'); }}
+                />
+                <InlineEditableSection
+                  sectionKey="guarantee"
+                  renderContent={() => <GuaranteeSection guarantee={plan.guarantee} />}
+                />
                 </div>
               </div>
-            ) : (
-              <GuaranteeSection guarantee={plan.guarantee} />
+
+              {/* 右侧实施方案空白页 */}
+              <div style={{ flex: 6, padding: '24px', overflow: 'auto', borderLeft: '1px solid #f0f0f0' }}>
+                <div style={{
+                  maxWidth: '1200px',
+                  margin: '0 auto',
+                  background: '#fff',
+                  minHeight: '100%',
+                  padding: '32px',
+                  borderRadius: '8px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                }}>
+                  <ImplementationPlan plan={newTeacherTrainingPlan} externalTagSeeds={leftTags} initialSelectedTags={leftTags} />
+                </div>
+              </div>
+            </div>
             )}
-          </div>
-        </div>
-      ) : (
-        <div style={{ flex: 1, display: 'flex', overflow: 'hidden', background: '#f5f5f5' }}>
-          {/* 左侧原方案 */}
-          <div style={{ flex: 4, padding: '24px', overflow: 'auto' }}>
-            <div style={{
-              maxWidth: '1200px',
-              margin: '0 auto',
-              background: '#fff',
-              padding: '32px',
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-            }}>
-              {/* 方案概述 */}
-              <div style={{ textAlign: 'right', marginBottom: 8 }}>
-                <Space size="small">
-                  <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('overview')}>
-                    可视化编辑
-                  </Button>
-                  <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('overview'); }}>
-                    JSON编辑
-                  </Button>
-                </Space>
-              </div>
-              {inlineVisualEditing && editingSectionKey==='overview' ? (
-                <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
-                  {renderVisualEditor()}
-                  <div style={{ textAlign: 'right', marginTop: 8 }}>
-                    <Space>
-                      <Button onClick={cancelInlineVisualEdit}>取消</Button>
-                      <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
-                    </Space>
-                  </div>
-                </div>
-              ) : (
-                <TrainingOverview overview={plan.overview} />
-              )}
 
-              {/* 标签清单 */}
-              <TagsSection participantsList={participantsList} />
-
-              {/* 培训阶段与内容 */}
-              <div style={{ textAlign: 'right', marginBottom: 8 }}>
-                <Space size="small">
-                  <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('phases')}>
-                    可视化编辑
-                  </Button>
-                  <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('phases'); }}>
-                    JSON编辑
-                  </Button>
-                </Space>
-              </div>
-              {inlineVisualEditing && editingSectionKey==='phases' ? (
-                <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
-                  {renderVisualEditor()}
-                  <div style={{ textAlign: 'right', marginTop: 8 }}>
-                    <Space>
-                      <Button onClick={cancelInlineVisualEdit}>取消</Button>
-                      <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
-                    </Space>
-                  </div>
-                </div>
-              ) : (
-                <TrainingPhases phases={plan.phases} />
-              )}
-
-              {/* 详细时间安排 */}
-              <div style={{ textAlign: 'right', marginBottom: 8 }}>
-                <Space size="small">
-                  <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('schedule')}>
-                    可视化编辑
-                  </Button>
-                  <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('schedule'); }}>
-                    JSON编辑
-                  </Button>
-                </Space>
-              </div>
-              {inlineVisualEditing && editingSectionKey==='schedule' ? (
-                <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
-                  {renderVisualEditor()}
-                  <div style={{ textAlign: 'right', marginTop: 8 }}>
-                    <Space>
-                      <Button onClick={cancelInlineVisualEdit}>取消</Button>
-                      <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
-                    </Space>
-                  </div>
-                </div>
-              ) : (
-                <TrainingSchedule schedule={plan.schedule} />
-              )}
-
-              {/* 实施保障 */}
-              <div style={{ textAlign: 'right', marginBottom: 8 }}>
-                <Space size="small">
-                   <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('implementation')}>
-                     可视化编辑
-                   </Button>
-                   <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('implementation'); }}>
-                     JSON编辑
-                   </Button>
-                 </Space>
-              </div>
-              {inlineVisualEditing && editingSectionKey==='implementation' ? (
-                <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
-                  {renderVisualEditor()}
-                  <div style={{ textAlign: 'right', marginTop: 8 }}>
-                    <Space>
-                      <Button onClick={cancelInlineVisualEdit}>取消</Button>
-                      <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
-                    </Space>
-                  </div>
-                </div>
-              ) : (
-                <ImplementationSection implementation={plan.implementation} />
-              )}
-
-              {/* 考核与评价 */}
-              <div style={{ textAlign: 'right', marginBottom: 8 }}>
-                <Space size="small">
-                  <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('assessment')}>
-                    可视化编辑
-                  </Button>
-                  <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('assessment'); }}>
-                    JSON编辑
-                  </Button>
-                </Space>
-              </div>
-              {inlineVisualEditing && editingSectionKey==='assessment' ? (
-                <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
-                  {renderVisualEditor()}
-                  <div style={{ textAlign: 'right', marginTop: 8 }}>
-                    <Space>
-                      <Button onClick={cancelInlineVisualEdit}>取消</Button>
-                      <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
-                    </Space>
-                  </div>
-                </div>
-              ) : (
-                <AssessmentSection assessment={plan.assessment} />
-              )}
-
-              {/* 保障措施 */}
-            <div style={{ textAlign: 'right', marginBottom: 8 }}>
-              <Space size="small">
-                <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openInlineVisualEditor('guarantee')}>
-                  可视化编辑
-                </Button>
-                <Button size="small" type="link" onClick={() => { setEditMode('json'); openSectionEditor('guarantee'); }}>
-                  JSON编辑
-                </Button>
-              </Space>
-            </div>
-            {inlineVisualEditing && editingSectionKey==='guarantee' ? (
-              <div style={{ marginTop: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6, background: '#fafafa' }}>
-                {renderVisualEditor()}
-                <div style={{ textAlign: 'right', marginTop: 8 }}>
-                  <Space>
-                    <Button onClick={cancelInlineVisualEdit}>取消</Button>
-                    <Button type="primary" icon={<SaveOutlined />} onClick={saveInlineVisualEdit}>保存</Button>
-                  </Space>
-                </div>
-              </div>
-            ) : (
-              <GuaranteeSection guarantee={plan.guarantee} />
-            )}
-            </div>
-          </div>
-
-          {/* 右侧实施方案空白页 */}
-          <div style={{ flex: 6, padding: '24px', overflow: 'auto', borderLeft: '1px solid #f0f0f0' }}>
-            <div style={{
-              maxWidth: '1200px',
-              margin: '0 auto',
-              background: '#fff',
-              minHeight: '100%',
-              padding: '32px',
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-            }}>
-              <ImplementationPlan plan={newTeacherTrainingPlan} externalTagSeeds={leftTags} initialSelectedTags={leftTags} />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 部分编辑器（JSON）Modal */}
-       <Modal
-         title={editingSectionKey ? `编辑：${editingSectionKey}` : '编辑部分'}
-         open={sectionEditorVisible}
-         onOk={saveSectionEdit}
-         onCancel={() => setSectionEditorVisible(false)}
-         width={900}
-         okText="保存"
-         cancelText="取消"
-         okButtonProps={{ icon: <SaveOutlined /> }}
-         bodyStyle={{ padding: '16px' }}
-       >
-         <div style={{ marginBottom: 8 }}>
-           <Text type="secondary">直接以 JSON 格式编辑该部分内容，保存后左侧视图将立即更新。</Text>
-         </div>
-         <TextArea
-           value={sectionDraft}
-           onChange={(e) => setSectionDraft(e.target.value)}
-           rows={18}
-           placeholder={`请粘贴或编辑 JSON 内容，例如 {\n  \"platform\": \"学校在线培训平台\",\n  \"methods\": [\n    \"直播课程\"\n  ]\n}`}
-         />
-       </Modal>
+        {/* 部分编辑器（JSON）Modal */}
+         <Modal
+           title={editingSectionKey ? `编辑：${editingSectionKey}` : '编辑部分'}
+           open={sectionEditorVisible}
+           onOk={saveSectionEdit}
+           onCancel={() => setSectionEditorVisible(false)}
+           width={900}
+           okText="保存"
+           cancelText="取消"
+           okButtonProps={{ icon: <SaveOutlined /> }}
+           bodyStyle={{ padding: '16px' }}
+         >
+           <div style={{ marginBottom: 8 }}>
+             <Text type="secondary">直接以 JSON 格式编辑该部分内容，保存后左侧视图将立即更新。</Text>
+           </div>
+           <TextArea
+             value={sectionDraft}
+             onChange={(e) => setSectionDraft(e.target.value)}
+             rows={18}
+             placeholder={"请粘贴或编辑 JSON 内容"}
+           />
+         </Modal>
  
-      {/* Markdown 编辑器 Modal */}
-      <Modal
-        title="编辑培训方案"
-        open={isEditing}
-        onOk={handleSave}
-        onCancel={handleCancelEdit}
-        width={1000}
-        okText="保存"
-        cancelText="取消"
-        okButtonProps={{ icon: <SaveOutlined /> }}
-        bodyStyle={{ padding: '24px' }}
-      >
-        <div style={{ marginBottom: '12px' }}>
-          <Text type="secondary">
-            使用 Markdown 语法编辑培训方案内容，支持标题、列表、表格等格式。
-          </Text>
-        </div>
-        <TextArea
-          value={editContent}
-          onChange={(e) => setEditContent(e.target.value)}
-          placeholder="请输入培训方案内容..."
-          style={{
-            minHeight: '500px',
-            fontSize: '14px',
-            lineHeight: '1.6',
-            fontFamily: 'Monaco, Consolas, "Courier New", monospace'
-          }}
-          autoSize={{ minRows: 20, maxRows: 30 }}
-        />
-        <div style={{ marginTop: '12px' }}>
-          <Space>
-            <Text type="secondary" style={{ fontSize: '12px' }}>
-              快捷键：
-            </Text>
-            <Tag>标题：# ## ###</Tag>
-            <Tag>列表：- 或 1.</Tag>
-            <Tag>粗体：**文字**</Tag>
-            <Tag>表格：| 列1 | 列2 |</Tag>
-          </Space>
-        </div>
-      </Modal>
-    </div>
-  );
+      </div>
+    );
 };
 
 export default TrainingPlanViewer;

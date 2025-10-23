@@ -5,14 +5,16 @@ const { Title } = Typography;
 
 const TrainingSchedule = ({ schedule }) => {
   // 兼容不同数据结构：将 week/content/type/hours 映射到表格需要的字段
-  const normalized = (Array.isArray(schedule) ? schedule : []).map((item) => ({
-    phase: item.phase ?? item.week ?? '',
-    time: item.time ?? (item.duration ? item.duration : (item.hours ? `${item.hours}学时` : '')),
-    topic: item.topic ?? item.content ?? '',
-    format: item.format ?? item.type ?? '',
-    assessment: item.assessment ?? '',
-    notes: item.notes ?? undefined,
-  }));
+  const normalized = (Array.isArray(schedule) ? schedule : []).map((item, idx) => {
+    const phase = item.phase ?? item.week ?? '';
+    const time = item.time ?? (item.duration ? item.duration : (item.hours ? `${item.hours}学时` : ''));
+    const topic = item.topic ?? item.content ?? '';
+    const format = item.format ?? item.type ?? '';
+    const assessment = item.assessment ?? '';
+    const notes = item.notes ?? undefined;
+    const key = `${phase}|${time}|${topic}|${format}|${assessment}|${idx}`;
+    return { key, phase, time, topic, format, assessment, notes };
+  });
 
   const columns = [
     { title: '阶段', dataIndex: 'phase', key: 'phase', width: 120 },
@@ -37,7 +39,7 @@ const TrainingSchedule = ({ schedule }) => {
         columns={columns}
         dataSource={normalized}
         pagination={false}
-        rowKey={(r, i) => i}
+        rowKey="key"
       />
     </div>
   );

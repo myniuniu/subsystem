@@ -76,7 +76,7 @@ const AIExperience = () => {
     grd.addColorStop(0, c1); grd.addColorStop(1, c2)
     ctx.fillStyle = grd; ctx.fillRect(0,0,w,h)
     // 随机几何
-    const seed = Array.from(paintPrompt).reduce((a,ch)=>a+ch.charCodeAt(0),0)
+    let seed = Array.from(paintPrompt).reduce((a,ch)=>a+ch.charCodeAt(0),0)
     const rand = () => (Math.sin(seed++)+1)/2
     for(let i=0;i<50;i++){
       ctx.fillStyle = `hsla(${Math.floor(rand()*360)},70%,60%,0.4)`
