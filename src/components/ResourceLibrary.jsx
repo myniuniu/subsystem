@@ -152,7 +152,7 @@ const [collectionViewMode, setCollectionViewMode] = useState('grid') // 'grid' |
       key: 'thumb',
       width: 120,
       render: (rc) => (
-        <div style={{ width: 100, height: 60, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0' }}>
+        <div style={{ width: 100, height: 50, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0' }}>
           <img src={getCollectionThumbnail(rc)} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
       )
@@ -1633,7 +1633,7 @@ const getCategoryIcon = (cat) => {
                                 </Popconfirm>
                               ]}
                             >
-                              <div style={{ width: '100%', height: 88, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0', marginBottom: 8 }}>
+                              <div style={{ width: '100%', height: 150, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0', marginBottom: 8 }}>
                                 <img src={getItemThumbnail(item)} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                               </div>
                               <div className="note-header">
@@ -1711,7 +1711,7 @@ const getCategoryIcon = (cat) => {
                                 <DeleteOutlined key={`del-${rc.id}`} onClick={(e) => { e.stopPropagation(); handleDeleteCollection(rc.id) }} />
                               ]}
                             >
-                              <div style={{ width: '100%', height: 88, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0', marginBottom: 8 }}>
+                              <div style={{ width: '100%', height: 150, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0', marginBottom: 8 }}>
                                 <img src={getCollectionThumbnail(rc)} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                               </div>
                               <div className="note-header">

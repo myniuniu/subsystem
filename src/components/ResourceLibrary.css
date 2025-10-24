@@ -592,10 +592,10 @@
   margin-right: 16px;
 }
 
-/* 统一卡片头像区域图标尺寸为 18px，容器为 24px */
+/* 统一卡片头像区域图标尺寸为 18px，容器为 50px（更高的缩略图） */
 .docs-center .ant-card-meta-avatar {
   width: 24px;
-  height: 24px;
+  height: 50px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
