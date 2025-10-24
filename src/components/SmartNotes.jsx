@@ -84,6 +84,8 @@ import { generateTrainingProductDevelopmentData } from '../data/trainingProductD
 import './SmartNotes.css';
 import certificateService from '../services/certificateService';
 
+import { DEFAULT_SYSTEM_CATEGORY_CONFIG, saveSystemCategoryConfig } from '../services/categoryConfigService';
+
 const { Content, Sider } = Layout;
 const { Search } = Input;
 const { Option } = Select;
@@ -182,6 +184,23 @@ const SmartNotes = ({ onViewChange }) => {
       }
     } catch (e) {
       console.warn('读取分类视图映射失败:', e);
+    }
+  }, []);
+
+  // 新增：一次性按图示重置“我的分类”分组到默认配置
+  useEffect(() => {
+    try {
+      const RESET_FLAG = 'reset_my_categories_to_image_v1';
+      if (localStorage.getItem(RESET_FLAG) !== 'true') {
+        const ok = saveSystemCategoryConfig(DEFAULT_SYSTEM_CATEGORY_CONFIG);
+        if (ok) {
+          localStorage.setItem(RESET_FLAG, 'true');
+          setSystemCategoryConfigVersion(v => v + 1);
+          message.success('已按图示重新整理“我的分类”');
+        }
+      }
+    } catch (e) {
+      console.warn('重置系统分类失败:', e);
     }
   }, []);
 

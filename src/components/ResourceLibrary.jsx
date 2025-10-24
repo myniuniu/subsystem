@@ -323,6 +323,13 @@ const getCategoryIcon = (cat) => {
     // 基础五大分类的集合
     const baseCollections = cats.map((c, idx) => {
       const items = pickByCategory(c.id, 8)
+      // 添加“场景模拟”类型的模拟数据
+      if (c.id === 'technology_training') {
+        items.push({ id: 'scn-phy-1', title: '科学演示：电磁感应虚拟实验', type: 'scenario', drive: 'org', size: 'N/A', lastModified: today, tags: ['科学演示','物理','虚拟仿真'] })
+      }
+      if (c.id === 'mental_health') {
+        items.push({ id: 'scn-psy-1', title: '心理健康辅导：校园压力疏导', type: 'scenario', drive: 'my', size: 'N/A', lastModified: today, tags: ['心理健康','辅导','情绪管理'] })
+      }
       return {
         id: `rc-${c.id}-${idx+1}`,
         title: c.title,
@@ -482,7 +489,9 @@ const getCategoryIcon = (cat) => {
     { id: 'c-ppt-1', title: '幻灯片：函数图像.pptx', type: 'ppt', drive: 'my', category: 'ppt', subCategory: 'office-ppt', size: '3.2 MB', lastModified: '2024-01-07', tags: ['数学','高中','课件'] },
     { id: 'c-white-1', title: '白板：项目式学习思维导图', type: 'whiteboard', drive: 'org', category: 'whiteboard', subCategory: 'whiteboard-mindmap', size: 'N/A', lastModified: '2024-01-06', tags: ['项目式','思维导图'] },
     { id: 'c-file-1', title: '课堂讲义.pdf', type: 'document', drive: 'my', category: 'file', subCategory: 'office-pdf', size: '6.8 MB', lastModified: '2024-01-05', tags: ['讲义','PDF'] },
-    { id: 'c-xlsx-1', title: '教学进度表.xlsx', type: 'table', drive: 'org', category: 'table', subCategory: 'office-excel', size: '420 KB', lastModified: '2024-01-04', tags: ['进度表','Excel'] }
+    { id: 'c-xlsx-1', title: '教学进度表.xlsx', type: 'table', drive: 'org', category: 'table', subCategory: 'office-excel', size: '420 KB', lastModified: '2024-01-04', tags: ['进度表','Excel'] },
+    { id: 'c-scn-1', title: '科学演示：电磁感应虚拟实验', type: 'scenario', drive: 'org', category: 'scenario', subCategory: 'science_demo', size: 'N/A', lastModified: '2024-01-03', tags: ['科学演示','物理','虚拟仿真'] },
+    { id: 'c-scn-2', title: '心理健康辅导：校园压力疏导', type: 'scenario', drive: 'my', category: 'scenario', subCategory: 'mental_health_counseling', size: 'N/A', lastModified: '2024-01-02', tags: ['心理健康','辅导','情绪管理'] }
   ])
   
   const [newCloudTarget, setNewCloudTarget] = useState('org')
@@ -1191,6 +1200,8 @@ const getCategoryIcon = (cat) => {
         return <VideoCameraOutlined style={{ color: '#f5222d', fontSize: '18px' }} />
       case 'audio':
         return <AudioOutlined style={{ color: '#faad14', fontSize: '18px' }} />
+      case 'scenario':
+        return <ExperimentOutlined style={{ color: '#3b82f6', fontSize: '18px' }} />
       default:
         return <FileTextOutlined style={{ color: '#1890ff', fontSize: '18px' }} />
     }
@@ -1805,6 +1816,7 @@ const getCategoryIcon = (cat) => {
             <Option value="whiteboard">白板</Option>
             <Option value="video">视频</Option>
             <Option value="audio">音频</Option>
+            <Option value="scenario">场景</Option>
           </Select>
           <Input
             allowClear
@@ -1972,6 +1984,7 @@ const getCategoryIcon = (cat) => {
             <Option value="whiteboard">白板</Option>
             <Option value="video">视频</Option>
             <Option value="audio">音频</Option>
+            <Option value="scenario">场景</Option>
           </Select>
           <Input
             allowClear
