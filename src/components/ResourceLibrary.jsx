@@ -61,21 +61,25 @@ import './SmartNotes.css'
 import './ResourceLibrary.css'
 import { initialResources } from '../data/resourceLibraryData'
 import ResourceSidebar from './ResourceSidebar'
+import ResourceCategorySidebar from './ResourceCategorySidebar'
 import { getMockCourseContentHierarchy } from '../utils/mockCourseData'
 import { getSystemCategoryConfig, saveSystemCategoryConfig } from '../services/categoryConfigService'
+import { resourceCategoryData, mockResourcesForCategories } from '../data/resourceCategoryData'
 
 const { Header, Sider, Content } = Layout
 const { Title, Text } = Typography
 const { Option } = Select
 
 const ResourceLibrary = () => {
-  const [selectedCategory, setSelectedCategory] = useState('all')
   const [expandedKeys, setExpandedKeys] = useState(['document', 'ppt', 'whiteboard'])
 const [showCollectionView, setShowCollectionView] = useState(false)
-const [activeCollection, setActiveCollection] = useState(null)
-const [selectedCategoryKey, setSelectedCategoryKey] = useState(null)
-const [configVersion, setConfigVersion] = useState(0)
-const prevSystemConfigRef = useRef(null)
+  const [activeCollection, setActiveCollection] = useState(null)
+  const [selectedCategoryKey, setSelectedCategoryKey] = useState(null)
+  const [configVersion, setConfigVersion] = useState(0)
+  const prevSystemConfigRef = useRef(null)
+  
+  // 资源分类相关状态
+  const [selectedResourceCategory, setSelectedResourceCategory] = useState('all')
   const [recentlyAccessed, setRecentlyAccessed] = useState(() => {
     // 从本地存储加载最近访问记录
     const saved = localStorage.getItem('recentlyAccessedDocs')
@@ -130,9 +134,66 @@ const [collectionViewMode, setCollectionViewMode] = useState('grid') // 'grid' |
   { id: 'new_teacher_resources', name: '新教师资源库', count: computeCount('new_teacher_resources') }
 ]
 
+  // 通过“资源分类”侧栏值过滤集合的匹配函数
+  const matchesSelectedCategory = (rc, selected) => {
+    if (!rc) return false
+    if (!selected || selected === 'all') return true
+    // 顶级业务分类直接匹配集合的 category
+    if (['teaching_resources','technology_training','family_education','school_management','mental_health','new_teacher_resources'].includes(selected)) {
+      return rc.category === selected
+    }
+    // 内容类型匹配（集合内任一条目命中即可）
+    const typeMap = {
+      documents: (it) => it.type === 'document' || it.type === 'pdf',
+      videos: (it) => it.type === 'video',
+      audio: (it) => it.type === 'audio',
+      presentations: (it) => it.type === 'ppt'
+    }
+    // 学科通过标签近似匹配
+    const subjectTagMap = {
+      chinese: ['语文','古诗','作文','阅读'],
+      math: ['数学'],
+      english: ['英语','English'],
+      science: ['科学','物理','化学','生物'],
+      history: ['历史'],
+      geography: ['地理']
+    }
+    // 年级通过标签近似匹配
+    const gradeTagMap = {
+      elementary: ['小学'],
+      middle_school: ['初中','七年级','八年级','九年级'],
+      high_school: ['高中'],
+      university: ['大学']
+    }
+    // 特殊分类
+    const specialMap = {
+      starred: () => rc.isBookmarked === true,
+      shared: () => rc.isShared === true,
+      recent: () => (rc.items || []).some(it => {
+        const d = new Date(it.lastModified)
+        return !isNaN(d.getTime()) && (Date.now() - d.getTime()) < 1000*60*60*24*30
+      })
+    }
+    if (typeMap[selected]) {
+      return (rc.items || []).some(it => typeMap[selected](it))
+    }
+    if (subjectTagMap[selected]) {
+      const keys = subjectTagMap[selected]
+      return (rc.items || []).some(it => (it.tags || []).some(tag => keys.some(k => tag.includes(k))))
+    }
+    if (gradeTagMap[selected]) {
+      const keys = gradeTagMap[selected]
+      return (rc.items || []).some(it => (it.tags || []).some(tag => keys.some(k => tag.includes(k))))
+    }
+    if (specialMap[selected]) {
+      return specialMap[selected]()
+    }
+    return false
+  }
+
   // 集合列表视图：数据与列定义（放在 categories 之后以保证依赖可用）
   const collectionListData = useMemo(() => {
-    const list = (selectedCategory==='all' ? resourceCollections : resourceCollections.filter(rc => rc.category === selectedCategory));
+    const list = (selectedResourceCategory==='all' ? resourceCollections : resourceCollections.filter(rc => matchesSelectedCategory(rc, selectedResourceCategory)));
     return list.map(rc => ({
       key: rc.id,
       id: rc.id,
@@ -143,7 +204,7 @@ const [collectionViewMode, setCollectionViewMode] = useState('grid') // 'grid' |
       createdAt: rc.createdAt,
       rc
     }));
-  }, [resourceCollections, selectedCategory]);
+  }, [resourceCollections, selectedResourceCategory]);
 
   const collectionColumns = [
     {
@@ -1518,7 +1579,8 @@ const getCategoryIcon = (cat) => {
                   prefix={<SearchOutlined />}
                 />
               </div>
-              {/* 旧的“新建文档”功能移除 */}
+              {/* 已移除分类视图切换按钮，直接使用新分类侧栏 */}
+              {/* 旧的"新建文档"功能移除 */}
               <Button 
                 type="default" 
                 icon={<LinkOutlined />} 
@@ -1541,61 +1603,13 @@ const getCategoryIcon = (cat) => {
               configVersion={configVersion}
             />
           ) : (
-            <Sider width={280} className="docs-sidebar">
-              <div className="sidebar-content">
-                {/* 快捷入口 */}
-                {/* 旧的快捷访问（最近访问/与我共享/收藏）已移除 */}
-                
-                <Divider style={{ margin: '16px 0' }} />
-                
-                <>
-                  <Title level={4}>资源分类</Title>
-                  <Tree
-                    className="category-tree"
-                    showLine={false}
-                    showIcon={false}
-                    treeData={categories.map(category => ({
-                      key: category.id,
-                      title: (
-                        <div className="category-item">
-                          <span className="category-name">{category.name}</span>
-                          <span className="category-count">{category.count}</span>
-                        </div>
-                      ),
-                      children: category.children ? category.children.map(child => ({
-                        key: child.id,
-                        title: (
-                          <div className="category-item">
-                            <span className="category-name">{child.name}</span>
-                            <span className="category-count">{child.count}</span>
-                          </div>
-                        ),
-                        children: child.children ? child.children.map(grandChild => ({
-                          key: grandChild.id,
-                          title: (
-                            <div className="category-item">
-                              <span className="category-name">{grandChild.name}</span>
-                              <span className="category-count">{grandChild.count}</span>
-                            </div>
-                          )
-                        })) : []
-                      })) : []
-                    }))}
-                    selectedKeys={[selectedCategory]}
-                    expandedKeys={expandedKeys}
-                    onSelect={(selectedKeys) => {
-                      if (selectedKeys.length > 0) {
-                        setSelectedCategory(selectedKeys[0]);
-                      } else {
-                        setSelectedCategory('all');
-                      }
-                    }}
-                    onExpand={(keys) => setExpandedKeys(keys)}
-                    blockNode
-                  />
-                </>
-              </div>
-            </Sider>
+            <ResourceCategorySidebar
+              selectedCategory={selectedResourceCategory}
+              onCategoryChange={setSelectedResourceCategory}
+              resources={mockResourcesForCategories}
+              categories={resourceCategoryData}
+              configVersion={configVersion}
+            />
           )}
 
           <Content className="docs-main">
@@ -1664,8 +1678,8 @@ const getCategoryIcon = (cat) => {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Title level={4} style={{ margin: 0 }}>资源集合</Title>
                   <Space>
-                    {(selectedCategory==='all' ? resourceCollections : resourceCollections.filter(rc => rc.category === selectedCategory)).length > 0 && (
-                      <Text type="secondary">共 {(selectedCategory==='all' ? resourceCollections : resourceCollections.filter(rc => rc.category === selectedCategory)).length} 个集合</Text>
+                    {(selectedResourceCategory==='all' ? resourceCollections : resourceCollections.filter(rc => matchesSelectedCategory(rc, selectedResourceCategory))).length > 0 && (
+                      <Text type="secondary">共 {(selectedResourceCategory==='all' ? resourceCollections : resourceCollections.filter(rc => matchesSelectedCategory(rc, selectedResourceCategory))).length} 个集合</Text>
                     )}
                     <Tooltip title="网格视图">
                       <Button size="small" type={collectionViewMode==='grid' ? 'primary' : 'text'} icon={<AppstoreOutlined />} onClick={() => setCollectionViewMode('grid')} />
@@ -1675,7 +1689,7 @@ const getCategoryIcon = (cat) => {
                     </Tooltip>
                   </Space>
                 </div>
-                {(selectedCategory==='all' ? resourceCollections : resourceCollections.filter(rc => rc.category === selectedCategory)).length === 0 ? (
+                {(selectedResourceCategory==='all' ? resourceCollections : resourceCollections.filter(rc => matchesSelectedCategory(rc, selectedResourceCategory))).length === 0 ? (
                   <Empty
                     description={<div><Text>该分类下暂无资料集合</Text><br /><Text type="secondary">点击上方“新建资料”开始组装</Text></div>}
                     style={{ marginTop: 8 }}
@@ -1696,7 +1710,7 @@ const getCategoryIcon = (cat) => {
                     </div>
                   ) : (
                     <Row gutter={[16, 16]} style={{ marginTop: 12 }} className="notes-grid">
-                      {(selectedCategory==='all' ? resourceCollections : resourceCollections.filter(rc => rc.category === selectedCategory)).map(rc => (
+                      {(selectedResourceCategory==='all' ? resourceCollections : resourceCollections.filter(rc => matchesSelectedCategory(rc, selectedResourceCategory))).map(rc => (
                         <Col key={rc.id} xs={24} sm={12} md={8} lg={6} xl={6}>
                           <div className="note-card resource-card" onClick={() => { setActiveCollection(rc); setActiveResource(rc); setShowCollectionView(true); setSelectedCategoryKey(null); }}>
                             <Card
