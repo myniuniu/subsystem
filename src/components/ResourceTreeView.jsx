@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Tree, Checkbox, Input, Button, Space, Tag, Tooltip, Empty, Card, Badge, Rate, Typography, Divider } from 'antd';
+import { Tree, Checkbox, Input, Button, Space, Tag, Tooltip, Empty, Card, Badge, Rate, Typography, Divider, Modal } from 'antd';
 import { 
   SearchOutlined, 
   FileTextOutlined, 
@@ -67,6 +67,91 @@ const difficultyLabels = {
   [DifficultyLevel.ADVANCED]: '高级'
 };
 
+// 资源缩略图（简单映射）：视频用课堂讲解，其它用微缩
+const getResourceThumbnail = (res) => {
+  if (!res) return '/微缩.png';
+  if (res.type === ResourceType.VIDEO) return '/课堂讲解.png';
+  return '/微缩.png';
+};
+
+// 视频嵌入地址转换（支持 B 站、YouTube），其他直链回退
+const getVideoEmbedUrl = (url = '') => {
+  if (!url) return '';
+  if (url.includes('bilibili.com')) {
+    const bvMatch = url.match(/BV[a-zA-Z0-9]+/);
+    if (bvMatch) {
+      return `https://player.bilibili.com/player.html?bvid=${bvMatch[0]}&autoplay=0`;
+    }
+  }
+  if (url.includes('youtube.com') || url.includes('youtu.be')) {
+    const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+    if (videoId) {
+      return `https://www.youtube.com/embed/${videoId[1]}`;
+    }
+  }
+  return url; // 直链或其他平台
+};
+
+// 渲染视频预览
+const renderVideoPreview = (video) => {
+  const src = getVideoEmbedUrl(video?.url);
+  if (!src) {
+    return (
+      <div style={{ textAlign: 'center', color: '#999', padding: 12 }}>
+        当前数据无在线视频链接，暂不支持内嵌播放
+      </div>
+    );
+  }
+  return (
+    <div style={{ height: 360, width: '100%' }}>
+      <iframe
+        src={src}
+        style={{ width: '100%', height: '100%', border: 'none', borderRadius: 8 }}
+        title={video?.title || '视频预览'}
+        allowFullScreen
+      />
+    </div>
+  );
+};
+
+// 渲染 PDF/文档预览（通过 Google Docs Viewer）
+const renderFilePreview = (file) => {
+  const url = file?.url;
+  if (!url) {
+    return (
+      <div style={{ textAlign: 'center', color: '#999', padding: 12 }}>
+        当前数据无文件链接，暂不支持在线预览
+      </div>
+    );
+  }
+  return (
+    <div style={{ height: 480, width: '100%' }}>
+      <iframe
+        src={`https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`}
+        style={{ width: '100%', height: '100%', border: 'none', borderRadius: 8 }}
+        title={file?.title || file?.name || '文件预览'}
+      />
+    </div>
+  );
+};
+
+// 渲染音频预览
+const renderAudioPreview = (audio) => {
+  const url = audio?.url;
+  if (!url) {
+    return (
+      <div style={{ textAlign: 'center', color: '#999', padding: 12 }}>
+        当前数据无音频链接，暂不支持在线播放
+      </div>
+    );
+  }
+  return (
+    <div style={{ width: '100%' }}>
+      <audio controls style={{ width: '100%' }} src={url} />
+    </div>
+  );
+};
+
 const ResourceTreeView = ({ 
   onResourceSelect, 
   selectedResources = [], 
@@ -74,13 +159,17 @@ const ResourceTreeView = ({
   expandAll = false,
   searchable = true,
   recommendedResources = [], // 新增：推荐的资源列表
-  isRefreshing = false // 新增：刷新状态
+  isRefreshing = false, // 新增：刷新状态
+  enableQuickPreview = true, // 新增：是否启用快速预览
+  onQuickPreview // 新增：外部处理快速预览
 }) => {
   const [searchValue, setSearchValue] = useState('');
   const [expandedKeys, setExpandedKeys] = useState([]);
   const [checkedKeys, setCheckedKeys] = useState(selectedResources);
   const [selectedKeys, setSelectedKeys] = useState([]);
   const [autoExpandParent, setAutoExpandParent] = useState(true);
+  const [quickPreviewVisible, setQuickPreviewVisible] = useState(false); // 新增：预览弹窗
+  const [previewResource, setPreviewResource] = useState(null); // 新增：当前预览资源
 
   // 初始化展开状态
   useEffect(() => {
@@ -131,17 +220,40 @@ const ResourceTreeView = ({
           
           return {
             title: (
-              <div className={`resource-node ${isRecommended ? 'recommended' : ''}`}>
-                <span className="resource-icon">
-                  {resourceTypeIcons[resource.type]}
-                </span>
-                <span className="resource-title">
-                  {resource.title}
-                </span>
-                {isRecommended && (
-                  <span className="recommended-badge">
-                    ⭐ 推荐
+              <div className={`resource-node ${isRecommended ? 'recommended' : ''}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ width: 28, height: 28, borderRadius: 4, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0' }}>
+                    <img src={getResourceThumbnail(resource)} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </span>
+                  <span className="resource-icon">
+                    {resourceTypeIcons[resource.type]}
+                  </span>
+                  <span className="resource-title">
+                    {resource.title}
+                  </span>
+                  {isRecommended && (
+                    <span className="recommended-badge">
+                      ⭐ 推荐
+                    </span>
+                  )}
+                </span>
+                {enableQuickPreview && (
+                  <Tooltip title="快速预览">
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<EyeOutlined />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onQuickPreview) {
+                          onQuickPreview(resource, mapPreviewType(resource.type));
+                        } else {
+                          setPreviewResource({ ...resource, categoryName: category.name });
+                          setQuickPreviewVisible(true);
+                        }
+                      }}
+                    />
+                  </Tooltip>
                 )}
               </div>
             ),
@@ -153,7 +265,26 @@ const ResourceTreeView = ({
         })
       };
     }).filter(Boolean);
-  }, [searchValue]);
+  }, [searchValue, recommendedResources, enableQuickPreview, onQuickPreview]);
+
+  // 预览类型映射
+  const mapPreviewType = (type) => {
+    switch (type) {
+      case ResourceType.VIDEO:
+        return 'video';
+      case ResourceType.DOCUMENT:
+      case ResourceType.TEMPLATE:
+        return 'file';
+      case ResourceType.CASE_STUDY:
+        return 'case';
+      case ResourceType.RESEARCH:
+        return 'paper';
+      case ResourceType.ASSESSMENT:
+        return 'survey';
+      default:
+        return 'text';
+    }
+  };
 
   // 处理展开/收起
   const onExpand = (expandedKeysValue) => {
@@ -217,381 +348,124 @@ const ResourceTreeView = ({
     }
   }, [searchValue]);
 
-  // 计算选中状态
-  const getCheckedStatus = () => {
-    const totalResources = trainingCategories.reduce((sum, category) => sum + category.resources.length, 0);
-    const checkedCount = checkedKeys.length;
-    
-    if (checkedCount === 0) {
-      return { checked: false, indeterminate: false };
-    } else if (checkedCount === totalResources) {
-      return { checked: true, indeterminate: false };
-    } else {
-      return { checked: false, indeterminate: true };
-    }
-  };
-
-  const checkedStatus = getCheckedStatus();
-
-  // 全选/取消全选
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      const allResourceKeys = [];
-      trainingCategories.forEach(category => {
-        category.resources.forEach(resource => {
-          allResourceKeys.push(`${category.id}-${resource.id}`);
-        });
-      });
-      setCheckedKeys(allResourceKeys);
-      
-      // 通知父组件
-      const allResources = [];
-      trainingCategories.forEach(category => {
-        category.resources.forEach(resource => {
-          allResources.push({
-            ...resource,
-            categoryId: category.id,
-            categoryName: category.name
-          });
-        });
-      });
-      
-      if (onResourceSelect) {
-        onResourceSelect(allResources);
-      }
-    } else {
-      setCheckedKeys([]);
-      if (onResourceSelect) {
-        onResourceSelect([]);
-      }
-    }
-  };
-
-  if (treeData.length === 0 && searchValue) {
-    return (
-      <div className="resource-tree-container">
-        {searchable && (
-          <div className="tree-header">
-            <Search
-              placeholder="搜索培训课程和学习资源..."
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              style={{ marginBottom: 16 }}
-              allowClear
-            />
-          </div>
-        )}
-        <Empty 
-          description="未找到匹配的资源"
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-        />
+  // 快速预览内容渲染（加入内容播放器）
+  const renderQuickPreviewContent = (res) => {
+    if (!res) return null;
+    const type = res.type;
+  
+    const section = (title, children) => (
+      <div style={{ marginTop: 12 }}>
+        <div style={{ fontWeight: 600, marginBottom: 6 }}>{title}</div>
+        <div style={{ color: '#555' }}>{children}</div>
       </div>
     );
-  }
+  
+    return (
+      <div>
+        <div style={{ width: '100%', height: 160, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0', marginBottom: 8 }}>
+          <img src={getResourceThumbnail(res)} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          {resourceTypeIcons[type]}
+          <span style={{ fontSize: 16, fontWeight: 600 }}>{res.title}</span>
+          <Tag color={difficultyColors[res.difficulty] || '#999'}>
+            {difficultyLabels[res.difficulty] || '未知难度'}
+          </Tag>
+        </div>
+        <div style={{ color: '#666', marginBottom: 8 }}>{res.description}</div>
+  
+        {/* 元数据区 */}
+        {type === ResourceType.COURSE && (
+          <>
+            {section('课程信息', (
+              <span>
+                时长：{res.duration || '未知'}； 讲师：{res.instructor || '未知'}； 评分：{res.rating || '暂无'}； 报名：{res.enrollments || 0}
+              </span>
+            ))}
+          </>
+        )}
+        {type === ResourceType.DOCUMENT && (
+          <>
+            {section('文档信息', (
+              <span>
+                页数：{res.pages || '未知'}； 作者：{res.author || '未知'}； 下载：{res.downloads || 0}
+              </span>
+            ))}
+          </>
+        )}
+        {type === ResourceType.VIDEO && (
+          <>
+            {section('视频信息', (
+              <span>
+                时长：{res.duration || '未知'}； 讲师：{res.instructor || '未知'}； 播放：{res.views || 0}； 点赞：{res.likes || 0}
+              </span>
+            ))}
+          </>
+        )}
+  
+        {/* 内容预览区 */}
+        <Divider style={{ margin: '12px 0' }} />
+        <div style={{ marginTop: 8 }}>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>内容预览</div>
+          {type === ResourceType.VIDEO && renderVideoPreview({ title: res.title, url: res.url })}
+          {(type === ResourceType.DOCUMENT || type === ResourceType.TEMPLATE) && renderFilePreview({ title: res.title, url: res.url })}
+          {/* 如后续新增音频类型，可直接启用下面一行 */}
+          {/* {type === ResourceType.AUDIO && renderAudioPreview({ title: res.title, url: res.url })} */}
+          {/* 其他类型暂以说明文字展示 */}
+          {![ResourceType.VIDEO, ResourceType.DOCUMENT, ResourceType.TEMPLATE].includes(type) && (
+            <div style={{ padding: 12, background: '#fafafa', borderRadius: 8, border: '1px solid #f0f0f0', color: '#666' }}>
+              当前类型暂不支持内容内嵌预览，可在详情页查看
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // 计算选中状态
+  const treeCheckable = showCheckbox;
 
   return (
-    <div className="resource-tree-container">
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {searchable && (
-        <div className="search-section">
+        <div style={{ marginBottom: '8px' }}>
           <Search
-            placeholder="🔍 搜索培训课程和学习资源..."
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
+            placeholder="搜索资源标题/描述/标签"
             allowClear
-            size="large"
-            className="modern-search"
+            onChange={(e) => setSearchValue(e.target.value)}
+            value={searchValue}
+            style={{ width: '100%' }}
           />
         </div>
       )}
-      
-      {showCheckbox && (
-        <div className="tree-controls">
-          <Checkbox
-            checked={checkedStatus.checked}
-            indeterminate={checkedStatus.indeterminate}
-            onChange={handleSelectAll}
-            className="select-all-checkbox"
-          >
-            <span className="checkbox-label">
-              全选资源 
-              <span className="selection-count">({checkedKeys.length} 项已选)</span>
-            </span>
-          </Checkbox>
-          <div className="control-buttons">
-            {(() => {
-              // 计算全局展开状态：所有顶层类目是否都在 expandedKeys 中
-              const topLevelIds = trainingCategories.map(c => c.id);
-              const allExpanded = topLevelIds.every(id => expandedKeys.includes(id));
 
-              return (
-                <Tooltip title={allExpanded ? '收起全部' : '展开全部'}>
-                  <Button 
-                    size="small"
-                    type={allExpanded ? 'default' : 'primary'}
-                    icon={allExpanded ? <UpOutlined /> : <DownOutlined />}
-                    onClick={() => {
-                      if (allExpanded) {
-                        // 全部展开 → 点击后收起
-                        setExpandedKeys([]);
-                      } else {
-                        // 非全部展开 → 点击后展开所有顶层
-                        setExpandedKeys(topLevelIds);
-                      }
-                    }}
-                    className="expand-toggle-btn"
-                  />
-                </Tooltip>
-              );
-            })()}
-          </div>
-        </div>
-      )}
+      <Tree
+        checkable={treeCheckable}
+        onExpand={onExpand}
+        expandedKeys={expandedKeys}
+        autoExpandParent={autoExpandParent}
+        onCheck={onCheck}
+        checkedKeys={checkedKeys}
+        onSelect={onSelect}
+        selectedKeys={selectedKeys}
+        treeData={treeData}
+        showIcon
+      />
 
-      <div style={{ position: 'relative' }}>
-        {/* 刷新加载遮罩 */}
-        {isRefreshing && (
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(255, 255, 255, 0.8)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10,
-            borderRadius: '8px'
-          }}>
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.95)',
-              padding: '16px 24px',
-              borderRadius: '8px',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              fontSize: '14px',
-              color: '#1890ff',
-              fontWeight: '500'
-            }}>
-              <div style={{
-                width: '16px',
-                height: '16px',
-                border: '2px solid #e6f7ff',
-                borderTop: '2px solid #1890ff',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite'
-              }}></div>
-              正在刷新资源树...
-            </div>
-          </div>
-        )}
-        
-        <Tree
-          checkable={showCheckbox}
-          onExpand={onExpand}
-          expandedKeys={expandedKeys}
-          autoExpandParent={autoExpandParent}
-          onCheck={onCheck}
-          checkedKeys={checkedKeys}
-          onSelect={onSelect}
-          selectedKeys={selectedKeys}
-          treeData={treeData}
-          showIcon
-          switcherIcon={({ expanded }) => 
-            expanded ? <DownOutlined /> : <RightOutlined />
-          }
-          className={`resource-tree ${isRefreshing ? 'refreshing' : ''}`}
-        />
-      </div>
-
-      <style jsx>{`
-        .resource-tree-container {
-          padding: 0;
-          background: transparent;
-        }
-
-        .tree-header {
-          margin-bottom: 12px;
-          padding: 0 8px;
-        }
-
-        .tree-controls {
-          display: flex;
-          align-items: center;
-          margin-bottom: 12px;
-          padding: 8px;
-          background: transparent;
-        }
-
-        .select-all-checkbox {
-          margin-right: 12px;
-        }
-
-        .checkbox-label {
-          font-size: 13px;
-          color: var(--theme-textSecondary);
-        }
-
-        .selection-count {
-          color: var(--theme-primary);
-          font-weight: 500;
-        }
-
-        .control-buttons {
-          margin-left: auto;
-          display: flex;
-          gap: 4px;
-        }
-
-        .expand-btn,
-        .collapse-btn,
-        .expand-toggle-btn {
-          font-size: 12px;
-          height: 24px;
-          padding: 0 8px;
-        }
-
-        .resource-tree {
-          background: transparent;
-        }
-
-        .resource-tree.refreshing {
-          opacity: 0.7;
-          pointer-events: none;
-          position: relative;
-        }
-
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-
-        .resource-tree :global(.ant-tree-treenode) {
-          padding: 1px 0;
-        }
-
-        .resource-tree :global(.ant-tree-node-content-wrapper) {
-          width: 100%;
-          padding: 0;
-          border-radius: 6px;
-          transition: background-color 0.2s ease;
-        }
-
-        .resource-tree :global(.ant-tree-node-content-wrapper:hover) {
-          background: rgba(0, 0, 0, 0.04);
-        }
-
-        .resource-tree :global(.ant-tree-node-selected .ant-tree-node-content-wrapper) {
-          background: rgba(24, 144, 255, 0.1) !important;
-        }
-
-        .resource-tree :global(.ant-tree-switcher) {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 16px;
-          height: 16px;
-          margin-right: 4px;
-        }
-
-        .resource-tree :global(.ant-tree-switcher-icon) {
-          font-size: 12px;
-          color: var(--theme-textSecondary);
-        }
-
-        .resource-tree :global(.ant-tree-checkbox) {
-          margin-right: 6px;
-        }
-
-        .resource-tree :global(.ant-tree-iconEle) {
-          margin-right: 6px;
-          font-size: 14px;
-        }
-
-        .category-node {
-          display: flex;
-          align-items: center;
-          padding: 6px 8px;
-          font-size: 13px;
-          font-weight: 500;
-          color: var(--theme-text);
-        }
-
-        .category-icon {
-          font-size: 14px !important;
-          margin-right: 6px !important;
-          color: var(--theme-primary);
-        }
-
-        .category-name {
-          font-weight: 500 !important;
-          font-size: 13px;
-          color: var(--theme-text);
-        }
-
-        .resource-count {
-          font-size: 11px;
-          color: var(--theme-textSecondary);
-          margin-left: 6px;
-          background: rgba(0, 0, 0, 0.05);
-          padding: 1px 4px;
-          border-radius: 8px;
-        }
-
-        .resource-node {
-          display: flex;
-          align-items: center;
-          padding: 4px 8px;
-          font-size: 13px;
-          transition: all 0.2s ease;
-        }
-
-        .resource-node.recommended {
-          background: linear-gradient(90deg, #fff7e6 0%, #fff2d9 100%);
-          border-radius: 4px;
-          border-left: 3px solid #faad14;
-          animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-          0% { box-shadow: 0 0 0 0 rgba(250, 173, 20, 0.4); }
-          70% { box-shadow: 0 0 0 4px rgba(250, 173, 20, 0); }
-          100% { box-shadow: 0 0 0 0 rgba(250, 173, 20, 0); }
-        }
-
-        .resource-icon {
-          margin-right: 6px !important;
-          font-size: 13px;
-          color: var(--theme-textSecondary);
-        }
-
-        .resource-title {
-          font-weight: 400 !important;
-          flex: 1;
-        }
-
-        .recommended-badge {
-          font-size: 10px;
-          color: #faad14;
-          font-weight: 500;
-          margin-left: 8px;
-          padding: 1px 4px;
-          background: rgba(250, 173, 20, 0.1);
-          border-radius: 8px;
-          border: 1px solid rgba(250, 173, 20, 0.3);
-        }
-          font-size: 13px;
-          color: var(--theme-text);
-          line-height: 1.4;
-        }
-      `}</style>
+      {/* 快速预览弹窗 */}
+      <Modal
+        title={`快速预览 - ${previewResource?.title || ''}`}
+        open={quickPreviewVisible}
+        onCancel={() => setQuickPreviewVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setQuickPreviewVisible(false)}>
+            关闭
+          </Button>
+        ]}
+        width={640}
+      >
+        {renderQuickPreviewContent(previewResource)}
+      </Modal>
     </div>
   );
 };

@@ -1498,6 +1498,44 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
     setShowPreviewModal(true);
   };
 
+  // 根据资源类型构造树的快速预览数据
+  const buildQuickPreviewPayload = (resource) => {
+    const type = resource.type;
+    if (type === 'video') {
+      if (!resource.url) {
+        return { data: { title: resource.title, content: `视频：${resource.title}\n时长：${resource.duration || '未知'}\n讲师：${resource.instructor || '未知'}` }, type: 'text' };
+      }
+      return { data: { title: resource.title, url: resource.url }, type: 'video' };
+    }
+    if (type === 'document' || type === 'template') {
+      return { data: { name: `${resource.title}.pdf`, type: 'pdf', url: resource.url || '#' }, type: 'file' };
+    }
+    if (type === 'case_study') {
+      return { data: {
+        title: resource.title,
+        school: resource.school,
+        year: resource.year,
+        participants: resource.participants,
+        background: resource.description
+      }, type: 'case' };
+    }
+    if (type === 'research') {
+      return { data: {
+        title: resource.title,
+        abstract: resource.description,
+        authors: resource.researchers,
+        citations: resource.citations
+      }, type: 'paper' };
+    }
+    if (type === 'assessment') {
+      return { data: {
+        title: resource.title,
+        objectives: resource.description
+      }, type: 'survey' };
+    }
+    return { data: { title: resource.title, content: resource.description }, type: 'text' };
+  };
+
   // 智能需求生成功能
   const generateSmartNote = (material, type) => {
     let smartNote = {
@@ -2309,6 +2347,10 @@ return smartNote;
                   }}
                   recommendedResources={recommendedResources}
                   isRefreshing={isRefreshingResourceTree}
+                  onQuickPreview={(resource) => {
+                    const payload = buildQuickPreviewPayload(resource);
+                    handlePreviewMaterial(payload.data, payload.type);
+                  }}
                 />
               </div>
               

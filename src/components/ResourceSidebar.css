@@ -1,0 +1,114 @@
+/* ResourceSidebar 专用样式：悬停按钮覆盖文本，不占用文字空间 */
+
+/* 容器不预留右侧空间 */
+.resource-sidebar .category-item,
+.resource-sidebar .tree-group-title,
+.resource-sidebar .category-group-title {
+  position: relative;
+  padding-right: 0;
+}
+
+/* 标签文本正常占满，可被悬浮操作覆盖但不被挤压 */
+.resource-sidebar .category-label {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+/* 计数绝对定位到右侧，不占用布局 */
+.resource-sidebar .category-count {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 12px;
+  z-index: 2;
+}
+
+/* 操作区绝对定位，默认隐藏，仅悬停显示；悬浮覆盖文本 */
+.resource-sidebar .category-actions {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  gap: 8px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* 悬停显示操作区（不影响文字布局） */
+.resource-sidebar .category-item:hover .category-actions,
+.resource-sidebar .tree-group-title:hover .category-actions,
+.resource-sidebar .category-group-title:hover .category-actions {
+  opacity: 1;
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.95); /* 恢复悬停区域背景 */
+  padding: 2px 6px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* 悬停操作区内按钮保持透明（包含默认、hover、focus、active） */
+.resource-sidebar .category-actions .ant-btn,
+.resource-sidebar .category-actions .ant-btn-text,
+.resource-sidebar .category-actions .ant-btn:hover,
+.resource-sidebar .category-actions .ant-btn:focus,
+.resource-sidebar .category-actions .ant-btn:active {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* 图标在透明背景上保持可见但不突兀 */
+.transparent-maintain-icon {
+  color: #6b7280; /* 与分组标题颜色一致 */
+}
+
+.resource-sidebar .ant-tree-node-content-wrapper,
+.resource-sidebar .ant-tree-title {
+  display: flex;
+  align-items: center;
+}
+.resource-sidebar .ant-tree-switcher,
+.resource-sidebar .ant-tree-indent {
+  flex: 0 0 auto;
+}
+.resource-sidebar .ant-tree-treenode {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.resource-sidebar .ant-tree-node-content-wrapper {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  position: relative;
+}
+.resource-sidebar .ant-tree-title {
+  display: block;
+  width: 100%;
+}
+.resource-sidebar .category-item,
+.resource-sidebar .tree-group-title,
+.resource-sidebar .category-group-title {
+  width: 100%;
+}
+.resource-sidebar .category-label {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 56px; /* 仅为计数预留空间，按钮不预留 */
+}
+.resource-sidebar .category-count {
+  right: 12px; /* 更靠右 */
+}
+.resource-sidebar .category-item:hover .category-count {
+  right: 44px; /* 悬停时计数左移，避开按钮 */
+}
