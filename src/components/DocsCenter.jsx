@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { 
   Card, 
   Input, 
@@ -19,7 +19,8 @@ import {
   message,
   Tabs,
   Tree,
-  Checkbox
+  Checkbox,
+  Dropdown
 } from 'antd'
 import { 
   FileTextOutlined, 
@@ -51,7 +52,11 @@ import {
   FormOutlined,
   PieChartOutlined,
   FileMarkdownOutlined,
-  DeleteOutlined
+  DeleteOutlined,
+  CloudUploadOutlined,
+  FileOutlined,
+  VideoCameraOutlined,
+  AudioOutlined
 } from '@ant-design/icons'
 import DocumentEditor from './DocumentEditor'
 import './DocsCenter.css'
@@ -60,14 +65,97 @@ const { Header, Sider, Content } = Layout
 const { Title, Text } = Typography
 const { Option } = Select
 
-const DocsCenter = () => {
+const DocsCenter = ({ initialDrive = 'org' }) => {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [viewMode, setViewMode] = useState('grid')
   const [showEditor, setShowEditor] = useState(false)
   const [editingDocument, setEditingDocument] = useState(null)
   const [isNewDocument, setIsNewDocument] = useState(false)
+  // 上传：文件/文件夹输入引用与处理
+  const fileInputRef = useRef(null)
+  const dirInputRef = useRef(null)
+  const [newDocType, setNewDocType] = useState(null)
+
+  const formatSize = (bytes) => {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`
+  }
+
+  const handleUploadFiles = (files) => {
+    if (!files || files.length === 0) return
+    const uploadedDocs = Array.from(files).map((file) => {
+      const relPath = file.webkitRelativePath || file.relativePath || ''
+      const sourceFolder = relPath ? relPath.split('/')[0] : undefined
+      return {
+        id: Date.now() + Math.random(),
+        title: file.name,
+        description: '本地上传文件',
+        category: 'document',
+        subCategory: 'uploaded',
+        tags: ['上传'],
+        author: '我',
+        lastModified: new Date(file.lastModified || Date.now()).toISOString().slice(0, 10),
+        views: 0,
+        rating: 0,
+        type: 'file',
+        size: formatSize(file.size || 0),
+        isBookmarked: false,
+        isShared: false,
+        drive: activeDrive,
+        sourceFolder
+      }
+    })
+    setDocumentsList((prev) => [...uploadedDocs, ...prev])
+    message.success(`已上传 ${uploadedDocs.length} 个文件`)
+  }
+
+  const handleFilesSelected = (e) => {
+    const files = e.target.files
+    handleUploadFiles(files)
+    e.target.value = null
+  }
+
+  const handleDirSelected = (e) => {
+    const files = e.target.files
+    handleUploadFiles(files)
+    e.target.value = null
+  }
+
+  const handleCreateNewDocument = (typeKey) => {
+    setNewDocType(typeKey)
+    setEditingDocument(null)
+    setIsNewDocument(true)
+    setShowEditor(true)
+    message.success(`正在创建${typeKey === 'whiteboard' ? '白板' : '在线文档'}...`)
+  }
+
+  const newDocMenu = (
+    <Menu
+      items={[
+        { key: 'document', label: '在线文档', onClick: () => handleCreateNewDocument('document') },
+        { key: 'whiteboard', label: '白板', onClick: () => handleCreateNewDocument('whiteboard') }
+      ]}
+    />
+  )
+
+  const uploadMenu = (
+    <Menu
+      items={[
+        { key: 'file', label: '上传文件', onClick: () => fileInputRef.current && fileInputRef.current.click() },
+        { key: 'folder', label: '上传文件夹', onClick: () => dirInputRef.current && dirInputRef.current.click() }
+      ]}
+    />
+  )
+
   const [showShareModal, setShowShareModal] = useState(false)
+  // 云盘子模块切换（组织云盘 / 我的云盘）
+  const [activeDrive, setActiveDrive] = useState(initialDrive || 'org')
+  useEffect(() => {
+    setActiveDrive(initialDrive || 'org')
+  }, [initialDrive])
   const [sharingDocument, setSharingDocument] = useState(null)
   const [sharePermission, setSharePermission] = useState('read')
   const [inviteEmail, setInviteEmail] = useState('')
@@ -675,7 +763,248 @@ const DocsCenter = () => {
     }
   ]
 
-  const [documentsList, setDocumentsList] = useState(initialDocuments)
+  const extendedDocs = initialDocuments.concat([
+    {
+      id: 1001,
+      title: '教学方案在线文档',
+      description: '在线协作编辑的教学方案文档，支持多人实时编辑。',
+      category: 'online',
+      subCategory: 'online-doc',
+      tags: ['在线文档', '协作'],
+      author: '教研组',
+      lastModified: '2024-02-01',
+      views: 320,
+      rating: 4.6,
+      type: 'online-doc',
+      size: '450 KB',
+      isBookmarked: false,
+      isShared: true,
+      drive: 'org'
+    },
+    {
+      id: 1002,
+      title: '期末考试说明.docx',
+      description: 'Office Word 文档，包含考试安排与评分标准。',
+      category: 'office',
+      subCategory: 'word',
+      tags: ['Office', 'DOCX'],
+      author: '教务处',
+      lastModified: '2024-02-03',
+      views: 210,
+      rating: 4.5,
+      type: 'office',
+      size: '1.2 MB',
+      isBookmarked: true,
+      isShared: false,
+      drive: 'my'
+    },
+    {
+      id: 1003,
+      title: '教学计划附件.zip',
+      description: '通用文件打包，包含多份教学相关素材。',
+      category: 'file',
+      subCategory: 'archive',
+      tags: ['文件', '压缩包'],
+      author: '张老师',
+      lastModified: '2024-02-05',
+      views: 95,
+      rating: 4.2,
+      type: 'file',
+      size: '24.7 MB',
+      isBookmarked: false,
+      isShared: false,
+      drive: 'my'
+    },
+    {
+      id: 1004,
+      title: '微课：分数的认识.mp4',
+      description: '课程视频示例，讲解分数基本概念与表示方法。',
+      category: 'video',
+      subCategory: 'course-video',
+      tags: ['课程视频', '数学'],
+      author: '李老师',
+      lastModified: '2024-02-06',
+      views: 640,
+      rating: 4.8,
+      type: 'video',
+      size: '128 MB',
+      isBookmarked: true,
+      isShared: true,
+      drive: 'org'
+    },
+    {
+      id: 1005,
+      title: '朗读音频：古诗词鉴赏.mp3',
+      description: '配套课程的朗读音频文件，便于学生课后复习。',
+      category: 'audio',
+      subCategory: 'course-audio',
+      tags: ['音频', '语文'],
+      author: '语文组',
+      lastModified: '2024-02-07',
+      views: 280,
+      rating: 4.4,
+      type: 'audio',
+      size: '6.3 MB',
+      isBookmarked: false,
+      isShared: true,
+      drive: 'org'
+    },
+    {
+      id: 1006,
+      title: '高中物理：匀加速直线运动.mp4',
+      description: '课程视频示例，讲解匀加速直线运动的基本规律和实验演示。',
+      category: 'video',
+      subCategory: 'course-video',
+      tags: ['课程视频', '物理'],
+      author: '物理组',
+      lastModified: '2024-02-08',
+      views: 720,
+      rating: 4.7,
+      type: 'video',
+      size: '256 MB',
+      isBookmarked: false,
+      isShared: true,
+      drive: 'org'
+    },
+    {
+      id: 1007,
+      title: '初中化学：酸碱反应实验.mp4',
+      description: '实验教学视频，展示酸碱中和反应的实验过程与注意事项。',
+      category: 'video',
+      subCategory: 'course-video',
+      tags: ['课程视频', '化学'],
+      author: '化学组',
+      lastModified: '2024-02-09',
+      views: 540,
+      rating: 4.5,
+      type: 'video',
+      size: '184 MB',
+      isBookmarked: true,
+      isShared: false,
+      drive: 'my'
+    },
+    {
+      id: 1008,
+      title: '小学英语：自然拼读.mp4',
+      description: '英语启蒙课程视频，系统讲解自然拼读规则和示例。',
+      category: 'video',
+      subCategory: 'course-video',
+      tags: ['课程视频', '英语'],
+      author: '英语组',
+      lastModified: '2024-02-10',
+      views: 610,
+      rating: 4.6,
+      type: 'video',
+      size: '132 MB',
+      isBookmarked: false,
+      isShared: true,
+      drive: 'my'
+    },
+    {
+      id: 1009,
+      title: '教师培训：课堂管理技巧.mp4',
+      description: '面向教师的课堂管理培训课程视频，包含案例与技巧。',
+      category: 'video',
+      subCategory: 'teacher-training',
+      tags: ['课程视频', '培训'],
+      author: '教研室',
+      lastModified: '2024-02-11',
+      views: 430,
+      rating: 4.3,
+      type: 'video',
+      size: '98 MB',
+      isBookmarked: false,
+      isShared: true,
+      drive: 'org'
+    },
+    {
+      id: 1010,
+      title: '课程导学：生物细胞结构.mp4',
+      description: '课程导学视频，讲解细胞结构与功能，配合课件使用。',
+      category: 'video',
+      subCategory: 'course-video',
+      tags: ['课程视频', '生物'],
+      author: '生物组',
+      lastModified: '2024-02-12',
+      views: 390,
+      rating: 4.4,
+      type: 'video',
+      size: '145 MB',
+      isBookmarked: true,
+      isShared: false,
+      drive: 'org'
+    },
+    {
+      id: 1011,
+      title: '教学进度表.xlsx',
+      description: '学期教学进度安排表，包含每周教学主题与任务。',
+      category: 'table',
+      subCategory: 'teaching-schedule',
+      tags: ['表格', '进度'],
+      author: '教务处',
+      lastModified: '2024-02-13',
+      views: 260,
+      rating: 4.1,
+      type: 'table',
+      size: '220 KB',
+      isBookmarked: false,
+      isShared: true,
+      drive: 'my'
+    },
+    {
+      id: 1012,
+      title: '课堂讲义.pdf',
+      description: '课堂讲义 PDF 文档，支持打印与标注。',
+      category: 'office',
+      subCategory: 'pdf',
+      tags: ['讲义', 'PDF'],
+      author: '教研组',
+      lastModified: '2024-02-14',
+      views: 310,
+      rating: 4.2,
+      type: 'file',
+      size: '3.8 MB',
+      isBookmarked: true,
+      isShared: false,
+      drive: 'my'
+    },
+    {
+      id: 1013,
+      title: '思维导图：项目式学习',
+      description: '项目式学习主题的白板示例，便于团队协作与梳理思路。',
+      category: 'whiteboard',
+      subCategory: 'whiteboard-planning',
+      tags: ['白板', '项目式学习'],
+      author: '教科室',
+      lastModified: '2024-02-15',
+      views: 205,
+      rating: 4.0,
+      type: 'whiteboard',
+      size: '1.1 MB',
+      isBookmarked: false,
+      isShared: true,
+      drive: 'org'
+    },
+    {
+      id: 1014,
+      title: '幻灯片：函数图像.pptx',
+      description: '数学函数图像教学幻灯片，配有示例与练习。',
+      category: 'ppt',
+      subCategory: 'ppt-courseware',
+      tags: ['幻灯片', '数学'],
+      author: '数学组',
+      lastModified: '2024-02-16',
+      views: 450,
+      rating: 4.5,
+      type: 'ppt',
+      size: '6.9 MB',
+      isBookmarked: false,
+      isShared: false,
+      drive: 'my'
+    }
+  ])
+
+  const [documentsList, setDocumentsList] = useState(extendedDocs)
 
   const filteredDocuments = documentsList.filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -699,8 +1028,8 @@ const DocsCenter = () => {
       // 原有的分类过滤逻辑
       matchesCategory = doc.category === selectedCategory || doc.subCategory === selectedCategory
     }
-    
-    return matchesSearch && matchesCategory
+    const matchesDrive = (doc.drive || 'my') === activeDrive
+    return matchesSearch && matchesCategory && matchesDrive
   })
 
   // 对最近访问的文档按访问时间排序
@@ -734,6 +1063,12 @@ const DocsCenter = () => {
         return <FilePptOutlined style={{ color: '#fa8c16', fontSize: '18px' }} />
       case 'whiteboard':
         return <HighlightOutlined style={{ color: '#13c2c2', fontSize: '18px' }} />
+      case 'video':
+        return <VideoCameraOutlined style={{ color: '#fa541c', fontSize: '18px' }} />
+      case 'audio':
+        return <AudioOutlined style={{ color: '#08979c', fontSize: '18px' }} />
+      case 'file':
+        return <FileOutlined style={{ color: '#8c8c8c', fontSize: '18px' }} />
       default:
         return <FileTextOutlined style={{ color: '#1890ff', fontSize: '18px' }} />
     }
@@ -933,7 +1268,17 @@ const DocsCenter = () => {
 
   const handleSaveDocument = (documentData) => {
     if (isNewDocument) {
-      setDocumentsList(prev => [documentData, ...prev])
+      const saved = {
+        ...documentData,
+        type: newDocType || documentData.type || 'document',
+        category: documentData.category || 'document',
+        drive: activeDrive,
+        views: documentData.views || 0,
+        rating: documentData.rating || 0,
+        isBookmarked: documentData.isBookmarked || false,
+        isShared: documentData.isShared || false
+      }
+      setDocumentsList(prev => [saved, ...prev])
     } else {
       setDocumentsList(prev => 
         prev.map(doc => doc.id === documentData.id ? documentData : doc)
@@ -942,6 +1287,7 @@ const DocsCenter = () => {
     setShowEditor(false)
     setEditingDocument(null)
     setIsNewDocument(false)
+    setNewDocType(null)
   }
 
   const handleCloseEditor = () => {
@@ -959,6 +1305,7 @@ const DocsCenter = () => {
           </div>
           <div className="header-actions">
             <Space size="large">
+              {/* 云盘分类Tabs已移除，根据侧边栏子菜单切换视图 */}
               <div className="search-box">
                 <Input
                   placeholder="搜索文档..."
@@ -969,14 +1316,16 @@ const DocsCenter = () => {
                   prefix={<SearchOutlined />}
                 />
               </div>
-              <Button 
-                type="primary" 
-                icon={<PlusOutlined />} 
-                onClick={handleNewDocument}
-                size="large"
-              >
-                新建文档
-              </Button>
+              <Dropdown overlay={newDocMenu} placement="bottomRight" trigger={["click"]}>
+                <Button type="primary" icon={<PlusOutlined />} size="large">新建</Button>
+              </Dropdown>
+              {/* 新增：上传按钮（文件/文件夹） */}
+              <Dropdown overlay={uploadMenu} placement="bottomRight" trigger={["click"]}>
+                <Button icon={<CloudUploadOutlined />} size="large">上传</Button>
+              </Dropdown>
+              {/* 隐藏的文件/文件夹选择器 */}
+              <input type="file" multiple ref={fileInputRef} style={{ display: 'none' }} onChange={handleFilesSelected} />
+              <input type="file" ref={dirInputRef} style={{ display: 'none' }} onChange={handleDirSelected} webkitdirectory />
             </Space>
           </div>
         </Header>
@@ -1618,64 +1967,7 @@ const DocsCenter = () => {
         </Modal>
       )}
       
-      {/* 文档类型选择模态框 */}
-      <Modal
-        title="选择文档类型"
-        open={showTypeModal}
-        onCancel={() => setShowTypeModal(false)}
-        footer={null}
-        width={600}
-        centered
-      >
-        <div style={{ padding: '20px 0' }}>
-          <Row gutter={[16, 16]}>
-            {documentTypes.map((type) => (
-              <Col key={type.key} xs={12} sm={8} md={6}>
-                <Card
-                  hoverable
-                  className="type-card"
-                  style={{
-                    textAlign: 'center',
-                    border: '1px solid #f0f0f0',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                  }}
-                  bodyStyle={{ padding: '20px 12px' }}
-                  onClick={() => handleTypeSelect(type)}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = type.color
-                    e.currentTarget.style.boxShadow = `0 2px 8px ${type.color}20`
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = '#f0f0f0'
-                    e.currentTarget.style.boxShadow = 'none'
-                  }}
-                >
-                  <div style={{ marginBottom: '12px' }}>
-                    {type.icon}
-                  </div>
-                  <div style={{ 
-                    fontSize: '14px', 
-                    fontWeight: '500', 
-                    marginBottom: '4px',
-                    color: '#262626'
-                  }}>
-                    {type.title}
-                  </div>
-                  <div style={{ 
-                    fontSize: '12px', 
-                    color: '#8c8c8c',
-                    lineHeight: '1.4'
-                  }}>
-                    {type.description}
-                  </div>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        </div>
-      </Modal>
+      {/* 已移除：文档类型选择弹窗，改为头部下拉菜单 */}
     </div>
   )
 }

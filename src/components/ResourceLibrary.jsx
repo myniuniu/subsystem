@@ -19,31 +19,15 @@ import {
   message,
   Tabs,
   Tree,
-  Checkbox
+  Checkbox,
+  Upload,
+  Radio,
+  Popconfirm
 } from 'antd'
 import { 
   FileTextOutlined, 
   SearchOutlined, 
-  BookOutlined, 
-  StarOutlined, 
-  ClockCircleOutlined, 
-  TagOutlined, 
-  EyeOutlined, 
-  DownloadOutlined, 
-  ShareAltOutlined, 
-  BookOutlined as BookmarkOutlined, 
-  PlusOutlined, 
-  EditOutlined, 
-  AppstoreOutlined,
-  BarsOutlined,
-  SettingOutlined,
   LinkOutlined,
-  UserAddOutlined,
-  CopyOutlined,
-  WechatOutlined,
-  QrcodeOutlined,
-  MailOutlined,
-  RightOutlined,
   FilePptOutlined,
   HighlightOutlined,
   TableOutlined,
@@ -51,10 +35,27 @@ import {
   FormOutlined,
   PieChartOutlined,
   FileMarkdownOutlined,
-  DeleteOutlined
+  VideoCameraOutlined,
+  AudioOutlined,
+  UploadOutlined,
+  RightOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  ShareAltOutlined,
+  EyeOutlined,
+  PushpinOutlined,
+  PushpinFilled,
+  BookOutlined,
+  ExperimentOutlined,
+  TeamOutlined,
+  FolderOpenOutlined,
+  HeartTwoTone,
+  TagsOutlined,
+  PlusOutlined
 } from '@ant-design/icons'
-import DocumentEditor from './DocumentEditor'
+
 import './ResourceLibrary.css'
+import './SmartNotes.css'
 import { initialResources } from '../data/resourceLibraryData'
 
 const { Header, Sider, Content } = Layout
@@ -62,23 +63,8 @@ const { Title, Text } = Typography
 const { Option } = Select
 
 const ResourceLibrary = () => {
-  const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
-  const [viewMode, setViewMode] = useState('grid')
-  const [showEditor, setShowEditor] = useState(false)
-  const [editingDocument, setEditingDocument] = useState(null)
-  const [isNewDocument, setIsNewDocument] = useState(false)
-  const [showShareModal, setShowShareModal] = useState(false)
-  const [sharingDocument, setSharingDocument] = useState(null)
-  const [sharePermission, setSharePermission] = useState('read')
-  const [inviteEmail, setInviteEmail] = useState('')
-  const [searchQuery, setSearchQuery] = useState('')
   const [expandedKeys, setExpandedKeys] = useState(['document', 'ppt', 'whiteboard'])
-  const [collaborators, setCollaborators] = useState([
-    { id: 1, name: '志超', avatar: null, permission: 'edit' }
-  ])
-  const [showPermissionModal, setShowPermissionModal] = useState(false)
-  const [showTypeModal, setShowTypeModal] = useState(false)
   const [recentlyAccessed, setRecentlyAccessed] = useState(() => {
     // 从本地存储加载最近访问记录
     const saved = localStorage.getItem('recentlyAccessedDocs')
@@ -113,18 +99,409 @@ const ResourceLibrary = () => {
       return initialAccess
     }
   })
-  const [permissionSettings, setPermissionSettings] = useState({
-    allowExternalShare: true,
-    allowManagePermissions: false,
-    allowViewCollaborators: 'all',
-    allowAddCollaborators: 'all',
-    allowRemoveCollaborators: 'all',
-    allowCopyContent: 'all',
-    allowPrintDownload: 'all',
-    allowComment: 'all',
-    showVisitorAvatars: 'all',
-    allowRequestAccess: false
-  })
+
+
+  // 资料集合与云盘整合相关状态
+  const [resourceCollections, setResourceCollections] = useState(() => createDefaultCollections())
+
+
+  // 资源库分类（业务主题）
+  const computeCount = (catId) => initialResources.filter(doc => doc.category === catId).length
+
+  const categories = [
+  { id: 'all', name: '全部资源', count: initialResources.length },
+  { id: 'teaching_resources', name: '教学资源库', count: computeCount('teaching_resources') },
+  { id: 'technology_training', name: '技术培训资源库', count: computeCount('technology_training') },
+  { id: 'family_education', name: '家庭教育资源库', count: computeCount('family_education') },
+  { id: 'school_management', name: '学校管理资源库', count: computeCount('school_management') },
+  { id: 'mental_health', name: '心理健康资源库', count: computeCount('mental_health') },
+  { id: 'new_teacher_resources', name: '新教师资源库', count: computeCount('new_teacher_resources') }
+]
+
+// 分类图标映射（用于 note-header 左侧展示）
+const getCategoryIcon = (cat) => {
+  switch (cat) {
+    case 'teaching_resources':
+      return <BookOutlined style={{ color: '#1f2937' }} />
+    case 'technology_training':
+      return <ExperimentOutlined style={{ color: '#3b82f6' }} />
+    case 'family_education':
+      return <TeamOutlined style={{ color: '#f59e0b' }} />
+    case 'school_management':
+      return <FolderOpenOutlined style={{ color: '#10b981' }} />
+    case 'mental_health':
+      return <HeartTwoTone twoToneColor="#eb2f96" />
+    case 'new_teacher_resources':
+      return <BookOutlined style={{ color: '#6d28d9' }} />
+    default:
+      return <FileTextOutlined />
+  }
+}
+
+// 初始化默认资料集合，进入页面即可看到内容（按五大分类动态生成）
+  function createDefaultCollections() {
+    const pickByCategory = (cat, limit = 8) => initialResources.filter(r => r.category === cat).slice(0, limit)
+    const today = new Date().toLocaleDateString('zh-CN')
+    const cats = [
+      { id: 'teaching_resources', title: '教学资源精选' },
+      { id: 'technology_training', title: '技术培训精选' },
+      { id: 'family_education', title: '家庭教育精选' },
+      { id: 'school_management', title: '学校管理精选' },
+      { id: 'mental_health', title: '心理健康研修' }
+    ]
+    const uniqueTags = (items, limit = 12) => {
+      const set = new Set()
+      items.forEach(i => (i.tags || []).forEach(t => set.add(t)))
+      return Array.from(set).slice(0, limit)
+    }
+
+    // 基础五大分类的集合
+    const baseCollections = cats.map((c, idx) => {
+      const items = pickByCategory(c.id, 8)
+      return {
+        id: `rc-${c.id}-${idx+1}`,
+        title: c.title,
+        category: c.id,
+        createdAt: today,
+        items,
+        tags: uniqueTags(items),
+        isBookmarked: false,
+        isShared: false
+      }
+    })
+
+    // 新教师资源库：初始化8个集合，每个包含视频课程、试卷、教辅
+    const newTeacherCollections = [
+      {
+        id: 'rc-new_teacher_resources-1',
+        title: '新教师入职培训 · 教学方法入门',
+        category: 'new_teacher_resources',
+        createdAt: today,
+        items: [
+          { id: 'nt-1-v1', title: '课堂组织与管理（视频课程）', type: 'video', drive: 'org', size: '320 MB', lastModified: '2024-01-12', tags: ['新教师','视频课程','课堂组织'] },
+          { id: 'nt-1-p1', title: '第一次课堂教学设计范例（教辅PPT）', type: 'ppt', drive: 'org', size: '2.4 MB', lastModified: '2024-01-11', tags: ['教辅','课件','教学设计'] },
+          { id: 'nt-1-e1', title: '新教师试讲评分表（试卷/表格）', type: 'table', drive: 'my', size: '210 KB', lastModified: '2024-01-10', tags: ['试卷','评价','表格'] },
+          { id: 'nt-1-d1', title: '备课流程与清单（PDF 教辅）', type: 'document', drive: 'my', size: '1.6 MB', lastModified: '2024-01-09', tags: ['教辅','备课','流程'] }
+        ],
+        tags: ['新教师','课堂管理','教学方法','备课'],
+        isBookmarked: false,
+        isShared: false
+      },
+      {
+        id: 'rc-new_teacher_resources-2',
+        title: '新教师课堂设计 · 示范课案例',
+        category: 'new_teacher_resources',
+        createdAt: today,
+        items: [
+          { id: 'nt-2-v1', title: '示范课：导入与提问技巧（视频）', type: 'video', drive: 'org', size: '280 MB', lastModified: '2024-01-12', tags: ['视频课程','示范课','课堂提问'] },
+          { id: 'nt-2-p1', title: '课堂流程设计模板（PPT 教辅）', type: 'ppt', drive: 'my', size: '3.1 MB', lastModified: '2024-01-11', tags: ['PPT','教辅','流程模板'] },
+          { id: 'nt-2-e1', title: '课堂观察记录表（试卷/表格）', type: 'table', drive: 'org', size: '180 KB', lastModified: '2024-01-10', tags: ['表格','观察','评价'] },
+          { id: 'nt-2-d1', title: '教学目标编写指南（PDF 教辅）', type: 'document', drive: 'my', size: '2.0 MB', lastModified: '2024-01-09', tags: ['指南','目标','教辅'] }
+        ],
+        tags: ['示范课','课堂设计','教学目标','观察'],
+        isBookmarked: false,
+        isShared: false
+      },
+      {
+        id: 'rc-new_teacher_resources-3',
+        title: '班级管理 · 沟通与家校协作',
+        category: 'new_teacher_resources',
+        createdAt: today,
+        items: [
+          { id: 'nt-3-v1', title: '与学生沟通的关键点（视频）', type: 'video', drive: 'org', size: '310 MB', lastModified: '2024-01-12', tags: ['沟通','视频课程','学生发展'] },
+          { id: 'nt-3-p1', title: '家校沟通通知模板（PPT 教辅）', type: 'ppt', drive: 'org', size: '1.2 MB', lastModified: '2024-01-11', tags: ['家校沟通','模板','教辅'] },
+          { id: 'nt-3-e1', title: '班级常规检查表（试卷/表格）', type: 'table', drive: 'my', size: '160 KB', lastModified: '2024-01-10', tags: ['班级管理','检查','表格'] },
+          { id: 'nt-3-d1', title: '班级管理手册（PDF 教辅）', type: 'document', drive: 'my', size: '2.7 MB', lastModified: '2024-01-09', tags: ['管理手册','教辅','班级'] }
+        ],
+        tags: ['班级管理','家校沟通','常规检查','手册'],
+        isBookmarked: false,
+        isShared: false
+      },
+      {
+        id: 'rc-new_teacher_resources-4',
+        title: '评价与作业 · 试卷与批改策略',
+        category: 'new_teacher_resources',
+        createdAt: today,
+        items: [
+          { id: 'nt-4-v1', title: '作业设计与批改要点（视频）', type: 'video', drive: 'org', size: '290 MB', lastModified: '2024-01-12', tags: ['作业','视频课程','批改'] },
+          { id: 'nt-4-p1', title: '试卷命题规范（PPT 教辅）', type: 'ppt', drive: 'my', size: '2.9 MB', lastModified: '2024-01-11', tags: ['试卷','命题','规范'] },
+          { id: 'nt-4-e1', title: '作业批改记录表（试卷/表格）', type: 'table', drive: 'org', size: '140 KB', lastModified: '2024-01-10', tags: ['批改','记录','表格'] },
+          { id: 'nt-4-d1', title: '形成性评价工具包（PDF 教辅）', type: 'document', drive: 'my', size: '1.8 MB', lastModified: '2024-01-09', tags: ['评价','工具包','教辅'] }
+        ],
+        tags: ['作业设计','批改','命题规范','形成性评价'],
+        isBookmarked: false,
+        isShared: false
+      },
+      {
+        id: 'rc-new_teacher_resources-5',
+        title: '课堂互动 · 问题设计与反馈',
+        category: 'new_teacher_resources',
+        createdAt: today,
+        items: [
+          { id: 'nt-5-v1', title: '高效提问的技巧（视频）', type: 'video', drive: 'org', size: '260 MB', lastModified: '2024-01-12', tags: ['课堂互动','视频课程','提问'] },
+          { id: 'nt-5-p1', title: '互动活动库（PPT 教辅）', type: 'ppt', drive: 'org', size: '3.5 MB', lastModified: '2024-01-11', tags: ['互动','活动库','教辅'] },
+          { id: 'nt-5-e1', title: '课堂反馈记录表（试卷/表格）', type: 'table', drive: 'my', size: '135 KB', lastModified: '2024-01-10', tags: ['反馈','记录','表格'] },
+          { id: 'nt-5-d1', title: '提问层级与分类（PDF 教辅）', type: 'document', drive: 'my', size: '2.2 MB', lastModified: '2024-01-09', tags: ['提问','层级','教辅'] }
+        ],
+        tags: ['课堂互动','反馈','活动设计','提问技巧'],
+        isBookmarked: false,
+        isShared: false
+      },
+      {
+        id: 'rc-new_teacher_resources-6',
+        title: '学科课堂 · 新教师示例课（语数英）',
+        category: 'new_teacher_resources',
+        createdAt: today,
+        items: [
+          { id: 'nt-6-v1', title: '小学数学：数与代数（视频）', type: 'video', drive: 'org', size: '300 MB', lastModified: '2024-01-12', tags: ['数学','视频课程','小学'] },
+          { id: 'nt-6-p1', title: '语文古诗教学模板（PPT 教辅）', type: 'ppt', drive: 'my', size: '2.6 MB', lastModified: '2024-01-11', tags: ['语文','模板','教辅'] },
+          { id: 'nt-6-e1', title: '英语听力练习卷（试卷/表格）', type: 'table', drive: 'org', size: '120 KB', lastModified: '2024-01-10', tags: ['英语','试卷','练习'] },
+          { id: 'nt-6-d1', title: '跨学科教学设计案例（PDF 教辅）', type: 'document', drive: 'my', size: '2.1 MB', lastModified: '2024-01-09', tags: ['跨学科','教学设计','教辅'] }
+        ],
+        tags: ['数学','语文','英语','示例课'],
+        isBookmarked: false,
+        isShared: false
+      },
+      {
+        id: 'rc-new_teacher_resources-7',
+        title: '信息化教学 · 白板与多媒体',
+        category: 'new_teacher_resources',
+        createdAt: today,
+        items: [
+          { id: 'nt-7-v1', title: '白板互动与资源整合（视频）', type: 'video', drive: 'org', size: '275 MB', lastModified: '2024-01-12', tags: ['信息化','白板','视频课程'] },
+          { id: 'nt-7-p1', title: '多媒体课件制作指南（PPT 教辅）', type: 'ppt', drive: 'org', size: '4.0 MB', lastModified: '2024-01-11', tags: ['多媒体','课件','指南'] },
+          { id: 'nt-7-e1', title: '课堂技术应用效果评估表（试卷/表格）', type: 'table', drive: 'my', size: '150 KB', lastModified: '2024-01-10', tags: ['评估','技术应用','表格'] },
+          { id: 'nt-7-d1', title: '信息化教学最佳实践（PDF 教辅）', type: 'document', drive: 'my', size: '2.8 MB', lastModified: '2024-01-09', tags: ['最佳实践','教辅','信息化'] }
+        ],
+        tags: ['白板','多媒体','评估','最佳实践'],
+        isBookmarked: false,
+        isShared: false
+      },
+      {
+        id: 'rc-new_teacher_resources-8',
+        title: '职业发展 · 师德师风与成长',
+        category: 'new_teacher_resources',
+        createdAt: today,
+        items: [
+          { id: 'nt-8-v1', title: '师德师风建设（视频）', type: 'video', drive: 'org', size: '240 MB', lastModified: '2024-01-12', tags: ['师德师风','视频课程','职业发展'] },
+          { id: 'nt-8-p1', title: '新教师成长路线图（PPT 教辅）', type: 'ppt', drive: 'my', size: '3.3 MB', lastModified: '2024-01-11', tags: ['成长','路线图','教辅'] },
+          { id: 'nt-8-e1', title: '研修计划与考核表（试卷/表格）', type: 'table', drive: 'org', size: '200 KB', lastModified: '2024-01-10', tags: ['研修','考核','表格'] },
+          { id: 'nt-8-d1', title: '新教师读书清单（PDF 教辅）', type: 'document', drive: 'my', size: '1.4 MB', lastModified: '2024-01-09', tags: ['读书清单','教辅','成长'] }
+        ],
+        tags: ['职业发展','研修','师德师风','成长'],
+        isBookmarked: false,
+        isShared: false
+      }
+    ]
+
+    return [...baseCollections, ...newTeacherCollections]
+  }
+  const [showResourceModal, setShowResourceModal] = useState(false)
+  const [resourceTitle, setResourceTitle] = useState('')
+  const [cloudFilters, setCloudFilters] = useState({ drive: 'all', type: 'all', q: '' })
+  const [selectedCloudIds, setSelectedCloudIds] = useState([])
+  const [showResourceDetail, setShowResourceDetail] = useState(false)
+  const [activeResource, setActiveResource] = useState(null)
+  // 编辑集合相关状态
+  const [showEditCollectionModal, setShowEditCollectionModal] = useState(false)
+  const [editingCollection, setEditingCollection] = useState(null)
+  const [editCollectionTitle, setEditCollectionTitle] = useState('')
+  const [editCollectionTags, setEditCollectionTags] = useState([])
+  
+  // 恢复云盘数据状态，供“从云盘添加”使用
+  const [cloudDriveItems, setCloudDriveItems] = useState([
+    { id: 'c-vid-1', title: '高中物理：匀加速直线运动.mp4', type: 'video', drive: 'org', category: 'video', subCategory: 'course-video', size: '512 MB', lastModified: '2024-01-11', tags: ['物理','高中','课程视频'] },
+    { id: 'c-vid-2', title: '初中化学：酸碱反应实验.mp4', type: 'video', drive: 'my', category: 'video', subCategory: 'course-video', size: '430 MB', lastModified: '2024-01-09', tags: ['化学','初中','课程视频'] },
+    { id: 'c-aud-1', title: '英语课：自然拼读音频.mp3', type: 'audio', drive: 'my', category: 'audio', subCategory: 'course-audio', size: '45 MB', lastModified: '2024-01-10', tags: ['英语','小学','课程音频'] },
+    { id: 'c-doc-1', title: '教学设计：分数的认识.docx', type: 'document', drive: 'org', category: 'document', subCategory: 'document-design', size: '1.2 MB', lastModified: '2024-01-08', tags: ['数学','小学','教学设计'] },
+    { id: 'c-ppt-1', title: '幻灯片：函数图像.pptx', type: 'ppt', drive: 'my', category: 'ppt', subCategory: 'office-ppt', size: '3.2 MB', lastModified: '2024-01-07', tags: ['数学','高中','课件'] },
+    { id: 'c-white-1', title: '白板：项目式学习思维导图', type: 'whiteboard', drive: 'org', category: 'whiteboard', subCategory: 'whiteboard-mindmap', size: 'N/A', lastModified: '2024-01-06', tags: ['项目式','思维导图'] },
+    { id: 'c-file-1', title: '课堂讲义.pdf', type: 'document', drive: 'my', category: 'file', subCategory: 'office-pdf', size: '6.8 MB', lastModified: '2024-01-05', tags: ['讲义','PDF'] },
+    { id: 'c-xlsx-1', title: '教学进度表.xlsx', type: 'table', drive: 'org', category: 'table', subCategory: 'office-excel', size: '420 KB', lastModified: '2024-01-04', tags: ['进度表','Excel'] }
+  ])
+  
+  const [newCloudTarget, setNewCloudTarget] = useState('org')
+
+  // 集合卡片动作处理（编辑/置顶/分享/删除）
+  const handleEditCollection = (rc) => {
+    setEditingCollection(rc)
+    setEditCollectionTitle(rc.title)
+    setEditCollectionTags(rc.tags || [])
+    setShowEditCollectionModal(true)
+  }
+  const handleSaveCollectionEdit = () => {
+    if (!editingCollection) return
+    setResourceCollections(prev => prev.map(c => c.id === editingCollection.id ? { ...c, title: editCollectionTitle, tags: editCollectionTags } : c))
+    if (activeResource && activeResource.id === editingCollection.id) {
+      setActiveResource(prev => ({ ...prev, title: editCollectionTitle, tags: editCollectionTags }))
+    }
+    setShowEditCollectionModal(false)
+    setEditingCollection(null)
+    message.success('集合已更新')
+  }
+  const handleToggleStar = (id) => {
+    setResourceCollections(prev => prev.map(c => c.id === id ? { ...c, isBookmarked: !c.isBookmarked } : c))
+  }
+  const handleShareCollection = (id) => {
+    setResourceCollections(prev => prev.map(c => c.id === id ? { ...c, isShared: true } : c))
+    message.success('已分享该集合')
+  }
+  const handleDeleteCollection = (id) => {
+    setResourceCollections(prev => prev.filter(c => c.id !== id))
+    if (activeResource && activeResource.id === id) {
+      setShowResourceDetail(false)
+      setActiveResource(null)
+    }
+    message.success('集合已删除')
+  }
+
+  // 资源项标签编辑（在集合详情中对单个资源打标签）
+  const [showEditItemTagsModal, setShowEditItemTagsModal] = useState(false)
+  const [editingItem, setEditingItem] = useState(null)
+  const [editingItemParentId, setEditingItemParentId] = useState(null)
+  const [editingItemTags, setEditingItemTags] = useState([])
+
+  const handleOpenEditItemTags = (item, parentRc) => {
+    setEditingItem(item)
+    setEditingItemParentId(parentRc?.id)
+    setEditingItemTags(item.tags || [])
+    setShowEditItemTagsModal(true)
+  }
+  const handleSaveItemTags = () => {
+    if (!editingItem || !editingItemParentId) return
+    setResourceCollections(prev => prev.map(rc => rc.id === editingItemParentId ? {
+      ...rc,
+      items: (rc.items || []).map(it => it.id === editingItem.id ? { ...it, tags: editingItemTags } : it)
+    } : rc))
+    if (activeResource && activeResource.id === editingItemParentId) {
+      setActiveResource(prev => ({
+        ...prev,
+        items: (prev.items || []).map(it => it.id === editingItem.id ? { ...it, tags: editingItemTags } : it)
+      }))
+    }
+    setShowEditItemTagsModal(false)
+    setEditingItem(null)
+    setEditingItemParentId(null)
+    setEditingItemTags([])
+    message.success('资源标签已更新')
+  }
+
+  // 新增：集合内添加/删除资源的状态与处理函数
+  const [showAddItemsModal, setShowAddItemsModal] = useState(false)
+  const [addCloudFilters, setAddCloudFilters] = useState({ drive: 'all', type: 'all', q: '' })
+  const [selectedAddCloudIds, setSelectedAddCloudIds] = useState([])
+
+  const handleOpenAddItemsModal = () => {
+    setSelectedAddCloudIds([])
+    setAddCloudFilters({ drive: 'all', type: 'all', q: '' })
+    setShowAddItemsModal(true)
+  }
+  const handleToggleAddCloudSelect = (id) => {
+    setSelectedAddCloudIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id])
+  }
+  const handleAddItemsToCollection = () => {
+    if (!activeResource) return
+    if (selectedAddCloudIds.length === 0) {
+      message.warning('请先选择要添加的资源')
+      return
+    }
+    const itemsToAdd = cloudDriveItems
+      .filter(it => selectedAddCloudIds.includes(it.id))
+      .map(it => ({ ...it }))
+
+    setResourceCollections(prev => prev.map(rc => {
+      if (rc.id !== activeResource.id) return rc
+      const existingIds = new Set((rc.items || []).map(it => it.id))
+      const merged = [...(rc.items || []), ...itemsToAdd.filter(it => !existingIds.has(it.id))]
+      return { ...rc, items: merged }
+    }))
+    setActiveResource(prev => {
+      if (!prev || prev.id !== activeResource.id) return prev
+      const existingIds = new Set((prev.items || []).map(it => it.id))
+      const merged = [...(prev.items || []), ...itemsToAdd.filter(it => !existingIds.has(it.id))]
+      return { ...prev, items: merged }
+    })
+
+    setShowAddItemsModal(false)
+    setSelectedAddCloudIds([])
+    message.success('已添加到集合')
+  }
+  const handleDeleteItemFromCollection = (parentId, itemId) => {
+    setResourceCollections(prev => prev.map(rc => rc.id === parentId ? {
+      ...rc,
+      items: (rc.items || []).filter(it => it.id !== itemId)
+    } : rc))
+    setActiveResource(prev => {
+      if (!prev || prev.id !== parentId) return prev
+      return { ...prev, items: (prev.items || []).filter(it => it.id !== itemId) }
+    })
+    message.success('已从集合删除该资源')
+  }
+
+  const formatFileSize = (size) => {
+    if (typeof size !== 'number') return size || 'N/A'
+    const units = ['B', 'KB', 'MB', 'GB']
+    let i = 0
+    let s = size
+    while (s >= 1024 && i < units.length - 1) { s /= 1024; i++ }
+    return `${s.toFixed( (i===0)?0: 1)} ${units[i]}`
+  }
+  const formatDate = (d = new Date()) => {
+    const y = d.getFullYear()
+    const m = `${d.getMonth()+1}`.padStart(2, '0')
+    const day = `${d.getDate()}`.padStart(2, '0')
+    return `${y}-${m}-${day}`
+  }
+  const inferTypeFromFilename = (name = '') => {
+    const ext = name.split('.').pop().toLowerCase()
+    if (['mp4','mov','m4v','avi','mkv','webm'].includes(ext)) return 'video'
+    if (['mp3','wav','aac','flac','ogg'].includes(ext)) return 'audio'
+    if (['ppt','pptx','key'].includes(ext)) return 'ppt'
+    if (['xls','xlsx','csv'].includes(ext)) return 'table'
+    if (['md'].includes(ext)) return 'markdown'
+    if (['pdf','doc','docx','txt','rtf'].includes(ext)) return 'document'
+    return 'document'
+  }
+  const handleBeforeUpload = (file) => {
+    const type = inferTypeFromFilename(file.name)
+    const newItem = {
+      id: `c-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
+      title: file.name,
+      type,
+      drive: newCloudTarget,
+      category: type,
+      subCategory: 'uploaded',
+      size: formatFileSize(file.size),
+      lastModified: formatDate(),
+      tags: ['上传','本地']
+    }
+    setCloudDriveItems(prev => [newItem, ...prev])
+    setSelectedCloudIds(prev => [...prev, newItem.id])
+    message.success(`已上传到${newCloudTarget==='org'?'组织盘':'个人盘'}：${file.name}`)
+    return false
+  }
+  const handleCreateCloudItem = (type) => {
+    const titleMap = {
+      document: '未命名文档',
+      ppt: '未命名PPT',
+      table: '未命名表格',
+      whiteboard: '未命名白板'
+    }
+    const newItem = {
+      id: `c-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
+      title: titleMap[type] || '未命名项',
+      type,
+      drive: newCloudTarget,
+      category: type,
+      subCategory: 'new',
+      size: type==='whiteboard' ? 'N/A' : '0 KB',
+      lastModified: formatDate(),
+      tags: ['新建']
+    }
+    setCloudDriveItems(prev => [newItem, ...prev])
+    setSelectedCloudIds(prev => [...prev, newItem.id])
+    message.success(`已在${newCloudTarget==='org'?'组织盘':'个人盘'}新建：${newItem.title}`)
+  }
   
   // 文档类型定义
   const documentTypes = [
@@ -187,34 +564,8 @@ const ResourceLibrary = () => {
     }
   ]
   
-  // 用户数据
-  const [allUsers] = useState([
-    { id: 1, name: '张志超', department: '大数据', avatar: '志超', status: 'online', permission: 'invited' },
-    { id: 2, name: '张全奇', department: '技术部', avatar: null, status: 'offline', permission: null },
-    { id: 3, name: '张鑫龙', department: '外包工作组', avatar: '鑫龙', status: 'online', permission: null },
-    { id: 4, name: '张振兴', department: '外包工作组', avatar: '振兴', status: 'online', permission: null }
-  ])
-  
-  // 部门分组数据
-  const [departments] = useState([
-    { id: 'dev', name: '研发管理组', count: 3, users: [1, 2, 3] },
-    { id: 'ai', name: 'AI杂谈', count: 3, users: [1, 4] }
-  ])
-  
-  // 资源库分类（七类）
-  const computeCount = (catId) => initialResources.filter(doc => doc.category === catId).length
 
-  const categories = [
-    { id: 'all', name: '全部资源', count: initialResources.length },
-    { id: 'national-standards', name: '国家课程标准', count: computeCount('national-standards') },
-    { id: 'textbooks', name: '各版本教材及审查教辅', count: computeCount('textbooks') },
-    { id: 'new-reform-graph', name: '新课改热难点知识图谱', count: computeCount('new-reform-graph') },
-    { id: 'exemplary-cases', name: '关键人群优秀案例', count: computeCount('exemplary-cases') },
-    { id: 'exam-item-bank', name: '命题库', count: computeCount('exam-item-bank') },
-    { id: 'question-bank', name: '问题库', count: computeCount('question-bank') },
-    { id: 'homework-bank', name: '作业库', count: computeCount('homework-bank') }
-  ]
-
+  
   const initialDocuments = [
     {
       id: 1,
@@ -649,44 +1000,7 @@ const ResourceLibrary = () => {
     }
   ]
 
-  const [documentsList, setDocumentsList] = useState(initialResources)
-
-  const filteredDocuments = documentsList.filter(doc => {
-    const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-    
-    let matchesCategory = false
-    
-    if (selectedCategory === 'all') {
-      matchesCategory = true
-    } else if (selectedCategory === 'recent') {
-      // 最近访问：基于用户实际访问记录
-      matchesCategory = recentlyAccessed.some(accessed => accessed.id === doc.id)
-    } else if (selectedCategory === 'shared') {
-      // 与我共享：显示有协作者或被分享的文档
-      matchesCategory = doc.isShared || (doc.collaborators && doc.collaborators.length > 0)
-    } else if (selectedCategory === 'favorites') {
-      // 收藏：显示已收藏的文档
-      matchesCategory = doc.isBookmarked === true
-    } else {
-      // 原有的分类过滤逻辑
-      matchesCategory = doc.category === selectedCategory || doc.subCategory === selectedCategory
-    }
-    
-    return matchesSearch && matchesCategory
-  })
-
-  // 对最近访问的文档按访问时间排序
-  const sortedDocuments = selectedCategory === 'recent' 
-    ? filteredDocuments.sort((a, b) => {
-        const aAccess = recentlyAccessed.find(item => item.id === a.id)
-        const bAccess = recentlyAccessed.find(item => item.id === b.id)
-        if (!aAccess) return 1
-        if (!bAccess) return -1
-        return new Date(bAccess.accessTime) - new Date(aAccess.accessTime)
-      })
-    : filteredDocuments
+  // 旧文档列表与过滤逻辑已移除，仅保留资源集合与云盘相关功能
 
   const getTypeIcon = (type) => {
     switch (type) {
@@ -708,6 +1022,10 @@ const ResourceLibrary = () => {
         return <FilePptOutlined style={{ color: '#fa8c16', fontSize: '18px' }} />
       case 'whiteboard':
         return <HighlightOutlined style={{ color: '#13c2c2', fontSize: '18px' }} />
+      case 'video':
+        return <VideoCameraOutlined style={{ color: '#f5222d', fontSize: '18px' }} />
+      case 'audio':
+        return <AudioOutlined style={{ color: '#faad14', fontSize: '18px' }} />
       default:
         return <FileTextOutlined style={{ color: '#1890ff', fontSize: '18px' }} />
     }
@@ -742,110 +1060,36 @@ const ResourceLibrary = () => {
     setShowShareModal(true)
   }
 
-  // 搜索过滤用户
-  const filteredUsers = allUsers.filter(user => {
-    if (!searchQuery.trim()) return true
-    return user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           user.department.toLowerCase().includes(searchQuery.toLowerCase())
-  })
-  
-  // 按部门分组显示用户
-  const getUsersByDepartment = () => {
-    const grouped = {}
-    filteredUsers.forEach(user => {
-      if (!grouped[user.department]) {
-        grouped[user.department] = []
-      }
-      grouped[user.department].push(user)
-    })
-    return grouped
+
+  // ===== 资料集合相关处理 =====
+  const handleToggleCloudSelect = (id) => {
+    setSelectedCloudIds(prev => (
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    ))
   }
-  
-  const handleInviteCollaborator = () => {
-    if (!inviteEmail.trim()) {
-      message.warning('请输入邮箱地址')
+
+  const handleCreateResource = () => {
+    if (!resourceTitle.trim()) {
+      message.warning('请输入资料标题')
       return
     }
-    const newCollaborator = {
-      id: Date.now(),
-      name: inviteEmail.split('@')[0],
-      avatar: null,
-      permission: sharePermission
-    }
-    setCollaborators(prev => [...prev, newCollaborator])
-    setInviteEmail('')
-    message.success('邀请已发送')
-  }
-  
-  const handleAddUser = (user) => {
-    // 检查是否已经添加过该用户
-    const isAlreadyAdded = collaborators.some(c => c.id === user.id)
-    if (isAlreadyAdded) {
-      message.warning(`${user.name} 已经在协作者列表中`)
+    const items = cloudDriveItems.filter(item => selectedCloudIds.includes(item.id))
+    if (items.length === 0) {
+      message.warning('请至少选择一项云盘数据')
       return
     }
-    
-    const newCollaborator = {
-      id: user.id,
-      name: user.name,
-      avatar: user.avatar,
-      permission: 'read'
+    const newResource = {
+      id: `rc-${Date.now()}`,
+      title: resourceTitle.trim(),
+      items,
+      createdAt: new Date().toLocaleDateString('zh-CN')
     }
-    setCollaborators(prev => [...prev, newCollaborator])
-    message.success(`已添加 ${user.name}`)
-    setSearchQuery('') // 清空搜索框
-  }
-  
-  // 高亮搜索关键词
-  const highlightText = (text, query) => {
-    if (!query.trim()) return text
-    const regex = new RegExp(`(${query})`, 'gi')
-    const parts = text.split(regex)
-    return parts.map((part, index) => 
-      regex.test(part) ? 
-        <span key={index} style={{ backgroundColor: '#fff566', fontWeight: 'bold' }}>{part}</span> : 
-        part
-    )
-  }
-
-  const handleCopyLink = () => {
-    const shareLink = `https://example.com/share/${sharingDocument?.id}`
-    navigator.clipboard.writeText(shareLink)
-    message.success('链接已复制到剪贴板')
-  }
-
-  const handleRemoveCollaborator = (collaboratorId) => {
-    setCollaborators(prev => prev.filter(c => c.id !== collaboratorId))
-  }
-
-  const handleOpenPermissionSettings = () => {
-    setShowPermissionModal(true)
-  }
-  
-  const handleClosePermissionSettings = () => {
-    setShowPermissionModal(false)
-  }
-  
-  const handlePermissionSettingChange = (key, value) => {
-    setPermissionSettings(prev => ({
-      ...prev,
-      [key]: value
-    }))
-  }
-  
-  const handleSavePermissionSettings = () => {
-    message.success('权限设置已保存')
-    setShowPermissionModal(false)
-  }
-
-  const handlePermissionChange = (collaboratorId, newPermission) => {
-    setCollaborators(prev => 
-      prev.map(c => 
-        c.id === collaboratorId 
-          ? { ...c, permission: newPermission }
-          : c
-      )
-    )
+    setResourceCollections(prev => [newResource, ...prev])
+    setShowResourceModal(false)
+    setResourceTitle('')
+    setSelectedCloudIds([])
+    setCloudFilters({ drive: 'all', type: 'all', q: '' })
+    message.success('资料已创建')
   }
 
   const handleNewDocument = () => {
@@ -935,21 +1179,22 @@ const ResourceLibrary = () => {
             <Space size="large">
               <div className="search-box">
                 <Input
-                  placeholder="搜索文档..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="搜索云盘项..."
+                  value={cloudFilters.q}
+                  onChange={(e) => setCloudFilters(prev => ({ ...prev, q: e.target.value }))}
                   style={{ width: 300 }}
                   allowClear
                   prefix={<SearchOutlined />}
                 />
               </div>
+              {/* 旧的“新建文档”功能移除 */}
               <Button 
-                type="primary" 
-                icon={<PlusOutlined />} 
-                onClick={handleNewDocument}
+                type="default" 
+                icon={<LinkOutlined />} 
+                onClick={() => setShowResourceModal(true)}
                 size="large"
               >
-                新建文档
+                新建资料
               </Button>
             </Space>
           </div>
@@ -959,47 +1204,7 @@ const ResourceLibrary = () => {
           <Sider width={250} className="docs-sidebar">
             <div className="sidebar-content">
               {/* 快捷入口 */}
-              <div className="quick-access">
-                <div 
-                  className={`quick-access-item ${selectedCategory === 'recent' ? 'active' : ''}`}
-                >
-                  <div 
-                    className="quick-access-main"
-                    onClick={() => setSelectedCategory('recent')}
-                  >
-                    <ClockCircleOutlined className="quick-access-icon" />
-                    <span className="quick-access-text">最近访问</span>
-                  </div>
-                  {selectedCategory === 'recent' && recentlyAccessed.length > 0 && (
-                    <Tooltip title="清空最近访问记录">
-                      <Button 
-                        type="text" 
-                        size="small" 
-                        icon={<DeleteOutlined />}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          clearRecentAccess()
-                        }}
-                        className="clear-recent-btn"
-                      />
-                    </Tooltip>
-                  )}
-                </div>
-                <div 
-                  className={`quick-access-item ${selectedCategory === 'shared' ? 'active' : ''}`}
-                  onClick={() => setSelectedCategory('shared')}
-                >
-                  <ShareAltOutlined className="quick-access-icon" />
-                  <span className="quick-access-text">与我共享</span>
-                </div>
-                <div 
-                  className={`quick-access-item ${selectedCategory === 'favorites' ? 'active' : ''}`}
-                  onClick={() => setSelectedCategory('favorites')}
-                >
-                  <StarOutlined className="quick-access-icon" />
-                  <span className="quick-access-text">收藏</span>
-                </div>
-              </div>
+              {/* 旧的快捷访问（最近访问/与我共享/收藏）已移除 */}
               
               <Divider style={{ margin: '16px 0' }} />
               
@@ -1051,604 +1256,347 @@ const ResourceLibrary = () => {
           </Sider>
 
           <Content className="docs-main">
-            <div className="docs-toolbar">
-              <div className="results-info">
-                <Text>找到 {sortedDocuments.length} 个文档</Text>
+            {/* 资源集合视图 */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Title level={4} style={{ margin: 0 }}>资源集合</Title>
+                {(selectedCategory==='all' ? resourceCollections : resourceCollections.filter(rc => rc.category === selectedCategory)).length > 0 && (
+                  <Text type="secondary">共 {(selectedCategory==='all' ? resourceCollections : resourceCollections.filter(rc => rc.category === selectedCategory)).length} 个集合</Text>
+                )}
               </div>
-              <div className="view-controls">
-                <Space.Compact>
-                  <Button
-                    type={viewMode === 'grid' ? 'primary' : 'default'}
-                    icon={<AppstoreOutlined />}
-                    onClick={() => setViewMode('grid')}
-                  >
-                    网格
-                  </Button>
-                  <Button
-                    type={viewMode === 'list' ? 'primary' : 'default'}
-                    icon={<BarsOutlined />}
-                    onClick={() => setViewMode('list')}
-                  >
-                    列表
-                  </Button>
-                </Space.Compact>
-              </div>
+              {(selectedCategory==='all' ? resourceCollections : resourceCollections.filter(rc => rc.category === selectedCategory)).length === 0 ? (
+                <Empty
+                  description={<div><Text>该分类下暂无资料集合</Text><br /><Text type="secondary">点击上方“新建资料”开始组装</Text></div>}
+                  style={{ marginTop: 8 }}
+                />
+              ) : (
+                <Row gutter={[16, 16]} style={{ marginTop: 12 }} className="notes-grid">
+                  {(selectedCategory==='all' ? resourceCollections : resourceCollections.filter(rc => rc.category === selectedCategory)).map(rc => (
+                    <Col key={rc.id} xs={24} sm={12} md={8} lg={6} xl={6}>
+                      <div className="note-card" onClick={() => { setActiveResource(rc); setShowResourceDetail(true) }}>
+                        <Card
+                          hoverable
+                          actions={[
+                            <EditOutlined key={`edit-${rc.id}`} onClick={(e) => { e.stopPropagation(); handleEditCollection(rc) }} />,
+                            rc.isBookmarked ? (
+                              <PushpinFilled key={`pin-${rc.id}`} onClick={(e) => { e.stopPropagation(); handleToggleStar(rc.id) }} style={{ color: '#fa8c16' }} />
+                            ) : (
+                              <PushpinOutlined key={`pin-${rc.id}`} onClick={(e) => { e.stopPropagation(); handleToggleStar(rc.id) }} />
+                            ),
+                            <ShareAltOutlined key={`share-${rc.id}`} onClick={(e) => { e.stopPropagation(); handleShareCollection(rc.id) }} />,
+                            <DeleteOutlined key={`del-${rc.id}`} onClick={(e) => { e.stopPropagation(); handleDeleteCollection(rc.id) }} />
+                          ]}
+                        >
+                          <div className="note-header">
+                            <div className="note-category">
+                              {getCategoryIcon(rc.category)}
+                              <span className="category-text">
+                                {categories.find(c => c.id === rc.category)?.name || '资料集合'}
+                              </span>
+                            </div>
+                            {/* 右侧角标：集合项数量 */}
+                            <Text type="secondary">{(rc.items || []).length} 项</Text>
+                          </div>
+                          <div className="note-title">
+                            {rc.title}
+                          </div>
+                          <div className="note-content">
+                            精选 {rc.items?.length || 0} 项资源，快速查看与使用。
+                          </div>
+                          <div className="note-tags">
+                            {(rc.tags || []).slice(0, 10).map(tag => (
+                              <AntTag key={`${rc.id}-tag-${tag}`}>{tag}</AntTag>
+                            ))}
+                          </div>
+                          <div className="note-meta">
+                            <div className="meta-item"><FileTextOutlined /> 创建于 {rc.createdAt}</div>
+                          </div>
+                        </Card>
+                      </div>
+                    </Col>
+                  ))}
+                </Row>
+              )}
             </div>
 
-            <Row gutter={[16, 16]} className={`docs-grid ${viewMode}`}>
-              {sortedDocuments.map(doc => (
-                <Col key={doc.id} xs={24} sm={12} md={8} lg={6} xl={6}>
-                  <Card
-                    className="doc-card"
-                    hoverable
-                    actions={[
-                      <Tooltip title="查看文档" key="view">
-                        <Button 
-                          type="text" 
-                          icon={<EyeOutlined />} 
-                          onClick={() => handleViewDocument(doc)}
-                        />
-                      </Tooltip>,
-                      <Tooltip title="编辑文档" key="edit">
-                        <Button 
-                          type="text" 
-                          icon={<EditOutlined />} 
-                          onClick={() => handleEditDocument(doc)}
-                        />
-                      </Tooltip>,
-                      <Tooltip title="下载文档" key="download">
-                        <Button 
-                          type="text" 
-                          icon={<DownloadOutlined />} 
-                          onClick={() => handleDownloadDocument(doc)}
-                        />
-                      </Tooltip>,
-                      <Tooltip title="分享文档" key="share">
-                        <Button 
-                          type="text" 
-                          icon={<ShareAltOutlined />} 
-                          onClick={() => handleShareDocument(doc)}
-                        />
-                      </Tooltip>
-                    ]}
-                    extra={
-                      <Button
-                        type="text"
-                        icon={<BookmarkOutlined />}
-                        className={doc.isBookmarked ? 'bookmarked' : ''}
-                        onClick={() => handleBookmark(doc.id)}
-                      />
-                    }
-                  >
-                    <Card.Meta
-                      avatar={getTypeIcon(doc.type)}
-                      title={
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <Title level={5} style={{ margin: 0 }}>{doc.title}</Title>
-                          {doc.source === 'ai-toolbox' && (
-                            <AntTag color="blue" size="small" style={{ fontSize: '10px' }}>
-                              AI生成
-                            </AntTag>
-                          )}
-                        </div>
-                      }
-                      description={
-                        <div>
-                          <Text type="secondary" ellipsis>
-                            {doc.description}
-                          </Text>
-                          <div className="doc-tags" style={{ marginTop: 8 }}>
-                            {doc.tags.map(tag => (
-                              <AntTag key={tag} size="small" icon={<TagOutlined />}>
-                                {tag}
-                              </AntTag>
-                            ))}
-                            {doc.source === 'ai-toolbox' && (
-                              <AntTag color="green" size="small" icon={<BulbOutlined />}>
-                                AI工具箱
-                              </AntTag>
-                            )}
-                          </div>
-                          <div className="doc-meta" style={{ marginTop: 12 }}>
-                            <Space split={<Divider type="vertical" />}>
-                              <span><EyeOutlined /> {doc.views}</span>
-                              <span><StarOutlined /> {doc.rating}</span>
-                              <span><ClockCircleOutlined /> {doc.lastModified}</span>
-                              {doc.source === 'ai-toolbox' && (
-                                <span style={{ color: '#52c41a' }}>来源: AI工具箱</span>
-                              )}
-                            </Space>
-                          </div>
-                        </div>
-                      }
-                    />
-                  </Card>
-                </Col>
-              ))}
-            </Row>
-
-            {sortedDocuments.length === 0 && (
-              <Empty
-                image={<FileTextOutlined style={{ fontSize: 64, color: '#d9d9d9' }} />}
-                description={
-                  <div>
-                    <Title level={4}>未找到相关文档</Title>
-                    <Text type="secondary">尝试调整搜索条件或浏览其他分类</Text>
-                  </div>
-                }
-              />
-            )}
           </Content>
         </Layout>
       </Layout>
       
-      {showEditor && (
-        <DocumentEditor
-          document={editingDocument}
-          onSave={handleSaveDocument}
-          onClose={handleCloseEditor}
-          isNew={isNewDocument}
-        />
-      )}
       
-      {showShareModal && sharingDocument && (
-        <Modal
-          title={
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span>分享文档</span>
-              <Button 
-                type="text" 
-                icon={<SettingOutlined />} 
-                onClick={handleOpenPermissionSettings}
-              >
-                权限设置
-              </Button>
-            </div>
-          }
-          open={showShareModal}
-          onCancel={() => setShowShareModal(false)}
-          width={600}
-          footer={null}
-        >
-          <div style={{ padding: '20px 0' }}>
-            {/* 邀请协作者部分 */}
-            <div style={{ marginBottom: 24 }}>
-              <Title level={5} style={{ marginBottom: 16 }}>邀请协作者</Title>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                {collaborators.map(collaborator => (
-                  <Avatar 
-                    key={collaborator.id}
-                    style={{ backgroundColor: '#1890ff' }}
-                  >
-                    {collaborator.name.charAt(0)}
-                  </Avatar>
-                ))}
-                <RightOutlined style={{ color: '#999', margin: '0 8px' }} />
-              </div>
-              
-              <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-                <Input
-                  placeholder="搜索用户、群组、部门或用户组"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{ 
-                    flex: 1,
-                    borderRadius: 8,
-                    fontSize: 14,
-                    padding: '8px 12px'
-                  }}
-                  prefix={<SearchOutlined style={{ color: '#1890ff', fontSize: 16 }} />}
-                />
-                <Button 
-                  type="primary" 
-                  icon={<PlusOutlined />}
-                  onClick={handleInviteCollaborator}
-                  style={{
-                    borderRadius: 8,
-                    height: 40,
-                    width: 40,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 2px 4px rgba(24, 144, 255, 0.2)'
-                  }}
-                >
-                </Button>
-              </div>
-              
-              {/* 搜索结果列表 */}
-              {searchQuery && (
-                <div style={{ 
-                  maxHeight: 300, 
-                  overflowY: 'auto', 
-                  border: '1px solid #f0f0f0', 
-                  borderRadius: 8,
-                  backgroundColor: '#fff',
-                  marginBottom: 16
-                }}>
-                  {Object.entries(getUsersByDepartment()).map(([department, users]) => (
-                    <div key={department}>
-                      {/* 个人用户 */}
-                      {users.map(user => (
-                        <div 
-                          key={user.id}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            padding: '12px 16px',
-                            borderBottom: '1px solid #f5f5f5',
-                            cursor: 'pointer',
-                            transition: 'background-color 0.2s'
-                          }}
-                          onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
-                          onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                          onClick={() => handleAddUser(user)}
-                        >
-                          <Avatar 
-                            size={32}
-                            style={{ 
-                              backgroundColor: user.status === 'online' ? '#1890ff' : '#999',
-                              marginRight: 12
-                            }}
-                          >
-                            {user.avatar || user.name.charAt(0)}
-                          </Avatar>
-                          <div style={{ flex: 1 }}>
-                             <div style={{ fontWeight: 500, marginBottom: 2 }}>
-                               {highlightText(user.name, searchQuery)}
-                             </div>
-                             <div style={{ color: '#999', fontSize: 12 }}>
-                               {highlightText(user.department, searchQuery)}
-                             </div>
-                           </div>
-                          {user.permission === 'invited' && (
-                            <Text style={{ color: '#999', fontSize: 12 }}>已授予阅读权限</Text>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                  
-                  {/* 部门分组 */}
-                  {departments.filter(dept => 
-                    dept.name.toLowerCase().includes(searchQuery.toLowerCase())
-                  ).map(dept => (
-                    <div 
-                      key={dept.id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        padding: '12px 16px',
-                        borderBottom: '1px solid #f5f5f5',
-                        cursor: 'pointer',
-                        transition: 'background-color 0.2s'
-                      }}
-                      onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                    >
-                      <Avatar 
-                        size={32}
-                        style={{ 
-                          backgroundColor: dept.id === 'dev' ? '#52c41a' : '#fa8c16',
-                          marginRight: 12,
-                          fontSize: 12
-                        }}
-                      >
-                        {dept.id === 'dev' ? '研发管理' : 'AI杂谈'}
-                      </Avatar>
-                      <div style={{ flex: 1 }}>
-                         <div style={{ fontWeight: 500, marginBottom: 2 }}>
-                           {highlightText(dept.name, searchQuery)}
-                         </div>
-                         <div style={{ color: '#999', fontSize: 12 }}>({dept.count})</div>
-                       </div>
-                    </div>
-                  ))}
-                  
-                  {filteredUsers.length === 0 && departments.filter(dept => 
-                    dept.name.toLowerCase().includes(searchQuery.toLowerCase())
-                  ).length === 0 && (
-                    <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
-                      未找到相关用户或部门
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
 
-            {/* 链接分享部分 */}
-            <div style={{ marginBottom: 24 }}>
-              <Title level={5} style={{ marginBottom: 16 }}>链接分享</Title>
-              
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                padding: '12px 16px',
-                backgroundColor: '#f5f5f5',
-                borderRadius: 8,
-                marginBottom: 16
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-                  <Avatar 
-                    style={{ backgroundColor: '#1890ff', marginRight: 12 }}
-                    icon={<FileTextOutlined />}
-                  />
-                  <div>
-                    <div style={{ fontWeight: 500 }}>北京国人通教育科技有限公司</div>
-                    <div style={{ color: '#666', fontSize: 12 }}>组织内获得链接的人可阅读</div>
-                  </div>
-                </div>
-                <Select 
-                  value={sharePermission}
-                  onChange={setSharePermission}
-                  style={{ width: 100 }}
-                >
-                  <Option value="read">可阅读</Option>
-                  <Option value="edit">可编辑</Option>
-                  <Option value="admin">管理员</Option>
-                </Select>
-              </div>
-            </div>
 
-            {/* 分享按钮组 */}
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-              <Button 
-                icon={<CopyOutlined />}
-                onClick={handleCopyLink}
-                style={{ borderRadius: 20, padding: '8px 16px' }}
-              >
-                复制链接
-              </Button>
-              <Button 
-                icon={<div style={{ width: 16, height: 16, backgroundColor: '#1890ff', borderRadius: '50%' }} />}
-                style={{ borderRadius: 20, padding: '8px 16px' }}
-              >
-              </Button>
-              <Button 
-                icon={<div style={{ width: 16, height: 16, backgroundColor: '#52c41a', borderRadius: '50%' }} />}
-                style={{ borderRadius: 20, padding: '8px 16px' }}
-              >
-              </Button>
-              <Button 
-                icon={<WechatOutlined />}
-                style={{ borderRadius: 20, padding: '8px 16px' }}
-              >
-              </Button>
-              <Button 
-                icon={<QrcodeOutlined />}
-                style={{ borderRadius: 20, padding: '8px 16px' }}
-              >
-              </Button>
-              <Button 
-                icon={<MailOutlined />}
-                style={{ borderRadius: 20, padding: '8px 16px' }}
-              >
-              </Button>
-            </div>
-          </div>
-        </Modal>
-      )}
-      
-      {/* 权限设置模态框 */}
-      {showPermissionModal && (
-        <Modal
-          title="权限设置"
-          open={showPermissionModal}
-          onCancel={handleClosePermissionSettings}
-          width={600}
-          footer={[
-            <Button key="cancel" onClick={handleClosePermissionSettings}>
-              取消
-            </Button>,
-            <Button key="save" type="primary" onClick={handleSavePermissionSettings}>
-              保存
-            </Button>
-          ]}
-        >
-          <div style={{ padding: '20px 0' }}>
-            {/* 对外分享 */}
-            <div style={{ marginBottom: 32 }}>
-              <Title level={5} style={{ marginBottom: 16, display: 'flex', alignItems: 'center' }}>
-                对外分享
-                <Tooltip title="设置文档的对外分享权限">
-                  <Button type="text" size="small" style={{ marginLeft: 8 }}>
-                    ?
-                  </Button>
-                </Tooltip>
-              </Title>
-              
-              <div style={{ marginBottom: 16 }}>
-                <Checkbox 
-                  checked={permissionSettings.allowExternalShare}
-                  onChange={(e) => handlePermissionSettingChange('allowExternalShare', e.target.checked)}
-                >
-                  允许内容分享到组织外
-                </Checkbox>
-              </div>
-              
-              <div>
-                <Checkbox 
-                  checked={permissionSettings.allowManagePermissions}
-                  onChange={(e) => handlePermissionSettingChange('allowManagePermissions', e.target.checked)}
-                >
-                  仅"可管理权限"可以将内容分享到组织外
-                </Checkbox>
-              </div>
-            </div>
-            
-            {/* 谁可以查看、添加、移除协作者 */}
-            <div style={{ marginBottom: 32 }}>
-              <Title level={5} style={{ marginBottom: 16 }}>谁可以查看、添加、移除协作者</Title>
-              
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ marginBottom: 8, fontWeight: 500 }}>可阅读的用户</div>
-                <Select 
-                  value={permissionSettings.allowViewCollaborators}
-                  onChange={(value) => handlePermissionSettingChange('allowViewCollaborators', value)}
-                  style={{ width: '100%' }}
-                >
-                  <Option value="all">可阅读的用户</Option>
-                  <Option value="edit">可编辑的用户</Option>
-                  <Option value="manage">可管理的用户</Option>
-                </Select>
-              </div>
-              
-              <div>
-                <Checkbox 
-                  checked={permissionSettings.allowManagePermissions}
-                  onChange={(e) => handlePermissionSettingChange('allowManagePermissions', e.target.checked)}
-                >
-                  仅组织内的用户可以查看、添加、移除协作者
-                </Checkbox>
-              </div>
-            </div>
-            
-            {/* 谁可以复制内容 */}
-            <div style={{ marginBottom: 32 }}>
-              <Title level={5} style={{ marginBottom: 16 }}>谁可以复制内容</Title>
-              
-              <div style={{ marginBottom: 8, fontWeight: 500 }}>可阅读的用户</div>
-              <Select 
-                value={permissionSettings.allowCopyContent}
-                onChange={(value) => handlePermissionSettingChange('allowCopyContent', value)}
-                style={{ width: '100%' }}
-              >
-                <Option value="all">可阅读的用户</Option>
-                <Option value="edit">可编辑的用户</Option>
-                <Option value="manage">可管理的用户</Option>
-              </Select>
-            </div>
-            
-            {/* 谁可以创建副本、打印和下载 */}
-            <div style={{ marginBottom: 32 }}>
-              <Title level={5} style={{ marginBottom: 16 }}>谁可以创建副本、打印和下载</Title>
-              
-              <div style={{ marginBottom: 8, fontWeight: 500 }}>可阅读的用户</div>
-              <Select 
-                value={permissionSettings.allowPrintDownload}
-                onChange={(value) => handlePermissionSettingChange('allowPrintDownload', value)}
-                style={{ width: '100%' }}
-              >
-                <Option value="all">可阅读的用户</Option>
-                <Option value="edit">可编辑的用户</Option>
-                <Option value="manage">可管理的用户</Option>
-              </Select>
-            </div>
-            
-            {/* 谁可以评论 */}
-            <div style={{ marginBottom: 32 }}>
-              <Title level={5} style={{ marginBottom: 16 }}>谁可以评论</Title>
-              
-              <div style={{ marginBottom: 8, fontWeight: 500 }}>可阅读的用户</div>
-              <Select 
-                value={permissionSettings.allowComment}
-                onChange={(value) => handlePermissionSettingChange('allowComment', value)}
-                style={{ width: '100%' }}
-              >
-                <Option value="all">可阅读的用户</Option>
-                <Option value="edit">可编辑的用户</Option>
-                <Option value="manage">可管理的用户</Option>
-              </Select>
-            </div>
-            
-            {/* 更多高级设置 */}
-            <div>
-              <Title level={5} style={{ marginBottom: 16, cursor: 'pointer' }}>
-                ▼ 更多高级设置
-              </Title>
-              
-              <div style={{ marginBottom: 16 }}>
-                <Title level={5} style={{ marginBottom: 8, fontSize: 14 }}>谁可以查看访问者头像和点赞者头像</Title>
-                <div style={{ marginBottom: 8, fontWeight: 500 }}>可阅读的用户</div>
-                <Select 
-                  value={permissionSettings.showVisitorAvatars}
-                  onChange={(value) => handlePermissionSettingChange('showVisitorAvatars', value)}
-                  style={{ width: '100%' }}
-                >
-                  <Option value="all">可阅读的用户</Option>
-                  <Option value="edit">可编辑的用户</Option>
-                  <Option value="manage">可管理的用户</Option>
-                </Select>
-              </div>
-              
-              <div>
-                <Title level={5} style={{ marginBottom: 8, fontSize: 14, display: 'flex', alignItems: 'center' }}>
-                  谁可以在文档内申请文档访问权限
-                  <Tooltip title="允许用户在文档内申请访问权限">
-                    <Button type="text" size="small" style={{ marginLeft: 8 }}>
-                      ?
-                    </Button>
-                  </Tooltip>
-                </Title>
-                <Checkbox 
-                  checked={permissionSettings.allowRequestAccess}
-                  onChange={(e) => handlePermissionSettingChange('allowRequestAccess', e.target.checked)}
-                >
-                  仅可管理权限的用户可以申请
-                </Checkbox>
-              </div>
-            </div>
-          </div>
-        </Modal>
-      )}
-      
-      {/* 文档类型选择模态框 */}
+
+
+
+      {/* 新建资料弹窗：整合云盘多类型数据 */}
       <Modal
-        title="选择文档类型"
-        open={showTypeModal}
-        onCancel={() => setShowTypeModal(false)}
-        footer={null}
-        width={600}
+        title="新建资料"
+        open={showResourceModal}
+        onCancel={() => setShowResourceModal(false)}
+        onOk={handleCreateResource}
+        okText="创建资料"
+        width={800}
         centered
       >
-        <div style={{ padding: '20px 0' }}>
-          <Row gutter={[16, 16]}>
-            {documentTypes.map((type) => (
-              <Col key={type.key} xs={12} sm={8} md={6}>
+        <div style={{ marginBottom: 16 }}>
+          <Input
+            placeholder="请输入资料标题"
+            value={resourceTitle}
+            onChange={(e) => setResourceTitle(e.target.value)}
+          />
+        </div>
+        {/* 云盘操作：目标盘选择 + 上传 + 新建 */}
+        <Space style={{ marginBottom: 12, justifyContent: 'space-between', width: '100%' }}>
+          <Space>
+            <Text>目标盘：</Text>
+            <Radio.Group value={newCloudTarget} onChange={(e) => setNewCloudTarget(e.target.value)}>
+              <Radio.Button value="org">组织盘</Radio.Button>
+              <Radio.Button value="my">个人盘</Radio.Button>
+            </Radio.Group>
+          </Space>
+          <Space>
+            <Upload beforeUpload={handleBeforeUpload} showUploadList={false} multiple>
+              <Button icon={<UploadOutlined />}>上传文件</Button>
+            </Upload>
+            <Button onClick={() => handleCreateCloudItem('document')}>新建文档</Button>
+            <Button onClick={() => handleCreateCloudItem('table')}>新建表格</Button>
+            <Button onClick={() => handleCreateCloudItem('ppt')}>新建PPT</Button>
+            <Button onClick={() => handleCreateCloudItem('whiteboard')}>新建白板</Button>
+          </Space>
+        </Space>
+        <Space wrap style={{ marginBottom: 12 }}>
+          <Select
+            value={cloudFilters.drive}
+            onChange={(v) => setCloudFilters(prev => ({ ...prev, drive: v }))}
+            style={{ width: 120 }}
+          >
+            <Option value="all">全部盘</Option>
+            <Option value="org">组织盘</Option>
+            <Option value="my">个人盘</Option>
+          </Select>
+          <Select
+            value={cloudFilters.type}
+            onChange={(v) => setCloudFilters(prev => ({ ...prev, type: v }))}
+            style={{ width: 140 }}
+          >
+            <Option value="all">全部类型</Option>
+            <Option value="document">文档</Option>
+            <Option value="ppt">PPT</Option>
+            <Option value="table">表格</Option>
+            <Option value="whiteboard">白板</Option>
+            <Option value="video">视频</Option>
+            <Option value="audio">音频</Option>
+          </Select>
+          <Input
+            allowClear
+            placeholder="搜索云盘项..."
+            value={cloudFilters.q}
+            onChange={(e) => setCloudFilters(prev => ({ ...prev, q: e.target.value }))}
+            prefix={<SearchOutlined />}
+            style={{ width: 240 }}
+          />
+          <Text type="secondary">已选 {selectedCloudIds.length} 项</Text>
+        </Space>
+        <Divider style={{ margin: '8px 0' }} />
+        <Row gutter={[12, 12]}>
+          {cloudDriveItems
+            .filter(item => (cloudFilters.drive === 'all' || item.drive === cloudFilters.drive))
+            .filter(item => (cloudFilters.type === 'all' || item.type === cloudFilters.type))
+            .filter(item => (!cloudFilters.q || item.title.toLowerCase().includes(cloudFilters.q.toLowerCase())))
+            .map(item => (
+              <Col key={item.id} xs={24} sm={12} md={8}>
                 <Card
+                  size="small"
                   hoverable
-                  className="type-card"
-                  style={{
-                    textAlign: 'center',
-                    border: '1px solid #f0f0f0',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                  }}
-                  bodyStyle={{ padding: '20px 12px' }}
-                  onClick={() => handleTypeSelect(type)}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = type.color
-                    e.currentTarget.style.boxShadow = `0 2px 8px ${type.color}20`
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = '#f0f0f0'
-                    e.currentTarget.style.boxShadow = 'none'
-                  }}
+                  title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {getTypeIcon(item.type)}
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
+                  </div>}
+                  extra={<Checkbox checked={selectedCloudIds.includes(item.id)} onChange={() => handleToggleCloudSelect(item.id)} />}
                 >
-                  <div style={{ marginBottom: '12px' }}>
-                    {type.icon}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                    <span>{item.drive === 'org' ? '组织盘' : '个人盘'}</span>
+                    <span>{item.size}</span>
+                    <span>{item.lastModified}</span>
                   </div>
-                  <div style={{ 
-                    fontSize: '14px', 
-                    fontWeight: '500', 
-                    marginBottom: '4px',
-                    color: '#262626'
-                  }}>
-                    {type.title}
-                  </div>
-                  <div style={{ 
-                    fontSize: '12px', 
-                    color: '#8c8c8c',
-                    lineHeight: '1.4'
-                  }}>
-                    {type.description}
-                  </div>
+                  {item.tags && (
+                    <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {item.tags.map(tag => (
+                        <AntTag key={tag} size="small">{tag}</AntTag>
+                      ))}
+                    </div>
+                  )}
                 </Card>
               </Col>
             ))}
-          </Row>
-        </div>
+        </Row>
+      </Modal>
+
+      {/* 资料集合详情弹窗 */}
+      <Modal
+        title={activeResource ? activeResource.title : '资料详情'}
+        open={showResourceDetail}
+        onCancel={() => setShowResourceDetail(false)}
+        footer={null}
+        width={700}
+        centered
+      >
+        {activeResource && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text type="secondary">共 {(activeResource.items || []).length} 项</Text>
+              <Button size="small" icon={<PlusOutlined />} onClick={handleOpenAddItemsModal}>添加资源</Button>
+            </div>
+            <Divider style={{ margin: '12px 0' }} />
+            <Row gutter={[12, 12]}>
+              {(activeResource.items || []).map(item => (
+                <Col key={item.id} xs={24} sm={12}>
+                  <Card size="small" hoverable>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {getTypeIcon(item.type)}
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 500 }}>{item.title}</div>
+                        <div style={{ fontSize: 12, color: '#999' }}>
+                          {(item.tags || []).join(' · ')}
+                        </div>
+                      </div>
+                      <Space align="center" size={6}>
+                        <Text type="secondary" style={{ fontSize: 12 }}>{item.drive === 'org' ? '组织盘' : '个人盘'}</Text>
+                        <Tooltip title="编辑标签">
+                          <Button type="text" size="small" icon={<TagsOutlined />} onClick={() => handleOpenEditItemTags(item, activeResource)} />
+                        </Tooltip>
+                        <Popconfirm title="确认删除该资源？" okText="删除" cancelText="取消" onConfirm={() => handleDeleteItemFromCollection(activeResource.id, item.id)}>
+                          <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+                        </Popconfirm>
+                      </Space>
+                    </div>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          </div>
+        )}
+      </Modal>
+
+      {/* 添加资源到集合弹窗 */}
+      <Modal
+        title="添加资源到集合"
+        open={showAddItemsModal}
+        onCancel={() => setShowAddItemsModal(false)}
+        onOk={handleAddItemsToCollection}
+        okText="添加"
+        width={800}
+        centered
+      >
+        <Space wrap style={{ marginBottom: 12 }}>
+          <Select
+            value={addCloudFilters.drive}
+            onChange={(v) => setAddCloudFilters(prev => ({ ...prev, drive: v }))}
+            style={{ width: 120 }}
+          >
+            <Option value="all">全部盘</Option>
+            <Option value="org">组织盘</Option>
+            <Option value="my">个人盘</Option>
+          </Select>
+          <Select
+            value={addCloudFilters.type}
+            onChange={(v) => setAddCloudFilters(prev => ({ ...prev, type: v }))}
+            style={{ width: 140 }}
+          >
+            <Option value="all">全部类型</Option>
+            <Option value="document">文档</Option>
+            <Option value="ppt">PPT</Option>
+            <Option value="table">表格</Option>
+            <Option value="whiteboard">白板</Option>
+            <Option value="video">视频</Option>
+            <Option value="audio">音频</Option>
+          </Select>
+          <Input
+            allowClear
+            placeholder="搜索云盘项..."
+            value={addCloudFilters.q}
+            onChange={(e) => setAddCloudFilters(prev => ({ ...prev, q: e.target.value }))}
+            prefix={<SearchOutlined />}
+            style={{ width: 240 }}
+          />
+          <Text type="secondary">已选 {selectedAddCloudIds.length} 项</Text>
+        </Space>
+        <Divider style={{ margin: '8px 0' }} />
+        <Row gutter={[12, 12]}>
+          {cloudDriveItems
+            .filter(item => (addCloudFilters.drive === 'all' || item.drive === addCloudFilters.drive))
+            .filter(item => (addCloudFilters.type === 'all' || item.type === addCloudFilters.type))
+            .filter(item => (!addCloudFilters.q || item.title.toLowerCase().includes(addCloudFilters.q.toLowerCase())))
+            .map(item => (
+              <Col key={item.id} xs={24} sm={12} md={8}>
+                <Card
+                  size="small"
+                  hoverable
+                  title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {getTypeIcon(item.type)}
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
+                  </div>}
+                  extra={<Checkbox checked={selectedAddCloudIds.includes(item.id)} onChange={() => handleToggleAddCloudSelect(item.id)} />}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                    <span>{item.drive === 'org' ? '组织盘' : '个人盘'}</span>
+                    <span>{item.size}</span>
+                    <span>{item.lastModified}</span>
+                  </div>
+                  {item.tags && (
+                    <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {item.tags.map(tag => (
+                        <AntTag key={tag} size="small">{tag}</AntTag>
+                      ))}
+                    </div>
+                  )}
+                </Card>
+              </Col>
+            ))}
+        </Row>
+      </Modal>
+
+      {/* 编辑集合弹窗 */}
+      <Modal
+        title="编辑集合"
+        open={showEditCollectionModal}
+        onCancel={() => setShowEditCollectionModal(false)}
+        onOk={handleSaveCollectionEdit}
+        okText="保存"
+        width={520}
+        centered
+      >
+        <Space direction="vertical" style={{ width: '100%' }}>
+          <Input value={editCollectionTitle} onChange={(e) => setEditCollectionTitle(e.target.value)} placeholder="集合标题" />
+          <Select
+            mode="tags"
+            value={editCollectionTags}
+            onChange={(vals) => setEditCollectionTags(vals)}
+            style={{ width: '100%' }}
+            placeholder="集合标签（可输入新标签回车确认）"
+          />
+        </Space>
+      </Modal>
+
+
+      {/* 编辑资源标签弹窗 */}
+      <Modal
+        title="编辑资源标签"
+        open={showEditItemTagsModal}
+        onCancel={() => setShowEditItemTagsModal(false)}
+        onOk={handleSaveItemTags}
+        okText="保存"
+        width={520}
+        centered
+      >
+        <Select
+          mode="tags"
+          value={editingItemTags}
+          onChange={(vals) => setEditingItemTags(vals)}
+          style={{ width: '100%' }}
+          placeholder="资源标签（可输入新标签回车确认）"
+        />
       </Modal>
     </div>
   )

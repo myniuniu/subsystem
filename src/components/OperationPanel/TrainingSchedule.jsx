@@ -17,16 +17,16 @@ const TrainingSchedule = ({ schedule }) => {
   });
 
   const columns = [
-    { title: '阶段', dataIndex: 'phase', key: 'phase', width: 120 },
-    { title: '时间安排', dataIndex: 'time', key: 'time', width: 180 },
-    { title: '主题', dataIndex: 'topic', key: 'topic' },
-    { title: '形式', dataIndex: 'format', key: 'format', width: 160 },
-    { title: '考核', dataIndex: 'assessment', key: 'assessment', width: 160 },
+    { title: '阶段', dataIndex: 'phase', key: 'phase', width: 100 },
+    { title: '时间安排', dataIndex: 'time', key: 'time', width: 150 },
+    { title: '主题', dataIndex: 'topic', key: 'topic', width: 300 },
+    { title: '形式', dataIndex: 'format', key: 'format', width: 120 },
+    { title: '考核', dataIndex: 'assessment', key: 'assessment', width: 120 },
     { 
       title: '备注', 
       dataIndex: 'notes', 
       key: 'notes', 
-      width: 200,
+      width: 180,
       render: (notes) => Array.isArray(notes) ? notes.map((n, i) => <Tag key={i}>{n}</Tag>) : notes
     },
   ];

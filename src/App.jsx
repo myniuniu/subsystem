@@ -364,6 +364,14 @@ function App() {
               <CalendarCenter />
             ) : currentView === 'download-center' ? (
               <DownloadCenter downloads={downloads} />
+            ) : currentView === 'docs-center-org' ? (
+              <DocsCenter initialDrive="org" />
+            ) : currentView === 'docs-center-my' ? (
+              <DocsCenter initialDrive="my" />
+            ) : currentView === 'docs-center-org' ? (
+              <DocsCenter initialDrive="org" />
+            ) : currentView === 'docs-center-my' ? (
+              <DocsCenter initialDrive="my" />
             ) : currentView === 'docs-center' ? (
               <DocsCenter />
             ) : currentView === 'lesson-observation' ? (
@@ -455,6 +463,12 @@ function App() {
               <ThemeTemplateCenter onBack={() => handleViewChange('home')} />
             ) : currentView === 'admin-center' ? (
               <AdminCenter />
+            ) : currentView === 'docs-center-org' ? (
+              <DocsCenter initialDrive="org" />
+            ) : currentView === 'docs-center-my' ? (
+              <DocsCenter initialDrive="my" />
+            ) : currentView === 'docs-center' ? (
+              <DocsCenter />
             ) : (
               <MainContent 
                 currentView={currentView}

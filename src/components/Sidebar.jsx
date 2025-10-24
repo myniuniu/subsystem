@@ -435,7 +435,12 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       label: '云盘', 
       shortLabel: '云盘',
       color: '#a18cd1',
-      type: 'single'
+      type: 'group',
+      expanded: true,
+      children: [
+        { id: 'docs-center-org', icon: Cloud, label: '组织云盘', color: '#a18cd1' },
+        { id: 'docs-center-my', icon: Cloud, label: '我的云盘', color: '#a18cd1' }
+      ]
     },
     { 
       id: 'resource-library', 

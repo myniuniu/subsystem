@@ -540,110 +540,6 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
         defaultActiveKey="participants"
         items={[
           {
-            key: 'participants',
-            label: '参训人员',
-            children: (
-              <>
-                <Row gutter={12} wrap={false} style={{ alignItems: 'stretch' }}>
-                  <Col span={7} style={{ display: 'flex' }}>
-                    <Card
-                      title={(
-                        <Space>
-                          <span>🔖</span>
-                          <span>标签筛选</span>
-                        </Space>
-                      )}
-                      style={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', minWidth: 280 }}
-                      bodyStyle={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                        <Input
-                          size="small"
-                          allowClear
-                          placeholder="筛选标签（可输入关键字）"
-                          value={tagQuery}
-                          onChange={(e) => setTagQuery(e.target.value)}
-                          style={{ width: 220 }}
-                        />
-                        <Space>
-                          <Button size="small" onClick={() => setSelectedTags([])}>清空选择</Button>
-                          <Button size="small" danger onClick={clearExcluded}>清空剔除</Button>
-                        </Space>
-                      </div>
-                      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', marginTop: 8, padding: '8px', background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 8 }}>
-                        <Space size={6} wrap>
-                          {filteredDisplayTags.length ? (
-                            CheckableTag ? (
-                              filteredDisplayTags.map((tag) => (
-                                <CheckableTag
-                                  key={`tag-${tag}`}
-                                  checked={selectedTags.includes(tag)}
-                                  onChange={(checked) => {
-                                    setSelectedTags((prev) => {
-                                      if (checked) return [...prev, tag];
-                                      return prev.filter((t) => t !== tag);
-                                    });
-                                  }}
-                                >
-                                  {tag}
-                                </CheckableTag>
-                              ))
-                            ) : (
-                              filteredDisplayTags.map((tag) => (
-                                <Tag
-                                  key={`tag-${tag}`}
-                                  color={selectedTags.includes(tag) ? 'processing' : 'default'}
-                                  onClick={() => toggleTag(tag)}
-                                  style={{ cursor: 'pointer' }}
-                                >
-                                  {tag}
-                                </Tag>
-                              ))
-                            )
-                          ) : (
-                            <Text type="secondary" style={{ fontSize: 12 }}>未找到匹配标签</Text>
-                          )}
-                        </Space>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 10px', background: '#f8f9fa', borderRadius: 8, border: '1px solid #eef2f7', marginTop: 10 }}>
-                        <Tag color="geekblue">已选 {selectedTags.length} 个标签</Tag>
-                        <Tag color="blue">命中 {matchedPersonnel.length} 人</Tag>
-                        <Tag color="red">已剔除 {excludedPersonnelIds.size} 人</Tag>
-                      </div>
-                    </Card>
-                  </Col>
-                  <Col span={17} style={{ display: 'flex' }}>
-                    <Card
-                      title={(
-                        <Space>
-                          <span>📋</span>
-                          <span>人员列表（匹配 + 参训）</span>
-                          <Tag color="blue">匹配 {matchedPersonnel.length} 人</Tag>
-                          <Tag color="green">参训 {participants.length} 人</Tag>
-                        </Space>
-                      )}
-                      style={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', marginLeft: 6 }}
-                      bodyStyle={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}
-                    >
-                      <div style={{ flex: 1, minHeight: 0 }}>
-                        <Table
-                          size="small"
-                          bordered={false}
-                          tableLayout="fixed"
-                          style={{ margin: 0 }}
-                          dataSource={combinedData}
-                          columns={combinedColumns}
-                          rowKey="key"
-                          pagination={false}
-                        />
-                      </div>
-                    </Card>
-                  </Col>
-                </Row>
-              </>
-            )
-          },
-            {
               key: 'modules',
               label: '模块配置',
               children: (
@@ -801,7 +697,111 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                   </Card>
                 </>
               )
-            }
+            },
+            {
+            key: 'participants',
+            label: '参训人员',
+            children: (
+              <>
+                <Row gutter={12} wrap={false} style={{ alignItems: 'stretch' }}>
+                  <Col span={7} style={{ display: 'flex' }}>
+                    <Card
+                      title={(
+                        <Space>
+                          <span>🔖</span>
+                          <span>标签筛选</span>
+                        </Space>
+                      )}
+                      style={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', minWidth: 280 }}
+                      bodyStyle={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                        <Input
+                          size="small"
+                          allowClear
+                          placeholder="筛选标签（可输入关键字）"
+                          value={tagQuery}
+                          onChange={(e) => setTagQuery(e.target.value)}
+                          style={{ width: 220 }}
+                        />
+                        <Space>
+                          <Button size="small" onClick={() => setSelectedTags([])}>清空选择</Button>
+                          <Button size="small" danger onClick={clearExcluded}>清空剔除</Button>
+                        </Space>
+                      </div>
+                      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', marginTop: 8, padding: '8px', background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 8 }}>
+                        <Space size={6} wrap>
+                          {filteredDisplayTags.length ? (
+                            CheckableTag ? (
+                              filteredDisplayTags.map((tag) => (
+                                <CheckableTag
+                                  key={`tag-${tag}`}
+                                  checked={selectedTags.includes(tag)}
+                                  onChange={(checked) => {
+                                    setSelectedTags((prev) => {
+                                      if (checked) return [...prev, tag];
+                                      return prev.filter((t) => t !== tag);
+                                    });
+                                  }}
+                                >
+                                  {tag}
+                                </CheckableTag>
+                              ))
+                            ) : (
+                              filteredDisplayTags.map((tag) => (
+                                <Tag
+                                  key={`tag-${tag}`}
+                                  color={selectedTags.includes(tag) ? 'processing' : 'default'}
+                                  onClick={() => toggleTag(tag)}
+                                  style={{ cursor: 'pointer' }}
+                                >
+                                  {tag}
+                                </Tag>
+                              ))
+                            )
+                          ) : (
+                            <Text type="secondary" style={{ fontSize: 12 }}>未找到匹配标签</Text>
+                          )}
+                        </Space>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 10px', background: '#f8f9fa', borderRadius: 8, border: '1px solid #eef2f7', marginTop: 10 }}>
+                        <Tag color="geekblue">已选 {selectedTags.length} 个标签</Tag>
+                        <Tag color="blue">命中 {matchedPersonnel.length} 人</Tag>
+                        <Tag color="red">已剔除 {excludedPersonnelIds.size} 人</Tag>
+                      </div>
+                    </Card>
+                  </Col>
+                  <Col span={17} style={{ display: 'flex' }}>
+                    <Card
+                      title={(
+                        <Space>
+                          <span>📋</span>
+                          <span>人员列表（匹配 + 参训）</span>
+                          <Tag color="blue">匹配 {matchedPersonnel.length} 人</Tag>
+                          <Tag color="green">参训 {participants.length} 人</Tag>
+                        </Space>
+                      )}
+                      style={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', marginLeft: 6 }}
+                      bodyStyle={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}
+                    >
+                      <div style={{ flex: 1, minHeight: 0 }}>
+                        <Table
+                          size="small"
+                          bordered={false}
+                          tableLayout="fixed"
+                          style={{ margin: 0 }}
+                          dataSource={combinedData}
+                          columns={combinedColumns}
+                          rowKey="key"
+                          pagination={false}
+                        />
+                      </div>
+                    </Card>
+                  </Col>
+                </Row>
+              </>
+            )
+          },
           ]}
         />
 
