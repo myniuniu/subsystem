@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Layout, Card, Space, Typography, Tooltip, Button, Table, Tag as AntTag, Empty, message, Modal, Select } from 'antd'
+import { Layout, Card, Space, Typography, Tooltip, Button, Table, Tag as AntTag, Empty, message, Modal, Select, Checkbox } from 'antd'
 import { AppstoreOutlined, UnorderedListOutlined, EditOutlined, DeleteOutlined, ShareAltOutlined, EyeOutlined, FileTextOutlined, BookOutlined, ExperimentOutlined, TeamOutlined, FolderOpenOutlined, HeartTwoTone } from '@ant-design/icons'
 import './OnDemandResourceLibrary.css'
 import { initialResources } from '../../data/resourceLibraryData'
@@ -108,7 +108,56 @@ const getCollectionThumbnail = (rc) => {
   }
 }
 
-export default function ResourceLibraryCopied() {
+// 新增：集合预览
+const getFilteredItemsForPreview = (rc, currentSpace) => {
+  return (rc.items || []).filter(it => ((it.drive === 'org' || typeof it.drive === 'undefined') && ((it.space || DEFAULT_SPACE) === currentSpace)))
+}
+
+const openCollectionPreview = (rc, currentSpace) => {
+  const items = getFilteredItemsForPreview(rc, currentSpace)
+  const categoryLabel = (categories.find(c => c.id === rc.category)?.name) || '资料集合'
+  Modal.info({
+    title: `集合预览：${rc.title}`,
+    width: 680,
+    content: (
+      <div style={{ marginTop: 8 }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
+          <div style={{ width: 160, height: 90, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0' }}>
+            <img src={getCollectionThumbnail(rc)} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          </div>
+          <div>
+            <div style={{ fontWeight: 600 }}>{categoryLabel}</div>
+            <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {(rc.tags || []).slice(0, 8).map(tag => (<AntTag key={tag}>{tag}</AntTag>))}
+            </div>
+            <div style={{ marginTop: 6, color: '#888' }}>创建时间：{rc.createdAt} · 项目数：{items.length}</div>
+          </div>
+        </div>
+        {items.length === 0 ? (
+          <Empty description={<div><Text>当前空间下暂无可预览的资源项</Text><br /><Text type="secondary">请切换空间或更改分类</Text></div>} />
+        ) : (
+          <div style={{ maxHeight: 260, overflow: 'auto', borderTop: '1px dashed #eee', paddingTop: 8 }}>
+            {items.map(it => (
+              <div key={it.id || it.title} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px dashed #f5f5f5' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Text>{it.title}</Text>
+                  {it.type && (<AntTag>{String(it.type)}</AntTag>)}
+                </div>
+                <div style={{ color: '#999', fontSize: 12 }}>
+                  <span>{it.size || 'N/A'}</span>
+                  <span style={{ margin: '0 6px' }}>·</span>
+                  <span>{it.lastModified || ''}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  })
+}
+
+export default function ResourceLibraryCopied({ selectMode = false, selectedCollectionIds = [], onSelectionChange, useExternalFilters = false, externalFilters = { query: '', category: 'all' }, defaultViewMode = 'list', onCategoryChange }) {
   // 空间切换监听
   const [currentSpace, setCurrentSpace] = useState(() => {
     try { return localStorage.getItem('current_knowledge_space') || DEFAULT_SPACE } catch { return DEFAULT_SPACE }
@@ -122,11 +171,23 @@ export default function ResourceLibraryCopied() {
     return () => window.removeEventListener('knowledgeSpaceChanged', onSpaceChanged)
   }, [])
 
+  // 选择状态（用于配置页）
+  const [selectedIds, setSelectedIds] = useState(selectedCollectionIds || [])
+  useEffect(() => { setSelectedIds(selectedCollectionIds || []) }, [selectedCollectionIds])
+  const toggleSelect = (id, checked) => {
+    setSelectedIds(prev => {
+      const next = checked ? Array.from(new Set([...prev, id])) : prev.filter(x => x !== id)
+      if (typeof onSelectionChange === 'function') onSelectionChange(next)
+      return next
+    })
+  }
+
   // 分类与集合视图
   const [selectedResourceCategory, setSelectedResourceCategory] = useState('all')
-  const [collectionViewMode, setCollectionViewMode] = useState('list')
+  const [collectionViewMode, setCollectionViewMode] = useState(defaultViewMode)
   const resourceCollections = useMemo(() => createDefaultCollections(), [])
 
+  const effectiveSelectedCategory = useExternalFilters ? (externalFilters?.category || 'all') : selectedResourceCategory
   const LIBRARY_CATEGORY_IDS = categories.map(c => c.id)
   const TYPE_CATEGORY_VALUES = ['documents','videos','images','audio','presentations']
   const SUBJECT_CATEGORY_VALUES = ['chinese','math','english','science','history','geography']
@@ -187,12 +248,12 @@ export default function ResourceLibraryCopied() {
   }
 
   const collectionListData = useMemo(() => {
-    const list = (selectedResourceCategory==='all' ? resourceCollections : resourceCollections.filter(rc => matchesSelectedCategory(rc, selectedResourceCategory)))
+    const list = (effectiveSelectedCategory==='all' ? resourceCollections : resourceCollections.filter(rc => matchesSelectedCategory(rc, effectiveSelectedCategory)))
     const withFiltered = list.map(rc => ({
       rc,
       filteredOrgItems: (rc.items || []).filter(it => ((it.drive === 'org' || typeof it.drive === 'undefined') && ((it.space || DEFAULT_SPACE) === currentSpace)))
     }))
-    return withFiltered
+    const baseMapped = withFiltered
       .filter(x => x.filteredOrgItems.length > 0)
       .map(({ rc, filteredOrgItems }) => ({
         key: rc.id,
@@ -204,7 +265,10 @@ export default function ResourceLibraryCopied() {
         createdAt: rc.createdAt,
         rc
       }))
-  }, [resourceCollections, selectedResourceCategory, currentSpace])
+    const q = (useExternalFilters && externalFilters?.query) ? String(externalFilters.query).trim().toLowerCase() : ''
+    if (!q) return baseMapped
+    return baseMapped.filter(row => row.title.toLowerCase().includes(q) || (row.tags || []).some(t => String(t).toLowerCase().includes(q)))
+  }, [resourceCollections, effectiveSelectedCategory, currentSpace, useExternalFilters, externalFilters])
 
   const collectionColumns = [
     {
@@ -251,6 +315,17 @@ export default function ResourceLibraryCopied() {
     }
   ]
 
+  const previewColumn = {
+    title: '预览',
+    key: 'preview',
+    width: 90,
+    render: (_, record) => (
+      <Button type="link" size="small" icon={<EyeOutlined />} onClick={(e) => { e.stopPropagation(); openCollectionPreview(record.rc, currentSpace) }}>预览</Button>
+    )
+  }
+
+  const effectiveColumns = selectMode ? [...collectionColumns.filter(col => col.key !== 'actions'), previewColumn] : collectionColumns
+
   return (
     <Layout className="docs-center" style={{ height: '100%', background: 'transparent' }}>
       <Header style={{ background: 'transparent', padding: 0 }}>
@@ -269,10 +344,11 @@ export default function ResourceLibraryCopied() {
       <Layout>
         <OnDemandResourceCategorySidebar
           selectedCategory={selectedResourceCategory}
-          onCategoryChange={setSelectedResourceCategory}
+          onCategoryChange={(cat) => { setSelectedResourceCategory(cat); if (useExternalFilters && typeof onCategoryChange === 'function') onCategoryChange(cat); }}
           resources={mockResourcesForCategories}
           categories={resourceCategoryData}
           configVersion={1}
+          disableHoverActions
         />
         <Content className="docs-main">
           {collectionViewMode === 'list' ? (
@@ -282,11 +358,12 @@ export default function ResourceLibraryCopied() {
               <div className="notes-content list-mode" style={{ marginTop: 12 }}>
                 <Table
                   dataSource={collectionListData}
-                  columns={collectionColumns}
+                  columns={effectiveColumns}
                   size="small"
                   pagination={false}
                   rowKey="id"
-                  onRow={(record) => ({ onClick: () => message.info(`打开集合：${record.title}`) })}
+                  rowSelection={selectMode ? { selectedRowKeys: selectedIds, onChange: (keys) => { setSelectedIds(keys); if (typeof onSelectionChange === 'function') onSelectionChange(keys) } } : undefined}
+                  onRow={(record) => ({ onClick: () => { if (selectMode) { const checked = !selectedIds.includes(record.id); toggleSelect(record.id, checked) } else { message.info(`打开集合：${record.title}`) } } })}
                 />
               </div>
             )
@@ -294,7 +371,17 @@ export default function ResourceLibraryCopied() {
             <div style={{ marginTop: 12 }}>
               <Space wrap>
                 {collectionListData.map(row => (
-                  <Card key={row.id} hoverable style={{ width: 280 }} onClick={() => message.info(`打开集合：${row.title}`)}>
+                  <Card key={row.id} hoverable style={{ width: 280, position: 'relative' }} onClick={() => { if (selectMode) { const checked = !selectedIds.includes(row.id); toggleSelect(row.id, checked) } else { message.info(`打开集合：${row.title}`) } }}>
+                    {selectMode && (
+                      <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 1 }} onClick={(e) => e.stopPropagation()}>
+                        <Tooltip title="预览集合"><Button size="small" type="text" icon={<EyeOutlined />} onClick={() => openCollectionPreview(row.rc, currentSpace)} /></Tooltip>
+                      </div>
+                    )}
+                    {selectMode && (
+                      <div style={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }} onClick={(e) => e.stopPropagation()}>
+                        <Checkbox checked={selectedIds.includes(row.id)} onChange={(e) => toggleSelect(row.id, e.target.checked)} />
+                      </div>
+                    )}
                     <div style={{ width: '100%', height: 120, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0', marginBottom: 8 }}>
                       <img src={getCollectionThumbnail(row.rc)} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>

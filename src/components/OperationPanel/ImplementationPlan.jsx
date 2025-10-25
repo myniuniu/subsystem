@@ -1,9 +1,10 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Typography, Button, Tag, Tooltip, Progress, Modal, Card, Form, Input, InputNumber, Switch, Select, Table, Avatar, Space, Divider, Tabs, Row, Col, Empty } from 'antd';
-import { DownOutlined, RightOutlined, UserAddOutlined, DeleteOutlined, TeamOutlined } from '@ant-design/icons';
+import { DownOutlined, RightOutlined, UserAddOutlined, DeleteOutlined, TeamOutlined, EyeOutlined } from '@ant-design/icons';
 import { createMockOrganizationPersonnelTree } from '../../data/organizationPersonnelMockData';
 import { TreeNodeType } from '../../types/organizationPersonnelTree';
 import OnDemandResourceLibrary from './OnDemandResourceLibrary'
+import { initialResources } from '../../data/resourceLibraryData.js'
 
 const { Text } = Typography;
 const { CheckableTag } = Tag;
@@ -11,6 +12,14 @@ const { CheckableTag } = Tag;
 // 右侧"实施方案"：包含参训人员管理和培训模块配置
 const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags = [] }) => {
   const schedule = Array.isArray(plan?.schedule) ? plan.schedule : [];
+
+  // 右侧筛选状态（分类/关键词）
+  const [rightFilterQuery, setRightFilterQuery] = useState('')
+  const [rightFilterCategory, setRightFilterCategory] = useState('all')
+
+  // 左侧拖拽排序视觉提示状态
+  const [draggingId, setDraggingId] = useState(null)
+  const [dragOverId, setDragOverId] = useState(null)
 
   // 参训人员状态管理
   const [participants, setParticipants] = useState([
@@ -236,6 +245,26 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
       configAreaRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [configModal.visible]);
+
+  // 首次加载：按 localStorage 记忆的左右分割比例设置宽度
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('course_content_split_ratio')
+      if (!stored) return
+      const ratio = Number(stored)
+      if (!Number.isFinite(ratio) || ratio <= 0) return
+      const left = document.getElementById('course-content-left')
+      const right = document.getElementById('course-content-right')
+      const row = left?.parentElement?.parentElement
+      const total = row?.clientWidth || ((left?.clientWidth || 0) + (right?.clientWidth || 0))
+      if (!total || !left || !right) return
+      const min = 240
+      let newLeft = Math.max(min, Math.min(total - min, Math.round(total * ratio)))
+      const newRight = total - newLeft
+      left.style.flex = '0 0 auto'; left.style.width = newLeft + 'px'
+      right.style.flex = '0 0 auto'; right.style.width = newRight + 'px'
+    } catch {}
+  }, [])
 
   const updateDraft = (path, value) => {
     setConfigModal(prev => {
@@ -569,7 +598,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
           >
             {configModal.draft && (
               <Tabs
-                defaultActiveKey="basic"
+                defaultActiveKey="content"
                 items={[
                   {
                     key: 'basic',
@@ -671,7 +700,305 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                     children: (
                       configModal.formatKey === 'videos' ? (
                         <div style={{ marginTop: 8 }}>
-                          <OnDemandResourceLibrary />
+                          <Row gutter={12} wrap={false}>
+                            <Col id="course-content-left" style={{ display: 'flex', width: '42%', minWidth: 240, flex: '0 0 auto' }}>
+                              <Card
+                                title={(
+                                  <Space>
+                                    <span>📚</span>
+                                    <span>当前课程内容</span>
+                                  </Space>
+                                )}
+                                style={{ flex: 1 }}
+                                bodyStyle={{ padding: 12 }}
+                              >
+                                {(() => {
+                                  const selectedIds = (((formatConfigs[configModal.phaseId] || {}).videos || {}).selectedCollections) || []
+                                  const DEFAULT_SPACE = '技术部-研发'
+                                  const currentSpace = (typeof localStorage !== 'undefined' && (localStorage.getItem('current_knowledge_space') || DEFAULT_SPACE)) || DEFAULT_SPACE
+                                  const typeToThumb = {
+                                    documents: '/thumbnails/documents.png',
+                                    videos: '/thumbnails/videos.png',
+                                    images: '/thumbnails/images.png',
+                                    audio: '/thumbnails/audio.png',
+                                    presentations: '/thumbnails/presentations.png',
+                                    default: '/thumbnails/default.png'
+                                  }
+                                  const categories = [
+                                    { id: 'teaching_resources', name: '教学资源库' },
+                                    { id: 'technology_training', name: '技术培训资源库' },
+                                    { id: 'family_education', name: '家庭教育资源库' },
+                                    { id: 'school_management', name: '学校管理资源库' },
+                                    { id: 'mental_health', name: '心理健康资源库' },
+                                    { id: 'new_teacher_resources', name: '新教师资源库' }
+                                  ]
+                                  const getCollectionThumbnail = (rc) => {
+                                    try {
+                                      const items = (rc && rc.items) || []
+                                      const firstType = (items.find(it => typeof it?.type === 'string')?.type) || ''
+                                      const t = String(firstType).toLowerCase()
+                                      if (t.includes('ppt') || t.includes('presentation')) return typeToThumb.presentations
+                                      if (t.includes('doc') || t.includes('pdf') || t.includes('guide')) return typeToThumb.documents
+                                      if (t.includes('video') || t.includes('mp4')) return typeToThumb.videos
+                                      if (t.includes('image') || t.includes('png') || t.includes('jpg')) return typeToThumb.images
+                                      if (t.includes('audio') || t.includes('mp3')) return typeToThumb.audio
+                                      switch (rc?.category) {
+                                        case 'technology_training': return typeToThumb.videos
+                                        case 'teaching_resources': return typeToThumb.documents
+                                        case 'family_education': return typeToThumb.presentations
+                                        case 'school_management': return typeToThumb.images
+                                        case 'mental_health': return typeToThumb.images
+                                        case 'new_teacher_resources': return typeToThumb.presentations
+                                        default: return typeToThumb.default
+                                      }
+                                    } catch {
+                                      return '/images/agents/agent-docs.svg'
+                                    }
+                                  }
+                                  const collections = (function createDefaultCollections() {
+                                    const today = new Date().toLocaleDateString('zh-CN')
+                                    const cats = [
+                                      { id: 'teaching_resources', title: '教学资源精选' },
+                                      { id: 'technology_training', title: '技术培训精选' },
+                                      { id: 'family_education', title: '家庭教育精选' },
+                                      { id: 'school_management', title: '学校管理精选' },
+                                      { id: 'mental_health', title: '心理健康研修' }
+                                    ]
+                                    const pickByCategory = (cat, limit = 8) => initialResources.filter(r => r.category === cat).slice(0, limit)
+                                    const uniqueTags = (items, limit = 12) => {
+                                      const set = new Set()
+                                      items.forEach(i => (i.tags || []).forEach(t => set.add(t)))
+                                      return Array.from(set).slice(0, limit)
+                                    }
+                                    return cats.map((c, idx) => {
+                                      const items = pickByCategory(c.id, 8)
+                                      if (c.id === 'technology_training') {
+                                        items.push({ id: 'scn-phy-1', title: '科学演示：电磁感应虚拟实验', type: 'scenario', drive: 'org', size: 'N/A', lastModified: today, tags: ['科学演示','物理','虚拟仿真'] })
+                                      }
+                                      if (c.id === 'mental_health') {
+                                        items.push({ id: 'scn-psy-1', title: '心理健康辅导：校园压力疏导', type: 'scenario', drive: 'my', size: 'N/A', lastModified: today, tags: ['心理健康','辅导','情绪管理'] })
+                                      }
+                                      return {
+                                        id: `rc-${c.id}-${idx+1}`,
+                                        title: c.title,
+                                        category: c.id,
+                                        createdAt: today,
+                                        items,
+                                        tags: uniqueTags(items)
+                                      }
+                                    })
+                                  })()
+                                  const byId = new Map(collections.map(c => [c.id, c]))
+                                  const selected = selectedIds.map(id => byId.get(id)).filter(Boolean)
+                                  if (selected.length === 0) {
+                                    return <Empty description={<div><Text>尚未选择集合</Text><br /><Text type="secondary">请在右侧勾选课程内容集合</Text></div>} />
+                                  }
+                                  return (
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
+                                       {selected.map(rc => (
+                                         <Card
+                                           key={rc.id}
+                                           hoverable
+                                           draggable
+                                           onDragStart={(e) => { setDraggingId(rc.id); e.dataTransfer.setData('text/plain', rc.id) }}
+                                           onDragEnd={() => { setDraggingId(null); setDragOverId(null) }}
+                                           onDragOver={(e) => { e.preventDefault(); if (dragOverId !== rc.id) setDragOverId(rc.id) }}
+                                           onDragLeave={() => { if (dragOverId === rc.id) setDragOverId(null) }}
+                                           onDrop={(e) => {
+                                             e.preventDefault()
+                                             const draggedId = e.dataTransfer.getData('text/plain')
+                                             if (!draggedId || draggedId === rc.id) return
+                                             setFormatConfigs(prev => {
+                                               const phase = prev[configModal.phaseId] || {}
+                                               const phaseObj = phaseMaterials.find(p => p.id === configModal.phaseId)
+                                               const baseVideos = phase.videos || getDefaultConfig(phaseObj, 'videos')
+                                               const ids = Array.from((baseVideos.selectedCollections || []))
+                                               const from = ids.indexOf(draggedId)
+                                               const to = ids.indexOf(rc.id)
+                                               if (from === -1 || to === -1) return prev
+                                               ids.splice(from, 1)
+                                               ids.splice(to, 0, draggedId)
+                                               return {
+                                                 ...prev,
+                                                 [configModal.phaseId]: {
+                                                   ...phase,
+                                                   videos: { ...baseVideos, selectedCollections: ids }
+                                                 }
+                                               }
+                                             })
+                                             setDraggingId(null); setDragOverId(null)
+                                           }}
+                                           style={{ 
+                                             width: '100%', 
+                                             position: 'relative', 
+                                             boxShadow: dragOverId === rc.id ? '0 4px 12px rgba(22, 119, 255, 0.3), 0 0 0 2px #1677ff' : (draggingId && draggingId !== rc.id ? '0 2px 8px rgba(0,0,0,0.1)' : undefined), 
+                                             opacity: draggingId === rc.id ? 0.6 : 1, 
+                                             transform: draggingId === rc.id ? 'scale(0.95) rotate(2deg)' : 'none',
+                                             transition: 'all 0.2s ease',
+                                             zIndex: draggingId === rc.id ? 1000 : 'auto'
+                                           }}
+                                         >
+                                           {dragOverId === rc.id && (
+                                             <>
+                                               <div style={{ 
+                                                 position: 'absolute', 
+                                                 top: -8, 
+                                                 left: -4, 
+                                                 right: -4, 
+                                                 height: 4, 
+                                                 background: 'linear-gradient(90deg, #1677ff, #40a9ff)',
+                                                 borderRadius: '2px',
+                                                 boxShadow: '0 2px 4px rgba(22, 119, 255, 0.4)'
+                                               }} />
+                                               <div style={{ 
+                                                 position: 'absolute', 
+                                                 top: -12, 
+                                                 left: '50%', 
+                                                 transform: 'translateX(-50%)',
+                                                 width: 0,
+                                                 height: 0,
+                                                 borderLeft: '6px solid transparent',
+                                                 borderRight: '6px solid transparent',
+                                                 borderBottom: '6px solid #1677ff'
+                                               }} />
+                                             </>
+                                           )}
+                                           <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 1 }} onClick={(e) => e.stopPropagation()}>
+                                             <Tooltip title="预览集合">
+                                               <Button size="small" type="text" icon={<EyeOutlined />} onClick={() => openCollectionPreview(rc)} />
+                                             </Tooltip>
+                                           </div>
+                                           <div style={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }} onClick={(e) => e.stopPropagation()}>
+                                             <Tooltip title="取消选中">
+                                               <Button size="small" danger type="text" icon={<DeleteOutlined />} onClick={() => {
+                                                 setFormatConfigs(prev => {
+                                                   const phase = prev[configModal.phaseId] || {}
+                                                   const phaseObj = phaseMaterials.find(p => p.id === configModal.phaseId)
+                                                   const baseVideos = phase.videos || getDefaultConfig(phaseObj, 'videos')
+                                                   const ids = (baseVideos.selectedCollections || []).filter(x => x !== rc.id)
+                                                   return {
+                                                     ...prev,
+                                                     [configModal.phaseId]: {
+                                                       ...phase,
+                                                       videos: { ...baseVideos, selectedCollections: ids }
+                                                     }
+                                                   }
+                                                 })
+                                               }} />
+                                             </Tooltip>
+                                           </div>
+                                           <div style={{ width: '100%', height: 120, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0', marginBottom: 8 }}>
+                                             <img src={getCollectionThumbnail(rc)} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                           </div>
+                                           <Space style={{ justifyContent: 'space-between', width: '100%' }}>
+                                             <Text type="secondary">{(categories.find(c => c.id === rc.category)?.name) || '资料集合'}</Text>
+                                             <Text type="secondary">{rc.createdAt}</Text>
+                                           </Space>
+                                           <div style={{ fontWeight: 600, marginTop: 8 }}>{rc.title}</div>
+                                         </Card>
+                                       ))}
+                                    </div>
+                                   )
+                                 })()}
+                              </Card>
+                            </Col>
+                            <Col flex="8px">
+                              <div style={{ width: 8, cursor: 'col-resize', height: '100%', background: '#f5f5f5', borderLeft: '1px solid #eee', borderRight: '1px solid #eee' }} onMouseDown={(e) => {
+                                const left = document.getElementById('course-content-left');
+                                const right = document.getElementById('course-content-right');
+                                const row = e.currentTarget.parentElement?.parentElement;
+                                const startX = e.clientX;
+                                const total = row?.clientWidth || ((left?.clientWidth || 0) + (right?.clientWidth || 0));
+                                const startLeft = left?.clientWidth || 0;
+                                const onMove = (ev) => {
+                                  const dx = ev.clientX - startX;
+                                  let newLeft = startLeft + dx;
+                                  const min = 240;
+                                  const max = total - 240;
+                                  if (newLeft < min) newLeft = min;
+                                  if (newLeft > max) newLeft = max;
+                                  const newRight = total - newLeft;
+                                  if (left) { left.style.flex = '0 0 auto'; left.style.width = newLeft + 'px'; }
+                                  if (right) { right.style.flex = '1 1 auto'; right.style.width = newRight + 'px'; }
+                                };
+                                const onUp = () => {
+                                  const finalLeft = left?.clientWidth || startLeft;
+                                  const ratio = total > 0 ? (Math.max(240, Math.min(total - 240, finalLeft)) / total) : 0;
+                                  try { localStorage.setItem('course_content_split_ratio', String(ratio)); } catch {}
+                                  window.removeEventListener('mousemove', onMove);
+                                  window.removeEventListener('mouseup', onUp);
+                                };
+                                window.addEventListener('mousemove', onMove);
+                                window.addEventListener('mouseup', onUp);
+                              }} />
+                            </Col>
+                            <Col id="course-content-right" style={{ display: 'flex', flex: '1 1 auto', minWidth: 240 }}>
+                              <Card
+                                title={(
+                                  <Space>
+                                    <span>🗂️</span>
+                                    <span>选择课程内容集合</span>
+                                  </Space>
+                                )}
+                                extra={(
+                                  (() => {
+                                    const rightCategories = [
+                                      { id: 'all', name: '全部' },
+                                      { id: 'teaching_resources', name: '教学资源库' },
+                                      { id: 'technology_training', name: '技术培训资源库' },
+                                      { id: 'family_education', name: '家庭教育资源库' },
+                                      { id: 'school_management', name: '学校管理资源库' },
+                                      { id: 'mental_health', name: '心理健康资源库' },
+                                      { id: 'new_teacher_resources', name: '新教师资源库' }
+                                    ]
+                                    return (
+                                      <Space>
+                                        <Select
+                                          value={rightFilterCategory}
+                                          onChange={setRightFilterCategory}
+                                          style={{ width: 160 }}
+                                          options={rightCategories.map(c => ({ value: c.id, label: c.name }))}
+                                        />
+                                        <Input.Search
+                                          allowClear
+                                          placeholder="搜索集合标题/标签"
+                                          value={rightFilterQuery}
+                                          onChange={(e) => setRightFilterQuery(e.target.value)}
+                                          onSearch={setRightFilterQuery}
+                                          style={{ width: 220 }}
+                                        />
+                                      </Space>
+                                    )
+                                  })()
+                                )}
+                                style={{ flex: 1 }}
+                                bodyStyle={{ padding: 12 }}
+                              >
+                                <OnDemandResourceLibrary
+                                  selectMode
+                                  selectedCollectionIds={(((formatConfigs[configModal.phaseId] || {}).videos || {}).selectedCollections) || []}
+                                  useExternalFilters
+                                  externalFilters={{ query: rightFilterQuery, category: rightFilterCategory }}
+                                  defaultViewMode="grid"
+                                  onCategoryChange={setRightFilterCategory}
+                                  onSelectionChange={(ids) => {
+                                    setFormatConfigs(prev => {
+                                      const phase = prev[configModal.phaseId] || {}
+                                      const phaseObj = phaseMaterials.find(p => p.id === configModal.phaseId)
+                                      const baseVideos = phase.videos || getDefaultConfig(phaseObj, 'videos')
+                                      return {
+                                        ...prev,
+                                        [configModal.phaseId]: {
+                                          ...phase,
+                                          videos: { ...baseVideos, selectedCollections: ids }
+                                        }
+                                      }
+                                    })
+                                  }}
+                                />
+                              </Card>
+                            </Col>
+                          </Row>
                         </div>
                       ) : (
                         <Empty description="当前形式不支持课程内容配置" />
@@ -820,7 +1147,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                       <div key={`phase-${phase.id}-cat-${c.key}`} style={{ background: '#ffffff', border: '1px solid #f0e1a0', borderRadius: 6, padding: '6px 8px' }}>
                                         <Text style={{ fontSize: 12, color: '#614700', fontWeight: 600 }}>{c.label}</Text>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                                          <Text style={{ fontSize: 12, color: '#333' }}>学时：{(c.hours ?? 0)}</Text>
+                                          <Text style={{ fontSize: 12, color: '#333' }}>学时：{(c.hours || 0)}</Text>
                                           <Text style={{ fontSize: 12, color: '#333' }}>成绩：{(c.score == null ? '未评分' : `${c.score}分`)}</Text>
                                         </div>
                                       </div>
@@ -851,7 +1178,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
               label: '参训人员',
               children: (
                 <>
-                  <Row gutter={12} wrap={false} style={{ alignItems: 'stretch' }}>
+                  <Row gutter={12} wrap={true} style={{ alignItems: 'stretch' }}>
                     <Col span={7} style={{ display: 'flex' }}>
                       <Card
                         title={(

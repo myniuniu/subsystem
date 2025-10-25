@@ -28,7 +28,8 @@ const ResourceCategorySidebar = ({
   onCategoryChange,
   resources,
   categories,
-  configVersion
+  configVersion,
+  disableHoverActions = false
 }) => {
   const iconMap = {
     FileTextOutlined,
@@ -96,7 +97,7 @@ const ResourceCategorySidebar = ({
     const IconComponent = isEmojiIcon ? null : (iconMap[category.icon] || FileTextOutlined);
     const showCount = true;
     const count = getCategoryCount(category);
-    const showActions = category.type === 'system' && !['all', 'starred', 'recent', 'shared'].includes(category.value);
+    const showActions = !disableHoverActions && category.type === 'system' && !['all', 'starred', 'recent', 'shared'].includes(category.value);
 
     return (
       <div className={`category-item ${selectedCategory === category.value ? 'active' : ''}`} style={{ paddingLeft: 0 }}>
@@ -206,17 +207,19 @@ const ResourceCategorySidebar = ({
             <GroupIconComponent className="category-icon" />
           )}
           <span>{group.title}</span>
-          <span className="category-actions">
-            <Tooltip title="新增分类">
-              <Button
-                type="text"
-                size="small"
-                onClick={(e) => { e.stopPropagation(); message.info('新增一级分类将在后续版本提供'); }}
-                icon={<PlusOutlined className="transparent-maintain-icon" />}
-                aria-label="新增一级分类"
-              />
-            </Tooltip>
-          </span>
+          {!disableHoverActions && (
+            <span className="category-actions">
+              <Tooltip title="新增分类">
+                <Button
+                  type="text"
+                  size="small"
+                  onClick={(e) => { e.stopPropagation(); message.info('新增一级分类将在后续版本提供'); }}
+                  icon={<PlusOutlined className="transparent-maintain-icon" />}
+                  aria-label="新增一级分类"
+                />
+              </Tooltip>
+            </span>
+          )}
         </span>
       ),
       selectable: false,
@@ -248,43 +251,17 @@ const ResourceCategorySidebar = ({
   
   const onExpand = (keys) => setExpandedKeys(keys);
 
-  const onSelect = (keys) => {
-    const key = keys?.[0];
-    if (key) {
-      onCategoryChange?.(key);
-    }
-  };
-
   return (
-    <Sider width={340} className="notes-sidebar resource-category-sidebar">
+    <Sider width={260} className="resource-category-sidebar">
       <div className="sidebar-content">
-        <div className="category-group" key="resource_categories_header">
-          <div className="category-group-title">
-            <span>资源分类</span>
-            <span className="category-actions">
-              <Tooltip title="新增分类">
-                <Button
-                  type="text"
-                  size="small"
-                  onClick={(e) => { e.stopPropagation(); message.info('新增分类将在后续版本提供'); }}
-                  icon={<PlusOutlined />}
-                  aria-label="新增分类"
-                />
-              </Tooltip>
-            </span>
-          </div>
-        </div>
         <div className="sidebar-bottom">
           <Tree
             className="category-tree"
-            showLine={false}
-            showIcon={false}
             treeData={treeData}
-            selectedKeys={selectedCategory ? [selectedCategory] : []}
-            onSelect={onSelect}
+            selectedKeys={[selectedCategory]}
             expandedKeys={expandedKeys}
             onExpand={onExpand}
-            blockNode
+            onSelect={(selectedKeys) => selectedKeys[0] && onCategoryChange(selectedKeys[0])}
           />
         </div>
       </div>
