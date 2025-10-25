@@ -253,7 +253,7 @@ const TrainingPlanViewer = ({
 
   // 分屏：右侧实施方案显示/隐藏
 
-  const [layoutMode, setLayoutMode] = useState('left'); // 'left' | 'right' | 'both'
+  const [layoutMode, setLayoutMode] = useState('both'); // 'left' | 'right' | 'both'
   const handleConfigureImplementation = () => {
     setLayoutMode(prev => (prev === 'left' ? 'both' : 'left'));
   };
