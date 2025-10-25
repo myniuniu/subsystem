@@ -1635,7 +1635,9 @@ class NotesService {
         videoInfo: noteData.videoInfo || null, // { url, duration, progress, type }
         materials: noteData.materials || null,  // 关联的资料信息
         // 添加学习时间（如果是组织培训且没有提供）
-        learningSchedule: noteData.learningSchedule || defaultLearningSchedule
+        learningSchedule: noteData.learningSchedule || defaultLearningSchedule,
+        // 为培训需求管理分类默认添加操作记录
+        operationRecords: noteData.operationRecords || (noteData.category === 'training_needs_management' ? { 'training-plan': [this.generateDefaultTrainingPlanRecord()] } : {})
       };
       
       notes.unshift(newNote);
@@ -2794,6 +2796,43 @@ ${course.description}
       console.error('批量更新组织培训进行中主题结束日期失败:', error);
       return 0;
     }
+  }
+
+  /**
+   * 生成默认的培训方案操作记录
+   * @returns {Object} 默认的培训方案操作记录
+   */
+  generateDefaultTrainingPlanRecord() {
+    return {
+      id: this.generateId(),
+      title: '培训方案',
+      type: 'training-plan',
+      source: '系统生成',
+      time: new Date().toISOString(),
+      content: {
+        overview: '基于培训需求分析，制定针对性的培训方案，确保培训效果最大化。',
+        schedule: [
+          {
+            phase: '基础理论学习',
+            duration: '2周',
+            content: '理论知识讲解、案例分析、概念理解',
+            objectives: ['掌握基础理论知识', '理解核心概念', '建立知识框架']
+          },
+          {
+            phase: '实践操作训练',
+            duration: '3周',
+            content: '实际操作练习、技能训练、项目实战',
+            objectives: ['提升实操能力', '熟练掌握技能', '积累实战经验']
+          },
+          {
+            phase: '综合评估',
+            duration: '1周',
+            content: '综合测试、能力评估、效果反馈',
+            objectives: ['验证学习成果', '识别改进点', '制定后续计划']
+          }
+        ]
+      }
+    };
   }
 }
 

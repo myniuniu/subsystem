@@ -1029,13 +1029,6 @@ const TrainingPlanViewer = ({
               <Title level={4} style={{ margin: 0 }}>{plan.title}</Title>
             </div>
             <Space>
-              <Button 
-                icon={<SettingOutlined />} 
-                onClick={handleConfigureImplementation}
-              >
-                配置实施方案
-              </Button>
-              <Divider type="vertical" />
               <Tooltip title="左栏视图">
                 <Button 
                   type={layoutMode === 'left' ? 'primary' : 'text'}

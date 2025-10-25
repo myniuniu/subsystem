@@ -237,6 +237,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
   // 配置状态：按阶段 + 形式存储
   const [formatConfigs, setFormatConfigs] = useState({}); // { [phaseId]: { live: {...}, videos: {...}, exam: {...} } }
   const [configModal, setConfigModal] = useState({ visible: false, phaseId: null, formatKey: null, draft: null });
+
   const configAreaRef = useRef(null);
 
   const getDefaultConfig = (phase, formatKey) => {
@@ -283,6 +284,8 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
     const base = baseAll[formatKey] || getDefaultConfig(phase, formatKey);
     setConfigModal({ visible: true, phaseId, formatKey, draft: { ...base } });
   };
+
+
 
   useEffect(() => {
     if (configModal.visible && configAreaRef.current) {
@@ -1287,14 +1290,21 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                           <div style={{ flex: 1 }}>
                                             <div>
                                               <Text strong style={{ marginRight: 8 }}>{cfg.name}</Text>
-                                              <Text type="secondary">{cfg.details || '未配置具体内容'}</Text>
+                                              {cfg.details ? (
+                                                <Text type="secondary">{cfg.details}</Text>
+                                              ) : null}
                                             </div>
                                             <div style={{ marginTop: 4, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                                               <Tag color={cfg.enabled ? 'blue' : 'default'}>{cfg.enabled ? '需要考核' : '不考核'}</Tag>
                                               <Tag color="purple">方式：{cfg.assessment?.method || '未设置'}</Tag>
                                               <Tag color="gold">权重：{cfg.assessment?.weight ?? 0}%</Tag>
                                               {fmtKey !== 'exam' && (
-                                                <Tag color="gold">达标观看：{cfg.watch?.requiredPercent ?? 0}%</Tag>
+                                                <>
+                                                  <Tag color="gold">达标观看：{cfg.watch?.requiredPercent ?? 0}%</Tag>
+                                                  {fmtKey === 'videos' && (
+                                                    <Tag color="geekblue">已选集合：{Array.isArray(cfg.selectedCollections) ? cfg.selectedCollections.length : 0} 个</Tag>
+                                                  )}
+                                                </>
                                               )}
                                               {fmtKey === 'exam' && (
                                                 <>
@@ -1304,7 +1314,8 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                               )}
                                             </div>
                                           </div>
-                                          <div>
+                                          <div style={{ display: 'flex', gap: 4 }}>
+
                                             <Button size="small" type="primary" onClick={() => openConfigModal(phase.id, fmtKey)}>配置</Button>
                                           </div>
                                         </div>
@@ -1490,6 +1501,155 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* 课程内容预览模态框 */}
+      {false && (<Modal
+        title="课程内容预览"
+        open={previewModal.visible}
+        onCancel={() => setPreviewModal({ visible: false, phaseId: null, formatKey: null })}
+        width={800}
+        footer={[
+          <Button key="close" onClick={() => setPreviewModal({ visible: false, phaseId: null, formatKey: null })}>
+            关闭
+          </Button>
+        ]}
+      >
+        {previewModal.visible && (() => {
+          const phase = phaseMaterials.find(p => p.id === previewModal.phaseId);
+          const phaseCfg = formatConfigs[previewModal.phaseId] || {};
+          const videoCfg = phaseCfg.videos || getDefaultConfig(phase, 'videos');
+          const selectedIds = videoCfg.selectedCollections || [];
+          
+          // 创建默认集合数据
+          const collections = (function createDefaultCollections() {
+            const today = new Date().toLocaleDateString('zh-CN');
+            const cats = [
+              { id: 'teaching_resources', title: '教学资源精选' },
+              { id: 'technology_training', title: '技术培训精选' },
+              { id: 'family_education', title: '家庭教育精选' },
+              { id: 'school_management', title: '学校管理精选' },
+              { id: 'mental_health', title: '心理健康研修' }
+            ];
+            const pickByCategory = (cat, limit = 8) => initialResources.filter(r => r.category === cat).slice(0, limit);
+            const uniqueTags = (items, limit = 12) => {
+              const set = new Set();
+              items.forEach(i => (i.tags || []).forEach(t => set.add(t)));
+              return Array.from(set).slice(0, limit);
+            };
+            return cats.map((c, idx) => {
+              const items = pickByCategory(c.id, 8);
+              return {
+                id: `rc-${c.id}-${idx+1}`,
+                title: c.title,
+                category: c.id,
+                createdAt: today,
+                items,
+                tags: uniqueTags(items)
+              };
+            });
+          })();
+          
+          const byId = new Map(collections.map(c => [c.id, c]));
+          const selected = selectedIds.map(id => byId.get(id)).filter(Boolean);
+          
+          const typeToThumb = {
+            documents: '/thumbnails/documents.png',
+            videos: '/thumbnails/videos.png',
+            images: '/thumbnails/images.png',
+            audio: '/thumbnails/audio.png',
+            presentations: '/thumbnails/presentations.png',
+            default: '/thumbnails/default.png'
+          };
+          
+          const getCollectionThumbnail = (rc) => {
+            try {
+              const items = (rc && rc.items) || [];
+              const firstType = (items.find(it => typeof it?.type === 'string')?.type) || '';
+              const t = String(firstType).toLowerCase();
+              if (t.includes('ppt') || t.includes('presentation')) return typeToThumb.presentations;
+              if (t.includes('doc') || t.includes('pdf') || t.includes('guide')) return typeToThumb.documents;
+              if (t.includes('video') || t.includes('mp4')) return typeToThumb.videos;
+              if (t.includes('image') || t.includes('png') || t.includes('jpg')) return typeToThumb.images;
+              if (t.includes('audio') || t.includes('mp3')) return typeToThumb.audio;
+              switch (rc?.category) {
+                case 'technology_training': return typeToThumb.videos;
+                case 'teaching_resources': return typeToThumb.documents;
+                case 'family_education': return typeToThumb.presentations;
+                case 'school_management': return typeToThumb.images;
+                case 'mental_health': return typeToThumb.images;
+                case 'new_teacher_resources': return typeToThumb.presentations;
+                default: return typeToThumb.default;
+              }
+            } catch {
+              return '/images/agents/agent-docs.svg';
+            }
+          };
+          
+          const categories = [
+            { id: 'teaching_resources', name: '教学资源库' },
+            { id: 'technology_training', name: '技术培训资源库' },
+            { id: 'family_education', name: '家庭教育资源库' },
+            { id: 'school_management', name: '学校管理资源库' },
+            { id: 'mental_health', name: '心理健康资源库' },
+            { id: 'new_teacher_resources', name: '新教师资源库' }
+          ];
+          
+          return (
+            <div>
+              <div style={{ marginBottom: 16 }}>
+                <Text strong>阶段：</Text>
+                <Text>{phase?.title || '未知阶段'}</Text>
+                <Divider type="vertical" />
+                <Text strong>配置信息：</Text>
+                <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  <Tag color={videoCfg.enabled ? 'blue' : 'default'}>{videoCfg.enabled ? '需要考核' : '不考核'}</Tag>
+                  <Tag color="purple">方式：{videoCfg.assessment?.method || '未设置'}</Tag>
+                  <Tag color="gold">权重：{videoCfg.assessment?.weight ?? 0}%</Tag>
+                  <Tag color="gold">达标观看：{videoCfg.watch?.requiredPercent ?? 0}%</Tag>
+                </div>
+              </div>
+              
+              <Divider />
+              
+              <div>
+                <Text strong style={{ fontSize: 16 }}>已配置的课程内容</Text>
+                <div style={{ marginTop: 12 }}>
+                  {selected.length === 0 ? (
+                    <Empty description="暂未配置课程内容" />
+                  ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 16 }}>
+                      {selected.map(rc => {
+                        const categoryLabel = categories.find(c => c.id === rc.category)?.name || '资料集合';
+                        return (
+                          <Card key={rc.id} size="small" hoverable>
+                            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                              <div style={{ width: 80, height: 60, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0', flexShrink: 0 }}>
+                                <img src={getCollectionThumbnail(rc)} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              </div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontWeight: 600, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rc.title}</div>
+                                <div style={{ color: '#666', fontSize: 12, marginBottom: 6 }}>{categoryLabel}</div>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                                  {(rc.tags || []).slice(0, 3).map(tag => (
+                                    <Tag key={tag} size="small">{tag}</Tag>
+                                  ))}
+                                </div>
+                                <div style={{ marginTop: 6, color: '#888', fontSize: 12 }}>
+                                  创建时间：{rc.createdAt} · 项目数：{rc.items?.length || 0}
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+      </Modal>)}
     </div>
   );
 };

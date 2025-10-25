@@ -130,7 +130,7 @@ const openCollectionPreview = (rc, currentSpace) => {
             <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {(rc.tags || []).slice(0, 8).map(tag => (<AntTag key={tag}>{tag}</AntTag>))}
             </div>
-            <div style={{ marginTop: 6, color: '#888' }}>创建时间：{rc.createdAt} · 项目数：{items.length}</div>
+            <div style={{ marginTop: 6, color: '#888' }}>项目数：{items.length}</div>
           </div>
         </div>
         {items.length === 0 ? (
@@ -272,23 +272,18 @@ export default function ResourceLibraryCopied({ selectMode = false, selectedColl
 
   const collectionColumns = [
     {
-      title: '缩略图',
+      title: '标题',
       dataIndex: 'rc',
-      key: 'thumb',
-      width: 120,
-      render: (rc) => (
-        <div style={{ width: 100, height: 50, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0' }}>
-          <img src={getCollectionThumbnail(rc)} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      key: 'title_thumb',
+      render: (rc, record) => (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
+          <div style={{ width: 100, height: 50, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0' }}>
+            <img src={getCollectionThumbnail(rc)} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          </div>
+          <span style={{ fontWeight: 600 }}>{record.title}</span>
         </div>
       )
     },
-    {
-      title: '标题',
-      dataIndex: 'title',
-      key: 'title',
-      render: (text) => (<span style={{ fontWeight: 600 }}>{text}</span>)
-    },
-    { title: '分类', dataIndex: 'categoryLabel', key: 'category' },
     {
       title: '标签',
       dataIndex: 'tags',
@@ -300,7 +295,6 @@ export default function ResourceLibraryCopied({ selectMode = false, selectedColl
       )
     },
     { title: '数量', dataIndex: 'itemsCount', key: 'count', width: 80 },
-    { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 140 },
     {
       title: '操作', key: 'actions', width: 220,
       render: (_, record) => (
@@ -390,7 +384,6 @@ export default function ResourceLibraryCopied({ selectMode = false, selectedColl
                         {getCategoryIcon(row.rc.category)}
                         <Text type="secondary">{row.itemsCount} 项</Text>
                       </Space>
-                      <Text type="secondary">{row.createdAt}</Text>
                     </Space>
                     <div style={{ fontWeight: 600, marginTop: 8 }}>{row.title}</div>
                     <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
