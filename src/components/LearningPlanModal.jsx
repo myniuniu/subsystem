@@ -375,7 +375,7 @@ const LearningPlanModal = ({ visible, onConfirm, onCancel, inline = false }) => 
     </div>
   );
 
-  return inline ? (
+  return inline && visible ? (
     <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <span style={{ fontWeight: 600 }}>🎯 智能学习计划</span>

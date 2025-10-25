@@ -194,21 +194,90 @@ export const useOperationHandlers = ({
     if (card.key === 'scenario') {
       onScenarioClick();
     } else if (card.key === 'question') {
-      // 试题工具弹出配置窗口
-      setQuestionConfigVisible(true);
+      // 直接生成试题记录，不弹出配置窗口
+      const questionRecord = {
+        id: `question_${Date.now()}`,
+        type: OPERATION_TYPES.QUESTION,
+        title: '智能试题',
+        source: sourceInfo?.details || '基于当前数据源',
+        time: new Date().toLocaleString('zh-CN'),
+        content: `<div style="padding: 20px; text-align: center;">
+          <h3>📝 智能试题</h3>
+          <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的智能试题</p>
+          <p style="color: #999; font-size: 14px;">${sourceInfo?.details || '数据源分析'} • ${new Date().toLocaleString('zh-CN')}</p>
+        </div>`,
+        config: { auto: true }
+      };
+      addRecordWithGenerating(OPERATION_TYPES.QUESTION, questionRecord, {
+        onComplete: () => {
+          message.success('试题生成成功，记录已添加。点击查看详情');
+        }
+      });
     } else if (card.key === 'learning-plan') {
-      // 学习计划工具弹出配置窗口
-      setLearningPlanModalVisible(true);
+      // 直接生成学习计划记录，不弹出配置窗口
+      const learningPlanRecord = {
+        id: `learning_plan_${Date.now()}`,
+        type: OPERATION_TYPES.LEARNING_PLAN,
+        title: '智能学习计划',
+        source: sourceInfo?.details || '基于当前数据源',
+        time: new Date().toLocaleString('zh-CN'),
+        content: `<div style="padding: 20px; text-align: center;">
+          <h3>🎯 智能学习计划</h3>
+          <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的个性化学习计划</p>
+          <p style="color: #999; font-size: 14px;">${sourceInfo?.details || '数据源分析'} • ${new Date().toLocaleString('zh-CN')}</p>
+        </div>`,
+        planData: {
+          startDate: new Date().toLocaleDateString('zh-CN'),
+          endDate: new Date(Date.now() + 84 * 24 * 60 * 60 * 1000).toLocaleDateString('zh-CN')
+        }
+      };
+      addRecordWithGenerating(OPERATION_TYPES.LEARNING_PLAN, learningPlanRecord, {
+        onComplete: () => {
+          message.success('学习计划生成成功，记录已添加。点击查看详情');
+        }
+      });
     } else if (card.key === 'report') {
-      // 报告工具弹出格式选择窗口
-      setReportSelectionVisible(true);
+      // 直接生成报告记录，不弹出格式选择窗口
+      const reportRecord = {
+        id: `report_${Date.now()}`,
+        type: OPERATION_TYPES.REPORT,
+        title: '智能报告',
+        source: sourceInfo?.details || '基于当前数据源',
+        time: new Date().toLocaleString('zh-CN'),
+        content: `<div style="padding: 20px; text-align: center;">
+          <h3>📄 智能报告</h3>
+          <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的报告</p>
+          <p style="color: #999; font-size: 14px;">${sourceInfo?.details || '数据源分析'} • ${new Date().toLocaleString('zh-CN')}</p>
+        </div>`
+      };
+      addRecordWithGenerating(OPERATION_TYPES.REPORT, reportRecord, {
+        onComplete: () => {
+          message.success('报告已生成，记录已添加。点击查看详情');
+        }
+      });
     } else if (card.key === 'grading') {
       // 阅卷工具处理
       handleGradingToolAction();
     } else if (card.key === OPERATION_TYPES.CLASSROOM_EVALUATION) {
-      // 课堂评价工具处理
-      message.info(`正在启动课堂评价工具（基于${sourceInfo?.total || 0}个数据源）`);
-      setClassroomEvaluationVisible(true);
+      // 直接生成课堂评价记录，不弹出配置窗口
+      const evaluationRecord = {
+        id: `classroom_evaluation_${Date.now()}`,
+        type: OPERATION_TYPES.CLASSROOM_EVALUATION,
+        title: '课堂评价',
+        source: sourceInfo?.details || '基于当前数据源',
+        time: new Date().toLocaleString('zh-CN'),
+        content: `<div style="padding: 20px; text-align: center;">
+          <h3>📊 课堂评价报告</h3>
+          <p style="color: #666;">基于评价量表生成的课堂表现评价</p>
+          <p style="color: #999; font-size: 14px;">${new Date().toLocaleString('zh-CN')}</p>
+        </div>`,
+        evaluationConfig: { auto: true }
+      };
+      addRecordWithGenerating(OPERATION_TYPES.CLASSROOM_EVALUATION, evaluationRecord, {
+        onComplete: () => {
+          message.success('课堂评价记录已生成，点击操作记录查看详情');
+        }
+      });
     } else if (card.key === OPERATION_TYPES.CLASSROOM_BEHAVIOR_ANALYSIS) {
       // 课堂行为分析工具处理：生成一条操作记录并打开查看器
       const behaviorRecord = {
@@ -238,14 +307,26 @@ export const useOperationHandlers = ({
     } else if (card.key === 'training-report') {
       // 培训报告工具处理
       handleTrainingReportToolAction();
-    } else if (card.key === OPERATION_TYPES.TRAINING_DASHBOARD) {
-      // 培训报表工具处理
-      handleTrainingDashboardToolAction();
-    } else if (card.isAITool) {
-      // AI工具点击处理
-      message.info(`您点击了AI工具：${card.title}（基于${sourceInfo?.total || 0}个数据源）`);
-    } else {
-      onOperationClick(card.key);
+    } else if (card.key === OPERATION_TYPES.TRAINING_PLAN) {
+      // 直接生成培训方案记录，不弹出配置窗口
+      const trainingPlanRecord = {
+        id: `training_plan_${Date.now()}`,
+        type: OPERATION_TYPES.TRAINING_PLAN,
+        title: '培训方案',
+        source: sourceInfo?.details || '基于当前数据源',
+        time: new Date().toLocaleString('zh-CN'),
+        content: `<div style="padding: 20px; text-align: center;">
+          <h3>📋 培训方案</h3>
+          <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的培训方案</p>
+          <p style="color: #999; font-size: 14px;">${sourceInfo?.details || '数据源分析'} • ${new Date().toLocaleString('zh-CN')}</p>
+        </div>`,
+        trainingConfig: { auto: true }
+      };
+      addRecordWithGenerating(OPERATION_TYPES.TRAINING_PLAN, trainingPlanRecord, {
+        onComplete: () => {
+          message.success('培训方案生成成功，记录已添加。点击查看详情');
+        }
+      });
     }
   };
 

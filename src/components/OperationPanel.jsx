@@ -1652,17 +1652,28 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
       <QuestionConfigModal
         inline
         visible={questionConfigVisible}
-        onClose={() => setQuestionConfigVisible(false)}
-        materialCount={sourceInfo?.total || 0}
-        onConfirm={(operationRecord) => {
+        onCancel={() => setQuestionConfigVisible(false)}
+        onConfirm={(config) => {
+          // 生成试题记录
+          const operationRecord = {
+            id: Date.now(),
+            type: 'question',
+            title: '智能试题',
+            source: sourceInfo?.details || '基于当前数据源',
+            time: new Date().toLocaleString('zh-CN'),
+            content: `<div style="padding: 20px; text-align: center;">
+              <h3>📝 智能试题</h3>
+              <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的智能试题</p>
+              <p style="color: #999; font-size: 14px;">${sourceInfo?.details || '数据源分析'} • ${new Date().toLocaleString('zh-CN')}</p>
+            </div>`,
+            config
+          };
+
           // 使用通用函数添加记录
           addRecordWithGenerating('question', operationRecord, {
             onComplete: () => {
-              // 生成完成后设置右侧面板显示
-              setRightPanelQuestionRecord(operationRecord);
-              setRightPanelQuestionContent(operationRecord.content);
-              setRightPanelView('QUESTION_VIEWER');
-              message.success('试题生成成功！');
+              // 不自动打开右侧详细视图，保持在“智能工具/操作记录”
+              message.success('试题生成成功！请点击操作记录查看详情');
             }
           });
           
@@ -1698,11 +1709,8 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
           // 使用通用函数添加记录
           addRecordWithGenerating('learning-plan', learningPlanRecord, {
             onComplete: () => {
-              // 生成完成后设置右侧面板显示
-              setRightPanelLearningPlanRecord(learningPlanRecord);
-              setRightPanelLearningPlanContent(learningPlanRecord.content);
-              setRightPanelView('LEARNING_PLAN_VIEWER');
-              message.success('学习计划生成成功！');
+              // 不自动打开右侧详细视图，保持在“智能工具/操作记录”
+              message.success('学习计划生成成功！请点击操作记录查看详情');
             }
           });
           

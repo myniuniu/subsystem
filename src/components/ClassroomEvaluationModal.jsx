@@ -92,7 +92,7 @@ const ClassroomEvaluationModal = ({ visible, onCancel, onConfirm, inline = false
     '课堂纪律管理'
   ];
 
-  return (
+  return inline && visible ? (
     <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 16 }}>
         <div style={{
@@ -245,7 +245,7 @@ const ClassroomEvaluationModal = ({ visible, onCancel, onConfirm, inline = false
         </Space>
       </div>
     </div>
-  );
+  ) : null;
 };
 
 export default ClassroomEvaluationModal;

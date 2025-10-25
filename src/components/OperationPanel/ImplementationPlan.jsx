@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Typography, Button, Tag, Tooltip, Progress, Modal, Card, Form, Input, InputNumber, Switch, Select, Table, Avatar, Space, Divider, Tabs, Row, Col, Empty } from 'antd';
-import { DownOutlined, RightOutlined, UserAddOutlined, DeleteOutlined, TeamOutlined, EyeOutlined } from '@ant-design/icons';
+import { DownOutlined, RightOutlined, UserAddOutlined, DeleteOutlined, TeamOutlined, EyeOutlined, CheckCircleTwoTone, AppstoreOutlined, ProfileOutlined } from '@ant-design/icons';
 import { createMockOrganizationPersonnelTree } from '../../data/organizationPersonnelMockData';
 import { TreeNodeType } from '../../types/organizationPersonnelTree';
 import OnDemandResourceLibrary from './OnDemandResourceLibrary'
@@ -17,9 +17,13 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
   const [rightFilterQuery, setRightFilterQuery] = useState('')
   const [rightFilterCategory, setRightFilterCategory] = useState('all')
 
+  // 顶部标题栏页签：基础配置 / 课程内容
+  const [configTabKey, setConfigTabKey] = useState('content')
+
   // 左侧拖拽排序视觉提示状态
   const [draggingId, setDraggingId] = useState(null)
   const [dragOverId, setDragOverId] = useState(null)
+  const [hoveredCardId, setHoveredCardId] = useState(null)
 
   // 参训人员状态管理
   const [participants, setParticipants] = useState([
@@ -170,6 +174,29 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
   // 折叠控制
   const [collapsedPhases, setCollapsedPhases] = useState(new Set(enrichedTrainingPhases.map(p => p.id)));
   const [phaseViewCompactMode, setPhaseViewCompactMode] = useState(true);
+  const [leftCollapsed, setLeftCollapsed] = useState(false);
+  const [isSmallScreen, setIsSmallScreen] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+  const [leftGridColumns, setLeftGridColumns] = useState(2); // 左侧展开态卡片每行列数，默认两列
+  const [leftViewMode, setLeftViewMode] = useState('double'); // 视图模式：single | double
+  useEffect(() => {
+    const update = () => setIsSmallScreen(window.innerWidth < 768);
+    if (typeof window !== 'undefined') {
+      update();
+      window.addEventListener('resize', update);
+      return () => window.removeEventListener('resize', update);
+    }
+  }, []);
+  useEffect(() => {
+    // 小屏自动单列，并自动收缩左栏；大屏默认两列
+    setLeftGridColumns(isSmallScreen ? 1 : 2);
+    if (isSmallScreen) setLeftCollapsed(true);
+  }, [isSmallScreen]);
+  useEffect(() => {
+    // 收缩时单列，展开时双列（在非小屏下生效）
+    if (!isSmallScreen) {
+      setLeftGridColumns(leftCollapsed ? 1 : 2);
+    }
+  }, [leftCollapsed, isSmallScreen]);
   const expandAllPhases = () => setCollapsedPhases(new Set());
   const collapseAllPhases = () => setCollapsedPhases(new Set(enrichedTrainingPhases.map(p => p.id)));
   const togglePhase = (phaseId) => {
@@ -213,13 +240,30 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
   const configAreaRef = useRef(null);
 
   const getDefaultConfig = (phase, formatKey) => {
-    if (formatKey === 'live' || formatKey === 'videos') {
+    if (formatKey === 'live') {
       return {
         name: formatLabelByKey(formatKey),
         details: '',
         enabled: true,
         assessment: { method: '观看时长', weight: 30 },
         watch: { requiredPercent: 80 }
+      };
+    }
+    if (formatKey === 'videos') {
+      const aiDefaults = [
+        'rc-teaching_resources-1',
+        'rc-technology_training-2',
+        'rc-family_education-3',
+        'rc-school_management-4',
+      ];
+      return {
+        name: formatLabelByKey(formatKey),
+        details: '',
+        enabled: true,
+        assessment: { method: '观看时长', weight: 30 },
+        watch: { requiredPercent: 80 },
+        selectedCollections: aiDefaults,
+        aiSelectedIds: aiDefaults,
       };
     }
     if (formatKey === 'exam') {
@@ -508,25 +552,27 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
     return [...matched, ...joined];
   }, [matchedPersonnel, participants]);
 
+  const compact = isSmallScreen || leftCollapsed;
+
   const combinedColumns = [
     {
       title: '人员',
       key: 'person',
-      onCell: () => ({ style: { padding: '6px 8px' } }),
+      onCell: () => ({ style: { padding: compact ? '4px 6px' : '6px 8px' } }),
       render: (_, record) => (
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
           <Avatar size="small" style={{ backgroundColor: record.__type === 'participant' ? '#52c41a' : '#1890ff' }}>{String(record.name || '').charAt(0)}</Avatar>
           <div>
             <div style={{ fontWeight: 500 }}>{record.name}</div>
-            {(record.department || record.position) && (
+            {!compact && (record.department || record.position) && (
               <div style={{ fontSize: 12, color: '#888' }}>
                 {[record.department, record.position].filter(Boolean).join(' · ')}
               </div>
             )}
-            {record.email && (
+            {!compact && record.email && (
               <div style={{ fontSize: 12, color: '#888' }}>{record.email}</div>
             )}
-            {record.__type === 'matched' && (record.tags || []).length > 0 && (
+            {!compact && record.__type === 'matched' && (record.tags || []).length > 0 && (
               <div style={{ marginTop: 4 }}>
                 <Space size={4} wrap>
                   {(record.tags || []).map((t) => (
@@ -585,49 +631,82 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
     <div style={{ minHeight: '100%' }}>
       {configModal.visible ? (
         <div ref={configAreaRef}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 8px', marginBottom: 8 }}>
+             <div style={{ fontWeight: 600 }}>
+               {(() => {
+                 const phase = configModal.phaseId ? phaseMaterials.find(p => p.id === configModal.phaseId) : null;
+                 const segs = [];
+                 if (phase?.id) { const cn = numberToChinese(phase.id); if (cn) segs.push(`模块${cn}`); }
+                 if (phase?.content) segs.push(phase.content);
+                 const fmt = formatLabelByKey(configModal.formatKey);
+                 if (fmt) segs.push(fmt);
+                 return <span>{segs.join(' | ')}</span>;
+               })()}
+             </div>
+             <Space>
+               <Button onClick={() => setConfigModal({ visible: false, phaseId: null, formatKey: null, draft: null })}>返回</Button>
+               <Button type="primary" onClick={() => saveConfig()}>保存</Button>
+             </Space>
+           </div>
           <Card
-            title={`${(() => { const phase = configModal.phaseId ? phaseMaterials.find(p => p.id === configModal.phaseId) : null; const segs = []; if (phase?.id) { const cn = numberToChinese(phase.id); if (cn) segs.push(`模块${cn}`); } if (phase?.content) segs.push(phase.content); const fmt = formatLabelByKey(configModal.formatKey); if (fmt) segs.push(fmt); return segs.join(' | '); })()}`}
-            extra={
-               <Space>
-                 <Button onClick={() => setConfigModal({ visible: false, phaseId: null, formatKey: null, draft: null })}>返回</Button>
-                 <Button type="primary" onClick={() => { saveConfig(); setConfigModal({ visible: false, phaseId: null, formatKey: null, draft: null }); }}>保存并返回</Button>
-               </Space>
-             }
-            style={{ marginTop: 12 }}
-            bodyStyle={{ maxHeight: '74vh', minHeight: '60vh', overflowY: 'auto' }}
+            title={(
+              <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                <Tabs
+                  activeKey={configTabKey}
+                  onChange={setConfigTabKey}
+                  items={[
+                    { key: 'basic', label: '基础配置' },
+                    { key: 'content', label: '课程内容' }
+                  ]}
+                  size="small"
+                  tabBarGutter={18}
+                  tabBarStyle={{ margin: 0 }}
+                />
+              </div>
+            )}
+            size="small"
+            headStyle={{ borderBottom: 'none', padding: '0 8px', minHeight: 30 }}
+            style={{ marginTop: 4 }}
+            bodyStyle={{ padding: '4px 8px' }}
           >
             {configModal.draft && (
               <Tabs
-                defaultActiveKey="content"
+                activeKey={configTabKey}
+                onChange={setConfigTabKey}
+                style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+                tabBarStyle={{ display: 'none' }}
                 items={[
                   {
                     key: 'basic',
                     label: '基础配置',
                     children: (
                       <Form layout="vertical">
-                        <Form.Item label="培训形式名称">
+                        <Form.Item label="培训形式名称" style={{ marginBottom: 8 }}>
                           <Input
+                            size="small"
                             value={configModal.draft.name}
                             onChange={(e) => updateDraft('name', e.target.value)}
                             placeholder="例如：直播课、点播课、考试"
                           />
                         </Form.Item>
-                        <Form.Item label="培训形式具体内容">
+                        <Form.Item label="培训形式具体内容" style={{ marginBottom: 8 }}>
                           <Input.TextArea
                             value={configModal.draft.details}
                             onChange={(e) => updateDraft('details', e.target.value)}
                             placeholder="补充该形式的实施说明、要点等"
                             rows={3}
+                            style={{ fontSize: 12 }}
                           />
                         </Form.Item>
-                        <Form.Item label="是否需要考核">
+                        <Form.Item label="是否需要考核" style={{ marginBottom: 8 }}>
                           <Switch
                             checked={configModal.draft.enabled}
                             onChange={(checked) => updateDraft('enabled', checked)}
                           />
                         </Form.Item>
-                        <Form.Item label="考核权重(%)">
+                        <Form.Item label="考核权重(%)" style={{ marginBottom: 8 }}>
                           <InputNumber
+                            size="small"
                             value={configModal.draft.assessment?.weight}
                             min={0}
                             max={100}
@@ -638,15 +717,17 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
 
                         {(configModal.formatKey === 'live' || configModal.formatKey === 'videos') && (
                           <>
-                            <Form.Item label="考核方式">
+                            <Form.Item label="考核方式" style={{ marginBottom: 8 }}>
                               <Select
+                                size="small"
                                 value={configModal.draft.assessment?.method}
                                 onChange={(v) => updateDraft('assessment.method', v)}
                                 options={[{ value: '观看时长', label: '观看时长' }]}
                               />
                             </Form.Item>
-                            <Form.Item label="达标观看占比(%)">
+                            <Form.Item label="达标观看占比(%)" style={{ marginBottom: 8 }}>
                               <InputNumber
+                                size="small"
                                 value={configModal.draft.watch?.requiredPercent}
                                 min={0}
                                 max={100}
@@ -659,8 +740,9 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
 
                         {configModal.formatKey === 'exam' && (
                           <>
-                            <Form.Item label="考核方式">
+                            <Form.Item label="考核方式" style={{ marginBottom: 8 }}>
                               <Select
+                                size="small"
                                 value={configModal.draft.assessment?.method}
                                 onChange={(v) => updateDraft('assessment.method', v)}
                                 options={[
@@ -671,8 +753,9 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                 ]}
                               />
                             </Form.Item>
-                            <Form.Item label="及格分数">
+                            <Form.Item label="及格分数" style={{ marginBottom: 8 }}>
                               <InputNumber
+                                size="small"
                                 value={configModal.draft.assessment?.passScore}
                                 min={0}
                                 max={100}
@@ -680,8 +763,9 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                 style={{ width: '100%' }}
                               />
                             </Form.Item>
-                            <Form.Item label="满分">
+                            <Form.Item label="满分" style={{ marginBottom: 8 }}>
                               <InputNumber
+                                size="small"
                                 value={configModal.draft.assessment?.fullScore}
                                 min={0}
                                 max={100}
@@ -699,9 +783,8 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                     label: '课程内容',
                     children: (
                       configModal.formatKey === 'videos' ? (
-                        <div style={{ marginTop: 8 }}>
-                          <Row gutter={12} wrap={false}>
-                            <Col id="course-content-left" style={{ display: 'flex', width: '42%', minWidth: 240, flex: '0 0 auto' }}>
+                          <Row gutter={8} wrap={false} style={{ height: '100%', alignItems: 'stretch', margin: 0 }}>
+                            <Col id="course-content-left" style={{ display: 'flex', width: (leftViewMode === 'single' ? '16.8%' : '33.6%'), minWidth: (leftViewMode === 'single' ? 200 : 240), flex: '0 0 auto', height: '100%' }}>
                               <Card
                                 title={(
                                   <Space>
@@ -709,11 +792,25 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                     <span>当前课程内容</span>
                                   </Space>
                                 )}
-                                style={{ flex: 1 }}
-                                bodyStyle={{ padding: 12 }}
+                                extra={(
+                                  <Space>
+                                    <Tooltip title="单卡视图">
+                                      <Button size="small" type="text" icon={<ProfileOutlined />} style={{ color: leftViewMode === 'single' ? '#1677ff' : undefined }} onClick={() => setLeftViewMode('single')} />
+                                    </Tooltip>
+                                    <Tooltip title="双卡视图">
+                                      <Button size="small" type="text" icon={<AppstoreOutlined />} style={{ color: leftViewMode === 'double' ? '#1677ff' : undefined }} onClick={() => setLeftViewMode('double')} />
+                                    </Tooltip>
+                                  </Space>
+                                )}
+                                style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+                                bodyStyle={{ padding: 8, flex: 1, minHeight: 0, overflow: 'auto' }}
                               >
                                 {(() => {
-                                  const selectedIds = (((formatConfigs[configModal.phaseId] || {}).videos || {}).selectedCollections) || []
+                                  const phaseCfg = (formatConfigs[configModal.phaseId] || {})
+                                  const phaseObj = phaseMaterials.find(p => p.id === configModal.phaseId)
+                                  const baseVideos = phaseCfg.videos || getDefaultConfig(phaseObj, 'videos')
+                                  const selectedIds = baseVideos.selectedCollections || []
+                                  const aiIds = baseVideos.aiSelectedIds || []
                                   const DEFAULT_SPACE = '技术部-研发'
                                   const currentSpace = (typeof localStorage !== 'undefined' && (localStorage.getItem('current_knowledge_space') || DEFAULT_SPACE)) || DEFAULT_SPACE
                                   const typeToThumb = {
@@ -755,6 +852,55 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                       return '/images/agents/agent-docs.svg'
                                     }
                                   }
+                                  const getFilteredItemsForPreview = (rc, space) => {
+                                    try {
+                                      return (rc.items || []).filter(it => ((it.drive === 'org' || typeof it.drive === 'undefined') && ((it.space || DEFAULT_SPACE) === space)))
+                                    } catch {
+                                      return []
+                                    }
+                                  }
+                                  const openCollectionPreview = (rc) => {
+                                    const items = getFilteredItemsForPreview(rc, currentSpace)
+                                    const categoryLabel = (categories.find(c => c.id === rc.category)?.name) || '资料集合'
+                                    Modal.info({
+                                      title: `集合预览：${rc.title}`,
+                                      width: 680,
+                                      content: (
+                                        <div style={{ marginTop: 8 }}>
+                                          <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
+                                            <div style={{ width: 160, height: 90, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0' }}>
+                                              <img src={getCollectionThumbnail(rc)} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            </div>
+                                            <div>
+                                              <div style={{ fontWeight: 600 }}>{categoryLabel}</div>
+                                              <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                                                {(rc.tags || []).slice(0, 8).map(tag => (<Tag key={tag}>{tag}</Tag>))}
+                                              </div>
+                                              <div style={{ marginTop: 6, color: '#888' }}>创建时间：{rc.createdAt} · 项目数：{items.length}</div>
+                                            </div>
+                                          </div>
+                                          {items.length === 0 ? (
+                                            <Empty description={<div><Text>当前空间下暂无可预览的资源项</Text><br /><Text type="secondary">请切换空间或更改分类</Text></div>} />
+                                          ) : (
+                                            <div style={{ maxHeight: 260, overflow: 'auto', borderTop: '1px dashed #eee', paddingTop: 8 }}>
+                                              {items.map(it => (
+                                                <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                                                  <div style={{ width: 100, height: 56, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0' }}>
+                                                    <img src={(function(){ const t=String(it.type||'').toLowerCase(); if (t.includes('video')) return '/thumbnails/videos.png'; if (t.includes('image')) return '/thumbnails/images.png'; if (t.includes('audio')) return '/thumbnails/audio.png'; if (t.includes('doc')||t.includes('pdf')) return '/thumbnails/documents.png'; return '/thumbnails/default.png'; })()} alt="item" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                  </div>
+                                                  <div style={{ flex: 1 }}>
+                                                    <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.title}</div>
+                                                    <div style={{ marginTop: 4, color: '#888', fontSize: 12 }}>{(it.tags||[]).slice(0,4).join(' · ')}</div>
+                                                  </div>
+                                                  <div style={{ color: '#888', fontSize: 12 }}>{it.lastModified}</div>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          )}
+                                        </div>
+                                      )
+                                    })
+                                  }
                                   const collections = (function createDefaultCollections() {
                                     const today = new Date().toLocaleDateString('zh-CN')
                                     const cats = [
@@ -794,7 +940,15 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                     return <Empty description={<div><Text>尚未选择集合</Text><br /><Text type="secondary">请在右侧勾选课程内容集合</Text></div>} />
                                   }
                                   return (
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
+                                      <div
+                                        style={{
+                                          display: 'grid',
+                                          gridTemplateColumns: (leftViewMode === 'single') ? 'repeat(1, minmax(0, 1fr))' : 'repeat(2, minmax(0, 1fr))',
+                                          gap: 12,
+                                          cursor: 'default'
+                                        }}
+
+                                      >
                                        {selected.map(rc => (
                                          <Card
                                            key={rc.id}
@@ -863,42 +1017,64 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                                }} />
                                              </>
                                            )}
-                                           <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 1 }} onClick={(e) => e.stopPropagation()}>
-                                             <Tooltip title="预览集合">
-                                               <Button size="small" type="text" icon={<EyeOutlined />} onClick={() => openCollectionPreview(rc)} />
-                                             </Tooltip>
-                                           </div>
-                                           <div style={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }} onClick={(e) => e.stopPropagation()}>
-                                             <Tooltip title="取消选中">
-                                               <Button size="small" danger type="text" icon={<DeleteOutlined />} onClick={() => {
-                                                 setFormatConfigs(prev => {
-                                                   const phase = prev[configModal.phaseId] || {}
-                                                   const phaseObj = phaseMaterials.find(p => p.id === configModal.phaseId)
-                                                   const baseVideos = phase.videos || getDefaultConfig(phaseObj, 'videos')
-                                                   const ids = (baseVideos.selectedCollections || []).filter(x => x !== rc.id)
-                                                   return {
-                                                     ...prev,
-                                                     [configModal.phaseId]: {
-                                                       ...phase,
-                                                       videos: { ...baseVideos, selectedCollections: ids }
-                                                     }
-                                                   }
-                                                 })
-                                               }} />
-                                             </Tooltip>
-                                           </div>
-                                           <div style={{ width: '100%', height: 120, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0', marginBottom: 8 }}>
+                                           <div
+                                             style={{ position: 'relative', width: '100%', height: 120, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0', marginBottom: 8 }}
+                                             onMouseEnter={() => setHoveredCardId(rc.id)}
+                                             onMouseLeave={() => setHoveredCardId(null)}
+                                           >
                                              <img src={getCollectionThumbnail(rc)} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                             <div
+                                               style={{
+                                                 position: 'absolute', inset: 0,
+                                                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
+                                                 background: 'rgba(0,0,0,0.35)',
+                                                 opacity: hoveredCardId === rc.id ? 1 : 0,
+                                                 transition: 'opacity 0.2s ease'
+                                               }}
+                                               onClick={(e) => e.stopPropagation()}
+                                             >
+                                               <Button
+                                                 size="middle"
+                                                 type="primary"
+                                                 style={{ background: '#1677ff', borderColor: '#1677ff', borderRadius: 20, padding: '0 14px' }}
+                                                 icon={<EyeOutlined />}
+                                                 onClick={() => openCollectionPreview(rc)}
+                                               >预览</Button>
+                                               <Button
+                                                 size="middle"
+                                                 danger
+                                                 style={{ background: '#ff4d4f', borderColor: '#ff4d4f', borderRadius: 20, padding: '0 14px', color: '#fff' }}
+                                                 icon={<DeleteOutlined />}
+                                                 onClick={() => {
+                                                   setFormatConfigs(prev => {
+                                                     const phase = prev[configModal.phaseId] || {}
+                                                     const phaseObj = phaseMaterials.find(p => p.id === configModal.phaseId)
+                                                     const baseVideos = phase.videos || getDefaultConfig(phaseObj, 'videos')
+                                                     const ids = (baseVideos.selectedCollections || []).filter(x => x !== rc.id)
+                                                     return {
+                                                       ...prev,
+                                                       [configModal.phaseId]: {
+                                                         ...phase,
+                                                         videos: { ...baseVideos, selectedCollections: ids }
+                                                       }
+                                                     }
+                                                   })
+                                                 }}
+                                               >取消</Button>
+                                             </div>
                                            </div>
                                            <Space style={{ justifyContent: 'space-between', width: '100%' }}>
                                              <Text type="secondary">{(categories.find(c => c.id === rc.category)?.name) || '资料集合'}</Text>
                                              <Text type="secondary">{rc.createdAt}</Text>
                                            </Space>
-                                           <div style={{ fontWeight: 600, marginTop: 8 }}>{rc.title}</div>
+                                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600, marginTop: 8 }}>
+                                             <span>{rc.title}</span>
+                                             {aiIds.includes(rc.id) && (<Tag color="processing">AI</Tag>)}
+                                           </div>
                                          </Card>
                                        ))}
                                     </div>
-                                   )
+                                     )
                                  })()}
                               </Card>
                             </Col>
@@ -932,12 +1108,12 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                 window.addEventListener('mouseup', onUp);
                               }} />
                             </Col>
-                            <Col id="course-content-right" style={{ display: 'flex', flex: '1 1 auto', minWidth: 240 }}>
+                            <Col id="course-content-right" style={{ display: 'flex', flex: '1 1 auto', minWidth: 240, height: '100%' }}>
                               <Card
                                 title={(
                                   <Space>
                                     <span>🗂️</span>
-                                    <span>选择课程内容集合</span>
+                                    <span>{leftCollapsed ? '选择集合' : '选择课程内容集合'}</span>
                                   </Space>
                                 )}
                                 extra={(
@@ -956,7 +1132,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                         <Select
                                           value={rightFilterCategory}
                                           onChange={setRightFilterCategory}
-                                          style={{ width: 160 }}
+                                          style={{ width: (isSmallScreen || leftCollapsed) ? 120 : 160 }}
                                           options={rightCategories.map(c => ({ value: c.id, label: c.name }))}
                                         />
                                         <Input.Search
@@ -965,18 +1141,23 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                           value={rightFilterQuery}
                                           onChange={(e) => setRightFilterQuery(e.target.value)}
                                           onSearch={setRightFilterQuery}
-                                          style={{ width: 220 }}
+                                          style={{ width: (isSmallScreen || leftCollapsed) ? 160 : 220 }}
                                         />
                                       </Space>
                                     )
                                   })()
                                 )}
-                                style={{ flex: 1 }}
-                                bodyStyle={{ padding: 12 }}
+                                style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+                                bodyStyle={{ padding: 8, flex: 1, minHeight: 0, overflow: 'auto' }}
                               >
                                 <OnDemandResourceLibrary
                                   selectMode
-                                  selectedCollectionIds={(((formatConfigs[configModal.phaseId] || {}).videos || {}).selectedCollections) || []}
+                                  selectedCollectionIds={(function(){
+                                    const phaseCfg = (formatConfigs[configModal.phaseId] || {})
+                                    const phaseObj = phaseMaterials.find(p => p.id === configModal.phaseId)
+                                    const baseVideos = phaseCfg.videos || getDefaultConfig(phaseObj, 'videos')
+                                    return baseVideos.selectedCollections || []
+                                  })()}
                                   useExternalFilters
                                   externalFilters={{ query: rightFilterQuery, category: rightFilterCategory }}
                                   defaultViewMode="grid"
@@ -999,7 +1180,6 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                               </Card>
                             </Col>
                           </Row>
-                        </div>
                       ) : (
                         <Empty description="当前形式不支持课程内容配置" />
                       )
@@ -1251,7 +1431,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                         title={(
                           <Space>
                             <span>📋</span>
-                            <span>人员列表（匹配 + 参训）</span>
+                            <span>{(isSmallScreen || leftCollapsed) ? '人员列表' : '人员列表（匹配 + 参训）'}</span>
                             <Tag color="blue">匹配 {matchedPersonnel.length} 人</Tag>
                             <Tag color="green">参训 {participants.length} 人</Tag>
                           </Space>

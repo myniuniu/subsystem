@@ -17,7 +17,8 @@ import {
   Input,
   Popover,
   Select,
-  Divider
+  Divider,
+  Tooltip
 } from 'antd';
 import { 
   ReloadOutlined, 
@@ -1035,34 +1036,43 @@ const TrainingPlanViewer = ({
                 配置实施方案
               </Button>
               <Divider type="vertical" />
-              <Button 
-                type={layoutMode === 'left' ? 'primary' : 'text'}
-                icon={<LeftOutlined />} 
-                onClick={() => setLayoutMode('left')}
-              />
-              <Button 
-                type={layoutMode === 'both' ? 'primary' : 'text'}
-                icon={<AppstoreOutlined />} 
-                onClick={() => setLayoutMode('both')}
-              />
-              <Button 
-                type={layoutMode === 'right' ? 'primary' : 'text'}
-                icon={<RightOutlined />} 
-                onClick={() => setLayoutMode('right')}
-              />
+              <Tooltip title="左栏视图">
+                <Button 
+                  type={layoutMode === 'left' ? 'primary' : 'text'}
+                  icon={<LeftOutlined />} 
+                  onClick={() => setLayoutMode('left')}
+                />
+              </Tooltip>
+              <Tooltip title="双栏视图">
+                <Button 
+                  type={layoutMode === 'both' ? 'primary' : 'text'}
+                  icon={<AppstoreOutlined />} 
+                  onClick={() => setLayoutMode('both')}
+                />
+              </Tooltip>
+              <Tooltip title="右栏视图">
+                <Button 
+                  type={layoutMode === 'right' ? 'primary' : 'text'}
+                  icon={<RightOutlined />} 
+                  onClick={() => setLayoutMode('right')}
+                />
+              </Tooltip>
             </Space>
           </div>
         </div>
       )}
 
-      {/* 主要内容区域 */}
-      {layoutMode === 'left' ? (
-        <div style={{ 
-          flex: 1, 
-          padding: '24px',
-          overflow: 'auto',
-          background: '#f5f5f5'
-        }}>
+      {/* 主要内容区域：单容器，避免右栏卸载 */}
+      <div ref={containerRef} style={{ flex: 1, display: 'flex', overflow: 'hidden', background: '#f5f5f5', position: 'relative' }}>
+        {/* 左侧原方案：根据布局模式显示/隐藏 */}
+        <div
+          style={{
+            flex: layoutMode === 'both' ? `0 0 ${leftWidthPct}%` : (layoutMode === 'left' ? '1 1 auto' : '0 0 0%'),
+            display: layoutMode === 'right' ? 'none' : 'block',
+            padding: '24px',
+            overflow: 'auto'
+          }}
+        >
           <div style={{
             width: '100%',
             margin: 0,
@@ -1148,136 +1158,46 @@ const TrainingPlanViewer = ({
               sectionKey="guarantee"
               renderContent={() => <GuaranteeSection guarantee={plan.guarantee} />}
             />
-            </div>
           </div>
-        ) : layoutMode === 'both' ? (
-          <div ref={containerRef} style={{ flex: 1, display: 'flex', overflow: 'hidden', background: '#f5f5f5', position: 'relative' }}>
-            {/* 左侧原方案 */}
-            <div style={{ flex: `0 0 ${leftWidthPct}%`, padding: '24px', overflow: 'auto' }}>
-              <div style={{
-                width: '100%',
-                margin: 0,
-                background: '#fff',
-                minHeight: '100%',
-                padding: '32px',
-                borderRadius: '8px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-              }}>
-                {/* 方案概述 */}
-                <SectionHeader
-                  sectionKey="overview"
-                  onVisualEdit={() => openInlineVisualEditor('overview')}
-                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('overview'); }}
-                />
-                <InlineEditableSection
-                  sectionKey="overview"
-                  renderContent={() => <TrainingOverview overview={plan.overview} />}
-                />
+        </div>
 
-                {/* 参训人员（标签） */}
-                <SectionHeader
-                  sectionKey="participantTags"
-                  onVisualEdit={() => openInlineVisualEditor('participantTags')}
-                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('participantTags'); }}
-                />
-                <InlineEditableSection
-                  sectionKey="participantTags"
-                  renderContent={() => <TagsSection tags={plan.participantTags || []} />}
-                />
+        {/* 分隔条（仅双栏显示，可拖拽） */}
+        {layoutMode === 'both' && (
+          <div
+            onMouseDown={startResize}
+            style={{
+              width: 6,
+              cursor: 'col-resize',
+              background: isResizing ? '#69c0ff' : '#e8e8e8',
+              borderLeft: '1px solid #f0f0f0',
+              borderRight: '1px solid #f0f0f0'
+            }}
+          />
+        )}
 
-                {/* 培训阶段与内容 */}
-                <SectionHeader
-                  sectionKey="phases"
-                  onVisualEdit={() => openInlineVisualEditor('phases')}
-                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('phases'); }}
-                />
-                <InlineEditableSection
-                  sectionKey="phases"
-                  renderContent={() => <TrainingPhases phases={plan.phases} />}
-                />
-
-                {/* 详细时间安排 */}
-                <SectionHeader
-                  sectionKey="schedule"
-                  onVisualEdit={() => openInlineVisualEditor('schedule')}
-                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('schedule'); }}
-                />
-                <InlineEditableSection
-                  sectionKey="schedule"
-                  renderContent={() => <TrainingSchedule schedule={plan.schedule} />}
-                />
-
-                {/* 实施保障 */}
-                <SectionHeader
-                  sectionKey="implementation"
-                  onVisualEdit={() => openInlineVisualEditor('implementation')}
-                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('implementation'); }}
-                />
-                <InlineEditableSection
-                  sectionKey="implementation"
-                  renderContent={() => <ImplementationSection implementation={plan.implementation} />}
-                />
-
-                {/* 考核与评价 */}
-                <SectionHeader
-                  sectionKey="assessment"
-                  onVisualEdit={() => openInlineVisualEditor('assessment')}
-                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('assessment'); }}
-                />
-                <InlineEditableSection
-                  sectionKey="assessment"
-                  renderContent={() => <AssessmentSection assessment={plan.assessment} />}
-                />
-
-                {/* 保障措施 */}
-                <SectionHeader
-                  sectionKey="guarantee"
-                  onVisualEdit={() => openInlineVisualEditor('guarantee')}
-                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('guarantee'); }}
-                />
-                <InlineEditableSection
-                  sectionKey="guarantee"
-                  renderContent={() => <GuaranteeSection guarantee={plan.guarantee} />}
-                />
-                </div>
-              </div>
-
-              {/* 分隔条（可拖拽） */}
-              <div
-                onMouseDown={startResize}
-                style={{
-                  width: 6,
-                  cursor: 'col-resize',
-                  background: isResizing ? '#69c0ff' : '#e8e8e8',
-                  borderLeft: '1px solid #f0f0f0',
-                  borderRight: '1px solid #f0f0f0'
-                }}
-              />
-
-              {/* 右侧实施方案 */}
-              <div style={{ flex: `0 0 ${100 - leftWidthPct}%`, padding: '24px', overflow: 'auto', borderLeft: '1px solid #f0f0f0' }}>
-                <div style={{
-                  width: '100%',
-                  margin: 0,
-                  background: '#fff',
-                  minHeight: '100%',
-                  padding: '32px',
-                  borderRadius: '8px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                }}>
-                  <ImplementationPlan plan={plan} externalTagSeeds={leftTags} initialSelectedTags={leftTags} />
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div style={{ flex: 1, display: 'flex', overflow: 'hidden', background: '#f5f5f5' }}>
-              <div style={{ flex: '1 1 auto', padding: '24px', overflow: 'auto' }}>
-                <div style={{ width: '100%', margin: 0, background: '#fff', minHeight: '100%', padding: '32px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-                  <ImplementationPlan plan={plan} externalTagSeeds={leftTags} initialSelectedTags={leftTags} />
-                </div>
-              </div>
-            </div>
-          )}
+        {/* 右侧实施方案：始终保留实例，仅根据布局模式调整占位 */}
+        <div
+          style={{
+            flex: layoutMode === 'both' ? `0 0 ${100 - leftWidthPct}%` : (layoutMode === 'right' ? '1 1 auto' : '0 0 0%'),
+            display: layoutMode === 'left' ? 'none' : 'block',
+            padding: '24px',
+            overflow: 'auto',
+            borderLeft: layoutMode === 'both' ? '1px solid #f0f0f0' : 'none'
+          }}
+        >
+          <div style={{
+            width: '100%',
+            margin: 0,
+            background: '#fff',
+            minHeight: '100%',
+            padding: '32px',
+            borderRadius: '8px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            <ImplementationPlan plan={plan} externalTagSeeds={leftTags} initialSelectedTags={leftTags} />
+          </div>
+        </div>
+      </div>
 
         {/* 部分编辑器（JSON）Modal */}
          <Modal
