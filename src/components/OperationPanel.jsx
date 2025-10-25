@@ -1650,6 +1650,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
 
       {/* 模态框组件 */}
       <QuestionConfigModal
+        inline
         visible={questionConfigVisible}
         onClose={() => setQuestionConfigVisible(false)}
         materialCount={sourceInfo?.total || 0}
@@ -1671,6 +1672,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
       />
 
       <LearningPlanModal
+        inline
         visible={learningPlanModalVisible}
         onCancel={() => setLearningPlanModalVisible(false)}
         onConfirm={(planData) => {
@@ -1763,6 +1765,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
       {/* 取消居中模态，改用贴靠按钮的下拉菜单（已在按钮处实现） */}
 
       <ClassroomEvaluationModal
+        inline
         visible={classroomEvaluationVisible}
         onCancel={() => setClassroomEvaluationVisible(false)}
         onConfirm={(evaluationConfig) => {

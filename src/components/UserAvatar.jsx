@@ -8,7 +8,7 @@ import {
   CheckCircle,
   Share2
 } from 'lucide-react';
-import { BgColorsOutlined, CheckOutlined, ShareAltOutlined } from '@ant-design/icons';
+import { BgColorsOutlined, CheckOutlined, ShareAltOutlined, FileTextOutlined } from '@ant-design/icons';
 import { themes, getCurrentTheme, setTheme, getThemeList } from '../utils/themeManager';
 import ThemeShareModal from './ThemeShareModal';
 import './UserAvatar.css';
@@ -22,6 +22,9 @@ const UserAvatar = ({ onThemeChange }) => {
     email: 'zhang.teacher@edu.cn',
     avatar: null
   });
+  const [currentSpace, setCurrentSpace] = useState(() => {
+    try { return localStorage.getItem('current_knowledge_space') || '技术部-研发'; } catch { return '技术部-研发'; }
+  });
 
   useEffect(() => {
     // 监听主题变更事件
@@ -32,8 +35,17 @@ const UserAvatar = ({ onThemeChange }) => {
       }
     };
 
+    const handleSpaceChanged = (event) => {
+      const name = event?.detail?.name;
+      if (name) setCurrentSpace(name);
+    };
+
     window.addEventListener('themeChanged', handleThemeChange);
-    return () => window.removeEventListener('themeChanged', handleThemeChange);
+    window.addEventListener('knowledgeSpaceChanged', handleSpaceChanged);
+    return () => {
+      window.removeEventListener('themeChanged', handleThemeChange);
+      window.removeEventListener('knowledgeSpaceChanged', handleSpaceChanged);
+    };
   }, [onThemeChange]);
 
   const handleThemeSelect = (themeName) => {
@@ -105,6 +117,7 @@ const UserAvatar = ({ onThemeChange }) => {
         <div className="user-info-section">
           <div className="user-name">{userInfo.name}</div>
           <div className="user-email">{userInfo.email}</div>
+          <div className="user-space">知识空间【{currentSpace}】</div>
         </div>
       ),
       disabled: true
@@ -148,6 +161,20 @@ const UserAvatar = ({ onThemeChange }) => {
         </Space>
       ),
       onClick: () => message.info('个人设置功能开发中...')
+    },
+    {
+      type: 'divider'
+    },
+    // 知识空间
+    {
+      key: 'knowledge-space',
+      label: (
+        <Space>
+          <FileTextOutlined />
+          <span>知识空间</span>
+        </Space>
+      ),
+      onClick: () => { window.location.hash = 'knowledge-space'; }
     },
     {
       type: 'divider'

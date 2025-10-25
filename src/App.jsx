@@ -47,6 +47,7 @@ import ModelRegistry from './components/ModelRegistry'
 import ModelTrainingTemplate from './components/ModelTrainingTemplate'
 import ModelTrainingDetail from './components/ModelTrainingDetail'
 import MyCertificates from './components/MyCertificates'
+import KnowledgeSpace from './components/KnowledgeSpace'
 
 import './App.css'
 import notesService from './services/notesService'
@@ -421,6 +422,8 @@ function App() {
               <AIExperience />
             ) : currentView === 'model-registry' ? (
               <ModelRegistry />
+            ) : currentView === 'knowledge-space' ? (
+              <KnowledgeSpace />
             ) : currentView === 'smart-notes' ? (
               <SmartNotes onViewChange={handleViewChange} />
             ) : currentView === 'my-certificates' ? (

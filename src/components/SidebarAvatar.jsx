@@ -9,7 +9,8 @@ import {
   Share2,
   Users,
   Shield,
-  Search
+  Search,
+  FileText
 } from 'lucide-react';
 import { getCurrentTheme, setTheme, getThemeList } from '../utils/themeManager';
 import ThemeShareModal from './ThemeShareModal';
@@ -30,6 +31,9 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
     name: '张老师',
     email: 'zhang.teacher@edu.cn',
     avatar: null
+  });
+  const [currentSpace, setCurrentSpace] = useState(() => {
+    try { return localStorage.getItem('current_knowledge_space') || '技术部-研发'; } catch { return '技术部-研发'; }
   });
   // 新增：全局搜索弹窗状态
   const [searchModalVisible, setSearchModalVisible] = useState(false);
@@ -131,8 +135,17 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
       }
     };
 
+    const handleSpaceChanged = (event) => {
+      const name = event?.detail?.name;
+      if (name) setCurrentSpace(name);
+    };
+
     window.addEventListener('themeChanged', handleThemeChange);
-    return () => window.removeEventListener('themeChanged', handleThemeChange);
+    window.addEventListener('knowledgeSpaceChanged', handleSpaceChanged);
+    return () => {
+      window.removeEventListener('themeChanged', handleThemeChange);
+      window.removeEventListener('knowledgeSpaceChanged', handleSpaceChanged);
+    }
   }, [onThemeChange]);
 
   const handleThemeSelect = (themeName) => {
@@ -243,6 +256,7 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
         <div className="sidebar-user-info-section">
           <div className="sidebar-user-name">{userInfo.name}</div>
           <div className="sidebar-user-email">{userInfo.email}</div>
+          <div className="sidebar-user-space">知识空间【{currentSpace}】</div>
         </div>
       ),
       disabled: true
@@ -304,6 +318,17 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
         </Space>
       ),
       onClick: () => message.info('个人设置功能开发中...')
+    },
+    // 知识空间
+    {
+      key: 'knowledge-space',
+      label: (
+        <Space>
+          <FileText size={16} />
+          <span>知识空间</span>
+        </Space>
+      ),
+      onClick: () => { window.location.hash = 'knowledge-space'; }
     },
     {
       type: 'divider'

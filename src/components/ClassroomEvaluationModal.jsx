@@ -28,7 +28,7 @@ const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
-const ClassroomEvaluationModal = ({ visible, onCancel, onConfirm }) => {
+const ClassroomEvaluationModal = ({ visible, onCancel, onConfirm, inline = false }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
@@ -93,30 +93,27 @@ const ClassroomEvaluationModal = ({ visible, onCancel, onConfirm }) => {
   ];
 
   return (
-    <Modal
-      title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '8px',
-            background: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '16px'
-          }}>
-            📊
-          </div>
-          <span>课堂评价工具</span>
+    <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 16 }}>
+        <div style={{
+          width: '32px',
+          height: '32px',
+          borderRadius: '8px',
+          background: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '16px'
+        }}>
+          📊
         </div>
-      }
-      open={visible}
-      onCancel={handleCancel}
-      footer={null}
-      width={720}
-      destroyOnHidden
-    >
+        <span style={{ fontWeight: 600 }}>课堂评价工具</span>
+        <Space style={{ marginLeft: 'auto' }}>
+          <Button onClick={handleCancel}>取消</Button>
+          <Button type="primary" onClick={handleSubmit} loading={loading} icon={<CheckCircleOutlined />}>生成</Button>
+        </Space>
+      </div>
+
       <div style={{ marginBottom: '24px' }}>
         <Alert
           message="工具说明"
@@ -247,7 +244,7 @@ const ClassroomEvaluationModal = ({ visible, onCancel, onConfirm }) => {
           </Button>
         </Space>
       </div>
-    </Modal>
+    </div>
   );
 };
 

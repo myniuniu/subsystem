@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { 
   Card, 
   Button, 
@@ -28,7 +28,10 @@ import {
   PaperClipOutlined,
   FileExcelOutlined,
   PlusOutlined,
-  SettingOutlined
+  SettingOutlined,
+  LeftOutlined,
+  RightOutlined,
+  AppstoreOutlined
 } from '@ant-design/icons';
 import { RIGHT_PANEL_VIEWS, VIEW_MODES } from '../../constants/noteEditConstants';
 import { generateComprehensiveTrainingPlan, generateTrainingPlanMarkdown } from '../../utils/trainingPlanGenerator';
@@ -248,9 +251,40 @@ const TrainingPlanViewer = ({
   };
 
   // 分屏：右侧实施方案显示/隐藏
-  const [showImplementationPlan, setShowImplementationPlan] = useState(false);
+
+  const [layoutMode, setLayoutMode] = useState('left'); // 'left' | 'right' | 'both'
   const handleConfigureImplementation = () => {
-    setShowImplementationPlan(prev => !prev);
+    setLayoutMode(prev => (prev === 'left' ? 'both' : 'left'));
+  };
+
+  // 左右分栏拖拽：容器与宽度状态
+  const containerRef = useRef(null);
+  const [leftWidthPct, setLeftWidthPct] = useState(40); // 初始与之前 flex:4 相当
+  const [isResizing, setIsResizing] = useState(false);
+
+  const startResize = (e) => {
+    e.preventDefault();
+    setIsResizing(true);
+    const startX = e.clientX;
+    const container = containerRef.current;
+    const rect = container?.getBoundingClientRect();
+    const containerWidth = rect?.width || 1;
+    const startLeft = leftWidthPct;
+
+    const onMouseMove = (ev) => {
+      const dx = ev.clientX - startX;
+      const deltaPct = (dx / containerWidth) * 100;
+      let next = Math.max(25, Math.min(75, startLeft + deltaPct));
+      setLeftWidthPct(next);
+    };
+    const onMouseUp = () => {
+      setIsResizing(false);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
   };
 
   // 提取的通用区块组件：编辑按钮头部与内联可视化编辑切换
@@ -1000,13 +1034,29 @@ const TrainingPlanViewer = ({
               >
                 配置实施方案
               </Button>
+              <Divider type="vertical" />
+              <Button 
+                type={layoutMode === 'left' ? 'primary' : 'text'}
+                icon={<LeftOutlined />} 
+                onClick={() => setLayoutMode('left')}
+              />
+              <Button 
+                type={layoutMode === 'both' ? 'primary' : 'text'}
+                icon={<AppstoreOutlined />} 
+                onClick={() => setLayoutMode('both')}
+              />
+              <Button 
+                type={layoutMode === 'right' ? 'primary' : 'text'}
+                icon={<RightOutlined />} 
+                onClick={() => setLayoutMode('right')}
+              />
             </Space>
           </div>
         </div>
       )}
 
       {/* 主要内容区域 */}
-      {!showImplementationPlan ? (
+      {layoutMode === 'left' ? (
         <div style={{ 
           flex: 1, 
           padding: '24px',
@@ -1014,9 +1064,10 @@ const TrainingPlanViewer = ({
           background: '#f5f5f5'
         }}>
           <div style={{
-            maxWidth: '1200px',
-            margin: '0 auto',
+            width: '100%',
+            margin: 0,
             background: '#fff',
+            minHeight: '100%',
             padding: '32px',
             borderRadius: '8px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
@@ -1099,14 +1150,15 @@ const TrainingPlanViewer = ({
             />
             </div>
           </div>
-        ) : (
-          <div style={{ flex: 1, display: 'flex', overflow: 'hidden', background: '#f5f5f5' }}>
+        ) : layoutMode === 'both' ? (
+          <div ref={containerRef} style={{ flex: 1, display: 'flex', overflow: 'hidden', background: '#f5f5f5', position: 'relative' }}>
             {/* 左侧原方案 */}
-            <div style={{ flex: 4, padding: '24px', overflow: 'auto' }}>
+            <div style={{ flex: `0 0 ${leftWidthPct}%`, padding: '24px', overflow: 'auto' }}>
               <div style={{
-                maxWidth: '1200px',
-                margin: '0 auto',
+                width: '100%',
+                margin: 0,
                 background: '#fff',
+                minHeight: '100%',
                 padding: '32px',
                 borderRadius: '8px',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
@@ -1190,11 +1242,23 @@ const TrainingPlanViewer = ({
                 </div>
               </div>
 
-              {/* 右侧实施方案空白页 */}
-              <div style={{ flex: 6, padding: '24px', overflow: 'auto', borderLeft: '1px solid #f0f0f0' }}>
+              {/* 分隔条（可拖拽） */}
+              <div
+                onMouseDown={startResize}
+                style={{
+                  width: 6,
+                  cursor: 'col-resize',
+                  background: isResizing ? '#69c0ff' : '#e8e8e8',
+                  borderLeft: '1px solid #f0f0f0',
+                  borderRight: '1px solid #f0f0f0'
+                }}
+              />
+
+              {/* 右侧实施方案 */}
+              <div style={{ flex: `0 0 ${100 - leftWidthPct}%`, padding: '24px', overflow: 'auto', borderLeft: '1px solid #f0f0f0' }}>
                 <div style={{
-                  maxWidth: '1200px',
-                  margin: '0 auto',
+                  width: '100%',
+                  margin: 0,
                   background: '#fff',
                   minHeight: '100%',
                   padding: '32px',
@@ -1205,7 +1269,15 @@ const TrainingPlanViewer = ({
                 </div>
               </div>
             </div>
-            )}
+          ) : (
+            <div style={{ flex: 1, display: 'flex', overflow: 'hidden', background: '#f5f5f5' }}>
+              <div style={{ flex: '1 1 auto', padding: '24px', overflow: 'auto' }}>
+                <div style={{ width: '100%', margin: 0, background: '#fff', minHeight: '100%', padding: '32px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                  <ImplementationPlan plan={plan} externalTagSeeds={leftTags} initialSelectedTags={leftTags} />
+                </div>
+              </div>
+            </div>
+          )}
 
         {/* 部分编辑器（JSON）Modal */}
          <Modal

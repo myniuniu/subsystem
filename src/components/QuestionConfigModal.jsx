@@ -35,7 +35,8 @@ const QuestionConfigModal = ({
   visible, 
   onClose, 
   onConfirm, 
-  materialCount = 0 
+  materialCount = 0,
+  inline = false
 }) => {
   const [selectedView, setSelectedView] = useState('knowledgeList'); // 默认选择知识点列表
   const [showAdvancedConfig, setShowAdvancedConfig] = useState(false); // 控制更多配置显示
@@ -462,9 +463,9 @@ const QuestionConfigModal = ({
     onClose();
   };
 
-  return (
-    <Modal
-      title={
+  return inline ? (
+    <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{
             width: '32px',
@@ -482,32 +483,19 @@ const QuestionConfigModal = ({
           </div>
           <span style={{ fontSize: '16px', fontWeight: 600 }}>试题生成配置</span>
         </div>
-      }
-      open={visible}
-      onCancel={handleClose}
-      width={760}
-      styles={{
-        body: { padding: '16px 12px' }
-      }}
-      footer={[
-        <Button 
-          key="advanced" 
-          icon={<SettingOutlined />}
-          onClick={() => setShowAdvancedConfig(!showAdvancedConfig)}
-          style={{ float: 'left' }}
-        >
-          {showAdvancedConfig ? '简化配置' : '更多配置'}
-        </Button>,
-        <Button key="cancel" onClick={handleClose}>
-          取消
-        </Button>,
-        <Button key="confirm" type="primary" onClick={handleConfirm}>
-          确认生成
-        </Button>
-      ]}
-      centered
-    >
-      <div style={{ padding: '0' }}>
+        <Space>
+          <Button 
+            key="advanced" 
+            icon={<SettingOutlined />}
+            onClick={() => setShowAdvancedConfig(!showAdvancedConfig)}
+          >
+            {showAdvancedConfig ? '简化配置' : '更多配置'}
+          </Button>
+          <Button onClick={handleClose}>取消</Button>
+          <Button type="primary" onClick={handleConfirm}>确认生成</Button>
+        </Space>
+      </div>
+      <div style={{ padding: 0 }}>
         {/* 资料信息提示 */}
         <Card 
           size="small" 
@@ -1158,8 +1146,8 @@ const QuestionConfigModal = ({
           </div>
         )}
       </div>
-    </Modal>
-  );
+    </div>
+  ) : null;
 };
 
 export default QuestionConfigModal;

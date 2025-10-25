@@ -78,6 +78,24 @@ const [showCollectionView, setShowCollectionView] = useState(false)
   const [configVersion, setConfigVersion] = useState(0)
   const prevSystemConfigRef = useRef(null)
   
+  const DEFAULT_SPACE = '技术部-研发'
+  const [currentSpace, setCurrentSpace] = useState(() => {
+    try { return localStorage.getItem('current_knowledge_space') || DEFAULT_SPACE } catch { return DEFAULT_SPACE }
+  })
+  useEffect(() => {
+    const onSpaceChanged = (e) => {
+      const name = e?.detail?.name || localStorage.getItem('current_knowledge_space') || DEFAULT_SPACE
+      console.log('[ResourceLibrary] knowledgeSpaceChanged ->', name, e?.detail)
+      setCurrentSpace(name)
+    }
+    window.addEventListener('knowledgeSpaceChanged', onSpaceChanged)
+    return () => window.removeEventListener('knowledgeSpaceChanged', onSpaceChanged)
+  }, [])
+
+  useEffect(() => {
+    console.log('[ResourceLibrary] currentSpace =', currentSpace)
+  }, [currentSpace])
+  
   // 资源分类相关状态
   const [selectedResourceCategory, setSelectedResourceCategory] = useState('all')
   const [recentlyAccessed, setRecentlyAccessed] = useState(() => {
@@ -194,17 +212,34 @@ const [collectionViewMode, setCollectionViewMode] = useState('grid') // 'grid' |
   // 集合列表视图：数据与列定义（放在 categories 之后以保证依赖可用）
   const collectionListData = useMemo(() => {
     const list = (selectedResourceCategory==='all' ? resourceCollections : resourceCollections.filter(rc => matchesSelectedCategory(rc, selectedResourceCategory)));
-    return list.map(rc => ({
-      key: rc.id,
-      id: rc.id,
-      title: rc.title,
-      categoryLabel: (categories.find(c => c.id === rc.category)?.name) || '资料集合',
-      tags: (rc.tags || []).slice(0, 6),
-      itemsCount: (rc.items || []).length,
-      createdAt: rc.createdAt,
-      rc
-    }));
-  }, [resourceCollections, selectedResourceCategory]);
+    const withFiltered = list.map(rc => ({
+      rc,
+      // 数量与显示使用当前空间的组织盘资源
+      filteredOrgItems: (rc.items || []).filter(it => it.drive === 'org' && ((it.space || DEFAULT_SPACE) === currentSpace))
+    }))
+    return withFiltered
+      .filter(x => x.filteredOrgItems.length > 0)
+      .map(({ rc, filteredOrgItems }) => ({
+        key: rc.id,
+        id: rc.id,
+        title: rc.title,
+        categoryLabel: (categories.find(c => c.id === rc.category)?.name) || '资料集合',
+        tags: (rc.tags || []).slice(0, 6),
+        itemsCount: filteredOrgItems.length,
+        createdAt: rc.createdAt,
+        rc
+      }))
+  }, [resourceCollections, selectedResourceCategory, currentSpace]);
+
+  const displayCollections = useMemo(() => {
+    const list = (selectedResourceCategory==='all' ? resourceCollections : resourceCollections.filter(rc => matchesSelectedCategory(rc, selectedResourceCategory)));
+    const withFiltered = list.map(rc => ({
+      ...rc,
+      // 卡片显示数量与是否展示，基于当前空间的组织盘资源
+      filteredOrgItems: (rc.items || []).filter(it => it.drive === 'org' && ((it.space || DEFAULT_SPACE) === currentSpace))
+    }))
+    return withFiltered.filter(rc => rc.filteredOrgItems.length > 0)
+  }, [resourceCollections, selectedResourceCategory, currentSpace])
 
   const collectionColumns = [
     {
@@ -527,7 +562,14 @@ const getCategoryIcon = (cat) => {
       }
     ]
 
-    return [...baseCollections, ...newTeacherCollections]
+    return [...baseCollections, ...newTeacherCollections].map(rc => ({
+      ...rc,
+      items: (rc.items || []).map((it, idx) => ({
+        ...it,
+        // 仅组织盘参与空间过滤；为演示效果将部分组织盘资源分配到“帮助文档”
+        space: it.space || (it.drive === 'org' ? (idx % 2 === 0 ? DEFAULT_SPACE : '帮助文档') : undefined)
+      }))
+    }))
   }
   const [showResourceModal, setShowResourceModal] = useState(false)
   const [resourceTitle, setResourceTitle] = useState('')
@@ -553,7 +595,11 @@ const getCategoryIcon = (cat) => {
     { id: 'c-xlsx-1', title: '教学进度表.xlsx', type: 'table', drive: 'org', category: 'table', subCategory: 'office-excel', size: '420 KB', lastModified: '2024-01-04', tags: ['进度表','Excel'] },
     { id: 'c-scn-1', title: '科学演示：电磁感应虚拟实验', type: 'scenario', drive: 'org', category: 'scenario', subCategory: 'science_demo', size: 'N/A', lastModified: '2024-01-03', tags: ['科学演示','物理','虚拟仿真'] },
     { id: 'c-scn-2', title: '心理健康辅导：校园压力疏导', type: 'scenario', drive: 'my', category: 'scenario', subCategory: 'mental_health_counseling', size: 'N/A', lastModified: '2024-01-02', tags: ['心理健康','辅导','情绪管理'] }
-  ])
+  ].map((it, idx) => ({
+    ...it,
+    // 仅组织盘参与空间过滤；为演示效果将部分组织盘资源分配到“帮助文档”
+    space: it.drive === 'org' ? (idx % 2 === 0 ? DEFAULT_SPACE : '帮助文档') : undefined
+  })))
   
   const [newCloudTarget, setNewCloudTarget] = useState('org')
 
@@ -588,6 +634,12 @@ const getCategoryIcon = (cat) => {
       setActiveResource(null)
     }
     message.success('集合已删除')
+  }
+
+  // 重置示例数据：重新生成集合（包含空间标注）
+  const handleResetDemoData = () => {
+    setResourceCollections(createDefaultCollections())
+    message.success('已重置示例数据（含空间标注）')
   }
 
   // 资源项标签编辑（在集合详情中对单个资源打标签）
@@ -704,6 +756,7 @@ const getCategoryIcon = (cat) => {
       title: file.name,
       type,
       drive: newCloudTarget,
+      space: currentSpace,
       category: type,
       subCategory: 'uploaded',
       size: formatFileSize(file.size),
@@ -727,6 +780,7 @@ const getCategoryIcon = (cat) => {
       title: titleMap[type] || '未命名项',
       type,
       drive: newCloudTarget,
+      space: currentSpace,
       category: type,
       subCategory: 'new',
       size: type==='whiteboard' ? 'N/A' : '0 KB',
@@ -1629,6 +1683,7 @@ const getCategoryIcon = (cat) => {
                 ) : (
                   <Row gutter={[12, 12]} className="notes-grid">
                     {(activeCollection?.items || [])
+                      .filter(it => it.drive !== 'org' || ((it.space || DEFAULT_SPACE) === currentSpace))
                       .filter(it => getItemCategoryValue(it) === selectedCategoryKey)
                       .map(item => (
                         <Col key={item.id} xs={24} sm={12} md={8} lg={6} xl={6}>
@@ -1678,9 +1733,12 @@ const getCategoryIcon = (cat) => {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Title level={4} style={{ margin: 0 }}>资源集合</Title>
                   <Space>
-                    {(selectedResourceCategory==='all' ? resourceCollections : resourceCollections.filter(rc => matchesSelectedCategory(rc, selectedResourceCategory))).length > 0 && (
-                      <Text type="secondary">共 {(selectedResourceCategory==='all' ? resourceCollections : resourceCollections.filter(rc => matchesSelectedCategory(rc, selectedResourceCategory))).length} 个集合</Text>
+                    {displayCollections.length > 0 && (
+                      <Text type="secondary">共 {displayCollections.length} 个集合</Text>
                     )}
+                    <Tooltip title="重置示例数据">
+                      <Button size="small" type="text" onClick={() => handleResetDemoData()}>重置</Button>
+                    </Tooltip>
                     <Tooltip title="网格视图">
                       <Button size="small" type={collectionViewMode==='grid' ? 'primary' : 'text'} icon={<AppstoreOutlined />} onClick={() => setCollectionViewMode('grid')} />
                     </Tooltip>
@@ -1689,7 +1747,7 @@ const getCategoryIcon = (cat) => {
                     </Tooltip>
                   </Space>
                 </div>
-                {(selectedResourceCategory==='all' ? resourceCollections : resourceCollections.filter(rc => matchesSelectedCategory(rc, selectedResourceCategory))).length === 0 ? (
+                {displayCollections.length === 0 ? (
                   <Empty
                     description={<div><Text>该分类下暂无资料集合</Text><br /><Text type="secondary">点击上方“新建资料”开始组装</Text></div>}
                     style={{ marginTop: 8 }}
@@ -1710,7 +1768,7 @@ const getCategoryIcon = (cat) => {
                     </div>
                   ) : (
                     <Row gutter={[16, 16]} style={{ marginTop: 12 }} className="notes-grid">
-                      {(selectedResourceCategory==='all' ? resourceCollections : resourceCollections.filter(rc => matchesSelectedCategory(rc, selectedResourceCategory))).map(rc => (
+                      {displayCollections.map(rc => (
                         <Col key={rc.id} xs={24} sm={12} md={8} lg={6} xl={6}>
                           <div className="note-card resource-card" onClick={() => { setActiveCollection(rc); setActiveResource(rc); setShowCollectionView(true); setSelectedCategoryKey(null); }}>
                             <Card
@@ -1735,14 +1793,13 @@ const getCategoryIcon = (cat) => {
                                     {categories.find(c => c.id === rc.category)?.name || '资料集合'}
                                   </span>
                                 </div>
-                                {/* 右侧角标：集合项数量 */}
-                                <Text type="secondary">{(rc.items || []).length} 项</Text>
+                                <Text type="secondary">{(rc.filteredOrgItems || []).length} 项</Text>
                               </div>
                               <div className="note-title">
                                 {rc.title}
                               </div>
                               <div className="note-content">
-                                精选 {rc.items?.length || 0} 项资源，快速查看与使用。
+                                精选 {(rc.filteredOrgItems || []).length} 项组织盘资源（当前空间），快速查看与使用。
                               </div>
                               <div className="note-tags">
                                 {(rc.tags || []).slice(0, 10).map(tag => (
@@ -1847,6 +1904,7 @@ const getCategoryIcon = (cat) => {
           {cloudDriveItems
             .filter(item => (cloudFilters.drive === 'all' || item.drive === cloudFilters.drive))
             .filter(item => (cloudFilters.type === 'all' || item.type === cloudFilters.type))
+            .filter(item => (item.drive !== 'org' || ((item.space || DEFAULT_SPACE) === currentSpace)))
             .filter(item => (!cloudFilters.q || item.title.toLowerCase().includes(cloudFilters.q.toLowerCase())))
             .map(item => (
               <Col key={item.id} xs={24} sm={12} md={8}>
@@ -1924,12 +1982,12 @@ const getCategoryIcon = (cat) => {
         {activeResource && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text type="secondary">共 {(activeResource.items || []).length} 项</Text>
+                      <Text type="secondary">共 { (activeResource.items || []).filter(it => it.drive !== 'org' || ((it.space || DEFAULT_SPACE) === currentSpace)).length } 项</Text>
               <Button size="small" icon={<PlusOutlined />} onClick={handleOpenAddItemsModal}>添加资源</Button>
             </div>
             <Divider style={{ margin: '12px 0' }} />
             <Row gutter={[12, 12]}>
-              {(activeResource.items || []).map(item => (
+              {(activeResource.items || []).filter(it => it.drive !== 'org' || ((it.space || DEFAULT_SPACE) === currentSpace)).map(item => (
                 <Col key={item.id} xs={24} sm={12}>
                   <Card size="small" hoverable bodyStyle={{ padding: 12 }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -2014,6 +2072,7 @@ const getCategoryIcon = (cat) => {
         <Row gutter={[12, 12]}>
           {cloudDriveItems
             .filter(item => (addCloudFilters.drive === 'all' || item.drive === addCloudFilters.drive))
+            .filter(item => (item.drive !== 'org' || ((item.space || DEFAULT_SPACE) === currentSpace)))
             .filter(item => (addCloudFilters.type === 'all' || item.type === addCloudFilters.type))
             .filter(item => (!addCloudFilters.q || item.title.toLowerCase().includes(addCloudFilters.q.toLowerCase())))
             .map(item => (

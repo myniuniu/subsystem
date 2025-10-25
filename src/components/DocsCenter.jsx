@@ -77,6 +77,24 @@ const DocsCenter = ({ initialDrive = 'org' }) => {
   const dirInputRef = useRef(null)
   const [newDocType, setNewDocType] = useState(null)
 
+  const DEFAULT_SPACE = '技术部-研发'
+  const [currentSpace, setCurrentSpace] = useState(() => {
+    try { return localStorage.getItem('current_knowledge_space') || DEFAULT_SPACE } catch { return DEFAULT_SPACE }
+  })
+  useEffect(() => {
+    const onSpaceChanged = (e) => {
+      const name = e?.detail?.name || localStorage.getItem('current_knowledge_space') || DEFAULT_SPACE
+      console.log('[DocsCenter] knowledgeSpaceChanged ->', name, e?.detail)
+      setCurrentSpace(name)
+    }
+    window.addEventListener('knowledgeSpaceChanged', onSpaceChanged)
+    return () => window.removeEventListener('knowledgeSpaceChanged', onSpaceChanged)
+  }, [])
+
+  useEffect(() => {
+    console.log('[DocsCenter] currentSpace =', currentSpace)
+  }, [currentSpace])
+
   const formatSize = (bytes) => {
     if (bytes < 1024) return `${bytes} B`
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
@@ -105,6 +123,7 @@ const DocsCenter = ({ initialDrive = 'org' }) => {
         isBookmarked: false,
         isShared: false,
         drive: activeDrive,
+        space: activeDrive === 'org' ? currentSpace : undefined,
         sourceFolder
       }
     })
@@ -763,7 +782,9 @@ const DocsCenter = ({ initialDrive = 'org' }) => {
     }
   ]
 
-  const extendedDocs = initialDocuments.concat([
+  const baseDocs = initialDocuments.map(doc => doc.drive ? doc : { ...doc, drive: 'org' })
+
+  const extendedDocs = baseDocs.concat([
     {
       id: 1001,
       title: '教学方案在线文档',
@@ -1004,7 +1025,7 @@ const DocsCenter = ({ initialDrive = 'org' }) => {
     }
   ])
 
-  const [documentsList, setDocumentsList] = useState(extendedDocs)
+  const [documentsList, setDocumentsList] = useState(extendedDocs.map(d => d.space ? d : { ...d, space: DEFAULT_SPACE }))
 
   const filteredDocuments = documentsList.filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -1028,8 +1049,9 @@ const DocsCenter = ({ initialDrive = 'org' }) => {
       // 原有的分类过滤逻辑
       matchesCategory = doc.category === selectedCategory || doc.subCategory === selectedCategory
     }
-    const matchesDrive = (doc.drive || 'my') === activeDrive
-    return matchesSearch && matchesCategory && matchesDrive
+    const matchesDrive = doc.drive === activeDrive
+    const matchesSpace = activeDrive === 'org' ? ((doc.space || DEFAULT_SPACE) === currentSpace) : true
+    return matchesSearch && matchesCategory && matchesDrive && matchesSpace
   })
 
   // 对最近访问的文档按访问时间排序

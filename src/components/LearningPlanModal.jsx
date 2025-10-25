@@ -6,7 +6,7 @@ const { Step } = Steps;
 const { Option } = Select;
 const { TextArea } = Input;
 
-const LearningPlanModal = ({ visible, onConfirm, onCancel }) => {
+const LearningPlanModal = ({ visible, onConfirm, onCancel, inline = false }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [form] = Form.useForm();
   const [analysisData, setAnalysisData] = useState(null);
@@ -375,7 +375,35 @@ const LearningPlanModal = ({ visible, onConfirm, onCancel }) => {
     </div>
   );
 
-  return (
+  return inline ? (
+    <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <span style={{ fontWeight: 600 }}>🎯 智能学习计划</span>
+        <Space>
+          <Button onClick={handleCancel}>取消</Button>
+          {currentStep > 0 && (
+            <Button onClick={() => setCurrentStep(currentStep - 1)}>上一步</Button>
+          )}
+          {currentStep < 2 && analysisData && generatedPlan && (
+            <Button type="primary" onClick={() => setCurrentStep(currentStep + 1)}>下一步</Button>
+          )}
+          {currentStep === 2 && (
+            <Button type="primary" onClick={handleConfirm}>确认生成</Button>
+          )}
+        </Space>
+      </div>
+
+      <Steps current={currentStep} style={{ marginBottom: 24 }}>
+        <Step title="资源分析" icon={<BookOutlined />} />
+        <Step title="计划生成" icon={<SettingOutlined />} />
+        <Step title="自定义调整" icon={<FileTextOutlined />} />
+      </Steps>
+
+      {currentStep === 0 && renderAnalysisStep()}
+      {currentStep === 1 && renderPlanStep()}
+      {currentStep === 2 && renderCustomStep()}
+    </div>
+  ) : (
     <Modal
       title="🎯 智能学习计划"
       open={visible}
