@@ -149,7 +149,8 @@ const [collectionViewMode, setCollectionViewMode] = useState('grid') // 'grid' |
   { id: 'family_education', name: '家庭教育资源库', count: computeCount('family_education') },
   { id: 'school_management', name: '学校管理资源库', count: computeCount('school_management') },
   { id: 'mental_health', name: '心理健康资源库', count: computeCount('mental_health') },
-  { id: 'new_teacher_resources', name: '新教师资源库', count: computeCount('new_teacher_resources') }
+  { id: 'new_teacher_resources', name: '新教师资源库', count: computeCount('new_teacher_resources') },
+  { id: 'related_materials', name: '相关资料', count: 1 }
 ]
 
   // 通过“资源分类”侧栏值过滤集合的匹配函数
@@ -157,7 +158,7 @@ const [collectionViewMode, setCollectionViewMode] = useState('grid') // 'grid' |
     if (!rc) return false
     if (!selected || selected === 'all') return true
     // 顶级业务分类直接匹配集合的 category
-    if (['teaching_resources','technology_training','family_education','school_management','mental_health','new_teacher_resources'].includes(selected)) {
+    if (['teaching_resources','technology_training','family_education','school_management','mental_health','new_teacher_resources','related_materials'].includes(selected)) {
       return rc.category === selected
     }
     // 内容类型匹配（集合内任一条目命中即可）
@@ -473,9 +474,10 @@ const getCategoryIcon = (cat) => {
         items: [
           { id: 'nt-1-v1', title: '课堂组织与管理（视频课程）', type: 'video', drive: 'org', size: '320 MB', lastModified: '2024-01-12', tags: ['新教师','视频课程','课堂组织'] },
           { id: 'nt-1-p1', title: '第一次课堂教学设计范例（教辅PPT）', type: 'ppt', drive: 'org', size: '2.4 MB', lastModified: '2024-01-11', tags: ['教辅','课件','教学设计'] },
-          { id: 'nt-1-e1', title: '中小学新任教师公开招聘模拟考试', type: 'pdf', drive: 'my', size: '210 KB', lastModified: '2024-01-10', tags: ['试卷','评价','表格'], url: '/assets/试卷1.pdf' },
+          { id: 'nt-1-e1', title: '中小学新任教师公开招聘模拟考试', type: 'pdf', drive: 'my', size: '210 KB', lastModified: '2024-01-10', tags: ['试卷','评价','表格'], url: '/assets/新教师入职线上培训具体方案.pdf' },
           { id: 'nt-1-d1', title: '备课流程与清单（PDF 教辅）', type: 'document', drive: 'my', size: '1.6 MB', lastModified: '2024-01-09', tags: ['教辅','备课','流程'] },
-          { id: 'nt-1-w1', title: '白板笔记模板（教学白板）', type: 'whiteboard', drive: 'org', size: 'N/A', lastModified: '2024-01-08', tags: ['白板','互动','教学'] }
+          { id: 'nt-1-w1', title: '白板笔记模板（教学白板）', type: 'whiteboard', drive: 'org', size: 'N/A', lastModified: '2024-01-08', tags: ['白板','互动','教学'] },
+          { id: 'nt-1-q1', title: '教师招聘考试常考题题库', type: 'pdf', drive: 'org', size: '3.2 MB', lastModified: today, tags: ['试题库','教师招聘','考试'], url: '/assets/试题库1-附答案.pdf', space: DEFAULT_SPACE }
         ],
         tags: ['新教师','课堂管理','教学方法','备课'],
         isBookmarked: false,
@@ -588,7 +590,33 @@ const getCategoryIcon = (cat) => {
       }
     ]
 
-    return [...baseCollections, ...newTeacherCollections].map(rc => ({
+    // 相关资料分类的资源集合
+    const relatedMaterialsCollections = [
+      {
+        id: 'rc-related_materials-1',
+        title: '教师招聘考试资料库',
+        category: 'related_materials',
+        createdAt: today,
+        items: [
+          { 
+            id: 'rm-1-q1', 
+            title: '教师招聘考试常考题题库', 
+            type: 'pdf', 
+            drive: 'org', 
+            size: '3.2 MB', 
+            lastModified: today, 
+            tags: ['试题库','教师招聘','考试'], 
+            url: '/assets/试题库1-附答案.pdf',
+            space: DEFAULT_SPACE  // 明确指定空间，确保显示
+          }
+        ],
+        tags: ['试题库','教师招聘','考试资料'],
+        isBookmarked: false,
+        isShared: false
+      }
+    ]
+
+    return [...baseCollections, ...newTeacherCollections, ...relatedMaterialsCollections].map(rc => ({
       ...rc,
       items: (rc.items || []).map((it, idx) => ({
         ...it,
@@ -1490,6 +1518,7 @@ const getCategoryIcon = (cat) => {
   const [showPreviewModal, setShowPreviewModal] = useState(false)
   // 新增：集合内联 PDF 预览状态（仅用于本区域预览）
   const [inlinePreviewPdfUrl, setInlinePreviewPdfUrl] = useState(null)
+  const [inlinePreviewOriginalUrl, setInlinePreviewOriginalUrl] = useState(null)
   const handlePreviewItem = (item) => {
     setPreviewItem(item)
     setShowPreviewModal(true)
@@ -1511,6 +1540,13 @@ const getCategoryIcon = (cat) => {
           {(item.tags || []).join(' · ')}
         </div>
         <div style={{ fontSize: 12, color: '#999' }}>盘：{item.drive === 'org' ? '组织盘' : '个人盘'}；大小：{item.size}；更新：{item.lastModified}</div>
+        {item.url && (
+          <div style={{ marginTop: 6 }}>
+            <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12 }}>
+              原链接：{item.url}
+            </a>
+          </div>
+        )}
         {/* 播放器在下方渲染 */}
       </div>
     )
@@ -1571,13 +1607,16 @@ const getCategoryIcon = (cat) => {
 
     if (item.type === 'document' || item.type === 'pdf') {
       const fileUrl = item.url || 'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf'
-      const viewer = `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(fileUrl)}`
+      const isAbsolute = /^https?:\/\//.test(fileUrl)
+      const viewerSrc = isAbsolute 
+        ? `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(fileUrl)}`
+        : fileUrl
       return (
         <div>
           <div style={{ fontWeight: 600, margin: '4px 0 8px' }}>内容预览</div>
           <div style={boxStyle}>
             <iframe
-              src={viewer}
+              src={viewerSrc}
               title={item.title || '文档预览'}
               style={{ width: '100%', height: '100%', border: 'none' }}
             />
@@ -1593,6 +1632,89 @@ const getCategoryIcon = (cat) => {
           <div style={{ fontWeight: 600, margin: '4px 0 8px' }}>内容预览</div>
           <div style={{ ...boxStyle, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <audio controls src={audioUrl} style={{ width: '100%' }} />
+          </div>
+        </div>
+      )
+    }
+
+    // 新增：PPT/演示文稿预览（使用 Google Docs Viewer）
+    if (item.type === 'ppt' || item.type === 'presentation') {
+      const fileUrl = item.url
+      if (!fileUrl) {
+        return (
+          <div>
+            <div style={{ fontWeight: 600, margin: '4px 0 8px' }}>内容预览</div>
+            <div style={{ padding: 12, color: '#999' }}>当前数据无PPT链接，暂不支持在线预览</div>
+          </div>
+        )
+      }
+      const viewer = `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(fileUrl)}`
+      return (
+        <div>
+          <div style={{ fontWeight: 600, margin: '4px 0 8px' }}>内容预览</div>
+          <div style={boxStyle}>
+            <iframe
+              src={viewer}
+              title={item.title || 'PPT 预览'}
+              style={{ width: '100%', height: '100%', border: 'none' }}
+            />
+          </div>
+        </div>
+      )
+    }
+
+    // 新增：图片预览
+    if (item.type === 'image') {
+      const imgUrl = item.url
+      return (
+        <div>
+          <div style={{ fontWeight: 600, margin: '4px 0 8px' }}>内容预览</div>
+          <div style={{ ...boxStyle, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {imgUrl ? (
+              <img src={imgUrl} alt={item.title || '图片预览'} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+            ) : (
+              <div style={{ color: '#999' }}>当前数据无图片链接，暂不支持在线预览</div>
+            )}
+          </div>
+        </div>
+      )
+    }
+
+    // 新增：白板预览（占位提示）
+    if (item.type === 'whiteboard') {
+      return (
+        <div>
+          <div style={{ fontWeight: 600, margin: '4px 0 8px' }}>内容预览</div>
+          <div style={{ ...boxStyle, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ textAlign: 'center', color: '#666' }}>
+              暂不支持白板在线预览，可在白板编辑器中打开。
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    // 新增：表格预览（优先使用 Google Docs Viewer）
+    if (item.type === 'table' || item.type === 'multitable') {
+      const fileUrl = item.url
+      if (!fileUrl) {
+        return (
+          <div>
+            <div style={{ fontWeight: 600, margin: '4px 0 8px' }}>内容预览</div>
+            <div style={{ padding: 12, color: '#999' }}>当前数据无表格链接，暂不支持在线预览</div>
+          </div>
+        )
+      }
+      const viewer = `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(fileUrl)}`
+      return (
+        <div>
+          <div style={{ fontWeight: 600, margin: '4px 0 8px' }}>内容预览</div>
+          <div style={boxStyle}>
+            <iframe
+              src={viewer}
+              title={item.title || '表格预览'}
+              style={{ width: '100%', height: '100%', border: 'none' }}
+            />
           </div>
         </div>
       )
@@ -1714,7 +1836,14 @@ const getCategoryIcon = (cat) => {
                       <div style={{ marginBottom: 12, display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <Text type="secondary">PDF 预览</Text>
-                          <Button size="small" onClick={() => setInlinePreviewPdfUrl(null)}>关闭预览</Button>
+                          <Space>
+                            {inlinePreviewOriginalUrl && (
+                              <a href={inlinePreviewOriginalUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12 }}>
+                                查看原文件
+                              </a>
+                            )}
+                            <Button size="small" onClick={() => { setInlinePreviewPdfUrl(null); setInlinePreviewOriginalUrl(null); }}>关闭预览</Button>
+                          </Space>
                         </div>
                         <div style={{ border: '1px solid #f0f0f0', borderRadius: 6, overflow: 'hidden', marginTop: 8, flex: 1, minHeight: 0 }}>
                           <iframe src={inlinePreviewPdfUrl} style={{ width: '100%', height: '100%', border: 'none' }} title="PDF 预览" />
@@ -1736,10 +1865,17 @@ const getCategoryIcon = (cat) => {
                                 <Card
                                   hoverable
                                   onClick={() => {
-                                    if (item.id === 'nt-1-e1') {
-                                      const url = item.url || '/assets/试卷1.pdf'
-                                      setInlinePreviewPdfUrl(url)
-                                    }
+                                    // 通用化：文档/PDF/PPT点击卡片进行内联预览，其它类型打开弹窗
+                                    if (["pdf", "document", "ppt", "presentation"].includes(item.type) && item.url) {
+                const isAbsolute = /^https?:\/\//.test(item.url)
+                const viewer = isAbsolute 
+                  ? `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(item.url)}`
+                  : item.url
+                setInlinePreviewPdfUrl(viewer)
+                setInlinePreviewOriginalUrl(item.url)
+              } else {
+                handlePreviewItem(item)
+              }
                                   }}
                                   actions={[
                                     <Tooltip key={`preview-${item.id}`} title="预览">
@@ -1765,6 +1901,7 @@ const getCategoryIcon = (cat) => {
                                   </div>
                                   <div className="note-title">{item.title}</div>
                                   <div className="note-tags">
+                                    <AntTag size="small" color="#e6fffb">空间：{item.drive === 'org' ? (item.space || DEFAULT_SPACE) : '个人盘'}</AntTag>
                                     {(item.tags || []).slice(0, 10).map(tag => (
                                       <AntTag key={`item-${item.id}-tag-${tag}`}>{tag}</AntTag>
                                     ))}
@@ -1975,13 +2112,12 @@ const getCategoryIcon = (cat) => {
                     <span>{item.size}</span>
                     <span>{item.lastModified}</span>
                   </div>
-                  {item.tags && (
-                    <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {item.tags.map(tag => (
-                        <AntTag key={tag} size="small">{tag}</AntTag>
-                      ))}
-                    </div>
-                  )}
+                  <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    <AntTag size="small" color="#e6fffb">空间：{item.drive === 'org' ? (item.space || DEFAULT_SPACE) : '个人盘'}</AntTag>
+                    {(item.tags || []).map(tag => (
+                      <AntTag key={tag} size="small">{tag}</AntTag>
+                    ))}
+                  </div>
                 </Card>
               </Col>
             ))}
@@ -2067,6 +2203,12 @@ const getCategoryIcon = (cat) => {
                             <Button type="text" size="small" danger icon={<DeleteOutlined />} />
                           </Popconfirm>
                         </Space>
+                      </div>
+                      <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        <AntTag size="small" color="#e6fffb">空间：{item.drive === 'org' ? (item.space || DEFAULT_SPACE) : '个人盘'}</AntTag>
+                        {(item.tags || []).map(tag => (
+                          <AntTag key={tag} size="small">{tag}</AntTag>
+                        ))}
                       </div>
                     </div>
                   </Card>

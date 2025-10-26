@@ -1,3 +1,9 @@
+.ant-layout-sider.resource-category-sidebar {
+  width: max-content;
+  flex: 0 0 max-content;
+  min-width: 180px;
+}
+
 .resource-category-sidebar {
   background: #fafafa;
   border-right: 1px solid #e8e8e8;

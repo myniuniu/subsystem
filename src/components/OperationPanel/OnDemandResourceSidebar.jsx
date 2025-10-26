@@ -230,7 +230,7 @@ const ResourceSidebar = ({
   };
 
   return (
-    <Sider width={340} className="notes-sidebar resource-sidebar">
+    <Sider className="notes-sidebar resource-sidebar">
       <div className="sidebar-content">
         <div className="category-group" key="system_categories_header">
           <div className="category-group-title">

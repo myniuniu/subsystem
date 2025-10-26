@@ -1,5 +1,11 @@
 /* ResourceSidebar 专用样式：悬停按钮覆盖文本，不占用文字空间 */
 
+.ant-layout-sider.resource-sidebar {
+  width: max-content;
+  flex: 0 0 max-content;
+  min-width: 180px;
+}
+
 /* 容器不预留右侧空间 */
 .resource-sidebar .category-item,
 .resource-sidebar .tree-group-title,

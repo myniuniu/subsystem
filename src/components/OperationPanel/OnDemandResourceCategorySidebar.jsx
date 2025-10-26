@@ -252,7 +252,7 @@ const ResourceCategorySidebar = ({
   const onExpand = (keys) => setExpandedKeys(keys);
 
   return (
-    <Sider width={260} className="resource-category-sidebar">
+    <Sider className="resource-category-sidebar">
       <div className="sidebar-content">
         <div className="sidebar-bottom">
           <Tree

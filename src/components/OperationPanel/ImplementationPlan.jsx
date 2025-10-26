@@ -1,10 +1,14 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Typography, Button, Tag, Tooltip, Progress, Modal, Card, Form, Input, InputNumber, Switch, Select, Table, Avatar, Space, Divider, Tabs, Row, Col, Empty } from 'antd';
-import { DownOutlined, RightOutlined, UserAddOutlined, DeleteOutlined, TeamOutlined, EyeOutlined, CheckCircleTwoTone, AppstoreOutlined, ProfileOutlined } from '@ant-design/icons';
+import { DownOutlined, RightOutlined, UserAddOutlined, DeleteOutlined, TeamOutlined, EyeOutlined, CheckCircleTwoTone, AppstoreOutlined, ProfileOutlined, PlusOutlined, RobotOutlined } from '@ant-design/icons';
 import { createMockOrganizationPersonnelTree } from '../../data/organizationPersonnelMockData';
 import { TreeNodeType } from '../../types/organizationPersonnelTree';
 import OnDemandResourceLibrary from './OnDemandResourceLibrary'
 import { initialResources } from '../../data/resourceLibraryData.js'
+import BasicConfigTab from './tabs/BasicConfigTab'
+import VideoContentTab from './tabs/VideoContentTab'
+import ExamNotifyTab from './tabs/ExamNotifyTab'
+import QuestionSelectionTab from './tabs/QuestionSelectionTab'
 
 const { Text } = Typography;
 const { CheckableTag } = Tag;
@@ -237,6 +241,154 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
   // 配置状态：按阶段 + 形式存储
   const [formatConfigs, setFormatConfigs] = useState({}); // { [phaseId]: { live: {...}, videos: {...}, exam: {...} } }
   const [configModal, setConfigModal] = useState({ visible: false, phaseId: null, formatKey: null, draft: null });
+  // 新增：AI试卷弹窗状态与确认处理
+  const [aiPaperModalVisible, setAiPaperModalVisible] = useState(false);
+  const [aiPaperForm] = Form.useForm();
+  const openAiPaperModal = () => {
+    const rules = configModal?.draft?.questions?.aiRules || {};
+    const dist = rules.distribution || {};
+    const difficulty = rules.difficulty || {};
+    // 初始化表单值
+    aiPaperForm.setFieldsValue({
+      paperName: `AI试卷 ${new Date().toLocaleString('zh-CN', { hour12: false })}`,
+      setCount: 1,
+      totalCount: rules.totalCount || 20,
+      singleCount: dist.single?.count || 10,
+      singleScore: dist.single?.score || 2,
+      multipleCount: dist.multiple?.count || 5,
+      multipleScore: dist.multiple?.score || 4,
+      judgeCount: dist.judge?.count || 3,
+      judgeScore: dist.judge?.score || 2,
+      essayCount: dist.essay?.count || 2,
+      essayScore: dist.essay?.score || 10,
+      easyPercent: difficulty.easy || 30,
+      mediumPercent: difficulty.medium || 50,
+      hardPercent: difficulty.hard || 20,
+      keywords: rules.keywords || '',
+      contentSource: rules.contentSource || '默认题库'
+    });
+    setAiPaperModalVisible(true);
+  };
+  const handleAiPaperConfirm = async () => {
+    try {
+      const values = await aiPaperForm.validateFields();
+      const selected = Array.isArray(configModal?.draft?.questions?.selected) ? configModal.draft.questions.selected : [];
+      
+      // 计算总分
+      const totalScore = 
+        (values.singleCount * values.singleScore) +
+        (values.multipleCount * values.multipleScore) +
+        (values.judgeCount * values.judgeScore) +
+        (values.essayCount * values.essayScore);
+      
+      // 计算实际题数
+      const actualQuestionCount = values.singleCount + values.multipleCount + values.judgeCount + values.essayCount;
+      
+      // 批量创建试卷
+      const setCount = Math.max(1, Number(values.setCount || 1));
+      const baseName = values.paperName?.trim() || `AI试卷 ${new Date().toLocaleString('zh-CN', { hour12: false })}`;
+      const nowTs = Date.now();
+      const newPapers = Array.from({ length: setCount }).map((_, idx) => {
+        const index = idx + 1;
+        const suffix = setCount > 1 ? ` - 第${numberToChinese(index)}套` : '';
+        return {
+          id: `paper-ai-${nowTs}-${index}`,
+          name: `${baseName}${suffix}`,
+          questionCount: actualQuestionCount,
+          totalScore: totalScore,
+          aiGenerated: true,
+          config: {
+            distribution: {
+              single: { count: values.singleCount, score: values.singleScore },
+              multiple: { count: values.multipleCount, score: values.multipleScore },
+              judge: { count: values.judgeCount, score: values.judgeScore },
+              essay: { count: values.essayCount, score: values.essayScore }
+            },
+            difficulty: {
+              easy: values.easyPercent,
+              medium: values.mediumPercent,
+              hard: values.hardPercent
+            },
+            keywords: values.keywords,
+            contentSource: (configModal?.draft?.questions?.aiRules?.contentSource || '默认题库')
+          }
+        };
+      });
+      
+      // 更新AI规则到draft中（总题数以各题型数量累加）
+      const updatedAiRules = {
+        totalCount: actualQuestionCount,
+        distribution: {
+          single: { count: values.singleCount, score: values.singleScore },
+          multiple: { count: values.multipleCount, score: values.multipleScore },
+          judge: { count: values.judgeCount, score: values.judgeScore },
+          essay: { count: values.essayCount, score: values.essayScore }
+        },
+        difficulty: {
+          easy: values.easyPercent,
+          medium: values.mediumPercent,
+          hard: values.hardPercent
+        },
+        keywords: values.keywords,
+        contentSource: (configModal?.draft?.questions?.aiRules?.contentSource || '默认题库')
+      };
+      
+      // 更新questions的aiRules
+      updateDraft('questions', {
+        ...(configModal?.draft?.questions || {}),
+        aiRules: updatedAiRules
+      });
+      
+      // 添加新试卷到exam.papers
+      const nextExam = {
+        ...(configModal?.draft?.exam || {}),
+        papers: [ ...(configModal?.draft?.exam?.papers || []), ...newPapers ]
+      };
+      updateDraft('exam', nextExam);
+      
+      setAiPaperModalVisible(false);
+    } catch (e) {
+      console.error('AI试卷生成失败:', e);
+    }
+  };
+
+  const handleCreatePaper = () => {
+    const nowTs = Date.now();
+    const existing = Array.isArray(configModal?.draft?.exam?.papers) ? configModal.draft.exam.papers : [];
+    const index = existing.length + 1;
+    const aiRules = configModal?.draft?.questions?.aiRules || {};
+    const dist = aiRules.distribution || {};
+    const defaultQuestionCount = (
+      (dist.single?.count || 0) + (dist.multiple?.count || 0) + (dist.judge?.count || 0) + (dist.essay?.count || 0)
+    ) || (aiRules.totalCount || 20);
+    const defaultTotalScore = (
+      (dist.single?.count || 0) * (dist.single?.score || 0) +
+      (dist.multiple?.count || 0) * (dist.multiple?.score || 0) +
+      (dist.judge?.count || 0) * (dist.judge?.score || 0) +
+      (dist.essay?.count || 0) * (dist.essay?.score || 0)
+    ) || 100;
+    const newPaper = {
+      id: `paper-manual-${nowTs}-${index}`,
+      name: `新试卷 ${index}`,
+      questionCount: defaultQuestionCount,
+      totalScore: defaultTotalScore
+    };
+    const nextExam = {
+      ...(configModal?.draft?.exam || {}),
+      papers: [...existing, newPaper]
+    };
+    updateDraft('exam', nextExam);
+  };
+
+  const handleDeletePaper = (paperId) => {
+    const existing = Array.isArray(configModal?.draft?.exam?.papers) ? configModal.draft.exam.papers : [];
+    const nextPapers = existing.filter(p => p.id !== paperId);
+    const nextExam = {
+      ...(configModal?.draft?.exam || {}),
+      papers: nextPapers
+    };
+    updateDraft('exam', nextExam);
+  };
 
   const configAreaRef = useRef(null);
 
@@ -272,7 +424,51 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
         name: formatLabelByKey(formatKey),
         details: '',
         enabled: true,
-        assessment: { method: '考试', weight: 30, passScore: 60, fullScore: 100 }
+        assessment: { method: '考试', weight: 30, passScore: 60, fullScore: 100 },
+        questions: {
+          selected: [], // 从资料库选择的试题
+          aiRules: {   // AI出题规则
+            subject: '',
+            totalCount: 20,
+            distribution: {
+              single: { count: 10, score: 2 },
+              multiple: { count: 5, score: 3 },
+              judge: { count: 3, score: 2 },
+              essay: { count: 2, score: 10 }
+            },
+            difficulty: {
+              easy: 30,
+              medium: 50,
+              hard: 20
+            },
+            contentSource: 'module_videos',
+            keywords: ''
+          }
+        },
+        // 试卷配置：初始化3套模拟试卷
+        exam: {
+          durationMinutes: 90,
+          retakeEnabled: false,
+          retakeCount: 0,
+          retakeScorePolicy: '最高分',
+          papers: [
+            { id: 'paper-1', name: '试卷 A', questionCount: 20, totalScore: 100 },
+            { id: 'paper-2', name: '试卷 B', questionCount: 25, totalScore: 100 },
+            { id: 'paper-3', name: '试卷 C', questionCount: 15, totalScore: 100 }
+          ]
+        },
+        notify: {
+          pre_day: { enabled: true, title: '准考提醒：{examName}', content: '您报名的考试将于{startTime}开始，请合理安排时间并按时参加。', channels: ['公众号','短信'], audience: '业务内全部学员', timing: '考试前1天 09:00' },
+          start_30m: { enabled: false, title: '开考倒计时：30分钟', content: '考试即将开始，请提前检查设备与网络，进入考试入口做好准备。', channels: ['公众号','短信'], audience: '业务内全部学员', timing: '开考前30分钟' },
+          start_10m: { enabled: true, title: '开考倒计时：10分钟', content: '考试即将开始，请尽快进入考试页面，避免迟到影响考试。', channels: ['公众号','短信'], audience: '业务内全部学员', timing: '开考前10分钟' },
+          result_publish: { enabled: true, title: '成绩公布：{examName}', content: '您的考试成绩已发布，请前往成绩页面查看详情。', channels: ['公众号','短信'], audience: '业务内全部学员', timing: '评分完成后' },
+          not_submitted: { enabled: false, title: '考试未提交提醒：{examName}', content: '系统检测到您未提交试卷，如有疑问请联系管理员。', channels: ['公众号','短信'], audience: '业务内全部学员', timing: '考试结束后未交卷' },
+          retake_open: { enabled: false, title: '重考开启：{examName}', content: '本次考试已开启重考机会，请在规定时间内重新参加考试。', channels: ['公众号','短信'], audience: '业务内全部学员', timing: '允许重考开启时' },
+          review_assign: { enabled: true, title: '评阅任务分派：{paperName}', content: '您被分派评阅任务：{paperName}，待评数量：{pendingCount}，请在{deadline}前完成。', channels: ['短信','公众号'], audience: '评阅老师/助教', timing: '即时发送' },
+          review_reminder: { enabled: true, title: '评阅提醒：{paperName}', content: '评阅任务即将到期，请尽快在{deadline}前完成评阅。', channels: ['短信','公众号'], audience: '评阅老师/助教', timing: '距离截止前1天' },
+          review_complete_student: { enabled: true, title: '评阅完成：{examName}', content: '您的试卷评阅已完成，成绩：{score}分，请前往成绩页面查看详情。', channels: ['短信','公众号'], audience: '业务内全部学员', timing: '评分完成后' },
+          review_overdue: { enabled: false, title: '逾期未评：{paperName}', content: '您有评阅任务已超过截止时间仍未完成，请及时处理。', channels: ['短信','公众号'], audience: '评阅老师/助教', timing: '超过截止未完成' }
+        }
       };
     }
     return { name: formatLabelByKey(formatKey), details: '', enabled: false, assessment: { method: '未设置', weight: 0 } };
@@ -283,6 +479,8 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
     const baseAll = formatConfigs[phaseId] || {};
     const base = baseAll[formatKey] || getDefaultConfig(phase, formatKey);
     setConfigModal({ visible: true, phaseId, formatKey, draft: { ...base } });
+    // 当打开考试形式配置时，默认切换到“试卷”页签
+    setConfigTabKey(formatKey === 'exam' ? 'exam-paper' : 'content');
   };
 
 
@@ -648,7 +846,6 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
              </div>
              <Space>
                <Button onClick={() => setConfigModal({ visible: false, phaseId: null, formatKey: null, draft: null })}>返回</Button>
-               <Button type="primary" onClick={() => saveConfig()}>保存</Button>
              </Space>
            </div>
           <Card
@@ -657,539 +854,370 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                 <Tabs
                   activeKey={configTabKey}
                   onChange={setConfigTabKey}
-                  items={[
-                    { key: 'basic', label: '基础配置' },
-                    { key: 'content', label: '课程内容' }
-                  ]}
+                  items={(
+                    configModal.formatKey === 'exam'
+                      ? [
+                          { key: 'exam-paper', label: '试题' },
+                          { key: 'exam-config', label: '试卷' },
+                          { key: 'exam-notify', label: '考试' }
+                        ]
+                      : [
+                          { key: 'basic', label: '基础配置' },
+                          { key: 'content', label: '课程内容' }
+                        ]
+                  )}
                   size="small"
-                  tabBarGutter={18}
+                  tabBarGutter={28}
                   tabBarStyle={{ margin: 0 }}
                 />
               </div>
             )}
             size="small"
-            headStyle={{ borderBottom: 'none', padding: '0 8px', minHeight: 30 }}
+            headStyle={{ borderBottom: 'none', padding: '0 12px', minHeight: 30 }}
             style={{ marginTop: 4 }}
-            bodyStyle={{ padding: '4px 8px' }}
+            bodyStyle={{ padding: '12px 16px' }}
           >
             {configModal.draft && (
-              <Tabs
-                activeKey={configTabKey}
-                onChange={setConfigTabKey}
-                style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-                tabBarStyle={{ display: 'none' }}
-                items={[
-                  {
-                    key: 'basic',
-                    label: '基础配置',
-                    children: (
-                      <Form layout="vertical">
-                        <Form.Item label="培训形式名称" style={{ marginBottom: 8 }}>
-                          <Input
-                            size="small"
-                            value={configModal.draft.name}
-                            onChange={(e) => updateDraft('name', e.target.value)}
-                            placeholder="例如：直播课、点播课、考试"
-                          />
-                        </Form.Item>
-                        <Form.Item label="培训形式具体内容" style={{ marginBottom: 8 }}>
-                          <Input.TextArea
-                            value={configModal.draft.details}
-                            onChange={(e) => updateDraft('details', e.target.value)}
-                            placeholder="补充该形式的实施说明、要点等"
-                            rows={3}
-                            style={{ fontSize: 12 }}
-                          />
-                        </Form.Item>
-                        <Form.Item label="是否需要考核" style={{ marginBottom: 8 }}>
-                          <Switch
-                            checked={configModal.draft.enabled}
-                            onChange={(checked) => updateDraft('enabled', checked)}
-                          />
-                        </Form.Item>
-                        <Form.Item label="考核权重(%)" style={{ marginBottom: 8 }}>
-                          <InputNumber
-                            size="small"
-                            value={configModal.draft.assessment?.weight}
-                            min={0}
-                            max={100}
-                            onChange={(v) => updateDraft('assessment.weight', v)}
-                            style={{ width: '100%' }}
-                          />
-                        </Form.Item>
-
-                        {(configModal.formatKey === 'live' || configModal.formatKey === 'videos') && (
-                          <>
-                            <Form.Item label="考核方式" style={{ marginBottom: 8 }}>
-                              <Select
-                                size="small"
-                                value={configModal.draft.assessment?.method}
-                                onChange={(v) => updateDraft('assessment.method', v)}
-                                options={[{ value: '观看时长', label: '观看时长' }]}
-                              />
-                            </Form.Item>
-                            <Form.Item label="达标观看占比(%)" style={{ marginBottom: 8 }}>
-                              <InputNumber
-                                size="small"
-                                value={configModal.draft.watch?.requiredPercent}
-                                min={0}
-                                max={100}
-                                onChange={(v) => updateDraft('watch.requiredPercent', v)}
-                                style={{ width: '100%' }}
-                              />
-                            </Form.Item>
-                          </>
-                        )}
-
-                        {configModal.formatKey === 'exam' && (
-                          <>
-                            <Form.Item label="考核方式" style={{ marginBottom: 8 }}>
-                              <Select
-                                size="small"
-                                value={configModal.draft.assessment?.method}
-                                onChange={(v) => updateDraft('assessment.method', v)}
-                                options={[
-                                  { value: '考试', label: '考试' },
-                                  { value: '测验', label: '测验' },
-                                  { value: '考试+作业', label: '考试+作业' },
-                                  { value: '报告', label: '报告' }
-                                ]}
-                              />
-                            </Form.Item>
-                            <Form.Item label="及格分数" style={{ marginBottom: 8 }}>
-                              <InputNumber
-                                size="small"
-                                value={configModal.draft.assessment?.passScore}
-                                min={0}
-                                max={100}
-                                onChange={(v) => updateDraft('assessment.passScore', v)}
-                                style={{ width: '100%' }}
-                              />
-                            </Form.Item>
-                            <Form.Item label="满分" style={{ marginBottom: 8 }}>
-                              <InputNumber
-                                size="small"
-                                value={configModal.draft.assessment?.fullScore}
-                                min={0}
-                                max={100}
-                                onChange={(v) => updateDraft('assessment.fullScore', v)}
-                                style={{ width: '100%' }}
-                              />
-                            </Form.Item>
-                          </>
-                        )}
-                      </Form>
-                    )
-                  },
-                  {
-                    key: 'content',
-                    label: '课程内容',
-                    children: (
-                      configModal.formatKey === 'videos' ? (
-                          <Row gutter={8} wrap={false} style={{ height: '100%', alignItems: 'stretch', margin: 0 }}>
-                            <Col id="course-content-left" style={{ display: 'flex', width: (leftViewMode === 'single' ? '16.8%' : '33.6%'), minWidth: (leftViewMode === 'single' ? 200 : 240), flex: '0 0 auto', height: '100%' }}>
-                              <Card
-                                title={(
+              // 考试形式：按页签分别渲染，考试配置不包含试卷选择
+              (
+                configModal.formatKey === 'exam' ? (
+                  <>
+                    {configTabKey === 'exam-config' && (
+                      <Tabs
+                        defaultActiveKey="paper"
+                        size="small"
+                        tabBarStyle={{ marginBottom: 8 }}
+                        items={[
+                          {
+                            key: 'paper',
+                            label: '试卷',
+                            children: (
+                              <div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                  <div style={{ fontWeight: 600 }}>试卷列表</div>
                                   <Space>
-                                    <span>📚</span>
-                                    <span>当前课程内容</span>
+                                    <Button type="primary" icon={<RobotOutlined />} onClick={openAiPaperModal}>AI试卷</Button>
+                                    <Button type="default" icon={<PlusOutlined />} onClick={handleCreatePaper}>新建试卷</Button>
                                   </Space>
+                                </div>
+                                {Array.isArray(configModal?.draft?.exam?.papers) && (configModal.draft.exam.papers.length > 0) ? (
+                                  <Row gutter={12} wrap>
+                                    {configModal.draft.exam.papers.map((paper, idx) => (
+                                      <Col key={paper?.id || idx} span={8}>
+                                        <Card size="small" title={paper?.name || `试卷 ${idx + 1}`} style={{ marginBottom: 8 }} extra={<Button size="small" danger type="text" icon={<DeleteOutlined />} onClick={() => handleDeletePaper(paper?.id || `paper-${idx}`)}>删除</Button>}>
+                                          <Space size={8} wrap>
+                                            <Tag color="processing">题数 {paper?.questionCount ?? '-'}</Tag>
+                                            <Tag color="blue">总分 {paper?.totalScore ?? '-'}</Tag>
+                                          </Space>
+                                        </Card>
+                                      </Col>
+                                    ))}
+                                  </Row>
+                                ) : (
+                                  <Empty description="暂未配置试卷" />
                                 )}
-                                extra={(
-                                  <Space>
-                                    <Tooltip title="单卡视图">
-                                      <Button size="small" type="text" icon={<ProfileOutlined />} style={{ color: leftViewMode === 'single' ? '#1677ff' : undefined }} onClick={() => setLeftViewMode('single')} />
-                                    </Tooltip>
-                                    <Tooltip title="双卡视图">
-                                      <Button size="small" type="text" icon={<AppstoreOutlined />} style={{ color: leftViewMode === 'double' ? '#1677ff' : undefined }} onClick={() => setLeftViewMode('double')} />
-                                    </Tooltip>
-                                  </Space>
-                                )}
-                                style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
-                                bodyStyle={{ padding: 8, flex: 1, minHeight: 0, overflow: 'auto' }}
-                              >
-                                {(() => {
-                                  const phaseCfg = (formatConfigs[configModal.phaseId] || {})
-                                  const phaseObj = phaseMaterials.find(p => p.id === configModal.phaseId)
-                                  const baseVideos = phaseCfg.videos || getDefaultConfig(phaseObj, 'videos')
-                                  const selectedIds = baseVideos.selectedCollections || []
-                                  const aiIds = baseVideos.aiSelectedIds || []
-                                  const DEFAULT_SPACE = '技术部-研发'
-                                  const currentSpace = (typeof localStorage !== 'undefined' && (localStorage.getItem('current_knowledge_space') || DEFAULT_SPACE)) || DEFAULT_SPACE
-                                  const typeToThumb = {
-                                    documents: '/thumbnails/documents.png',
-                                    videos: '/thumbnails/videos.png',
-                                    images: '/thumbnails/images.png',
-                                    audio: '/thumbnails/audio.png',
-                                    presentations: '/thumbnails/presentations.png',
-                                    default: '/thumbnails/default.png'
-                                  }
-                                  const categories = [
-                                    { id: 'teaching_resources', name: '教学资源库' },
-                                    { id: 'technology_training', name: '技术培训资源库' },
-                                    { id: 'family_education', name: '家庭教育资源库' },
-                                    { id: 'school_management', name: '学校管理资源库' },
-                                    { id: 'mental_health', name: '心理健康资源库' },
-                                    { id: 'new_teacher_resources', name: '新教师资源库' }
-                                  ]
-                                  const getCollectionThumbnail = (rc) => {
-                                    try {
-                                      const items = (rc && rc.items) || []
-                                      const firstType = (items.find(it => typeof it?.type === 'string')?.type) || ''
-                                      const t = String(firstType).toLowerCase()
-                                      if (t.includes('ppt') || t.includes('presentation')) return typeToThumb.presentations
-                                      if (t.includes('doc') || t.includes('pdf') || t.includes('guide')) return typeToThumb.documents
-                                      if (t.includes('video') || t.includes('mp4')) return typeToThumb.videos
-                                      if (t.includes('image') || t.includes('png') || t.includes('jpg')) return typeToThumb.images
-                                      if (t.includes('audio') || t.includes('mp3')) return typeToThumb.audio
-                                      switch (rc?.category) {
-                                        case 'technology_training': return typeToThumb.videos
-                                        case 'teaching_resources': return typeToThumb.documents
-                                        case 'family_education': return typeToThumb.presentations
-                                        case 'school_management': return typeToThumb.images
-                                        case 'mental_health': return typeToThumb.images
-                                        case 'new_teacher_resources': return typeToThumb.presentations
-                                        default: return typeToThumb.default
-                                      }
-                                    } catch {
-                                      return '/images/agents/agent-docs.svg'
-                                    }
-                                  }
-                                  const getFilteredItemsForPreview = (rc, space) => {
-                                    try {
-                                      return (rc.items || []).filter(it => ((it.drive === 'org' || typeof it.drive === 'undefined') && ((it.space || DEFAULT_SPACE) === space)))
-                                    } catch {
-                                      return []
-                                    }
-                                  }
-                                  const openCollectionPreview = (rc) => {
-                                    const items = getFilteredItemsForPreview(rc, currentSpace)
-                                    const categoryLabel = (categories.find(c => c.id === rc.category)?.name) || '资料集合'
-                                    Modal.info({
-                                      title: `集合预览：${rc.title}`,
-                                      width: 680,
-                                      content: (
-                                        <div style={{ marginTop: 8 }}>
-                                          <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
-                                            <div style={{ width: 160, height: 90, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0' }}>
-                                              <img src={getCollectionThumbnail(rc)} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            </div>
-                                            <div>
-                                              <div style={{ fontWeight: 600 }}>{categoryLabel}</div>
-                                              <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                                                {(rc.tags || []).slice(0, 8).map(tag => (<Tag key={tag}>{tag}</Tag>))}
-                                              </div>
-                                              <div style={{ marginTop: 6, color: '#888' }}>创建时间：{rc.createdAt} · 项目数：{items.length}</div>
-                                            </div>
-                                          </div>
-                                          {items.length === 0 ? (
-                                            <Empty description={<div><Text>当前空间下暂无可预览的资源项</Text><br /><Text type="secondary">请切换空间或更改分类</Text></div>} />
-                                          ) : (
-                                            <div style={{ maxHeight: 260, overflow: 'auto', borderTop: '1px dashed #eee', paddingTop: 8 }}>
-                                              {items.map(it => (
-                                                <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                                                  <div style={{ width: 100, height: 56, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0' }}>
-                                                    <img src={(function(){ const t=String(it.type||'').toLowerCase(); if (t.includes('video')) return '/thumbnails/videos.png'; if (t.includes('image')) return '/thumbnails/images.png'; if (t.includes('audio')) return '/thumbnails/audio.png'; if (t.includes('doc')||t.includes('pdf')) return '/thumbnails/documents.png'; return '/thumbnails/default.png'; })()} alt="item" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                  </div>
-                                                  <div style={{ flex: 1 }}>
-                                                    <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.title}</div>
-                                                    <div style={{ marginTop: 4, color: '#888', fontSize: 12 }}>{(it.tags||[]).slice(0,4).join(' · ')}</div>
-                                                  </div>
-                                                  <div style={{ color: '#888', fontSize: 12 }}>{it.lastModified}</div>
-                                                </div>
-                                              ))}
-                                            </div>
-                                          )}
-                                        </div>
-                                      )
-                                    })
-                                  }
-                                  const collections = (function createDefaultCollections() {
-                                    const today = new Date().toLocaleDateString('zh-CN')
-                                    const cats = [
-                                      { id: 'teaching_resources', title: '教学资源精选' },
-                                      { id: 'technology_training', title: '技术培训精选' },
-                                      { id: 'family_education', title: '家庭教育精选' },
-                                      { id: 'school_management', title: '学校管理精选' },
-                                      { id: 'mental_health', title: '心理健康研修' }
-                                    ]
-                                    const pickByCategory = (cat, limit = 8) => initialResources.filter(r => r.category === cat).slice(0, limit)
-                                    const uniqueTags = (items, limit = 12) => {
-                                      const set = new Set()
-                                      items.forEach(i => (i.tags || []).forEach(t => set.add(t)))
-                                      return Array.from(set).slice(0, limit)
-                                    }
-                                    return cats.map((c, idx) => {
-                                      const items = pickByCategory(c.id, 8)
-                                      if (c.id === 'technology_training') {
-                                        items.push({ id: 'scn-phy-1', title: '科学演示：电磁感应虚拟实验', type: 'scenario', drive: 'org', size: 'N/A', lastModified: today, tags: ['科学演示','物理','虚拟仿真'] })
-                                      }
-                                      if (c.id === 'mental_health') {
-                                        items.push({ id: 'scn-psy-1', title: '心理健康辅导：校园压力疏导', type: 'scenario', drive: 'my', size: 'N/A', lastModified: today, tags: ['心理健康','辅导','情绪管理'] })
-                                      }
-                                      return {
-                                        id: `rc-${c.id}-${idx+1}`,
-                                        title: c.title,
-                                        category: c.id,
-                                        createdAt: today,
-                                        items,
-                                        tags: uniqueTags(items)
-                                      }
-                                    })
-                                  })()
-                                  const byId = new Map(collections.map(c => [c.id, c]))
-                                  const selected = selectedIds.map(id => byId.get(id)).filter(Boolean)
-                                  if (selected.length === 0) {
-                                    return <Empty description={<div><Text>尚未选择集合</Text><br /><Text type="secondary">请在右侧勾选课程内容集合</Text></div>} />
-                                  }
-                                  return (
-                                      <div
-                                        style={{
-                                          display: 'grid',
-                                          gridTemplateColumns: (leftViewMode === 'single') ? 'repeat(1, minmax(0, 1fr))' : 'repeat(2, minmax(0, 1fr))',
-                                          gap: 12,
-                                          cursor: 'default'
-                                        }}
-
-                                      >
-                                       {selected.map(rc => (
-                                         <Card
-                                           key={rc.id}
-                                           hoverable
-                                           draggable
-                                           onDragStart={(e) => { setDraggingId(rc.id); e.dataTransfer.setData('text/plain', rc.id) }}
-                                           onDragEnd={() => { setDraggingId(null); setDragOverId(null) }}
-                                           onDragOver={(e) => { e.preventDefault(); if (dragOverId !== rc.id) setDragOverId(rc.id) }}
-                                           onDragLeave={() => { if (dragOverId === rc.id) setDragOverId(null) }}
-                                           onDrop={(e) => {
-                                             e.preventDefault()
-                                             const draggedId = e.dataTransfer.getData('text/plain')
-                                             if (!draggedId || draggedId === rc.id) return
-                                             setFormatConfigs(prev => {
-                                               const phase = prev[configModal.phaseId] || {}
-                                               const phaseObj = phaseMaterials.find(p => p.id === configModal.phaseId)
-                                               const baseVideos = phase.videos || getDefaultConfig(phaseObj, 'videos')
-                                               const ids = Array.from((baseVideos.selectedCollections || []))
-                                               const from = ids.indexOf(draggedId)
-                                               const to = ids.indexOf(rc.id)
-                                               if (from === -1 || to === -1) return prev
-                                               ids.splice(from, 1)
-                                               ids.splice(to, 0, draggedId)
-                                               return {
-                                                 ...prev,
-                                                 [configModal.phaseId]: {
-                                                   ...phase,
-                                                   videos: { ...baseVideos, selectedCollections: ids }
-                                                 }
-                                               }
-                                             })
-                                             setDraggingId(null); setDragOverId(null)
-                                           }}
-                                           style={{ 
-                                             width: '100%', 
-                                             position: 'relative', 
-                                             boxShadow: dragOverId === rc.id ? '0 4px 12px rgba(22, 119, 255, 0.3), 0 0 0 2px #1677ff' : (draggingId && draggingId !== rc.id ? '0 2px 8px rgba(0,0,0,0.1)' : undefined), 
-                                             opacity: draggingId === rc.id ? 0.6 : 1, 
-                                             transform: draggingId === rc.id ? 'scale(0.95) rotate(2deg)' : 'none',
-                                             transition: 'all 0.2s ease',
-                                             zIndex: draggingId === rc.id ? 1000 : 'auto'
-                                           }}
-                                         >
-                                           {dragOverId === rc.id && (
-                                             <>
-                                               <div style={{ 
-                                                 position: 'absolute', 
-                                                 top: -8, 
-                                                 left: -4, 
-                                                 right: -4, 
-                                                 height: 4, 
-                                                 background: 'linear-gradient(90deg, #1677ff, #40a9ff)',
-                                                 borderRadius: '2px',
-                                                 boxShadow: '0 2px 4px rgba(22, 119, 255, 0.4)'
-                                               }} />
-                                               <div style={{ 
-                                                 position: 'absolute', 
-                                                 top: -12, 
-                                                 left: '50%', 
-                                                 transform: 'translateX(-50%)',
-                                                 width: 0,
-                                                 height: 0,
-                                                 borderLeft: '6px solid transparent',
-                                                 borderRight: '6px solid transparent',
-                                                 borderBottom: '6px solid #1677ff'
-                                               }} />
-                                             </>
-                                           )}
-                                           <div
-                                             style={{ position: 'relative', width: '100%', height: 120, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0', marginBottom: 8 }}
-                                             onMouseEnter={() => setHoveredCardId(rc.id)}
-                                             onMouseLeave={() => setHoveredCardId(null)}
+                                {aiPaperModalVisible && (
+                                  <Modal
+                                    open={aiPaperModalVisible}
+                                    title="AI试卷配置"
+                                    onOk={handleAiPaperConfirm}
+                                    onCancel={() => setAiPaperModalVisible(false)}
+                                    okText="确认生成"
+                                    cancelText="取消"
+                                    width={800}
+                                  >
+                                    <Form
+                                       form={aiPaperForm}
+                                       layout="vertical"
+                                       style={{ maxHeight: '60vh', overflowY: 'auto', overflowX: 'hidden', padding: '16px 12px' }}
+                                     >
+                                      <Row gutter={16}>
+                                         <Col span={24}>
+                                           <Form.Item
+                                             label="试卷名称"
+                                             name="paperName"
+                                             rules={[{ required: true, message: '请输入试卷名称' }]}
                                            >
-                                             <img src={getCollectionThumbnail(rc)} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                             <div
-                                               style={{
-                                                 position: 'absolute', inset: 0,
-                                                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
-                                                 background: 'rgba(0,0,0,0.35)',
-                                                 opacity: hoveredCardId === rc.id ? 1 : 0,
-                                                 transition: 'opacity 0.2s ease'
-                                               }}
-                                               onClick={(e) => e.stopPropagation()}
-                                             >
-                                               <Button
-                                                 size="middle"
-                                                 type="primary"
-                                                 style={{ background: '#1677ff', borderColor: '#1677ff', borderRadius: 20, padding: '0 14px' }}
-                                                 icon={<EyeOutlined />}
-                                                 onClick={() => openCollectionPreview(rc)}
-                                               >预览</Button>
-                                               <Button
-                                                 size="middle"
-                                                 danger
-                                                 style={{ background: '#ff4d4f', borderColor: '#ff4d4f', borderRadius: 20, padding: '0 14px', color: '#fff' }}
-                                                 icon={<DeleteOutlined />}
-                                                 onClick={() => {
-                                                   setFormatConfigs(prev => {
-                                                     const phase = prev[configModal.phaseId] || {}
-                                                     const phaseObj = phaseMaterials.find(p => p.id === configModal.phaseId)
-                                                     const baseVideos = phase.videos || getDefaultConfig(phaseObj, 'videos')
-                                                     const ids = (baseVideos.selectedCollections || []).filter(x => x !== rc.id)
-                                                     return {
-                                                       ...prev,
-                                                       [configModal.phaseId]: {
-                                                         ...phase,
-                                                         videos: { ...baseVideos, selectedCollections: ids }
-                                                       }
-                                                     }
-                                                   })
-                                                 }}
-                                               >取消</Button>
-                                             </div>
-                                           </div>
-                                           <Space style={{ justifyContent: 'space-between', width: '100%' }}>
-                                             <Text type="secondary">{(categories.find(c => c.id === rc.category)?.name) || '资料集合'}</Text>
-                                             <Text type="secondary">{rc.createdAt}</Text>
-                                           </Space>
-                                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600, marginTop: 8 }}>
-                                             <span>{rc.title}</span>
-                                             {aiIds.includes(rc.id) && (<Tag color="processing">AI</Tag>)}
-                                           </div>
-                                         </Card>
-                                       ))}
-                                    </div>
-                                     )
-                                 })()}
-                              </Card>
-                            </Col>
-                            <Col flex="8px">
-                              <div style={{ width: 8, cursor: 'col-resize', height: '100%', background: '#f5f5f5', borderLeft: '1px solid #eee', borderRight: '1px solid #eee' }} onMouseDown={(e) => {
-                                const left = document.getElementById('course-content-left');
-                                const right = document.getElementById('course-content-right');
-                                const row = e.currentTarget.parentElement?.parentElement;
-                                const startX = e.clientX;
-                                const total = row?.clientWidth || ((left?.clientWidth || 0) + (right?.clientWidth || 0));
-                                const startLeft = left?.clientWidth || 0;
-                                const onMove = (ev) => {
-                                  const dx = ev.clientX - startX;
-                                  let newLeft = startLeft + dx;
-                                  const min = 240;
-                                  const max = total - 240;
-                                  if (newLeft < min) newLeft = min;
-                                  if (newLeft > max) newLeft = max;
-                                  const newRight = total - newLeft;
-                                  if (left) { left.style.flex = '0 0 auto'; left.style.width = newLeft + 'px'; }
-                                  if (right) { right.style.flex = '1 1 auto'; right.style.width = newRight + 'px'; }
-                                };
-                                const onUp = () => {
-                                  const finalLeft = left?.clientWidth || startLeft;
-                                  const ratio = total > 0 ? (Math.max(240, Math.min(total - 240, finalLeft)) / total) : 0;
-                                  try { localStorage.setItem('course_content_split_ratio', String(ratio)); } catch {}
-                                  window.removeEventListener('mousemove', onMove);
-                                  window.removeEventListener('mouseup', onUp);
-                                };
-                                window.addEventListener('mousemove', onMove);
-                                window.addEventListener('mouseup', onUp);
-                              }} />
-                            </Col>
-                            <Col id="course-content-right" style={{ display: 'flex', flex: '1 1 auto', minWidth: 240, height: '100%' }}>
-                              <Card
-                                title={(
-                                  <Space>
-                                    <span>🗂️</span>
-                                    <span>{leftCollapsed ? '选择集合' : '选择课程内容集合'}</span>
-                                  </Space>
+                                             <Input placeholder="请输入试卷名称" />
+                                           </Form.Item>
+                                         </Col>
+                                       </Row>
+
+                                       <Row gutter={16}>
+                                         <Col span={8}>
+                                           <Form.Item
+                                             label="生成套数"
+                                             name="setCount"
+                                             rules={[{ required: true, message: '请输入生成套数' }]}
+                                           >
+                                             <InputNumber min={1} max={20} style={{ width: '100%' }} />
+                                           </Form.Item>
+                                         </Col>
+                                       </Row>
+
+                                      <Divider orientation="left">题型配置</Divider>
+                                      <Row gutter={16}>
+                                        <Col span={12}>
+                                          <Form.Item
+                                            label="单选题数量"
+                                            name="singleCount"
+                                            rules={[{ required: true, message: '请输入单选题数量' }]}
+                                          >
+                                            <InputNumber min={0} max={100} style={{ width: '100%' }} />
+                                          </Form.Item>
+                                        </Col>
+                                        <Col span={12}>
+                                          <Form.Item
+                                            label="单选题分值"
+                                            name="singleScore"
+                                            rules={[{ required: true, message: '请输入单选题分值' }]}
+                                          >
+                                            <InputNumber min={0} max={20} style={{ width: '100%' }} />
+                                          </Form.Item>
+                                        </Col>
+                                      </Row>
+
+                                      <Row gutter={16}>
+                                        <Col span={12}>
+                                          <Form.Item
+                                            label="多选题数量"
+                                            name="multipleCount"
+                                            rules={[{ required: true, message: '请输入多选题数量' }]}
+                                          >
+                                            <InputNumber min={0} max={100} style={{ width: '100%' }} />
+                                          </Form.Item>
+                                        </Col>
+                                        <Col span={12}>
+                                          <Form.Item
+                                            label="多选题分值"
+                                            name="multipleScore"
+                                            rules={[{ required: true, message: '请输入多选题分值' }]}
+                                          >
+                                            <InputNumber min={0} max={20} style={{ width: '100%' }} />
+                                          </Form.Item>
+                                        </Col>
+                                      </Row>
+
+                                      <Row gutter={16}>
+                                        <Col span={12}>
+                                          <Form.Item
+                                            label="判断题数量"
+                                            name="judgeCount"
+                                            rules={[{ required: true, message: '请输入判断题数量' }]}
+                                          >
+                                            <InputNumber min={0} max={100} style={{ width: '100%' }} />
+                                          </Form.Item>
+                                        </Col>
+                                        <Col span={12}>
+                                          <Form.Item
+                                            label="判断题分值"
+                                            name="judgeScore"
+                                            rules={[{ required: true, message: '请输入判断题分值' }]}
+                                          >
+                                            <InputNumber min={0} max={20} style={{ width: '100%' }} />
+                                          </Form.Item>
+                                        </Col>
+                                      </Row>
+
+                                      <Row gutter={16}>
+                                        <Col span={12}>
+                                          <Form.Item
+                                            label="问答题数量"
+                                            name="essayCount"
+                                            rules={[{ required: true, message: '请输入问答题数量' }]}
+                                          >
+                                            <InputNumber min={0} max={50} style={{ width: '100%' }} />
+                                          </Form.Item>
+                                        </Col>
+                                        <Col span={12}>
+                                          <Form.Item
+                                            label="问答题分值"
+                                            name="essayScore"
+                                            rules={[{ required: true, message: '请输入问答题分值' }]}
+                                          >
+                                            <InputNumber min={0} max={50} style={{ width: '100%' }} />
+                                          </Form.Item>
+                                        </Col>
+                                      </Row>
+
+                                      <Divider orientation="left">难度配置</Divider>
+                                      <Row gutter={16}>
+                                        <Col span={8}>
+                                          <Form.Item
+                                            label="简单题比例(%)"
+                                            name="easyPercent"
+                                            rules={[{ required: true, message: '请输入简单题比例' }]}
+                                          >
+                                            <InputNumber min={0} max={100} style={{ width: '100%' }} />
+                                          </Form.Item>
+                                        </Col>
+                                        <Col span={8}>
+                                          <Form.Item
+                                            label="中等题比例(%)"
+                                            name="mediumPercent"
+                                            rules={[{ required: true, message: '请输入中等题比例' }]}
+                                          >
+                                            <InputNumber min={0} max={100} style={{ width: '100%' }} />
+                                          </Form.Item>
+                                        </Col>
+                                        <Col span={8}>
+                                          <Form.Item
+                                            label="困难题比例(%)"
+                                            name="hardPercent"
+                                            rules={[{ required: true, message: '请输入困难题比例' }]}
+                                          >
+                                            <InputNumber min={0} max={100} style={{ width: '100%' }} />
+                                          </Form.Item>
+                                        </Col>
+                                      </Row>
+
+                                      <Divider orientation="left">其他配置</Divider>
+                                      <Row gutter={16}>
+                                        <Col span={24}>
+                                          <Form.Item
+                                            label="生成需求补充"
+                                            name="keywords"
+                                          >
+                                            <Input.TextArea
+                                              placeholder="请补充生成需求，最多1000字"
+                                              maxLength={1000}
+                                              showCount
+                                              autoSize={{ minRows: 3, maxRows: 8 }}
+                                            />
+                                          </Form.Item>
+                                        </Col>
+                                      </Row>
+
+                                      <Form.Item dependencies={['singleCount', 'singleScore', 'multipleCount', 'multipleScore', 'judgeCount', 'judgeScore', 'essayCount', 'essayScore']}>
+                                        {({ getFieldValue }) => {
+                                          const singleCount = getFieldValue('singleCount') || 0;
+                                          const singleScore = getFieldValue('singleScore') || 0;
+                                          const multipleCount = getFieldValue('multipleCount') || 0;
+                                          const multipleScore = getFieldValue('multipleScore') || 0;
+                                          const judgeCount = getFieldValue('judgeCount') || 0;
+                                          const judgeScore = getFieldValue('judgeScore') || 0;
+                                          const essayCount = getFieldValue('essayCount') || 0;
+                                          const essayScore = getFieldValue('essayScore') || 0;
+                                          
+                                          const totalQuestions = singleCount + multipleCount + judgeCount + essayCount;
+                                          const totalScore = (singleCount * singleScore) + (multipleCount * multipleScore) + (judgeCount * judgeScore) + (essayCount * essayScore);
+                                          
+                                          return (
+                                            <div style={{ padding: '16px', backgroundColor: '#f5f5f5', borderRadius: '6px', marginTop: '16px' }}>
+                                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                                <span><strong>总题数：</strong>{totalQuestions} 题</span>
+                                                <span><strong>总分：</strong><span style={{ color: '#1890ff', fontSize: '16px' }}>{totalScore}</span> 分</span>
+                                              </div>
+                                              <div style={{ fontSize: '12px', color: '#666' }}>
+                                                题型分布：单选{singleCount}题({singleScore}分/题) | 多选{multipleCount}题({multipleScore}分/题) | 判断{judgeCount}题({judgeScore}分/题) | 问答{essayCount}题({essayScore}分/题)
+                                              </div>
+                                            </div>
+                                          );
+                                        }}
+                                      </Form.Item>
+                                    </Form>
+                                  </Modal>
                                 )}
-                                extra={(
-                                  (() => {
-                                    const rightCategories = [
-                                      { id: 'all', name: '全部' },
-                                      { id: 'teaching_resources', name: '教学资源库' },
-                                      { id: 'technology_training', name: '技术培训资源库' },
-                                      { id: 'family_education', name: '家庭教育资源库' },
-                                      { id: 'school_management', name: '学校管理资源库' },
-                                      { id: 'mental_health', name: '心理健康资源库' },
-                                      { id: 'new_teacher_resources', name: '新教师资源库' }
-                                    ]
-                                    return (
-                                      <Space>
-                                        <Select
-                                          value={rightFilterCategory}
-                                          onChange={setRightFilterCategory}
-                                          style={{ width: (isSmallScreen || leftCollapsed) ? 120 : 160 }}
-                                          options={rightCategories.map(c => ({ value: c.id, label: c.name }))}
-                                        />
-                                        <Input.Search
-                                          allowClear
-                                          placeholder="搜索集合标题/标签"
-                                          value={rightFilterQuery}
-                                          onChange={(e) => setRightFilterQuery(e.target.value)}
-                                          onSearch={setRightFilterQuery}
-                                          style={{ width: (isSmallScreen || leftCollapsed) ? 160 : 220 }}
-                                        />
-                                      </Space>
-                                    )
-                                  })()
-                                )}
-                                style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
-                                bodyStyle={{ padding: 8, flex: 1, minHeight: 0, overflow: 'auto' }}
-                              >
-                                <OnDemandResourceLibrary
-                                  selectMode
-                                  selectedCollectionIds={(function(){
-                                    const phaseCfg = (formatConfigs[configModal.phaseId] || {})
-                                    const phaseObj = phaseMaterials.find(p => p.id === configModal.phaseId)
-                                    const baseVideos = phaseCfg.videos || getDefaultConfig(phaseObj, 'videos')
-                                    return baseVideos.selectedCollections || []
-                                  })()}
-                                  useExternalFilters
-                                  externalFilters={{ query: rightFilterQuery, category: rightFilterCategory }}
-                                  defaultViewMode="grid"
-                                  onCategoryChange={setRightFilterCategory}
-                                  onSelectionChange={(ids) => {
-                                    setFormatConfigs(prev => {
-                                      const phase = prev[configModal.phaseId] || {}
-                                      const phaseObj = phaseMaterials.find(p => p.id === configModal.phaseId)
-                                      const baseVideos = phase.videos || getDefaultConfig(phaseObj, 'videos')
-                                      return {
-                                        ...prev,
-                                        [configModal.phaseId]: {
-                                          ...phase,
-                                          videos: { ...baseVideos, selectedCollections: ids }
-                                        }
-                                      }
-                                    })
-                                  }}
-                                />
-                              </Card>
-                            </Col>
-                          </Row>
-                      ) : (
-                        <Empty description="当前形式不支持课程内容配置" />
-                      )
-                    )
-                  }
-                ]}
-              />
+                              </div>
+                            )
+                          }
+                        ]}
+                      />
+                    )}
+                    {configTabKey === 'exam-paper' && (
+                      <QuestionSelectionTab 
+                        draft={configModal.draft} 
+                        updateDraft={updateDraft}
+                        configModal={configModal}
+                        formatConfigs={formatConfigs}
+                        phaseMaterials={phaseMaterials}
+                        getDefaultConfig={getDefaultConfig}
+                      />
+                    )}
+                    {configTabKey === 'exam-notify' && (
+                      <Tabs
+                        defaultActiveKey="basic"
+                        size="small"
+                        tabBarStyle={{ marginBottom: 8 }}
+                        items={[
+                          {
+                            key: 'basic',
+                            label: '基本信息',
+                            children: (
+                              <div style={{ minHeight: 160, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999' }}>
+                                考试基本信息占位
+                              </div>
+                            )
+                          },
+                          {
+                            key: 'notify',
+                            label: '通知',
+                            children: (
+                              <ExamNotifyTab draft={configModal.draft} updateDraft={updateDraft} />
+                            )
+                          },
+                          {
+                            key: 'config',
+                            label: '配置',
+                            children: (
+                              <BasicConfigTab 
+                                draft={configModal.draft} 
+                                updateDraft={updateDraft} 
+                                formatKey={configModal.formatKey} 
+                                configModal={configModal}
+                                formatConfigs={formatConfigs}
+                                phaseMaterials={phaseMaterials}
+                                getDefaultConfig={getDefaultConfig}
+                              />
+                            )
+                          }
+                        ]}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <Tabs
+                    activeKey={configTabKey}
+                    onChange={setConfigTabKey}
+                    style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+                    tabBarStyle={{ display: 'none' }}
+                    items={[
+                      {
+                        key: 'basic',
+                        label: '基础配置',
+                        children: (
+                          <BasicConfigTab draft={configModal.draft} updateDraft={updateDraft} formatKey={configModal.formatKey} />
+                        )
+                      },
+                      {
+                        key: 'content',
+                        label: (configModal.formatKey === 'exam' ? '试卷' : '课程内容'),
+                        children: (
+                          configModal.formatKey === 'videos' ? (
+                            <VideoContentTab
+                              configModal={configModal}
+                              formatConfigs={formatConfigs}
+                              setFormatConfigs={setFormatConfigs}
+                              phaseMaterials={phaseMaterials}
+                              leftViewMode={leftViewMode}
+                              setLeftViewMode={setLeftViewMode}
+                              isSmallScreen={isSmallScreen}
+                              leftCollapsed={leftCollapsed}
+                              rightFilterCategory={rightFilterCategory}
+                              setRightFilterCategory={setRightFilterCategory}
+                              rightFilterQuery={rightFilterQuery}
+                              setRightFilterQuery={setRightFilterQuery}
+                              getDefaultConfig={getDefaultConfig}
+                            />
+                          ) : (
+                            <Empty description="当前形式不支持课程内容配置" />
+                          )
+                        )
+                      }
+                    ]}
+                  />
+                )
+              )
             )}
           </Card>
         </div>
