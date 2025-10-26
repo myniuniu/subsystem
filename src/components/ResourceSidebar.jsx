@@ -12,7 +12,8 @@ import {
   ExperimentOutlined,
   TeamOutlined,
   PlusOutlined,
-  EllipsisOutlined
+  EllipsisOutlined,
+  CheckOutlined
 } from '@ant-design/icons';
 import { getSystemCategoryConfig } from '../services/categoryConfigService';
 import './ResourceSidebar.css';
@@ -38,6 +39,25 @@ const ResourceSidebar = ({
     ExperimentOutlined,
     TeamOutlined
   };
+
+  // 辅助材料标注：记录被标注为“辅助材料”的一级分组key
+  const [auxMarkedGroupKeys, setAuxMarkedGroupKeys] = useState(() => {
+    try {
+      const raw = localStorage.getItem('aux_material_groups')
+      return raw ? JSON.parse(raw) : []
+    } catch (e) {
+      return []
+    }
+  })
+  const saveAuxMarked = (next) => {
+    setAuxMarkedGroupKeys(next)
+    try { localStorage.setItem('aux_material_groups', JSON.stringify(next)) } catch (e) {}
+  }
+  const toggleAuxMarked = (key) => {
+    const set = new Set(auxMarkedGroupKeys)
+    if (set.has(key)) { set.delete(key) } else { set.add(key) }
+    saveAuxMarked(Array.from(set))
+  }
 
   const getCategoryCount = (category) => {
     if (!Array.isArray(notes)) return 0;
@@ -96,6 +116,33 @@ const ResourceSidebar = ({
         break;
     }
   };
+
+  // 一级分组“更多”菜单：新增“辅助材料”标注选项
+  const getGroupHoverMenuItems = (groupKey) => {
+    const marked = auxMarkedGroupKeys.includes(groupKey)
+    return [
+      {
+        key: 'toggle-aux',
+        icon: marked ? <CheckOutlined /> : <BulbOutlined />,
+        label: <span>{marked ? '辅助材料（已标注）' : '辅助材料'}</span>
+      },
+      { type: 'divider' },
+      { key: 'rename', label: '重命名' },
+      { key: 'trash', danger: true, label: '移至垃圾箱' }
+    ]
+  }
+  const onGroupMenuClick = (groupKey, { key }) => {
+    if (key === 'toggle-aux') {
+      toggleAuxMarked(groupKey)
+      message.success(auxMarkedGroupKeys.includes(groupKey) ? '已取消“辅助材料”标注' : '已标注为“辅助材料”')
+      return
+    }
+    if (key === 'rename') {
+      message.info('重命名将在后续版本提供')
+    } else if (key === 'trash') {
+      message.warning('删除将在后续版本提供')
+    }
+  }
 
   const renderTreeNodeTitle = (category) => {
     const isEmojiIcon = category.icon && category.icon.length <= 2;
@@ -172,6 +219,7 @@ const ResourceSidebar = ({
     const subGroupChildren = (group.groups || []).map(sub => buildGroupNode(sub, depth + 1));
     const isEmojiIcon = group.icon && group.icon.length <= 2;
     const GroupIconComponent = isEmojiIcon ? null : (iconMap[group.icon] || FolderOpenOutlined);
+    const isAuxMarked = auxMarkedGroupKeys.includes(group.key)
     return {
       key: group.key,
       title: (
@@ -182,7 +230,10 @@ const ResourceSidebar = ({
             <GroupIconComponent className="category-icon" />
           )}
           <span>{group.title}</span>
-          <span className="category-actions">
+          {isAuxMarked && (
+            <span style={{ marginLeft: 6, fontSize: 12, color: '#2563eb', background: '#eff6ff', borderRadius: 4, padding: '0 4px' }}>辅助材料</span>
+          )}
+          <span className="category-actions" style={{ marginLeft: 'auto' }}>
             <Tooltip title="新增分类">
               <Button
                 type="text"
@@ -192,6 +243,21 @@ const ResourceSidebar = ({
                 aria-label="新增一级分类"
               />
             </Tooltip>
+            <Dropdown
+              trigger={["click"]}
+              overlayClassName="side-more-menu"
+              menu={{ items: getGroupHoverMenuItems(group.key), onClick: (ev) => onGroupMenuClick(group.key, ev) }}
+            >
+              <Tooltip title="更多">
+                <Button
+                  type="text"
+                  size="small"
+                  onClick={(e) => { e.stopPropagation(); }}
+                  icon={<EllipsisOutlined className="transparent-maintain-icon" />}
+                  aria-label="更多操作"
+                />
+              </Tooltip>
+            </Dropdown>
           </span>
         </span>
       ),

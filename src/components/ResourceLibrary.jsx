@@ -320,7 +320,7 @@ const [collectionViewMode, setCollectionViewMode] = useState('grid') // 'grid' |
 const courseHierarchy = useMemo(() => getMockCourseContentHierarchy()?.[0] || null, [])
 const courseGroups = useMemo(() => {
   if (!courseHierarchy) return []
-  return (courseHierarchy.chapters || []).map(ch => ({
+  const chapterGroups = (courseHierarchy.chapters || []).map(ch => ({
     key: `group_${ch.id}`,
     title: ch.title,
     templateId: null,
@@ -329,6 +329,15 @@ const courseGroups = useMemo(() => {
     childrenValues: (ch.sections || []).map(sec => `${sec.id}`),
     groups: []
   }))
+  const relatedGroup = {
+    key: 'group_related_materials',
+    title: '相关资料',
+    templateId: null,
+    icon: 'FolderOpenOutlined',
+    childrenValues: ['related_materials'],
+    groups: []
+  }
+  return [...chapterGroups, relatedGroup]
 }, [courseHierarchy])
 
 // 节级分类（用于“我的分类”计数）：每个节作为叶子分类
@@ -340,6 +349,8 @@ const sectionCategories = useMemo(() => {
       cats.push({ value: `${sec.id}`, label: sec.title, icon: 'FileTextOutlined', type: 'system' })
     })
   })
+  // 追加“相关资料”单一叶子分类
+  cats.push({ value: 'related_materials', label: '相关资料', icon: 'FileTextOutlined', type: 'system' })
   return cats
 }, [courseHierarchy])
 
@@ -356,13 +367,27 @@ const getItemCategoryValue = (item) => {
 
 const notesForCounts = useMemo(() => {
   const items = activeCollection?.items || []
-  return items.map(it => ({
+  const sectionMapped = items.map(it => ({
     id: it.id,
     category: getItemCategoryValue(it) || 'unknown',
     starred: !!it.isBookmarked,
     tags: it.tags || [],
     source: it.drive === 'org' ? '组织盘' : '个人盘'
   }))
+  const typeSet = new Set(['document','pdf','ppt','table','whiteboard'])
+  const typeMapped = items
+    .map(it => {
+      if (!typeSet.has(it.type)) return null
+      return {
+        id: `${it.id}-related`,
+        category: 'related_materials',
+        starred: !!it.isBookmarked,
+        tags: it.tags || [],
+        source: it.drive === 'org' ? '组织盘' : '个人盘'
+      }
+    })
+    .filter(Boolean)
+  return [...sectionMapped, ...typeMapped]
 }, [activeCollection, sectionIds])
 
 useEffect(() => {
@@ -448,8 +473,9 @@ const getCategoryIcon = (cat) => {
         items: [
           { id: 'nt-1-v1', title: '课堂组织与管理（视频课程）', type: 'video', drive: 'org', size: '320 MB', lastModified: '2024-01-12', tags: ['新教师','视频课程','课堂组织'] },
           { id: 'nt-1-p1', title: '第一次课堂教学设计范例（教辅PPT）', type: 'ppt', drive: 'org', size: '2.4 MB', lastModified: '2024-01-11', tags: ['教辅','课件','教学设计'] },
-          { id: 'nt-1-e1', title: '新教师试讲评分表（试卷/表格）', type: 'table', drive: 'my', size: '210 KB', lastModified: '2024-01-10', tags: ['试卷','评价','表格'] },
-          { id: 'nt-1-d1', title: '备课流程与清单（PDF 教辅）', type: 'document', drive: 'my', size: '1.6 MB', lastModified: '2024-01-09', tags: ['教辅','备课','流程'] }
+          { id: 'nt-1-e1', title: '中小学新任教师公开招聘模拟考试', type: 'pdf', drive: 'my', size: '210 KB', lastModified: '2024-01-10', tags: ['试卷','评价','表格'], url: '/assets/试卷1.pdf' },
+          { id: 'nt-1-d1', title: '备课流程与清单（PDF 教辅）', type: 'document', drive: 'my', size: '1.6 MB', lastModified: '2024-01-09', tags: ['教辅','备课','流程'] },
+          { id: 'nt-1-w1', title: '白板笔记模板（教学白板）', type: 'whiteboard', drive: 'org', size: 'N/A', lastModified: '2024-01-08', tags: ['白板','互动','教学'] }
         ],
         tags: ['新教师','课堂管理','教学方法','备课'],
         isBookmarked: false,
@@ -1462,6 +1488,8 @@ const getCategoryIcon = (cat) => {
   // 快速预览：集合项预览
   const [previewItem, setPreviewItem] = useState(null)
   const [showPreviewModal, setShowPreviewModal] = useState(false)
+  // 新增：集合内联 PDF 预览状态（仅用于本区域预览）
+  const [inlinePreviewPdfUrl, setInlinePreviewPdfUrl] = useState(null)
   const handlePreviewItem = (item) => {
     setPreviewItem(item)
     setShowPreviewModal(true)
@@ -1669,7 +1697,7 @@ const getCategoryIcon = (cat) => {
           <Content className="docs-main">
             {/* 资源集合视图 / 分类资源视图（左右布局） */}
             {showCollectionView ? (
-              <>
+              <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Title level={4} style={{ margin: 0 }}>{activeCollection?.title || '分类资源'}</Title>
                   <Space>
@@ -1681,53 +1709,78 @@ const getCategoryIcon = (cat) => {
                 {!selectedCategoryKey ? (
                   <Empty description={<div><Text>请选择左侧“我的分类”中的具体叶子分类</Text></div>} />
                 ) : (
-                  <Row gutter={[12, 12]} className="notes-grid">
-                    {(activeCollection?.items || [])
-                      .filter(it => it.drive !== 'org' || ((it.space || DEFAULT_SPACE) === currentSpace))
-                      .filter(it => getItemCategoryValue(it) === selectedCategoryKey)
-                      .map(item => (
-                        <Col key={item.id} xs={24} sm={12} md={8} lg={6} xl={6}>
-                          <div className="note-card resource-card">
-                            <Card
-                              hoverable
-                              actions={[
-                                <Tooltip key={`preview-${item.id}`} title="预览">
-                                  <EyeOutlined onClick={(e) => { e.stopPropagation(); handlePreviewItem(item); }} />
-                                </Tooltip>,
-                                <Tooltip key={`tags-${item.id}`} title="编辑标签">
-                                  <TagsOutlined onClick={(e) => { e.stopPropagation(); handleOpenEditItemTags(item, activeCollection); }} />
-                                </Tooltip>,
-                                <Popconfirm key={`del-${item.id}`} title="确认删除该资源？" okText="删除" cancelText="取消" onConfirm={() => handleDeleteItemFromCollection(activeCollection.id, item.id)}>
-                                  <DeleteOutlined />
-                                </Popconfirm>
-                              ]}
-                            >
-                              <div style={{ width: '100%', height: 150, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0', marginBottom: 8 }}>
-                                <img src={getItemThumbnail(item)} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 160px)' }}>
+                    {inlinePreviewPdfUrl ? (
+                      <div style={{ marginBottom: 12, display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Text type="secondary">PDF 预览</Text>
+                          <Button size="small" onClick={() => setInlinePreviewPdfUrl(null)}>关闭预览</Button>
+                        </div>
+                        <div style={{ border: '1px solid #f0f0f0', borderRadius: 6, overflow: 'hidden', marginTop: 8, flex: 1, minHeight: 0 }}>
+                          <iframe src={inlinePreviewPdfUrl} style={{ width: '100%', height: '100%', border: 'none' }} title="PDF 预览" />
+                        </div>
+                      </div>
+                    ) : (
+                      <Row gutter={[12, 12]} className="notes-grid" style={{ flex: 1, overflow: 'auto' }}>
+                        {(activeCollection?.items || [])
+                          .filter(it => it.drive !== 'org' || ((it.space || DEFAULT_SPACE) === currentSpace))
+                          .filter(it => {
+                            if (selectedCategoryKey === 'related_materials') {
+                              return ['document','pdf','ppt','table','whiteboard'].includes(it.type)
+                            }
+                            return getItemCategoryValue(it) === selectedCategoryKey
+                          })
+                          .map(item => (
+                            <Col key={item.id} xs={24} sm={12} md={8} lg={6} xl={6}>
+                              <div className="note-card resource-card">
+                                <Card
+                                  hoverable
+                                  onClick={() => {
+                                    if (item.id === 'nt-1-e1') {
+                                      const url = item.url || '/assets/试卷1.pdf'
+                                      setInlinePreviewPdfUrl(url)
+                                    }
+                                  }}
+                                  actions={[
+                                    <Tooltip key={`preview-${item.id}`} title="预览">
+                                      <EyeOutlined onClick={(e) => { e.stopPropagation(); handlePreviewItem(item); }} />
+                                    </Tooltip>,
+                                    <Tooltip key={`tags-${item.id}`} title="编辑标签">
+                                      <TagsOutlined onClick={(e) => { e.stopPropagation(); handleOpenEditItemTags(item, activeCollection); }} />
+                                    </Tooltip>,
+                                    <Popconfirm key={`del-${item.id}`} title="确认删除该资源？" okText="删除" cancelText="取消" onConfirm={() => handleDeleteItemFromCollection(activeCollection.id, item.id)}>
+                                      <DeleteOutlined />
+                                    </Popconfirm>
+                                  ]}
+                                >
+                                  <div style={{ width: '100%', height: 150, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0', marginBottom: 8 }}>
+                                    <img src={getItemThumbnail(item)} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  </div>
+                                  <div className="note-header">
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                      {getTypeIcon(item.type)}
+                                      <span className="category-text">{item.drive === 'org' ? '组织盘' : '个人盘'}</span>
+                                    </div>
+                                    <Text type="secondary">{item.size}</Text>
+                                  </div>
+                                  <div className="note-title">{item.title}</div>
+                                  <div className="note-tags">
+                                    {(item.tags || []).slice(0, 10).map(tag => (
+                                      <AntTag key={`item-${item.id}-tag-${tag}`}>{tag}</AntTag>
+                                    ))}
+                                  </div>
+                                  <div className="note-meta">
+                                    <div className="meta-item"><FileTextOutlined /> 更新于 {item.lastModified}</div>
+                                  </div>
+                                </Card>
                               </div>
-                              <div className="note-header">
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                  {getTypeIcon(item.type)}
-                                  <span className="category-text">{item.drive === 'org' ? '组织盘' : '个人盘'}</span>
-                                </div>
-                                <Text type="secondary">{item.size}</Text>
-                              </div>
-                              <div className="note-title">{item.title}</div>
-                              <div className="note-tags">
-                                {(item.tags || []).slice(0, 10).map(tag => (
-                                  <AntTag key={`item-${item.id}-tag-${tag}`}>{tag}</AntTag>
-                                ))}
-                              </div>
-                              <div className="note-meta">
-                                <div className="meta-item"><FileTextOutlined /> 更新于 {item.lastModified}</div>
-                              </div>
-                            </Card>
-                          </div>
-                        </Col>
-                      ))}
-                  </Row>
+                            </Col>
+                          ))}
+                      </Row>
+                    )}
+                  </div>
                 )}
-              </>
+                </div>
             ) : (
               <div style={{ marginBottom: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -2137,6 +2190,22 @@ const getCategoryIcon = (cat) => {
         width={520}
         centered
       >
+        <div style={{ marginBottom: 8 }}>
+          <Text type="secondary">常用标签</Text>
+          <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {['试卷','视频课程','音频课程','练习题'].map(tag => (
+              <AntTag
+                key={`common-tag-${tag}`}
+                style={{ cursor: 'pointer' }}
+                color={(editingItemTags || []).includes(tag) ? 'processing' : undefined}
+                onClick={() => {
+                  const exists = (editingItemTags || []).includes(tag)
+                  setEditingItemTags(exists ? (editingItemTags || []).filter(t => t !== tag) : [ ...(editingItemTags || []), tag ])
+                }}
+              >{tag}</AntTag>
+            ))}
+          </div>
+        </div>
         <Select
           mode="tags"
           value={editingItemTags}
