@@ -138,6 +138,24 @@ const [showCollectionView, setShowCollectionView] = useState(false)
   const [resourceCollections, setResourceCollections] = useState(() => createDefaultCollections())
 const [collectionViewMode, setCollectionViewMode] = useState('grid') // 'grid' | 'list'
 
+  // 接收试题页签的AI试题PDF同步事件，插入到对应资料集
+  useEffect(() => {
+    const onAiSync = (e) => {
+      const detail = e?.detail || {};
+      const { collectionId, item } = detail;
+      if (!collectionId || !item) return;
+      setResourceCollections(prev => prev.map(rc => (
+        rc.id === collectionId ? { ...rc, items: [item, ...(rc.items || [])] } : rc
+      )));
+      if (activeCollection && activeCollection.id === collectionId) {
+        setActiveCollection(prev => ({ ...prev, items: [item, ...(prev.items || [])] }));
+      }
+      message.success(`已接收AI试题PDF到资料集：${collectionId}`);
+    };
+    window.addEventListener('aiQuestionSync', onAiSync);
+    return () => window.removeEventListener('aiQuestionSync', onAiSync);
+  }, [activeCollection]);
+
 
   // 资源库分类（业务主题）
   const computeCount = (catId) => initialResources.filter(doc => doc.category === catId).length

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Card, Button, Tabs, Table, Tag, Space, Switch, Input, Select, Form, InputNumber, Divider, Empty, Tooltip, Modal, Row, Col, Typography, Checkbox, message, Upload } from 'antd';
-import { PlusOutlined, SearchOutlined, RobotOutlined, BookOutlined, SettingOutlined, EyeOutlined, DeleteOutlined, ImportOutlined } from '@ant-design/icons';
+import { PlusOutlined, SearchOutlined, RobotOutlined, BookOutlined, SettingOutlined, EyeOutlined, DeleteOutlined, ImportOutlined, CloudSyncOutlined } from '@ant-design/icons';
 
 const { Text, Title } = Typography;
 const { TextArea } = Input;
@@ -122,6 +122,7 @@ const QuestionSelectionTab = ({ draft, updateDraft, configModal, formatConfigs, 
     contentSource: 'module_videos', // 基于模块点播课内容
     keywords: ''
   });
+  
 
   // 当前阶段与点播课集合
   const phaseObj = phaseMaterials?.find(p => p.id === configModal?.phaseId) || {};
@@ -204,6 +205,51 @@ const QuestionSelectionTab = ({ draft, updateDraft, configModal, formatConfigs, 
     setSelectedQuestions(merged);
     setAiRulesVisible(false);
     message.success(`已生成 ${generated.length} 道试题（每种类型10道），并加入已选`);
+  };
+
+  // 新增：同步AI生成试题为PDF到资料库
+  const formatDate = () => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = `${d.getMonth()+1}`.padStart(2, '0');
+    const day = `${d.getDate()}`.padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+  const handleSyncToLibrary = () => {
+    const aiQuestions = (selectedQuestions || []).filter(q => q.source === 'AI');
+    if (!aiQuestions.length) {
+      message.warning('暂无AI生成试题可同步');
+      return;
+    }
+    // 按资料集分组生成PDF
+    const byCollection = aiQuestions.reduce((map, q) => {
+      const key = q.collectionId || 'unknown';
+      if (!map[key]) map[key] = [];
+      map[key].push(q);
+      return map;
+    }, {});
+    const subject = aiRules.subject || '综合';
+    Object.entries(byCollection).forEach(([collectionId, qs]) => {
+      const lines = qs.map((q, idx) => {
+        const opts = (q.options || []).join('\n');
+        return `【${idx+1}】${q.content}\n${opts ? opts + '\n' : ''}答案：${q.answer || ''}\n分值：${q.score || ''}`;
+      });
+      const content = `AI出题 · 学科：${subject}\n日期：${formatDate()}\n题量：${qs.length}\n\n` + lines.join('\n\n');
+      const blob = new Blob([content], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const item = {
+        id: `ai-pdf-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
+        title: `AI出题（${subject}）-${formatDate()}`,
+        type: 'pdf',
+        drive: 'org',
+        size: 'N/A',
+        lastModified: formatDate(),
+        tags: ['试题','AI生成'],
+        url
+      };
+      window.dispatchEvent(new CustomEvent('aiQuestionSync', { detail: { collectionId, item } }));
+    });
+    message.success('已同步AI试题为PDF到资料库对应资料集');
   };
 
   // 依据难度权重随机选择难度
@@ -359,6 +405,37 @@ const QuestionSelectionTab = ({ draft, updateDraft, configModal, formatConfigs, 
     return { id, category: cat, categoryName: catName, title: titleByCat[cat] || '资料集合' };
   });
 
+  // 其他模块的资料集清单（不包含当前模块，且去重）
+  const otherScopeItems = useMemo(() => {
+    const list = [];
+    (phaseMaterials || []).filter(p => p.id !== configModal?.phaseId).forEach(p => {
+      const cfg = (formatConfigs?.[p.id] || {});
+      const v = cfg.videos || getDefaultConfig(p, 'videos');
+      const ids = Array.isArray(v.selectedCollections) ? v.selectedCollections : [];
+      ids.forEach(id => {
+        if (!defaultDatasetIds.includes(id)) {
+          const cat = parseCollectionCategory(id);
+          const catName = LIBRARY_CATEGORY_NAMES[cat] || '资料集合';
+          const titleByCat = {
+            teaching_resources: '教学资源精选',
+            technology_training: '技术培训精选',
+            family_education: '家庭教育精选',
+            school_management: '学校管理精选',
+            mental_health: '心理健康研修',
+          };
+          list.push({ id, category: cat, categoryName: catName, title: titleByCat[cat] || '资料集合', phaseId: p.id, phaseName: p.content || `模块 ${p.id}` });
+        }
+      });
+    });
+    // 去重
+    const seen = new Set();
+    return list.filter(item => {
+      if (seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    });
+  }, [phaseMaterials, formatConfigs, configModal?.phaseId, defaultDatasetIds, getDefaultConfig]);
+
   const getCollectionInfoById = (id) => {
     if (!id) return { categoryName: '', title: '' };
     const item = scopeItems.find(s => s.id === id);
@@ -411,15 +488,15 @@ const QuestionSelectionTab = ({ draft, updateDraft, configModal, formatConfigs, 
     {
       title: '来源',
       dataIndex: 'source',
-      width: 180,
+      width: 200,
       render: (_, record) => {
         const source = record.source || '未知';
         const color = source === 'AI' ? 'magenta' : 'geekblue';
-        const info = source === '资料库' ? getCollectionInfoById(record.collectionId) : null;
+        const info = getCollectionInfoById(record.collectionId);
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <Tag color={color}>{source}</Tag>
-            {source === '资料库' && (
+            {record.collectionId && (
               <Text type="secondary" style={{ fontSize: 12 }}>
                 自：{info?.categoryName}{info?.title ? `｜${info.title}` : ''}
               </Text>
@@ -498,14 +575,9 @@ const QuestionSelectionTab = ({ draft, updateDraft, configModal, formatConfigs, 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <Text strong>考试范围</Text>
-                <div style={{ marginTop: 6, color: '#666' }}>
-                  <Text>当前模块：模块 {phaseObj?.id}｜{phaseObj?.content || '未识别'}</Text>
-                  <br />
-                  <Text>培训形式：点播课（资料集清单）</Text>
-                </div>
               </div>
-              <div>
-                <Text type="secondary">已选 {scopeDatasetIds?.length || 0} / {scopeItems.length} 个</Text>
+              <div style={{ textAlign: 'right' }}>
+                <Text type="secondary">已选 {scopeDatasetIds?.length || 0}</Text>
               </div>
             </div>
             {scopeItems.length === 0 ? (
@@ -533,6 +605,34 @@ const QuestionSelectionTab = ({ draft, updateDraft, configModal, formatConfigs, 
                 </Space>
               </div>
             )}
+
+            <div style={{ marginTop: 12 }}>
+              <Divider orientation="left" plain>其他模块资料集</Divider>
+              {otherScopeItems.length === 0 ? (
+                <Text type="secondary">暂无其他模块资料集可选</Text>
+              ) : (
+                <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                  {otherScopeItems.map(item => (
+                    <div key={`${item.phaseId}-${item.id}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px dashed #e8e8e8', borderRadius: 6, padding: '6px 8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Checkbox
+                          checked={scopeDatasetIds.includes(item.id)}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            const next = checked ? Array.from(new Set([...(scopeDatasetIds || []), item.id])) : (scopeDatasetIds || []).filter(x => x !== item.id);
+                            handleScopeSave(next);
+                          }}
+                        />
+                        <Tag color="geekblue">{item.categoryName}</Tag>
+                        <Text>{item.title}</Text>
+                        <Text type="secondary" style={{ marginLeft: 8, fontSize: 12 }}>来自：模块 {item.phaseId}｜{item.phaseName}</Text>
+                      </div>
+                      <Text type="secondary" style={{ fontSize: 12 }}>{item.id}</Text>
+                    </div>
+                  ))}
+                </Space>
+              )}
+            </div>
           </Card>
 
           {/* AI智能出题入口已移除；统一由“试题”页签工具区的按钮触发配置与生成 */}
@@ -560,6 +660,7 @@ const QuestionSelectionTab = ({ draft, updateDraft, configModal, formatConfigs, 
             <Space>
               <Button type="primary" icon={<RobotOutlined />} onClick={() => setAiRulesVisible(true)}>开始AI出题</Button>
               <Button type="default" icon={<ImportOutlined />} onClick={() => setImportVisible(true)}>导入试题</Button>
+              <Button type="default" icon={<CloudSyncOutlined />} onClick={handleSyncToLibrary}>同步到资料库PDF</Button>
             </Space>
           }
         />
@@ -606,7 +707,19 @@ const QuestionSelectionTab = ({ draft, updateDraft, configModal, formatConfigs, 
                        { title: '题目内容', dataIndex: 'content', ellipsis: true },
                        { title: '类型', dataIndex: 'type', width: 80, render: (type) => <Tag color={getTypeColor(type)}>{{ single: '单选', multiple: '多选', judge: '判断', essay: '简答' }[type]}</Tag> },
                        { title: '难度', dataIndex: 'difficulty', width: 80, render: (diff) => <Tag color={getDifficultyColor(diff)}>{{ easy: '简单', medium: '中等', hard: '困难' }[diff]}</Tag> },
-                       { title: '来源', dataIndex: 'source', width: 100 }
+                       { title: '来源', dataIndex: 'source', width: 160, render: (_, record) => {
+                         const info = getCollectionInfoById(record.collectionId);
+                         return (
+                           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                             <Tag color="geekblue">{record.source || '资料库'}</Tag>
+                             {record.collectionId && (
+                               <Text type="secondary" style={{ fontSize: 12 }}>
+                                 自：{info?.categoryName}{info?.title ? `｜${info.title}` : ''}
+                               </Text>
+                             )}
+                           </div>
+                         );
+                       } }
                      ]}
                    />
                    <div style={{ marginTop: 12, textAlign: 'right' }}>

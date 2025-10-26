@@ -398,7 +398,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
         name: formatLabelByKey(formatKey),
         details: '',
         enabled: true,
-        assessment: { method: '观看时长', weight: 30 },
+        assessment: { method: '固定成绩', weight: 30, fixedScore: 100 },
         watch: { requiredPercent: 80 }
       };
     }
@@ -413,7 +413,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
         name: formatLabelByKey(formatKey),
         details: '',
         enabled: true,
-        assessment: { method: '观看时长', weight: 30 },
+        assessment: { method: '固定成绩', weight: 30, fixedScore: 100 },
         watch: { requiredPercent: 80 },
         selectedCollections: aiDefaults,
         aiSelectedIds: aiDefaults,
@@ -862,7 +862,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                           { key: 'exam-notify', label: '考试' }
                         ]
                       : [
-                          { key: 'basic', label: '基础配置' },
+                          { key: 'basic', label: '考核设置' },
                           { key: 'content', label: '课程内容' }
                         ]
                   )}
@@ -904,7 +904,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                   <Row gutter={12} wrap>
                                     {configModal.draft.exam.papers.map((paper, idx) => (
                                       <Col key={paper?.id || idx} span={8}>
-                                        <Card size="small" title={paper?.name || `试卷 ${idx + 1}`} style={{ marginBottom: 8 }} extra={<Button size="small" danger type="text" icon={<DeleteOutlined />} onClick={() => handleDeletePaper(paper?.id || `paper-${idx}`)}>删除</Button>}>
+                                        <Card size="small" title={paper?.name || `试卷 ${idx + 1}`} style={{ marginBottom: 8 }} extra={<Button size="small" danger type="text" icon={<DeleteOutlined />} onClick={() => handleDeletePaper(paper?.id || `paper-${idx}`)} />}>
                                           <Space size={8} wrap>
                                             <Tag color="processing">题数 {paper?.questionCount ?? '-'}</Tag>
                                             <Tag color="blue">总分 {paper?.totalScore ?? '-'}</Tag>
@@ -1184,7 +1184,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                     items={[
                       {
                         key: 'basic',
-                        label: '基础配置',
+                        label: '考核设置',
                         children: (
                           <BasicConfigTab draft={configModal.draft} updateDraft={updateDraft} formatKey={configModal.formatKey} />
                         )

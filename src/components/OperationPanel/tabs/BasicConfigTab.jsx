@@ -1,60 +1,177 @@
 import React, { useMemo, useState } from 'react';
 import { Form, Input, InputNumber, Switch, Select } from 'antd';
-// 图标不再使用，相关导入已移除
-
-// Typography 不再使用
-
-// 范围与 AI 出题相关常量与工具函数已移除（迁移至“试题”页签的“配置”子页签）
+import notesService from '../../../services/notesService';
+import { initialResources } from '../../../data/resourceLibraryData';
 
 const BasicConfigTab = ({ draft, updateDraft, formatKey, configModal, formatConfigs, phaseMaterials, getDefaultConfig }) => {
   const inlineRow = { display: 'inline-flex', alignItems: 'center', gap: 8 };
 
-  // 范围与 AI 出题配置已迁移至“试题”页签的“配置”子页签，这里不再维护相关状态与逻辑
+  // 计算选定集合的总时长（分钟）
+  const calculateSelectedDuration = useMemo(() => {
+    if (formatKey !== 'videos' || !draft.selectedCollections) {
+      return 0;
+    }
+
+    let totalMinutes = 0;
+    
+    // 遍历选定的集合ID
+    draft.selectedCollections.forEach(collectionId => {
+      // 根据集合ID找到对应的资源
+      const categoryKey = collectionId.replace('rc-', '').replace(/-\d+$/, '');
+      const resources = initialResources.filter(resource => 
+        resource.category === categoryKey && (resource.type === 'video' || resource.type === 'audio')
+      );
+      
+      // 为每个视频/音频资源分配默认时长
+      resources.forEach(resource => {
+        // 根据资源类型和标题估算时长
+        let estimatedMinutes = 0;
+        if (resource.type === 'video') {
+          // 视频资源默认时长：根据标题关键词估算
+          if (resource.title.includes('培训') || resource.title.includes('课程')) {
+            estimatedMinutes = 45; // 培训课程默认45分钟
+          } else if (resource.title.includes('微课') || resource.title.includes('演示')) {
+            estimatedMinutes = 15; // 微课默认15分钟
+          } else {
+            estimatedMinutes = 30; // 其他视频默认30分钟
+          }
+        } else if (resource.type === 'audio') {
+          // 音频资源默认时长
+          estimatedMinutes = 20; // 音频默认20分钟
+        }
+        totalMinutes += estimatedMinutes;
+      });
+    });
+
+    return totalMinutes;
+  }, [formatKey, draft.selectedCollections]);
 
   return (
     <Form layout="vertical">
-      {/* 考试说明 */}
-      <Form.Item label="考试说明" style={{ marginBottom: 8 }}>
-        <Input.TextArea
-          value={draft.details}
-          onChange={(e) => updateDraft('details', e.target.value)}
-          placeholder="请填写考试说明"
-          rows={3}
-          style={{ fontSize: 12 }}
-        />
-      </Form.Item>
-
-      <Form.Item label="考核权重(%)" style={{ marginBottom: 8 }}>
-        <InputNumber
-          size="small"
-          value={draft.assessment?.weight}
-          min={0}
-          max={100}
-          onChange={(v) => updateDraft('assessment.weight', v)}
-          style={{ width: 160 }}
-        />
-      </Form.Item>
+      {/* 已配时长显示 - 仅在视频格式时显示 */}
+      {formatKey === 'videos' && (
+        <Form.Item label="已配时长(分钟)" style={{ marginBottom: 8 }}>
+          <div style={{ 
+            padding: '4px 11px', 
+            border: '1px solid #d9d9d9', 
+            borderRadius: '6px', 
+            backgroundColor: '#fafafa',
+            fontSize: '14px',
+            color: '#666'
+          }}>
+            {calculateSelectedDuration} 分钟
+          </div>
+        </Form.Item>
+      )}
 
       {(formatKey === 'live' || formatKey === 'videos') && (
         <>
-          <Form.Item label="考核方式" style={{ marginBottom: 8 }}>
-            <Select
-              size="small"
-              value={draft.assessment?.method}
-              onChange={(v) => updateDraft('assessment.method', v)}
-              options={[{ value: '观看时长', label: '观看时长' }]}
-            />
-          </Form.Item>
-          <Form.Item label="达标观看占比(%)" style={{ marginBottom: 8 }}>
-            <InputNumber
-              size="small"
-              value={draft.watch?.requiredPercent}
-              min={0}
-              max={100}
-              onChange={(v) => updateDraft('watch.requiredPercent', v)}
-              style={{ width: '100%' }}
-            />
-          </Form.Item>
+          {/* 点播课/直播课：按图示提供三组设置 */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginBottom: 12 }}>
+            {/* 考试要求设置 */}
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 600, padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>考试要求设置</div>
+              <div style={{ marginTop: 12 }}>
+                <div style={inlineRow}>
+                  <InputNumber
+                    size="small"
+                    value={draft.watch?.requiredMinutes}
+                    min={0}
+                    onChange={(v) => updateDraft('watch.requiredMinutes', v)}
+                    style={{ width: 100 }}
+                  />
+                  <span>分钟</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 成绩设置 */}
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 600, padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>成绩设置</div>
+              <div style={{ marginTop: 12 }}>
+                {(() => {
+                  const method = draft.assessment?.method || '固定成绩';
+                  return (
+                    <div style={inlineRow}>
+                      <Select
+                        size="small"
+                        value={method}
+                        onChange={(v) => updateDraft('assessment.method', v)}
+                        options={[
+                          { value: '固定成绩', label: '固定成绩' },
+                          { value: '不计成绩', label: '不计成绩' }
+                        ]}
+                        style={{ width: 120 }}
+                      />
+                      {method === '固定成绩' && (
+                        <>
+                          <InputNumber
+                            size="small"
+                            value={draft.assessment?.fixedScore}
+                            min={0}
+                            max={100}
+                            onChange={(v) => updateDraft('assessment.fixedScore', v)}
+                            style={{ width: 88 }}
+                          />
+                          <span>分</span>
+                        </>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* 学时设置 */}
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 600, padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>学时设置</div>
+              <div style={{ marginTop: 12 }}>
+                {(() => {
+                  const policy = draft.watch?.creditPolicy || '累计学时';
+                  return (
+                    <div style={inlineRow}>
+                      <Select
+                        size="small"
+                        value={policy}
+                        onChange={(v) => updateDraft('watch.creditPolicy', v)}
+                        options={[
+                          { value: '累计学时', label: '累计学时' },
+                          { value: '固定学时', label: '固定学时' },
+                          { value: '不计学时', label: '不计学时' }
+                        ]}
+                        style={{ width: 120 }}
+                      />
+                      {policy === '累计学时' && (
+                        <>
+                          <InputNumber
+                            size="small"
+                            value={draft.watch?.minutePerCredit ?? 1}
+                            min={1}
+                            onChange={(v) => updateDraft('watch.minutePerCredit', v)}
+                            style={{ width: 88 }}
+                          />
+                          <span>分钟=1学时</span>
+                        </>
+                      )}
+                      {policy === '固定学时' && (
+                        <>
+                          <InputNumber
+                            size="small"
+                            value={draft.watch?.fixedCredits ?? 1}
+                            min={1}
+                            onChange={(v) => updateDraft('watch.fixedCredits', v)}
+                            style={{ width: 88 }}
+                          />
+                          <span>学时</span>
+                        </>
+                      )}
+                      {policy === '不计学时' && null}
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
         </>
       )}
 
@@ -99,42 +216,33 @@ const BasicConfigTab = ({ draft, updateDraft, formatKey, configModal, formatConf
               <InputNumber
                 size="small"
                 value={draft.exam?.durationMinutes}
-                min={1}
-                max={600}
+                min={0}
+                max={300}
                 onChange={(v) => updateDraft('exam.durationMinutes', v)}
                 style={{ width: 88 }}
               />
-              <span>分钟必须交卷</span>
+              <span>分钟</span>
             </div>
           </Form.Item>
 
-          {/* 重考次数 */}
-          <Form.Item label="重考次数：" colon={false} style={{ marginBottom: 12 }}>
+          {/* 重考设置 */}
+          <Form.Item label="重考设置：" colon={false} style={{ marginBottom: 12 }}>
             <div style={inlineRow}>
               <Switch
-                checked={!!draft.exam?.retakeEnabled}
-                onChange={(checked) => updateDraft('exam.retakeEnabled', checked)}
+                checked={!!draft.exam?.allowRetake}
+                onChange={(checked) => updateDraft('exam.allowRetake', checked)}
               />
-              <span>所有学员都有</span>
-              <InputNumber
-                size="small"
-                value={draft.exam?.retakeCount}
-                min={0}
-                max={10}
-                onChange={(v) => updateDraft('exam.retakeCount', v)}
-                style={{ width: 72 }}
-              />
-              <span>次重考机会</span>
+              <span>允许重考</span>
             </div>
           </Form.Item>
 
           {/* 重考成绩策略 */}
-          <Form.Item label="重考成绩：" colon={false} style={{ marginBottom: 12 }}>
+          <Form.Item label="重考成绩策略：" colon={false} style={{ marginBottom: 12 }}>
             <div style={inlineRow}>
-              <span>若学员参加了重考，则取</span>
+              <span>取</span>
               <Select
                 size="small"
-                value={draft.exam?.retakeScorePolicy || '最高分'}
+                value={draft.exam?.retakeScorePolicy}
                 onChange={(v) => updateDraft('exam.retakeScorePolicy', v)}
                 options={[{ value: '最高分', label: '最高分' }]}
                 style={{ width: 100 }}
@@ -171,22 +279,21 @@ const BasicConfigTab = ({ draft, updateDraft, formatKey, configModal, formatConf
                 checked={!!draft.grading?.manual}
                 onChange={(checked) => updateDraft('grading.manual', checked)}
               />
-              <span style={{ color: '#666' }}>
-                开启人工评阅后，试卷内所有主观题（填空/问答/作业上传等）将不会自动评阅
-              </span>
             </div>
           </Form.Item>
 
-          {/* 防作弊设置 */}
+          {/* 防舞弊设置 */}
           <div style={{ fontWeight: 600, margin: '16px 0 8px', display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ color: '#d9d9d9' }}>●</span>
-            <span>防作弊设置</span>
+            <span>防舞弊设置</span>
           </div>
-          <Form.Item label="考试防切屏：" colon={false} style={{ marginBottom: 12 }}>
-            <Switch
-              checked={!!draft.antiCheat?.lockExam}
-              onChange={(checked) => updateDraft('antiCheat.lockExam', checked)}
-            />
+          <Form.Item label="考试页面防切换：" colon={false} style={{ marginBottom: 12 }}>
+            <div style={inlineRow}>
+              <Switch
+                checked={!!draft.antiCheat?.lockExam}
+                onChange={(checked) => updateDraft('antiCheat.lockExam', checked)}
+              />
+            </div>
           </Form.Item>
           <Form.Item label="考前人脸识别：" colon={false} style={{ marginBottom: 12 }}>
             <div style={inlineRow}>
