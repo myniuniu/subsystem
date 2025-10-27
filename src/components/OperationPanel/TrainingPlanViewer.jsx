@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   Card, 
   Button, 
@@ -18,7 +18,9 @@ import {
   Popover,
   Select,
   Divider,
-  Tooltip
+  Tooltip,
+  Anchor,
+  Affix
 } from 'antd';
 import { 
   ReloadOutlined, 
@@ -32,7 +34,8 @@ import {
   SettingOutlined,
   LeftOutlined,
   RightOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
+  MenuOutlined
 } from '@ant-design/icons';
 import { RIGHT_PANEL_VIEWS, VIEW_MODES } from '../../constants/noteEditConstants';
 import { generateComprehensiveTrainingPlan, generateTrainingPlanMarkdown } from '../../utils/trainingPlanGenerator';
@@ -120,12 +123,68 @@ const SortableModuleCard = ({ id, mod, pIdx, mIdx, globalIndex, setVisualDraft }
           placeholder="培训形式（可多选，可自定义）"
           value={parseFormats(mod.format)}
           onChange={(vals) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx
-            ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, format: joinFormats(vals) } : mo) }
+            ? { ...ph, modules: ph.modules.map((mo, j) => {
+                if (j !== mIdx) return mo;
+                const nextFormat = joinFormats(vals);
+                const existingMap = mo.formatTypeMap || {};
+                const allowed = new Set(vals);
+                const prunedMap = Object.fromEntries(Object.entries(existingMap).filter(([k]) => allowed.has(k)));
+                return { ...mo, format: nextFormat, formatTypeMap: prunedMap };
+              }) }
             : ph))}
           options={DEFAULT_FORMAT_OPTIONS.map(v => ({ value: v, label: v }))}
         />
+        <div style={{ display: 'grid', gridAutoFlow: 'row', rowGap: 6 }}>
+          {(parseFormats(mod.format) || []).map((fmt) => (
+            <div key={`fmt-bind-${fmt}`} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Tag color="blue">{fmt}</Tag>
+              {!(mod.formatTypeMap || {})[fmt] && (
+                <Tooltip title="未绑定类型（将按关键词识别）">
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#d9d9d9', display: 'inline-block' }} />
+                </Tooltip>
+              )}
+              <Select
+                style={{ width: 160 }}
+                placeholder="绑定培训类型"
+                value={(mod.formatTypeMap || {})[fmt]}
+                onChange={(v) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx
+                  ? { ...ph, modules: ph.modules.map((mo, j) => {
+                      if (j !== mIdx) return mo;
+                      const base = mo.formatTypeMap || {};
+                      return { ...mo, formatTypeMap: { ...base, [fmt]: v } };
+                    }) }
+                  : ph))}
+                options={[
+                  { value: 'live', label: '直播课' },
+                  { value: 'videos', label: '点播课' },
+                  { value: 'exam', label: '考试' },
+                  { value: 'document', label: '文档' }
+                ]}
+              />
+            </div>
+          ))}
+        </div>
         <Input style={{ flex: 1 }} value={mod.assessment} placeholder="考核方式"
           onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, assessment: e.target.value } : mo) } : ph))} />
+        <Select
+          style={{ width: 180 }}
+          placeholder="绑定考核类型"
+          value={mod.assessmentTypeKey}
+          onChange={(v) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx
+            ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, assessmentTypeKey: v } : mo) }
+            : ph))}
+          options={[
+            { value: 'live', label: '直播课' },
+            { value: 'videos', label: '点播课' },
+            { value: 'exam', label: '考试' },
+            { value: 'document', label: '文档' }
+          ]}
+        />
+        {(!mod.assessmentTypeKey && (mod.assessment || '').trim().length > 0) && (
+          <Tooltip title="未绑定类型（将按关键词识别）">
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#d9d9d9', display: 'inline-block' }} />
+          </Tooltip>
+        )}
       </Space>
 
       <Typography.Title level={5} style={{ marginTop: 8 }}>内容条目</Typography.Title>
@@ -260,8 +319,26 @@ const TrainingPlanViewer = ({
 
   // 左右分栏拖拽：容器与宽度状态
   const containerRef = useRef(null);
+  const leftScrollRef = useRef(null);
+  const dirPanelRef = useRef(null);
   const [leftWidthPct, setLeftWidthPct] = useState(40); // 初始与之前 flex:4 相当
   const [isResizing, setIsResizing] = useState(false);
+  const [dirOpen, setDirOpen] = useState(false); // 左侧目录展开状态
+
+  // 点击非目录区域时收起目录
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!dirOpen) return;
+      const el = dirPanelRef.current;
+      if (el && !el.contains(e.target)) {
+        setDirOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside, true);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside, true);
+    };
+  }, [dirOpen]);
 
   const startResize = (e) => {
     e.preventDefault();
@@ -668,6 +745,33 @@ const TrainingPlanViewer = ({
 
   // 引入方案可编辑状态
   const [plan, setPlan] = useState(newTeacherTrainingPlan);
+  // 动态目录项：阶段与模块（依赖 plan）
+  const phaseAnchorItems = useMemo(() => (
+    Array.isArray(plan?.phases)
+      ? plan.phases.map((ph, pIdx) => ({
+          key: `phase-${pIdx}`,
+          href: `#phase-${pIdx}`,
+          title: ph?.name || `阶段 ${pIdx + 1}`,
+          children: Array.isArray(ph?.modules)
+            ? ph.modules.map((m, mIdx) => ({
+                key: `phase-${pIdx}-module-${mIdx}`,
+                href: `#phase-${pIdx}-module-${mIdx}`,
+                title: m?.title || `模块 ${mIdx + 1}`
+              }))
+            : []
+        }))
+      : []
+  ), [plan?.phases]);
+
+  const anchorItems = useMemo(() => ([
+    { key: 'overview', href: '#section-overview', title: '方案概述' },
+    { key: 'participantTags', href: '#section-participantTags', title: '参训人员（标签）' },
+    { key: 'phases', href: '#section-phases', title: '培训阶段与内容', children: phaseAnchorItems },
+    { key: 'schedule', href: '#section-schedule', title: '培训进度安排' },
+    { key: 'implementation', href: '#section-implementation', title: '实施保障' },
+    { key: 'assessment', href: '#section-assessment', title: '考核与评价' },
+    { key: 'guarantee', href: '#section-guarantee', title: '保障措施' }
+  ]), [phaseAnchorItems]);
   // 基于方案中的参训人员动态生成左侧标签
   const leftTags = useMemo(() => {
   if (Array.isArray(plan.participantTags) && plan.participantTags.length) {
@@ -1065,6 +1169,7 @@ const TrainingPlanViewer = ({
             padding: '24px',
             overflow: 'auto'
           }}
+          ref={leftScrollRef}
         >
           <div style={{
             width: '100%',
@@ -1073,84 +1178,113 @@ const TrainingPlanViewer = ({
             minHeight: '100%',
             padding: '32px',
             borderRadius: '8px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            position: 'relative'
           }}>
+            <Affix target={() => leftScrollRef.current} offsetTop={12}>
+              <div ref={dirPanelRef} style={{ marginLeft: 12 }}>
+                <Button size="small" icon={<MenuOutlined />} onClick={() => setDirOpen(prev => !prev)}>目录</Button>
+                {dirOpen && (
+                  <Card size="small" style={{ marginTop: 8, width: 260, maxHeight: 360, overflow: 'auto' }}>
+                    <Anchor
+                      getContainer={() => leftScrollRef.current}
+                      items={anchorItems}
+                    />
+                  </Card>
+                )}
+              </div>
+            </Affix>
+
             {/* 方案概述 */}
-            <SectionHeader
-              sectionKey="overview"
-              onVisualEdit={() => openInlineVisualEditor('overview')}
-              onJsonEdit={() => { setEditMode('json'); openSectionEditor('overview'); }}
-            />
-            <InlineEditableSection
-              sectionKey="overview"
-              renderContent={() => <TrainingOverview overview={plan.overview} />}
-            />
+            <div id="section-overview">
+              <SectionHeader
+                sectionKey="overview"
+                onVisualEdit={() => openInlineVisualEditor('overview')}
+                onJsonEdit={() => { setEditMode('json'); openSectionEditor('overview'); }}
+              />
+              <InlineEditableSection
+                sectionKey="overview"
+                renderContent={() => <TrainingOverview overview={plan.overview} />}
+              />
+            </div>
 
             {/* 参训人员（标签） */}
-            <SectionHeader
-              sectionKey="participantTags"
-              onVisualEdit={() => openInlineVisualEditor('participantTags')}
-              onJsonEdit={() => { setEditMode('json'); openSectionEditor('participantTags'); }}
-            />
-            <InlineEditableSection
-              sectionKey="participantTags"
-              renderContent={() => <TagsSection tags={plan.participantTags || []} />}
-            />
+            <div id="section-participantTags">
+              <SectionHeader
+                sectionKey="participantTags"
+                onVisualEdit={() => openInlineVisualEditor('participantTags')}
+                onJsonEdit={() => { setEditMode('json'); openSectionEditor('participantTags'); }}
+              />
+              <InlineEditableSection
+                sectionKey="participantTags"
+                renderContent={() => <TagsSection tags={plan.participantTags || []} />}
+              />
+            </div>
 
             {/* 培训阶段与内容 */}
-            <SectionHeader
-              sectionKey="phases"
-              onVisualEdit={() => openInlineVisualEditor('phases')}
-              onJsonEdit={() => { setEditMode('json'); openSectionEditor('phases'); }}
-            />
-            <InlineEditableSection
-              sectionKey="phases"
-              renderContent={() => <TrainingPhases phases={plan.phases} />}
-            />
+            <div id="section-phases">
+              <SectionHeader
+                sectionKey="phases"
+                onVisualEdit={() => openInlineVisualEditor('phases')}
+                onJsonEdit={() => { setEditMode('json'); openSectionEditor('phases'); }}
+              />
+              <InlineEditableSection
+                sectionKey="phases"
+                renderContent={() => <TrainingPhases phases={plan.phases} />}
+              />
+            </div>
 
             {/* 详细时间安排 */}
-            <SectionHeader
-              sectionKey="schedule"
-              onVisualEdit={() => openInlineVisualEditor('schedule')}
-              onJsonEdit={() => { setEditMode('json'); openSectionEditor('schedule'); }}
-            />
-            <InlineEditableSection
-              sectionKey="schedule"
-              renderContent={() => <TrainingSchedule schedule={plan.schedule} />}
-            />
+            <div id="section-schedule">
+              <SectionHeader
+                sectionKey="schedule"
+                onVisualEdit={() => openInlineVisualEditor('schedule')}
+                onJsonEdit={() => { setEditMode('json'); openSectionEditor('schedule'); }}
+              />
+              <InlineEditableSection
+                sectionKey="schedule"
+                renderContent={() => <TrainingSchedule schedule={plan.schedule} />}
+              />
+            </div>
 
             {/* 实施保障 */}
-            <SectionHeader
-              sectionKey="implementation"
-              onVisualEdit={() => openInlineVisualEditor('implementation')}
-              onJsonEdit={() => { setEditMode('json'); openSectionEditor('implementation'); }}
-            />
-            <InlineEditableSection
-              sectionKey="implementation"
-              renderContent={() => <ImplementationSection implementation={plan.implementation} />}
-            />
+            <div id="section-implementation">
+              <SectionHeader
+                sectionKey="implementation"
+                onVisualEdit={() => openInlineVisualEditor('implementation')}
+                onJsonEdit={() => { setEditMode('json'); openSectionEditor('implementation'); }}
+              />
+              <InlineEditableSection
+                sectionKey="implementation"
+                renderContent={() => <ImplementationSection implementation={plan.implementation} />}
+              />
+            </div>
 
             {/* 考核与评价 */}
-            <SectionHeader
-              sectionKey="assessment"
-              onVisualEdit={() => openInlineVisualEditor('assessment')}
-              onJsonEdit={() => { setEditMode('json'); openSectionEditor('assessment'); }}
-            />
-            <InlineEditableSection
-              sectionKey="assessment"
-              renderContent={() => <AssessmentSection assessment={plan.assessment} />}
-            />
+            <div id="section-assessment">
+              <SectionHeader
+                sectionKey="assessment"
+                onVisualEdit={() => openInlineVisualEditor('assessment')}
+                onJsonEdit={() => { setEditMode('json'); openSectionEditor('assessment'); }}
+              />
+              <InlineEditableSection
+                sectionKey="assessment"
+                renderContent={() => <AssessmentSection assessment={plan.assessment} />}
+              />
+            </div>
 
             {/* 保障措施 */}
-            <SectionHeader
-              sectionKey="guarantee"
-              onVisualEdit={() => openInlineVisualEditor('guarantee')}
-              onJsonEdit={() => { setEditMode('json'); openSectionEditor('guarantee'); }}
-            />
-            <InlineEditableSection
-              sectionKey="guarantee"
-              renderContent={() => <GuaranteeSection guarantee={plan.guarantee} />}
-            />
+            <div id="section-guarantee">
+              <SectionHeader
+                sectionKey="guarantee"
+                onVisualEdit={() => openInlineVisualEditor('guarantee')}
+                onJsonEdit={() => { setEditMode('json'); openSectionEditor('guarantee'); }}
+              />
+              <InlineEditableSection
+                sectionKey="guarantee"
+                renderContent={() => <GuaranteeSection guarantee={plan.guarantee} />}
+              />
+            </div>
           </div>
         </div>
 

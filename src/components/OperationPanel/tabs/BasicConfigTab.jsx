@@ -65,6 +65,50 @@ const BasicConfigTab = ({ draft, updateDraft, formatKey, configModal, formatConf
         </Form.Item>
       )}
 
+      {formatKey === 'document' && (
+        <>
+          {/* 文档：提供通用的成绩设置 */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginBottom: 12 }}>
+            {/* 成绩设置 */}
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 600, padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>成绩设置</div>
+              <div style={{ marginTop: 12 }}>
+                {(() => {
+                  const method = draft.assessment?.method || '固定成绩';
+                  return (
+                    <div style={inlineRow}>
+                      <Select
+                        size="small"
+                        value={method}
+                        onChange={(v) => updateDraft('assessment.method', v)}
+                        options={[
+                          { value: '固定成绩', label: '固定成绩' },
+                          { value: '不计成绩', label: '不计成绩' }
+                        ]}
+                        style={{ width: 120 }}
+                      />
+                      {method === '固定成绩' && (
+                        <>
+                          <InputNumber
+                            size="small"
+                            value={draft.assessment?.fixedScore}
+                            min={0}
+                            max={100}
+                            onChange={(v) => updateDraft('assessment.fixedScore', v)}
+                            style={{ width: 88 }}
+                          />
+                          <span>分</span>
+                        </>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
       {(formatKey === 'live' || formatKey === 'videos') && (
         <>
           {/* 点播课/直播课：按图示提供三组设置 */}
