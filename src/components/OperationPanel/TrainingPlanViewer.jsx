@@ -70,7 +70,7 @@ const { TextArea } = Input;
 
 // 培训形式：选项与字符串<->数组转换工具
 const DEFAULT_FORMAT_OPTIONS = [
-  '线上直播课程', '录播视频', '在线研讨', '实践作业', '考试测评',
+  '线上直播课程', '录播视频', '线上研讨会', '在线研讨', '实践作业', '考试测评',
   '工作坊', '专题讲座', '案例研讨', '小组讨论', '实地调研'
 ];
 const parseFormats = (val) => Array.isArray(val)
@@ -83,6 +83,8 @@ const joinFormats = (arr) => (arr || []).join(' + ');
 // 根据中文关键词推断类型键，用于默认初始化绑定
 const inferTypeKeyFromText = (text) => {
   const s = String(text || '').toLowerCase();
+  // 线上研讨会优先识别（线上研讨会/线上会议/视频会议/网络研讨会）
+  if (/线上研讨会|线上会议|视频会议|网络研讨会|webinar/i.test(text || '')) return 'webinar';
   // 优先识别考试相关（包含“测试/在线测试/线上测试/测评/考试”）
   if (/考试|测评|测试/.test(text || '')) return 'exam';
   if (/录播|视频/.test(text || '')) return 'videos';
@@ -92,6 +94,8 @@ const inferTypeKeyFromText = (text) => {
   if (/线上|在线/.test(text || '') && /(交流|研讨|讨论)/.test(text || '')) return 'seminar';
   // 线下活动识别（线下/线下活动/实地/参观/走访/调研/观摩）
   if (/线下活动|线下|实地|参观|走访|调研|观摩/.test(text || '')) return 'offline';
+  // 作业类识别
+  if (/试卷作业|作业|论文|报告|方案|反思/.test(text || '')) return 'assignment';
   if (/文档|资料/.test(text || '')) return 'document';
   // 直播相关（不含“线上交流研讨”已单独识别）
   if (/直播|讲座|工作坊|案例/.test(text || '')) return 'live';
@@ -222,10 +226,12 @@ const SortableModuleCard = ({ id, mod, pIdx, mIdx, globalIndex, setVisualDraft }
                 options={[
                   { value: 'live', label: '直播课' },
                   { value: 'videos', label: '点播课' },
+                  { value: 'webinar', label: '线上研讨会' },
                   { value: 'seminar', label: '线上交流研讨' },
                   { value: 'offline', label: '线下活动' },
                   { value: 'exam', label: '考试' },
-                  { value: 'document', label: '文档' }
+                  { value: 'assignment', label: '试卷作业' },
+                  { value: 'document', label: '研修成果' }
                 ]}
               />
             </div>
@@ -261,7 +267,8 @@ const SortableModuleCard = ({ id, mod, pIdx, mIdx, globalIndex, setVisualDraft }
             { value: 'seminar', label: '线上交流研讨' },
             { value: 'offline', label: '线下活动' },
             { value: 'exam', label: '考试' },
-            { value: 'document', label: '文档' }
+            { value: 'assignment', label: '试卷作业' },
+            { value: 'document', label: '研修成果' }
           ]}
         />
       </Space>
@@ -347,8 +354,10 @@ const SingleModuleEditor = ({ mod, onChange, moduleIndex }) => {
                 options={[
                   { value: 'live', label: '直播课' },
                   { value: 'videos', label: '点播课' },
+                  { value: 'webinar', label: '线上研讨会' },
                   { value: 'exam', label: '考试' },
-                  { value: 'document', label: '文档' }
+                  { value: 'assignment', label: '试卷作业' },
+                  { value: 'document', label: '研修成果' }
                 ]}
               />
             </div>
@@ -378,8 +387,10 @@ const SingleModuleEditor = ({ mod, onChange, moduleIndex }) => {
           options={[
             { value: 'live', label: '直播课' },
             { value: 'videos', label: '点播课' },
+            { value: 'webinar', label: '线上研讨会' },
             { value: 'exam', label: '考试' },
-            { value: 'document', label: '文档' }
+            { value: 'assignment', label: '试卷作业' },
+            { value: 'document', label: '研修成果' }
           ]}
         />
       </Space>
@@ -691,7 +702,7 @@ const TrainingPlanViewer = ({
       ],
       duration: '3个月（12周）',
       participants: '本学年新入职教师',
-      format: '线上直播课程 + 录播视频 + 在线研讨 + 实践作业'
+      format: '线上直播课程 + 录播视频 + 线上研讨会 + 实践作业'
     },
     phases: [
       {
@@ -707,7 +718,7 @@ const TrainingPlanViewer = ({
               '教师职业道德与行为规范',
               '学校规章制度解读'
             ],
-            format: '直播讲座 + 在线测试',
+            format: '直播讲座',
             assessment: '在线测试（100分）'
           },
           {
@@ -797,7 +808,7 @@ const TrainingPlanViewer = ({
               '教学问题分析与解决',
               '教学经验总结与分享'
             ],
-            format: '反思写作 + 经验交流',
+            format: '反思写作 + 线上研讨会',
             assessment: '教学反思报告（100分）'
           }
         ]

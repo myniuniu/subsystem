@@ -18,6 +18,8 @@ const normalizeFormats = (fmt) => {
 
 const inferTypeKeyFromText = (text) => {
   const s = String(text || '').toLowerCase();
+  // 线上研讨会优先识别
+  if (/线上研讨会|线上会议|视频会议|网络研讨会|webinar/i.test(text || '')) return 'webinar';
   // 优先识别考试相关（包含“测试/在线测试/线上测试/测评/考试”）
   if (/考试|测评|测试/.test(text || '')) return 'exam';
   if (/录播|视频/.test(text || '')) return 'videos';
@@ -27,7 +29,9 @@ const inferTypeKeyFromText = (text) => {
   if (/线上|在线/.test(text || '') && /(交流|研讨|讨论)/.test(text || '')) return 'seminar';
   // 线下活动识别（线下/线下活动/实地/参观/走访/调研/观摩）
   if (/线下活动|线下|实地|参观|走访|调研|观摩/.test(text || '')) return 'offline';
-  if (/文档|资料|报告|方案|作业|反思/.test(text || '')) return 'document';
+  // 作业类识别
+  if (/试卷作业|作业|论文|报告|方案|反思/.test(text || '')) return 'assignment';
+  if (/文档|资料/.test(text || '')) return 'document';
   if (/直播|讲座|工作坊|案例/.test(text || '')) return 'live';
   return 'document';
 };
@@ -35,12 +39,14 @@ const inferTypeKeyFromText = (text) => {
 // 类型标签映射
 const typeLabelByKey = (k) => ({
   live: '直播课',
+  webinar: '线上研讨会',
   videos: '点播课',
   seminar: '线上交流研讨',
   offline: '线下活动',
   exam: '考试',
-  document: '文档'
-}[k] || '文档');
+  assignment: '试卷作业',
+  document: '研修成果'
+}[k] || '研修成果');
 
 const TrainingPhases = ({ phases, onEditModule, onJsonEditModule }) => {
   let modCounter = 0; // 跨阶段自然编号计数器

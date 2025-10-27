@@ -122,6 +122,8 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
     // 辅助：类型推断（无法判断默认归为文档）
     const inferTypeKeyFromText = (text) => {
       const s = String(text || '').toLowerCase();
+      // 线上研讨会优先识别（线上研讨会/线上会议/视频会议/网络研讨会）
+      if (/线上研讨会|线上会议|视频会议|网络研讨会|webinar/i.test(text || '')) return 'webinar';
       if (/考试|测评|测试/.test(text || '')) return 'exam';
       if (/录播|视频/.test(text || '')) return 'videos';
       // 将“经验交流/经验分享/交流会”等默认绑定为线上交流研讨
@@ -131,7 +133,9 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
       // 线下活动识别（线下/线下活动/实地/参观/走访/调研/观摩）
       if (/线下活动|线下|实地|参观|走访|调研|观摩/.test(text || '')) return 'offline';
       if (/直播|讲座|工作坊|案例/.test(text || '')) return 'live';
-      if (/文档|资料|报告|方案|作业|反思/.test(text || '')) return 'document';
+      // 作业类单独识别为 assignment（试卷作业/作业/论文/报告等）
+      if (/试卷作业|作业|论文|报告|方案|反思/.test(text || '')) return 'assignment';
+      if (/文档|资料/.test(text || '')) return 'document';
       return 'document';
     };
 
@@ -146,14 +150,16 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
       const fmtEntries = parseFormats(moduleInfo?.format || p.type || '');
       const asmtStr = String(moduleInfo?.assessment || '').trim();
       // 聚合：按类型键收集对应的显示名称（来自左侧形式项）
-      const byType = { live: [], seminar: [], videos: [], offline: [], exam: [], document: [] };
+      const byType = { live: [], webinar: [], seminar: [], videos: [], offline: [], exam: [], assignment: [], document: [] };
       fmtEntries.forEach(f => {
         const typeKey = normalizedBoundFmtTypeMap[f] || inferTypeKeyFromText(f);
         if (typeKey === 'live') byType.live.push(f);
+        else if (typeKey === 'webinar') byType.webinar.push(f);
         else if (typeKey === 'seminar') byType.seminar.push(f);
         else if (typeKey === 'offline') byType.offline.push(f);
         else if (typeKey === 'videos') byType.videos.push(f);
         else if (typeKey === 'exam') byType.exam.push(f);
+        else if (typeKey === 'assignment') byType.assignment.push(f);
         else byType.document.push(f);
       });
       // 根据考核文本补齐 exam/document 类型（优先作为显示名称）
@@ -162,6 +168,9 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
         if (aKey === 'exam') {
           // 使用完整考核文案作为名称（如“在线测试/试卷”），放到前面以优先展示
           byType.exam.unshift(asmtStr);
+        } else if (aKey === 'assignment') {
+          // 作业类单独归为“试卷作业”类型显示
+          byType.assignment.unshift(asmtStr);
         } else if (aKey === 'document') {
           // 使用完整文案（如“案例分析报告”），避免丢失关键信息，放到前面以优先展示
           byType.document.unshift(asmtStr);
@@ -173,10 +182,12 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
 
       const baseMaterials = {
         live: byType.live.map(name => ({ id: p.id, title: name, startTime, endTime })),
+        webinar: byType.webinar.map(name => ({ id: p.id, title: name, startTime, endTime })),
         seminar: byType.seminar.map(name => ({ id: p.id, title: name, startTime, endTime })),
         offline: byType.offline.map(name => ({ id: p.id, title: name, startTime, endTime })),
         videos: byType.videos.map(name => ({ id: p.id, videoInfo: { duration: 0, progress: 0 }, name })),
         exam: byType.exam.map(name => ({ id: p.id, name, score: null })),
+        assignment: byType.assignment.map(name => ({ id: p.id, name })),
         document: byType.document.map(name => ({ id: p.id, name })),
         links: [],
         texts: [],
@@ -189,9 +200,11 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
       const displayNames = {
         ...(byType.videos.length > 0 ? { videos: byType.videos[0] } : {}),
         ...(byType.live.length > 0 ? { live: byType.live[0] } : {}),
+        ...(byType.webinar.length > 0 ? { webinar: byType.webinar[0] } : {}),
         ...(byType.seminar.length > 0 ? { seminar: byType.seminar[0] } : {}),
         ...(byType.offline.length > 0 ? { offline: byType.offline[0] } : {}),
         ...(byType.exam.length > 0 ? { exam: byType.exam[0] } : {}),
+        ...(byType.assignment.length > 0 ? { assignment: byType.assignment[0] } : {}),
         ...(byType.document.length > 0 ? { document: byType.document[0] } : {}),
       };
       // 模块2的作业显示名称
@@ -290,25 +303,30 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
 
   const formatLabelByKey = (k) => ({
     live: '直播课',
+    webinar: '线上研讨会',
     seminar: '线上交流研讨',
     offline: '线下活动',
     videos: '点播课',
     exam: '考试',
-    document: '文档'
+    assignment: '试卷作业',
+    document: '研修成果'
   }[k] || '培训形式');
 
   // 格式类型映射：除点播课/直播课/考试外，默认归为“文档”
   const formatTypeByKey = (k) => ({
     videos: '点播课',
     live: '直播课',
+    webinar: '线上研讨会',
     seminar: '线上交流研讨',
     offline: '线下活动',
-    exam: '考试'
-  }[k] || '文档');
+    exam: '考试',
+    assignment: '试卷作业'
+  }[k] || '研修成果');
 
   // 左侧“考核方式”明确标注映射：仅当左侧 assessment 文案明确指出该形式是考核时，右侧才加标注
   const ASSESS_EXAM_KEYWORDS = ['考试', '试卷', '测试'];
-  const ASSESS_DOC_KEYWORDS = ['作业', '报告', '方案', '反思', '模拟授课', '教学设计', '教案设计'];
+  const ASSESS_ASSIGNMENT_KEYWORDS = ['试卷作业', '作业', '论文', '报告', '方案', '反思', '模拟授课', '教学设计', '教案设计'];
+  const ASSESS_DOC_KEYWORDS = ['文档', '资料'];
 
   const isExplicitAssessmentForFormat = (phase, fmtKey) => {
     try {
@@ -316,6 +334,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
       // 若左侧已绑定考核类型，优先依据绑定类型判断
       if (moduleInfo?.assessmentTypeKey) {
         if (fmtKey === 'exam') return moduleInfo.assessmentTypeKey === 'exam';
+        if (fmtKey === 'assignment') return moduleInfo.assessmentTypeKey === 'assignment';
         if (fmtKey === 'document') return moduleInfo.assessmentTypeKey === 'document';
         return false;
       }
@@ -323,6 +342,9 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
       if (!asmtStr) return false;
       if (fmtKey === 'exam') {
         return ASSESS_EXAM_KEYWORDS.some(k => asmtStr.includes(k));
+      }
+      if (fmtKey === 'assignment') {
+        return ASSESS_ASSIGNMENT_KEYWORDS.some(k => asmtStr.includes(k));
       }
       if (fmtKey === 'document') {
         return ASSESS_DOC_KEYWORDS.some(k => asmtStr.includes(k));
@@ -512,6 +534,15 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
         watch: { requiredPercent: 80 }
       };
     }
+    if (formatKey === 'webinar') {
+      return {
+        name: formatLabelByKey(formatKey),
+        details: '',
+        enabled: defaultEnabled,
+        assessment: { method: '固定成绩', weight: 30, fixedScore: 100 },
+        watch: { requiredPercent: 80 }
+      };
+    }
     if (formatKey === 'seminar') {
       return {
         name: formatLabelByKey(formatKey),
@@ -544,6 +575,14 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
         details: '',
         enabled: defaultEnabled,
         assessment: { method: '文档', weight: 30, passScore: 60, fullScore: 100 }
+      };
+    }
+    if (formatKey === 'assignment') {
+      return {
+        name: formatLabelByKey(formatKey),
+        details: '',
+        enabled: defaultEnabled,
+        assessment: { method: '作业', weight: 30, passScore: 60, fullScore: 100 }
       };
     }
     if (formatKey === 'exam') {
@@ -604,9 +643,11 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
   // 形式 -> 类型 的键映射：配置UI按类型展示，但数据仍以原始形式键存储
   const mapFormatKeyToTypeKey = (k) => ({
     live: 'live',
+    webinar: 'webinar',
     seminar: 'seminar',
     videos: 'videos',
     exam: 'exam',
+    assignment: 'assignment',
     document: 'document'
   }[k] || 'document');
 
@@ -679,7 +720,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
       const nextConfigs = {};
       (Array.isArray(phaseMaterials) ? phaseMaterials : []).forEach((phase) => {
         const m = phase.materials || {};
-        const fmtKeys = ['live','seminar','offline','videos','exam','document'];
+        const fmtKeys = ['live','webinar','seminar','offline','videos','exam','assignment','document'];
         fmtKeys.forEach((k) => {
           if (Array.isArray(m[k]) && m[k].length > 0) {
             nextConfigs[phase.id] = nextConfigs[phase.id] || {};
@@ -1400,10 +1441,13 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                               options={[
                                 { value: 'all', label: '全部形式' },
                                 { value: 'live', label: '直播课' },
+                                { value: 'webinar', label: '线上研讨会' },
                                 { value: 'seminar', label: '线上交流研讨' },
                                 { value: 'offline', label: '线下活动' },
                                 { value: 'videos', label: '点播课' },
-                                { value: 'exam', label: '考试' }
+                                { value: 'exam', label: '考试' },
+                                { value: 'assignment', label: '试卷作业' },
+                                { value: 'document', label: '研修成果' }
                               ]}
                             />
                             <Button 
@@ -1446,12 +1490,14 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                             const m = phase.materials || {};
               const presentFormats = [];
               if (Array.isArray(m.live) && m.live.length > 0) presentFormats.push('live');
+              if (Array.isArray(m.webinar) && m.webinar.length > 0) presentFormats.push('webinar');
               if (Array.isArray(m.seminar) && m.seminar.length > 0) presentFormats.push('seminar');
               if (Array.isArray(m.offline) && m.offline.length > 0) presentFormats.push('offline');
               if (Array.isArray(m.videos) && m.videos.length > 0) presentFormats.push('videos');
               if (Array.isArray(m.exam) && m.exam.length > 0) presentFormats.push('exam');
+              if (Array.isArray(m.assignment) && m.assignment.length > 0) presentFormats.push('assignment');
               if (Array.isArray(m.document) && m.document.length > 0) presentFormats.push('document');
-              // 移除 assignment 类型
+              // 展示 presentFormats 列表中已有的类型
 
                             return (
                             <div key={`phase-${phase.id}`} style={{ marginBottom: 14, border: '1px solid #e8e8e8', borderLeft: '2px solid #91d5ff', borderRadius: 8, background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
@@ -1471,12 +1517,13 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                   {(() => {
                                     const tagSpecs = [
                                       { key: 'live', present: Array.isArray(m.live) && m.live.length > 0, label: '直播课', color: 'cyan' },
+                                      { key: 'webinar', present: Array.isArray(m.webinar) && m.webinar.length > 0, label: '线上研讨会', color: 'magenta' },
                                       { key: 'seminar', present: Array.isArray(m.seminar) && m.seminar.length > 0, label: '线上交流研讨', color: 'blue' },
                                       { key: 'offline', present: Array.isArray(m.offline) && m.offline.length > 0, label: '线下活动', color: 'orange' },
                                       { key: 'videos', present: Array.isArray(m.videos) && m.videos.length > 0, label: '点播课', color: 'geekblue' },
                                       { key: 'exam', present: Array.isArray(m.exam) && m.exam.length > 0, label: '考试', color: 'purple' },
+                                      { key: 'assignment', present: Array.isArray(m.assignment) && m.assignment.length > 0, label: '试卷作业', color: 'green' },
                                       // 按要求：不显示“文档”标签
-                                      // 按要求：移除“教案设计作业”标签
                                     ];
                                     return tagSpecs
                                       .filter(t => t.present)
