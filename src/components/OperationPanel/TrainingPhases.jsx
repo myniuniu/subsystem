@@ -1,6 +1,6 @@
-import React from 'react';
-import { Typography, Card, Space, Tag } from 'antd';
-import { BookOutlined } from '@ant-design/icons';
+import React, { useState } from 'react';
+import { Typography, Card, Space, Tag, Button, Tooltip } from 'antd';
+import { BookOutlined, EditOutlined, CodeOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
@@ -16,8 +16,9 @@ const normalizeFormats = (fmt) => {
   return arr;
 };
 
-const TrainingPhases = ({ phases }) => {
+const TrainingPhases = ({ phases, onEditModule, onJsonEditModule }) => {
   let modCounter = 0; // 跨阶段自然编号计数器
+  const [hoveredKey, setHoveredKey] = useState(null);
   return (
     <div style={{ marginBottom: '32px' }}>
       <Title level={3}>二、培训阶段与内容</Title>
@@ -28,7 +29,36 @@ const TrainingPhases = ({ phases }) => {
             培训重点：{phase.focus}
           </Text>
           {phase.modules.map((module, moduleIdx) => (
-            <div key={moduleIdx} id={`phase-${phaseIdx}-module-${moduleIdx}`}>
+            <div 
+              key={moduleIdx} 
+              id={`phase-${phaseIdx}-module-${moduleIdx}`}
+              style={{ position: 'relative' }}
+              onMouseEnter={() => setHoveredKey(`${phaseIdx}-${moduleIdx}`)}
+              onMouseLeave={() => setHoveredKey(null)}
+            >
+              {/* 悬停编辑按钮 */}
+              {hoveredKey === `${phaseIdx}-${moduleIdx}` && (
+                <div style={{ position: 'absolute', top: 4, right: 4, zIndex: 2 }}>
+                  <Space size={4}>
+                    <Tooltip title="编辑此模块（打开可视化编辑）">
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<EditOutlined />}
+                        onClick={(e) => { e.stopPropagation(); onEditModule && onEditModule(phaseIdx, moduleIdx); }}
+                      />
+                    </Tooltip>
+                    <Tooltip title="JSON编辑（高级）">
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<CodeOutlined />}
+                        onClick={(e) => { e.stopPropagation(); onJsonEditModule && onJsonEditModule(phaseIdx, moduleIdx); }}
+                      />
+                    </Tooltip>
+                  </Space>
+                </div>
+              )}
               <Card 
                 size="small" 
                 title={

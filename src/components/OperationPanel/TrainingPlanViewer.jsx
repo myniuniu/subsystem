@@ -116,6 +116,7 @@ const SortableModuleCard = ({ id, mod, pIdx, mIdx, globalIndex, setVisualDraft }
         <Input style={{ width: 160 }} value={mod.duration} placeholder="时长"
           onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, duration: e.target.value } : mo) } : ph))} />
       </Space>
+      <Typography.Title level={5} style={{ marginTop: 8 }}>培训形式</Typography.Title>
       <Space style={{ width: '100%', marginBottom: 8 }}>
         <Select
           mode="tags"
@@ -164,6 +165,9 @@ const SortableModuleCard = ({ id, mod, pIdx, mIdx, globalIndex, setVisualDraft }
             </div>
           ))}
         </div>
+      </Space>
+      <Typography.Title level={5} style={{ marginTop: 8 }}>考核方式</Typography.Title>
+      <Space style={{ width: '100%', marginBottom: 8 }}>
         <Input style={{ flex: 1 }} value={mod.assessment} placeholder="考核方式"
           onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, assessment: e.target.value } : mo) } : ph))} />
         <Select
@@ -196,6 +200,101 @@ const SortableModuleCard = ({ id, mod, pIdx, mIdx, globalIndex, setVisualDraft }
         </Space>
       ))}
       <Button type="dashed" icon={<PlusOutlined />} onClick={() => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, content: [...(mo.content || []), ''] } : mo) } : ph))}>添加内容</Button>
+    </div>
+  );
+};
+
+// 单模块编辑器（仅编辑一个模块，不展示阶段列表）
+const SingleModuleEditor = ({ mod, onChange, moduleIndex }) => {
+  return (
+    <div style={{ marginBottom: 12, padding: 10, border: '1px dashed #e8e8e8', borderLeft: '2px solid #b7eb8f', borderRadius: 6, background: '#fafafa' }}>
+      {typeof moduleIndex === 'number' && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <span style={{ color: '#595959' }}>{`模块 ${moduleIndex}`}</span>
+        </div>
+      )}
+      <Space style={{ width: '100%', marginBottom: 8 }}>
+        <Input style={{ flex: 1 }} value={mod.title} placeholder="模块标题"
+          onChange={(e) => onChange({ ...mod, title: e.target.value })} />
+        <Input style={{ width: 160 }} value={mod.duration} placeholder="时长"
+          onChange={(e) => onChange({ ...mod, duration: e.target.value })} />
+      </Space>
+      <Typography.Title level={5} style={{ marginTop: 8 }}>培训形式</Typography.Title>
+      <Space style={{ width: '100%', marginBottom: 8 }}>
+        <Select
+          mode="tags"
+          style={{ flex: 1 }}
+          placeholder="培训形式（可多选，可自定义）"
+          value={parseFormats(mod.format)}
+          onChange={(vals) => {
+            const nextFormat = joinFormats(vals);
+            const existingMap = mod.formatTypeMap || {};
+            const allowed = new Set(vals);
+            const prunedMap = Object.fromEntries(Object.entries(existingMap).filter(([k]) => allowed.has(k)));
+            onChange({ ...mod, format: nextFormat, formatTypeMap: prunedMap });
+          }}
+          options={DEFAULT_FORMAT_OPTIONS.map(v => ({ value: v, label: v }))}
+        />
+        <div style={{ display: 'grid', gridAutoFlow: 'row', rowGap: 6 }}>
+          {(parseFormats(mod.format) || []).map((fmt) => (
+            <div key={`fmt-bind-${fmt}`} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Tag color="blue">{fmt}</Tag>
+              {!(mod.formatTypeMap || {})[fmt] && (
+                <Tooltip title="未绑定类型（将按关键词识别）">
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#d9d9d9', display: 'inline-block' }} />
+                </Tooltip>
+              )}
+              <Select
+                style={{ width: 160 }}
+                placeholder="绑定培训类型"
+                value={(mod.formatTypeMap || {})[fmt]}
+                onChange={(v) => {
+                  const base = mod.formatTypeMap || {};
+                  onChange({ ...mod, formatTypeMap: { ...base, [fmt]: v } });
+                }}
+                options={[
+                  { value: 'live', label: '直播课' },
+                  { value: 'videos', label: '点播课' },
+                  { value: 'exam', label: '考试' },
+                  { value: 'document', label: '文档' }
+                ]}
+              />
+            </div>
+          ))}
+        </div>
+      </Space>
+      <Typography.Title level={5} style={{ marginTop: 8 }}>考核方式</Typography.Title>
+      <Space style={{ width: '100%', marginBottom: 8 }}>
+        <Input style={{ flex: 1 }} value={mod.assessment} placeholder="考核方式"
+          onChange={(e) => onChange({ ...mod, assessment: e.target.value })} />
+        <Select
+          style={{ width: 180 }}
+          placeholder="绑定考核类型"
+          value={mod.assessmentTypeKey}
+          onChange={(v) => onChange({ ...mod, assessmentTypeKey: v })}
+          options={[
+            { value: 'live', label: '直播课' },
+            { value: 'videos', label: '点播课' },
+            { value: 'exam', label: '考试' },
+            { value: 'document', label: '文档' }
+          ]}
+        />
+        {(!mod.assessmentTypeKey && (mod.assessment || '').trim().length > 0) && (
+          <Tooltip title="未绑定类型（将按关键词识别）">
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#d9d9d9', display: 'inline-block' }} />
+          </Tooltip>
+        )}
+      </Space>
+
+      <Typography.Title level={5} style={{ marginTop: 8 }}>内容条目</Typography.Title>
+      {(mod.content || []).map((cItem, cIdx) => (
+        <Space key={cIdx} style={{ width: '100%', marginBottom: 8 }}>
+          <Input style={{ flex: 1 }} value={cItem} placeholder="内容"
+            onChange={(e) => onChange({ ...mod, content: (mod.content || []).map((ci, k) => k === cIdx ? e.target.value : ci) })} />
+          <Button danger onClick={() => onChange({ ...mod, content: (mod.content || []).filter((_, k) => k !== cIdx) })}>删除</Button>
+        </Space>
+      ))}
+      <Button type="dashed" icon={<PlusOutlined />} onClick={() => onChange({ ...mod, content: [...(mod.content || []), ''] })}>添加内容</Button>
     </div>
   );
 };
@@ -786,15 +885,24 @@ const TrainingPlanViewer = ({
   const [editMode, setEditMode] = useState('visual');
   const [visualDraft, setVisualDraft] = useState(null);
   const [inlineVisualEditing, setInlineVisualEditing] = useState(false);
-  const openSectionEditor = (key) => {
+  const [editingModulePath, setEditingModulePath] = useState(null); // { phaseIdx, moduleIdx } | null
+  const openSectionEditor = (key, path = null) => {
     try {
       setEditingSectionKey(key);
       let sectionData = plan[key];
       if (sectionData === undefined) {
         sectionData = (key === 'participants' || key === 'participantTags') ? [] : {};
       }
-      setSectionDraft(JSON.stringify(sectionData, null, 2));
-      setVisualDraft(JSON.parse(JSON.stringify(sectionData)));
+      if (key === 'phases' && path && typeof path.phaseIdx === 'number' && typeof path.moduleIdx === 'number') {
+        const mod = ((plan.phases || [])[path.phaseIdx] || {}).modules?.[path.moduleIdx] || { title: '', duration: '', content: [], format: '', assessment: '' };
+        setSectionDraft(JSON.stringify(mod, null, 2));
+        setVisualDraft(JSON.parse(JSON.stringify(mod)));
+        setEditingModulePath({ phaseIdx: path.phaseIdx, moduleIdx: path.moduleIdx });
+      } else {
+        setSectionDraft(JSON.stringify(sectionData, null, 2));
+        setVisualDraft(JSON.parse(JSON.stringify(sectionData)));
+        setEditingModulePath(null);
+      }
       setEditMode('json');
       setSectionEditorVisible(true);
     } catch (e) {
@@ -806,12 +914,39 @@ const TrainingPlanViewer = ({
     try {
       if (editMode === 'json') {
         const parsed = JSON.parse(sectionDraft);
-        setPlan(prev => ({ ...prev, [editingSectionKey]: parsed }));
+        if (editingSectionKey === 'phases' && editingModulePath) {
+          const { phaseIdx, moduleIdx } = editingModulePath;
+          setPlan(prev => ({
+            ...prev,
+            phases: (prev.phases || []).map((ph, i) => {
+              if (i !== phaseIdx) return ph;
+              const mods = [...(ph.modules || [])];
+              mods[moduleIdx] = parsed;
+              return { ...ph, modules: mods };
+            })
+          }));
+        } else {
+          setPlan(prev => ({ ...prev, [editingSectionKey]: parsed }));
+        }
       } else {
-        setPlan(prev => ({ ...prev, [editingSectionKey]: visualDraft }));
+        if (editingSectionKey === 'phases' && editingModulePath) {
+          const { phaseIdx, moduleIdx } = editingModulePath;
+          setPlan(prev => ({
+            ...prev,
+            phases: (prev.phases || []).map((ph, i) => {
+              if (i !== phaseIdx) return ph;
+              const mods = [...(ph.modules || [])];
+              mods[moduleIdx] = visualDraft;
+              return { ...ph, modules: mods };
+            })
+          }));
+        } else {
+          setPlan(prev => ({ ...prev, [editingSectionKey]: visualDraft }));
+        }
       }
       setSectionEditorVisible(false);
       setEditingSectionKey(null);
+      setEditingModulePath(null);
       message.success('已保存该部分内容');
     } catch (e) {
       message.error(editMode === 'json' ? 'JSON格式错误，请检查' : '保存失败，请检查表单内容');
@@ -819,14 +954,21 @@ const TrainingPlanViewer = ({
   };
 
   // 内联可视化编辑控制
-  const openInlineVisualEditor = (key) => {
+  const openInlineVisualEditor = (key, path = null) => {
     try {
       setEditingSectionKey(key);
       let sectionData = plan[key];
       if (sectionData === undefined) {
         sectionData = (key === 'participants' || key === 'participantTags') ? [] : {};
       }
-      setVisualDraft(JSON.parse(JSON.stringify(sectionData)));
+      if (key === 'phases' && path && typeof path.phaseIdx === 'number' && typeof path.moduleIdx === 'number') {
+        const mod = ((plan.phases || [])[path.phaseIdx] || {}).modules?.[path.moduleIdx] || { title: '', duration: '', content: [], format: '', assessment: '' };
+        setVisualDraft(JSON.parse(JSON.stringify(mod)));
+        setEditingModulePath({ phaseIdx: path.phaseIdx, moduleIdx: path.moduleIdx });
+      } else {
+        setVisualDraft(JSON.parse(JSON.stringify(sectionData)));
+        setEditingModulePath(null);
+      }
       setInlineVisualEditing(true);
       setEditMode('visual');
     } catch (e) {
@@ -837,11 +979,25 @@ const TrainingPlanViewer = ({
     setInlineVisualEditing(false);
     setEditingSectionKey(null);
     setVisualDraft(null);
+    setEditingModulePath(null);
   };
   const saveInlineVisualEdit = () => {
     if (!editingSectionKey) return;
     try {
-      setPlan(prev => ({ ...prev, [editingSectionKey]: visualDraft }));
+      if (editingSectionKey === 'phases' && editingModulePath) {
+        const { phaseIdx, moduleIdx } = editingModulePath;
+        setPlan(prev => ({
+          ...prev,
+          phases: (prev.phases || []).map((ph, i) => {
+            if (i !== phaseIdx) return ph;
+            const mods = [...(ph.modules || [])];
+            mods[moduleIdx] = visualDraft;
+            return { ...ph, modules: mods };
+          })
+        }));
+      } else {
+        setPlan(prev => ({ ...prev, [editingSectionKey]: visualDraft }));
+      }
       cancelInlineVisualEdit();
       message.success('已保存该部分内容');
     } catch (e) {
@@ -1046,6 +1202,19 @@ const TrainingPlanViewer = ({
           </div>
         );
       case 'phases':
+        // 如果正在编辑某个具体模块，仅显示模块编辑器
+        if (editingModulePath) {
+          return (
+            <div>
+              <Title level={5}>编辑模块</Title>
+              <SingleModuleEditor
+                mod={visualDraft}
+                onChange={(next) => setVisualDraft(next)}
+                moduleIndex={(editingModulePath?.moduleIdx ?? 0) + 1}
+              />
+            </div>
+          );
+        }
         return (
           <div>
             <Title level={5}>培训阶段与内容</Title>
@@ -1230,7 +1399,13 @@ const TrainingPlanViewer = ({
               />
               <InlineEditableSection
                 sectionKey="phases"
-                renderContent={() => <TrainingPhases phases={plan.phases} />}
+                renderContent={() => (
+                  <TrainingPhases 
+                    phases={plan.phases}
+                    onEditModule={(pIdx, mIdx) => openInlineVisualEditor('phases', { phaseIdx: pIdx, moduleIdx: mIdx })}
+                    onJsonEditModule={(pIdx, mIdx) => { setEditMode('json'); openSectionEditor('phases', { phaseIdx: pIdx, moduleIdx: mIdx }); }}
+                  />
+                )}
               />
             </div>
 
