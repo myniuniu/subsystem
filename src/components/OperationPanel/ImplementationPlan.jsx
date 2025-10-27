@@ -237,6 +237,118 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
     return { categories, totalHours: Math.round(totalHours * 10) / 10, totalScore };
   };
 
+  // 新增：每模块学时与成绩的配置汇总，用于进度条与详情弹窗
+  const summarizePhaseConfig = (phase) => {
+    const m = phase?.materials || {};
+    const cfgAll = formatConfigs[phase.id] || {};
+    const presentKeys = ['live','webinar','seminar','offline','videos','exam','assignment','document'].filter(k => Array.isArray(m[k]) && m[k].length > 0);
+    const targetHours = Number(phase?.hours || 0);
+
+    let hoursSum = 0;
+    let scoreSum = 0;
+
+    const hoursDetails = [];
+    const scoreDetails = [];
+
+    presentKeys.forEach((k) => {
+      const cfg = cfgAll[k] || getDefaultConfig(phase, k);
+
+      // 学时贡献
+      let h = 0;
+      let hPolicyDesc = '';
+      if (k === 'live') {
+        // 直播课默认按模块学时计入
+        h = targetHours;
+        hPolicyDesc = `直播课计入模块学时（${targetHours}学时）`;
+      } else if (k === 'videos') {
+        const policy = cfg?.watch?.creditPolicy || '累计学时';
+        if (policy === '固定学时') {
+          h = Number(cfg?.watch?.fixedCredits || 0);
+          hPolicyDesc = `固定学时：${h}学时`;
+        } else if (policy === '累计学时') {
+          h = 0; // 累计学时依据内容分钟数换算，此处不固定计入
+          const minutePerCredit = Number(cfg?.watch?.minutePerCredit || 1);
+          hPolicyDesc = `累计学时：按分钟换算（${minutePerCredit}分钟=1学时）`;
+        } else {
+          h = 0;
+          hPolicyDesc = '不计学时';
+        }
+      } else {
+        h = 0;
+        hPolicyDesc = '无学时设置';
+      }
+      hoursSum += (Number(h) || 0);
+      hoursDetails.push({ key: k, label: formatLabelByKey(k), value: h, desc: hPolicyDesc });
+
+      // 成绩贡献
+      let s = 0;
+      let sDesc = '';
+      if (k === 'exam') {
+        const full = Number(cfg?.assessment?.fullScore || cfg?.exam?.totalScore || 100);
+        s = full;
+        const pass = Number(cfg?.assessment?.passScore ?? 60);
+        sDesc = `考试满分${full}分，及格${pass}分`;
+      } else if (k === 'assignment') {
+        const full = Number(cfg?.assessment?.fullScore || 100);
+        s = full;
+        const pass = Number(cfg?.assessment?.passScore ?? 60);
+        sDesc = `作业满分${full}分，及格${pass}分`;
+      } else if (k === 'document') {
+        const full = Number(cfg?.assessment?.fullScore || 100);
+        s = full;
+        const pass = Number(cfg?.assessment?.passScore ?? 60);
+        sDesc = `研修成果满分${full}分，及格${pass}分`;
+      } else if (k === 'live' || k === 'videos' || k === 'webinar' || k === 'seminar' || k === 'offline') {
+        const method = cfg?.assessment?.method || '固定成绩';
+        if (method === '固定成绩') {
+          s = Number(cfg?.assessment?.fixedScore || 0);
+          sDesc = `固定成绩：${s}分`;
+        } else {
+          s = 0;
+          sDesc = '不计成绩';
+        }
+      }
+      scoreSum += (Number(s) || 0);
+      scoreDetails.push({ key: k, label: formatLabelByKey(k), value: s, desc: sDesc });
+    });
+
+    const targetScore = 100; // 目标总成绩按100分标准
+    const percentHours = targetHours > 0 ? Math.max(0, Math.min(100, Math.round((hoursSum / targetHours) * 100))) : 0;
+    const percentScore = Math.max(0, Math.min(100, Math.round((scoreSum / targetScore) * 100)));
+
+    return {
+      targetHours,
+      hoursSum,
+      targetScore,
+      scoreSum,
+      percentHours,
+      percentScore,
+      hoursDetails,
+      scoreDetails
+    };
+  };
+
+  // 新增：所有模块的学时与成绩汇总，用于顶部全局进度
+  const summarizeAllPhasesConfig = () => {
+    const phases = Array.isArray(phaseMaterials) ? phaseMaterials : [];
+    let hoursSum = 0;
+    let hoursTargetSum = 0;
+    let scoreSum = 0;
+    phases.forEach((ph) => {
+      const s = summarizePhaseConfig(ph);
+      hoursSum += Number(s.hoursSum || 0);
+      hoursTargetSum += Number(s.targetHours || 0);
+      scoreSum += Number(s.scoreSum || 0);
+    });
+    const configuredHoursTarget = Number(plan?.assessment?.totalHoursTarget || 0);
+    const configuredScoreTarget = Number(plan?.assessment?.totalScoreTarget || 100);
+    const totalHoursTarget = configuredHoursTarget > 0 ? configuredHoursTarget : hoursTargetSum;
+    const totalScoreTarget = configuredScoreTarget > 0 ? configuredScoreTarget : 100;
+    const percentHours = totalHoursTarget > 0 ? Math.max(0, Math.min(100, Math.round((hoursSum / totalHoursTarget) * 100))) : 0;
+    const percentScore = totalScoreTarget > 0 ? Math.max(0, Math.min(100, Math.round((scoreSum / totalScoreTarget) * 100))) : 0;
+    return { hoursSum, hoursTargetSum, scoreSum, totalHoursTarget, totalScoreTarget, percentHours, percentScore };
+  };
+
   const assessPhasePass = (phase) => {
     const ps = computePhaseCategorySummary(phase);
     const examCat = ps?.categories?.find(c => c.key === 'exam');
@@ -258,6 +370,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
   // 折叠控制
   const [collapsedPhases, setCollapsedPhases] = useState(new Set(enrichedTrainingPhases.map(p => p.id)));
   const [phaseViewCompactMode, setPhaseViewCompactMode] = useState(true);
+  const [progressOverviewModal, setProgressOverviewModal] = useState({ visible: false, phaseId: null });
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
   const [leftGridColumns, setLeftGridColumns] = useState(2); // 左侧展开态卡片每行列数，默认两列
@@ -297,9 +410,9 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
     });
   };
 
-  const overallProgress = (Array.isArray(phaseMaterials) && phaseMaterials.length > 0)
-    ? Math.round(phaseMaterials.reduce((sum, p) => sum + (assessPhasePass(p)?.progress ?? 0), 0) / phaseMaterials.length)
-    : 0;
+  // 注意：整体汇总依赖于格式配置状态，需在状态初始化之后计算
+  //（原位置在状态声明之前会触发“Cannot access 'formatConfigs' before initialization”）
+  // 这里仅移除提前计算，稍后在状态初始化后重新计算
 
   const formatLabelByKey = (k) => ({
     live: '直播课',
@@ -373,6 +486,8 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
   // 新增：AI试卷弹窗状态与确认处理
   const [aiPaperModalVisible, setAiPaperModalVisible] = useState(false);
   const [aiPaperForm] = Form.useForm();
+
+  // 整体汇总依赖 getDefaultConfig 与 summarizePhaseConfig，需在它们定义之后再计算
   const openAiPaperModal = () => {
     const rules = configModal?.draft?.questions?.aiRules || {};
     const dist = rules.distribution || {};
@@ -661,6 +776,10 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
     setConfigTabKey(typeKey === 'exam' ? 'exam-paper' : 'content');
   };
 
+  const openProgressOverview = (phaseId) => {
+    setProgressOverviewModal({ visible: true, phaseId });
+  };
+
 
 
   useEffect(() => {
@@ -737,6 +856,9 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
       message.error('同步失败，请稍后重试');
     }
   };
+
+  // 在 getDefaultConfig 定义之后再计算整体汇总，确保不会在其初始化前被调用
+  const overallTotals = React.useMemo(() => summarizeAllPhasesConfig(), [formatConfigs, phaseMaterials, plan]);
 
   // 人员标签与圈选：引入组织人员树并抽取所有人员与标签
   const personnelManager = useMemo(() => createMockOrganizationPersonnelTree(), []);
@@ -1465,16 +1587,21 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                       style={{ marginBottom: 16 }}
                       bodyStyle={{ padding: '12px' }}
                     >
-                      {/* 顶部模块总览与控制 */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#f8f9fa', borderRadius: 8, border: '1px solid #e9ecef', marginBottom: 8 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <Text strong style={{ fontSize: '12px', color: '#666' }}>📦 模块</Text>
-                          <div style={{ width: 160, height: 6, background: '#edf2f7', borderRadius: 999, overflow: 'hidden', marginLeft: 10 }}>
-                            <div style={{ width: `${overallProgress}%`, height: '100%', background: 'var(--theme-primary, #1890ff)' }} />
+                      {/* 顶部全局配置进度（学时 + 成绩） */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: '8px 12px', background: '#f8f9fa', borderRadius: 8, border: '1px solid #e9ecef', marginBottom: 8 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Text strong style={{ fontSize: 12, color: '#135200' }}>学时配置进度</Text>
+                            <Text style={{ fontSize: 12, color: '#135200' }}>{overallTotals.hoursSum} / {overallTotals.totalHoursTarget} 学时</Text>
                           </div>
+                          <Progress percent={overallTotals.percentHours} size="small" status={overallTotals.percentHours >= 100 ? 'success' : 'active'} />
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          {/* 右侧控制区域移除“全部展开/折叠”、筛选与同步，控件已移至标题右侧 */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Text strong style={{ fontSize: 12, color: '#003a8c' }}>成绩配置进度</Text>
+                            <Text style={{ fontSize: 12, color: '#003a8c' }}>{overallTotals.scoreSum} / {overallTotals.totalScoreTarget} 分</Text>
+                          </div>
+                          <Progress percent={overallTotals.percentScore} size="small" status={overallTotals.percentScore >= 100 ? 'success' : 'active'} />
                         </div>
                       </div>
 
@@ -1531,6 +1658,35 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                       .concat([<Tag color="geekblue" key={`phase-${phase.id}-hours`}>{phase.hours}学时</Tag>]);
                                   })()}
                                 </div>
+
+                                {/* 学时与成绩配置进度 */}
+                                {(() => {
+                                  const s = summarizePhaseConfig(phase);
+                                  return (
+                                    <div style={{ marginTop: 6, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                                      <div
+                                        onClick={() => openProgressOverview(phase.id)}
+                                        style={{ cursor: 'pointer', background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 6, padding: '6px 8px' }}
+                                      >
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                          <Text style={{ fontSize: 12, color: '#135200', fontWeight: 600 }}>学时配置进度</Text>
+                                          <Text style={{ fontSize: 12, color: '#135200' }}>{s.hoursSum} / {s.targetHours} 学时</Text>
+                                        </div>
+                                        <Progress percent={s.percentHours} size="small" status={s.percentHours >= 100 ? 'success' : 'active'} />
+                                      </div>
+                                      <div
+                                        onClick={() => openProgressOverview(phase.id)}
+                                        style={{ cursor: 'pointer', background: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: 6, padding: '6px 8px' }}
+                                      >
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                          <Text style={{ fontSize: 12, color: '#003a8c', fontWeight: 600 }}>成绩配置进度</Text>
+                                          <Text style={{ fontSize: 12, color: '#003a8c' }}>{s.scoreSum} / {s.targetScore} 分</Text>
+                                        </div>
+                                        <Progress percent={s.percentScore} size="small" status={s.percentScore >= 100 ? 'success' : 'active'} />
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
 
                                 {/* 按形式渲染独立卡片 */}
                                 <div style={{ width: '100%', marginTop: 6, display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
@@ -1765,6 +1921,94 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* 学时与成绩配置一览 */}
+      {progressOverviewModal.visible && (() => {
+        const phase = phaseMaterials.find(p => p.id === progressOverviewModal.phaseId);
+        const s = phase ? summarizePhaseConfig(phase) : null;
+        return (
+          <Modal
+            open={progressOverviewModal.visible}
+            title="考核配置一览"
+            onCancel={() => setProgressOverviewModal({ visible: false, phaseId: null })}
+            footer={[
+              <Button key="close" onClick={() => setProgressOverviewModal({ visible: false, phaseId: null })}>关闭</Button>
+            ]}
+            width={800}
+          >
+            {phase && s ? (
+              <div>
+                <div style={{ marginBottom: 8 }}>
+                  <Text strong>模块：</Text>
+                  <Text>{`模块 ${phase.id}｜${phase.content}`}</Text>
+                </div>
+                <Divider style={{ margin: '8px 0' }} />
+                <Row gutter={12}>
+                  <Col span={12}>
+                    <Card size="small" title="学时配置" bordered>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <Text>目标学时</Text>
+                        <Text strong>{s.targetHours} 学时</Text>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                        <Text>已配置学时</Text>
+                        <Text strong style={{ color: '#135200' }}>{s.hoursSum} 学时</Text>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 6 }}>
+                        {s.hoursDetails.map(d => (
+                          <div key={`h-${d.key}`} style={{ background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 6, padding: '6px 8px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Text strong>{d.label}</Text>
+                              <Tag color="gold">{d.value} 学时</Tag>
+                            </div>
+                            <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>{d.desc}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+                  </Col>
+                  <Col span={12}>
+                    <Card size="small" title="成绩配置" bordered>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <Text>目标总分</Text>
+                        <Text strong>100 分</Text>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                        <Text>已配置分值</Text>
+                        <Text strong style={{ color: '#003a8c' }}>{s.scoreSum} 分</Text>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 6 }}>
+                        {s.scoreDetails.map(d => (
+                          <div key={`s-${d.key}`} style={{ background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 6, padding: '6px 8px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Text strong>{d.label}</Text>
+                              <Tag color="blue">{d.value} 分</Tag>
+                            </div>
+                            <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>{d.desc}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+                  </Col>
+                </Row>
+                <Divider style={{ margin: '12px 0' }} />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div>
+                    <Text type="secondary">学时进度</Text>
+                    <Progress percent={s.percentHours} size="small" status={s.percentHours >= 100 ? 'success' : 'active'} />
+                  </div>
+                  <div>
+                    <Text type="secondary">成绩进度</Text>
+                    <Progress percent={s.percentScore} size="small" status={s.percentScore >= 100 ? 'success' : 'active'} />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <Empty description="未找到模块配置" />
+            )}
+          </Modal>
+        );
+      })()}
 
       {/* 课程内容预览模态框 */}
       {false && (<Modal

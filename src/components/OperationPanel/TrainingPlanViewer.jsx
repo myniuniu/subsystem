@@ -300,6 +300,8 @@ const SingleModuleEditor = ({ mod, onChange, moduleIndex }) => {
           onChange={(e) => onChange({ ...mod, title: e.target.value })} />
         <Input style={{ width: 160 }} value={mod.duration} placeholder="时长"
           onChange={(e) => onChange({ ...mod, duration: e.target.value })} />
+        <Input style={{ width: 160 }} value={(mod.weight ?? '')} placeholder="模块权重(%)"
+          onChange={(e) => onChange({ ...mod, weight: e.target.value })} />
       </Space>
       <Typography.Title level={5} style={{ marginTop: 8 }}>培训形式</Typography.Title>
       <Space style={{ width: '100%', marginBottom: 8 }}>
@@ -1242,6 +1244,20 @@ const TrainingPlanViewer = ({
               placeholder="请输入考核方式"
               style={{ marginBottom: 16 }}
             />
+            <Space style={{ width: '100%', marginBottom: 8 }}>
+              <Input
+                style={{ width: 200 }}
+                value={visualDraft.totalHoursTarget ?? ''}
+                placeholder="总学时目标"
+                onChange={(e) => setVisualDraft(prev => ({ ...prev, totalHoursTarget: e.target.value }))}
+              />
+              <Input
+                style={{ width: 200 }}
+                value={visualDraft.totalScoreTarget ?? ''}
+                placeholder="总成绩目标（默认100分）"
+                onChange={(e) => setVisualDraft(prev => ({ ...prev, totalScoreTarget: e.target.value }))}
+              />
+            </Space>
             <Title level={5}>考核组成</Title>
             {(visualDraft.components || []).map((comp, idx) => (
               <div key={idx} style={{ marginBottom: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6 }}>

@@ -99,6 +99,9 @@ const TrainingPhases = ({ phases, onEditModule, onJsonEditModule }) => {
                     <BookOutlined style={{ color: '#1890ff' }} />
                     <Text strong>{module.title}</Text>
                     <Tag color="blue">{module.duration}</Tag>
+                    {module?.weight != null && String(module.weight).trim() !== '' && (
+                      <Tag color="geekblue">权重 {module.weight}%</Tag>
+                    )}
                   </Space>
                 }
                 style={{ marginBottom: '12px', borderLeft: '2px solid #b7eb8f' }}
