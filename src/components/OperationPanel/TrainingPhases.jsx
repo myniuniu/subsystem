@@ -16,6 +16,32 @@ const normalizeFormats = (fmt) => {
   return arr;
 };
 
+const inferTypeKeyFromText = (text) => {
+  const s = String(text || '').toLowerCase();
+  // 优先识别考试相关（包含“测试/在线测试/线上测试/测评/考试”）
+  if (/考试|测评|测试/.test(text || '')) return 'exam';
+  if (/录播|视频/.test(text || '')) return 'videos';
+  // 将“经验交流/经验分享/交流会”等默认识别为线上交流研讨
+  if (/(经验交流|经验分享|交流会)/.test(text || '')) return 'seminar';
+  // 线上交流研讨：必须同时包含“线上/在线”与“交流/研讨/讨论”
+  if (/线上|在线/.test(text || '') && /(交流|研讨|讨论)/.test(text || '')) return 'seminar';
+  // 线下活动识别（线下/线下活动/实地/参观/走访/调研/观摩）
+  if (/线下活动|线下|实地|参观|走访|调研|观摩/.test(text || '')) return 'offline';
+  if (/文档|资料|报告|方案|作业|反思/.test(text || '')) return 'document';
+  if (/直播|讲座|工作坊|案例/.test(text || '')) return 'live';
+  return 'document';
+};
+
+// 类型标签映射
+const typeLabelByKey = (k) => ({
+  live: '直播课',
+  videos: '点播课',
+  seminar: '线上交流研讨',
+  offline: '线下活动',
+  exam: '考试',
+  document: '文档'
+}[k] || '文档');
+
 const TrainingPhases = ({ phases, onEditModule, onJsonEditModule }) => {
   let modCounter = 0; // 跨阶段自然编号计数器
   const [hoveredKey, setHoveredKey] = useState(null);
@@ -86,13 +112,26 @@ const TrainingPhases = ({ phases, onEditModule, onJsonEditModule }) => {
                   <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                     {normalizeFormats(module.format).length > 0 ? (
                       normalizeFormats(module.format).map((f, i) => (
-                        <Card key={i} size="small" bordered bodyStyle={{ padding: '4px 8px' }}>
-                          <Space size={4}>
-                            <Text>{f}</Text>
-                            {!(module.formatTypeMap || {})[f] && (
-                              <span title="未绑定类型（将按关键词识别）" style={{ width: 6, height: 6, borderRadius: '50%', background: '#d9d9d9', display: 'inline-block' }} />
-                            )}
-                          </Space>
+                        <Card 
+                          key={i} 
+                          size="small" 
+                          bordered 
+                          bodyStyle={{ padding: '4px 8px' }}
+                          style={{ borderTop: undefined }}
+                        >
+                          {(() => {
+                            const normalizedMap = { ...(module.formatTypeMap || {}) };
+                            ['经验交流', '经验分享', '交流会'].forEach(k => {
+                              if (normalizedMap[k] === 'document') normalizedMap[k] = 'seminar';
+                            });
+                            const typeKey = normalizedMap[f] || inferTypeKeyFromText(f);
+                            return (
+                              <Space size={6}>
+                                <Text>{f}</Text>
+                                <Tag color="purple">{typeLabelByKey(typeKey)}</Tag>
+                              </Space>
+                            );
+                          })()}
                         </Card>
                       ))
                     ) : (
@@ -102,12 +141,19 @@ const TrainingPhases = ({ phases, onEditModule, onJsonEditModule }) => {
                 </div>
                 <div>
                   <Text strong>考核方式：</Text>
-                  <Space size={4}>
-                    <Text> {module.assessment}</Text>
-                    {(!module.assessmentTypeKey && (module.assessment || '').trim().length > 0) && (
-                      <span title="未绑定类型（将按关键词识别）" style={{ width: 6, height: 6, borderRadius: '50%', background: '#d9d9d9', display: 'inline-block' }} />
-                    )}
-                  </Space>
+                  {(() => {
+                    const assessText = String(module.assessment || '').trim();
+                    if (!assessText) {
+                      return (<Space size={4}><Text type="secondary">未指定</Text></Space>);
+                    }
+                    const aKey = module.assessmentTypeKey || inferTypeKeyFromText(assessText);
+                    return (
+                      <Space size={6}>
+                        <Text> {assessText}</Text>
+                        <Tag color="purple">{typeLabelByKey(aKey)}</Tag>
+                      </Space>
+                    );
+                  })()}
                 </div>
               </Card>
             </div>

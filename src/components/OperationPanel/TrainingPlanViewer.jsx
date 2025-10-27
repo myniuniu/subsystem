@@ -80,6 +80,49 @@ const parseFormats = (val) => Array.isArray(val)
     : []);
 const joinFormats = (arr) => (arr || []).join(' + ');
 
+// 根据中文关键词推断类型键，用于默认初始化绑定
+const inferTypeKeyFromText = (text) => {
+  const s = String(text || '').toLowerCase();
+  // 优先识别考试相关（包含“测试/在线测试/线上测试/测评/考试”）
+  if (/考试|测评|测试/.test(text || '')) return 'exam';
+  if (/录播|视频/.test(text || '')) return 'videos';
+  // 将“经验交流/经验分享/交流会”等默认绑定为线上交流研讨
+  if (/(经验交流|经验分享|交流会)/.test(text || '')) return 'seminar';
+  // 线上交流研讨：同时包含“线上/在线”与“交流/研讨/讨论”
+  if (/线上|在线/.test(text || '') && /(交流|研讨|讨论)/.test(text || '')) return 'seminar';
+  // 线下活动识别（线下/线下活动/实地/参观/走访/调研/观摩）
+  if (/线下活动|线下|实地|参观|走访|调研|观摩/.test(text || '')) return 'offline';
+  if (/文档|资料/.test(text || '')) return 'document';
+  // 直播相关（不含“线上交流研讨”已单独识别）
+  if (/直播|讲座|工作坊|案例/.test(text || '')) return 'live';
+  // 无法判断时，默认按“文档”类型处理
+  return 'document';
+};
+
+const initModuleBindings = (mod) => {
+  const next = { ...mod };
+  const fmts = parseFormats(next.format) || [];
+  const baseMap = next.formatTypeMap || {};
+  const mapWithDefaults = { ...baseMap };
+  fmts.forEach((f) => {
+    if (!mapWithDefaults[f]) {
+      const guess = inferTypeKeyFromText(f);
+      if (guess) mapWithDefaults[f] = guess;
+    }
+  });
+  // 迁移：将旧数据中把“经验交流/经验分享/交流会”误绑定为文档的情况统一迁移为“线上交流研讨”
+  ['经验交流', '经验分享', '交流会'].forEach(k => {
+    if (mapWithDefaults[k] === 'document') mapWithDefaults[k] = 'seminar';
+  });
+  next.formatTypeMap = mapWithDefaults;
+  // 评估方式默认
+  if (!next.assessmentTypeKey && (next.assessment || '').trim()) {
+    const g = inferTypeKeyFromText(next.assessment);
+    if (g) next.assessmentTypeKey = g;
+  }
+  return next;
+};
+
 // 可拖拽的模块卡片（用于阶段内模块排序）
 const SortableModuleCard = ({ id, mod, pIdx, mIdx, globalIndex, setVisualDraft }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
@@ -130,19 +173,36 @@ const SortableModuleCard = ({ id, mod, pIdx, mIdx, globalIndex, setVisualDraft }
                 const existingMap = mo.formatTypeMap || {};
                 const allowed = new Set(vals);
                 const prunedMap = Object.fromEntries(Object.entries(existingMap).filter(([k]) => allowed.has(k)));
-                return { ...mo, format: nextFormat, formatTypeMap: prunedMap };
+                const defaults = {};
+                vals.forEach(f => {
+                  if (!prunedMap[f]) {
+                    const guess = inferTypeKeyFromText(f);
+                    if (guess) defaults[f] = guess;
+                  }
+                });
+                return { ...mo, format: nextFormat, formatTypeMap: { ...prunedMap, ...defaults } };
               }) }
             : ph))}
           options={DEFAULT_FORMAT_OPTIONS.map(v => ({ value: v, label: v }))}
         />
         <div style={{ display: 'grid', gridAutoFlow: 'row', rowGap: 6 }}>
           {(parseFormats(mod.format) || []).map((fmt) => (
-            <div key={`fmt-bind-${fmt}`} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Tag color="blue">{fmt}</Tag>
-              {!(mod.formatTypeMap || {})[fmt] && (
+            <div
+              key={`fmt-bind-${fmt}`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                borderTop: (!(mod.formatTypeMap || {})[fmt]) ? '1px solid #ff4d4f' : undefined,
+                paddingTop: (!(mod.formatTypeMap || {})[fmt]) ? 2 : 0,
+              }}
+            >
+              {(!(mod.formatTypeMap || {})[fmt]) ? (
                 <Tooltip title="未绑定类型（将按关键词识别）">
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#d9d9d9', display: 'inline-block' }} />
+                  <Tag color="blue">{fmt}</Tag>
                 </Tooltip>
+              ) : (
+                <Tag color="blue">{fmt}</Tag>
               )}
               <Select
                 style={{ width: 160 }}
@@ -152,12 +212,18 @@ const SortableModuleCard = ({ id, mod, pIdx, mIdx, globalIndex, setVisualDraft }
                   ? { ...ph, modules: ph.modules.map((mo, j) => {
                       if (j !== mIdx) return mo;
                       const base = mo.formatTypeMap || {};
-                      return { ...mo, formatTypeMap: { ...base, [fmt]: v } };
+                const nextMap = { ...base, [fmt]: v };
+                ['经验交流', '经验分享', '交流会'].forEach(k => {
+                  if (nextMap[k] === 'document') nextMap[k] = 'seminar';
+                });
+                return { ...mo, formatTypeMap: nextMap };
                     }) }
                   : ph))}
                 options={[
                   { value: 'live', label: '直播课' },
                   { value: 'videos', label: '点播课' },
+                  { value: 'seminar', label: '线上交流研讨' },
+                  { value: 'offline', label: '线下活动' },
                   { value: 'exam', label: '考试' },
                   { value: 'document', label: '文档' }
                 ]}
@@ -167,9 +233,21 @@ const SortableModuleCard = ({ id, mod, pIdx, mIdx, globalIndex, setVisualDraft }
         </div>
       </Space>
       <Typography.Title level={5} style={{ marginTop: 8 }}>考核方式</Typography.Title>
-      <Space style={{ width: '100%', marginBottom: 8 }}>
+      <Space style={{ width: '100%', marginBottom: 8, borderTop: ((!mod.assessmentTypeKey && (mod.assessment || '').trim().length > 0) ? '1px solid #ff4d4f' : undefined), paddingTop: ((!mod.assessmentTypeKey && (mod.assessment || '').trim().length > 0) ? 2 : 0) }}>
         <Input style={{ flex: 1 }} value={mod.assessment} placeholder="考核方式"
-          onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, assessment: e.target.value } : mo) } : ph))} />
+          onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => {
+            if (j !== mIdx) return mo;
+            const nextAssess = e.target.value;
+            let nextType = mo.assessmentTypeKey;
+            if (!nextType && nextAssess.trim()) {
+              const g = inferTypeKeyFromText(nextAssess);
+              if (g) nextType = g;
+            }
+            if (!nextAssess.trim()) {
+              nextType = undefined;
+            }
+            return { ...mo, assessment: nextAssess, assessmentTypeKey: nextType };
+          }) } : ph))} />
         <Select
           style={{ width: 180 }}
           placeholder="绑定考核类型"
@@ -180,15 +258,12 @@ const SortableModuleCard = ({ id, mod, pIdx, mIdx, globalIndex, setVisualDraft }
           options={[
             { value: 'live', label: '直播课' },
             { value: 'videos', label: '点播课' },
+            { value: 'seminar', label: '线上交流研讨' },
+            { value: 'offline', label: '线下活动' },
             { value: 'exam', label: '考试' },
             { value: 'document', label: '文档' }
           ]}
         />
-        {(!mod.assessmentTypeKey && (mod.assessment || '').trim().length > 0) && (
-          <Tooltip title="未绑定类型（将按关键词识别）">
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#d9d9d9', display: 'inline-block' }} />
-          </Tooltip>
-        )}
       </Space>
 
       <Typography.Title level={5} style={{ marginTop: 8 }}>内容条目</Typography.Title>
@@ -231,18 +306,35 @@ const SingleModuleEditor = ({ mod, onChange, moduleIndex }) => {
             const existingMap = mod.formatTypeMap || {};
             const allowed = new Set(vals);
             const prunedMap = Object.fromEntries(Object.entries(existingMap).filter(([k]) => allowed.has(k)));
-            onChange({ ...mod, format: nextFormat, formatTypeMap: prunedMap });
+            const defaults = {};
+            vals.forEach(f => {
+              if (!prunedMap[f]) {
+                const guess = inferTypeKeyFromText(f);
+                if (guess) defaults[f] = guess;
+              }
+            });
+            onChange({ ...mod, format: nextFormat, formatTypeMap: { ...prunedMap, ...defaults } });
           }}
           options={DEFAULT_FORMAT_OPTIONS.map(v => ({ value: v, label: v }))}
         />
         <div style={{ display: 'grid', gridAutoFlow: 'row', rowGap: 6 }}>
           {(parseFormats(mod.format) || []).map((fmt) => (
-            <div key={`fmt-bind-${fmt}`} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Tag color="blue">{fmt}</Tag>
-              {!(mod.formatTypeMap || {})[fmt] && (
+            <div
+              key={`fmt-bind-${fmt}`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                borderTop: (!(mod.formatTypeMap || {})[fmt]) ? '1px solid #ff4d4f' : undefined,
+                paddingTop: (!(mod.formatTypeMap || {})[fmt]) ? 2 : 0,
+              }}
+            >
+              {(!(mod.formatTypeMap || {})[fmt]) ? (
                 <Tooltip title="未绑定类型（将按关键词识别）">
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#d9d9d9', display: 'inline-block' }} />
+                  <Tag color="blue">{fmt}</Tag>
                 </Tooltip>
+              ) : (
+                <Tag color="blue">{fmt}</Tag>
               )}
               <Select
                 style={{ width: 160 }}
@@ -264,9 +356,20 @@ const SingleModuleEditor = ({ mod, onChange, moduleIndex }) => {
         </div>
       </Space>
       <Typography.Title level={5} style={{ marginTop: 8 }}>考核方式</Typography.Title>
-      <Space style={{ width: '100%', marginBottom: 8 }}>
+      <Space style={{ width: '100%', marginBottom: 8, borderTop: ((!mod.assessmentTypeKey && (mod.assessment || '').trim().length > 0) ? '1px solid #ff4d4f' : undefined), paddingTop: ((!mod.assessmentTypeKey && (mod.assessment || '').trim().length > 0) ? 2 : 0) }}>
         <Input style={{ flex: 1 }} value={mod.assessment} placeholder="考核方式"
-          onChange={(e) => onChange({ ...mod, assessment: e.target.value })} />
+          onChange={(e) => {
+            const nextAssess = e.target.value;
+            let nextType = mod.assessmentTypeKey;
+            if (!nextType && nextAssess.trim()) {
+              const g = inferTypeKeyFromText(nextAssess);
+              if (g) nextType = g;
+            }
+            if (!nextAssess.trim()) {
+              nextType = undefined;
+            }
+            onChange({ ...mod, assessment: nextAssess, assessmentTypeKey: nextType });
+          }} />
         <Select
           style={{ width: 180 }}
           placeholder="绑定考核类型"
@@ -279,11 +382,6 @@ const SingleModuleEditor = ({ mod, onChange, moduleIndex }) => {
             { value: 'document', label: '文档' }
           ]}
         />
-        {(!mod.assessmentTypeKey && (mod.assessment || '').trim().length > 0) && (
-          <Tooltip title="未绑定类型（将按关键词识别）">
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#d9d9d9', display: 'inline-block' }} />
-          </Tooltip>
-        )}
       </Space>
 
       <Typography.Title level={5} style={{ marginTop: 8 }}>内容条目</Typography.Title>
@@ -963,10 +1061,20 @@ const TrainingPlanViewer = ({
       }
       if (key === 'phases' && path && typeof path.phaseIdx === 'number' && typeof path.moduleIdx === 'number') {
         const mod = ((plan.phases || [])[path.phaseIdx] || {}).modules?.[path.moduleIdx] || { title: '', duration: '', content: [], format: '', assessment: '' };
-        setVisualDraft(JSON.parse(JSON.stringify(mod)));
+        const initMod = initModuleBindings(mod);
+        setVisualDraft(JSON.parse(JSON.stringify(initMod)));
         setEditingModulePath({ phaseIdx: path.phaseIdx, moduleIdx: path.moduleIdx });
       } else {
-        setVisualDraft(JSON.parse(JSON.stringify(sectionData)));
+        // 若是整个阶段编辑，默认为每个模块初始化绑定
+        if (key === 'phases') {
+          const initPhases = (sectionData || []).map(ph => ({
+            ...ph,
+            modules: (ph.modules || []).map(m => initModuleBindings(m))
+          }));
+          setVisualDraft(JSON.parse(JSON.stringify(initPhases)));
+        } else {
+          setVisualDraft(JSON.parse(JSON.stringify(sectionData)));
+        }
         setEditingModulePath(null);
       }
       setInlineVisualEditing(true);
