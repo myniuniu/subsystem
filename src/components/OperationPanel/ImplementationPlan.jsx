@@ -9,6 +9,7 @@ import BasicConfigTab from './tabs/BasicConfigTab'
 import VideoContentTab from './tabs/VideoContentTab'
 import ExamNotifyTab from './tabs/ExamNotifyTab'
 import QuestionSelectionTab from './tabs/QuestionSelectionTab'
+import ReviewSettingsTab from './tabs/ReviewSettingsTab'
 
 const { Text } = Typography;
 const { CheckableTag } = Tag;
@@ -248,9 +249,11 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
     const rules = configModal?.draft?.questions?.aiRules || {};
     const dist = rules.distribution || {};
     const difficulty = rules.difficulty || {};
-    // 初始化表单值
+    // 初始化表单值：试卷名称默认使用当前模块名称
+    const phaseForPaper = configModal?.phaseId ? phaseMaterials.find(p => p.id === configModal.phaseId) : null;
+    const defaultModuleName = phaseForPaper?.content || `模块${numberToChinese(configModal?.phaseId || 1)}`;
     aiPaperForm.setFieldsValue({
-      paperName: `AI试卷 ${new Date().toLocaleString('zh-CN', { hour12: false })}`,
+      paperName: defaultModuleName,
       setCount: 1,
       totalCount: rules.totalCount || 20,
       singleCount: dist.single?.count || 10,
@@ -859,7 +862,9 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                       ? [
                           { key: 'exam-paper', label: '试题' },
                           { key: 'exam-config', label: '试卷' },
-                          { key: 'exam-notify', label: '考试' }
+                          { key: 'exam-notify', label: '考试' },
+                          { key: 'exam-review', label: '评阅' },
+                          { key: 'exam-notice', label: '通知' }
                         ]
                       : [
                           { key: 'basic', label: '考核设置' },
@@ -896,7 +901,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                                   <div style={{ fontWeight: 600 }}>试卷列表</div>
                                   <Space>
-                                    <Button type="primary" icon={<RobotOutlined />} onClick={openAiPaperModal}>AI试卷</Button>
+                                    <Button type="primary" icon={<RobotOutlined />} onClick={openAiPaperModal}>AI配卷</Button>
                                     <Button type="default" icon={<PlusOutlined />} onClick={handleCreatePaper}>新建试卷</Button>
                                   </Space>
                                 </div>
@@ -1134,46 +1139,36 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                         getDefaultConfig={getDefaultConfig}
                       />
                     )}
-                    {configTabKey === 'exam-notify' && (
-                      <Tabs
-                        defaultActiveKey="basic"
-                        size="small"
-                        tabBarStyle={{ marginBottom: 8 }}
-                        items={[
-                          {
-                            key: 'basic',
-                            label: '基本信息',
-                            children: (
-                              <div style={{ minHeight: 160, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999' }}>
-                                考试基本信息占位
-                              </div>
-                            )
-                          },
-                          {
-                            key: 'notify',
-                            label: '通知',
-                            children: (
-                              <ExamNotifyTab draft={configModal.draft} updateDraft={updateDraft} />
-                            )
-                          },
-                          {
-                            key: 'config',
-                            label: '配置',
-                            children: (
-                              <BasicConfigTab 
-                                draft={configModal.draft} 
-                                updateDraft={updateDraft} 
-                                formatKey={configModal.formatKey} 
-                                configModal={configModal}
-                                formatConfigs={formatConfigs}
-                                phaseMaterials={phaseMaterials}
-                                getDefaultConfig={getDefaultConfig}
-                              />
-                            )
-                          }
-                        ]}
-                      />
-                    )}
+                    {configTabKey === 'exam-review' && (
+                       <ReviewSettingsTab draft={configModal.draft} updateDraft={updateDraft} />
+                     )}
+                     {configTabKey === 'exam-notify' && (
+                       <Tabs
+                         defaultActiveKey="config"
+                         size="small"
+                         tabBarStyle={{ marginBottom: 8 }}
+                         items={[
+                           {
+                             key: 'config',
+                             label: '考试配置',
+                             children: (
+                               <BasicConfigTab 
+                                 draft={configModal.draft} 
+                                 updateDraft={updateDraft} 
+                                 formatKey={configModal.formatKey} 
+                                 configModal={configModal}
+                                 formatConfigs={formatConfigs}
+                                 phaseMaterials={phaseMaterials}
+                                 getDefaultConfig={getDefaultConfig}
+                               />
+                             )
+                           }
+                         ]}
+                       />
+                     )}
+                     {configTabKey === 'exam-notice' && (
+                       <ExamNotifyTab draft={configModal.draft} updateDraft={updateDraft} />
+                     )}
                   </>
                 ) : (
                   <Tabs

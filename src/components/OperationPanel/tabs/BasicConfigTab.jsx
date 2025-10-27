@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Form, Input, InputNumber, Switch, Select } from 'antd';
+import { Form, Input, InputNumber, Switch, Select, DatePicker } from 'antd';
+import dayjs from 'dayjs';
 import notesService from '../../../services/notesService';
 import { initialResources } from '../../../data/resourceLibraryData';
 
@@ -177,11 +178,27 @@ const BasicConfigTab = ({ draft, updateDraft, formatKey, configModal, formatConf
 
       {formatKey === 'exam' && (
         <>
-          {/* 考试设置 */}
-          <div style={{ fontWeight: 600, margin: '16px 0 8px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ color: '#d9d9d9' }}>●</span>
-            <span>考试设置</span>
-          </div>
+          {/* 考试时间段（秒级） */}
+          <Form.Item required label="考试时间：" colon={false} style={{ marginBottom: 12 }}>
+            <DatePicker.RangePicker
+              showTime={{ format: 'HH:mm:ss' }}
+              format="YYYY-MM-DD HH:mm:ss"
+              placeholder={["开始时间", "结束时间"]}
+              value={(
+                draft?.exam?.startTime && draft?.exam?.endTime
+                ? [dayjs(draft.exam.startTime), dayjs(draft.exam.endTime)]
+                : null
+              )}
+              onChange={(vals) => {
+                const [start, end] = vals || [];
+                updateDraft('exam.startTime', start ? start.format('YYYY-MM-DD HH:mm:ss') : null);
+                updateDraft('exam.endTime', end ? end.format('YYYY-MM-DD HH:mm:ss') : null);
+              }}
+              style={{ width: 380 }}
+            />
+          </Form.Item>
+
+
           <Form.Item label="及格分：" colon={false} style={{ marginBottom: 12 }}>
             <div style={inlineRow}>
               <Switch
@@ -268,19 +285,6 @@ const BasicConfigTab = ({ draft, updateDraft, formatKey, configModal, formatConf
             </div>
           </Form.Item>
 
-          {/* 评分设置 */}
-          <div style={{ fontWeight: 600, margin: '16px 0 8px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ color: '#d9d9d9' }}>●</span>
-            <span>评分设置</span>
-          </div>
-          <Form.Item label="是否人工评阅：" colon={false} style={{ marginBottom: 12 }}>
-            <div style={inlineRow}>
-              <Switch
-                checked={!!draft.grading?.manual}
-                onChange={(checked) => updateDraft('grading.manual', checked)}
-              />
-            </div>
-          </Form.Item>
 
           {/* 防舞弊设置 */}
           <div style={{ fontWeight: 600, margin: '16px 0 8px', display: 'flex', alignItems: 'center', gap: 8 }}>

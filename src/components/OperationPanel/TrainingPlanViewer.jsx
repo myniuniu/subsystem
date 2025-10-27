@@ -247,7 +247,7 @@ const TrainingPlanViewer = ({
     if (isFullscreen && setCurrentView) {
       setCurrentView(VIEW_MODES.MATERIALS);
     } else {
-      setRightPanelView(RIGHT_PANEL_VIEWS.TRAINING_PLAN_LIST);
+      setRightPanelView(RIGHT_PANEL_VIEWS.OPERATIONS);
     }
   };
 

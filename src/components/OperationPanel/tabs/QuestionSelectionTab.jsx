@@ -660,7 +660,7 @@ const QuestionSelectionTab = ({ draft, updateDraft, configModal, formatConfigs, 
             <Space>
               <Button type="primary" icon={<RobotOutlined />} onClick={() => setAiRulesVisible(true)}>开始AI出题</Button>
               <Button type="default" icon={<ImportOutlined />} onClick={() => setImportVisible(true)}>导入试题</Button>
-              <Button type="default" icon={<CloudSyncOutlined />} onClick={handleSyncToLibrary}>同步到资料库PDF</Button>
+              <Button type="default" icon={<CloudSyncOutlined />} onClick={handleSyncToLibrary}>同步到资料库</Button>
             </Space>
           }
         />
