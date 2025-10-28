@@ -775,6 +775,12 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
       if (bucket) bucket.materials.videos.push(v);
     });
 
+    // 学生管理基础模块：移除课程视频类型
+    {
+      const p3 = phaseMap.get(3);
+      if (p3) p3.materials.videos = [];
+    }
+
     // 直播课：优先按 phaseId 分配；无则标题含“讲座”归入第1阶段，否则归入第3阶段
     lives.forEach(s => {
       const isLecture = /讲座/.test(s.title || '') || /讲座/.test(s.topic || '');
@@ -789,6 +795,23 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
       const bucket = phaseMap.get(file.phaseId);
       if (bucket) bucket.materials.exam.push(file);
     });
+
+    // 在学生管理基础模块（第3阶段）添加“研修成果”中的“情景模拟”记录
+    {
+      const p3 = phaseMap.get(3);
+      if (p3) {
+        const scenarioAchievement = {
+          id: 'achv-scene-1',
+          title: '情景模拟：班级突发事件处置',
+          type: 'scenario_simulation',
+          description: '通过角色扮演模拟学生冲突场景，评估管理与沟通能力',
+          time: '本周',
+          phaseId: 3,
+          score: null
+        };
+        p3.materials.achievements = [scenarioAchievement];
+      }
+    }
 
     // 理论学习：把链接作为阅读材料归入第9周
     if (Array.isArray(links) && links.length > 0) {
@@ -885,6 +908,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     const videos = Array.isArray(m.videos) ? m.videos : [];
     const lives = Array.isArray(m.live) ? m.live : [];
     const exams = Array.isArray(m.exam) ? m.exam : [];
+    const achievementsArr = Array.isArray(m.achievements) ? m.achievements : [];
     const linksArr = Array.isArray(m.links) ? m.links : [];
     const textsArr = Array.isArray(m.texts) ? m.texts : [];
     const projectsArr = Array.isArray(m.trainingProjects) ? m.trainingProjects : [];
@@ -926,10 +950,18 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
       if (!isNaN(s)) examScoreSum += s;
     });
 
+    // 研修成果成绩：若条目带 score 则累加
+    let achievementsScoreSum = 0;
+    achievementsArr.forEach(a => {
+      const s = a.score != null ? Number(a.score) : 0;
+      if (!isNaN(s)) achievementsScoreSum += s;
+    });
+
     // 其它分类默认不计学时与成绩，仅展示存在与否（保持为0）
     const categories = [];
     if (videos.length > 0) categories.push({ key: 'videos', label: '课程视频', hours: videoSummary.totalHours || 0, score: (videoScoreSum > 0 ? videoScoreSum : (videoSummary.avgScore ?? null)) });
     if (lives.length > 0) categories.push({ key: 'live', label: '直播课程', hours: liveHours || 0, score: null });
+    if (achievementsArr.length > 0) categories.push({ key: 'achievements', label: '研修成果', hours: 0, score: achievementsScoreSum || null });
     if (exams.length > 0) categories.push({ key: 'exam', label: '考试/试卷', hours: 0, score: examScoreSum });
     if (linksArr.length > 0) categories.push({ key: 'links', label: '阅读材料', hours: 0, score: null });
     if (textsArr.length > 0) categories.push({ key: 'texts', label: '反思文本', hours: 0, score: null });
@@ -1300,6 +1332,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
         ...(Array.isArray(phase.materials?.live) ? phase.materials.live.map(s => `live-${s.id}`) : []),
         ...(Array.isArray(phase.materials?.links) ? phase.materials.links.map(l => `link-${l.id}`) : []),
         ...(Array.isArray(phase.materials?.texts) ? phase.materials.texts.map(t => `text-${t.id}`) : []),
+        ...(Array.isArray(phase.materials?.achievements) ? phase.materials.achievements.map(a => `achievement-${a.id}`) : []),
         ...(Array.isArray(phase.materials?.exam) ? phase.materials.exam.map(f => `file-${f.id}`) : []),
       ])
     ));
@@ -1751,6 +1784,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                               ...(Array.isArray(phase.materials?.live) ? phase.materials.live.map(s => `live-${s.id}`) : []),
                               ...(Array.isArray(phase.materials?.links) ? phase.materials.links.map(l => `link-${l.id}`) : []),
                               ...(Array.isArray(phase.materials?.texts) ? phase.materials.texts.map(t => `text-${t.id}`) : []),
+                              ...(Array.isArray(phase.materials?.achievements) ? phase.materials.achievements.map(a => `achievement-${a.id}`) : []),
                               ...(Array.isArray(phase.materials?.exam) ? phase.materials.exam.map(f => `file-${f.id}`) : []),
                             ])
                           ));
@@ -1763,6 +1797,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                               ...(Array.isArray(phase.materials?.live) ? phase.materials.live.map(s => `live-${s.id}`) : []),
                               ...(Array.isArray(phase.materials?.links) ? phase.materials.links.map(l => `link-${l.id}`) : []),
                               ...(Array.isArray(phase.materials?.texts) ? phase.materials.texts.map(t => `text-${t.id}`) : []),
+                              ...(Array.isArray(phase.materials?.achievements) ? phase.materials.achievements.map(a => `achievement-${a.id}`) : []),
                               ...(Array.isArray(phase.materials?.exam) ? phase.materials.exam.map(f => `file-${f.id}`) : []),
                             ])
                           ));
@@ -1794,6 +1829,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                               const tagSpecs = [
                                 { key: 'live', present: Array.isArray(m.live) && m.live.length > 0, label: '直播课程', color: 'cyan' },
                                 { key: 'videos', present: Array.isArray(m.videos) && m.videos.length > 0, label: '课程视频', color: 'geekblue' },
+                                { key: 'achievements', present: Array.isArray(m.achievements) && m.achievements.length > 0, label: '研修成果', color: 'magenta' },
                                 { key: 'exam', present: Array.isArray(m.exam) && m.exam.length > 0, label: '考试/试卷', color: 'purple' },
                                 { key: 'links', present: Array.isArray(m.links) && m.links.length > 0, label: '阅读材料', color: 'blue' },
                                 { key: 'texts', present: Array.isArray(m.texts) && m.texts.length > 0, label: '文本', color: 'gold' },
@@ -2366,6 +2402,41 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                   </Card>
                                 );
                               })}
+                            </div>
+                          )}
+
+                          {/* 阶段内 - 研修成果 */}
+                          {Array.isArray(phase.materials?.achievements) && phase.materials.achievements.length > 0 && (
+                            <div style={{ marginTop: 12, background: '#ffffff', border: '1px solid #f0f0f0', borderLeft: '2px solid #eb2f96', borderRadius: 6, padding: 8 }}>
+                              <Text strong style={{ fontSize: 12, color: '#666' }}>📄 研修成果 ({phase.materials.achievements.length})</Text>
+                              {phase.materials.achievements.map(item => (
+                                <Card
+                                  key={`phase-${phase.id}-achievement-${item.id}`}
+                                  size="small"
+                                  style={{ marginTop: 6, border: '1px solid #e8e8e8', position: 'relative' }}
+                                  bodyStyle={{ padding: '8px 12px' }}
+                                >
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
+                                        <Text style={{ fontSize: 12 }} ellipsis>
+                                          {item.title}
+                                        </Text>
+                                        {item.description && (
+                                          <Text type="secondary" style={{ fontSize: 12 }} ellipsis>
+                                            {item.description}
+                                          </Text>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <Checkbox
+                                      checked={selectedMaterials.includes(`achievement-${item.id}`)}
+                                      onChange={(e) => handleSelectMaterial(`achievement-${item.id}`, e.target.checked)}
+                                      onClick={(e) => e.stopPropagation()}
+                                    />
+                                  </div>
+                                </Card>
+                              ))}
                             </div>
                           )}
 
