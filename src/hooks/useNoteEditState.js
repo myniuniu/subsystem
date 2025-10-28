@@ -354,6 +354,11 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   const [leftPanelTrainingPlanRecord, setLeftPanelTrainingPlanRecord] = useState(null);
   const [leftPanelTrainingPlanContent, setLeftPanelTrainingPlanContent] = useState(null);
 
+  // 研修成果左侧查看状态与关联数据
+  const [leftPanelAchievementRecord, setLeftPanelAchievementRecord] = useState(null);
+  // achievementAssociations: { [achievementId]: { linkedOperationIds: string[]|number[], attachments: any[] } }
+  const [achievementAssociations, setAchievementAssociations] = useState({});
+
   // 能力模型相关状态
   const [capabilityMap, setCapabilityMap] = useState(null);
   const [capabilityVideos, setCapabilityVideos] = useState([]);
@@ -625,6 +630,12 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
     setLeftPanelTrainingPlanRecord,
     leftPanelTrainingPlanContent,
     setLeftPanelTrainingPlanContent,
+
+    // 研修成果左侧查看与关联状态
+    leftPanelAchievementRecord,
+    setLeftPanelAchievementRecord,
+    achievementAssociations,
+    setAchievementAssociations,
 
     // 能力模型和知识图谱状态
     capabilityMap,

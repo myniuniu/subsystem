@@ -26,6 +26,7 @@ import AIChat from './AIChat';
 import OperationPanel from './OperationPanel';
 import VideoView from './VideoView';
 import ChatWindow from './ChatWindow';
+import AchievementDetailPanel from './AchievementDetailPanel';
 
 // 导入原有组件
 import MaterialAddPage from './MaterialAddPage';
@@ -560,6 +561,17 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
     onViewMaterial: (material, type) => {
       if (type === 'video') {
         materialHandlers.onPlayVideo(material);
+        return;
+      }
+      // 研修成果：在左侧区域显示详情页（非弹窗）
+      if (type === 'achievement') {
+        try {
+          state.setLeftPanelAchievementRecord(material);
+          setCurrentView(VIEW_MODES.ACHIEVEMENT_DETAIL);
+          message.success(`正在查看研修成果：${material.title}`);
+        } catch (e) {
+          console.warn('view achievement error:', e);
+        }
         return;
       }
       // 其他类型的查看逻辑
@@ -1553,6 +1565,9 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 mode={mode}
                 note={note}
               />
+            ) : currentView === VIEW_MODES.ACHIEVEMENT_DETAIL ? (
+              /* 研修成果详情三栏模式：占据左侧区域，内联展示 */
+              <AchievementDetailPanel state={state} />
             ) : currentView === VIEW_MODES.LEARNING_PLAN_THREE_COLUMN ? (
               /* 学习计划日历三栏模式：占据左侧区域 */
               <div style={{ 

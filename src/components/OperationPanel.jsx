@@ -162,7 +162,9 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
     showNoteEditor,
     editingNote,
     noteEditorContent,
-    setNoteEditorContent
+    setNoteEditorContent,
+    // 研修成果关联信息（用于在卡片展示“被谁关联”）
+    achievementAssociations
   } = state;
 
   // 获取当前笔记的分类信息（优先使用选中的分类）
@@ -1570,6 +1572,40 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
                             <span>标注</span>
                           </div>
                         )}
+                        {/* 显示被研修成果关联信息 */}
+                        {(() => {
+                          const assocMap = achievementAssociations || {};
+                          const recordKey = `${record.type}:${record.id}`;
+                          const titles = [];
+                          Object.keys(assocMap).forEach(aid => {
+                            const info = assocMap[aid] || {};
+                            const list = Array.isArray(info.linkedOperationIds) ? info.linkedOperationIds : [];
+                            const matched = list.some(val => String(val) === recordKey || String(val) === String(record.id));
+                            if (matched) {
+                              titles.push(info.title || '研修成果');
+                            }
+                          });
+                          if (titles.length === 0) return null;
+                          const text = titles.length === 1 ? `被关联：${titles[0]}` : `被关联：${titles[0]} 等${titles.length}项`;
+                          return (
+                            <div style={{
+                              background: 'linear-gradient(135deg, #f9f0ff 0%, #d3adf7 100%)',
+                              color: '#722ed1',
+                              fontSize: '8px',
+                              padding: '1px 4px',
+                              borderRadius: '8px',
+                              fontWeight: 'bold',
+                              border: '1px solid #9254de',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '2px',
+                              flexShrink: 0
+                            }}>
+                              <span>🔗</span>
+                              <span>{text}</span>
+                            </div>
+                          );
+                        })()}
                         {record.type === 'training-plan' && record.isSubmitted && (
                           <div style={{
                             background: 'linear-gradient(135deg, #f6ffed 0%, #b7eb8f 100%)',

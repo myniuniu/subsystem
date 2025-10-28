@@ -2415,6 +2415,15 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                   size="small"
                                   style={{ marginTop: 6, border: '1px solid #e8e8e8', position: 'relative' }}
                                   bodyStyle={{ padding: '8px 12px' }}
+                                  onClick={() => {
+                                    try {
+                                      if (handlers && typeof handlers.onViewMaterial === 'function') {
+                                        handlers.onViewMaterial(item, 'achievement');
+                                      }
+                                    } catch (e) {
+                                      // no-op
+                                    }
+                                  }}
                                 >
                                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
