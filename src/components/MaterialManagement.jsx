@@ -34,6 +34,7 @@ import KnowledgeGraphMindMap from './KnowledgeGraphMindMap.jsx';
     DeleteOutlined,
     EditOutlined,
     MoreOutlined,
+    PaperClipOutlined,
     EyeOutlined,
     PlayCircleOutlined,
     ClockCircleOutlined,
@@ -1702,16 +1703,27 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                           <Dropdown
                             trigger={['click']}
                             placement="bottomLeft"
-                            menu={{
-                              items: [
-                                {
-                                  key: 'delete',
-                                  icon: <DeleteOutlined />,
-                                  label: '删除',
-                                  onClick: () => setTrainingProjects(prev => prev.filter(x => x.id !== p.id))
+                          menu={{
+                            items: [
+                              {
+                                key: 'attachments',
+                                icon: <PaperClipOutlined />,
+                                label: '附件',
+                                onClick: () => {
+                                  try {
+                                    const pseudoAchievement = { id: `project-${p.id}`, title: p.title, description: p.sourceType || '培训项目资料' };
+                                    handlers?.onViewMaterial && handlers.onViewMaterial(pseudoAchievement, 'achievement');
+                                  } catch (e) { /* no-op */ }
                                 }
-                              ]
-                            }}
+                              },
+                              {
+                                key: 'delete',
+                                icon: <DeleteOutlined />,
+                                label: '删除',
+                                onClick: () => setTrainingProjects(prev => prev.filter(x => x.id !== p.id))
+                              }
+                            ]
+                          }}
                           >
                             <Button type="link" size="small" icon={<MoreOutlined />} onClick={(e) => e.stopPropagation()} />
                           </Dropdown>
@@ -2167,39 +2179,67 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                           marginBottom: 8,
                                           cursor: 'pointer',
                                           border: '1px solid #e8e8e8',
+                                          position: 'relative',
                                           ...(highlightVideoId === video.id ? { boxShadow: '0 0 0 2px #1890ff', borderColor: '#1890ff' } : {})
                                         }}
                                         bodyStyle={{ padding: '8px 12px' }}
                                         onClick={() => onPlayVideo(video)}
+                                        onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`video-${video.id}`]: true }))}
+                                        onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`video-${video.id}`]: false }))}
                                       >
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                           <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
-                                            {video.type === 'live_replay' ? (
-                                              <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>
-                                                <PlayCircleOutlined style={{ color: '#ff4d4f', marginRight: 4, fontSize: 16 }} />
-                                                <span style={{ 
-                                                  background: '#ff4d4f', 
-                                                  color: 'white', 
-                                                  fontSize: '8px', 
-                                                  padding: '1px 4px', 
-                                                  borderRadius: '2px',
-                                                  marginRight: 4
-                                                }}>LIVE</span>
-                                              </div>
-                                            ) : video.type === 'live_scheduled' ? (
-                                              <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>
-                                                <ClockCircleOutlined style={{ color: '#faad14', marginRight: 4, fontSize: 16 }} />
-                                                <span style={{ 
-                                                  background: '#faad14', 
-                                                  color: 'white', 
-                                                  fontSize: '8px', 
-                                                  padding: '1px 4px', 
-                                                  borderRadius: '2px',
-                                                  marginRight: 4
-                                                }}>预约</span>
-                                              </div>
+                                            {hoveredItems?.[`video-${video.id}`] ? (
+                                              <Dropdown
+                                                trigger={['click']}
+                                                placement="bottomLeft"
+                                                menu={{
+                                                  items: [
+                                                    { key: 'attachments', label: '附件', icon: <PaperClipOutlined /> }
+                                                  ],
+                                                  onClick: ({ key }) => {
+                                                    if (key === 'attachments') {
+                                                      try {
+                                                        if (handlers && typeof handlers.onViewMaterial === 'function') {
+                                                          handlers.onViewMaterial(video, 'achievement');
+                                                        }
+                                                      } catch (e) { /* no-op */ }
+                                                    }
+                                                  }
+                                                }}
+                                              >
+                                                <Tooltip title="更多">
+                                                  <MoreOutlined style={{ color: '#8c8c8c', marginRight: 8, fontSize: 16 }} onClick={(e) => e.stopPropagation()} />
+                                                </Tooltip>
+                                              </Dropdown>
                                             ) : (
-                                              <PlayCircleOutlined style={{ color: '#1890ff', marginRight: 8, fontSize: 16 }} />
+                                              video.type === 'live_replay' ? (
+                                                <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>
+                                                  <PlayCircleOutlined style={{ color: '#ff4d4f', marginRight: 4, fontSize: 16 }} />
+                                                  <span style={{ 
+                                                    background: '#ff4d4f', 
+                                                    color: 'white', 
+                                                    fontSize: '8px', 
+                                                    padding: '1px 4px', 
+                                                    borderRadius: '2px',
+                                                    marginRight: 4
+                                                  }}>LIVE</span>
+                                                </div>
+                                              ) : video.type === 'live_scheduled' ? (
+                                                <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>
+                                                  <ClockCircleOutlined style={{ color: '#faad14', marginRight: 4, fontSize: 16 }} />
+                                                  <span style={{ 
+                                                    background: '#faad14', 
+                                                    color: 'white', 
+                                                    fontSize: '8px', 
+                                                    padding: '1px 4px', 
+                                                    borderRadius: '2px',
+                                                    marginRight: 4
+                                                  }}>预约</span>
+                                                </div>
+                                              ) : (
+                                                <PlayCircleOutlined style={{ color: '#1890ff', marginRight: 8, fontSize: 16 }} />
+                                              )
                                             )}
                                             <div style={{ flex: 1, minWidth: 0 }}>
                                               <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
@@ -2332,15 +2372,42 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                   <Card 
                                     key={`phase-${phase.id}-live-${stream.id}`}
                                     size="small" 
-                                    style={{ marginTop: 6, border: '1px solid #e8e8e8' }}
+                                    style={{ marginTop: 6, border: '1px solid #e8e8e8', position: 'relative' }}
                                     bodyStyle={{ padding: '8px 12px' }}
+                                    onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`live-${stream.id}`]: true }))}
+                                    onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`live-${stream.id}`]: false }))}
                                   >
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                       <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
-                                        {status === 'live' ? (
-                                          <PlayCircleOutlined style={{ color: '#ff4d4f', marginRight: 8, fontSize: 16 }} />
+                                        {hoveredItems?.[`live-${stream.id}`] ? (
+                                          <Dropdown
+                                            trigger={['click']}
+                                            placement="bottomLeft"
+                                            menu={{
+                                              items: [
+                                                { key: 'attachments', label: '附件', icon: <PaperClipOutlined /> }
+                                              ],
+                                              onClick: ({ key }) => {
+                                                if (key === 'attachments') {
+                                                  try {
+                                                    if (handlers && typeof handlers.onViewMaterial === 'function') {
+                                                      handlers.onViewMaterial(stream, 'achievement');
+                                                    }
+                                                  } catch (e) { /* no-op */ }
+                                                }
+                                              }
+                                            }}
+                                          >
+                                            <Tooltip title="更多">
+                                              <MoreOutlined style={{ color: '#8c8c8c', marginRight: 8, fontSize: 16 }} />
+                                            </Tooltip>
+                                          </Dropdown>
                                         ) : (
-                                          <ClockCircleOutlined style={{ color: '#faad14', marginRight: 8, fontSize: 16 }} />
+                                          status === 'live' ? (
+                                            <PlayCircleOutlined style={{ color: '#ff4d4f', marginRight: 8, fontSize: 16 }} />
+                                          ) : (
+                                            <ClockCircleOutlined style={{ color: '#faad14', marginRight: 8, fontSize: 16 }} />
+                                          )
                                         )}
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                           <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
@@ -2415,6 +2482,8 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                   size="small"
                                   style={{ marginTop: 6, border: '1px solid #e8e8e8', position: 'relative' }}
                                   bodyStyle={{ padding: '8px 12px' }}
+                                  onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`achievement-${item.id}`]: true }))}
+                                  onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`achievement-${item.id}`]: false }))}
                                   onClick={() => {
                                     try {
                                       if (handlers && typeof handlers.onViewMaterial === 'function') {
@@ -2425,8 +2494,63 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                     }
                                   }}
                                 >
+                                  {/* 悬停操作图标 - More 菜单（研修成果） - 已迁移到左侧，隐藏右上角容器 */}
+                                  <div style={{ display: 'none' }}>
+                                    {hoveredItems?.[`achievement-${item.id}`] ? (
+                                      <Dropdown
+                                        trigger={['click']}
+                                        placement="bottomLeft"
+                                        menu={{
+                                          items: [
+                                            { key: 'attachments', label: '附件', icon: <PaperClipOutlined /> }
+                                          ],
+                                          onClick: ({ key }) => {
+                                            if (key === 'attachments') {
+                                              try {
+                                                if (handlers && typeof handlers.onViewMaterial === 'function') {
+                                                  handlers.onViewMaterial(item, 'achievement');
+                                                }
+                                              } catch (e) { /* no-op */ }
+                                            }
+                                          }
+                                        }}
+                                      >
+                                        <Tooltip title="更多">
+                                          <MoreOutlined style={{ color: '#8c8c8c', marginRight: 8, fontSize: 16 }} onClick={(e) => e.stopPropagation()} />
+                                        </Tooltip>
+                                      </Dropdown>
+                                    ) : (
+                                      <></>
+                                    )}
+                                  </div>
                                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                                      {hoveredItems?.[`achievement-${item.id}`] ? (
+                                        <Dropdown
+                                          trigger={['click']}
+                                          placement="bottomLeft"
+                                          menu={{
+                                            items: [
+                                              { key: 'attachments', label: '附件', icon: <PaperClipOutlined /> }
+                                            ],
+                                            onClick: ({ key }) => {
+                                              if (key === 'attachments') {
+                                                try {
+                                                  if (handlers && typeof handlers.onViewMaterial === 'function') {
+                                                    handlers.onViewMaterial(item, 'achievement');
+                                                  }
+                                                } catch (e) { /* no-op */ }
+                                              }
+                                            }
+                                          }}
+                                        >
+                                          <Tooltip title="更多">
+                                            <MoreOutlined style={{ color: '#8c8c8c', marginRight: 8, fontSize: 16 }} onClick={(e) => e.stopPropagation()} />
+                                          </Tooltip>
+                                        </Dropdown>
+                                      ) : (
+                                        <FileTextOutlined style={{ color: '#eb2f96', marginRight: 8, fontSize: 16 }} />
+                                      )}
                                       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
                                         <Text style={{ fontSize: 12 }} ellipsis>
                                           {item.title}
@@ -2473,12 +2597,22 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                           menu={{
                                             items: [
                                               { key: 'rename', label: '重命名', icon: <EditOutlined /> },
+                                              { key: 'attachments', label: '附件', icon: <PaperClipOutlined /> },
                                               { key: 'convertToOperationRecord', label: '转为操作记录', icon: <FileTextOutlined /> },
                                               { key: 'delete', label: '删除', icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />, danger: true }
                                             ],
                                             onClick: ({ key }) => {
                                               if (key === 'rename') {
                                                 openRename('file', file.id, getFileDisplayName(file.name));
+                                              }
+                                              if (key === 'attachments') {
+                                                try {
+                                                  const displayName = getFileDisplayName(file.name);
+                                                  const pseudoAchievement = { id: `file-${file.id}`, title: displayName, description: '试卷文件' };
+                                                  if (handlers && typeof handlers.onViewMaterial === 'function') {
+                                                    handlers.onViewMaterial(pseudoAchievement, 'achievement');
+                                                  }
+                                                } catch (e) { /* no-op */ }
                                               }
                                               if (key === 'convertToOperationRecord') {
                                                 const displayName = getFileDisplayName(file.name);
@@ -2808,7 +2942,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                       );
                     })()}
                     {!collapsedGroups.has(group.courseId) && videoViewMode === 'flat' && group.videos.map(video => (
-                        <Tooltip title={getVideoHierarchyPath(group.courseId, video)} placement="top">
+                        <Tooltip title={getVideoHierarchyPath(group.courseId, video)} placement="top" key={`video-${video.id}`}>
                         <Card 
                           key={`video-${video.id}`}
                           id={`video-card-${video.id}`}
@@ -2817,39 +2951,67 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                             marginBottom: 8,
                             cursor: 'pointer',
                             border: '1px solid #e8e8e8',
+                            position: 'relative',
                             ...(highlightVideoId === video.id ? { boxShadow: '0 0 0 2px #1890ff', borderColor: '#1890ff' } : {})
                           }}
                           bodyStyle={{ padding: '8px 12px' }}
                           onClick={() => onPlayVideo(video)}
+                          onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`video-${video.id}`]: true }))}
+                          onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`video-${video.id}`]: false }))}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
-                              {video.type === 'live_replay' ? (
-                                <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>
-                                  <PlayCircleOutlined style={{ color: '#ff4d4f', marginRight: 4, fontSize: 16 }} />
-                                  <span style={{ 
-                                    background: '#ff4d4f', 
-                                    color: 'white', 
-                                    fontSize: '8px', 
-                                    padding: '1px 4px', 
-                                    borderRadius: '2px',
-                                    marginRight: 4
-                                  }}>LIVE</span>
-                                </div>
-                              ) : video.type === 'live_scheduled' ? (
-                                <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>
-                                  <ClockCircleOutlined style={{ color: '#faad14', marginRight: 4, fontSize: 16 }} />
-                                  <span style={{ 
-                                    background: '#faad14', 
-                                    color: 'white', 
-                                    fontSize: '8px', 
-                                    padding: '1px 4px', 
-                                    borderRadius: '2px',
-                                    marginRight: 4
-                                  }}>预约</span>
-                                </div>
+                              {hoveredItems?.[`video-${video.id}`] ? (
+                                <Dropdown
+                                  trigger={['click']}
+                                  placement="bottomLeft"
+                                  menu={{
+                                    items: [
+                                      { key: 'attachments', label: '附件', icon: <PaperClipOutlined /> }
+                                    ],
+                                    onClick: ({ key }) => {
+                                      if (key === 'attachments') {
+                                        try {
+                                          if (handlers && typeof handlers.onViewMaterial === 'function') {
+                                            handlers.onViewMaterial(video, 'achievement');
+                                          }
+                                        } catch (e) { /* no-op */ }
+                                      }
+                                    }
+                                  }}
+                                >
+                                  <Tooltip title="更多">
+                                    <MoreOutlined style={{ color: '#8c8c8c', marginRight: 8, fontSize: 16 }} onClick={(e) => e.stopPropagation()} />
+                                  </Tooltip>
+                                </Dropdown>
                               ) : (
-                                <PlayCircleOutlined style={{ color: '#1890ff', marginRight: 8, fontSize: 16 }} />
+                                video.type === 'live_replay' ? (
+                                  <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>
+                                    <PlayCircleOutlined style={{ color: '#ff4d4f', marginRight: 4, fontSize: 16 }} />
+                                    <span style={{ 
+                                      background: '#ff4d4f', 
+                                      color: 'white', 
+                                      fontSize: '8px', 
+                                      padding: '1px 4px', 
+                                      borderRadius: '2px',
+                                      marginRight: 4
+                                    }}>LIVE</span>
+                                  </div>
+                                ) : video.type === 'live_scheduled' ? (
+                                  <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>
+                                    <ClockCircleOutlined style={{ color: '#faad14', marginRight: 4, fontSize: 16 }} />
+                                    <span style={{ 
+                                      background: '#faad14', 
+                                      color: 'white', 
+                                      fontSize: '8px', 
+                                      padding: '1px 4px', 
+                                      borderRadius: '2px',
+                                      marginRight: 4
+                                    }}>预约</span>
+                                  </div>
+                                ) : (
+                                  <PlayCircleOutlined style={{ color: '#1890ff', marginRight: 8, fontSize: 16 }} />
+                                )
                               )}
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
@@ -3005,15 +3167,42 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                       <Card 
                         key={`live-${stream.id}`}
                         size="small" 
-                        style={{ marginBottom: 8, border: '1px solid #e8e8e8' }}
+                        style={{ marginBottom: 8, border: '1px solid #e8e8e8', position: 'relative' }}
                         bodyStyle={{ padding: '8px 12px' }}
+                        onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`live-${stream.id}`]: true }))}
+                        onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`live-${stream.id}`]: false }))}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
-                            {status === 'live' ? (
-                              <PlayCircleOutlined style={{ color: '#ff4d4f', marginRight: 8, fontSize: 16 }} />
+                            {hoveredItems?.[`live-${stream.id}`] ? (
+                              <Dropdown
+                                trigger={['click']}
+                                placement="bottomLeft"
+                                menu={{
+                                  items: [
+                                    { key: 'attachments', label: '附件', icon: <PaperClipOutlined /> }
+                                  ],
+                                  onClick: ({ key }) => {
+                                    if (key === 'attachments') {
+                                      try {
+                                        if (handlers && typeof handlers.onViewMaterial === 'function') {
+                                          handlers.onViewMaterial(stream, 'achievement');
+                                        }
+                                      } catch (e) { /* no-op */ }
+                                    }
+                                  }
+                                }}
+                              >
+                                <Tooltip title="更多">
+                                  <MoreOutlined style={{ color: '#8c8c8c', marginRight: 8, fontSize: 16 }} />
+                                </Tooltip>
+                              </Dropdown>
                             ) : (
-                              <ClockCircleOutlined style={{ color: '#faad14', marginRight: 8, fontSize: 16 }} />
+                              status === 'live' ? (
+                                <PlayCircleOutlined style={{ color: '#ff4d4f', marginRight: 8, fontSize: 16 }} />
+                              ) : (
+                                <ClockCircleOutlined style={{ color: '#faad14', marginRight: 8, fontSize: 16 }} />
+                              )
                             )}
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
@@ -3117,12 +3306,22 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                               menu={{
                                 items: [
                                   { key: 'rename', label: '重命名', icon: <EditOutlined /> },
+                                  { key: 'attachments', label: '附件', icon: <PaperClipOutlined /> },
                                   { key: 'convertToOperationRecord', label: '转为操作记录', icon: <FileTextOutlined /> },
                                   { key: 'delete', label: '删除', icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />, danger: true }
                                 ],
                                 onClick: ({ key }) => {
                                   if (key === 'rename') {
                                     openRename('file', file.id, getFileDisplayName(file.name));
+                                  }
+                                  if (key === 'attachments') {
+                                    try {
+                                      const displayName = getFileDisplayName(file.name);
+                                      const pseudoAchievement = { id: `file-${file.id}`, title: displayName, description: '试卷文件' };
+                                      if (handlers && typeof handlers.onViewMaterial === 'function') {
+                                        handlers.onViewMaterial(pseudoAchievement, 'achievement');
+                                      }
+                                    } catch (e) { /* no-op */ }
                                   }
                                   if (key === 'convertToOperationRecord') {
                                     const displayName = getFileDisplayName(file.name);
