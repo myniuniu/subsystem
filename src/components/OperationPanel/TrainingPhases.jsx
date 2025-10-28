@@ -102,6 +102,12 @@ const TrainingPhases = ({ phases, onEditModule, onJsonEditModule }) => {
                     {module?.weight != null && String(module.weight).trim() !== '' && (
                       <Tag color="geekblue">权重 {module.weight}%</Tag>
                     )}
+                    {typeof module.arrangedHours === 'number' && Number.isFinite(module.arrangedHours) && (
+                      <Tag color="gold">安排学时 {module.arrangedHours}</Tag>
+                    )}
+                    {typeof module.hoursTarget === 'number' && Number.isFinite(module.hoursTarget) && (
+                      <Tag color="green">考核学时 {module.hoursTarget}</Tag>
+                    )}
                   </Space>
                 }
                 style={{ marginBottom: '12px', borderLeft: '2px solid #b7eb8f' }}
@@ -134,10 +140,17 @@ const TrainingPhases = ({ phases, onEditModule, onJsonEditModule }) => {
                               if (normalizedMap[k] === 'document') normalizedMap[k] = 'seminar';
                             });
                             const typeKey = normalizedMap[f] || inferTypeKeyFromText(f);
+                            const fc = (module.formatConfigs || {})[typeKey] || {};
                             return (
                               <Space size={6}>
                                 <Text>{f}</Text>
                                 <Tag color="purple">{typeLabelByKey(typeKey)}</Tag>
+                                {typeof (fc.assessmentHours ?? fc.hours) === 'number' && Number.isFinite(fc.assessmentHours ?? fc.hours) && (
+                                  <Tag color="magenta">考核学时 {(fc.assessmentHours ?? fc.hours)}</Tag>
+                                )}
+                                {typeof (fc.arrangedHours ?? fc.hours) === 'number' && Number.isFinite(fc.arrangedHours ?? fc.hours) && (
+                                  <Tag color="green">安排学时 {(fc.arrangedHours ?? fc.hours)}</Tag>
+                                )}
                               </Space>
                             );
                           })()}
@@ -152,13 +165,16 @@ const TrainingPhases = ({ phases, onEditModule, onJsonEditModule }) => {
                   <Text strong>考核方式：</Text>
                   {(() => {
                     const assessText = String(module.assessment || '').trim();
+                    const cleanAssessText = assessText
+                      .replace(/（\s*\d+(?:\.\d+)?\s*(?:分)?\s*）/g, '')
+                      .replace(/\(\s*\d+(?:\.\d+)?\s*(?:分)?\s*\)/g, '');
                     if (!assessText) {
                       return (<Space size={4}><Text type="secondary">未指定</Text></Space>);
                     }
                     const aKey = module.assessmentTypeKey || inferTypeKeyFromText(assessText);
                     return (
                       <Space size={6}>
-                        <Text> {assessText}</Text>
+                        <Text> {cleanAssessText}</Text>
                         <Tag color="purple">{typeLabelByKey(aKey)}</Tag>
                       </Space>
                     );

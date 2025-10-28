@@ -242,7 +242,10 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
     const m = phase?.materials || {};
     const cfgAll = formatConfigs[phase.id] || {};
     const presentKeys = ['live','webinar','seminar','offline','videos','exam','assignment','document'].filter(k => Array.isArray(m[k]) && m[k].length > 0);
-    const targetHours = Number(phase?.hours || 0);
+    const moduleInfo = findModuleByTitle(phase?.content);
+    const targetHours = Number(
+      (moduleInfo?.hoursTarget ?? moduleInfo?.hours ?? phase?.hours ?? 0)
+    );
 
     let hoursSum = 0;
     let scoreSum = 0;
@@ -252,11 +255,15 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
 
     presentKeys.forEach((k) => {
       const cfg = cfgAll[k] || getDefaultConfig(phase, k);
+      const override = (moduleInfo?.formatConfigs || {})[k];
 
       // 学时贡献
       let h = 0;
       let hPolicyDesc = '';
-      if (k === 'live') {
+      if (override && typeof override.hours === 'number' && isFinite(override.hours)) {
+        h = Number(override.hours);
+        hPolicyDesc = `自定义学时：${h}学时`;
+      } else if (k === 'live') {
         // 直播课默认按模块学时计入
         h = targetHours;
         hPolicyDesc = `直播课计入模块学时（${targetHours}学时）`;
@@ -283,20 +290,23 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
       // 成绩贡献
       let s = 0;
       let sDesc = '';
-      if (k === 'exam') {
-        const full = Number(cfg?.assessment?.fullScore || cfg?.exam?.totalScore || 100);
+      if (override && typeof override.score === 'number' && isFinite(override.score)) {
+        s = Number(override.score);
+        sDesc = `自定义成绩：${s}分`;
+      } else if (k === 'exam') {
+        const full = Number(moduleInfo?.assessmentFullScore ?? cfg?.assessment?.fullScore ?? cfg?.exam?.totalScore ?? 100);
         s = full;
-        const pass = Number(cfg?.assessment?.passScore ?? 60);
+        const pass = Number(moduleInfo?.assessmentPassScore ?? cfg?.assessment?.passScore ?? 60);
         sDesc = `考试满分${full}分，及格${pass}分`;
       } else if (k === 'assignment') {
-        const full = Number(cfg?.assessment?.fullScore || 100);
+        const full = Number(moduleInfo?.assessmentFullScore ?? cfg?.assessment?.fullScore ?? 100);
         s = full;
-        const pass = Number(cfg?.assessment?.passScore ?? 60);
+        const pass = Number(moduleInfo?.assessmentPassScore ?? cfg?.assessment?.passScore ?? 60);
         sDesc = `作业满分${full}分，及格${pass}分`;
       } else if (k === 'document') {
-        const full = Number(cfg?.assessment?.fullScore || 100);
+        const full = Number(moduleInfo?.assessmentFullScore ?? cfg?.assessment?.fullScore ?? 100);
         s = full;
-        const pass = Number(cfg?.assessment?.passScore ?? 60);
+        const pass = Number(moduleInfo?.assessmentPassScore ?? cfg?.assessment?.passScore ?? 60);
         sDesc = `研修成果满分${full}分，及格${pass}分`;
       } else if (k === 'live' || k === 'videos' || k === 'webinar' || k === 'seminar' || k === 'offline') {
         const method = cfg?.assessment?.method || '固定成绩';
@@ -312,9 +322,20 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
       scoreDetails.push({ key: k, label: formatLabelByKey(k), value: s, desc: sDesc });
     });
 
-    const targetScore = 100; // 目标总成绩按100分标准
+    const targetScore = Number(moduleInfo?.scoreTarget ?? 100); // 单模块成绩目标，默认100分
     const percentHours = targetHours > 0 ? Math.max(0, Math.min(100, Math.round((hoursSum / targetHours) * 100))) : 0;
     const percentScore = Math.max(0, Math.min(100, Math.round((scoreSum / targetScore) * 100)));
+    // 模块权重（百分比数值），来源于培训方案模块配置的“模块权重(%)”，如 '30%'
+    const moduleWeightPercent = (() => {
+      const wRaw = moduleInfo?.weight;
+      if (wRaw == null) return 0;
+      const n = Number(String(wRaw).replace('%',''));
+      return isNaN(n) ? 0 : Math.max(0, Math.min(100, n));
+    })();
+    // 成绩*模块权重：将模块内各形式的成绩总和按模块权重折算为整体百分比贡献
+    const weightedScorePercent = targetScore > 0
+      ? Math.max(0, Math.min(moduleWeightPercent, Math.round((Math.min(scoreSum, targetScore) / targetScore) * moduleWeightPercent)))
+      : 0;
 
     return {
       targetHours,
@@ -324,7 +345,9 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
       percentHours,
       percentScore,
       hoursDetails,
-      scoreDetails
+      scoreDetails,
+      moduleWeightPercent,
+      weightedScorePercent
     };
   };
 
@@ -333,20 +356,19 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
     const phases = Array.isArray(phaseMaterials) ? phaseMaterials : [];
     let hoursSum = 0;
     let hoursTargetSum = 0;
-    let scoreSum = 0;
+    let weightedScorePercentSum = 0;
     phases.forEach((ph) => {
       const s = summarizePhaseConfig(ph);
       hoursSum += Number(s.hoursSum || 0);
       hoursTargetSum += Number(s.targetHours || 0);
-      scoreSum += Number(s.scoreSum || 0);
+      weightedScorePercentSum += Number(s.weightedScorePercent || 0);
     });
     const configuredHoursTarget = Number(plan?.assessment?.totalHoursTarget || 0);
-    const configuredScoreTarget = Number(plan?.assessment?.totalScoreTarget || 100);
     const totalHoursTarget = configuredHoursTarget > 0 ? configuredHoursTarget : hoursTargetSum;
-    const totalScoreTarget = configuredScoreTarget > 0 ? configuredScoreTarget : 100;
     const percentHours = totalHoursTarget > 0 ? Math.max(0, Math.min(100, Math.round((hoursSum / totalHoursTarget) * 100))) : 0;
-    const percentScore = totalScoreTarget > 0 ? Math.max(0, Math.min(100, Math.round((scoreSum / totalScoreTarget) * 100))) : 0;
-    return { hoursSum, hoursTargetSum, scoreSum, totalHoursTarget, totalScoreTarget, percentHours, percentScore };
+    // 整体成绩配置进度：各模块“成绩*模块权重”的和，严格不超过100%
+    const percentScore = Math.max(0, Math.min(100, Math.round(weightedScorePercentSum)));
+    return { hoursSum, hoursTargetSum, totalHoursTarget, percentHours, percentScore };
   };
 
   const assessPhasePass = (phase) => {
@@ -1590,16 +1612,25 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                       {/* 顶部全局配置进度（学时 + 成绩） */}
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: '8px 12px', background: '#f8f9fa', borderRadius: 8, border: '1px solid #e9ecef', marginBottom: 8 }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <Text strong style={{ fontSize: 12, color: '#135200' }}>学时配置进度</Text>
-                            <Text style={{ fontSize: 12, color: '#135200' }}>{overallTotals.hoursSum} / {overallTotals.totalHoursTarget} 学时</Text>
-                          </div>
+                          <Tooltip title="分子：已配置学时；分母：总安排学时" placement="bottom">
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'help' }}>
+                              <Text strong style={{ fontSize: 12, color: '#135200' }}>安排学时配置进度</Text>
+                              <Text style={{ fontSize: 12, color: '#135200' }}>{overallTotals.hoursSum} / {overallTotals.totalHoursTarget}</Text>
+                            </div>
+                          </Tooltip>
                           <Progress percent={overallTotals.percentHours} size="small" status={overallTotals.percentHours >= 100 ? 'success' : 'active'} />
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <Text strong style={{ fontSize: 12, color: '#003a8c' }}>成绩配置进度</Text>
-                            <Text style={{ fontSize: 12, color: '#003a8c' }}>{overallTotals.scoreSum} / {overallTotals.totalScoreTarget} 分</Text>
+                            <Tooltip
+                              title={
+                                '计算方案：总成绩配置进度 = 各模块（模块内成绩百分比 × 模块权重）的加总。'
+                              }
+                              placement="bottom"
+                            >
+                              <Text strong style={{ fontSize: 12, color: '#003a8c', cursor: 'help' }}>成绩配置进度</Text>
+                            </Tooltip>
+                            <Text style={{ fontSize: 12, color: '#003a8c' }}>{overallTotals.percentScore}% / 100%</Text>
                           </div>
                           <Progress percent={overallTotals.percentScore} size="small" status={overallTotals.percentScore >= 100 ? 'success' : 'active'} />
                         </div>
@@ -1642,20 +1673,11 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                   </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                                   {(() => {
-                                    const tagSpecs = [
-                                      { key: 'live', present: Array.isArray(m.live) && m.live.length > 0, label: '直播课', color: 'cyan' },
-                                      { key: 'webinar', present: Array.isArray(m.webinar) && m.webinar.length > 0, label: '线上研讨会', color: 'magenta' },
-                                      { key: 'seminar', present: Array.isArray(m.seminar) && m.seminar.length > 0, label: '线上交流研讨', color: 'blue' },
-                                      { key: 'offline', present: Array.isArray(m.offline) && m.offline.length > 0, label: '线下活动', color: 'orange' },
-                                      { key: 'videos', present: Array.isArray(m.videos) && m.videos.length > 0, label: '点播课', color: 'geekblue' },
-                                      { key: 'exam', present: Array.isArray(m.exam) && m.exam.length > 0, label: '考试', color: 'purple' },
-                                      { key: 'assignment', present: Array.isArray(m.assignment) && m.assignment.length > 0, label: '试卷作业', color: 'green' },
-                                      // 按要求：不显示“文档”标签
+                                    const s = summarizePhaseConfig(phase);
+                                    // 去掉培训形式标签与学时标签，仅保留权重信息
+                                    return [
+                                      <Tag color="purple" key={`phase-${phase.id}-weight`}>权重：{s.moduleWeightPercent}%</Tag>
                                     ];
-                                    return tagSpecs
-                                      .filter(t => t.present)
-                                      .map(t => (<Tag color={t.color} key={`phase-${phase.id}-tag-${t.key}`}>{t.label}</Tag>))
-                                      .concat([<Tag color="geekblue" key={`phase-${phase.id}-hours`}>{phase.hours}学时</Tag>]);
                                   })()}
                                 </div>
 
@@ -1669,7 +1691,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                         style={{ cursor: 'pointer', background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 6, padding: '6px 8px' }}
                                       >
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                          <Text style={{ fontSize: 12, color: '#135200', fontWeight: 600 }}>学时配置进度</Text>
+                                          <Text style={{ fontSize: 12, color: '#135200', fontWeight: 600 }}>安排学时配置进度</Text>
                                           <Text style={{ fontSize: 12, color: '#135200' }}>{s.hoursSum} / {s.targetHours} 学时</Text>
                                         </div>
                                         <Progress percent={s.percentHours} size="small" status={s.percentHours >= 100 ? 'success' : 'active'} />
@@ -1680,7 +1702,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                       >
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                           <Text style={{ fontSize: 12, color: '#003a8c', fontWeight: 600 }}>成绩配置进度</Text>
-                                          <Text style={{ fontSize: 12, color: '#003a8c' }}>{s.scoreSum} / {s.targetScore} 分</Text>
+                                          <Text style={{ fontSize: 12, color: '#003a8c' }}>{s.percentScore}% / 100%</Text>
                                         </div>
                                         <Progress percent={s.percentScore} size="small" status={s.percentScore >= 100 ? 'success' : 'active'} />
                                       </div>
@@ -1735,9 +1757,43 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                             {isExplicitAssessmentForFormat(phase, fmtKey) && (
                                               <Tag color="volcano">考核</Tag>
                                             )}
+                                            {(() => {
+                                              const assessValue = Number((cfg?.assessmentHours ?? cfg?.hours ?? 0));
+                                              return (
+                                                <Tag color="gold">考核学时：{assessValue} 学时</Tag>
+                                              );
+                                            })()}
                                             <Button size="small" type="primary" onClick={() => openConfigModal(phase.id, fmtKey)}>配置</Button>
                                           </div>
                                         </div>
+                                        {/* 形式内的安排学时与成绩配置进度 */}
+                                        {(() => {
+                                          const s = summarizePhaseConfig(phase);
+                                          const dHours = Array.isArray(s.hoursDetails) ? s.hoursDetails.find(d => d.key === fmtKey) : null;
+                                          const dScore = Array.isArray(s.scoreDetails) ? s.scoreDetails.find(d => d.key === fmtKey) : null;
+                                          const hoursPercent = s.targetHours > 0 ? Math.max(0, Math.min(100, Math.round(((Number(dHours?.value || 0)) / s.targetHours) * 100))) : 0;
+                                          // 成绩进度采用100分制：分子为实际配置分数，分母固定为100分，不考虑权重
+                                          const scoreRaw = Number(dScore?.value || 0);
+                                          const scoreProgressPercent = Math.max(0, Math.min(100, Math.round(scoreRaw)));
+                                          return (
+                                            <div style={{ marginTop: 6, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                                              <div style={{ background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 6, padding: '6px 8px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                  <Text style={{ fontSize: 12, color: '#135200', fontWeight: 600 }}>安排学时配置进度</Text>
+                                                  <Text style={{ fontSize: 12, color: '#135200' }}>{Number(dHours?.value || 0)} / {s.targetHours} 学时</Text>
+                                                </div>
+                                                <Progress percent={hoursPercent} size="small" status={hoursPercent >= 100 ? 'success' : 'active'} />
+                                              </div>
+                                              <div style={{ background: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: 6, padding: '6px 8px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                  <Text style={{ fontSize: 12, color: '#003a8c', fontWeight: 600 }}>成绩配置进度</Text>
+                                                  <Text style={{ fontSize: 12, color: '#003a8c' }}>{scoreRaw}分 / 100分</Text>
+                                                </div>
+                                                <Progress percent={scoreProgressPercent} size="small" status={scoreProgressPercent >= 100 ? 'success' : 'active'} />
+                                              </div>
+                                            </div>
+                                          );
+                                        })()}
                                       </Card>
                                     );
                                   })}
@@ -1947,7 +2003,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                   <Col span={12}>
                     <Card size="small" title="学时配置" bordered>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                        <Text>目标学时</Text>
+                        <Text>考核学时</Text>
                         <Text strong>{s.targetHours} 学时</Text>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -1970,12 +2026,12 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                   <Col span={12}>
                     <Card size="small" title="成绩配置" bordered>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                        <Text>目标总分</Text>
-                        <Text strong>100 分</Text>
+                        <Text>模块权重</Text>
+                        <Text strong>{s.moduleWeightPercent}%</Text>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-                        <Text>已配置分值</Text>
-                        <Text strong style={{ color: '#003a8c' }}>{s.scoreSum} 分</Text>
+                        <Text>已配置加权分值</Text>
+                        <Text strong style={{ color: '#003a8c' }}>{s.weightedScorePercent}%</Text>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 6 }}>
                         {s.scoreDetails.map(d => (
@@ -1994,11 +2050,11 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                 <Divider style={{ margin: '12px 0' }} />
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div>
-                    <Text type="secondary">学时进度</Text>
+                    <Text type="secondary">安排学时进度</Text>
                     <Progress percent={s.percentHours} size="small" status={s.percentHours >= 100 ? 'success' : 'active'} />
                   </div>
                   <div>
-                    <Text type="secondary">成绩进度</Text>
+                    <Text type="secondary">成绩配置进度</Text>
                     <Progress percent={s.percentScore} size="small" status={s.percentScore >= 100 ? 'success' : 'active'} />
                   </div>
                 </div>

@@ -5,6 +5,9 @@ const { Title, Text } = Typography;
 
 const AssessmentSection = ({ assessment }) => {
   const method = assessment?.method || '（未提供考核方式）';
+  const methodDisplay = String(method)
+    .replace(/（\s*\d+(?:\.\d+)?\s*(?:分)?\s*）/g, '')
+    .replace(/\(\s*\d+(?:\.\d+)?\s*(?:分)?\s*\)/g, '');
   const components = Array.isArray(assessment?.components) ? assessment.components : [];
   const standards = Array.isArray(assessment?.standards) ? assessment.standards : [];
 
@@ -12,7 +15,7 @@ const AssessmentSection = ({ assessment }) => {
     <div style={{ marginBottom: '32px' }}>
       <Title level={3}>五、考核与评价</Title>
       <Card size="small" style={{ marginBottom: '12px' }}>
-        <Text strong>考核方式：</Text> <Text>{method}</Text>
+        <Text strong>考核方式：</Text> <Text>{methodDisplay}</Text>
       </Card>
       <Card size="small" style={{ marginBottom: '12px' }}>
         <Text strong>评价组成：</Text>

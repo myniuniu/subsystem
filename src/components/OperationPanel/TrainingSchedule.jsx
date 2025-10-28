@@ -1,9 +1,9 @@
 import React from 'react';
-import { Typography, Table, Tag } from 'antd';
+import { Typography, Table, Tag, InputNumber } from 'antd';
 
 const { Title } = Typography;
 
-const TrainingSchedule = ({ schedule }) => {
+const TrainingSchedule = ({ schedule, showWeight = true, editable = true, onChangeModuleWeight }) => {
   // 兼容不同数据结构：将 week/content/type/hours 映射到表格需要的字段
   const normalized = (Array.isArray(schedule) ? schedule : []).map((item, idx) => {
     const phase = item.phase ?? item.week ?? '';
@@ -12,8 +12,9 @@ const TrainingSchedule = ({ schedule }) => {
     const format = item.format ?? item.type ?? '';
     const assessment = item.assessment ?? '';
     const notes = item.notes ?? undefined;
+    const weight = Number(item.moduleWeight ?? item.weight ?? 0);
     const key = `${phase}|${time}|${topic}|${format}|${assessment}|${idx}`;
-    return { key, phase, time, topic, format, assessment, notes };
+    return { key, phase, time, topic, format, assessment, notes, weight, _rowIndex: idx };
   });
 
   const columns = [
@@ -22,6 +23,29 @@ const TrainingSchedule = ({ schedule }) => {
     { title: '主题', dataIndex: 'topic', key: 'topic', width: 300 },
     { title: '形式', dataIndex: 'format', key: 'format', width: 120 },
     { title: '考核', dataIndex: 'assessment', key: 'assessment', width: 120 },
+    ...(showWeight ? [{
+      title: '权重(%)',
+      dataIndex: 'weight',
+      key: 'weight',
+      width: 120,
+      render: (value, record) => (
+        editable ? (
+          <InputNumber
+            size="small"
+            min={0}
+            max={100}
+            value={Number(value ?? 0)}
+            onChange={(val) => {
+              if (typeof onChangeModuleWeight === 'function') {
+                onChangeModuleWeight(record?._rowIndex ?? 0, Number(val ?? 0));
+              }
+            }}
+          />
+        ) : (
+          `${Number(value ?? 0)}%`
+        )
+      )
+    }] : []),
     { 
       title: '备注', 
       dataIndex: 'notes', 

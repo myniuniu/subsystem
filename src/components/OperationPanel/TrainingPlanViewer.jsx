@@ -15,6 +15,7 @@ import {
   Table,
   Modal,
   Input,
+  InputNumber,
   Popover,
   Select,
   Divider,
@@ -159,10 +160,26 @@ const SortableModuleCard = ({ id, mod, pIdx, mIdx, globalIndex, setVisualDraft }
 
       <Space style={{ width: '100%', marginBottom: 8 }}>
         <Input style={{ flex: 1 }} value={mod.title} placeholder="模块标题"
+          onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.stopPropagation()}
           onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, title: e.target.value } : mo) } : ph))} />
         <Input style={{ width: 160 }} value={mod.duration} placeholder="时长"
+          onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.stopPropagation()}
           onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, duration: e.target.value } : mo) } : ph))} />
+        <Input style={{ width: 160 }} value={(mod.weight ?? '')} placeholder="模块权重(%)"
+          onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.stopPropagation()}
+          onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, weight: e.target.value } : mo) } : ph))} />
       </Space>
+      <Space style={{ width: '100%', marginBottom: 8 }}>
+        <InputNumber
+          style={{ width: 180 }}
+          min={0}
+          value={mod.hoursTarget}
+          placeholder="考核学时(学时)"
+          disabled
+          readOnly
+        />
+      </Space>
+      {/* 删除旧的“形式学时与成绩”卡片区块，改为下方每个形式内联输入 */}
       <Typography.Title level={5} style={{ marginTop: 8 }}>培训形式</Typography.Title>
       <Space style={{ width: '100%', marginBottom: 8 }}>
         <Select
@@ -194,7 +211,8 @@ const SortableModuleCard = ({ id, mod, pIdx, mIdx, globalIndex, setVisualDraft }
             <div
               key={`fmt-bind-${fmt}`}
               style={{
-                display: 'flex',
+                display: 'grid',
+                gridTemplateColumns: 'auto 160px 120px 120px',
                 alignItems: 'center',
                 gap: 8,
                 borderTop: (!(mod.formatTypeMap || {})[fmt]) ? '1px solid #ff4d4f' : undefined,
@@ -216,11 +234,11 @@ const SortableModuleCard = ({ id, mod, pIdx, mIdx, globalIndex, setVisualDraft }
                   ? { ...ph, modules: ph.modules.map((mo, j) => {
                       if (j !== mIdx) return mo;
                       const base = mo.formatTypeMap || {};
-                const nextMap = { ...base, [fmt]: v };
-                ['经验交流', '经验分享', '交流会'].forEach(k => {
-                  if (nextMap[k] === 'document') nextMap[k] = 'seminar';
-                });
-                return { ...mo, formatTypeMap: nextMap };
+                      const nextMap = { ...base, [fmt]: v };
+                      ['经验交流', '经验分享', '交流会'].forEach(k => {
+                        if (nextMap[k] === 'document') nextMap[k] = 'seminar';
+                      });
+                      return { ...mo, formatTypeMap: nextMap };
                     }) }
                   : ph))}
                 options={[
@@ -234,6 +252,46 @@ const SortableModuleCard = ({ id, mod, pIdx, mIdx, globalIndex, setVisualDraft }
                   { value: 'document', label: '研修成果' }
                 ]}
               />
+              {(() => {
+                const typeKey = ((mod.formatTypeMap || {})[fmt]) || inferTypeKeyFromText(fmt);
+                const fc = ((mod.formatConfigs || {})[typeKey]) || {};
+                return (
+                  <>
+                    <InputNumber
+                      style={{ width: 110 }}
+                      min={0}
+                      placeholder="学时"
+                      value={fc.hours}
+                      onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.stopPropagation()}
+                      onChange={(val) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx
+                        ? { ...ph, modules: ph.modules.map((mo, j) => {
+                            if (j !== mIdx) return mo;
+                            const current = mo.formatConfigs || {};
+                            const prevCfg = current[typeKey] || {};
+                            const nextCfg = { ...current, [typeKey]: { ...prevCfg, hours: val } };
+                            return { ...mo, formatConfigs: nextCfg };
+                          }) }
+                        : ph))}
+                    />
+                    <InputNumber
+                      style={{ width: 110 }}
+                      min={0}
+                      placeholder="成绩"
+                      value={fc.score}
+                      onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.stopPropagation()}
+                      onChange={(val) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx
+                        ? { ...ph, modules: ph.modules.map((mo, j) => {
+                            if (j !== mIdx) return mo;
+                            const current = mo.formatConfigs || {};
+                            const prevCfg = current[typeKey] || {};
+                            const nextCfg = { ...current, [typeKey]: { ...prevCfg, score: val } };
+                            return { ...mo, formatConfigs: nextCfg };
+                          }) }
+                        : ph))}
+                    />
+                  </>
+                );
+              })()}
             </div>
           ))}
         </div>
@@ -241,6 +299,7 @@ const SortableModuleCard = ({ id, mod, pIdx, mIdx, globalIndex, setVisualDraft }
       <Typography.Title level={5} style={{ marginTop: 8 }}>考核方式</Typography.Title>
       <Space style={{ width: '100%', marginBottom: 8, borderTop: ((!mod.assessmentTypeKey && (mod.assessment || '').trim().length > 0) ? '1px solid #ff4d4f' : undefined), paddingTop: ((!mod.assessmentTypeKey && (mod.assessment || '').trim().length > 0) ? 2 : 0) }}>
         <Input style={{ flex: 1 }} value={mod.assessment} placeholder="考核方式"
+          onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.stopPropagation()}
           onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => {
             if (j !== mIdx) return mo;
             const nextAssess = e.target.value;
@@ -271,12 +330,33 @@ const SortableModuleCard = ({ id, mod, pIdx, mIdx, globalIndex, setVisualDraft }
             { value: 'document', label: '研修成果' }
           ]}
         />
+        <InputNumber
+          style={{ width: 140 }}
+          min={0}
+          placeholder="满分"
+          value={mod.assessmentFullScore}
+          onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.stopPropagation()}
+          onChange={(val) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx
+            ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, assessmentFullScore: val } : mo) }
+            : ph))}
+        />
+        <InputNumber
+          style={{ width: 140 }}
+          min={0}
+          placeholder="及格分"
+          value={mod.assessmentPassScore}
+          onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.stopPropagation()}
+          onChange={(val) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx
+            ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, assessmentPassScore: val } : mo) }
+            : ph))}
+        />
       </Space>
 
       <Typography.Title level={5} style={{ marginTop: 8 }}>内容条目</Typography.Title>
       {(mod.content || []).map((cItem, cIdx) => (
         <Space key={cIdx} style={{ width: '100%', marginBottom: 8 }}>
           <Input style={{ flex: 1 }} value={cItem} placeholder="内容"
+            onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.stopPropagation()}
             onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, content: mo.content.map((ci, k) => k === cIdx ? e.target.value : ci) } : mo) } : ph))} />
           <Button danger onClick={() => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, modules: ph.modules.map((mo, j) => j === mIdx ? { ...mo, content: mo.content.filter((_, k) => k !== cIdx) } : mo) } : ph))}>删除</Button>
         </Space>
@@ -288,6 +368,27 @@ const SortableModuleCard = ({ id, mod, pIdx, mIdx, globalIndex, setVisualDraft }
 
 // 单模块编辑器（仅编辑一个模块，不展示阶段列表）
 const SingleModuleEditor = ({ mod, onChange, moduleIndex }) => {
+  // 按培训形式派生模块学时（学时目标=Σ考核学时；安排学时=Σ安排学时）
+  useEffect(() => {
+    const formats = parseFormats(mod?.format) || [];
+    const typeMap = mod?.formatTypeMap || {};
+    const cfgs = mod?.formatConfigs || {};
+    let sumAssess = 0;
+    let sumArranged = 0;
+    formats.forEach((fmt) => {
+      const typeKey = typeMap[fmt] || inferTypeKeyFromText(fmt);
+      const fc = cfgs[typeKey] || {};
+      const assess = Number(fc.assessmentHours ?? fc.hours ?? 0);
+      const arranged = Number(fc.arrangedHours ?? fc.hours ?? 0);
+      if (Number.isFinite(assess)) sumAssess += assess;
+      if (Number.isFinite(arranged)) sumArranged += arranged;
+    });
+    const prevAssess = Number(mod?.hoursTarget || 0);
+    const prevArranged = Number(mod?.arrangedHours || 0);
+    if (sumAssess !== prevAssess || sumArranged !== prevArranged) {
+      onChange({ ...mod, hoursTarget: sumAssess, arrangedHours: sumArranged });
+    }
+  }, [mod?.format, mod?.formatTypeMap, mod?.formatConfigs]);
   return (
     <div style={{ marginBottom: 12, padding: 10, border: '1px dashed #e8e8e8', borderLeft: '2px solid #b7eb8f', borderRadius: 6, background: '#fafafa' }}>
       {typeof moduleIndex === 'number' && (
@@ -295,14 +396,50 @@ const SingleModuleEditor = ({ mod, onChange, moduleIndex }) => {
           <span style={{ color: '#595959' }}>{`模块 ${moduleIndex}`}</span>
         </div>
       )}
-      <Space style={{ width: '100%', marginBottom: 8 }}>
-        <Input style={{ flex: 1 }} value={mod.title} placeholder="模块标题"
-          onChange={(e) => onChange({ ...mod, title: e.target.value })} />
-        <Input style={{ width: 160 }} value={mod.duration} placeholder="时长"
-          onChange={(e) => onChange({ ...mod, duration: e.target.value })} />
-        <Input style={{ width: 160 }} value={(mod.weight ?? '')} placeholder="模块权重(%)"
-          onChange={(e) => onChange({ ...mod, weight: e.target.value })} />
-      </Space>
+      <div style={{ width: '100%', marginBottom: 8, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, gridColumn: '1 / span 2' }}>
+          <Text type="secondary">模块标题</Text>
+          <Input style={{ flex: 1 }} value={mod.title} placeholder="模块标题"
+            onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.stopPropagation()}
+            onChange={(e) => onChange({ ...mod, title: e.target.value })} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Text type="secondary">时长</Text>
+          <Input style={{ width: 160 }} value={mod.duration} placeholder="时长"
+            onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.stopPropagation()}
+            onChange={(e) => onChange({ ...mod, duration: e.target.value })} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Text type="secondary">模块权重(%)</Text>
+          <Input style={{ width: 120 }} value={(mod.weight ?? '')} placeholder="模块权重(%)"
+            onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.stopPropagation()}
+            onChange={(e) => onChange({ ...mod, weight: e.target.value })} />
+        </div>
+      </div>
+      <div style={{ width: '100%', marginBottom: 8, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Text type="secondary">考核学时</Text>
+          <InputNumber
+            style={{ width: 160 }}
+            min={0}
+            value={mod.hoursTarget}
+            placeholder="考核学时(学时)"
+            disabled
+            readOnly
+          />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Text type="secondary">安排学时</Text>
+          <InputNumber
+            style={{ width: 160 }}
+            min={0}
+            value={mod.arrangedHours}
+            placeholder="时间安排(学时)"
+            disabled
+            readOnly
+          />
+        </div>
+      </div>
       <Typography.Title level={5} style={{ marginTop: 8 }}>培训形式</Typography.Title>
       <Space style={{ width: '100%', marginBottom: 8 }}>
         <Select
@@ -322,7 +459,35 @@ const SingleModuleEditor = ({ mod, onChange, moduleIndex }) => {
                 if (guess) defaults[f] = guess;
               }
             });
-            onChange({ ...mod, format: nextFormat, formatTypeMap: { ...prunedMap, ...defaults } });
+            // 初始化每个培训形式的默认“考核学时/安排学时”（均分模块的总安排学时或目标学时）
+            const currentConfigs = mod.formatConfigs || {};
+            const totalArranged = Number(mod.arrangedHours ?? mod.hoursTarget ?? 0) || 0;
+            const total = Math.max((vals || []).length, 1);
+            const evenShare = totalArranged > 0 ? (totalArranged / total) : 0;
+            // 仅保留当前选择中仍被使用的类型配置
+            const nextConfigsPruned = Object.fromEntries(
+              Object.entries(currentConfigs).filter(([typeKey]) => {
+                const used = (vals || []).some(f => (prunedMap[f] || defaults[f] || inferTypeKeyFromText(f)) === typeKey);
+                return used;
+              })
+            );
+            const nextConfigs = { ...nextConfigsPruned };
+            (vals || []).forEach((f) => {
+              const typeKey = (prunedMap[f] || defaults[f] || inferTypeKeyFromText(f));
+              if (!typeKey) return;
+              const prevCfg = nextConfigs[typeKey] || {};
+              const needInitAssess = typeof prevCfg.assessmentHours !== 'number';
+              const needInitArranged = typeof prevCfg.arrangedHours !== 'number';
+              if (needInitAssess || needInitArranged) {
+                const initVal = Number.isFinite(evenShare) ? evenShare : 0;
+                nextConfigs[typeKey] = {
+                  ...prevCfg,
+                  assessmentHours: needInitAssess ? initVal : prevCfg.assessmentHours,
+                  arrangedHours: needInitArranged ? initVal : prevCfg.arrangedHours
+                };
+              }
+            });
+            onChange({ ...mod, format: nextFormat, formatTypeMap: { ...prunedMap, ...defaults }, formatConfigs: nextConfigs });
           }}
           options={DEFAULT_FORMAT_OPTIONS.map(v => ({ value: v, label: v }))}
         />
@@ -345,57 +510,104 @@ const SingleModuleEditor = ({ mod, onChange, moduleIndex }) => {
               ) : (
                 <Tag color="blue">{fmt}</Tag>
               )}
-              <Select
-                style={{ width: 160 }}
-                placeholder="绑定培训类型"
-                value={(mod.formatTypeMap || {})[fmt]}
-                onChange={(v) => {
-                  const base = mod.formatTypeMap || {};
-                  onChange({ ...mod, formatTypeMap: { ...base, [fmt]: v } });
-                }}
-                options={[
-                  { value: 'live', label: '直播课' },
-                  { value: 'videos', label: '点播课' },
-                  { value: 'webinar', label: '线上研讨会' },
-                  { value: 'exam', label: '考试' },
-                  { value: 'assignment', label: '试卷作业' },
-                  { value: 'document', label: '研修成果' }
-                ]}
-              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Text type="secondary">类型</Text>
+                <Select
+                  style={{ width: 160 }}
+                  placeholder="绑定培训类型"
+                  value={(mod.formatTypeMap || {})[fmt]}
+                  onChange={(v) => {
+                    const base = mod.formatTypeMap || {};
+                    onChange({ ...mod, formatTypeMap: { ...base, [fmt]: v } });
+                  }}
+                  options={[
+                    { value: 'live', label: '直播课' },
+                    { value: 'videos', label: '点播课' },
+                    { value: 'webinar', label: '线上研讨会' },
+                    { value: 'exam', label: '考试' },
+                    { value: 'assignment', label: '试卷作业' },
+                    { value: 'document', label: '研修成果' }
+                  ]}
+                />
+              </div>
+              {(() => {
+                const typeKey = ((mod.formatTypeMap || {})[fmt]) || inferTypeKeyFromText(fmt);
+                const fc = ((mod.formatConfigs || {})[typeKey]) || {};
+                return (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Text type="secondary">考核学时</Text>
+                      <InputNumber
+                        style={{ width: 120 }}
+                        min={0}
+                        placeholder="考核学时"
+                        value={(fc.assessmentHours ?? fc.hours)}
+                        onChange={(val) => {
+                          const current = mod.formatConfigs || {};
+                          const prevCfg = current[typeKey] || {};
+                          const nextCfg = { ...current, [typeKey]: { ...prevCfg, assessmentHours: val } };
+                          onChange({ ...mod, formatConfigs: nextCfg });
+                        }}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Text type="secondary">安排学时</Text>
+                      <InputNumber
+                        style={{ width: 120 }}
+                        min={0}
+                        placeholder="学习安排学时"
+                        value={(fc.arrangedHours ?? fc.hours)}
+                        onChange={(val) => {
+                          const current = mod.formatConfigs || {};
+                          const prevCfg = current[typeKey] || {};
+                          const nextCfg = { ...current, [typeKey]: { ...prevCfg, arrangedHours: val } };
+                          onChange({ ...mod, formatConfigs: nextCfg });
+                        }}
+                      />
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           ))}
         </div>
       </Space>
       <Typography.Title level={5} style={{ marginTop: 8 }}>考核方式</Typography.Title>
-      <Space style={{ width: '100%', marginBottom: 8, borderTop: ((!mod.assessmentTypeKey && (mod.assessment || '').trim().length > 0) ? '1px solid #ff4d4f' : undefined), paddingTop: ((!mod.assessmentTypeKey && (mod.assessment || '').trim().length > 0) ? 2 : 0) }}>
-        <Input style={{ flex: 1 }} value={mod.assessment} placeholder="考核方式"
-          onChange={(e) => {
-            const nextAssess = e.target.value;
-            let nextType = mod.assessmentTypeKey;
-            if (!nextType && nextAssess.trim()) {
-              const g = inferTypeKeyFromText(nextAssess);
-              if (g) nextType = g;
-            }
-            if (!nextAssess.trim()) {
-              nextType = undefined;
-            }
-            onChange({ ...mod, assessment: nextAssess, assessmentTypeKey: nextType });
-          }} />
-        <Select
-          style={{ width: 180 }}
-          placeholder="绑定考核类型"
-          value={mod.assessmentTypeKey}
-          onChange={(v) => onChange({ ...mod, assessmentTypeKey: v })}
-          options={[
-            { value: 'live', label: '直播课' },
-            { value: 'videos', label: '点播课' },
-            { value: 'webinar', label: '线上研讨会' },
-            { value: 'exam', label: '考试' },
-            { value: 'assignment', label: '试卷作业' },
-            { value: 'document', label: '研修成果' }
-          ]}
-        />
-      </Space>
+      <div style={{ width: '100%', marginBottom: 8, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, borderTop: ((!mod.assessmentTypeKey && (mod.assessment || '').trim().length > 0) ? '1px solid #ff4d4f' : undefined), paddingTop: ((!mod.assessmentTypeKey && (mod.assessment || '').trim().length > 0) ? 2 : 0) }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, gridColumn: '1 / span 2' }}>
+          <Text type="secondary">考核方式</Text>
+          <Input style={{ flex: 1 }} value={mod.assessment} placeholder="考核方式"
+            onChange={(e) => {
+              const nextAssess = e.target.value;
+              let nextType = mod.assessmentTypeKey;
+              if (!nextType && nextAssess.trim()) {
+                const g = inferTypeKeyFromText(nextAssess);
+                if (g) nextType = g;
+              }
+              if (!nextAssess.trim()) {
+                nextType = undefined;
+              }
+              onChange({ ...mod, assessment: nextAssess, assessmentTypeKey: nextType });
+            }} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Text type="secondary">类型</Text>
+          <Select
+            style={{ width: 160 }}
+            placeholder="绑定考核类型"
+            value={mod.assessmentTypeKey}
+            onChange={(v) => onChange({ ...mod, assessmentTypeKey: v })}
+            options={[
+              { value: 'live', label: '直播课' },
+              { value: 'videos', label: '点播课' },
+              { value: 'webinar', label: '线上研讨会' },
+              { value: 'exam', label: '考试' },
+              { value: 'assignment', label: '试卷作业' },
+              { value: 'document', label: '研修成果' }
+            ]}
+          />
+        </div>
+      </div>
 
       <Typography.Title level={5} style={{ marginTop: 8 }}>内容条目</Typography.Title>
       {(mod.content || []).map((cItem, cIdx) => (
@@ -431,6 +643,10 @@ const TrainingPlanViewer = ({
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
+  );
+  // 仅指针拖拽传感器（可视化编辑时避免键盘拖拽干扰输入焦点）
+  const sensorsNoKeyboard = useSensors(
+    useSensor(PointerSensor)
   );
   const participantsList = [
     { name: '张三', department: '数学组', position: '教师', phone: '13800138001', email: 'zhangsan@school.edu' },
@@ -534,21 +750,23 @@ const TrainingPlanViewer = ({
   const [leftWidthPct, setLeftWidthPct] = useState(40); // 初始与之前 flex:4 相当
   const [isResizing, setIsResizing] = useState(false);
   const [dirOpen, setDirOpen] = useState(false); // 左侧目录展开状态
+  const [dirEditingAll, setDirEditingAll] = useState(false); // 目录内模块快捷编辑全局开关
 
-  // 点击非目录区域时收起目录
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (!dirOpen) return;
-      const el = dirPanelRef.current;
-      if (el && !el.contains(e.target)) {
-        setDirOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside, true);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside, true);
-    };
-  }, [dirOpen]);
+  // 目录点击滚动到目标（在左侧滚动容器内平滑滚动）
+  const scrollToAnchor = (selector) => {
+    try {
+      const container = leftScrollRef.current;
+      if (!container) return;
+      const el = container.querySelector(selector);
+      if (!el) return;
+      const containerTop = container.getBoundingClientRect().top;
+      const elTop = el.getBoundingClientRect().top;
+      const offsetTop = elTop - containerTop + container.scrollTop - 8;
+      container.scrollTo({ top: offsetTop, behavior: 'smooth' });
+    } catch {}
+  };
+
+  // 目录弹层开合由组件自身控制，避免点输入框时误收起
 
   const startResize = (e) => {
     e.preventDefault();
@@ -955,6 +1173,317 @@ const TrainingPlanViewer = ({
 
   // 引入方案可编辑状态
   const [plan, setPlan] = useState(newTeacherTrainingPlan);
+  // 方案汇总：模块学时/成绩合计与全局目标（用于展示与编辑）
+  const totals = useMemo(() => {
+    let hoursSumTarget = 0;
+    let scoreSumTarget = 0;
+    let arrangedHoursSum = 0;
+    (Array.isArray(plan?.phases) ? plan.phases : []).forEach((ph) => {
+      (Array.isArray(ph?.modules) ? ph.modules : []).forEach((m) => {
+        hoursSumTarget += Number(m?.hoursTarget || 0);
+        scoreSumTarget += Number(m?.scoreTarget || 0);
+        arrangedHoursSum += Number((m?.arrangedHours ?? m?.hoursTarget) || 0);
+      });
+    });
+    const totalHoursTargetConfig = Number(plan?.assessment?.totalHoursTarget || 0);
+    const totalScoreTargetConfig = Number(plan?.assessment?.totalScoreTarget || 0);
+    const totalHoursTarget = totalHoursTargetConfig > 0 ? totalHoursTargetConfig : hoursSumTarget;
+    const totalScoreTarget = totalScoreTargetConfig > 0 ? totalScoreTargetConfig : 100;
+    return { hoursSumTarget, arrangedHoursSum, scoreSumTarget, totalHoursTarget, totalScoreTarget };
+  }, [plan]);
+
+  // 初始化：若未设置总学时目标且模块学时合计>0，则将其初始化为模块学时合计
+  useEffect(() => {
+    const current = Number(plan?.assessment?.totalHoursTarget || 0);
+    if (current <= 0 && totals.arrangedHoursSum > 0) {
+      setPlan(prev => ({
+        ...prev,
+        assessment: {
+          ...(prev.assessment || {}),
+          totalHoursTarget: totals.arrangedHoursSum
+        }
+      }));
+    }
+    // 仅在 arrangedHoursSum 变化时尝试初始化，避免覆盖用户设置
+  }, [totals.arrangedHoursSum]);
+
+  // 将字符串学时解析为数字（如 "6学时" -> 6）
+  const parseHoursValue = (val) => {
+    if (val == null) return 0;
+    const s = String(val);
+    const m = s.match(/\d+(?:\.\d+)?/);
+    return m ? Number(m[0]) : Number(s) || 0;
+  };
+
+  // 按培训形式派生模块的学时目标与安排学时：
+  // 学时目标 = 各形式的考核学时(assessmentHours)之和；安排学时 = 各形式的安排学时(arrangedHours)之和
+  // 这两者仅用于展示，不支持人工修改
+  useEffect(() => {
+    const phases = Array.isArray(plan?.phases) ? plan.phases : [];
+    let anyChanged = false;
+    const nextPhases = phases.map((ph) => {
+      const nextModules = (ph.modules || []).map((mod) => {
+        const formats = parseFormats(mod?.format) || [];
+        const typeMap = mod?.formatTypeMap || {};
+        const cfgs = mod?.formatConfigs || {};
+        let sumAssess = 0;
+        let sumArranged = 0;
+        formats.forEach((fmt) => {
+          const typeKey = typeMap[fmt] || inferTypeKeyFromText(fmt);
+          const fc = cfgs[typeKey] || {};
+          const assess = Number(fc.assessmentHours ?? fc.hours ?? 0);
+          const arranged = Number(fc.arrangedHours ?? fc.hours ?? 0);
+          if (Number.isFinite(assess)) sumAssess += assess;
+          if (Number.isFinite(arranged)) sumArranged += arranged;
+        });
+        const prevAssess = Number(mod?.hoursTarget || 0);
+        const prevArranged = Number(mod?.arrangedHours || 0);
+        if (sumAssess !== prevAssess || sumArranged !== prevArranged) {
+          anyChanged = true;
+          return { ...mod, hoursTarget: sumAssess, arrangedHours: sumArranged };
+        }
+        return mod;
+      });
+      return anyChanged ? { ...ph, modules: nextModules } : ph;
+    });
+    if (anyChanged) {
+      setPlan((prev) => ({ ...prev, phases: nextPhases }));
+    }
+  }, [plan?.phases]);
+
+  // 扁平化模块列表并保留索引路径
+  const flattenModules = (phases = []) => {
+    const flat = [];
+    (phases || []).forEach((ph, pIdx) => {
+      (ph.modules || []).forEach((mod, mIdx) => {
+        flat.push({ pIdx, mIdx, mod });
+      });
+    });
+    return flat;
+  };
+
+  // 为详细时间安排准备带模块权重的数据，以及权重变更回写处理
+  const flatModulesForSchedule = useMemo(() => (
+    flattenModules(Array.isArray(plan?.phases) ? plan.phases : [])
+  ), [plan?.phases]);
+
+  const scheduleWithWeights = useMemo(() => (
+    (Array.isArray(plan?.schedule) ? plan.schedule : []).map((row, i) => ({
+      ...row,
+      moduleWeight: Number(flatModulesForSchedule[i]?.mod?.weight ?? 0)
+    }))
+  ), [plan?.schedule, flatModulesForSchedule]);
+
+  const handleChangeModuleWeight = (rowIndex, newWeight) => {
+    setPlan(prev => {
+      const phases = Array.isArray(prev?.phases) ? [...prev.phases] : [];
+      const flat = flattenModules(phases);
+      const ref = flat[rowIndex];
+      if (!ref) return prev;
+      const ph = phases[ref.pIdx] || {};
+      const mods = Array.isArray(ph.modules) ? [...ph.modules] : [];
+      const target = { ...(mods[ref.mIdx] || {}) };
+      target.weight = Number(newWeight ?? 0);
+      mods[ref.mIdx] = target;
+      phases[ref.pIdx] = { ...ph, modules: mods };
+      return { ...prev, phases };
+    });
+  };
+
+  // 从详细安排同步学时到模块安排学时（不再写入模块学时目标）
+  const syncScheduleToModules = (scheduleRows) => {
+    setPlan(prev => {
+      const phases = Array.isArray(prev?.phases) ? prev.phases : [];
+      const flat = flattenModules(phases);
+      const nextPhases = phases.map((ph) => ({ ...ph }));
+      flat.forEach((item, idx) => {
+        if (idx >= (scheduleRows || []).length) return;
+        const hours = parseHoursValue((scheduleRows || [])[idx]?.hours);
+        const ph = nextPhases[item.pIdx];
+        const mods = Array.isArray(ph.modules) ? [...ph.modules] : [];
+        const mod = { ...(mods[item.mIdx] || {}) };
+        mod.arrangedHours = hours;
+        mods[item.mIdx] = mod;
+        nextPhases[item.pIdx] = { ...ph, modules: mods };
+      });
+      return { ...prev, phases: nextPhases };
+    });
+  };
+
+  // 从模块 hoursTarget 回写到详细安排 rows.hours（按顺序对齐）
+  const syncModulesToSchedule = () => {
+    setPlan(prev => {
+      const phases = Array.isArray(prev?.phases) ? prev.phases : [];
+      const flat = flattenModules(phases);
+      const schedule = Array.isArray(prev?.schedule) ? [...prev.schedule] : [];
+      const count = Math.min(schedule.length, flat.length);
+      for (let i = 0; i < count; i++) {
+        const modRef = flat[i].mod || {};
+        const hours = Number((modRef.arrangedHours ?? modRef.hoursTarget) || 0);
+        const row = { ...(schedule[i] || {}) };
+        // 保持展示友好：写入纯数字，现有 UI 显示不附加单位
+        row.hours = hours;
+        // 默认考核文本：只显示学时（不再包含成绩）
+        if (!row.assessment || String(row.assessment).trim() === '') {
+          if (Number.isFinite(hours) && hours > 0) {
+            row.assessment = `学时 ${hours}`;
+          }
+        }
+        schedule[i] = row;
+      }
+      return { ...prev, schedule };
+    });
+  };
+
+  // 一次性初始化：若模块学时为空且详细安排存在有效学时，用安排填充模块
+  useEffect(() => {
+    const scheduleRows = Array.isArray(plan?.schedule) ? plan.schedule : [];
+    const phases = Array.isArray(plan?.phases) ? plan.phases : [];
+    if (!scheduleRows.length || !phases.length) return;
+    const flat = flattenModules(phases);
+    const hasModuleHours = flat.some(it => Number(it.mod?.hoursTarget || 0) > 0);
+    const hasScheduleHours = scheduleRows.some(r => parseHoursValue(r?.hours) > 0);
+    if (!hasModuleHours && hasScheduleHours) {
+      syncScheduleToModules(scheduleRows);
+    }
+  }, [plan?.schedule, plan?.phases]);
+
+  // 初始化每个培训形式的考核学时与学习安排学时（仅在缺失时填充，均分模块总安排学时或目标学时）
+  useEffect(() => {
+    setPlan(prev => {
+      const phases = Array.isArray(prev?.phases) ? prev.phases : [];
+      if (!phases.length) return prev;
+      let mutated = false;
+      const nextPhases = phases.map((ph) => {
+        const mods = Array.isArray(ph.modules) ? ph.modules.map((mod) => {
+          const formats = parseFormats(mod?.format) || [];
+          if (!formats.length) return mod;
+          const typeMap = mod?.formatTypeMap || {};
+          const totalArranged = Number(mod?.arrangedHours ?? mod?.hoursTarget ?? 0) || 0;
+          const total = Math.max(formats.length, 1);
+          const evenShare = totalArranged > 0 ? (totalArranged / total) : 0;
+          let cfg = mod?.formatConfigs || {};
+          let modChanged = false;
+          formats.forEach((f) => {
+            const typeKey = typeMap[f] || inferTypeKeyFromText(f);
+            if (!typeKey) return;
+            const prevCfg = cfg[typeKey] || {};
+            const needInitAssess = typeof prevCfg.assessmentHours !== 'number';
+            const needInitArranged = typeof prevCfg.arrangedHours !== 'number';
+            if (needInitAssess || needInitArranged) {
+              const initVal = Number.isFinite(evenShare) ? evenShare : 0;
+              cfg = { ...cfg, [typeKey]: {
+                ...prevCfg,
+                assessmentHours: needInitAssess ? initVal : prevCfg.assessmentHours,
+                arrangedHours: needInitArranged ? initVal : prevCfg.arrangedHours
+              } };
+              modChanged = true;
+            }
+          });
+          if (modChanged) {
+            mutated = true;
+            return { ...mod, formatConfigs: cfg };
+          }
+          return mod;
+        }) : ph.modules;
+        return { ...ph, modules: mods };
+      });
+      return mutated ? { ...prev, phases: nextPhases } : prev;
+    });
+  }, [plan?.phases]);
+
+  // 初始化与归一化模块权重，使总和严格等于100%
+  useEffect(() => {
+    setPlan(prev => {
+      const phases = Array.isArray(prev?.phases) ? prev.phases : [];
+      if (!phases.length) return prev;
+
+      // 扁平化模块以便统一计算
+      const flat = [];
+      phases.forEach((ph, pIdx) => {
+        (ph.modules || []).forEach((mod, mIdx) => {
+          flat.push({ pIdx, mIdx, mod });
+        });
+      });
+      const n = flat.length;
+      if (!n) return prev;
+
+      // 解析当前权重（允许数值或包含"%"的字符串）
+      const parsedWeights = flat.map(({ mod }) => {
+        const raw = mod?.weight;
+        if (raw == null || raw === '') return null;
+        const num = Number(String(raw).replace('%', ''));
+        return Number.isFinite(num) ? Math.max(0, num) : null;
+      });
+      const hasAnyWeight = parsedWeights.some(w => (w ?? 0) > 0);
+      const weightSum = parsedWeights.reduce((acc, w) => acc + (w || 0), 0);
+
+      // 根据模块学时（优先安排学时，其次目标学时）生成占比
+      const computeSharesFromHours = () => {
+        const bases = flat.map(({ mod }) => {
+          const b = Number(mod?.arrangedHours ?? mod?.hoursTarget ?? 0);
+          return Number.isFinite(b) ? Math.max(0, b) : 0;
+        });
+        const total = bases.reduce((a, b) => a + b, 0);
+        if (total > 0) {
+          return bases.map(b => b / total);
+        }
+        // 若无学时信息则均分
+        return Array(n).fill(1 / n);
+      };
+
+      // 将占比（和为1）转换为整数百分比并保证总和=100
+      const normalizeToPercents = (shares) => {
+        const ints = shares.map(s => Math.floor(s * 100));
+        let allocated = ints.reduce((a, b) => a + b, 0);
+        const remainders = shares.map((s, idx) => ({ idx, frac: (s * 100) - ints[idx] }));
+        remainders.sort((a, b) => b.frac - a.frac);
+        let i = 0;
+        while (allocated < 100 && i < remainders.length) {
+          ints[remainders[i].idx] += 1;
+          allocated += 1;
+          i += 1;
+        }
+        return ints;
+      };
+
+      let targetPercents = null;
+      if (!hasAnyWeight) {
+        // 初始化：依据学时比例或均分
+        targetPercents = normalizeToPercents(computeSharesFromHours());
+      } else if (Math.round(weightSum) !== 100) {
+        // 归一化：按已有比例缩放到100
+        const shares = (weightSum > 0)
+          ? parsedWeights.map(w => (w || 0) / weightSum)
+          : computeSharesFromHours();
+        targetPercents = normalizeToPercents(shares);
+      }
+
+      if (!targetPercents) return prev; // 无需变更
+
+      let mutated = false;
+      const nextPhases = phases.map((ph) => {
+        const mods = Array.isArray(ph.modules) ? [...ph.modules] : [];
+        return { ...ph, modules: mods };
+      });
+
+      flat.forEach((item, idx) => {
+        const ph = nextPhases[item.pIdx];
+        const mods = [...(ph.modules || [])];
+        const mod = { ...(mods[item.mIdx] || {}) };
+        const current = Number(String(mod?.weight ?? '').replace('%', ''));
+        const nextVal = targetPercents[idx];
+        if (!Number.isFinite(current) || current !== nextVal) {
+          mod.weight = nextVal; // 存储为数值百分比
+          mods[item.mIdx] = mod;
+          nextPhases[item.pIdx] = { ...ph, modules: mods };
+          mutated = true;
+        }
+      });
+
+      return mutated ? { ...prev, phases: nextPhases } : prev;
+    });
+  }, [plan?.phases]);
   // 动态目录项：阶段与模块（依赖 plan）
   const phaseAnchorItems = useMemo(() => (
     Array.isArray(plan?.phases)
@@ -1036,8 +1565,17 @@ const TrainingPlanViewer = ({
               return { ...ph, modules: mods };
             })
           }));
+          // 模块保存（JSON路径）后回写详细安排
+          syncModulesToSchedule();
         } else {
           setPlan(prev => ({ ...prev, [editingSectionKey]: parsed }));
+          // 保存详细安排（JSON路径）后同步到模块学时；保存阶段整体也回写详细安排
+          if (editingSectionKey === 'schedule') {
+            syncScheduleToModules(parsed);
+          }
+          if (editingSectionKey === 'phases') {
+            syncModulesToSchedule();
+          }
         }
       } else {
         if (editingSectionKey === 'phases' && editingModulePath) {
@@ -1051,8 +1589,17 @@ const TrainingPlanViewer = ({
               return { ...ph, modules: mods };
             })
           }));
+          // 模块保存（可视化路径）后回写详细安排
+          syncModulesToSchedule();
         } else {
           setPlan(prev => ({ ...prev, [editingSectionKey]: visualDraft }));
+          // 保存详细安排（可视化路径）后同步到模块学时；保存阶段整体也回写详细安排
+          if (editingSectionKey === 'schedule') {
+            syncScheduleToModules(visualDraft);
+          }
+          if (editingSectionKey === 'phases') {
+            syncModulesToSchedule();
+          }
         }
       }
       setSectionEditorVisible(false);
@@ -1071,6 +1618,18 @@ const TrainingPlanViewer = ({
       let sectionData = plan[key];
       if (sectionData === undefined) {
         sectionData = (key === 'participants' || key === 'participantTags') ? [] : {};
+      }
+      // 专门处理考核总体要求的初始值来源于 plan.assessment
+      if (key === 'assessmentOverview') {
+        const init = {
+          totalHoursTarget: plan?.assessment?.totalHoursTarget ?? totals.hoursSumTarget,
+          totalScoreTarget: plan?.assessment?.totalScoreTarget ?? 100
+        };
+        setVisualDraft(JSON.parse(JSON.stringify(init)));
+        setEditingModulePath(null);
+        setInlineVisualEditing(true);
+        setEditMode('visual');
+        return;
       }
       if (key === 'phases' && path && typeof path.phaseIdx === 'number' && typeof path.moduleIdx === 'number') {
         const mod = ((plan.phases || [])[path.phaseIdx] || {}).modules?.[path.moduleIdx] || { title: '', duration: '', content: [], format: '', assessment: '' };
@@ -1105,6 +1664,28 @@ const TrainingPlanViewer = ({
   const saveInlineVisualEdit = () => {
     if (!editingSectionKey) return;
     try {
+      // 专门保存考核总体要求到 plan.assessment
+      if (editingSectionKey === 'assessmentOverview') {
+        setPlan(prev => ({
+          ...prev,
+          assessment: {
+            ...(prev.assessment || {}),
+            totalHoursTarget: visualDraft?.totalHoursTarget ?? prev.assessment?.totalHoursTarget ?? totals.hoursSumTarget,
+            totalScoreTarget: visualDraft?.totalScoreTarget ?? prev.assessment?.totalScoreTarget ?? 100
+          }
+        }));
+        cancelInlineVisualEdit();
+        message.success('已保存该部分内容');
+        return;
+      }
+      // 保存详细安排后，同步到模块学时
+      if (editingSectionKey === 'schedule') {
+        setPlan(prev => ({ ...prev, schedule: visualDraft }));
+        syncScheduleToModules(visualDraft);
+        cancelInlineVisualEdit();
+        message.success('已保存该部分内容');
+        return;
+      }
       if (editingSectionKey === 'phases' && editingModulePath) {
         const { phaseIdx, moduleIdx } = editingModulePath;
         setPlan(prev => ({
@@ -1116,8 +1697,13 @@ const TrainingPlanViewer = ({
             return { ...ph, modules: mods };
           })
         }));
+        // 模块保存后回写详细安排
+        syncModulesToSchedule();
       } else {
         setPlan(prev => ({ ...prev, [editingSectionKey]: visualDraft }));
+        if (editingSectionKey === 'phases') {
+          syncModulesToSchedule();
+        }
       }
       cancelInlineVisualEdit();
       message.success('已保存该部分内容');
@@ -1141,6 +1727,7 @@ const TrainingPlanViewer = ({
               style={{ flex: 1 }}
               value={item}
               placeholder={placeholder}
+              onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.stopPropagation()}
               onChange={(e) => {
                 const val = e.target.value;
                 setVisualDraft(prev => ({
@@ -1167,6 +1754,33 @@ const TrainingPlanViewer = ({
     );
 
     switch (editingSectionKey) {
+      case 'assessmentOverview':
+        return (
+          <div>
+            <Title level={5}>考核总体要求</Title>
+            <Space style={{ width: '100%', marginBottom: 12 }} align="center">
+              <Text strong>总安排学时：</Text>
+              <InputNumber
+                style={{ width: 120 }}
+                min={0}
+                value={visualDraft?.totalHoursTarget ?? totals.arrangedHoursSum}
+                onChange={(val) => setVisualDraft(prev => ({ ...prev, totalHoursTarget: val }))}
+              />
+              <Text type="secondary">（已安排学时合计：{totals.arrangedHoursSum}）</Text>
+            </Space>
+            <Space style={{ width: '100%' }} align="center">
+              <Text strong>总成绩目标：</Text>
+              <InputNumber
+                style={{ width: 120 }}
+                min={0}
+                max={100}
+                value={visualDraft?.totalScoreTarget ?? 100}
+                onChange={(val) => setVisualDraft(prev => ({ ...prev, totalScoreTarget: val }))}
+              />
+              <Text type="secondary">（模块成绩合计：{totals.scoreSumTarget}）</Text>
+            </Space>
+          </div>
+        );
       case 'overview':
         return (
           <div>
@@ -1248,7 +1862,7 @@ const TrainingPlanViewer = ({
               <Input
                 style={{ width: 200 }}
                 value={visualDraft.totalHoursTarget ?? ''}
-                placeholder="总学时目标"
+                placeholder="总安排学时"
                 onChange={(e) => setVisualDraft(prev => ({ ...prev, totalHoursTarget: e.target.value }))}
               />
               <Input
@@ -1322,12 +1936,16 @@ const TrainingPlanViewer = ({
               <div key={idx} style={{ marginBottom: 12, padding: 12, border: '1px solid #f0f0f0', borderRadius: 6 }}>
                 <Space style={{ width: '100%', marginBottom: 8 }}>
                   <Input style={{ width: 120 }} value={row.week} placeholder="周次"
+                    onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.stopPropagation()}
                     onChange={(e) => setVisualDraft(prev => prev.map((r, i) => i === idx ? { ...r, week: e.target.value } : r))} />
                   <Input style={{ flex: 1 }} value={row.content} placeholder="内容"
+                    onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.stopPropagation()}
                     onChange={(e) => setVisualDraft(prev => prev.map((r, i) => i === idx ? { ...r, content: e.target.value } : r))} />
                   <Input style={{ width: 160 }} value={row.type} placeholder="形式"
+                    onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.stopPropagation()}
                     onChange={(e) => setVisualDraft(prev => prev.map((r, i) => i === idx ? { ...r, type: e.target.value } : r))} />
                   <Input style={{ width: 120 }} value={row.hours} placeholder="学时"
+                    onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.stopPropagation()}
                     onChange={(e) => setVisualDraft(prev => prev.map((r, i) => i === idx ? { ...r, hours: e.target.value } : r))} />
                   <Button danger onClick={() => setVisualDraft(prev => prev.filter((_, i) => i !== idx))}>删除</Button>
                 </Space>
@@ -1357,14 +1975,16 @@ const TrainingPlanViewer = ({
               <div key={pIdx} style={{ marginBottom: 16, padding: 12, border: '1px solid #f0f0f0', borderLeft: '3px solid #91d5ff', borderRadius: 6, background: '#fff' }}>
                 <Space style={{ width: '100%', marginBottom: 8 }}>
                   <Input style={{ flex: 1 }} value={phase.name} placeholder="阶段名称"
+                    onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.stopPropagation()}
                     onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, name: e.target.value } : ph))} />
                 </Space>
                 <TextArea rows={2} value={phase.focus} placeholder="阶段重点"
+                  onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.stopPropagation()}
                   onChange={(e) => setVisualDraft(prev => prev.map((ph, i) => i === pIdx ? { ...ph, focus: e.target.value } : ph))} />
 
                 <Divider orientation="left" style={{ margin: '12px 0' }}>模块</Divider>
                 <DndContext
-                  sensors={sensors}
+                  sensors={sensorsNoKeyboard}
                   collisionDetection={closestCenter}
                   onDragEnd={({ active, over }) => {
                     if (over && active.id !== over.id) {
@@ -1487,17 +2107,159 @@ const TrainingPlanViewer = ({
           }}>
             <Affix target={() => leftScrollRef.current} offsetTop={12}>
               <div ref={dirPanelRef} style={{ marginLeft: 12 }}>
-                <Button size="small" icon={<MenuOutlined />} onClick={() => setDirOpen(prev => !prev)}>目录</Button>
-                {dirOpen && (
-                  <Card size="small" style={{ marginTop: 8, width: 260, maxHeight: 360, overflow: 'auto' }}>
-                    <Anchor
-                      getContainer={() => leftScrollRef.current}
-                      items={anchorItems}
-                    />
-                  </Card>
-                )}
+                <Popover
+                  open={dirOpen}
+                  onOpenChange={setDirOpen}
+                  trigger="hover"
+                  placement="rightTop"
+                  getPopupContainer={() => leftScrollRef.current}
+                  overlayStyle={{ width: 480 }}
+                  content={(
+                    <div style={{ maxHeight: 640, overflow: 'auto', paddingRight: 8 }}>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+                        <Button
+                          size="small"
+                          type={dirEditingAll ? 'primary' : 'default'}
+                          icon={<SettingOutlined />}
+                          onClick={() => setDirEditingAll(prev => !prev)}
+                        >{dirEditingAll ? '退出编辑' : '编辑目录'}</Button>
+                      </div>
+                      {/* 总学时/总成绩 汇总与编辑 */}
+                      <div style={{ marginBottom: 8, padding: 8, background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 6 }}>
+                        <div style={{ fontWeight: 500, marginBottom: 6 }}>方案总览</div>
+                        {dirEditingAll ? (
+                          <Space style={{ width: '100%' }} wrap>
+                            <Text>总安排学时</Text>
+                            <InputNumber
+                              size="small"
+                              style={{ width: 100 }}
+                              min={0}
+                              value={plan?.assessment?.totalHoursTarget}
+                              placeholder="总安排学时"
+                              onMouseDown={(e) => e.stopPropagation()}
+                              onKeyDown={(e) => e.stopPropagation()}
+                              onFocus={(e) => e.stopPropagation()}
+                              onChange={(val) => setPlan(prev => ({
+                                ...prev,
+                                assessment: { ...(prev.assessment || {}), totalHoursTarget: val }
+                              }))}
+                            />
+                            <Text type="secondary">已安排学时合计：{totals.arrangedHoursSum}</Text>
+                          </Space>
+                        ) : (
+                          <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                            <Text>总安排学时：{totals.totalHoursTarget}</Text>
+                            <Text type="secondary">已安排学时合计：{totals.arrangedHoursSum}</Text>
+                          </Space>
+                        )}
+                      </div>
+                      <div style={{ marginBottom: 8 }}>
+                        <Button type="link" size="small" onClick={() => scrollToAnchor('#section-overview')}>方案概述</Button>
+                      </div>
+                      <div style={{ marginBottom: 8 }}>
+                        <Button type="link" size="small" onClick={() => scrollToAnchor('#section-participantTags')}>参训人员（标签）</Button>
+                      </div>
+                      <div style={{ marginBottom: 8 }}>
+                        <Button type="link" size="small" onClick={() => scrollToAnchor('#section-phases')}>培训阶段与内容</Button>
+                      </div>
+                      {(plan.phases || []).map((ph, pIdx) => (
+                        <div key={`dir-phase-${pIdx}`} style={{ marginBottom: 6 }}>
+                          <div style={{ fontWeight: 500 }}>
+                            <Button type="link" size="small" onClick={() => scrollToAnchor(`#phase-${pIdx}`)}>
+                              {ph?.name || `阶段 ${pIdx + 1}`}
+                            </Button>
+                          </div>
+                          {(ph.modules || []).map((m, mIdx) => (
+                            <div key={`dir-phase-${pIdx}-module-${mIdx}`} style={{ display: 'flex', alignItems: 'center', gap: 6, paddingLeft: 12, marginTop: 4 }}>
+                              <Button type="link" size="small" onClick={() => scrollToAnchor(`#phase-${pIdx}-module-${mIdx}`)}>
+                                {m?.title || `模块 ${mIdx + 1}`}
+                              </Button>
+                              <>
+                                {dirEditingAll ? (
+                                  <Space size={4} align="center">
+                                    <Text type="secondary" style={{ fontSize: 12 }}>安排学时</Text>
+                                    <InputNumber
+                                      size="small"
+                                      style={{ width: 80 }}
+                                      min={0}
+                                      value={Number(m?.arrangedHours ?? m?.hoursTarget ?? 0)}
+                                      onMouseDown={(e) => e.stopPropagation()}
+                                      onKeyDown={(e) => e.stopPropagation()}
+                                      onFocus={(e) => e.stopPropagation()}
+                                      onChange={(val) => {
+                                        const v = Number(val ?? 0);
+                                        setPlan(prev => {
+                                          const phases = Array.isArray(prev?.phases) ? prev.phases.map((ph, idx) => {
+                                            if (idx !== pIdx) return ph;
+                                            const mods = Array.isArray(ph.modules) ? ph.modules.map((mod, j) => (
+                                              j === mIdx ? { ...mod, arrangedHours: v } : mod
+                                            )) : [];
+                                            return { ...ph, modules: mods };
+                                          }) : [];
+                                          return { ...prev, phases };
+                                        });
+                                      }}
+                                    />
+                                  </Space>
+                                ) : (
+                                  <Text type="secondary" style={{ fontSize: 12 }}>安排学时：{Number(m?.arrangedHours ?? m?.hoursTarget ?? 0)}</Text>
+                                )}
+                                {dirEditingAll ? (
+                                  <Space size={4} align="center">
+                                    <Text type="secondary" style={{ fontSize: 12 }}>权重(%)</Text>
+                                    <InputNumber
+                                      size="small"
+                                      style={{ width: 80 }}
+                                      min={0}
+                                      max={100}
+                                      value={Number(m?.weight ?? 0)}
+                                      onMouseDown={(e) => e.stopPropagation()}
+                                      onKeyDown={(e) => e.stopPropagation()}
+                                      onFocus={(e) => e.stopPropagation()}
+                                      onChange={(val) => {
+                                        const v = Number(val ?? 0);
+                                        setPlan(prev => {
+                                          const phases = Array.isArray(prev?.phases) ? prev.phases.map((ph, idx) => {
+                                            if (idx !== pIdx) return ph;
+                                            const mods = Array.isArray(ph.modules) ? ph.modules.map((mod, j) => (
+                                              j === mIdx ? { ...mod, weight: v } : mod
+                                            )) : [];
+                                            return { ...ph, modules: mods };
+                                          }) : [];
+                                          return { ...prev, phases };
+                                        });
+                                      }}
+                                    />
+                                  </Space>
+                                ) : (
+                                  <Text type="secondary" style={{ fontSize: 12 }}>｜权重：{Number(m?.weight ?? 0)}%</Text>
+                                )}
+                              </>
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                      <div style={{ marginTop: 8 }}>
+                        <Button type="link" size="small" onClick={() => scrollToAnchor('#section-schedule')}>培训进度安排</Button>
+                      </div>
+                      <div>
+                        <Button type="link" size="small" onClick={() => scrollToAnchor('#section-implementation')}>实施保障</Button>
+                      </div>
+                      <div>
+                        <Button type="link" size="small" onClick={() => scrollToAnchor('#section-assessment')}>考核与评价</Button>
+                      </div>
+                      <div>
+                        <Button type="link" size="small" onClick={() => scrollToAnchor('#section-guarantee')}>保障措施</Button>
+                      </div>
+                    </div>
+                  )}
+                >
+                  <Button size="small" icon={<MenuOutlined />} onClick={() => setDirOpen(true)}>目录</Button>
+                </Popover>
               </div>
             </Affix>
+
+
 
             {/* 方案概述 */}
             <div id="section-overview">
@@ -1525,8 +2287,73 @@ const TrainingPlanViewer = ({
               />
             </div>
 
+            {/* 培训总览（旧位置，已隐藏） */}
+            <div hidden style={{ marginBottom: 16, padding: 16, background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 6 }}>
+              <div style={{ fontWeight: 600, marginBottom: 12, fontSize: '16px' }}>培训总览</div>
+              {editMode === 'visual' ? (
+                <div>
+                  <div style={{ marginBottom: 12 }}>
+                    <Space size={12} align="center">
+                      <Text strong>总安排学时：</Text>
+                      <InputNumber
+                        size="small"
+                        style={{ width: 100 }}
+                        min={0}
+                        value={plan?.assessment?.totalHoursTarget ?? totals.arrangedHoursSum}
+                        placeholder="总学时"
+                        onChange={(val) => setPlan(prev => ({
+                          ...prev,
+                          assessment: { ...(prev.assessment || {}), totalHoursTarget: val }
+                        }))}
+                      />
+                      <Text type="secondary">（已安排学时合计：{totals.arrangedHoursSum}）</Text>
+                    </Space>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div style={{ marginBottom: 8 }}>
+                    <Text strong>总学时目标：</Text>
+                    <Text style={{ fontSize: '16px', color: '#1890ff' }}>
+                      {plan?.assessment?.totalHoursTarget ?? totals.arrangedHoursSum}
+                    </Text>
+                    <Text type="secondary" style={{ marginLeft: 8 }}>
+                      （模块学时合计：{totals.arrangedHoursSum}）
+                    </Text>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* 培训阶段与内容 */}
             <div id="section-phases">
+              {/* 考核总体要求（位于标题和第一阶段之间） */}
+              <div style={{ marginBottom: 16 }}>
+                <Title level={3} style={{ marginBottom: 8 }}>考核总体要求</Title>
+                <SectionHeader
+                  sectionKey="assessmentOverview"
+                  onVisualEdit={() => openInlineVisualEditor('assessmentOverview')}
+                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('assessmentOverview'); }}
+                />
+                <Card size="small">
+                  <InlineEditableSection
+                    sectionKey="assessmentOverview"
+                    renderContent={() => (
+                      <div>
+                         <div style={{ marginBottom: 8 }}>
+                          <Text strong>总安排学时：</Text>
+                          <Text style={{ fontSize: '16px', color: '#1890ff' }}>
+                            {plan?.assessment?.totalHoursTarget ?? totals.arrangedHoursSum}
+                          </Text>
+                          <Text type="secondary" style={{ marginLeft: 8 }}>
+                            （已安排学时合计：{totals.arrangedHoursSum}）
+                          </Text>
+                        </div>
+                      </div>
+                    )}
+                  />
+                </Card>
+              </div>
               <SectionHeader
                 sectionKey="phases"
                 onVisualEdit={() => openInlineVisualEditor('phases')}
@@ -1544,6 +2371,7 @@ const TrainingPlanViewer = ({
               />
             </div>
 
+
             {/* 详细时间安排 */}
             <div id="section-schedule">
               <SectionHeader
@@ -1553,7 +2381,14 @@ const TrainingPlanViewer = ({
               />
               <InlineEditableSection
                 sectionKey="schedule"
-                renderContent={() => <TrainingSchedule schedule={plan.schedule} />}
+                renderContent={() => (
+                  <TrainingSchedule
+                    schedule={scheduleWithWeights}
+                    showWeight={true}
+                    editable={false}
+                    onChangeModuleWeight={handleChangeModuleWeight}
+                  />
+                )}
               />
             </div>
 
