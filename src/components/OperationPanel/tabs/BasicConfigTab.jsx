@@ -49,21 +49,6 @@ const BasicConfigTab = ({ draft, updateDraft, formatKey, configModal, formatConf
 
   return (
     <Form layout="vertical">
-      {/* 已配时长显示 - 仅在视频格式时显示 */}
-      {formatKey === 'videos' && (
-        <Form.Item label="已配时长(分钟)" style={{ marginBottom: 8 }}>
-          <div style={{ 
-            padding: '4px 11px', 
-            border: '1px solid #d9d9d9', 
-            borderRadius: '6px', 
-            backgroundColor: '#fafafa',
-            fontSize: '14px',
-            color: '#666'
-          }}>
-            {calculateSelectedDuration} 分钟
-          </div>
-        </Form.Item>
-      )}
 
       {formatKey === 'document' && (
         <>
@@ -111,110 +96,90 @@ const BasicConfigTab = ({ draft, updateDraft, formatKey, configModal, formatConf
 
       {(formatKey === 'live' || formatKey === 'videos') && (
         <>
-          {/* 点播课/直播课：按图示提供三组设置 */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginBottom: 12 }}>
-            {/* 考试要求设置 */}
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 600, padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>考试要求设置</div>
-              <div style={{ marginTop: 12 }}>
-                <div style={inlineRow}>
-                  <InputNumber
-                    size="small"
-                    value={draft.watch?.requiredMinutes}
-                    min={0}
-                    onChange={(v) => updateDraft('watch.requiredMinutes', v)}
-                    style={{ width: 100 }}
-                  />
-                  <span>分钟</span>
-                </div>
-              </div>
+          {/* 成绩设置 */}
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontWeight: 600, padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>成绩设置</div>
+            <div style={{ marginTop: 12 }}>
+              {(() => {
+                const method = draft.assessment?.method || '固定成绩';
+                return (
+                  <div style={inlineRow}>
+                    <Select
+                      size="small"
+                      value={method}
+                      onChange={(v) => updateDraft('assessment.method', v)}
+                      options={[
+                        { value: '固定成绩', label: '固定成绩' },
+                        { value: '不计成绩', label: '不计成绩' }
+                      ]}
+                      style={{ width: 120 }}
+                    />
+                    {method === '固定成绩' && (
+                      <>
+                        <InputNumber
+                          size="small"
+                          value={draft.assessment?.fixedScore}
+                          min={0}
+                          max={100}
+                          onChange={(v) => updateDraft('assessment.fixedScore', v)}
+                          style={{ width: 88 }}
+                        />
+                        <span>分</span>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
+          </div>
 
-            {/* 成绩设置 */}
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 600, padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>成绩设置</div>
-              <div style={{ marginTop: 12 }}>
-                {(() => {
-                  const method = draft.assessment?.method || '固定成绩';
-                  return (
-                    <div style={inlineRow}>
-                      <Select
-                        size="small"
-                        value={method}
-                        onChange={(v) => updateDraft('assessment.method', v)}
-                        options={[
-                          { value: '固定成绩', label: '固定成绩' },
-                          { value: '不计成绩', label: '不计成绩' }
-                        ]}
-                        style={{ width: 120 }}
-                      />
-                      {method === '固定成绩' && (
-                        <>
-                          <InputNumber
-                            size="small"
-                            value={draft.assessment?.fixedScore}
-                            min={0}
-                            max={100}
-                            onChange={(v) => updateDraft('assessment.fixedScore', v)}
-                            style={{ width: 88 }}
-                          />
-                          <span>分</span>
-                        </>
-                      )}
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-
-            {/* 学时设置 */}
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 600, padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>学时设置</div>
-              <div style={{ marginTop: 12 }}>
-                {(() => {
-                  const policy = draft.watch?.creditPolicy || '累计学时';
-                  return (
-                    <div style={inlineRow}>
-                      <Select
-                        size="small"
-                        value={policy}
-                        onChange={(v) => updateDraft('watch.creditPolicy', v)}
-                        options={[
-                          { value: '累计学时', label: '累计学时' },
-                          { value: '固定学时', label: '固定学时' },
-                          { value: '不计学时', label: '不计学时' }
-                        ]}
-                        style={{ width: 120 }}
-                      />
-                      {policy === '累计学时' && (
-                        <>
-                          <InputNumber
-                            size="small"
-                            value={draft.watch?.minutePerCredit ?? 1}
-                            min={1}
-                            onChange={(v) => updateDraft('watch.minutePerCredit', v)}
-                            style={{ width: 88 }}
-                          />
-                          <span>分钟=1学时</span>
-                        </>
-                      )}
-                      {policy === '固定学时' && (
-                        <>
-                          <InputNumber
-                            size="small"
-                            value={draft.watch?.fixedCredits ?? 1}
-                            min={1}
-                            onChange={(v) => updateDraft('watch.fixedCredits', v)}
-                            style={{ width: 88 }}
-                          />
-                          <span>学时</span>
-                        </>
-                      )}
-                      {policy === '不计学时' && null}
-                    </div>
-                  );
-                })()}
-              </div>
+          {/* 学时设置 */}
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontWeight: 600, padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>学时设置</div>
+            <div style={{ marginTop: 12 }}>
+              {(() => {
+                const policy = draft.watch?.creditPolicy || '累计学时';
+                return (
+                  <div style={inlineRow}>
+                    <Select
+                      size="small"
+                      value={policy}
+                      onChange={(v) => updateDraft('watch.creditPolicy', v)}
+                      options={[
+                        { value: '累计学时', label: '累计学时' },
+                        { value: '固定学时', label: '固定学时' },
+                        { value: '不计学时', label: '不计学时' }
+                      ]}
+                      style={{ width: 120 }}
+                    />
+                    {policy === '累计学时' && (
+                      <>
+                        <InputNumber
+                          size="small"
+                          value={draft.watch?.minutePerCredit ?? 60}
+                          min={1}
+                          onChange={(v) => updateDraft('watch.minutePerCredit', v)}
+                          style={{ width: 88 }}
+                        />
+                        <span>分钟=1学时</span>
+                      </>
+                    )}
+                    {policy === '固定学时' && (
+                      <>
+                        <InputNumber
+                          size="small"
+                          value={draft.watch?.fixedCredits ?? 1}
+                          min={1}
+                          onChange={(v) => updateDraft('watch.fixedCredits', v)}
+                          style={{ width: 88 }}
+                        />
+                        <span>学时</span>
+                      </>
+                    )}
+                    {policy === '不计学时' && null}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </>

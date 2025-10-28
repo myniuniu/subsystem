@@ -11,6 +11,7 @@ import VideoContentTab from './tabs/VideoContentTab'
 import ExamNotifyTab from './tabs/ExamNotifyTab'
 import QuestionSelectionTab from './tabs/QuestionSelectionTab'
 import ReviewSettingsTab from './tabs/ReviewSettingsTab'
+import DocumentAssessmentTab from './tabs/DocumentAssessmentTab'
 
 const { Text } = Typography;
 const { CheckableTag } = Tag;
@@ -273,9 +274,28 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
           h = Number(cfg?.watch?.fixedCredits || 0);
           hPolicyDesc = `固定学时：${h}学时`;
         } else if (policy === '累计学时') {
-          h = 0; // 累计学时依据内容分钟数换算，此处不固定计入
-          const minutePerCredit = Number(cfg?.watch?.minutePerCredit || 1);
-          hPolicyDesc = `累计学时：按分钟换算（${minutePerCredit}分钟=1学时）`;
+          // 累计学时：依据已选课程内容分钟数换算为学时
+          const minutePerCredit = Number(cfg?.watch?.minutePerCredit ?? 60);
+          const selectedIds = Array.isArray(cfg?.selectedCollections) ? cfg.selectedCollections : [];
+          let totalMinutes = 0;
+          selectedIds.forEach(collectionId => {
+            const categoryKey = String(collectionId).replace('rc-','').replace(/-\d+$/,'');
+            const resources = initialResources.filter(r => r.category === categoryKey && (r.type === 'video' || r.type === 'audio'));
+            resources.forEach(resource => {
+              let estimatedMinutes = 0;
+              if (resource.type === 'video') {
+                const t = resource.title || '';
+                if (t.includes('培训') || t.includes('课程')) estimatedMinutes = 45;
+                else if (t.includes('微课') || t.includes('演示')) estimatedMinutes = 15;
+                else estimatedMinutes = 30;
+              } else if (resource.type === 'audio') {
+                estimatedMinutes = 20;
+              }
+              totalMinutes += estimatedMinutes;
+            });
+          });
+          h = minutePerCredit > 0 ? Math.round((totalMinutes / minutePerCredit) * 10) / 10 : 0;
+          hPolicyDesc = `累计学时：总时长${totalMinutes}分钟，${minutePerCredit}分钟=1学时 → ${h}学时`;
         } else {
           h = 0;
           hPolicyDesc = '不计学时';
@@ -794,8 +814,8 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
     const base = baseAll[formatKey] || getDefaultConfig(phase, formatKey);
     const typeKey = mapFormatKeyToTypeKey(formatKey);
     setConfigModal({ visible: true, phaseId, formatKey, typeKey, draft: { ...base } });
-    // 当打开考试类型配置时，默认切换到“试题”页签
-    setConfigTabKey(typeKey === 'exam' ? 'exam-paper' : 'content');
+    // 默认页签：考试为“试题”，研修成果为“考核设置”，其他为“课程内容”
+    setConfigTabKey(typeKey === 'exam' ? 'exam-paper' : (typeKey === 'document' ? 'basic' : 'content'));
   };
 
   const openProgressOverview = (phaseId) => {
@@ -1194,6 +1214,111 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                <Button onClick={() => setConfigModal({ visible: false, phaseId: null, formatKey: null, typeKey: null, draft: null })}>返回</Button>
              </Space>
            </div>
+           {configModal.typeKey === 'videos' && (() => {
+             const phase = configModal.phaseId ? phaseMaterials.find(p => p.id === configModal.phaseId) : null;
+             const s = phase ? summarizePhaseConfig(phase) : null;
+             if (!s) return null;
+             // 计算点播课“已配学时”
+             const phaseCfg = (formatConfigs[configModal.phaseId] || {});
+             const baseVideos = phaseCfg.videos || getDefaultConfig(phase, 'videos');
+             const selectedIds = Array.isArray(baseVideos.selectedCollections) ? baseVideos.selectedCollections : [];
+             let totalMinutes = 0;
+             selectedIds.forEach(collectionId => {
+               const categoryKey = String(collectionId).replace('rc-','').replace(/-\d+$/,'');
+               const resources = initialResources.filter(r => r.category === categoryKey && (r.type === 'video' || r.type === 'audio'));
+               resources.forEach(resource => {
+                 let estimatedMinutes = 0;
+                 if (resource.type === 'video') {
+                   const t = resource.title || '';
+                   if (t.includes('培训') || t.includes('课程')) estimatedMinutes = 45;
+                   else if (t.includes('微课') || t.includes('演示')) estimatedMinutes = 15;
+                   else estimatedMinutes = 30;
+                 } else if (resource.type === 'audio') {
+                   estimatedMinutes = 20;
+                 }
+                 totalMinutes += estimatedMinutes;
+               });
+             });
+             // 使用与BasicConfigTab一致的数据源：优先使用formatConfigs中的配置，回退到draft
+             const videosConfig = phaseCfg.videos || {};
+             const watchConfig = videosConfig.watch || configModal?.draft?.watch || {};
+             const policy = watchConfig.creditPolicy || '累计学时';
+             const minutePerCredit = Number(watchConfig.minutePerCredit ?? 60) || 60;
+             const fixedCredits = Number(watchConfig.fixedCredits ?? 1) || 1;
+             const allocatedCredits = (policy === '累计学时')
+               ? (minutePerCredit > 0 ? Math.round((totalMinutes / minutePerCredit) * 10) / 10 : 0)
+               : (policy === '固定学时' ? fixedCredits : 0);
+             const hoursPercent = s && s.targetHours > 0
+               ? Math.min(100, Math.round((allocatedCredits / s.targetHours) * 100))
+               : 0;
+             const methodLabel = policy === '累计学时' ? `累计学时（${minutePerCredit}分钟=1学时）` : (policy === '固定学时' ? '固定学时' : '不计学时');
+             return (
+               <>
+                <div style={{ margin: '0 0 8px 0', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  {(() => {
+                    const isHoursComplete = hoursPercent >= 100;
+                    const boxStyle = isHoursComplete
+                      ? { background: '#fafafa', border: '1px solid #d9d9d9', borderRadius: 8, padding: '8px 10px' }
+                      : { background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 8, padding: '8px 10px' };
+                    const titleColor = isHoursComplete ? '#595959' : '#135200';
+                    const valueColor = isHoursComplete ? '#595959' : '#135200';
+                    return (
+                      <div style={boxStyle}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Text style={{ fontSize: 12, color: titleColor, fontWeight: 600 }}>安排学时配置进度</Text>
+                          <Text style={{ fontSize: 12, color: valueColor }}>{allocatedCredits} / {s.targetHours} 学时</Text>
+                        </div>
+                        <Progress
+                          percent={hoursPercent}
+                          size="small"
+                          {...(isHoursComplete
+                            ? { status: 'normal', strokeColor: '#d9d9d9', trailColor: '#f5f5f5' }
+                            : { status: 'active' })}
+                        />
+                      </div>
+                    );
+                  })()}
+                  {(() => {
+                    const isScoreComplete = (s.percentScore >= 100);
+                    const boxStyle = isScoreComplete
+                      ? { background: '#fafafa', border: '1px solid #d9d9d9', borderRadius: 8, padding: '8px 10px' }
+                      : { background: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: 8, padding: '8px 10px' };
+                    const titleColor = isScoreComplete ? '#595959' : '#003a8c';
+                    const valueColor = isScoreComplete ? '#595959' : '#003a8c';
+                    return (
+                      <div style={boxStyle}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Text style={{ fontSize: 12, color: titleColor, fontWeight: 600 }}>成绩配置进度</Text>
+                          <Text style={{ fontSize: 12, color: valueColor }}>{s.percentScore}% / 100%</Text>
+                        </div>
+                        <Progress
+                          percent={s.percentScore}
+                          size="small"
+                          {...(isScoreComplete
+                            ? { status: 'normal', strokeColor: '#d9d9d9', trailColor: '#f5f5f5' }
+                            : { status: 'active' })}
+                        />
+                      </div>
+                    );
+                  })()}
+                </div>
+                 <div style={{ margin: '0 0 8px 0', background: '#fffbe6', border: '1px solid #ffe58f', borderRadius: 8, padding: '8px 10px' }}>
+                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                     <Text style={{ fontSize: 12, color: '#614700', fontWeight: 600 }}>已配学时情况</Text>
+                     <Text style={{ fontSize: 12, color: '#614700' }}>{allocatedCredits} 学时</Text>
+                   </div>
+                   <div style={{ fontSize: 12, color: '#614700' }}>
+                     {policy === '累计学时'
+                       ? (<span>总时长 {totalMinutes} 分钟 ÷ {minutePerCredit} 分钟/学时 = {allocatedCredits} 学时</span>)
+                       : (policy === '固定学时'
+                         ? (<span>按固定学时：{fixedCredits} 学时</span>)
+                         : (<span>不计学时</span>))}
+                     <span style={{ marginLeft: 8, color: '#ad6800' }}>算法：{methodLabel}</span>
+                   </div>
+                 </div>
+               </>
+             );
+           })()}
           <Card
             title={(
               <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
@@ -1209,21 +1334,28 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                           { key: 'exam-review', label: '评阅' },
                           { key: 'exam-notice', label: '通知' }
                         ]
-                      : [
-                          { key: 'basic', label: '考核设置' },
-                          { key: 'content', label: '课程内容' }
-                        ]
+                      : (
+                          configModal.typeKey === 'document'
+                            ? [
+                                { key: 'basic', label: '考核设置' },
+                                { key: 'review', label: '评阅' }
+                              ]
+                            : [
+                                { key: 'basic', label: '考核设置' },
+                                { key: 'content', label: '课程内容' }
+                              ]
+                        )
                   )}
                   size="small"
-                  tabBarGutter={28}
+                  tabBarGutter={20}
                   tabBarStyle={{ margin: 0 }}
                 />
               </div>
             )}
             size="small"
-            headStyle={{ borderBottom: 'none', padding: '0 12px', minHeight: 30 }}
+            headStyle={{ borderBottom: 'none', padding: '0 12px 4px', minHeight: 28 }}
             style={{ marginTop: 4 }}
-            bodyStyle={{ padding: '12px 16px' }}
+            bodyStyle={{ paddingTop: 8, paddingRight: 16, paddingBottom: 12, paddingLeft: 16 }}
           >
             {configModal.draft && (
               // 考试形式：按页签分别渲染，考试配置不包含试卷选择
@@ -1524,34 +1656,64 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                         key: 'basic',
                         label: '考核设置',
                         children: (
-                          <BasicConfigTab draft={configModal.draft} updateDraft={updateDraft} formatKey={configModal.typeKey} />
-                        )
-                      },
-                      {
-                        key: 'content',
-                        label: (configModal.typeKey === 'exam' ? '试卷' : '课程内容'),
-                        children: (
-                          configModal.typeKey === 'videos' ? (
-                            <VideoContentTab
+                          configModal.typeKey === 'document' ? (
+                            <DocumentAssessmentTab 
+                              draft={configModal.draft} 
+                              updateDraft={updateDraft}
                               configModal={configModal}
                               formatConfigs={formatConfigs}
-                              setFormatConfigs={setFormatConfigs}
                               phaseMaterials={phaseMaterials}
-                              leftViewMode={leftViewMode}
-                              setLeftViewMode={setLeftViewMode}
-                              isSmallScreen={isSmallScreen}
-                              leftCollapsed={leftCollapsed}
-                              rightFilterCategory={rightFilterCategory}
-                              setRightFilterCategory={setRightFilterCategory}
-                              rightFilterQuery={rightFilterQuery}
-                              setRightFilterQuery={setRightFilterQuery}
                               getDefaultConfig={getDefaultConfig}
                             />
                           ) : (
-                            <Empty description="当前形式不支持课程内容配置" />
+                            <BasicConfigTab draft={configModal.draft} updateDraft={updateDraft} formatKey={configModal.typeKey} />
                           )
                         )
-                      }
+                      },
+                      ...(
+                        configModal.typeKey === 'document'
+                          ? []
+                          : [
+                              {
+                                key: 'content',
+                                label: (configModal.typeKey === 'exam' ? '试卷' : '课程内容'),
+                                children: (
+                                  configModal.typeKey === 'videos' ? (
+                                    <VideoContentTab
+                                      configModal={configModal}
+                                      formatConfigs={formatConfigs}
+                                      setFormatConfigs={setFormatConfigs}
+                                      phaseMaterials={phaseMaterials}
+                                      leftViewMode={leftViewMode}
+                                      setLeftViewMode={setLeftViewMode}
+                                      isSmallScreen={isSmallScreen}
+                                      leftCollapsed={leftCollapsed}
+                                      rightFilterCategory={rightFilterCategory}
+                                      setRightFilterCategory={setRightFilterCategory}
+                                      rightFilterQuery={rightFilterQuery}
+                                      setRightFilterQuery={setRightFilterQuery}
+                                      getDefaultConfig={getDefaultConfig}
+                                    />
+                                  ) : (
+                                    <Empty description="当前形式不支持课程内容配置" />
+                                  )
+                                )
+                              }
+                            ]
+                      ),
+                      ...(
+                        configModal.typeKey === 'document'
+                          ? [
+                              {
+                                key: 'review',
+                                label: '评阅',
+                                children: (
+                                  <ReviewSettingsTab draft={configModal.draft} updateDraft={updateDraft} />
+                                )
+                              }
+                            ]
+                          : []
+                      )
                     ]}
                   />
                 )
@@ -1611,29 +1773,55 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                     >
                       {/* 顶部全局配置进度（学时 + 成绩） */}
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: '8px 12px', background: '#f8f9fa', borderRadius: 8, border: '1px solid #e9ecef', marginBottom: 8 }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                          <Tooltip title="分子：已配置学时；分母：总安排学时" placement="bottom">
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'help' }}>
-                              <Text strong style={{ fontSize: 12, color: '#135200' }}>安排学时配置进度</Text>
-                              <Text style={{ fontSize: 12, color: '#135200' }}>{overallTotals.hoursSum} / {overallTotals.totalHoursTarget}</Text>
+                        {(() => {
+                          const isHoursComplete = overallTotals.percentHours >= 100;
+                          const titleColor = isHoursComplete ? '#595959' : '#135200';
+                          const valueColor = isHoursComplete ? '#595959' : '#135200';
+                          return (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                              <Tooltip title="分子：已配置学时；分母：总安排学时" placement="bottom">
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'help' }}>
+                                  <Text strong style={{ fontSize: 12, color: titleColor }}>安排学时配置进度</Text>
+                                  <Text style={{ fontSize: 12, color: valueColor }}>{overallTotals.hoursSum} / {overallTotals.totalHoursTarget}</Text>
+                                </div>
+                              </Tooltip>
+                              <Progress
+                                percent={overallTotals.percentHours}
+                                size="small"
+                                {...(isHoursComplete
+                                  ? { status: 'normal', strokeColor: '#d9d9d9', trailColor: '#f5f5f5' }
+                                  : { status: 'active' })}
+                              />
                             </div>
-                          </Tooltip>
-                          <Progress percent={overallTotals.percentHours} size="small" status={overallTotals.percentHours >= 100 ? 'success' : 'active'} />
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <Tooltip
-                              title={
-                                '计算方案：总成绩配置进度 = 各模块（模块内成绩百分比 × 模块权重）的加总。'
-                              }
-                              placement="bottom"
-                            >
-                              <Text strong style={{ fontSize: 12, color: '#003a8c', cursor: 'help' }}>成绩配置进度</Text>
-                            </Tooltip>
-                            <Text style={{ fontSize: 12, color: '#003a8c' }}>{overallTotals.percentScore}% / 100%</Text>
-                          </div>
-                          <Progress percent={overallTotals.percentScore} size="small" status={overallTotals.percentScore >= 100 ? 'success' : 'active'} />
-                        </div>
+                          );
+                        })()}
+                        {(() => {
+                          const isScoreComplete = overallTotals.percentScore >= 100;
+                          const titleColor = isScoreComplete ? '#595959' : '#003a8c';
+                          const valueColor = isScoreComplete ? '#595959' : '#003a8c';
+                          return (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <Tooltip
+                                  title={
+                                    '计算方案：总成绩配置进度 = 各模块（模块内成绩百分比 × 模块权重）的加总。'
+                                  }
+                                  placement="bottom"
+                                >
+                                  <Text strong style={{ fontSize: 12, color: titleColor, cursor: 'help' }}>成绩配置进度</Text>
+                                </Tooltip>
+                                <Text style={{ fontSize: 12, color: valueColor }}>{overallTotals.percentScore}% / 100%</Text>
+                              </div>
+                              <Progress
+                                percent={overallTotals.percentScore}
+                                size="small"
+                                {...(isScoreComplete
+                                  ? { status: 'normal', strokeColor: '#d9d9d9', trailColor: '#f5f5f5' }
+                                  : { status: 'active' })}
+                              />
+                            </div>
+                          );
+                        })()}
                       </div>
 
                       {/* 阶段列表（仅显示当前筛选命中的模块）*/}
@@ -1686,26 +1874,52 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                   const s = summarizePhaseConfig(phase);
                                   return (
                                     <div style={{ marginTop: 6, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                                      <div
-                                        onClick={() => openProgressOverview(phase.id)}
-                                        style={{ cursor: 'pointer', background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 6, padding: '6px 8px' }}
-                                      >
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                          <Text style={{ fontSize: 12, color: '#135200', fontWeight: 600 }}>安排学时配置进度</Text>
-                                          <Text style={{ fontSize: 12, color: '#135200' }}>{s.hoursSum} / {s.targetHours} 学时</Text>
-                                        </div>
-                                        <Progress percent={s.percentHours} size="small" status={s.percentHours >= 100 ? 'success' : 'active'} />
-                                      </div>
-                                      <div
-                                        onClick={() => openProgressOverview(phase.id)}
-                                        style={{ cursor: 'pointer', background: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: 6, padding: '6px 8px' }}
-                                      >
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                          <Text style={{ fontSize: 12, color: '#003a8c', fontWeight: 600 }}>成绩配置进度</Text>
-                                          <Text style={{ fontSize: 12, color: '#003a8c' }}>{s.percentScore}% / 100%</Text>
-                                        </div>
-                                        <Progress percent={s.percentScore} size="small" status={s.percentScore >= 100 ? 'success' : 'active'} />
-                                      </div>
+                                      {(() => {
+                                        const isHoursComplete = s.percentHours >= 100;
+                                        const boxStyle = isHoursComplete
+                                          ? { cursor: 'pointer', background: '#fafafa', border: '1px solid #d9d9d9', borderRadius: 6, padding: '6px 8px' }
+                                          : { cursor: 'pointer', background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 6, padding: '6px 8px' };
+                                        const titleColor = isHoursComplete ? '#595959' : '#135200';
+                                        const valueColor = isHoursComplete ? '#595959' : '#135200';
+                                        return (
+                                          <div onClick={() => openProgressOverview(phase.id)} style={boxStyle}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                              <Text style={{ fontSize: 12, color: titleColor, fontWeight: 600 }}>安排学时配置进度</Text>
+                                              <Text style={{ fontSize: 12, color: valueColor }}>{s.hoursSum} / {s.targetHours} 学时</Text>
+                                            </div>
+                                            <Progress
+                                              percent={s.percentHours}
+                                              size="small"
+                                              {...(isHoursComplete
+                                                ? { status: 'normal', strokeColor: '#d9d9d9', trailColor: '#f5f5f5' }
+                                                : { status: 'active' })}
+                                            />
+                                          </div>
+                                        );
+                                      })()}
+                                      {(() => {
+                                        const isScoreComplete = s.percentScore >= 100;
+                                        const boxStyle = isScoreComplete
+                                          ? { cursor: 'pointer', background: '#fafafa', border: '1px solid #d9d9d9', borderRadius: 6, padding: '6px 8px' }
+                                          : { cursor: 'pointer', background: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: 6, padding: '6px 8px' };
+                                        const titleColor = isScoreComplete ? '#595959' : '#003a8c';
+                                        const valueColor = isScoreComplete ? '#595959' : '#003a8c';
+                                        return (
+                                          <div onClick={() => openProgressOverview(phase.id)} style={boxStyle}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                              <Text style={{ fontSize: 12, color: titleColor, fontWeight: 600 }}>成绩配置进度</Text>
+                                              <Text style={{ fontSize: 12, color: valueColor }}>{s.percentScore}% / 100%</Text>
+                                            </div>
+                                            <Progress
+                                              percent={s.percentScore}
+                                              size="small"
+                                              {...(isScoreComplete
+                                                ? { status: 'normal', strokeColor: '#d9d9d9', trailColor: '#f5f5f5' }
+                                                : { status: 'active' })}
+                                            />
+                                          </div>
+                                        );
+                                      })()}
                                     </div>
                                   );
                                 })()}
@@ -1777,23 +1991,55 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                           const scoreProgressPercent = Math.max(0, Math.min(100, Math.round(scoreRaw)));
                                           return (
                                             <div style={{ marginTop: 6, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                                              <div style={{ background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 6, padding: '6px 8px' }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                  <Text style={{ fontSize: 12, color: '#135200', fontWeight: 600 }}>安排学时配置进度</Text>
-                                                  <Text style={{ fontSize: 12, color: '#135200' }}>{Number(dHours?.value || 0)} / {s.targetHours} 学时</Text>
-                                                </div>
-                                                <Progress percent={hoursPercent} size="small" status={hoursPercent >= 100 ? 'success' : 'active'} />
-                                              </div>
-                                              <div style={{ background: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: 6, padding: '6px 8px' }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                  <Text style={{ fontSize: 12, color: '#003a8c', fontWeight: 600 }}>成绩配置进度</Text>
-                                                  <Text style={{ fontSize: 12, color: '#003a8c' }}>{scoreRaw}分 / 100分</Text>
-                                                </div>
-                                                <Progress percent={scoreProgressPercent} size="small" status={scoreProgressPercent >= 100 ? 'success' : 'active'} />
-                                              </div>
+                                              {(() => {
+                                                const isHoursComplete = hoursPercent >= 100;
+                                                const boxStyle = isHoursComplete
+                                                  ? { background: '#fafafa', border: '1px solid #d9d9d9', borderRadius: 6, padding: '6px 8px' }
+                                                  : { background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 6, padding: '6px 8px' };
+                                                const titleColor = isHoursComplete ? '#595959' : '#135200';
+                                                const valueColor = isHoursComplete ? '#595959' : '#135200';
+                                                return (
+                                                  <div style={boxStyle}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                      <Text style={{ fontSize: 12, color: titleColor, fontWeight: 600 }}>安排学时配置进度</Text>
+                                                      <Text style={{ fontSize: 12, color: valueColor }}>{Number(dHours?.value || 0)} / {s.targetHours} 学时</Text>
+                                                    </div>
+                                                    <Progress
+                                                      percent={hoursPercent}
+                                                      size="small"
+                                                      {...(isHoursComplete
+                                                        ? { status: 'normal', strokeColor: '#d9d9d9', trailColor: '#f5f5f5' }
+                                                        : { status: 'active' })}
+                                                    />
+                                                  </div>
+                                                );
+                                              })()}
+                                              {(() => {
+                                                const isScoreComplete = scoreProgressPercent >= 100;
+                                                const boxStyle = isScoreComplete
+                                                  ? { background: '#fafafa', border: '1px solid #d9d9d9', borderRadius: 6, padding: '6px 8px' }
+                                                  : { background: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: 6, padding: '6px 8px' };
+                                                const titleColor = isScoreComplete ? '#595959' : '#003a8c';
+                                                const valueColor = isScoreComplete ? '#595959' : '#003a8c';
+                                                return (
+                                                  <div style={boxStyle}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                      <Text style={{ fontSize: 12, color: titleColor, fontWeight: 600 }}>成绩配置进度</Text>
+                                                      <Text style={{ fontSize: 12, color: valueColor }}>{scoreRaw}分 / 100分</Text>
+                                                    </div>
+                                                    <Progress
+                                                      percent={scoreProgressPercent}
+                                                      size="small"
+                                                      {...(isScoreComplete
+                                                        ? { status: 'normal', strokeColor: '#d9d9d9', trailColor: '#f5f5f5' }
+                                                        : { status: 'active' })}
+                                                    />
+                                                  </div>
+                                                );
+                                              })()}
                                             </div>
                                           );
-                                        })()}
+                                          })()}
                                       </Card>
                                     );
                                   })}

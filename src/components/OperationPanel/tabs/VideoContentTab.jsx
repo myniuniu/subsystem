@@ -90,7 +90,7 @@ const VideoContentTab = ({
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; padding: 16px;">
           <h2>集合预览：${rc.title}</h2>
           <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px;">
-            <div style="width:160px;height:90px;border-radius:6px;overflow:hidden;background:#fafafa;border:1px solid #f0f0f0;">
+            <div style="display:none;width:160px;height:90px;border-radius:6px;overflow:hidden;background:#fafafa;border:1px solid #f0f0f0;">
               <img src="${getCollectionThumbnail(rc)}" style="width:100%;height:100%;object-fit:cover;" />
             </div>
             <div>
@@ -100,7 +100,7 @@ const VideoContentTab = ({
           </div>
           ${items.length === 0 ? '<div>当前空间下暂无可预览的资源项</div>' : items.map(it => `
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-              <div style="width:100px;height:56px;border-radius:6px;overflow:hidden;background:#fafafa;border:1px solid #f0f0f0;"></div>
+              
               <div style="flex:1;min-width:0;">
                 <div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${it.title}</div>
                 <div style="margin-top:4px;color:#888;font-size:12px;">${(it.tags||[]).slice(0,4).join(' · ')}</div>
@@ -183,7 +183,7 @@ const VideoContentTab = ({
     .filter(Boolean)
 
   return (
-    <Row gutter={8} wrap={false} style={{ height: '100%', alignItems: 'stretch', margin: 0 }}>
+    <Row gutter={0} wrap={false} style={{ height: '100%', alignItems: 'stretch', margin: 0 }}>
       <Col id="course-content-left" style={{ display: 'flex', width: (leftViewMode === 'single' ? '16.8%' : '33.6%'), minWidth: (leftViewMode === 'single' ? 200 : 240), flex: '0 0 auto', height: '100%' }}>
         <Card
           title={(
@@ -339,36 +339,6 @@ const VideoContentTab = ({
             ))}
           </div>
         </Card>
-      </Col>
-      <Col flex="8px">
-        <div style={{ width: 8, cursor: 'col-resize', height: '100%', background: '#f5f5f5', borderLeft: '1px solid #eee', borderRight: '1px solid #eee' }} onMouseDown={(e) => {
-          const left = document.getElementById('course-content-left');
-          const right = document.getElementById('course-content-right');
-          const row = e.currentTarget?.parentElement?.parentElement;
-          const startX = e.clientX;
-          const total = row?.clientWidth || ((left?.clientWidth || 0) + (right?.clientWidth || 0));
-          const startLeft = left?.clientWidth || 0;
-          const onMove = (ev) => {
-            const dx = ev.clientX - startX;
-            let newLeft = startLeft + dx;
-            const min = 240;
-            const max = total - 240;
-            if (newLeft < min) newLeft = min;
-            if (newLeft > max) newLeft = max;
-            const newRight = total - newLeft;
-            if (left) { left.style.flex = '0 0 auto'; left.style.width = newLeft + 'px'; }
-            if (right) { right.style.flex = '1 1 auto'; right.style.width = newRight + 'px'; }
-          };
-          const onUp = () => {
-            const finalLeft = left?.clientWidth || startLeft;
-            const ratio = total > 0 ? (Math.max(240, Math.min(total - 240, finalLeft)) / total) : 0;
-            try { localStorage.setItem('course_content_split_ratio', String(ratio)); } catch {}
-            window.removeEventListener('mousemove', onMove);
-            window.removeEventListener('mouseup', onUp);
-          };
-          window.addEventListener('mousemove', onMove);
-          window.addEventListener('mouseup', onUp);
-        }} />
       </Col>
       <Col id="course-content-right" style={{ display: 'flex', flex: '1 1 auto', minWidth: 240, height: '100%' }}>
         <Card
