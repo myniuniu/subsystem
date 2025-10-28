@@ -510,6 +510,19 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
         }
       },
       {
+        key: MORE_MENU_ACTIONS.LINK_SOURCE,
+        label: (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '16px' }}>🔗</span>
+            <span>关联来源</span>
+          </div>
+        ),
+        onClick: (e) => {
+          e?.stopPropagation?.();
+          onMoreAction && onMoreAction(MORE_MENU_ACTIONS.LINK_SOURCE, record);
+        }
+      },
+      {
         key: (Array.isArray(record.tags) && record.tags.includes('语料')) ? 'unmarkAgentCorpus' : 'markAgentCorpus',
         label: (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

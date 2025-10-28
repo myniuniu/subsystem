@@ -198,6 +198,57 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
   // 操作面板收起状态
   const [operationPanelCollapsed, setOperationPanelCollapsed] = useState(false);
 
+  // 关联来源选择弹窗状态
+  const [linkSourceModalVisible, setLinkSourceModalVisible] = useState(false);
+  const [recordToLinkSource, setRecordToLinkSource] = useState(null);
+  const [selectedSourceForLink, setSelectedSourceForLink] = useState(null);
+
+  // 构建可选择来源列表（来自 MaterialManagement 的各类材料）
+  const buildSourceOptions = () => {
+    const options = [];
+    try {
+      (state.addedTexts || []).forEach(t => options.push({
+        value: `text:${t.id}`,
+        label: `📝 文本｜${t.title || t.name || t.id}`,
+        raw: { ...t, type: 'text' }
+      }));
+      (state.uploadedFiles || []).forEach(f => options.push({
+        value: `file:${f.id}`,
+        label: `📄 文件｜${f.name || f.title || f.id}`,
+        raw: { ...f, type: 'file' }
+      }));
+      (state.courseVideos || []).forEach(v => options.push({
+        value: `video:${v.id}`,
+        label: `🎥 视频｜${v.title || v.name || v.id}`,
+        raw: { ...v, type: 'video' }
+      }));
+      (state.links || []).forEach(l => options.push({
+        value: `link:${l.id}`,
+        label: `🔗 链接｜${l.title || l.name || l.url || l.id}`,
+        raw: { ...l, type: 'link' }
+      }));
+      (state.selectedCourses || []).forEach(c => options.push({
+        value: `course:${c.id}`,
+        label: `📚 课程｜${c.title || c.courseTitle || c.name || c.id}`,
+        raw: { ...c, type: 'course' }
+      }));
+    } catch (e) {
+      console.warn('buildSourceOptions error:', e);
+    }
+    return options;
+  };
+
+  const getAllOperationRecords = () => {
+    try {
+      return Object.values(operationRecords || {}).reduce((acc, arr) => {
+        if (Array.isArray(arr)) acc.push(...arr);
+        return acc;
+      }, []);
+    } catch (e) {
+      return [];
+    }
+  };
+
   // 监听聊天工具打开/关闭以动态加宽/恢复
   useEffect(() => {
     const openSearch = () => setIsChatSplit(true);
@@ -1219,6 +1270,12 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
           }));
           message.success(`笔记"${record.title}"已标记为研修成果！`);
           break;
+        case MORE_MENU_ACTIONS.LINK_SOURCE:
+          // 打开关联来源选择弹窗
+          setRecordToLinkSource(record);
+          setSelectedSourceForLink(null);
+          setLinkSourceModalVisible(true);
+          break;
         case MORE_MENU_ACTIONS.UNMARK_STUDY_RESULT:
           setOperationRecords(prev => ({
             ...prev,
@@ -1974,6 +2031,104 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         </div>
        </div>
        
+       {/* 关联来源弹窗 */}
+       <Modal
+         open={linkSourceModalVisible}
+         title={
+           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+             <span style={{ fontSize: 18 }}>🔗</span>
+             <span>关联来源</span>
+           </div>
+         }
+         centered
+         okText="关联"
+         cancelText="取消"
+         onCancel={() => { setLinkSourceModalVisible(false); setRecordToLinkSource(null); setSelectedSourceForLink(null); }}
+         onOk={() => {
+           try {
+             const options = buildSourceOptions();
+             if (!selectedSourceForLink) {
+               message.warning('请先选择一个来源');
+               return;
+             }
+             const [type, idStr] = String(selectedSourceForLink).split(':');
+             const id = isNaN(Number(idStr)) ? idStr : Number(idStr);
+             const selected = options.find(o => o.value === selectedSourceForLink);
+             const payload = {
+               type,
+               id,
+               title: selected?.raw?.title || selected?.raw?.name || selected?.raw?.courseTitle || selected?.raw?.url || String(id)
+             };
+
+             const allRecords = getAllOperationRecords();
+             const existingRecord = allRecords.find(r => r?.linkedSource && r.linkedSource.type === type && String(r.linkedSource.id) === String(id));
+             const targetRecord = recordToLinkSource;
+
+             const applyLink = (oldLinkedRecord) => {
+               setOperationRecords(prev => {
+                 const newRecords = { ...prev };
+                 Object.keys(newRecords).forEach(t => {
+                   if (Array.isArray(newRecords[t])) {
+                     newRecords[t] = newRecords[t].map(r => {
+                       if (r.id === targetRecord.id) {
+                         return { ...r, linkedSource: payload };
+                       }
+                       if (oldLinkedRecord && r.id === oldLinkedRecord.id) {
+                         const clone = { ...r };
+                         delete clone.linkedSource;
+                         return clone;
+                       }
+                       return r;
+                     });
+                   }
+                 });
+                 return newRecords;
+               });
+               setLinkSourceModalVisible(false);
+               setRecordToLinkSource(null);
+               setSelectedSourceForLink(null);
+               message.success('已建立一对一关联');
+             };
+
+             if (existingRecord && existingRecord.id !== targetRecord.id) {
+               Modal.confirm({
+                 title: '来源已有关联，是否转移？',
+                 content: (
+                   <div>
+                     <div style={{ marginBottom: 8 }}>该来源当前关联到：<Text strong>{existingRecord.title}</Text></div>
+                     <div>确认后将解除旧记录的关联，并与新记录建立关联。</div>
+                   </div>
+                 ),
+                 okText: '转移关联',
+                 cancelText: '取消',
+                 onOk: () => applyLink(existingRecord)
+               });
+             } else {
+               applyLink(null);
+             }
+           } catch (e) {
+             console.error('link source error:', e);
+             message.error('关联来源失败，请稍后重试');
+           }
+         }}
+       >
+         <div style={{ marginBottom: 8 }}>
+           <Text>请选择要关联的来源（来自材料管理）：</Text>
+         </div>
+         <Select
+           style={{ width: '100%' }}
+           placeholder="选择一个来源"
+           showSearch
+           optionFilterProp="label"
+           value={selectedSourceForLink}
+           onChange={setSelectedSourceForLink}
+           options={buildSourceOptions().map(o => ({ value: o.value, label: o.label }))}
+         />
+         <div style={{ marginTop: 8 }}>
+           <Text type="secondary">一对一关联：同一来源仅能关联一个记录</Text>
+         </div>
+       </Modal>
+
        {/* 消息讨论弹窗 */}
        <Modal
          open={showMessageCenter}

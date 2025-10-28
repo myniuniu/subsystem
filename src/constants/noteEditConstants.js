@@ -185,6 +185,7 @@ export const MESSAGE_TYPES = {
 export const MORE_MENU_ACTIONS = {
   RENAME: 'rename',
   CONVERT_TO_SOURCE: 'convertToSource',
+  LINK_SOURCE: 'linkSource',
   OPEN_IN_NEW_WINDOW: 'openInNewWindow',
   MARK_STUDY_RESULT: 'markStudyResult',
   UNMARK_STUDY_RESULT: 'unmarkStudyResult',
