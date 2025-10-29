@@ -2233,7 +2233,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                     size="small"
                                     style={{ marginBottom: 8, border: '1px solid #e8e8e8', position: 'relative' }}
                                     bodyStyle={{ padding: '8px 12px' }}
-                onClick={() => { if (handlers?.onViewMaterial) handlers.onViewMaterial(text, 'achievement'); }}
+                onClick={() => { if (handlers?.onViewMaterial) handlers.onViewMaterial(text, 'exam_review'); }}
                                   >
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                       <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>

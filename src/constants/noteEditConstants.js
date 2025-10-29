@@ -103,6 +103,11 @@ export const VIEW_MODES = {
   ACHIEVEMENT_DETAIL_THREE_COLUMN: 'achievement_detail_three_column'
 };
 
+// 新增：考试评阅占位页（全屏，占据 NoteEditPage 左中右区域）
+export const EXAM_VIEW_MODES = {
+  EXAM_REVIEW_FULLSCREEN: 'exam_review_fullscreen'
+};
+
 // 右侧面板视图常量
 export const RIGHT_PANEL_VIEWS = {
   OPERATIONS: 'operations',

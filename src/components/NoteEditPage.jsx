@@ -28,6 +28,7 @@ import VideoView from './VideoView';
 import ChatWindow from './ChatWindow';
 import AchievementDetailPanel from './AchievementDetailPanel';
 import AchievementDetailThreeColumn from './AchievementDetailThreeColumn';
+import ExamReviewFullPage from './ExamReviewFullPage';
 
 // 导入原有组件
 import MaterialAddPage from './MaterialAddPage';
@@ -55,7 +56,8 @@ import {
   RIGHT_PANEL_VIEWS,
   MORE_MENU_ACTIONS,
   OPERATION_TYPES,
-  TOOL_CATEGORIES
+  TOOL_CATEGORIES,
+  EXAM_VIEW_MODES
 } from '../constants/noteEditConstants';
 import {
   getLiveStreamStatus,
@@ -562,6 +564,17 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
     onViewMaterial: (material, type) => {
       if (type === 'video') {
         materialHandlers.onPlayVideo(material);
+        return;
+      }
+      // 考试评阅：进入全屏占位页，占据左中右区域
+      if (type === 'exam_review') {
+        try {
+          setSelectedMaterial(material);
+          setCurrentView(EXAM_VIEW_MODES.EXAM_REVIEW_FULLSCREEN);
+          message.success(`正在查看考试评阅：${material.title || '评阅清单'}`);
+        } catch (e) {
+          console.warn('view exam review error:', e);
+        }
         return;
       }
       // 研修成果：在左侧区域显示详情页（非弹窗）
@@ -1570,6 +1583,13 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
           <ClassroomEvaluationFullscreen 
             state={state}
             setCurrentView={setCurrentView}
+          />
+        ) : currentView === EXAM_VIEW_MODES.EXAM_REVIEW_FULLSCREEN ? (
+          /* 考试评阅占位页：占据全部三栏区域 */
+          <ExamReviewFullPage 
+            state={state}
+            setCurrentView={setCurrentView}
+            VIEW_MODES={VIEW_MODES}
           />
         ) : currentView === VIEW_MODES.TRAINING_PLAN_FULLSCREEN ? (
           /* 培训方案全屏模式：占据全部三栏区域 */
