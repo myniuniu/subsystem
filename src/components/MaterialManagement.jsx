@@ -163,6 +163,79 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     setRenameModalVisible(false);
   };
 
+  // 模块状态：默认模块 + 未分类模块 + 新增模块
+  const [modules, setModules] = useState([
+    { id: 'default', title: '默认模块' },
+    { id: 'uncategorized', title: '未分类模块' }
+  ]);
+  const [activeModuleId, setActiveModuleId] = useState('default');
+  const [addModuleModalVisible, setAddModuleModalVisible] = useState(false);
+  const [newModuleName, setNewModuleName] = useState('');
+  useEffect(() => {
+    // 切换主题时重置模块到默认
+    setModules([
+      { id: 'default', title: '默认模块' },
+      { id: 'uncategorized', title: '未分类模块' }
+    ]);
+    setActiveModuleId('default');
+  }, [note?.id]);
+
+  const handleAddModule = () => {
+    const name = (newModuleName || '').trim();
+    if (!name) {
+      message.warning('模块名称不能为空');
+      return;
+    }
+    const id = `mod_${Date.now()}`;
+    setModules(prev => [...prev, { id, title: name }]);
+    setActiveModuleId(id);
+    setAddModuleModalVisible(false);
+    setNewModuleName('');
+    message.success('模块已创建');
+  };
+
+  // 资料模块归属映射：各类型项的 id -> moduleId
+  const [moduleAssignments, setModuleAssignments] = useState({
+    live: {},
+    videos: {},
+    exam: {},
+    links: {},
+    texts: {},
+    projects: {}
+  });
+
+  // 未分类模块的展开/折叠状态
+  const [uncategorizedExpanded, setUncategorizedExpanded] = useState({
+    live: true,
+    videos: true,
+    exam: true,
+    links: true,
+    texts: true,
+    projects: true
+  });
+  // 初始化：把现有资料归入默认模块
+  useEffect(() => {
+    try {
+      const next = {
+        live: {},
+        videos: {},
+        exam: {},
+        links: {},
+        texts: {},
+        projects: {}
+      };
+      (Array.isArray(liveStreams) ? liveStreams : []).forEach(s => { next.live[s.id] = 'default'; });
+      (Array.isArray(courseVideos) ? courseVideos : []).forEach(v => { next.videos[v.id] = 'default'; });
+      (Array.isArray(examFiles) ? examFiles : []).forEach(f => { next.exam[f.id] = 'default'; });
+      (Array.isArray(links) ? links : []).forEach(l => { next.links[l.id] = 'default'; });
+      (Array.isArray(addedTexts) ? addedTexts : []).forEach(t => { next.texts[t.id] = 'default'; });
+      (Array.isArray(trainingProjects) ? trainingProjects : []).forEach(p => { next.projects[p.id] = 'default'; });
+      setModuleAssignments(next);
+    } catch (e) {
+      // no-op
+    }
+  }, [note?.id]);
+
     // 自动注入“新教师教学方法培训”预设来源数据
   useEffect(() => {
     const keywords = ['新教师教学方法培训', '新教师教学方法', '教学方法培训'];
@@ -334,6 +407,131 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
       return [...list, ...newOnes];
     });
   }, [note?.id, note?.title, note?.category, note?.courseType, note?.source, note?.tags]);
+
+  // 组织培训：注入“情景模拟：班级突发事件处置”相关类型数据，并归入未分类模块
+  useEffect(() => {
+    const isOrgTraining =
+      note?.category === 'organizational_training' ||
+      note?.courseType === 'organizational_training' ||
+      note?.source === '组织培训' ||
+      (Array.isArray(note?.tags) && note.tags.includes('组织培训'));
+    if (!isOrgTraining) return;
+
+    const nowISO = new Date().toISOString();
+
+    // 直播课（情景模拟演练）归入第3阶段
+    const sceneLive = {
+      id: 'org_scene_phase3_live_001',
+      title: '情景模拟：班级突发事件处置（直播演练）',
+      instructor: '德育处王老师',
+      startTime: '2025-03-05 19:00',
+      endTime: '2025-03-05 20:00',
+      url: 'https://live.example.com/org-scene-phase3',
+      platform: '',
+      participants: 160,
+      status: 'scheduled',
+      phaseId: 3
+    };
+
+    // 阅读材料（处置指引）
+    const sceneLink = {
+      id: 'org_scene_link_guide_001',
+      url: 'https://example.com/scene-management-guide',
+      type: 'website',
+      platform: '普通网站',
+      title: '班级突发事件处置指引',
+      addTime: nowISO
+    };
+
+    // 文本（反思记录）
+    const sceneText = {
+      id: 'org_scene_text_reflect_001',
+      title: '情景模拟反思：学生冲突管理',
+      content: '通过角色扮演模拟学生冲突场景，评估管理与沟通能力。',
+      type: 'text',
+      addTime: nowISO
+    };
+
+    // 培训项目资料（活动方案）
+    const sceneProject = {
+      id: 'org_scene_project_plan_001',
+      title: '情景模拟教学活动方案',
+      category: 'training_project',
+      originCategory: 'organizational_training',
+      sourceType: '活动方案',
+      pinned: false,
+      addTime: nowISO
+    };
+
+    // 考试/试卷（处置方案设计）
+    const sceneExam = {
+      id: 'exam_phase_3_scene_design',
+      name: '学生管理基础｜情景处置方案设计（100分）.pdf',
+      type: 'application/pdf',
+      size: 180 * 1024,
+      isPaper: true,
+      fullScore: 100,
+      examType: '方案设计',
+      phaseId: 3,
+      uploadTime: nowISO
+    };
+
+    // 注入数据（避免重复）
+    if (typeof setLiveStreams === 'function') {
+      setLiveStreams(prev => {
+        const list = Array.isArray(prev) ? prev : [];
+        if (!list.some(s => s.id === sceneLive.id || s.title === sceneLive.title)) {
+          return [...list, sceneLive];
+        }
+        return list;
+      });
+    }
+    setLinks(prev => {
+      const list = Array.isArray(prev) ? prev : [];
+      if (!list.some(l => l.id === sceneLink.id || l.title === sceneLink.title || l.url === sceneLink.url)) {
+        return [...list, sceneLink];
+      }
+      return list;
+    });
+    setAddedTexts(prev => {
+      const list = Array.isArray(prev) ? prev : [];
+      if (!list.some(t => t.id === sceneText.id || t.title === sceneText.title)) {
+        return [...list, sceneText];
+      }
+      return list;
+    });
+    setTrainingProjects(prev => {
+      const list = Array.isArray(prev) ? prev : [];
+      if (!list.some(p => p.id === sceneProject.id || p.title === sceneProject.title)) {
+        return [...list, sceneProject];
+      }
+      return list;
+    });
+    setUploadedFiles(prev => {
+      const list = Array.isArray(prev) ? prev : [];
+      if (!list.some(f => f.id === sceneExam.id || f.name === sceneExam.name)) {
+        return [...list, sceneExam];
+      }
+      return list;
+    });
+
+    // 归属到未分类模块
+    setModuleAssignments(prev => {
+      const next = { ...prev };
+      next.live = { ...(prev?.live || {}) };
+      next.videos = { ...(prev?.videos || {}) };
+      next.exam = { ...(prev?.exam || {}) };
+      next.links = { ...(prev?.links || {}) };
+      next.texts = { ...(prev?.texts || {}) };
+      next.projects = { ...(prev?.projects || {}) };
+      next.live[sceneLive.id] = 'uncategorized';
+      next.links[sceneLink.id] = 'uncategorized';
+      next.texts[sceneText.id] = 'uncategorized';
+      next.projects[sceneProject.id] = 'uncategorized';
+      next.exam[sceneExam.id] = 'uncategorized';
+      return next;
+    });
+  }, [note?.id, note?.category, note?.courseType, note?.source, note?.tags]);
 
   // 组织培训：补充第一阶段直播讲座，并为第二阶段注入“教学基本规范”录播
   useEffect(() => {
@@ -1344,6 +1542,43 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     }
   };
 
+  // 未分类模块的全选功能
+  const handleUncategorizedSelectAll = (checked) => {
+    const uncLive = (Array.isArray(liveStreams) ? liveStreams : []).filter(s => moduleAssignments.live[s.id] === 'uncategorized');
+    const uncVideos = (Array.isArray(courseVideos) ? courseVideos : []).filter(v => moduleAssignments.videos[v.id] === 'uncategorized');
+    const uncExams = (Array.isArray(examFiles) ? examFiles : []).filter(f => moduleAssignments.exam[f.id] === 'uncategorized');
+    const uncLinks = (Array.isArray(links) ? links : []).filter(l => moduleAssignments.links[l.id] === 'uncategorized');
+    const uncTexts = (Array.isArray(addedTexts) ? addedTexts : []).filter(t => moduleAssignments.texts[t.id] === 'uncategorized');
+    const uncProjects = (Array.isArray(trainingProjects) ? trainingProjects : []).filter(p => moduleAssignments.projects[p.id] === 'uncategorized');
+    
+    const uncategorizedIds = [
+      ...uncLive.map(s => `live-${s.id}`),
+      ...uncVideos.map(v => `video-${v.id}`),
+      ...uncExams.map(f => `file-${f.id}`),
+      ...uncLinks.map(l => `link-${l.id}`),
+      ...uncTexts.map(t => `text-${t.id}`),
+      ...uncProjects.map(p => `project-${p.id}`)
+    ];
+    
+    if (checked) {
+      setSelectedMaterials(prev => Array.from(new Set([...(Array.isArray(prev) ? prev : []), ...uncategorizedIds])));
+    } else {
+      setSelectedMaterials(prev => (Array.isArray(prev) ? prev.filter(id => !uncategorizedIds.includes(id)) : []));
+    }
+  };
+
+  // 未分类模块的全部展开/折叠功能
+  const handleUncategorizedExpandAll = (expanded) => {
+    setUncategorizedExpanded({
+      live: expanded,
+      videos: expanded,
+      exam: expanded,
+      links: expanded,
+      texts: expanded,
+      projects: expanded
+    });
+  };
+
   const handleBatchDelete = () => {
     selectedMaterials.forEach(materialId => {
       const [type, id] = materialId.split('-');
@@ -1523,7 +1758,10 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
           border: '1px solid #e9ecef'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {/* 原“初始化”按钮已移除 */}
+            {/* 新增模块按钮位于折叠按钮同一行的左侧 */}
+            <Button size="small" type="dashed" icon={<PlusOutlined />} onClick={() => setAddModuleModalVisible(true)}>
+              新增模块
+            </Button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {/* 全局折叠/展开单一图标按钮 */}
@@ -1604,7 +1842,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                   }}
                 >
                   删除选中 ({selectedMaterials.length})
-                </Button>
+              </Button>
               </Popconfirm>
             )}
           </div>
@@ -1749,6 +1987,99 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                       </div>
                     </Card>
                   ))}
+                </div>
+              )}
+              {/* 模块切换栏已移除，模块呈现为下方卡片；新增模块按钮已移动到顶部折叠行左侧 */}
+
+              {/* 非组织视图：模块作为卡片，卡片内按类型分组展示 */}
+              {!isOrgTrainingView && (
+                <div style={{ marginBottom: 16 }}>
+                  {modules.map(mod => {
+                    const modLive = (Array.isArray(liveStreams) ? liveStreams : []).filter(s => moduleAssignments.live[s.id] === mod.id);
+                    const modVideos = (Array.isArray(courseVideos) ? courseVideos : []).filter(v => moduleAssignments.videos[v.id] === mod.id);
+                    const modExams = (Array.isArray(examFiles) ? examFiles : []).filter(f => moduleAssignments.exam[f.id] === mod.id);
+                    const modLinks = (Array.isArray(links) ? links : []).filter(l => moduleAssignments.links[l.id] === mod.id);
+                    const modTexts = (Array.isArray(addedTexts) ? addedTexts : []).filter(t => moduleAssignments.texts[t.id] === mod.id);
+                    const modProjects = (Array.isArray(trainingProjects) ? trainingProjects : []).filter(p => moduleAssignments.projects[p.id] === mod.id);
+                    const tagSpecs = [
+                      { key: 'live', present: modLive.length > 0, label: '直播课程', color: 'cyan' },
+                      { key: 'videos', present: modVideos.length > 0, label: '课程视频', color: 'geekblue' },
+                      { key: 'exam', present: modExams.length > 0, label: '考试/试卷', color: 'purple' },
+                      { key: 'links', present: modLinks.length > 0, label: '阅读材料', color: 'blue' },
+                      { key: 'texts', present: modTexts.length > 0, label: '文本', color: 'gold' },
+                      { key: 'projects', present: modProjects.length > 0, label: '培训项目资料', color: 'green' }
+                    ];
+                    return (
+                      <div key={`module-card-${mod.id}`} style={{ marginBottom: 14, border: '1px solid #e8e8e8', borderLeft: '2px solid #91d5ff', borderRadius: 8, background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 8px 6px 8px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6, flex: 1 }}>
+                            <Text strong style={{ fontSize: 13 }}>{mod.title}</Text>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                              {tagSpecs.filter(t => t.present).map(t => (
+                                <Tag color={t.color} key={`mod-${mod.id}-tag-${t.key}`}>{t.label}</Tag>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ padding: '4px 8px 8px 8px' }}>
+                          {/* 模块内 - 直播课程 */}
+                          {modLive.length > 0 && (
+                            <div style={{ marginBottom: 10 }}>
+                              <Text strong style={{ fontSize: 12, color: '#666' }}>📺 直播课程 ({modLive.length})</Text>
+                              <div style={{ marginTop: 6 }}>
+                                {modLive.map(stream => {
+                                  const status = getLiveStreamStatus(stream);
+                                  return (
+                                    <Card key={`mod-${mod.id}-live-${stream.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+                                          <PlayCircleOutlined style={{ color: '#1890ff' }} />
+                                          <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{stream.title}</Text>
+                                          <Tag color={status === 'live' ? 'red' : status === 'upcoming' ? 'gold' : 'green'} style={{ marginLeft: 6 }}>
+                                            {status === 'live' ? '直播中' : status === 'upcoming' ? '即将开始' : '已结束'}
+                                          </Tag>
+                                        </div>
+                                        <Checkbox
+                                          checked={selectedMaterials.includes(`live-${stream.id}`)}
+                                          onChange={(e) => handleSelectMaterial(`live-${stream.id}`, e.target.checked)}
+                                        />
+                                      </div>
+                                    </Card>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 模块内 - 考试/试卷 */}
+                          {modExams.length > 0 && (
+                            <div style={{ marginBottom: 10 }}>
+                              <Text strong style={{ fontSize: 12, color: '#666' }}>🎓 考试/试卷 ({modExams.length})</Text>
+                              <div style={{ marginTop: 6 }}>
+                                {modExams.map(file => (
+                                  <Card key={`mod-${mod.id}-file-${file.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8', position: 'relative' }} bodyStyle={{ padding: '8px 12px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                                        <FileTextOutlined style={{ color: '#722ed1', marginRight: 8, fontSize: 16 }} />
+                                        <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{file.name} <Tag color="purple" style={{ marginLeft: 6 }}>试卷</Tag></Text>
+                                        <Text type="secondary" style={{ fontSize: 10, marginLeft: 8 }}>{file.uploadTime}</Text>
+                                      </div>
+                                      <Checkbox
+                                        checked={selectedMaterials.includes(`file-${file.id}`)}
+                                        onChange={(e) => handleSelectMaterial(`file-${file.id}`, e.target.checked)}
+                                      />
+                                    </div>
+                                  </Card>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 其他类型可按需补充：课程视频/阅读材料/文本/培训项目资料 */}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               {/* 组织培训下：阶段分组视图 */}
@@ -2683,8 +3014,273 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                 </div>
               )}
 
+              {/* 组织培训下：未分类模块（卡片按类型分组） */}
+              {isOrgTrainingView && (() => {
+                const uncLive = (Array.isArray(liveStreams) ? liveStreams : []).filter(s => moduleAssignments.live[s.id] === 'uncategorized');
+                const uncVideos = (Array.isArray(courseVideos) ? courseVideos : []).filter(v => moduleAssignments.videos[v.id] === 'uncategorized');
+                const uncExams = (Array.isArray(examFiles) ? examFiles : []).filter(f => moduleAssignments.exam[f.id] === 'uncategorized');
+                const uncLinks = (Array.isArray(links) ? links : []).filter(l => moduleAssignments.links[l.id] === 'uncategorized');
+                const uncTexts = (Array.isArray(addedTexts) ? addedTexts : []).filter(t => moduleAssignments.texts[t.id] === 'uncategorized');
+                const uncProjects = (Array.isArray(trainingProjects) ? trainingProjects : []).filter(p => moduleAssignments.projects[p.id] === 'uncategorized');
+                const hasAny = [uncLive, uncVideos, uncExams, uncLinks, uncTexts, uncProjects].some(arr => Array.isArray(arr) && arr.length > 0);
+                if (!hasAny) return null;
+                const allExpanded = Object.values(uncategorizedExpanded).every(v => v);
+                const uncategorizedIds = [
+                  ...uncLive.map(s => `live-${s.id}`),
+                  ...uncVideos.map(v => `video-${v.id}`),
+                  ...uncExams.map(f => `file-${f.id}`),
+                  ...uncLinks.map(l => `link-${l.id}`),
+                  ...uncTexts.map(t => `text-${t.id}`),
+                  ...uncProjects.map(p => `project-${p.id}`)
+                ];
+                const allSelected = uncategorizedIds.length > 0 && uncategorizedIds.every(id => selectedMaterials.includes(id));
+                const someSelected = uncategorizedIds.some(id => selectedMaterials.includes(id));
+                
+                return (
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#f8f9fa', borderRadius: 8, border: '1px solid #e9ecef', marginBottom: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Text strong style={{ fontSize: '12px', color: '#666' }}>📦 未分类模块</Text>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Checkbox
+                          checked={allSelected}
+                          indeterminate={someSelected && !allSelected}
+                          onChange={(e) => handleUncategorizedSelectAll(e.target.checked)}
+                          style={{ fontSize: '11px' }}
+                        >
+                          <Text style={{ fontSize: '11px', color: '#666' }}>全选</Text>
+                        </Checkbox>
+                        <Button
+                          type="text"
+                          size="small"
+                          icon={allExpanded ? <DownOutlined /> : <RightOutlined />}
+                          onClick={() => handleUncategorizedExpandAll(!allExpanded)}
+                          style={{ fontSize: '11px', padding: '2px 6px', height: 'auto' }}
+                        >
+                          <Text style={{ fontSize: '11px', color: '#666' }}>
+                            {allExpanded ? '全部折叠' : '全部展开'}
+                          </Text>
+                        </Button>
+                      </div>
+                    </div>
+                    <div style={{ padding: '4px 8px 8px 8px', background: '#ffffff', border: '1px solid #e8e8e8', borderRadius: 8 }}>
+                      {/* 未分类 - 直播课程 */}
+                      {uncLive.length > 0 && (
+                        <div style={{ marginBottom: 10 }}>
+                          <div 
+                            style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', marginBottom: 6 }}
+                            onClick={() => setUncategorizedExpanded(prev => ({ ...prev, live: !prev.live }))}
+                          >
+                            {uncategorizedExpanded.live ? <DownOutlined style={{ fontSize: 10 }} /> : <RightOutlined style={{ fontSize: 10 }} />}
+                            <Text strong style={{ fontSize: 12, color: '#666' }}>📺 直播课程 ({uncLive.length})</Text>
+                          </div>
+                          {uncategorizedExpanded.live && (
+                            <div style={{ marginTop: 6 }}>
+                            {uncLive.map(stream => {
+                              const status = getLiveStreamStatus(stream);
+                              return (
+                                <Card key={`unc-live-${stream.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+                                      {status === 'live' ? (
+                                        <PlayCircleOutlined style={{ color: '#ff4d4f' }} />
+                                      ) : (
+                                        <ClockCircleOutlined style={{ color: '#faad14' }} />
+                                      )}
+                                      <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{stream.title}</Text>
+                                      <Text type="secondary" style={{ fontSize: 10 }}>
+                                        {(stream.schedule?.date || stream.liveDate || stream.startTime || '时间未定')}
+                                      </Text>
+                                    </div>
+                                    <Checkbox
+                                      checked={selectedMaterials.includes(`live-${stream.id}`)}
+                                      onChange={(e) => handleSelectMaterial(`live-${stream.id}`, e.target.checked)}
+                                    />
+                                  </div>
+                                </Card>
+                              );
+                            })}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* 未分类 - 课程视频 */}
+                      {uncVideos.length > 0 && (
+                        <div style={{ marginBottom: 10 }}>
+                          <div 
+                            style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', marginBottom: 6 }}
+                            onClick={() => setUncategorizedExpanded(prev => ({ ...prev, videos: !prev.videos }))}
+                          >
+                            {uncategorizedExpanded.videos ? <DownOutlined style={{ fontSize: 10 }} /> : <RightOutlined style={{ fontSize: 10 }} />}
+                            <Text strong style={{ fontSize: 12, color: '#666' }}>📹 课程视频 ({uncVideos.length})</Text>
+                          </div>
+                          {uncategorizedExpanded.videos && (
+                            <div style={{ marginTop: 6 }}>
+                            {uncVideos.map(video => (
+                              <Card key={`unc-video-${video.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px' }}
+                                onClick={() => onPlayVideo(video)}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+                                    <PlayCircleOutlined style={{ color: '#1890ff' }} />
+                                    <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{video.title}</Text>
+                                    <Text type="secondary" style={{ fontSize: 10 }}>{video.addTime || video.instructor || ''}</Text>
+                                  </div>
+                                  <Checkbox
+                                    checked={selectedMaterials.includes(`video-${video.id}`)}
+                                    onChange={(e) => handleSelectMaterial(`video-${video.id}`, e.target.checked)}
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                </div>
+                              </Card>
+                            ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* 未分类 - 考试/试卷 */}
+                      {uncExams.length > 0 && (
+                        <div style={{ marginBottom: 10 }}>
+                          <div 
+                            style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', marginBottom: 6 }}
+                            onClick={() => setUncategorizedExpanded(prev => ({ ...prev, exam: !prev.exam }))}
+                          >
+                            {uncategorizedExpanded.exam ? <DownOutlined style={{ fontSize: 10 }} /> : <RightOutlined style={{ fontSize: 10 }} />}
+                            <Text strong style={{ fontSize: 12, color: '#666' }}>🎓 考试/试卷 ({uncExams.length})</Text>
+                          </div>
+                          {uncategorizedExpanded.exam && (
+                            <div style={{ marginTop: 6 }}>
+                            {uncExams.map(file => (
+                              <Card key={`unc-exam-${file.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+                                    <FileTextOutlined style={{ color: '#722ed1' }} />
+                                    <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{file.name} <Tag color="purple" style={{ marginLeft: 6 }}>试卷</Tag></Text>
+                                    <Text type="secondary" style={{ fontSize: 10 }}>{file.uploadTime}</Text>
+                                  </div>
+                                  <Checkbox
+                                    checked={selectedMaterials.includes(`file-${file.id}`)}
+                                    onChange={(e) => handleSelectMaterial(`file-${file.id}`, e.target.checked)}
+                                  />
+                                </div>
+                              </Card>
+                            ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* 未分类 - 阅读材料（链接） */}
+                      {uncLinks.length > 0 && (
+                        <div style={{ marginBottom: 10 }}>
+                          <div 
+                            style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', marginBottom: 6 }}
+                            onClick={() => setUncategorizedExpanded(prev => ({ ...prev, links: !prev.links }))}
+                          >
+                            {uncategorizedExpanded.links ? <DownOutlined style={{ fontSize: 10 }} /> : <RightOutlined style={{ fontSize: 10 }} />}
+                            <Text strong style={{ fontSize: 12, color: '#666' }}>📘 阅读材料 ({uncLinks.length})</Text>
+                          </div>
+                          {uncategorizedExpanded.links && (
+                            <div style={{ marginTop: 6 }}>
+                            {uncLinks.map(link => (
+                              <Card key={`unc-link-${link.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+                                    <LinkOutlined style={{ color: '#1890ff' }} />
+                                    <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{link.title}</Text>
+                                    {link.url && (
+                                      <Button type="link" size="small" onClick={(e) => { e.stopPropagation(); window.open(link.url, '_blank'); }}>打开</Button>
+                                    )}
+                                  </div>
+                                  <Checkbox
+                                    checked={selectedMaterials.includes(`link-${link.id}`)}
+                                    onChange={(e) => handleSelectMaterial(`link-${link.id}`, e.target.checked)}
+                                  />
+                                </div>
+                              </Card>
+                            ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* 未分类 - 文本 */}
+                      {uncTexts.length > 0 && (
+                        <div style={{ marginBottom: 10 }}>
+                          <div 
+                            style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', marginBottom: 6 }}
+                            onClick={() => setUncategorizedExpanded(prev => ({ ...prev, texts: !prev.texts }))}
+                          >
+                            {uncategorizedExpanded.texts ? <DownOutlined style={{ fontSize: 10 }} /> : <RightOutlined style={{ fontSize: 10 }} />}
+                            <Text strong style={{ fontSize: 12, color: '#666' }}>📝 文本 ({uncTexts.length})</Text>
+                          </div>
+                          {uncategorizedExpanded.texts && (
+                            <div style={{ marginTop: 6 }}>
+                            {uncTexts.map(text => (
+                              <Card key={`unc-text-${text.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+                                    <FileTextOutlined style={{ color: '#faad14' }} />
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, minWidth: 0 }}>
+                                      <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{text.title}</Text>
+                                      {text.content && (
+                                        <Text type="secondary" ellipsis style={{ fontSize: 10 }}>{text.content}</Text>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <Checkbox
+                                    checked={selectedMaterials.includes(`text-${text.id}`)}
+                                    onChange={(e) => handleSelectMaterial(`text-${text.id}`, e.target.checked)}
+                                  />
+                                </div>
+                              </Card>
+                            ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* 未分类 - 培训项目资料 */}
+                      {uncProjects.length > 0 && (
+                        <div style={{ marginBottom: 10 }}>
+                          <div 
+                            style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', marginBottom: 6 }}
+                            onClick={() => setUncategorizedExpanded(prev => ({ ...prev, projects: !prev.projects }))}
+                          >
+                            {uncategorizedExpanded.projects ? <DownOutlined style={{ fontSize: 10 }} /> : <RightOutlined style={{ fontSize: 10 }} />}
+                            <Text strong style={{ fontSize: 12, color: '#666' }}>📁 培训项目资料 ({uncProjects.length})</Text>
+                          </div>
+                          {uncategorizedExpanded.projects && (
+                            <div style={{ marginTop: 6 }}>
+                            {uncProjects.map(p => (
+                              <Card key={`unc-project-${p.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => handlers?.onViewTrainingProject && handlers.onViewTrainingProject(p)}>
+                                    <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{p.title}</Text>
+                                    <Tag color="blue">{p.sourceType || '培训方案'}</Tag>
+                                    <Text type="secondary" style={{ fontSize: 10 }}>{p.addTime}</Text>
+                                  </div>
+                                  <Checkbox
+                                    checked={selectedMaterials.includes(`project-${p.id}`)}
+                                    onChange={(e) => handleSelectMaterial(`project-${p.id}`, e.target.checked)}
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                </div>
+                              </Card>
+                            ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* 课程视频列表（按课程分组，支持一课多视频） */}
-              {!isOrgTrainingView && displayCourseVideos.length > 0 && (
+              {!isOrgTrainingView && modules.length === 0 && displayCourseVideos.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -3147,7 +3743,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
               )}
 
               {/* 直播课列表 */}
-              {!isOrgTrainingView && Array.isArray(liveStreams) && liveStreams.length > 0 && (
+              {!isOrgTrainingView && modules.length === 0 && Array.isArray(liveStreams) && liveStreams.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -3266,7 +3862,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
 
               {/* 文件列表 */}
               {/* 考试/试卷列表（从上传文件中筛选 isPaper:true） */}
-              {!isOrgTrainingView && examFiles.length > 0 && (
+              {!isOrgTrainingView && modules.length === 0 && examFiles.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -3414,6 +4010,25 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
           value={renameValue}
           onChange={(e) => setRenameValue(e.target.value)}
           onPressEnter={handleConfirmRename}
+        />
+      </Modal>
+
+      {/* 新增模块弹窗 */}
+      <Modal
+        title="新增模块"
+        open={addModuleModalVisible}
+        onOk={handleAddModule}
+        onCancel={() => setAddModuleModalVisible(false)}
+        okText="创建"
+        cancelText="取消"
+        destroyOnClose
+      >
+        <Input
+          autoFocus
+          placeholder="请输入模块名称"
+          value={newModuleName}
+          onChange={(e) => setNewModuleName(e.target.value)}
+          onPressEnter={handleAddModule}
         />
       </Modal>
 
