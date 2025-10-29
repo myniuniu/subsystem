@@ -204,6 +204,17 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     projects: {}
   });
 
+  // 同步本地模块归属映射到共享状态，供其他面板（如研修成果详情）读取
+  useEffect(() => {
+    try {
+      if (state && typeof state.setModuleAssignments === 'function') {
+        state.setModuleAssignments(moduleAssignments);
+      }
+    } catch (e) {
+      // no-op
+    }
+  }, [moduleAssignments]);
+
   // 未分类模块的展开/折叠状态
   const [uncategorizedExpanded, setUncategorizedExpanded] = useState({
     live: true,

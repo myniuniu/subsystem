@@ -87,6 +87,17 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   const [selectedMaterials, setSelectedMaterials] = useState([]);
   const [showMaterialDetail, setShowMaterialDetail] = useState(false);
   const [currentMaterial, setCurrentMaterial] = useState(null);
+
+  // 模块归属映射（由资料管理模块维护并同步到此处）
+  // 结构示例：{ live: { [id]: moduleId }, videos: {}, exam: {}, links: {}, texts: {}, projects: {} }
+  const [moduleAssignments, setModuleAssignments] = useState({
+    live: {},
+    videos: {},
+    exam: {},
+    links: {},
+    texts: {},
+    projects: {}
+  });
   const [links, setLinks] = useState(() => {
     // 培训需求管理分类下只显示“新教师培训通知”；组织培训主题不注入无关默认链接
     const keywords = ['新教师教学方法培训', '新教师教学方法', '教学方法培训'];
@@ -665,6 +676,10 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
 
     // 常量数据
     subtitleData,
+
+    // 模块归属共享状态
+    moduleAssignments,
+    setModuleAssignments,
     
     // 笔记对象 - 为新建主题构建包含category信息的note对象
     note: mode === 'create' && !note ? {

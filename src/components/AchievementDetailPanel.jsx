@@ -1,16 +1,16 @@
 import React, { useMemo } from 'react';
-import { Button, Typography, Card, Select, Upload, List, message } from 'antd';
-import { ArrowLeftOutlined, UploadOutlined } from '@ant-design/icons';
+import { Button, Typography, Card, Select, message } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 import { VIEW_MODES, OPERATION_TYPES, OPERATION_TITLES } from '../constants/noteEditConstants';
 
 const { Title, Text } = Typography;
 
-// 研修成果详情左侧面板：支持关联操作记录与上传附件（内联展示）
+// 研修成果详情左侧面板：支持关联操作记录与关联来源（未分类）
 const AchievementDetailPanel = ({ state }) => {
   const achievement = state.leftPanelAchievementRecord;
 
   const assoc = state.achievementAssociations || {};
-  const currentAssoc = achievement ? assoc[achievement.id] || { linkedOperationIds: [], attachments: [] } : { linkedOperationIds: [], attachments: [] };
+  const currentAssoc = achievement ? assoc[achievement.id] || { linkedOperationIds: [], linkedSourceIds: [] } : { linkedOperationIds: [], linkedSourceIds: [] };
 
   // 构建操作记录选项（来自右侧操作面板的 operationRecords）
   const operationOptions = useMemo(() => {
@@ -54,19 +54,59 @@ const AchievementDetailPanel = ({ state }) => {
     message.success('已更新关联的操作记录');
   };
 
-  const beforeUpload = (file) => {
+  // 关联来源（未分类）选项构建（严格仅允许未分类模块）
+  const sourceOptions = useMemo(() => {
+    const options = [];
+    const add = (type, id, labelText, raw) => options.push({ value: `${type}:${id}`, label: labelText, raw: { ...raw, type } });
+    try {
+      (state.addedTexts || []).forEach(t => add('text', t.id, `📝 文本｜${t.title || t.name || t.id}`, t));
+      // 试卷统一按 exam 类型处理，便于与模块映射匹配
+      (state.uploadedFiles || []).forEach(f => add('exam', f.id, `🧪 试卷｜${f.name || f.title || f.id}`, f));
+      (state.courseVideos || []).forEach(v => add('video', v.id, `🎥 视频｜${v.title || v.name || v.id}`, v));
+      (state.links || []).forEach(l => add('link', l.id, `🔗 链接｜${l.title || l.name || l.url || l.id}`, l));
+      // 课程不参与未分类来源关联
+      // (state.selectedCourses || []).forEach(c => add('course', c.id, `📚 课程｜${c.title || c.courseTitle || c.name || c.id}`, c));
+      (state.liveStreams || []).forEach(s => add('live', s.id, `📡 直播｜${s.title || s.id}`, s));
+      (state.examFiles || []).forEach(f => add('exam', f.id, `🧪 试卷｜${f.name || f.title || f.id}`, f));
+      (state.trainingProjects || []).forEach(p => add('project', p.id, `📁 项目｜${p.title || p.name || p.id}`, p));
+    } catch (e) {
+      // no-op
+    }
+    // 若存在有效的模块归属映射，则仅过滤未分类模块的来源；若不存在映射，则回退显示全部
+    const m = state.moduleAssignments || null;
+    const hasValidAssignments = !!m && typeof m === 'object' && Object.values(m).some(map => map && Object.keys(map).length > 0);
+    if (!hasValidAssignments) {
+      return options;
+    }
+    const filtered = options.filter(opt => {
+      const [type, id] = String(opt.value).split(':');
+      const mapByType =
+        type === 'live' ? m.live :
+        type === 'video' ? m.videos :
+        type === 'exam' ? m.exam :
+        type === 'link' ? m.links :
+        type === 'text' ? m.texts :
+        type === 'project' ? m.projects : null;
+      return !!mapByType && mapByType[id] === 'uncategorized';
+    });
+    return filtered;
+  }, [state.addedTexts, state.uploadedFiles, state.courseVideos, state.links, state.selectedCourses, state.liveStreams, state.examFiles, state.trainingProjects, state.moduleAssignments]);
+
+  const selectedSourceValues = useMemo(() => {
+    return (currentAssoc.linkedSourceIds || []).map(v => String(v));
+  }, [currentAssoc.linkedSourceIds]);
+
+  const updateLinkedSources = (values) => {
     state.setAchievementAssociations(prev => ({
       ...prev,
       [achievement.id]: {
-        ...(prev[achievement.id] || { linkedOperationIds: [], attachments: [] }),
-        attachments: [ ...(prev[achievement.id]?.attachments || []), file ]
+        ...(prev[achievement.id] || { linkedOperationIds: [], linkedSourceIds: [] }),
+        title: achievement.title,
+        linkedSourceIds: values
       }
     }));
-    message.success(`已添加附件：${file.name}`);
-    return false; // 阻止上传，改为本地状态管理
+    message.success('已更新关联来源');
   };
-
-  const attachments = currentAssoc.attachments || [];
 
   const linkedRecords = useMemo(() => {
     const recordsMap = state.operationRecords || {};
@@ -113,6 +153,14 @@ const AchievementDetailPanel = ({ state }) => {
       case 'grading': return '阅';
       case 'knowledge-graph': return '知';
       case 'training-plan': return '培';
+      // 来源类型图标
+      case 'text': return '文';
+      case 'file': return '📄';
+      case 'link': return '链';
+      case 'course': return '课';
+      case 'live': return '播';
+      case 'exam': return '卷';
+      case 'project': return '项';
       default: return '📄';
     }
   };
@@ -122,7 +170,7 @@ const AchievementDetailPanel = ({ state }) => {
       const data = state.achievementAssociations || {};
       // 持久化到本地存储（前端示例保存）
       localStorage.setItem('achievementAssociations', JSON.stringify(data));
-      message.success('研修成果关联与附件已保存');
+      message.success('研修成果关联已保存');
     } catch (e) {
       message.error('保存失败');
     }
@@ -143,14 +191,9 @@ const AchievementDetailPanel = ({ state }) => {
 
   return (
     <div style={{ flex: 4, background: '#fff', margin: '16px 0 0 16px', borderRadius: 8, display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: 12, borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: 8, background: '#fafafa', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Button size="small" icon={<ArrowLeftOutlined />} onClick={handleBack}>返回</Button>
-          <Text strong style={{ marginLeft: 8 }}>研修成果详情</Text>
-        </div>
-        <div>
-          <Button type="primary" size="small" onClick={handleSave}>保存</Button>
-        </div>
+      <div style={{ padding: 12, borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: 8, background: '#fafafa' }}>
+        <Button size="small" icon={<ArrowLeftOutlined />} onClick={handleBack}>返回</Button>
+        <Text strong style={{ marginLeft: 8 }}>研修成果详情</Text>
       </div>
       <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
         <Card size="small" title={<span>基本信息</span>}>
@@ -224,25 +267,63 @@ const AchievementDetailPanel = ({ state }) => {
           </div>
         </Card>
 
-        <Card size="small" title={<span>上传附件</span>}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <Upload beforeUpload={beforeUpload} multiple showUploadList={false}>
-              <Button icon={<UploadOutlined />}>选择文件添加附件</Button>
-            </Upload>
-            <List
-              size="small"
-              bordered
-              dataSource={attachments}
-              renderItem={(f) => (
-                <List.Item>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                    <span>{f.name}</span>
-                    <span style={{ color: '#999' }}>{typeof f.size === 'number' ? `${Math.round(f.size/1024)}KB` : ''}</span>
-                  </div>
-                </List.Item>
-              )}
-              locale={{ emptyText: '暂无附件' }}
+        <Card size="small" title={<span>关联来源（未分类）</span>}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <Text type="secondary">从未分类模块中的来源选择要关联的项（内联选择）。</Text>
+            <Select
+              mode="multiple"
+              allowClear
+              style={{ width: '100%' }}
+              placeholder="选择要关联的来源"
+              value={selectedSourceValues}
+              onChange={updateLinkedSources}
+              options={sourceOptions}
+              optionFilterProp="label"
+              showSearch
             />
+            {/* 已关联的来源卡片展示 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+              {(() => {
+                // 根据选中的值映射到原始来源数据
+                const values = Array.isArray(currentAssoc.linkedSourceIds) ? currentAssoc.linkedSourceIds : [];
+                const sourceMap = {};
+                sourceOptions.forEach(opt => { sourceMap[String(opt.value)] = opt.raw; });
+                const linked = values.map(v => ({
+                  key: String(v),
+                  raw: sourceMap[String(v)]
+                })).filter(item => !!item.raw);
+                return linked.length > 0 ? linked.map(item => (
+                  <Card key={`source-${item.key}`} size="small" styles={{ body: { padding: '8px 12px' } }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                        <div style={{
+                          width: '20px',
+                          height: '20px',
+                          backgroundColor: '#f0f0f0',
+                          borderRadius: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '10px',
+                          fontWeight: 'bold',
+                          marginRight: '8px',
+                          flexShrink: 0
+                        }}>
+                          {getIcon(item.raw.type)}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, minWidth: 0 }}>
+                          <Text ellipsis style={{ fontSize: '12px', fontWeight: 500 }}>{item.raw.title || item.raw.name || item.raw.url || item.key}</Text>
+                          {item.raw.source && (<Text style={{ fontSize: '10px', color: '#999' }}>{item.raw.source}</Text>)}
+                          {item.raw.addTime && (<Text style={{ fontSize: '10px', color: '#999' }}>{item.raw.addTime}</Text>)}
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                )) : (
+                  <Text type="secondary" style={{ fontSize: 12 }}>暂无关联的来源</Text>
+                );
+              })()}
+            </div>
           </div>
         </Card>
       </div>

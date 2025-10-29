@@ -482,7 +482,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
         label: (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '16px' }}>📋</span>
-            <span>复制到</span>
+            <span>复制到主题</span>
           </div>
         ),
         onClick: (e) => {
@@ -499,7 +499,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
         label: (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '16px' }}>📦</span>
-            <span>移动到</span>
+            <span>移动到主题</span>
           </div>
         ),
         onClick: (e) => {
@@ -509,19 +509,6 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
           setCurrentActionType('move');
           setShowThemeSelectModal(true);
           console.log('Modal state set to true for move');
-        }
-      },
-      {
-        key: MORE_MENU_ACTIONS.LINK_SOURCE,
-        label: (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '16px' }}>🔗</span>
-            <span>关联来源</span>
-          </div>
-        ),
-        onClick: (e) => {
-          e?.stopPropagation?.();
-          onMoreAction && onMoreAction(MORE_MENU_ACTIONS.LINK_SOURCE, record);
         }
       },
       {
@@ -602,47 +589,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
 
     // 笔记类型添加标记为研修成果功能
     if (record.type === 'note') {
-      const isMarkedAsStudyResult = record.tags && record.tags.includes('研修成果');
-      
       return [
-        {
-          key: isMarkedAsStudyResult ? 'unmarkStudyResult' : 'markStudyResult',
-          label: (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '16px' }}>{isMarkedAsStudyResult ? '📝' : '⭐'}</span>
-              <span>{isMarkedAsStudyResult ? '取消标记研修成果' : '标记为研修成果'}</span>
-            </div>
-          ),
-          onClick: (e) => {
-            e?.stopPropagation?.();
-            console.log('Mark/Unmark study result clicked:', record, isMarkedAsStudyResult);
-            
-            // 直接在这里处理标记逻辑
-            const updatedRecord = { ...record };
-            if (isMarkedAsStudyResult) {
-              // 取消标记：移除"研修成果"标签
-              updatedRecord.tags = (record.tags || []).filter(tag => tag !== '研修成果');
-              message.success('已取消标记为研修成果');
-            } else {
-              // 添加标记：添加"研修成果"标签
-              updatedRecord.tags = [...(record.tags || []), '研修成果'];
-              message.success('已标记为研修成果');
-            }
-            
-            // 更新操作记录
-            setOperationRecords(prev => {
-              const newRecords = { ...prev };
-              Object.keys(newRecords).forEach(type => {
-                if (Array.isArray(newRecords[type])) {
-                  newRecords[type] = newRecords[type].map(r => 
-                    r.id === record.id ? updatedRecord : r
-                  );
-                }
-              });
-              return newRecords;
-            });
-          }
-        },
         {
           key: 'view',
           label: (
