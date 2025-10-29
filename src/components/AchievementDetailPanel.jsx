@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { Button, Typography, Card, Select, message } from 'antd';
+import React, { useMemo, useEffect, useState } from 'react';
+import { Button, Typography, Card, Select, message, Table, Tag, InputNumber, Input } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { VIEW_MODES, OPERATION_TYPES, OPERATION_TITLES } from '../constants/noteEditConstants';
 
@@ -8,6 +8,7 @@ const { Title, Text } = Typography;
 // 研修成果详情左侧面板：支持关联操作记录与关联来源（未分类）
 const AchievementDetailPanel = ({ state }) => {
   const achievement = state.leftPanelAchievementRecord;
+  const [selectedAttachment, setSelectedAttachment] = useState(null);
 
   const assoc = state.achievementAssociations || {};
   const currentAssoc = achievement ? assoc[achievement.id] || { linkedOperationIds: [], linkedSourceIds: [] } : { linkedOperationIds: [], linkedSourceIds: [] };
@@ -176,6 +177,114 @@ const AchievementDetailPanel = ({ state }) => {
     }
   };
 
+  // 附件类型元数据（用于图标与颜色）
+  const getAttachmentMeta = (type) => {
+    switch(type) {
+      case 'text': return { label: '文本', icon: '📝', color: 'gold' };
+      case 'exam': return { label: '试卷', icon: '🧪', color: 'green' };
+      case 'link': return { label: '链接', icon: '🔗', color: 'geekblue' };
+      case 'live': return { label: '直播', icon: '📡', color: 'volcano' };
+      default: return { label: '附件', icon: '📄', color: 'blue' };
+    }
+  };
+
+  // 初始化评阅清单（示例数据），仅当当前成果没有评阅数据时
+  useEffect(() => {
+    if (!achievement) return;
+    const map = state.evaluationSubmissions || {};
+    const list = Array.isArray(map[achievement.id]) ? map[achievement.id] : [];
+    if (list.length === 0) {
+      const defaults = [
+        {
+          id: 'stu_001',
+          name: '张三',
+          attachments: [
+            { id: 'att_001', type: 'text', name: '情景模拟反思：学生冲突管理', url: '' },
+            { id: 'att_002', type: 'exam', name: '学生管理基础｜情景处置方案设计（100分）.pdf', url: '' },
+            { id: 'att_003', type: 'link', name: '班级突发事件处置指引', url: '' },
+            { id: 'att_004', type: 'live', name: '情景模拟：班级突发事件处置（直播演练）', url: '' }
+          ],
+          score: null,
+          comment: '',
+          reviewer: 'AI'
+        },
+        {
+          id: 'stu_002',
+          name: '李四',
+          attachments: [
+            { id: 'att_005', type: 'text', name: '课堂管理反思：规则与激励', url: '' },
+            { id: 'att_006', type: 'exam', name: '班级管理｜课堂秩序维护方案（80分）.pdf', url: '' },
+            { id: 'att_007', type: 'link', name: '家校沟通要点清单', url: '' }
+          ],
+          score: null,
+          comment: '',
+          reviewer: 'AI'
+        },
+        {
+          id: 'stu_003',
+          name: '王五',
+          attachments: [
+            { id: 'att_008', type: 'live', name: '直播演练：课堂突发情况应对', url: '' },
+            { id: 'att_009', type: 'text', name: '班级突发事件复盘记录', url: '' }
+          ],
+          score: null,
+          comment: '',
+          reviewer: 'AI'
+        },
+        {
+          id: 'stu_004',
+          name: '赵六',
+          attachments: [
+            { id: 'att_010', type: 'exam', name: '学生冲突管理｜情境判断题（95分）.pdf', url: '' },
+            { id: 'att_011', type: 'link', name: '心理辅导资源汇总', url: '' }
+          ],
+          score: null,
+          comment: '',
+          reviewer: 'AI'
+        }
+      ];
+      state.setEvaluationSubmissions(prev => ({
+        ...prev,
+        [achievement.id]: defaults
+      }));
+    }
+  }, [achievement]);
+
+  const submissions = useMemo(() => {
+    const map = state.evaluationSubmissions || {};
+    return Array.isArray(map[achievement?.id]) ? map[achievement.id] : [];
+  }, [state.evaluationSubmissions, achievement]);
+
+  const updateScore = (studentId, value) => {
+    const num = typeof value === 'number' ? Math.max(0, Math.min(100, value)) : null;
+    state.setEvaluationSubmissions(prev => ({
+      ...prev,
+      [achievement.id]: (prev[achievement.id] || []).map(s => s.id === studentId ? { ...s, score: num, reviewer: '人工' } : s)
+    }));
+  };
+
+  const updateComment = (studentId, value) => {
+    state.setEvaluationSubmissions(prev => ({
+      ...prev,
+      [achievement.id]: (prev[achievement.id] || []).map(s => s.id === studentId ? { ...s, comment: value } : s)
+    }));
+  };
+
+  const handlePreviewAttachment = (studentId, attachment) => {
+    setSelectedAttachment({ studentId, attachment });
+    message.info(`打开附件预览：${attachment.name}`);
+  };
+
+  const handleSaveEvaluations = () => {
+    try {
+      const map = state.evaluationSubmissions || {};
+      localStorage.setItem('evaluationSubmissions', JSON.stringify(map));
+      message.success('评分与备注已保存');
+    } catch (e) {
+      message.error('保存评分失败');
+    }
+  };
+
   if (!achievement) {
     return (
       <div style={{ flex: 4, background: '#fff', margin: '16px 0 0 16px', borderRadius: 8, display: 'flex', flexDirection: 'column' }}>
@@ -196,134 +305,104 @@ const AchievementDetailPanel = ({ state }) => {
         <Text strong style={{ marginLeft: 8 }}>研修成果详情</Text>
       </div>
       <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <Card size="small" title={<span>基本信息</span>}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div>
-              <Text strong>标题：</Text>
-              <Text>{achievement.title}</Text>
-            </div>
-            {achievement.description && (
-              <div>
-                <Text strong>描述：</Text>
-                <Text type="secondary">{achievement.description}</Text>
-              </div>
+        {/* 已移除上方三块信息卡片，仅保留评阅清单 */}
+        <Card size="small" title={<span>评阅与提交清单（左侧内联显示）</span>} extra={
+          <Button size="small" type="primary" onClick={handleSaveEvaluations}>保存评分</Button>
+        }>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {submissions && submissions.length > 0 ? (
+              <Table
+                size="small"
+                pagination={false}
+                rowKey={(r) => r.id}
+                dataSource={submissions}
+                columns={[
+                  {
+                    title: '学员',
+                    dataIndex: 'name',
+                    key: 'name',
+                    width: 180,
+                    render: (value, record) => (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Text>{record.name}</Text>
+                        <Tag color={record.reviewer === 'AI' ? 'purple' : 'default'}>
+                          {record.reviewer === 'AI' ? 'AI评阅' : '人工评阅'}
+                        </Tag>
+                      </div>
+                    )
+                  },
+                  {
+                    title: '附件',
+                    key: 'attachments',
+                    render: (_, record) => (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {(record.attachments || []).map(att => {
+                          const meta = getAttachmentMeta(att.type);
+                          const label = `${meta.icon} ${meta.label}｜${att.name}`;
+                          return (
+                            <Tag
+                              key={att.id}
+                              color={meta.color}
+                              style={{ cursor: 'pointer' }}
+                              onClick={() => handlePreviewAttachment(record.id, att)}
+                            >{label}</Tag>
+                          );
+                        })}
+                      </div>
+                    )
+                  },
+                  {
+                    title: '评分',
+                    dataIndex: 'score',
+                    key: 'score',
+                    width: 120,
+                    render: (value, record) => (
+                      <InputNumber
+                        min={0}
+                        max={100}
+                        value={typeof value === 'number' ? value : undefined}
+                        placeholder="0-100"
+                        onChange={(v) => updateScore(record.id, v)}
+                        style={{ width: '100%' }}
+                      />
+                    )
+                  },
+                  {
+                    title: '备注',
+                    dataIndex: 'comment',
+                    key: 'comment',
+                    render: (value, record) => (
+                      <Input
+                        value={value}
+                        placeholder="添加评语或说明"
+                        onChange={(e) => updateComment(record.id, e.target.value)}
+                      />
+                    )
+                  }
+                ]}
+              />
+            ) : (
+              <Text type="secondary">暂无学员提交清单，已为你准备示例数据，会自动初始化。</Text>
             )}
-            {typeof achievement.score !== 'undefined' && (
-              <div>
-                <Text strong>成绩：</Text>
-                <Text>{achievement.score}</Text>
-              </div>
-            )}
-          </div>
-        </Card>
 
-        <Card size="small" title={<span>关联操作记录</span>}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <Text type="secondary">从右侧操作面板生成的记录中选择要关联的项（内联，不弹窗）。</Text>
-            <Select
-              mode="multiple"
-              allowClear
-              style={{ width: '100%' }}
-              placeholder="选择要关联的操作记录"
-              value={selectedValues}
-              onChange={updateLinkedOps}
-              options={operationOptions}
-              optionFilterProp="label"
-              showSearch
-            />
-            {/* 已关联的操作记录卡片展示 */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-              {linkedRecords.length > 0 ? linkedRecords.map(rec => (
-                <Card key={`linked-${rec.type}-${rec.id}`} size="small" styles={{ body: { padding: '8px 12px' } }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
-                      <div style={{
-                        width: '20px',
-                        height: '20px',
-                        backgroundColor: '#f0f0f0',
-                        borderRadius: '4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '10px',
-                        fontWeight: 'bold',
-                        marginRight: '8px',
-                        flexShrink: 0
-                      }}>
-                        {getIcon(rec.type)}
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, minWidth: 0 }}>
-                        <Text ellipsis style={{ fontSize: '12px', fontWeight: 500 }}>{rec.title}</Text>
-                        <Text style={{ fontSize: '10px', color: '#999' }}>{rec.source}</Text>
-                        <Text style={{ fontSize: '10px', color: '#999' }}>{rec.time}</Text>
-                      </div>
-                    </div>
+            {selectedAttachment && (
+              <Card size="small" styles={{ body: { padding: '8px 12px' } }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Text strong>附件预览：</Text>
+                    {(() => {
+                      const a = selectedAttachment.attachment || {};
+                      const meta = getAttachmentMeta(a.type);
+                      return <Text>{`${meta.icon} ${meta.label}｜${a.name || ''}`}</Text>;
+                    })()}
                   </div>
-                </Card>
-              )) : (
-                <Text type="secondary" style={{ fontSize: 12 }}>暂无关联的操作记录</Text>
-              )}
-            </div>
-          </div>
-        </Card>
-
-        <Card size="small" title={<span>关联来源（未分类）</span>}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <Text type="secondary">从未分类模块中的来源选择要关联的项（内联选择）。</Text>
-            <Select
-              mode="multiple"
-              allowClear
-              style={{ width: '100%' }}
-              placeholder="选择要关联的来源"
-              value={selectedSourceValues}
-              onChange={updateLinkedSources}
-              options={sourceOptions}
-              optionFilterProp="label"
-              showSearch
-            />
-            {/* 已关联的来源卡片展示 */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-              {(() => {
-                // 根据选中的值映射到原始来源数据
-                const values = Array.isArray(currentAssoc.linkedSourceIds) ? currentAssoc.linkedSourceIds : [];
-                const sourceMap = {};
-                sourceOptions.forEach(opt => { sourceMap[String(opt.value)] = opt.raw; });
-                const linked = values.map(v => ({
-                  key: String(v),
-                  raw: sourceMap[String(v)]
-                })).filter(item => !!item.raw);
-                return linked.length > 0 ? linked.map(item => (
-                  <Card key={`source-${item.key}`} size="small" styles={{ body: { padding: '8px 12px' } }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
-                        <div style={{
-                          width: '20px',
-                          height: '20px',
-                          backgroundColor: '#f0f0f0',
-                          borderRadius: '4px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '10px',
-                          fontWeight: 'bold',
-                          marginRight: '8px',
-                          flexShrink: 0
-                        }}>
-                          {getIcon(item.raw.type)}
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, minWidth: 0 }}>
-                          <Text ellipsis style={{ fontSize: '12px', fontWeight: 500 }}>{item.raw.title || item.raw.name || item.raw.url || item.key}</Text>
-                          {item.raw.source && (<Text style={{ fontSize: '10px', color: '#999' }}>{item.raw.source}</Text>)}
-                          {item.raw.addTime && (<Text style={{ fontSize: '10px', color: '#999' }}>{item.raw.addTime}</Text>)}
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                )) : (
-                  <Text type="secondary" style={{ fontSize: 12 }}>暂无关联的来源</Text>
-                );
-              })()}
-            </div>
+                  <Button size="small" onClick={() => setSelectedAttachment(null)}>关闭预览</Button>
+                </div>
+                <div style={{ marginTop: 8, color: '#666' }}>
+                  <Text type="secondary">这是示例预览区域。若对接真实文件，可在此嵌入预览。</Text>
+                </div>
+              </Card>
+            )}
           </div>
         </Card>
       </div>

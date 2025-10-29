@@ -5,6 +5,11 @@ import { OPERATION_TYPES, RIGHT_PANEL_VIEWS } from '../constants/noteEditConstan
 export const useOperationHandlers = ({
   hasSourceData,
   sourceInfo,
+  uploadedFiles,
+  addedTexts,
+  courseVideos,
+  links,
+  selectedMaterials,
   operationRecords,
   setOperationRecords,
   setRightPanelView,
@@ -63,6 +68,41 @@ export const useOperationHandlers = ({
     
     return recordWithGenerating;
   };
+
+  // 收集当前来源快照（文件、文本、视频、链接）
+  const getSourceRefs = () => {
+    const refs = [];
+    try {
+      (uploadedFiles || []).forEach(f => refs.push({ type: 'file', id: f.id, title: f.name || f.title || String(f.id) }));
+      (addedTexts || []).forEach(t => refs.push({ type: 'text', id: t.id, title: t.title || t.name || String(t.id) }));
+      (courseVideos || []).forEach(v => refs.push({ type: 'video', id: v.id, title: v.title || v.name || String(v.id) }));
+      (links || []).forEach(l => refs.push({ type: 'link', id: l.id, title: l.title || l.url || String(l.id) }));
+    } catch (e) {}
+    return refs;
+  };
+
+  // 仅基于“当下勾选”的来源生成快照
+  const getSelectedSourceRefs = () => {
+    const list = Array.isArray(selectedMaterials) ? selectedMaterials : [];
+    const key = list[0];
+    if (typeof key !== 'string' || !key.includes('-')) return [];
+    const [prefix, id] = key.split('-');
+    let item = null;
+    if (prefix === 'file') {
+      item = (uploadedFiles || []).find(f => String(f.id) === String(id));
+      return item ? [{ type: 'file', id: item.id, title: item.name || item.title || String(item.id) }] : [];
+    } else if (prefix === 'text') {
+      item = (addedTexts || []).find(t => String(t.id) === String(id));
+      return item ? [{ type: 'text', id: item.id, title: item.title || item.name || String(item.id) }] : [];
+    } else if (prefix === 'video') {
+      item = (courseVideos || []).find(v => String(v.id) === String(id));
+      return item ? [{ type: 'video', id: item.id, title: item.title || item.name || String(item.id) }] : [];
+    } else if (prefix === 'link') {
+      item = (links || []).find(l => String(l.id) === String(id));
+      return item ? [{ type: 'link', id: item.id, title: item.title || item.url || String(item.id) }] : [];
+    }
+    return [];
+  };
   
   // 处理阅卷工具
   const handleGradingToolAction = () => {
@@ -78,6 +118,7 @@ export const useOperationHandlers = ({
         <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的阅卷分析</p>
         <p style="color: #999; font-size: 14px;">${sourceInfo?.details || '数据源分析'} • ${new Date().toLocaleString('zh-CN')}</p>
       </div>`,
+      sourceRefs: getSourceRefs(),
       gradingData: {
         totalPapers: 45,
         averageScore: 82.3,
@@ -155,6 +196,7 @@ export const useOperationHandlers = ({
         <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的综合培训分析报告</p>
         <p style="color: #999; font-size: 14px;">${sourceInfo?.details || '数据源分析'} • ${new Date().toLocaleString('zh-CN')}</p>
       </div>`,
+      sourceRefs: getSourceRefs(),
       reportData: {
         reportType: '综合培训报告',
         generatedAt: new Date().toISOString(),
@@ -201,6 +243,7 @@ export const useOperationHandlers = ({
         title: '智能试题',
         source: sourceInfo?.details || '基于当前数据源',
         time: new Date().toLocaleString('zh-CN'),
+        sourceRefs: getSourceRefs(),
         content: `<div style="padding: 20px; text-align: center;">
           <h3>📝 智能试题</h3>
           <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的智能试题</p>
@@ -221,6 +264,7 @@ export const useOperationHandlers = ({
         title: '智能学习计划',
         source: sourceInfo?.details || '基于当前数据源',
         time: new Date().toLocaleString('zh-CN'),
+        sourceRefs: getSourceRefs(),
         content: `<div style="padding: 20px; text-align: center;">
           <h3>🎯 智能学习计划</h3>
           <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的个性化学习计划</p>
@@ -244,6 +288,7 @@ export const useOperationHandlers = ({
         title: '智能报告',
         source: sourceInfo?.details || '基于当前数据源',
         time: new Date().toLocaleString('zh-CN'),
+        sourceRefs: getSourceRefs(),
         content: `<div style="padding: 20px; text-align: center;">
           <h3>📄 智能报告</h3>
           <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的报告</p>
@@ -266,6 +311,7 @@ export const useOperationHandlers = ({
         title: '课堂评价',
         source: sourceInfo?.details || '基于当前数据源',
         time: new Date().toLocaleString('zh-CN'),
+        sourceRefs: getSourceRefs(),
         content: `<div style="padding: 20px; text-align: center;">
           <h3>📊 课堂评价报告</h3>
           <p style="color: #666;">基于评价量表生成的课堂表现评价</p>
@@ -286,6 +332,7 @@ export const useOperationHandlers = ({
         title: '课堂行为分析',
         source: sourceInfo?.details || '基于当前数据源',
         time: new Date().toLocaleString('zh-CN'),
+        sourceRefs: getSourceRefs(),
         content: `<div style="padding: 20px; text-align: center;">
           <h3>🎯 课堂行为分析</h3>
           <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的行为分析</p>
@@ -304,6 +351,35 @@ export const useOperationHandlers = ({
           message.success('课堂行为分析已生成，记录已添加。点击查看详情');
         }
       });
+    } else if (card.key === 'smart-evaluation') {
+      // 智能评阅：生成一条操作记录，点击记录进入三栏评阅视图
+      const selectedList = Array.isArray(selectedMaterials) ? selectedMaterials : [];
+      if (selectedList.length !== 1) {
+        message.warning('智能评阅需基于一个来源，请仅勾选1项');
+        return;
+      }
+
+      const evalRecord = {
+        id: `smart_evaluation_${Date.now()}`,
+        type: 'smart-evaluation',
+        title: '智能评阅清单',
+        source: sourceInfo?.details || '基于当前数据源',
+        time: new Date().toLocaleString('zh-CN'),
+        isAIGenerated: true,
+        // 仅使用点击当下勾选的来源作为快照
+        sourceRefs: getSelectedSourceRefs(),
+        content: `<div style="padding: 20px; text-align: center;">
+          <h3>🤖 智能评阅</h3>
+          <p style="color: #666;">系统将根据当前资料生成评阅与提交清单</p>
+          <p style="color: #999; font-size: 14px;">${sourceInfo?.details || '数据源分析'} • ${new Date().toLocaleString('zh-CN')}</p>
+        </div>`
+      };
+
+      addRecordWithGenerating('smart-evaluation', evalRecord, {
+        onComplete: () => {
+          message.success('智能评阅记录已生成，点击操作记录查看评阅清单');
+        }
+      });
     } else if (card.key === 'training-report') {
       // 培训报告工具处理
       handleTrainingReportToolAction();
@@ -315,6 +391,7 @@ export const useOperationHandlers = ({
         title: '培训方案',
         source: sourceInfo?.details || '基于当前数据源',
         time: new Date().toLocaleString('zh-CN'),
+        sourceRefs: getSourceRefs(),
         content: `<div style="padding: 20px; text-align: center;">
           <h3>📋 培训方案</h3>
           <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的培训方案</p>

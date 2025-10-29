@@ -116,6 +116,41 @@ export const useOperationPanelState = (noteCategory = null) => {
       return trainingProductDevCards;
     }
 
+    // 如果是我的评阅分类，仅显示并兜底创建“智能评阅”工具
+    if (category === 'my_evaluation') {
+      const aiToolsConfig = JSON.parse(localStorage.getItem('ai-tools-config') || '{}');
+      let addedAITools = JSON.parse(localStorage.getItem('added-ai-tools-to-panel') || '[]');
+
+      // 若未添加，自动创建并注入“智能评阅”
+      if (!addedAITools.includes('smart-evaluation')) {
+        const smartEvalConfig = {
+          key: 'smart-evaluation',
+          title: '智能评阅',
+          icon: '评',
+          gradient: 'linear-gradient(135deg, #fff0f6 0%, #ffd6e7 100%)',
+          color: '#c41d7f'
+        };
+        aiToolsConfig['smart-evaluation'] = smartEvalConfig;
+        addedAITools.push('smart-evaluation');
+        localStorage.setItem('ai-tools-config', JSON.stringify(aiToolsConfig));
+        localStorage.setItem('added-ai-tools-to-panel', JSON.stringify(addedAITools));
+        console.log('我的评阅：已自动创建并注入“智能评阅”工具');
+      }
+
+      // 仅返回“智能评阅”工具卡片
+      const cfg = (JSON.parse(localStorage.getItem('ai-tools-config') || '{}'))['smart-evaluation'];
+      const evalCards = cfg ? [{
+        key: 'smart-evaluation',
+        title: cfg.title,
+        icon: cfg.icon,
+        gradient: cfg.gradient,
+        color: cfg.color,
+        isAITool: true
+      }] : [];
+      console.log('我的评阅分类，返回的卡片:', evalCards);
+      return evalCards;
+    }
+
     // 如果是组织培训分类，默认仅显示六个工具并保持固定顺序
     if (category === 'organizational_training') {
       const orderedKeys = [

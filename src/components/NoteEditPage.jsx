@@ -27,6 +27,7 @@ import OperationPanel from './OperationPanel';
 import VideoView from './VideoView';
 import ChatWindow from './ChatWindow';
 import AchievementDetailPanel from './AchievementDetailPanel';
+import AchievementDetailThreeColumn from './AchievementDetailThreeColumn';
 
 // 导入原有组件
 import MaterialAddPage from './MaterialAddPage';
@@ -567,7 +568,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
       if (type === 'achievement') {
         try {
           state.setLeftPanelAchievementRecord(material);
-          setCurrentView(VIEW_MODES.ACHIEVEMENT_DETAIL);
+          // 改为三栏评阅展示
+          setCurrentView(VIEW_MODES.ACHIEVEMENT_DETAIL_THREE_COLUMN);
           message.success(`正在查看研修成果：${material.title}`);
         } catch (e) {
           console.warn('view achievement error:', e);
@@ -824,6 +826,19 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         const contentWithLinks = convertTimeToLinks(initialContent);
         state.setRightPanelNoteContent(contentWithLinks);
         state.setRightPanelView(RIGHT_PANEL_VIEWS.NOTE_EDITOR);
+        return;
+      }
+
+      // 智能评阅记录：切换到研修成果评阅三栏视图，复用 AchievementDetailThreeColumn
+      if (record.type === 'smart-evaluation') {
+        const syntheticAchievement = {
+          id: `${record.id}-achievement`,
+          title: record.title || '智能评阅清单',
+          tags: ['AI评阅']
+        };
+        state.setLeftPanelAchievementRecord(syntheticAchievement);
+        setCurrentView(VIEW_MODES.ACHIEVEMENT_DETAIL_THREE_COLUMN);
+        message.success('已打开智能评阅：左侧为评阅与提交清单，右侧为预览');
         return;
       }
       
@@ -1328,6 +1343,40 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
           });
           message.success(`已删除"${record.title}"`);
           break;
+        case 'mergeToSource': {
+          const ref = Array.isArray(record.sourceRefs) ? record.sourceRefs[0] : null;
+          if (!ref) {
+            message.warning('该记录缺少来源，无法合并');
+            break;
+          }
+          const type = ref.type;
+          const id = ref.id;
+          try {
+            if (type === 'file') {
+              state.setUploadedFiles(prev => prev.map(f => String(f.id) === String(id) ? { ...f, mergedEvaluations: [...(f.mergedEvaluations || []), record.id] } : f));
+            } else if (type === 'text') {
+              state.setAddedTexts(prev => prev.map(t => String(t.id) === String(id) ? { ...t, mergedEvaluations: [...(t.mergedEvaluations || []), record.id] } : t));
+            } else if (type === 'video') {
+              state.setCourseVideos(prev => prev.map(v => String(v.id) === String(id) ? { ...v, mergedEvaluations: [...(v.mergedEvaluations || []), record.id] } : v));
+            } else if (type === 'link') {
+              state.setLinks(prev => prev.map(l => String(l.id) === String(id) ? { ...l, mergedEvaluations: [...(l.mergedEvaluations || []), record.id] } : l));
+            }
+            // 给记录打标记：已合并到源
+            state.setOperationRecords(prev => {
+              const next = { ...prev };
+              Object.keys(next).forEach(k => {
+                if (Array.isArray(next[k])) {
+                  next[k] = next[k].map(r => r.id === record.id ? { ...r, mergedToSource: true, mergedSourceRef: ref } : r);
+                }
+              });
+              return next;
+            });
+            message.success(`已合并到源：${ref.title}`);
+          } catch (e) {
+            message.error('合并失败，请重试');
+          }
+          break;
+        }
         default:
           break;
       }
@@ -1553,6 +1602,9 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               />
             </div>
           </div>
+        ) : currentView === VIEW_MODES.ACHIEVEMENT_DETAIL_THREE_COLUMN ? (
+          /* 研修成果评阅三栏模式：占据三栏区域 */
+          <AchievementDetailThreeColumn state={state} />
         ) : (
           /* 普通三栏布局模式 */
           <>

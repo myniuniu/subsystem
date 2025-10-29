@@ -239,6 +239,7 @@ const SmartNotes = ({ onViewChange }) => {
     { value: 'classroom_integration', label: '课堂融合', icon: 'NodeIndexOutlined', type: 'system' },
     { value: 'learning_square', label: '学习广场', icon: 'BookOutlined', type: 'system' },
     { value: 'teaching_design', label: '教学设计', icon: 'BulbOutlined', type: 'system' },
+    { value: 'my_evaluation', label: '我的评阅', icon: 'FileTextOutlined', type: 'system' },
     { value: 'e_pbl', label: 'E-PBL', icon: 'BookOutlined', type: 'system' },
     { value: 'homework_system', label: '课后作业', icon: 'FileTextOutlined', type: 'system' },
     { value: 'teaching_research_office', label: '教研室', icon: 'BookOutlined', type: 'system' },

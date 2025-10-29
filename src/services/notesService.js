@@ -13,6 +13,8 @@ const MIGRATION_REMOVE_ORG_002_KEY = 'migration_remove_org_002_done';
 const MIGRATION_FIX_ORG_CATEGORY_KEY = 'migration_fix_org_category_done';
 // 一次性迁移标记：初始化新增一个未开始的组织培训主题
 const MIGRATION_ADD_ORG_DEFAULT_NOT_STARTED_KEY = 'migration_add_org_default_not_started_v3';
+// 一次性迁移标记：为旧存储注入“我的评阅”默认主题
+const MIGRATION_ADD_MY_EVALUATION_DEFAULT_KEY = 'migration_add_my_evaluation_default_v1';
 
 // 默认分类
 const DEFAULT_CATEGORIES = [
@@ -277,6 +279,22 @@ F1 = 2 × (P × R) / (P + R)
       updatedAt: '2024-01-10T16:45:00.000Z',
       wordCount: 385,
       readTime: 3
+    }
+  ],
+  // 我的评阅：默认仅提供示例主题，不预置任何课堂评价记录
+  'my_evaluation': [
+    {
+      id: 'eval-001',
+      title: '新教师入职线上培训',
+      content: `# 新教师入职线上培训评阅主题\n\n## 主题简介\n- 面向新入职教师的线上培训评阅主题，用于集中管理课堂评价与阅卷记录。\n- 支持生成课堂评价报告、记录重点关注维度，并可扩展阅卷与试题。\n\n## 建议流程\n1. 选择评价类型与关注领域\n2. 进行课堂观察记录\n3. 生成评价报告并进行改进建议\n\n## 参考关注领域\n- 教学目标达成\n- 师生互动质量\n- 课堂组织与时间分配\n- 教学资源利用\n\n> 可在右侧操作面板中继续生成更详细的课堂评价记录或阅卷报告。`,
+      category: 'my_evaluation',
+      tags: ['评阅', '新教师', '线上培训'],
+      starred: true,
+      createdAt: '2025-01-20T09:00:00.000Z',
+      updatedAt: '2025-01-20T09:00:00.000Z',
+      wordCount: 180,
+      readTime: 2
+      // 不预置 operationRecords，进入后由用户手动生成
     }
   ],
   'capability_model': [
@@ -1539,6 +1557,58 @@ class NotesService {
       }
     } catch (e) {
       console.error('初始化新增未开始组织培训主题失败:', e);
+    }
+    // 一次性迁移：为旧存储注入“我的评阅”默认主题（新教师入职线上培训）
+    try {
+      const migrated4 = localStorage.getItem(MIGRATION_ADD_MY_EVALUATION_DEFAULT_KEY);
+      if (!migrated4) {
+        const notes = this.getAllNotes();
+        const existsEval = Array.isArray(notes) && notes.some(n => (
+          n?.category === 'my_evaluation' ||
+          (typeof n?.title === 'string' && n.title.includes('新教师入职线上培训'))
+        ));
+        if (!existsEval) {
+          this.createNote({
+            title: '新教师入职线上培训',
+            content: `# 新教师入职线上培训评阅主题\n\n## 主题简介\n- 面向新入职教师的线上培训评阅主题，用于集中管理课堂评价与阅卷记录。\n- 支持生成课堂评价报告、记录重点关注维度，并可扩展阅卷与试题。\n\n## 建议流程\n1. 选择评价类型与关注领域\n2. 进行课堂观察记录\n3. 生成评价报告并进行改进建议\n\n## 参考关注领域\n- 教学目标达成\n- 师生互动质量\n- 课堂组织与时间分配\n- 教学资源利用\n\n> 可在右侧操作面板中继续生成更详细的课堂评价记录或阅卷报告。`,
+            category: 'my_evaluation',
+            tags: ['评阅', '新教师', '线上培训'],
+            starred: true,
+            // 不预置任何操作记录
+          });
+        }
+        localStorage.setItem(MIGRATION_ADD_MY_EVALUATION_DEFAULT_KEY, 'true');
+      }
+    } catch (e) {
+      console.error('初始化新增“我的评阅”默认主题失败:', e);
+    }
+
+    // 迁移：清理旧存储中系统生成的默认“课堂评价记录”
+    try {
+      const MIGRATION_REMOVE_MY_EVAL_DEFAULT_CLASSROOM_EVAL_KEY = 'migration_remove_my_eval_default_classroom_eval_v1';
+      const migratedClean = localStorage.getItem(MIGRATION_REMOVE_MY_EVAL_DEFAULT_CLASSROOM_EVAL_KEY);
+      if (!migratedClean) {
+        const notes = this.getAllNotes() || [];
+        let changed = false;
+        const cleaned = notes.map(n => {
+          if (n?.category === 'my_evaluation' && n?.operationRecords && n.operationRecords['classroom-evaluation']) {
+            const records = n.operationRecords['classroom-evaluation'];
+            const filtered = records.filter(r => !(r?.title?.includes('课堂评价记录：入职培训试讲') || r?.source === '系统生成'));
+            if (filtered.length !== records.length) {
+              changed = true;
+            }
+            return { ...n, operationRecords: { ...n.operationRecords, ['classroom-evaluation']: filtered } };
+          }
+          return n;
+        });
+        if (changed) {
+          // 覆写存储
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
+        }
+        localStorage.setItem(MIGRATION_REMOVE_MY_EVAL_DEFAULT_CLASSROOM_EVAL_KEY, 'true');
+      }
+    } catch (e) {
+      console.error('清理默认课堂评价记录失败:', e);
     }
   }
 

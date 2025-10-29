@@ -74,6 +74,22 @@ export const createGetAvailableAITools = ({
     ];
     // 硬编码工具回退清单（当 localStorage 不完整时使用）
     const hardcodedAITools = [
+      // 我的评阅分类专用：智能评阅
+      {
+        id: 'smart-evaluation',
+        name: '智能评阅',
+        description: '在“我的评阅”中进行智能评分与评语生成',
+        icon: '评',
+        color: '#c41d7f',
+        applicableNoteCategories: ['my_evaluation'],
+        menuConfig: {
+          key: 'smart-evaluation',
+          title: '智能评阅',
+          icon: '评',
+          gradient: 'linear-gradient(135deg, #fff0f6 0%, #ffd6e7 100%)',
+          color: '#c41d7f'
+        }
+      },
       {
         id: 'topic-paper-guidance',
         name: '课题论文指导',
@@ -1148,6 +1164,28 @@ export const createGetAvailableAITools = ({
         if (!tool.applicableNoteCategories || tool.applicableNoteCategories.length === 0) return true;
         return tool.applicableNoteCategories.includes(noteCategory);
       });
+    }
+
+    // 特殊处理：我的评阅分类仅保留“智能评阅”工具
+    if (noteCategory === 'my_evaluation') {
+      availableTools = availableTools.filter(tool => tool.id === 'smart-evaluation');
+      // 如果本地没有该工具，提供兜底的内置项
+      if (availableTools.length === 0) {
+        availableTools = [{
+          id: 'smart-evaluation',
+          name: '智能评阅',
+          description: '在“我的评阅”中进行智能评分与评语生成',
+          icon: '评',
+          applicableNoteCategories: ['my_evaluation'],
+          menuConfig: {
+            key: 'smart-evaluation',
+            title: '智能评阅',
+            icon: '评',
+            gradient: 'linear-gradient(135deg, #fff0f6 0%, #ffd6e7 100%)',
+            color: '#c41d7f'
+          }
+        }];
+      }
     }
 
     // 过滤掉已在面板可见的工具，避免重复添加

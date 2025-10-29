@@ -18,8 +18,9 @@ import {
   Popconfirm,
   Dropdown,
   Progress,
-  Table
-} from 'antd';
+  Table,
+  InputNumber
+  } from 'antd';
 import MaterialAddPage from './MaterialAddPage';
 import ExploreModal from './ExploreModal';
 import CapabilityMindMap from './CapabilityMindMap.jsx';
@@ -45,7 +46,8 @@ import KnowledgeGraphMindMap from './KnowledgeGraphMindMap.jsx';
     FolderOutlined,
     AppstoreOutlined,
     ExclamationCircleOutlined,
-    CheckCircleOutlined
+    CheckCircleOutlined,
+    CloseCircleOutlined
   } from '@ant-design/icons';
 import { Grid, Map as MapIcon } from 'lucide-react';
 import { VIEW_MODES } from '../constants/noteEditConstants';
@@ -138,6 +140,54 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     setRenameValue(initialValue || '');
     setRenameModalVisible(true);
   };
+
+  // 评阅记录：学员研修成果提交清单与评分
+  const [showEvaluationModal, setShowEvaluationModal] = useState(false);
+  const [studyResultSubmissions, setStudyResultSubmissions] = useState([]);
+  const [currentEvalText, setCurrentEvalText] = useState(null);
+
+  const openEvaluationModal = (textItem) => {
+    setCurrentEvalText(textItem || null);
+    // 模拟初始化：提交了“研修成果”附件的学员清单
+    const now = new Date();
+    const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    const samples = [
+      { id: 'stu-001', name: '张三', attachmentTitle: '研修成果-情景模拟实践报告.pdf', submittedAt: fmt(new Date(now.getTime() - 60*60*1000)), score: null, comment: '' },
+      { id: 'stu-002', name: '李四', attachmentTitle: '研修成果-课堂管理改进方案.docx', submittedAt: fmt(new Date(now.getTime() - 2*60*60*1000)), score: null, comment: '' },
+      { id: 'stu-003', name: '王五', attachmentTitle: '研修成果-沟通技巧应用记录.pdf', submittedAt: fmt(new Date(now.getTime() - 3*60*60*1000)), score: null, comment: '' },
+      { id: 'stu-004', name: '赵六', attachmentTitle: '研修成果-突发事件处置反思.docx', submittedAt: fmt(new Date(now.getTime() - 4*60*60*1000)), score: null, comment: '' },
+      { id: 'stu-005', name: '钱七', attachmentTitle: '研修成果-案例研讨总结.pdf', submittedAt: fmt(new Date(now.getTime() - 5*60*60*1000)), score: null, comment: '' }
+    ];
+    setStudyResultSubmissions(samples);
+    setShowEvaluationModal(true);
+  };
+
+  const updateSubmissionScore = (id, score) => {
+    setStudyResultSubmissions(prev => prev.map(s => s.id === id ? { ...s, score } : s));
+  };
+  const updateSubmissionComment = (id, comment) => {
+    setStudyResultSubmissions(prev => prev.map(s => s.id === id ? { ...s, comment } : s));
+  };
+
+  // 研修成果完成状态映射（默认未完成）
+  const [achievementCompletion, setAchievementCompletion] = useState({});
+  useEffect(() => {
+    try {
+      const phases = Array.isArray(phaseMaterials) ? phaseMaterials : [];
+      setAchievementCompletion(prev => {
+        const next = { ...prev };
+        phases.forEach(p => {
+          const arr = Array.isArray(p?.materials?.achievements) ? p.materials.achievements : [];
+          arr.forEach(a => {
+            if (typeof next[a.id] === 'undefined') next[a.id] = !!a.isCompleted; // 若已有字段，沿用，否则默认 false
+          });
+        });
+        return next;
+      });
+    } catch (e) { /* no-op */ }
+  }, [/* 初始化与依赖 */
+    // 依赖于下面的 useMemo 结果；React 会在首次渲染后更新
+  ]);
   const handleConfirmRename = () => {
     const value = (renameValue || '').trim();
     if (!value) {
@@ -246,6 +296,28 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
       // no-op
     }
   }, [note?.id]);
+
+  // my_evaluation：注入考试评阅项 “学校文化与制度｜在线测试” 到默认模块
+  useEffect(() => {
+    const shouldSeed = (note?.category === 'my_evaluation') && /新教师入职线上培训/.test(note?.title || '');
+    if (!shouldSeed) return;
+    try {
+      const title = '学校文化与制度｜在线测试';
+      const exists = (Array.isArray(addedTexts) ? addedTexts : []).some(t => t.title === title);
+      if (exists) return;
+      const nowISO = new Date().toISOString();
+      const newId = Date.now();
+      const textObj = { id: newId, title, content: '在线测试评阅项', type: 'text', addTime: nowISO };
+      setAddedTexts(prev => [ ...(Array.isArray(prev) ? prev : []), textObj ]);
+      setModuleAssignments(prev => {
+        const next = { ...(prev || {}), texts: { ...((prev && prev.texts) || {}) } };
+        next.texts[newId] = 'default';
+        return next;
+      });
+    } catch (e) {
+      // no-op
+    }
+  }, [note?.id, note?.title, note?.category]);
 
     // 自动注入“新教师教学方法培训”预设来源数据
   useEffect(() => {
@@ -1017,7 +1089,8 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
           description: '通过角色扮演模拟学生冲突场景，评估管理与沟通能力',
           time: '本周',
           phaseId: 3,
-          score: null
+          score: null,
+          isCompleted: false
         };
         p3.materials.achievements = [scenarioAchievement];
       }
@@ -2012,12 +2085,24 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                     const modLinks = (Array.isArray(links) ? links : []).filter(l => moduleAssignments.links[l.id] === mod.id);
                     const modTexts = (Array.isArray(addedTexts) ? addedTexts : []).filter(t => moduleAssignments.texts[t.id] === mod.id);
                     const modProjects = (Array.isArray(trainingProjects) ? trainingProjects : []).filter(p => moduleAssignments.projects[p.id] === mod.id);
+                    const isMyEvaluation = note?.category === 'my_evaluation';
+                    
+                    // 分别统计考试评阅和研修成果评阅的数量
+                    const examReviewTexts = modTexts.filter(t => /在线测试|考试|试卷|测验|考核/.test(((t.title || '') + (t.content || ''))));
+                    const trainingReviewTexts = modTexts.filter(t => !/在线测试|考试|试卷|测验|考核/.test(((t.title || '') + (t.content || ''))));
+                    
                     const tagSpecs = [
                       { key: 'live', present: modLive.length > 0, label: '直播课程', color: 'cyan' },
                       { key: 'videos', present: modVideos.length > 0, label: '课程视频', color: 'geekblue' },
                       { key: 'exam', present: modExams.length > 0, label: '考试/试卷', color: 'purple' },
                       { key: 'links', present: modLinks.length > 0, label: '阅读材料', color: 'blue' },
-                      { key: 'texts', present: modTexts.length > 0, label: '文本', color: 'gold' },
+                      // 在"我的评阅"分类下，分别显示两种评阅类型
+                      ...(isMyEvaluation ? [
+                        { key: 'trainingReview', present: trainingReviewTexts.length > 0, label: '研修成果评阅', color: 'gold' },
+                        { key: 'examReview', present: examReviewTexts.length > 0, label: '考试评阅', color: 'purple' }
+                      ] : [
+                        { key: 'texts', present: modTexts.length > 0, label: '文本', color: 'gold' }
+                      ]),
                       { key: 'projects', present: modProjects.length > 0, label: '培训项目资料', color: 'green' }
                     ];
                     return (
@@ -2086,6 +2171,143 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                             </div>
                           )}
 
+                          {/* 模块内 - 研修成果评阅 */}
+                          {isMyEvaluation && trainingReviewTexts.length > 0 && (
+                            <div style={{ marginBottom: 10 }}>
+                              <Text strong style={{ fontSize: 12, color: '#666' }}>
+                                📝 研修成果评阅 ({trainingReviewTexts.length})
+                              </Text>
+                              <div style={{ marginTop: 6 }}>
+                                {trainingReviewTexts.map(text => (
+                                  <Card
+                                    key={`mod-${mod.id}-training-review-${text.id}`}
+                                    size="small"
+                                    style={{ marginBottom: 8, border: '1px solid #e8e8e8', position: 'relative' }}
+                                    bodyStyle={{ padding: '8px 12px' }}
+                onClick={() => { if (handlers?.onViewMaterial) handlers.onViewMaterial(text, 'achievement'); }}
+                                  >
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                                        <FileTextOutlined style={{ color: '#1890ff', marginRight: 8, fontSize: 16 }} />
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                                          <Text strong style={{ fontSize: 12, display: 'block' }}>{text.title || '未命名'}</Text>
+                                          <Tag color="gold">研修成果评阅</Tag>
+                                        </div>
+                                        {text.updatedAt && (
+                                          <Text type="secondary" style={{ fontSize: 10, marginLeft: 8 }}>{text.updatedAt}</Text>
+                                        )}
+                                      </div>
+                                      {(() => {
+                                        const list = Array.isArray(state?.evaluationSubmissions?.[text.id]) ? state.evaluationSubmissions[text.id] : [];
+                                        const total = list.length;
+                                        const graded = list.filter(s => typeof s.score === 'number').length;
+                                        return (
+                                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginRight: 8 }}>
+                                            <Text type="secondary" style={{ fontSize: 10, marginRight: 8 }}>共{total}人</Text>
+                                            <Text type="secondary" style={{ fontSize: 10 }}>{graded}/{total}</Text>
+                                          </div>
+                                        );
+                                      })()}
+                                      <Checkbox
+                                        checked={selectedMaterials.includes(`text-${text.id}`)}
+                                        onChange={(e) => handleSelectMaterial(`text-${text.id}`, e.target.checked)}
+                                        onClick={(e) => e.stopPropagation()}
+                                      />
+                                    </div>
+                                  </Card>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 模块内 - 考试评阅 */}
+                          {isMyEvaluation && examReviewTexts.length > 0 && (
+                            <div style={{ marginBottom: 10 }}>
+                              <Text strong style={{ fontSize: 12, color: '#666' }}>
+                                📝 考试评阅 ({examReviewTexts.length})
+                              </Text>
+                              <div style={{ marginTop: 6 }}>
+                                {examReviewTexts.map(text => (
+                                  <Card
+                                    key={`mod-${mod.id}-exam-review-${text.id}`}
+                                    size="small"
+                                    style={{ marginBottom: 8, border: '1px solid #e8e8e8', position: 'relative' }}
+                                    bodyStyle={{ padding: '8px 12px' }}
+                onClick={() => { if (handlers?.onViewMaterial) handlers.onViewMaterial(text, 'achievement'); }}
+                                  >
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                                        <FileTextOutlined style={{ color: '#1890ff', marginRight: 8, fontSize: 16 }} />
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                                          <Text strong style={{ fontSize: 12, display: 'block' }}>{text.title || '未命名'}</Text>
+                                          <Tag color="purple">考试评阅</Tag>
+                                        </div>
+                                        {text.updatedAt && (
+                                          <Text type="secondary" style={{ fontSize: 10, marginLeft: 8 }}>{text.updatedAt}</Text>
+                                        )}
+                                      </div>
+                                      {(() => {
+                                        const list = Array.isArray(state?.evaluationSubmissions?.[text.id]) ? state.evaluationSubmissions[text.id] : [];
+                                        const total = list.length;
+                                        const graded = list.filter(s => typeof s.score === 'number').length;
+                                        return (
+                                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginRight: 8 }}>
+                                            <Text type="secondary" style={{ fontSize: 10, marginRight: 8 }}>共{total}人</Text>
+                                            <Text type="secondary" style={{ fontSize: 10 }}>{graded}/{total}</Text>
+                                          </div>
+                                        );
+                                      })()}
+                                      <Checkbox
+                                        checked={selectedMaterials.includes(`text-${text.id}`)}
+                                        onChange={(e) => handleSelectMaterial(`text-${text.id}`, e.target.checked)}
+                                        onClick={(e) => e.stopPropagation()}
+                                      />
+                                    </div>
+                                  </Card>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 模块内 - 普通文本 */}
+                          {!isMyEvaluation && modTexts.length > 0 && (
+                            <div style={{ marginBottom: 10 }}>
+                              <Text strong style={{ fontSize: 12, color: '#666' }}>
+                                📝 文本 ({modTexts.length})
+                              </Text>
+                              <div style={{ marginTop: 6 }}>
+                                {modTexts.map(text => (
+                                  <Card
+                                    key={`mod-${mod.id}-text-${text.id}`}
+                                    size="small"
+                                    style={{ marginBottom: 8, border: '1px solid #e8e8e8', position: 'relative' }}
+                                    bodyStyle={{ padding: '8px 12px' }}
+                onClick={() => { if (handlers?.onViewMaterial) handlers.onViewMaterial(text, 'text'); }}
+                                  >
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                                        <FileTextOutlined style={{ color: '#1890ff', marginRight: 8, fontSize: 16 }} />
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                                          <Text strong style={{ fontSize: 12, display: 'block' }}>{text.title || '未命名'}</Text>
+                                          <Tag color="blue">文本</Tag>
+                                        </div>
+                                        {text.updatedAt && (
+                                          <Text type="secondary" style={{ fontSize: 10, marginLeft: 8 }}>{text.updatedAt}</Text>
+                                        )}
+                                      </div>
+
+                                      <Checkbox
+                                        checked={selectedMaterials.includes(`text-${text.id}`)}
+                                        onChange={(e) => handleSelectMaterial(`text-${text.id}`, e.target.checked)}
+                                        onClick={(e) => e.stopPropagation()}
+                                      />
+                                    </div>
+                                  </Card>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
                           {/* 其他类型可按需补充：课程视频/阅读材料/文本/培训项目资料 */}
                         </div>
                       </div>
@@ -2094,6 +2316,62 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                 </div>
               )}
               {/* 组织培训下：阶段分组视图 */}
+              {/* 评阅记录 - 学员研修成果评分弹窗 */}
+              <Modal
+                title={
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Text strong>评阅记录：研修成果提交清单</Text>
+                    {currentEvalText?.title && (
+                      <Tag color="gold">{currentEvalText.title}</Tag>
+                    )}
+                  </div>
+                }
+                open={showEvaluationModal}
+                onCancel={() => setShowEvaluationModal(false)}
+                onOk={() => {
+                  setShowEvaluationModal(false);
+                  const graded = studyResultSubmissions.filter(s => typeof s.score === 'number');
+                  message.success(`已保存 ${graded.length} 位学员评分`);
+                }}
+                width={900}
+              >
+                <div style={{ marginBottom: 8 }}>
+                  <Text type="secondary">为每位学员的“研修成果”附件进行评分（0-100分）。</Text>
+                </div>
+                <Table
+                  size="small"
+                  rowKey="id"
+                  pagination={{ pageSize: 8 }}
+                  dataSource={studyResultSubmissions}
+                  columns={[
+                    { title: '学员', dataIndex: 'name', key: 'name', width: 120 },
+                    { title: '附件', dataIndex: 'attachmentTitle', key: 'attachmentTitle' },
+                    { title: '提交时间', dataIndex: 'submittedAt', key: 'submittedAt', width: 160 },
+                    {
+                      title: '评分', key: 'score', width: 140,
+                      render: (_, record) => (
+                        <InputNumber
+                          min={0}
+                          max={100}
+                          value={record.score}
+                          placeholder="0-100"
+                          onChange={(val) => updateSubmissionScore(record.id, val)}
+                        />
+                      )
+                    },
+                    {
+                      title: '备注', key: 'comment',
+                      render: (_, record) => (
+                        <Input
+                          value={record.comment}
+                          placeholder="（可选）填写评价要点"
+                          onChange={(e) => updateSubmissionComment(record.id, e.target.value)}
+                        />
+                      )
+                    }
+                  ]}
+                />
+              </Modal>
               {isOrgTrainingView && phaseMaterials.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#f8f9fa', borderRadius: 8, border: '1px solid #e9ecef', marginBottom: 8 }}>
@@ -2180,13 +2458,25 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                             {(() => {
                               const m = phase.materials || {};
+                              const isMyEvaluation = note?.category === 'my_evaluation';
+                              
+                              // 分别统计考试评阅和研修成果评阅的数量
+                              const examReviewTexts = Array.isArray(m.texts) ? m.texts.filter(t => /在线测试|考试|试卷|测验|考核/.test(((t.title || '') + (t.content || '')))) : [];
+                              const trainingReviewTexts = Array.isArray(m.texts) ? m.texts.filter(t => !/在线测试|考试|试卷|测验|考核/.test(((t.title || '') + (t.content || '')))) : [];
+                              
                               const tagSpecs = [
                                 { key: 'live', present: Array.isArray(m.live) && m.live.length > 0, label: '直播课程', color: 'cyan' },
                                 { key: 'videos', present: Array.isArray(m.videos) && m.videos.length > 0, label: '课程视频', color: 'geekblue' },
                                 { key: 'achievements', present: Array.isArray(m.achievements) && m.achievements.length > 0, label: '研修成果', color: 'magenta' },
                                 { key: 'exam', present: Array.isArray(m.exam) && m.exam.length > 0, label: '考试/试卷', color: 'purple' },
                                 { key: 'links', present: Array.isArray(m.links) && m.links.length > 0, label: '阅读材料', color: 'blue' },
-                                { key: 'texts', present: Array.isArray(m.texts) && m.texts.length > 0, label: '文本', color: 'gold' },
+                                // 在"我的评阅"分类下，分别显示两种评阅类型
+                                ...(isMyEvaluation ? [
+                                  { key: 'trainingReview', present: trainingReviewTexts.length > 0, label: '研修成果评阅', color: 'gold' },
+                                  { key: 'examReview', present: examReviewTexts.length > 0, label: '考试评阅', color: 'purple' }
+                                ] : [
+                                  { key: 'texts', present: Array.isArray(m.texts) && m.texts.length > 0, label: '文本', color: 'gold' }
+                                ]),
                                 { key: 'projects', present: Array.isArray(m.trainingProjects) && m.trainingProjects.length > 0, label: '培训项目资料', color: 'green' }
                               ];
                               return tagSpecs
@@ -2843,16 +3133,37 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                         trigger={['click']}
                                         placement="bottomLeft"
                                         menu={{
-                                          items: [
-                                            { key: 'attachments', label: '附件', icon: <PaperClipOutlined /> }
-                                          ],
-                                          onClick: ({ key }) => {
+                                          items: (() => {
+                                            const completed = (achievementCompletion?.[item.id] ?? item.isCompleted) === true;
+                                            return [
+                                              { key: 'attachments', label: '附件', icon: <PaperClipOutlined /> },
+                                              { type: 'divider' },
+                                              completed
+                                                ? { key: 'markUncompleted', label: '标记未完成', icon: <CloseCircleOutlined /> }
+                                                : { key: 'markCompleted', label: '标记完成', icon: <CheckCircleOutlined /> }
+                                            ];
+                                          })(),
+                                          onClick: ({ key, domEvent }) => {
+                                            if (domEvent && typeof domEvent.stopPropagation === 'function') {
+                                              domEvent.stopPropagation();
+                                            }
+                                            if (domEvent && typeof domEvent.preventDefault === 'function') {
+                                              domEvent.preventDefault();
+                                            }
                                             if (key === 'attachments') {
                                               try {
                                                 if (handlers && typeof handlers.onViewMaterial === 'function') {
                                                   handlers.onViewMaterial(item, 'achievement');
                                                 }
                                               } catch (e) { /* no-op */ }
+                                            }
+                                            if (key === 'markCompleted') {
+                                              setAchievementCompletion(prev => ({ ...prev, [item.id]: true }));
+                                              message.success('已标记为完成');
+                                            }
+                                            if (key === 'markUncompleted') {
+                                              setAchievementCompletion(prev => ({ ...prev, [item.id]: false }));
+                                              message.success('已标记为未完成');
                                             }
                                           }
                                         }}
@@ -2872,16 +3183,37 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                           trigger={['click']}
                                           placement="bottomLeft"
                                           menu={{
-                                            items: [
-                                              { key: 'attachments', label: '附件', icon: <PaperClipOutlined /> }
-                                            ],
-                                            onClick: ({ key }) => {
+                                            items: (() => {
+                                              const completed = (achievementCompletion?.[item.id] ?? item.isCompleted) === true;
+                                              return [
+                                                { key: 'attachments', label: '附件', icon: <PaperClipOutlined /> },
+                                                { type: 'divider' },
+                                                completed
+                                                  ? { key: 'markUncompleted', label: '标记未完成', icon: <CloseCircleOutlined /> }
+                                                  : { key: 'markCompleted', label: '标记完成', icon: <CheckCircleOutlined /> }
+                                              ];
+                                            })(),
+                                            onClick: ({ key, domEvent }) => {
+                                              if (domEvent && typeof domEvent.stopPropagation === 'function') {
+                                                domEvent.stopPropagation();
+                                              }
+                                              if (domEvent && typeof domEvent.preventDefault === 'function') {
+                                                domEvent.preventDefault();
+                                              }
                                               if (key === 'attachments') {
                                                 try {
                                                   if (handlers && typeof handlers.onViewMaterial === 'function') {
                                                     handlers.onViewMaterial(item, 'achievement');
                                                   }
                                                 } catch (e) { /* no-op */ }
+                                              }
+                                              if (key === 'markCompleted') {
+                                                setAchievementCompletion(prev => ({ ...prev, [item.id]: true }));
+                                                message.success('已标记为完成');
+                                              }
+                                              if (key === 'markUncompleted') {
+                                                setAchievementCompletion(prev => ({ ...prev, [item.id]: false }));
+                                                message.success('已标记为未完成');
                                               }
                                             }
                                           }}
@@ -2904,6 +3236,38 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                         )}
                                       </div>
                                     </div>
+                                    {/* 状态与附件数量：右侧垂直排列，附件在状态下方 */}
+                                    {(() => {
+                                      const completed = (achievementCompletion?.[item.id] ?? item.isCompleted) === true;
+                                      const assocMap = (state && state.achievementAssociations) || {};
+                                      let count = 0;
+                                      // 优先按 ID 精确匹配
+                                      const byId = assocMap[item.id];
+                                      if (byId) {
+                                        const ops = Array.isArray(byId.linkedOperationIds) ? byId.linkedOperationIds.length : 0;
+                                        const src = Array.isArray(byId.linkedSourceIds) ? byId.linkedSourceIds.length : 0;
+                                        count = ops + src;
+                                      } else {
+                                        // 兼容旧数据或不同入口的键不一致：尝试用标题匹配
+                                        const byTitle = Object.values(assocMap).find(x => String(x?.title || '') === String(item.title));
+                                        if (byTitle) {
+                                          const ops = Array.isArray(byTitle.linkedOperationIds) ? byTitle.linkedOperationIds.length : 0;
+                                          const src = Array.isArray(byTitle.linkedSourceIds) ? byTitle.linkedSourceIds.length : 0;
+                                          count = ops + src;
+                                        }
+                                      }
+                                      return (
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginRight: 8 }}>
+                                          <Tag color={completed ? 'green' : 'default'}>
+                                            {completed ? '已完成' : '未完成'}
+                                          </Tag>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                                            <PaperClipOutlined style={{ color: count > 0 ? '#1890ff' : '#bfbfbf', fontSize: 14 }} />
+                                            <span style={{ fontSize: 12, color: count > 0 ? '#1890ff' : '#999' }}>{count}</span>
+                                          </div>
+                                        </div>
+                                      );
+                                    })()}
                                     <Checkbox
                                       checked={selectedMaterials.includes(`achievement-${item.id}`)}
                                       onChange={(e) => handleSelectMaterial(`achievement-${item.id}`, e.target.checked)}

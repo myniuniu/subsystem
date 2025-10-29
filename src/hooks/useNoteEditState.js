@@ -34,8 +34,17 @@ const subtitleData = [
 ];
 
 export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCategory = null) => {
+  // 特判：我的评阅分类下默认提供固定评阅来源数据（首项已改名）
+  const isMyEvaluation = (
+    selectedCategory === 'my_evaluation' ||
+    note?.category === 'my_evaluation'
+  );
   // 资料收集相关状态
   const [uploadedFiles, setUploadedFiles] = useState(() => {
+    // 我的评阅：不注入默认试卷/文件
+    if (isMyEvaluation) {
+      return [];
+    }
     // 培训需求管理或组织培训主题下不显示默认文件（优先级最高）
     const keywords = ['新教师教学方法培训', '新教师教学方法', '教学方法培训'];
     const matchesTitle = keywords.some(k => (note?.title || '').includes(k));
@@ -99,6 +108,10 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
     projects: {}
   });
   const [links, setLinks] = useState(() => {
+    // 我的评阅：不注入默认链接
+    if (isMyEvaluation) {
+      return [];
+    }
     // 培训需求管理分类下只显示“新教师培训通知”；组织培训主题不注入无关默认链接
     const keywords = ['新教师教学方法培训', '新教师教学方法', '教学方法培训'];
     const matchesTitle = keywords.some(k => (note?.title || '').includes(k));
@@ -146,6 +159,35 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   // 文字内容相关状态
   const [textContent, setTextContent] = useState('');
   const [addedTexts, setAddedTexts] = useState(() => {
+    // 我的评阅：固定展示四条评阅来源数据（首项改为“学生管理基础 | 情景模拟”）
+    if (isMyEvaluation) {
+      return [
+        {
+          id: 'ev_text_001',
+          title: '学生管理基础 | 情景模拟',
+          content: '示例：课堂纪律与学生行为管理的情景模拟要点与反思。',
+          addTime: '刚刚'
+        },
+        {
+          id: 'ev_text_002',
+          title: '教学设计进阶 | 完整教学设计',
+          content: '示例：基于目标-活动-评价的完整教学设计评阅记录与优化建议。',
+          addTime: '1分钟前'
+        },
+        {
+          id: 'ev_text_003',
+          title: '教育科研入门 | 研究计划书',
+          content: '示例：研究问题、方法与进度安排的计划书评阅与改进意见。',
+          addTime: '2分钟前'
+        },
+        {
+          id: 'ev_text_004',
+          title: '教师职业规划 | 个人发展规划',
+          content: '示例：教学、教研与职业发展目标的阶段性规划与评估要点。',
+          addTime: '3分钟前'
+        }
+      ];
+    }
     // 培训需求管理或组织培训主题下不显示默认文本（优先级最高）
     const keywords = ['新教师教学方法培训', '新教师教学方法', '教学方法培训'];
     const matchesTitle = keywords.some(k => (note?.title || '').includes(k));
@@ -184,6 +226,10 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   const [videoTitle, setVideoTitle] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [courseVideos, setCourseVideos] = useState(() => {
+    // 我的评阅：不注入默认课程视频
+    if (isMyEvaluation) {
+      return [];
+    }
     // 培训需求管理分类下不显示任何课程视频（优先级最高）
     if (selectedCategory === 'training_needs_management' || note?.category === 'training_needs_management') {
       return [];
@@ -308,17 +354,24 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
 
   // 直播流状态管理
   const [liveStreams, setLiveStreams] = useState([
-    {
-      id: 'live_001',
-      title: '《课程思政融入专业课教学》研讨会',
-      instructor: '张教授',
-      startTime: '2025-01-25 14:00',
-      endTime: '2025-01-25 16:00',
-      url: 'https://live.example.com/live/123456',
-      platform: '',
-      participants: 156,
-      status: 'live'
-    }
+    // 我的评阅：移除默认直播课程来源
+    ...(
+      isMyEvaluation
+        ? []
+        : [
+            {
+              id: 'live_001',
+              title: '《课程思政融入专业课教学》研讨会',
+              instructor: '张教授',
+              startTime: '2025-01-25 14:00',
+              endTime: '2025-01-25 16:00',
+              url: 'https://live.example.com/live/123456',
+              platform: '',
+              participants: 156,
+              status: 'live'
+            }
+          ]
+    )
   ]);
 
   // 悬停状态管理
@@ -369,6 +422,8 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   const [leftPanelAchievementRecord, setLeftPanelAchievementRecord] = useState(null);
   // achievementAssociations: { [achievementId]: { linkedOperationIds: string[]|number[], attachments: any[] } }
   const [achievementAssociations, setAchievementAssociations] = useState({});
+  // 研修成果评阅清单：{ [achievementId]: Array<{ id, name, attachments: Array<{id,name,url}>, score, comment }> }
+  const [evaluationSubmissions, setEvaluationSubmissions] = useState({});
 
   // 能力模型相关状态
   const [capabilityMap, setCapabilityMap] = useState(null);
@@ -647,6 +702,8 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
     setLeftPanelAchievementRecord,
     achievementAssociations,
     setAchievementAssociations,
+    evaluationSubmissions,
+    setEvaluationSubmissions,
 
     // 能力模型和知识图谱状态
     capabilityMap,

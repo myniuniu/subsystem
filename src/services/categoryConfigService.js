@@ -6,14 +6,15 @@ const STORAGE_KEY = 'smartnotes_system_category_config';
 export const DEFAULT_SYSTEM_CATEGORY_CONFIG = {
   groups: [
     { key: 'group_learning', title: '学习相关', templateId: null, icon: 'FolderOpenOutlined', childrenValues: ['study', 'learning_square', 'learning_analytics'], groups: [] },
-    { key: 'group_teaching', title: '教学相关', templateId: null, icon: 'FolderOpenOutlined', childrenValues: ['teaching_design', 'classroom_integration', 'homework_system', 'teaching_research_office', 'e_pbl'], groups: [] },
+    { key: 'group_teaching', title: '教学相关', templateId: null, icon: 'FolderOpenOutlined', childrenValues: ['teaching_design', 'my_evaluation', 'classroom_integration', 'homework_system', 'teaching_research_office', 'e_pbl'], groups: [] },
     { key: 'group_research', title: '科研与教育', templateId: null, icon: 'FolderOpenOutlined', childrenValues: ['research', 'educational_topics'], groups: [] },
     { key: 'group_general', title: '通用主题', templateId: null, icon: 'FolderOpenOutlined', childrenValues: ['work', 'personal', 'ideas', 'meeting'], groups: [] },
     { key: 'group_management', title: '管理与培训', templateId: null, icon: 'FolderOpenOutlined', childrenValues: ['training_needs_management', 'training_product_development'], groups: [] }
   ],
   extraCategories: [
     { value: 'e_pbl', label: 'E-PBL', icon: 'BookOutlined', type: 'system', pinned: true },
-    { value: 'teaching_research_office', label: '教研室', icon: 'BookOutlined', type: 'custom', pinned: true }
+    { value: 'teaching_research_office', label: '教研室', icon: 'BookOutlined', type: 'custom', pinned: true },
+    { value: 'my_evaluation', label: '我的评阅', icon: 'FileTextOutlined', type: 'system', pinned: true }
   ]
 };
 
@@ -64,18 +65,27 @@ export const getSystemCategoryConfig = () => {
     const ensureGroups = (groups = []) => groups.map(g => {
       if (g.key === 'group_teaching') {
         const setChildren = new Set(g.childrenValues || []);
+        // 强制包含 e_pbl 与 my_evaluation 两个系统分类
         setChildren.add('e_pbl');
+        setChildren.add('my_evaluation');
         return { ...g, childrenValues: Array.from(setChildren), groups: ensureGroups(g.groups || []) };
       }
       return { ...g, groups: ensureGroups(g.groups || []) };
     });
 
-    // 确保 e_pbl 分类默认置顶（extraCategories）
+    // 确保 e_pbl 与 my_evaluation 分类默认置顶（extraCategories）
     const extra = Array.isArray(baseConfig.extraCategories) ? baseConfig.extraCategories : [];
     const hasEPBL = extra.some(c => c.value === 'e_pbl');
-    const nextExtra = hasEPBL
-      ? extra.map(c => c.value === 'e_pbl' ? { ...c, pinned: true } : c)
-      : [{ value: 'e_pbl', label: 'E-PBL', icon: 'BookOutlined', type: 'system', pinned: true }, ...extra];
+    const hasMyEvaluation = extra.some(c => c.value === 'my_evaluation');
+    let nextExtra = extra;
+    // 处理 e_pbl
+    nextExtra = hasEPBL
+      ? nextExtra.map(c => c.value === 'e_pbl' ? { ...c, pinned: true } : c)
+      : [{ value: 'e_pbl', label: 'E-PBL', icon: 'BookOutlined', type: 'system', pinned: true }, ...nextExtra];
+    // 处理 my_evaluation
+    nextExtra = hasMyEvaluation
+      ? nextExtra.map(c => c.value === 'my_evaluation' ? { ...c, pinned: true } : c)
+      : [{ value: 'my_evaluation', label: '我的评阅', icon: 'FileTextOutlined', type: 'system', pinned: true }, ...nextExtra];
 
     const ensured = {
       groups: ensureGroups(baseConfig.groups || []),

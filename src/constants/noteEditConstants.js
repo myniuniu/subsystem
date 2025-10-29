@@ -56,6 +56,8 @@ export const MATERIAL_ICONS = {
   video: '🎥',
   link: '🔗',
   course: '📚',
+  // 智能评阅操作记录图标
+  'smart-evaluation': '评',
   [OPERATION_TYPES.KNOWLEDGE_GRAPH]: '🧠',
   [OPERATION_TYPES.AUDIO]: '音',
   [OPERATION_TYPES.VIDEO]: '视',
@@ -96,7 +98,9 @@ export const VIEW_MODES = {
   TRAINING_PLAN_FULLSCREEN: 'training_plan_fullscreen',
   TRAINING_PLAN_THREE_COLUMN: 'training_plan_three_column',
   // 研修成果详情（左侧面板内联显示）
-  ACHIEVEMENT_DETAIL: 'achievement_detail'
+  ACHIEVEMENT_DETAIL: 'achievement_detail',
+  // 研修成果评阅（三栏布局显示）
+  ACHIEVEMENT_DETAIL_THREE_COLUMN: 'achievement_detail_three_column'
 };
 
 // 右侧面板视图常量

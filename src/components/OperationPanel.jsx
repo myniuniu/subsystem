@@ -164,7 +164,9 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
     noteEditorContent,
     setNoteEditorContent,
     // 研修成果关联信息（用于在卡片展示“被谁关联”）
-    achievementAssociations
+    achievementAssociations,
+    // 资料勾选（用于来源快照）
+    selectedMaterials
   } = state;
 
   // 获取当前笔记的分类信息（优先使用选中的分类）
@@ -341,6 +343,11 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
   } = useOperationHandlers({
     hasSourceData,
     sourceInfo,
+    uploadedFiles,
+    addedTexts,
+    courseVideos,
+    links,
+    selectedMaterials,
     operationRecords,
     setOperationRecords,
     setRightPanelView,
@@ -632,6 +639,39 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
             }
           }
         ] : []),
+        ...commonItems
+      ];
+    }
+
+    // 智能评阅类型：增加“合并到源”选项
+    if (record.type === 'smart-evaluation') {
+      return [
+        {
+          key: 'view',
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>👁️</span>
+              <span>查看</span>
+            </div>
+          ),
+          onClick: (e) => {
+            e?.stopPropagation?.();
+            onMoreAction && onMoreAction('view', record);
+          }
+        },
+        {
+          key: 'mergeToSource',
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>🔗</span>
+              <span>合并到源</span>
+            </div>
+          ),
+          onClick: (e) => {
+            e?.stopPropagation?.();
+            onMoreAction && onMoreAction('mergeToSource', record);
+          }
+        },
         ...commonItems
       ];
     }
@@ -1602,9 +1642,27 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
                           ) : null;
                         })()}
                       </div>
-                      <Text style={{ fontSize: '10px', color: '#999', display: 'block' }}>
-                        {record.source}
-                      </Text>
+                      {Array.isArray(record.sourceRefs) && record.sourceRefs.length > 0 ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                          <Text type="secondary" style={{ fontSize: '11px' }}>来源：</Text>
+                          {record.sourceRefs.slice(0, 3).map((ref, idx) => (
+                            <span key={`${record.id}-src-${idx}`} style={{
+                              fontSize: '10px',
+                              color: '#555',
+                              padding: '2px 6px',
+                              border: '1px solid #eee',
+                              borderRadius: '8px',
+                              background: '#fafafa'
+                            }}>
+                              {ref.type === 'text' ? '📝 文本' : ref.type === 'file' ? '📄 文件' : ref.type === 'video' ? '🎥 视频' : ref.type === 'link' ? '🔗 链接' : '📁 来源'}｜{ref.title}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <Text style={{ fontSize: '10px', color: '#999', display: 'block' }}>
+                          {record.source}
+                        </Text>
+                      )}
                       <Text style={{ fontSize: '10px', color: '#999' }}>
                         {record.time}
                       </Text>
