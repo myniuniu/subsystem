@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Dropdown, Space, message } from 'antd';
+import { Dropdown, Space, message, Modal } from 'antd';
 import { 
   User, 
   LogOut, 
@@ -40,6 +40,8 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
   // 新增：展开态内联搜索框状态与快捷键
   const [searchInlineValue, setSearchInlineValue] = useState('');
   const inputRef = useRef(null);
+  // 清理缓存弹窗
+  const [clearCacheModalVisible, setClearCacheModalVisible] = useState(false);
   const LS_KEY = 'global_search_history_v1';
   const FREQ_KEY = 'global_search_freq_v1';
 
@@ -260,6 +262,22 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
         </div>
       ),
       disabled: true
+    },
+    {
+      type: 'divider'
+    },
+    // 清理缓存
+    {
+      key: 'clear-cache',
+      label: (
+        <Space>
+          <Shield size={16} />
+          <span>清理缓存</span>
+        </Space>
+      ),
+      onClick: () => {
+        setClearCacheModalVisible(true);
+      }
     },
     {
       type: 'divider'
@@ -509,6 +527,22 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
         onCancel={() => setShareModalVisible(false)}
         currentTheme={getCurrentThemeData()}
       />
+
+      {/* 清理缓存弹窗 */}
+      <Modal
+        title="清理缓存"
+        open={clearCacheModalVisible}
+        onCancel={() => setClearCacheModalVisible(false)}
+        footer={null}
+        width={880}
+        styles={{ body: { padding: 0, overflow: 'hidden' } }}
+      >
+        <iframe
+          title="clear-site-data"
+          src={`${window.location.origin}/clear-site-data.html`}
+          style={{ width: '100%', height: '70vh', border: 'none' }}
+        />
+      </Modal>
 
       <LoginMoreModal
         open={loginMoreModalVisible}

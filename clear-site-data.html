@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>清除站点数据（缓存/SW + 可选存储）</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial; padding: 24px; }
+    html, body { height: 100%; }
+    body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial; padding: 24px; overflow: hidden; }
     .card { max-width: 900px; margin: 0 auto; border: 1px solid #e6e6e6; border-radius: 12px; padding: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
     h1 { margin: 0 0 12px; font-size: 20px; }
     .desc { color: #555; margin-bottom: 16px; }
@@ -21,25 +22,28 @@
     .error { color: #cf1322; }
     .tip { font-size: 12px; color: #888; }
     ul { padding-left: 20px; }
+    /* 隐藏滚动条（适配不同浏览器） */
+    ::-webkit-scrollbar { width: 0; height: 0; }
+    .log { overflow: auto; }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>清除站点数据（缓存/SW + 可选存储）</h1>
     <div class="desc">一键删除当前源的 Cache Storage 并注销 Service Worker；可选同时清空 localStorage 与 IndexedDB。删除后不可恢复，请谨慎操作。</div>
+    <div class="tip" id="originInfo" style="margin-top: 8px;">当前地址：加载中...</div>
 
     <div class="section">
       <strong>可选开关</strong>
       <div class="options">
-        <label><input type="checkbox" id="optLS"> 同时清理 localStorage（清空所有键值对）</label>
-        <label><input type="checkbox" id="optIDB"> 同时清理 IndexedDB（删除所有数据库）</label>
+        <label><input type="checkbox" id="optLS" checked> 同时清理 localStorage（清空所有键值对）</label>
+        <label><input type="checkbox" id="optIDB" checked> 同时清理 IndexedDB（删除所有数据库）</label>
       </div>
       <div class="tip">说明：缓存与 Service Worker 始终会清理；localStorage/IndexedDB 仅在勾选时执行。若浏览器不支持枚举 IndexedDB，将给出替代提示。</div>
     </div>
 
     <div class="btns">
       <button class="primary" id="runBtn">执行清理</button>
-      <button id="backBtn">返回主应用</button>
     </div>
 
     <div id="result" class="log">就绪</div>
@@ -59,6 +63,11 @@
     const logEl = document.getElementById('result');
     const optLS = document.getElementById('optLS');
     const optIDB = document.getElementById('optIDB');
+    // 显示当前地址与端口
+    try {
+      const origin = window.location.origin;
+      document.getElementById('originInfo').textContent = `当前地址：${origin}`;
+    } catch {}
 
     const log = (msg, cls = '') => {
       const time = new Date().toLocaleTimeString();
@@ -179,10 +188,6 @@
     }
 
     document.getElementById('runBtn').addEventListener('click', runCleanup);
-    document.getElementById('backBtn').addEventListener('click', () => {
-      const backUrl = window.location.origin + '/';
-      window.location.href = backUrl;
-    });
   </script>
 </body>
 </html>

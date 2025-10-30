@@ -522,6 +522,8 @@ const AIAssistant = ({
   };
 
   // 渲染功能选项卡
+  const isMyEvaluation = note?.category === 'my_evaluation';
+
   const renderFeatureTabs = () => (
     <div className="ai-feature-tabs">
       <Button
@@ -550,7 +552,7 @@ const AIAssistant = ({
         icon={<QuestionCircleOutlined />}
         onClick={() => setActiveFeature('qa')}
       >
-        智能问答
+        {isMyEvaluation ? '评阅助手' : '智能问答'}
       </Button>
     </div>
   );

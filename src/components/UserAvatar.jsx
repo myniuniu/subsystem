@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dropdown, Avatar, Space, Divider, message } from 'antd';
+import { Dropdown, Avatar, Space, Divider, message, Modal, Button } from 'antd';
 import { 
   User, 
   LogOut, 
@@ -16,6 +16,7 @@ import './UserAvatar.css';
 const UserAvatar = ({ onThemeChange }) => {
   const [currentTheme, setCurrentTheme] = useState(getCurrentTheme());
   const [shareModalVisible, setShareModalVisible] = useState(false);
+  const [clearCacheVisible, setClearCacheVisible] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(true); // 模拟登录状态
   const [userInfo, setUserInfo] = useState({
     name: '张老师',
@@ -125,6 +126,20 @@ const UserAvatar = ({ onThemeChange }) => {
     {
       type: 'divider'
     },
+    // 清理缓存（弹窗展示清理页面内容）
+    {
+      key: 'clear-cache',
+      label: (
+        <Space>
+          <span>🧹</span>
+          <span>清理缓存</span>
+        </Space>
+      ),
+      onClick: () => setClearCacheVisible(true)
+    },
+    {
+      type: 'divider'
+    },
     // 主题设置
     {
       key: 'theme-settings',
@@ -228,6 +243,26 @@ const UserAvatar = ({ onThemeChange }) => {
         onCancel={() => setShareModalVisible(false)}
         currentTheme={getCurrentThemeData()}
       />
+
+      {/* 清理缓存弹窗：以内嵌页面方式展示，端口动态取自 window.location.origin */}
+      <Modal
+        title="清理缓存"
+        open={clearCacheVisible}
+        onCancel={() => setClearCacheVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setClearCacheVisible(false)}>关闭</Button>
+        ]}
+        width={800}
+        destroyOnClose
+      >
+        <div style={{ height: 500, border: '1px solid #f0f0f0', borderRadius: 8, overflow: 'hidden' }}>
+          <iframe
+            title="clear-site-data"
+            src={`${window.location.origin}/clear-site-data.html`}
+            style={{ width: '100%', height: '100%', border: 'none' }}
+          />
+        </div>
+      </Modal>
     </>
   );
 };

@@ -319,18 +319,24 @@ const AchievementDetailPanel = ({ state }) => {
     <div style={{ flex: 4, background: '#fff', margin: '16px 0 0 16px', borderRadius: 8, display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: 12, borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: 8, background: '#fafafa' }}>
         <Button size="small" icon={<ArrowLeftOutlined />} onClick={handleBack}>返回</Button>
-        <Text strong style={{ marginLeft: 8 }}>研修成果详情</Text>
+        {isAttachmentsMode ? (
+          <Text strong style={{ marginLeft: 8 }}>{achievement?.title || '未命名成果'}</Text>
+        ) : (
+          <Text strong style={{ marginLeft: 8 }}>研修成果详情</Text>
+        )}
       </div>
       <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
         {(() => { console.log('📄 AchievementDetailPanel 渲染', { achievementTitle: achievement?.title, achievementId: achievement?.id }); })()}
-        {/* 基本信息 */}
-        <Card size="small" title={<span>基本信息</span>}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <Text>成果标题：{achievement.title || '未命名成果'}</Text>
-            {achievement.description && <Text type="secondary">说明：{achievement.description}</Text>}
-            <Text type="secondary">ID：{String(achievement.id)}</Text>
-          </div>
-        </Card>
+        {/* 基本信息（附件模式下移至顶部标题并隐藏此卡） */}
+        {!isAttachmentsMode && (
+          <Card size="small" title={<span>基本信息</span>}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <Text>成果标题：{achievement.title || '未命名成果'}</Text>
+              {achievement.description && <Text type="secondary">说明：{achievement.description}</Text>}
+              <Text type="secondary">ID：{String(achievement.id)}</Text>
+            </div>
+          </Card>
+        )}
 
         {/* 关联操作记录 */}
         <Card size="small" title={<span>关联操作记录</span>}>
