@@ -48,7 +48,7 @@ const typeLabelByKey = (k) => ({
   document: '研修成果'
 }[k] || '研修成果');
 
-const TrainingPhases = ({ phases, onEditModule, onJsonEditModule }) => {
+const TrainingPhases = ({ phases, onEditModule, onJsonEditModule, readOnly = false }) => {
   let modCounter = 0; // 跨阶段自然编号计数器
   const [hoveredKey, setHoveredKey] = useState(null);
   return (
@@ -69,7 +69,7 @@ const TrainingPhases = ({ phases, onEditModule, onJsonEditModule }) => {
               onMouseLeave={() => setHoveredKey(null)}
             >
               {/* 悬停编辑按钮 */}
-              {hoveredKey === `${phaseIdx}-${moduleIdx}` && (
+              {!readOnly && hoveredKey === `${phaseIdx}-${moduleIdx}` && (
                 <div style={{ position: 'absolute', top: 4, right: 4, zIndex: 2 }}>
                   <Space size={4}>
                     <Tooltip title="编辑此模块（打开可视化编辑）">

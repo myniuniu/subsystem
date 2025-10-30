@@ -630,7 +630,10 @@ const TrainingPlanViewer = ({
   setRightPanelTrainingPlanContent,
   isFullscreen = false,
   setCurrentView,
-  hideButtons = false
+  hideButtons = false,
+  initialLayoutMode = 'both',
+  readOnly = false,
+  showBackOnly = false
 }) => {
   // 编辑模式状态
   
@@ -738,7 +741,7 @@ const TrainingPlanViewer = ({
 
   // 分屏：右侧实施方案显示/隐藏
 
-  const [layoutMode, setLayoutMode] = useState('both'); // 'left' | 'right' | 'both'
+  const [layoutMode, setLayoutMode] = useState(initialLayoutMode || 'both'); // 'left' | 'right' | 'both'
   const handleConfigureImplementation = () => {
     setLayoutMode(prev => (prev === 'left' ? 'both' : 'left'));
   };
@@ -2038,24 +2041,14 @@ const TrainingPlanViewer = ({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* 头部操作栏（可隐藏） */}
-      {!hideButtons && (
-        <div style={{ 
-          padding: '16px', 
-          borderBottom: '1px solid #f0f0f0',
-          background: '#fff'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <Button 
-                icon={<ArrowLeftOutlined />} 
-                onClick={handleBack}
-                type="text"
-              >
-                返回
-              </Button>
-              <Title level={4} style={{ margin: 0 }}>{plan.title}</Title>
-            </div>
+      {/* 头部操作栏：始终显示返回；在非隐藏模式下显示布局切换 */}
+      <div style={{ padding: hideButtons ? '8px 16px' : '16px', borderBottom: '1px solid #f0f0f0', background: '#fff' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Button icon={<ArrowLeftOutlined />} onClick={handleBack} type="text">返回</Button>
+            <Title level={4} style={{ margin: 0 }}>{plan.title}</Title>
+          </div>
+          {!hideButtons && (
             <Space>
               <Tooltip title="左栏视图">
                 <Button 
@@ -2079,9 +2072,9 @@ const TrainingPlanViewer = ({
                 />
               </Tooltip>
             </Space>
-          </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* 主要内容区域：单容器，避免右栏卸载 */}
       <div ref={containerRef} style={{ flex: 1, display: 'flex', overflow: 'hidden', background: '#f5f5f5', position: 'relative' }}>
@@ -2254,7 +2247,9 @@ const TrainingPlanViewer = ({
                     </div>
                   )}
                 >
-                  <Button size="small" icon={<MenuOutlined />} onClick={() => setDirOpen(true)}>目录</Button>
+                  {readOnly ? null : (
+                    <Button size="small" icon={<MenuOutlined />} onClick={() => setDirOpen(true)}>目录</Button>
+                  )}
                 </Popover>
               </div>
             </Affix>
@@ -2263,11 +2258,13 @@ const TrainingPlanViewer = ({
 
             {/* 方案概述 */}
             <div id="section-overview">
-              <SectionHeader
-                sectionKey="overview"
-                onVisualEdit={() => openInlineVisualEditor('overview')}
-                onJsonEdit={() => { setEditMode('json'); openSectionEditor('overview'); }}
-              />
+              {readOnly ? null : (
+                <SectionHeader
+                  sectionKey="overview"
+                  onVisualEdit={() => openInlineVisualEditor('overview')}
+                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('overview'); }}
+                />
+              )}
               <InlineEditableSection
                 sectionKey="overview"
                 renderContent={() => <TrainingOverview overview={plan.overview} />}
@@ -2276,11 +2273,13 @@ const TrainingPlanViewer = ({
 
             {/* 参训人员（标签） */}
             <div id="section-participantTags">
-              <SectionHeader
-                sectionKey="participantTags"
-                onVisualEdit={() => openInlineVisualEditor('participantTags')}
-                onJsonEdit={() => { setEditMode('json'); openSectionEditor('participantTags'); }}
-              />
+              {readOnly ? null : (
+                <SectionHeader
+                  sectionKey="participantTags"
+                  onVisualEdit={() => openInlineVisualEditor('participantTags')}
+                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('participantTags'); }}
+                />
+              )}
               <InlineEditableSection
                 sectionKey="participantTags"
                 renderContent={() => <TagsSection tags={plan.participantTags || []} />}
@@ -2330,11 +2329,13 @@ const TrainingPlanViewer = ({
               {/* 考核总体要求（位于标题和第一阶段之间） */}
               <div style={{ marginBottom: 16 }}>
                 <Title level={3} style={{ marginBottom: 8 }}>考核总体要求</Title>
-                <SectionHeader
-                  sectionKey="assessmentOverview"
-                  onVisualEdit={() => openInlineVisualEditor('assessmentOverview')}
-                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('assessmentOverview'); }}
-                />
+                {readOnly ? null : (
+                  <SectionHeader
+                    sectionKey="assessmentOverview"
+                    onVisualEdit={() => openInlineVisualEditor('assessmentOverview')}
+                    onJsonEdit={() => { setEditMode('json'); openSectionEditor('assessmentOverview'); }}
+                  />
+                )}
                 <Card size="small">
                   <InlineEditableSection
                     sectionKey="assessmentOverview"
@@ -2354,18 +2355,21 @@ const TrainingPlanViewer = ({
                   />
                 </Card>
               </div>
-              <SectionHeader
-                sectionKey="phases"
-                onVisualEdit={() => openInlineVisualEditor('phases')}
-                onJsonEdit={() => { setEditMode('json'); openSectionEditor('phases'); }}
-              />
+              {readOnly ? null : (
+                <SectionHeader
+                  sectionKey="phases"
+                  onVisualEdit={() => openInlineVisualEditor('phases')}
+                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('phases'); }}
+                />
+              )}
               <InlineEditableSection
                 sectionKey="phases"
                 renderContent={() => (
                   <TrainingPhases 
                     phases={plan.phases}
-                    onEditModule={(pIdx, mIdx) => openInlineVisualEditor('phases', { phaseIdx: pIdx, moduleIdx: mIdx })}
-                    onJsonEditModule={(pIdx, mIdx) => { setEditMode('json'); openSectionEditor('phases', { phaseIdx: pIdx, moduleIdx: mIdx }); }}
+                    onEditModule={readOnly ? undefined : (pIdx, mIdx) => openInlineVisualEditor('phases', { phaseIdx: pIdx, moduleIdx: mIdx })}
+                    onJsonEditModule={readOnly ? undefined : (pIdx, mIdx) => { setEditMode('json'); openSectionEditor('phases', { phaseIdx: pIdx, moduleIdx: mIdx }); }}
+                    readOnly={readOnly}
                   />
                 )}
               />
@@ -2374,11 +2378,13 @@ const TrainingPlanViewer = ({
 
             {/* 详细时间安排 */}
             <div id="section-schedule">
-              <SectionHeader
-                sectionKey="schedule"
-                onVisualEdit={() => openInlineVisualEditor('schedule')}
-                onJsonEdit={() => { setEditMode('json'); openSectionEditor('schedule'); }}
-              />
+              {readOnly ? null : (
+                <SectionHeader
+                  sectionKey="schedule"
+                  onVisualEdit={() => openInlineVisualEditor('schedule')}
+                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('schedule'); }}
+                />
+              )}
               <InlineEditableSection
                 sectionKey="schedule"
                 renderContent={() => (
@@ -2394,11 +2400,13 @@ const TrainingPlanViewer = ({
 
             {/* 实施保障 */}
             <div id="section-implementation">
-              <SectionHeader
-                sectionKey="implementation"
-                onVisualEdit={() => openInlineVisualEditor('implementation')}
-                onJsonEdit={() => { setEditMode('json'); openSectionEditor('implementation'); }}
-              />
+              {readOnly ? null : (
+                <SectionHeader
+                  sectionKey="implementation"
+                  onVisualEdit={() => openInlineVisualEditor('implementation')}
+                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('implementation'); }}
+                />
+              )}
               <InlineEditableSection
                 sectionKey="implementation"
                 renderContent={() => <ImplementationSection implementation={plan.implementation} />}
@@ -2407,11 +2415,13 @@ const TrainingPlanViewer = ({
 
             {/* 考核与评价 */}
             <div id="section-assessment">
-              <SectionHeader
-                sectionKey="assessment"
-                onVisualEdit={() => openInlineVisualEditor('assessment')}
-                onJsonEdit={() => { setEditMode('json'); openSectionEditor('assessment'); }}
-              />
+              {readOnly ? null : (
+                <SectionHeader
+                  sectionKey="assessment"
+                  onVisualEdit={() => openInlineVisualEditor('assessment')}
+                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('assessment'); }}
+                />
+              )}
               <InlineEditableSection
                 sectionKey="assessment"
                 renderContent={() => <AssessmentSection assessment={plan.assessment} />}
@@ -2420,11 +2430,13 @@ const TrainingPlanViewer = ({
 
             {/* 保障措施 */}
             <div id="section-guarantee">
-              <SectionHeader
-                sectionKey="guarantee"
-                onVisualEdit={() => openInlineVisualEditor('guarantee')}
-                onJsonEdit={() => { setEditMode('json'); openSectionEditor('guarantee'); }}
-              />
+              {readOnly ? null : (
+                <SectionHeader
+                  sectionKey="guarantee"
+                  onVisualEdit={() => openInlineVisualEditor('guarantee')}
+                  onJsonEdit={() => { setEditMode('json'); openSectionEditor('guarantee'); }}
+                />
+              )}
               <InlineEditableSection
                 sectionKey="guarantee"
                 renderContent={() => <GuaranteeSection guarantee={plan.guarantee} />}

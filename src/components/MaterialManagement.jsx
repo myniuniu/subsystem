@@ -535,16 +535,6 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
       addTime: nowISO
     };
 
-    // 培训项目资料（活动方案）
-    const sceneProject = {
-      id: 'org_scene_project_plan_001',
-      title: '情景模拟教学活动方案',
-      category: 'training_project',
-      originCategory: 'organizational_training',
-      sourceType: '活动方案',
-      pinned: false,
-      addTime: nowISO
-    };
 
     // 考试/试卷（处置方案设计）
     const sceneExam = {
@@ -583,13 +573,6 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
       }
       return list;
     });
-    setTrainingProjects(prev => {
-      const list = Array.isArray(prev) ? prev : [];
-      if (!list.some(p => p.id === sceneProject.id || p.title === sceneProject.title)) {
-        return [...list, sceneProject];
-      }
-      return list;
-    });
     setUploadedFiles(prev => {
       const list = Array.isArray(prev) ? prev : [];
       if (!list.some(f => f.id === sceneExam.id || f.name === sceneExam.name)) {
@@ -610,7 +593,6 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
       next.live[sceneLive.id] = 'uncategorized';
       next.links[sceneLink.id] = 'uncategorized';
       next.texts[sceneText.id] = 'uncategorized';
-      next.projects[sceneProject.id] = 'uncategorized';
       next.exam[sceneExam.id] = 'uncategorized';
       return next;
     });
@@ -2033,7 +2015,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                 label: '附件',
                                 onClick: () => {
                                   try {
-                                    const pseudoAchievement = { id: `project-${p.id}`, title: p.title, description: p.sourceType || '培训项目资料' };
+                                    const pseudoAchievement = { id: `project-${p.id}`, title: p.title, description: p.sourceType || '培训项目资料', preferredView: 'attachments' };
                                     handlers?.onViewMaterial && handlers.onViewMaterial(pseudoAchievement, 'achievement');
                                   } catch (e) { /* no-op */ }
                                 }
@@ -2184,7 +2166,13 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                     size="small"
                                     style={{ marginBottom: 8, border: '1px solid #e8e8e8', position: 'relative' }}
                                     bodyStyle={{ padding: '8px 12px' }}
-                onClick={() => { if (handlers?.onViewMaterial) handlers.onViewMaterial(text, 'achievement'); }}
+                onClick={() => {
+                  console.log('🟡 模块内-研修成果评阅卡片点击', { textId: text.id, title: text.title, category: note?.category });
+                  if (handlers?.onViewMaterial) {
+                    console.log('🚀 调用 onViewMaterial (我的评阅-研修成果)', { material: text, type: 'achievement' });
+                    handlers.onViewMaterial(text, 'achievement');
+                  }
+                }}
                                   >
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                       <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
@@ -2833,7 +2821,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                                     if (key === 'attachments') {
                                                       try {
                                                         if (handlers && typeof handlers.onViewMaterial === 'function') {
-                                                          handlers.onViewMaterial(video, 'achievement');
+                                                          handlers.onViewMaterial({ ...video, preferredView: 'attachments' }, 'achievement');
                                                         }
                                                       } catch (e) { /* no-op */ }
                                                     }
@@ -3023,7 +3011,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                                 if (key === 'attachments') {
                                                   try {
                                                     if (handlers && typeof handlers.onViewMaterial === 'function') {
-                                                      handlers.onViewMaterial(stream, 'achievement');
+                                                      handlers.onViewMaterial({ ...stream, preferredView: 'attachments' }, 'achievement');
                                                     }
                                                   } catch (e) { /* no-op */ }
                                                 }
@@ -3117,12 +3105,24 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                   onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`achievement-${item.id}`]: true }))}
                                   onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`achievement-${item.id}`]: false }))}
                                   onClick={() => {
+                                    // 点击研修成果记录：在阶段材料区，统一打开附件管理页
+                                    console.log('🔍 研修成果卡片点击事件触发', { 
+                                      itemId: item.id, 
+                                      itemTitle: item.title,
+                                      preferredView: 'attachments',
+                                      handlers: !!handlers,
+                                      onViewMaterial: typeof handlers?.onViewMaterial
+                                    });
                                     try {
                                       if (handlers && typeof handlers.onViewMaterial === 'function') {
-                                        handlers.onViewMaterial(item, 'achievement');
+                                        const materialWithPreference = { ...item, preferredView: 'attachments' };
+                                        console.log('🚀 调用 onViewMaterial', { materialWithPreference, type: 'achievement' });
+                                        handlers.onViewMaterial(materialWithPreference, 'achievement');
+                                      } else {
+                                        console.error('❌ handlers.onViewMaterial 不可用');
                                       }
                                     } catch (e) {
-                                      // no-op
+                                      console.error('❌ 研修成果点击事件错误:', e);
                                     }
                                   }}
                                 >
@@ -3153,7 +3153,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                             if (key === 'attachments') {
                                               try {
                                                 if (handlers && typeof handlers.onViewMaterial === 'function') {
-                                                  handlers.onViewMaterial(item, 'achievement');
+                                                  handlers.onViewMaterial({ ...item, preferredView: 'attachments' }, 'achievement');
                                                 }
                                               } catch (e) { /* no-op */ }
                                             }
@@ -3203,7 +3203,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                               if (key === 'attachments') {
                                                 try {
                                                   if (handlers && typeof handlers.onViewMaterial === 'function') {
-                                                    handlers.onViewMaterial(item, 'achievement');
+                                                    handlers.onViewMaterial({ ...item, preferredView: 'attachments' }, 'achievement');
                                                   }
                                                 } catch (e) { /* no-op */ }
                                               }
@@ -3316,7 +3316,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                                   const displayName = getFileDisplayName(file.name);
                                                   const pseudoAchievement = { id: `file-${file.id}`, title: displayName, description: '试卷文件' };
                                                   if (handlers && typeof handlers.onViewMaterial === 'function') {
-                                                    handlers.onViewMaterial(pseudoAchievement, 'achievement');
+                                                    handlers.onViewMaterial({ ...pseudoAchievement, preferredView: 'attachments' }, 'achievement');
                                                   }
                                                 } catch (e) { /* no-op */ }
                                               }
@@ -3944,7 +3944,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                       if (key === 'attachments') {
                                         try {
                                           if (handlers && typeof handlers.onViewMaterial === 'function') {
-                                            handlers.onViewMaterial(video, 'achievement');
+                                            handlers.onViewMaterial({ ...video, preferredView: 'attachments' }, 'achievement');
                                           }
                                         } catch (e) { /* no-op */ }
                                       }
@@ -4157,7 +4157,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                     if (key === 'attachments') {
                                       try {
                                         if (handlers && typeof handlers.onViewMaterial === 'function') {
-                                          handlers.onViewMaterial(stream, 'achievement');
+                                          handlers.onViewMaterial({ ...stream, preferredView: 'attachments' }, 'achievement');
                                         }
                                       } catch (e) { /* no-op */ }
                                     }
@@ -4290,7 +4290,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                       const displayName = getFileDisplayName(file.name);
                                       const pseudoAchievement = { id: `file-${file.id}`, title: displayName, description: '试卷文件' };
                                       if (handlers && typeof handlers.onViewMaterial === 'function') {
-                                        handlers.onViewMaterial(pseudoAchievement, 'achievement');
+                                        handlers.onViewMaterial({ ...pseudoAchievement, preferredView: 'attachments' }, 'achievement');
                                       }
                                     } catch (e) { /* no-op */ }
                                   }

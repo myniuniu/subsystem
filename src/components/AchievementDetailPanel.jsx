@@ -8,6 +8,7 @@ const { Title, Text } = Typography;
 // 研修成果详情左侧面板：支持关联操作记录与关联来源（未分类）
 const AchievementDetailPanel = ({ state }) => {
   const achievement = state.leftPanelAchievementRecord;
+  const isAttachmentsMode = !!(achievement && achievement.preferredView === 'attachments');
   const [selectedAttachment, setSelectedAttachment] = useState(null);
 
   const assoc = state.achievementAssociations || {};
@@ -138,6 +139,22 @@ const AchievementDetailPanel = ({ state }) => {
     });
     return result;
   }, [currentAssoc.linkedOperationIds, state.operationRecords]);
+
+  // 已选择的来源数据（从 sourceOptions 反查 raw）
+  const selectedSourceItems = useMemo(() => {
+    const index = {};
+    (Array.isArray(sourceOptions) ? sourceOptions : []).forEach(opt => { index[String(opt.value)] = opt.raw; });
+    const values = Array.isArray(selectedSourceValues) ? selectedSourceValues : [];
+    const list = values.map(v => {
+      const raw = index[String(v)] || null;
+      if (!raw) return null;
+      const parts = String(v).split(':');
+      const type = parts[0];
+      const id = parts[1];
+      return { ...raw, type, id };
+    }).filter(Boolean);
+    return list;
+  }, [selectedSourceValues, sourceOptions]);
 
   const getIcon = (type) => {
     switch(type) {
@@ -305,7 +322,77 @@ const AchievementDetailPanel = ({ state }) => {
         <Text strong style={{ marginLeft: 8 }}>研修成果详情</Text>
       </div>
       <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* 已移除上方三块信息卡片，仅保留评阅清单 */}
+        {(() => { console.log('📄 AchievementDetailPanel 渲染', { achievementTitle: achievement?.title, achievementId: achievement?.id }); })()}
+        {/* 基本信息 */}
+        <Card size="small" title={<span>基本信息</span>}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <Text>成果标题：{achievement.title || '未命名成果'}</Text>
+            {achievement.description && <Text type="secondary">说明：{achievement.description}</Text>}
+            <Text type="secondary">ID：{String(achievement.id)}</Text>
+          </div>
+        </Card>
+
+        {/* 关联操作记录 */}
+        <Card size="small" title={<span>关联操作记录</span>}>
+          <Select
+            mode="multiple"
+            style={{ width: '100%' }}
+            placeholder="选择需要关联的操作记录"
+            value={selectedValues}
+            options={operationOptions}
+            onChange={updateLinkedOps}
+          />
+          {/* 已关联的操作记录卡片显示 */}
+          {Array.isArray(linkedRecords) && linkedRecords.length > 0 && (
+            <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 8 }}>
+              {linkedRecords.map(r => (
+                <Card key={`linked-op-${r.id}`} size="small" styles={{ body: { padding: '8px 12px' } }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                      <span style={{ fontSize: 12, color: '#999' }}>{getIcon(r.type)}</span>
+                      <Text strong style={{ fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.title}</Text>
+                    </div>
+                    <Tag color="blue">{OPERATION_TITLES[r.type] || r.type}</Tag>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        {/* 关联来源（未分类） */}
+        <Card size="small" title={<span>关联来源（仅未分类模块）</span>}>
+          <Select
+            mode="multiple"
+            style={{ width: '100%' }}
+            placeholder="选择作为来源的资料（来自未分类模块）"
+            value={selectedSourceValues}
+            options={sourceOptions}
+            onChange={updateLinkedSources}
+          />
+          {/* 已关联的来源数据卡片显示 */}
+          {Array.isArray(selectedSourceItems) && selectedSourceItems.length > 0 && (
+            <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 8 }}>
+              {selectedSourceItems.map(item => {
+                const meta = getAttachmentMeta(item.type);
+                const label = `${meta.icon} ${meta.label}`;
+                return (
+                  <Card key={`linked-src-${item.type}-${item.id}`} size="small" styles={{ body: { padding: '8px 12px' } }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                        <Tag color={meta.color}>{label}</Tag>
+                        <Text strong style={{ fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title || item.name || item.url || String(item.id)}</Text>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </Card>
+
+        {/* 评阅与提交清单（左侧内联显示） - 仅在非附件模式下显示 */}
+        {!isAttachmentsMode && (
         <Card size="small" title={<span>评阅与提交清单（左侧内联显示）</span>} extra={
           <Button size="small" type="primary" onClick={handleSaveEvaluations}>保存评分</Button>
         }>
@@ -405,6 +492,7 @@ const AchievementDetailPanel = ({ state }) => {
             )}
           </div>
         </Card>
+        )}
       </div>
     </div>
   );

@@ -562,6 +562,13 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
       message.success(`正在播放视频：${material.title}`);
     },
     onViewMaterial: (material, type) => {
+      console.log('🎯 NoteEditPage onViewMaterial 被调用', { 
+        material, 
+        type, 
+        preferredView: material?.preferredView,
+        currentCategory: state?.note?.category || selectedCategory 
+      });
+      
       if (type === 'video') {
         materialHandlers.onPlayVideo(material);
         return;
@@ -577,15 +584,36 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         }
         return;
       }
-      // 研修成果：在左侧区域显示详情页（非弹窗）
+      // 研修成果：根据分类区分视图
+      // - 我的评阅（my_evaluation）：打开研修成果评阅（三栏视图）
+      // - 其他分类（如组织培训）：默认打开附件管理页（用于上传与来源关联）
       if (type === 'achievement') {
         try {
           state.setLeftPanelAchievementRecord(material);
-          // 改为三栏评阅展示
-          setCurrentView(VIEW_MODES.ACHIEVEMENT_DETAIL_THREE_COLUMN);
-          message.success(`正在查看研修成果：${material.title}`);
+          const currentCategory = state?.note?.category || selectedCategory || null;
+          const preferView = material && material.preferredView;
+          
+          console.log('🔍 研修成果处理逻辑', {
+            currentCategory,
+            preferView,
+            materialTitle: material?.title
+          });
+          
+          if (preferView === 'attachments') {
+            console.log('✅ 强制进入附件管理页');
+            setCurrentView(VIEW_MODES.ACHIEVEMENT_DETAIL);
+            message.success(`打开附件管理：${material.title}`);
+          } else if (currentCategory === 'my_evaluation') {
+            console.log('✅ 进入三栏评阅页');
+            setCurrentView(VIEW_MODES.ACHIEVEMENT_DETAIL_THREE_COLUMN);
+            message.success(`正在查看研修成果评阅：${material.title}`);
+          } else {
+            console.log('✅ 默认进入附件管理页');
+            setCurrentView(VIEW_MODES.ACHIEVEMENT_DETAIL);
+            message.success(`正在查看研修成果：${material.title}`);
+          }
         } catch (e) {
-          console.warn('view achievement error:', e);
+          console.error('❌ 研修成果查看错误:', e);
         }
         return;
       }
@@ -602,9 +630,10 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         // 显示原始 PDF，确保与“新教师入职线上培训具体方案”内容一模一样
         const pdfUrl = new URL('../../assets/新教师入职线上培训具体方案.pdf', import.meta.url).href;
 
-        state.setLeftPanelTrainingPlanRecord(project);
-        state.setLeftPanelTrainingPlanContent({ pdfUrl });
-        setCurrentView(VIEW_MODES.TRAINING_PLAN_THREE_COLUMN);
+        // 通过“组织培训 > 培训项目资料”入口：仅显示左栏
+        state.setRightPanelTrainingPlanRecord({ ...project, preferredLayout: 'left_only' });
+        state.setRightPanelTrainingPlanContent({ pdfUrl });
+        setCurrentView(VIEW_MODES.TRAINING_PLAN_FULLSCREEN);
       } catch (err) {
         console.error('打开培训方案失败:', err);
       }
@@ -1619,6 +1648,9 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 setRightPanelTrainingPlanContent={state.setRightPanelTrainingPlanContent}
                 isFullscreen={true}
                 setCurrentView={state.setCurrentView}
+                initialLayoutMode={state.rightPanelTrainingPlanRecord?.preferredLayout === 'left_only' ? 'left' : 'both'}
+                hideButtons={state.rightPanelTrainingPlanRecord?.preferredLayout === 'left_only'}
+                readOnly={state.rightPanelTrainingPlanRecord?.preferredLayout === 'left_only'}
               />
             </div>
           </div>
