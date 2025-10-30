@@ -198,6 +198,11 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [mouseDownPos, setMouseDownPos] = useState({ x: 0, y: 0 });
+  // 右下角动图显示/悬停控制
+  const [assistantGifVisible, setAssistantGifVisible] = useState(true);
+  // 统一用容器悬停态，避免在 GIF 与按钮之间切换造成闪烁
+  const [isGifGroupHovered, setIsGifGroupHovered] = useState(false);
+  const [isBubbleHovered, setIsBubbleHovered] = useState(false);
   
   // 操作面板收起状态
   const [operationPanelCollapsed, setOperationPanelCollapsed] = useState(false);
@@ -2054,16 +2059,16 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         />
       </Modal>
       
-      {/* 悬浮消息图标（右下角整体，可拖动） */}
+      {/* 悬浮消息图标（右下角整体，可拖动；最小化时下沉到右下角） */}
       <div
         style={{
           position: 'fixed',
-          bottom: `${floatIconPosition.y}px`,
-          right: `${floatIconPosition.x}px`,
+          bottom: assistantGifVisible ? `${floatIconPosition.y}px` : 24,
+          right: assistantGifVisible ? `${floatIconPosition.x}px` : 24,
           zIndex: 1000,
-          cursor: isDragging ? 'grabbing' : 'grab'
+          cursor: assistantGifVisible ? (isDragging ? 'grabbing' : 'grab') : 'pointer'
         }}
-        onMouseDown={handleMouseDown}
+        onMouseDown={assistantGifVisible ? handleMouseDown : undefined}
         onClick={(e) => {
           // 如果正在拖动，不触发点击事件
           if (isDragging) {
@@ -2096,66 +2101,112 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
           }
         }}
       >
-        <div style={{ position: 'relative', width: 240, height: 240 }}>
+        <div 
+          style={{ position: 'relative', width: assistantGifVisible ? 240 : 44, height: assistantGifVisible ? 240 : 72 }}
+          onMouseEnter={() => setIsGifGroupHovered(true)}
+          onMouseLeave={() => setIsGifGroupHovered(false)}
+        >
           {/* 动图（头像） */}
-          <img
-            src={
-              selectedCategory === 'training_needs_management' ? '/assets/培训助理.gif' :
-              selectedCategory === 'teaching_research_office' ? '/assets/教研助理.gif' :
-              selectedCategory === 'my_evaluation' ? '/assets/评阅助手.gif' :
-              '/assets/动态.gif'
-            }
-            alt="动态图"
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              width: 220,
-              height: 'auto',
-              zIndex: 2
-            }}
-          />
+          {assistantGifVisible && (
+            <img
+              src={
+                selectedCategory === 'training_needs_management' ? '/assets/培训助理.gif' :
+                selectedCategory === 'teaching_research_office' ? '/assets/教研助理.gif' :
+                selectedCategory === 'my_evaluation' ? '/assets/评阅助手.gif' :
+                '/assets/动态.gif'
+              }
+              alt="动态图"
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                width: 220,
+                height: 'auto',
+                zIndex: 2
+              }}
+            />
+          )}
+          {/* 最小化按钮：悬停动图时出现 */}
+          {assistantGifVisible && isGifGroupHovered && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 8,
+                left: 8,
+                background: 'rgba(0,0,0,0.6)',
+                color: '#fff',
+                fontSize: 12,
+                padding: '4px 8px',
+                borderRadius: 12,
+                cursor: 'pointer',
+                zIndex: 3
+              }}
+              onClick={(e) => { e.stopPropagation(); setAssistantGifVisible(false); }}
+            >最小化</div>
+          )}
 
           {/* 聊天气泡（贴近头像顶部偏右） */}
+          {/* 气泡与恢复按钮的包裹区域，扩大悬停命中范围，避免“恢复”消失 */}
           <div
-            style={{
-              position: 'absolute',
-              top: 10,
-              left: 120,
-              width: '44px',
-              height: '44px',
-              backgroundColor: '#1890ff',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 6px 16px rgba(24, 144, 255, 0.4)',
-              zIndex: 1
-            }}
+            style={{ position: 'absolute', top: assistantGifVisible ? 10 : 0, left: assistantGifVisible ? 120 : 0, width: 44, height: assistantGifVisible ? 44 : 72 }}
+            onMouseEnter={() => setIsBubbleHovered(true)}
+            onMouseLeave={() => setIsBubbleHovered(false)}
           >
-            <MessageOutlined style={{ fontSize: '22px', color: 'white' }} />
-            {unreadMessageCount > 0 && (
+            <div
+              style={{
+                width: '44px',
+                height: '44px',
+                backgroundColor: '#1890ff',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 6px 16px rgba(24, 144, 255, 0.4)',
+                zIndex: 1
+              }}
+            >
+              <MessageOutlined style={{ fontSize: '22px', color: 'white' }} />
+              {unreadMessageCount > 0 && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    right: -6,
+                    top: -6,
+                    backgroundColor: '#ff4d4f',
+                    color: 'white',
+                    borderRadius: '999px',
+                    minWidth: '20px',
+                    height: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    boxShadow: '0 0 0 2px #fff',
+                    padding: '0 6px'
+                  }}
+                >
+                  {unreadMessageCount > 99 ? '99+' : unreadMessageCount}
+                </div>
+              )}
+            </div>
+            {/* 恢复按钮：当动图隐藏且鼠标悬停气泡区域时出现 */}
+            {!assistantGifVisible && isBubbleHovered && (
               <div
                 style={{
                   position: 'absolute',
-                  right: -6,
-                  top: -6,
-                  backgroundColor: '#ff4d4f',
-                  color: 'white',
-                  borderRadius: '999px',
-                  minWidth: '20px',
-                  height: '20px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '12px',
-                  fontWeight: 'bold',
-                  boxShadow: '0 0 0 2px #fff',
-                  padding: '0 6px'
+                  top: 48,
+                  right: 0,
+                  background: 'rgba(0,0,0,0.6)',
+                  color: '#fff',
+                  fontSize: 12,
+                  padding: '4px 8px',
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  zIndex: 3
                 }}
-              >
-                {unreadMessageCount > 99 ? '99+' : unreadMessageCount}
-              </div>
+                onClick={(e) => { e.stopPropagation(); setAssistantGifVisible(true); }}
+              >恢复</div>
             )}
           </div>
         </div>
