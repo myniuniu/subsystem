@@ -46,13 +46,6 @@ const TrainingSchedule = ({ schedule, showWeight = true, editable = true, onChan
         )
       )
     }] : []),
-    { 
-      title: '备注', 
-      dataIndex: 'notes', 
-      key: 'notes', 
-      width: 180,
-      render: (notes) => Array.isArray(notes) ? notes.map((n, i) => <Tag key={i}>{n}</Tag>) : notes
-    },
   ];
 
   return (

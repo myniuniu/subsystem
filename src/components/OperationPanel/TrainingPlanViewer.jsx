@@ -1270,11 +1270,30 @@ const TrainingPlanViewer = ({
     flattenModules(Array.isArray(plan?.phases) ? plan.phases : [])
   ), [plan?.phases]);
 
+  // 映射：模块考核key <-> 文本
+  const assessKeyToLabel = (key) => (
+    key === 'exam' ? '考试' : key === 'assignment' ? '作业' : key === 'document' ? '评阅' : ''
+  );
+  const assessLabelToKey = (label) => (
+    label === '考试' ? 'exam' : label === '作业' ? 'assignment' : label === '评阅' ? 'document' : (inferTypeKeyFromText(label) || '')
+  );
+  const cleanAssessmentText = (txt) => String(txt || '')
+    .replace(/（\s*\d+(?:\.\d+)?\s*(?:分)?\s*）/g, '')
+    .replace(/\(\s*\d+(?:\.\d+)?\s*(?:分)?\s*\)/g, '')
+    .trim();
+
   const scheduleWithWeights = useMemo(() => (
-    (Array.isArray(plan?.schedule) ? plan.schedule : []).map((row, i) => ({
-      ...row,
-      moduleWeight: Number(flatModulesForSchedule[i]?.mod?.weight ?? 0)
-    }))
+    (Array.isArray(plan?.schedule) ? plan.schedule : []).map((row, i) => {
+      const mod = flatModulesForSchedule[i]?.mod || {};
+      const text = cleanAssessmentText(mod.assessment);
+      const boundKey = mod.assessmentTypeKey || inferTypeKeyFromText(mod.assessment || '') || '';
+      const label = text || String(row.assessment || '').trim() || assessKeyToLabel(boundKey);
+      return {
+        ...row,
+        assessment: label,
+        moduleWeight: Number(mod?.weight ?? 0)
+      };
+    })
   ), [plan?.schedule, flatModulesForSchedule]);
 
   const handleChangeModuleWeight = (rowIndex, newWeight) => {
@@ -1302,10 +1321,20 @@ const TrainingPlanViewer = ({
       flat.forEach((item, idx) => {
         if (idx >= (scheduleRows || []).length) return;
         const hours = parseHoursValue((scheduleRows || [])[idx]?.hours);
+        const assessText = (scheduleRows || [])[idx]?.assessment;
         const ph = nextPhases[item.pIdx];
         const mods = Array.isArray(ph.modules) ? [...ph.modules] : [];
         const mod = { ...(mods[item.mIdx] || {}) };
         mod.arrangedHours = hours;
+        // 根据“详细安排-考核”文本回写模块考核方式与文案
+        const aText = String(assessText || '').trim();
+        const key = assessLabelToKey(aText);
+        if (aText) {
+          mod.assessment = aText;
+        }
+        if (key) {
+          mod.assessmentTypeKey = key;
+        }
         mods[item.mIdx] = mod;
         nextPhases[item.pIdx] = { ...ph, modules: mods };
       });
@@ -1326,12 +1355,10 @@ const TrainingPlanViewer = ({
         const row = { ...(schedule[i] || {}) };
         // 保持展示友好：写入纯数字，现有 UI 显示不附加单位
         row.hours = hours;
-        // 默认考核文本：只显示学时（不再包含成绩）
-        if (!row.assessment || String(row.assessment).trim() === '') {
-          if (Number.isFinite(hours) && hours > 0) {
-            row.assessment = `学时 ${hours}`;
-          }
-        }
+        // 同步模块的考核方式文本到详细安排“考核”列
+        const text = cleanAssessmentText(modRef.assessment);
+        const label = text || assessKeyToLabel(modRef.assessmentTypeKey || inferTypeKeyFromText(modRef.assessment || ''));
+        if (label) row.assessment = label;
         schedule[i] = row;
       }
       return { ...prev, schedule };
@@ -1947,6 +1974,15 @@ const TrainingPlanViewer = ({
                   <Input style={{ width: 160 }} value={row.type} placeholder="形式"
                     onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.stopPropagation()}
                     onChange={(e) => setVisualDraft(prev => prev.map((r, i) => i === idx ? { ...r, type: e.target.value } : r))} />
+                  {/* 考核方式文本（与模块 assessment 双向关联） */}
+                  <Input
+                    style={{ width: 160 }}
+                    value={row.assessment || ''}
+                    placeholder="考核方式"
+                    onKeyDown={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.stopPropagation()}
+                    onChange={(e) => setVisualDraft(prev => prev.map((r, i) => i === idx ? { ...r, assessment: e.target.value } : r))}
+                  />
                   <Input style={{ width: 120 }} value={row.hours} placeholder="学时"
                     onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.stopPropagation()}
                     onChange={(e) => setVisualDraft(prev => prev.map((r, i) => i === idx ? { ...r, hours: e.target.value } : r))} />
@@ -1954,7 +1990,7 @@ const TrainingPlanViewer = ({
                 </Space>
               </div>
             ))}
-            <Button type="dashed" icon={<PlusOutlined />} onClick={() => setVisualDraft(prev => ([...prev, { week: '', content: '', type: '', hours: '' }]))}>添加一行</Button>
+            <Button type="dashed" icon={<PlusOutlined />} onClick={() => setVisualDraft(prev => ([...prev, { week: '', content: '', type: '', assessment: '', hours: '' }]))}>添加一行</Button>
           </div>
         );
       case 'phases':

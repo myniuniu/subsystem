@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Button,
   Typography,
@@ -13,7 +13,8 @@ import {
   SendOutlined,
   FileTextOutlined,
   RobotOutlined,
-  UserOutlined
+  UserOutlined,
+  MessageOutlined
 } from '@ant-design/icons';
 import { COMMON_QUESTIONS, CATEGORY_COMMON_QUESTIONS } from '../constants/noteEditConstants';
 import { generateSummaryContent } from '../utils/noteEditUtils';
@@ -23,7 +24,7 @@ import { getCategoryKey, getAiTitleForCategory, getAiIconForCategory } from '../
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 
-const AIChat = ({ state, handlers, selectedCategory }) => {
+const AIChat = ({ state, handlers, selectedCategory, unreadMessageCount = null, onOpenMessageCenter = null, showGifOverlay = true }) => {
   const {
     messages,
     setMessages,
@@ -62,6 +63,66 @@ const AIChat = ({ state, handlers, selectedCategory }) => {
   const aiTitleLabel = getAiTitleForCategory(currentCategory);
   const categoryIcon = getAiIconForCategory(currentCategory);
   const questionsToShow = (CATEGORY_COMMON_QUESTIONS[currentCategory] || CATEGORY_COMMON_QUESTIONS.default);
+  const badgeCount = typeof unreadMessageCount === 'number' ? unreadMessageCount : 0;
+
+  // 组织培训分类下显示可拖动的动态图叠层
+  const [dragPos, setDragPos] = useState({ x: 40, y: 80 });
+  const [dragging, setDragging] = useState(false);
+  const dragOffsetRef = useRef({ x: 0, y: 0 });
+  const chatContainerRef = useRef(null);
+  const bottomAreaRef = useRef(null);
+  const gifUrl = new URL('../../assets/动态.gif', import.meta.url).href;
+  const GIF_SIZE = 220; // 动图更大
+  const BUBBLE_SIZE = 40; // 气泡更小
+  const BUBBLE_OFFSET_X = 18; // 相对居中再向右偏移一点
+
+  const onDragStart = (e) => {
+    setDragging(true);
+    dragOffsetRef.current = { x: e.clientX - dragPos.x, y: e.clientY - dragPos.y };
+  };
+  const onDragMove = (e) => {
+    if (!dragging) return;
+    let nx = e.clientX - dragOffsetRef.current.x;
+    let ny = e.clientY - dragOffsetRef.current.y;
+    const cw = chatContainerRef.current?.clientWidth || window.innerWidth;
+    const ch = chatContainerRef.current?.clientHeight || window.innerHeight;
+    const bottomH = bottomAreaRef.current?.offsetHeight || 160;
+    // 约束在容器内，且不覆盖底部固定区
+    nx = Math.max(8, Math.min(nx, cw - GIF_SIZE - 8));
+    ny = Math.max(8, Math.min(ny, ch - bottomH - GIF_SIZE - 8));
+    setDragPos({ x: nx, y: ny });
+  };
+  const onDragEnd = () => setDragging(false);
+
+  useEffect(() => {
+    if (!dragging) return;
+    const handleMove = (e) => onDragMove(e);
+    const handleUp = () => onDragEnd();
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleUp);
+    };
+  }, [dragging, dragPos]);
+
+  // 初始定位：右下角（推荐问题上方）
+  useEffect(() => {
+    if (currentCategory !== 'organizational_training') return;
+    const updateInitial = () => {
+      const cw = chatContainerRef.current?.clientWidth || window.innerWidth;
+      const ch = chatContainerRef.current?.clientHeight || window.innerHeight;
+      const bottomH = bottomAreaRef.current?.offsetHeight || 160;
+      // 左下角：x 固定为左侧边距；y 贴近底部但不覆盖推荐问题区
+      const x = 16;
+      const y = Math.max(8, ch - bottomH - GIF_SIZE - 16);
+      setDragPos({ x, y });
+    };
+    updateInitial();
+    const onResize = () => updateInitial();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [currentCategory]);
 
   // 发送消息
   const handleSendMessage = async () => {
@@ -237,7 +298,7 @@ const AIChat = ({ state, handlers, selectedCategory }) => {
   };
 
   return (
-    <div style={{ 
+    <div ref={chatContainerRef} style={{ 
       flex: 5, 
       margin: '16px', 
       background: '#fff', 
@@ -248,6 +309,24 @@ const AIChat = ({ state, handlers, selectedCategory }) => {
       position: 'relative',
       height: '100%'
     }}>
+      {currentCategory === 'organizational_training' && showGifOverlay && (
+        <img
+          src={gifUrl}
+          alt="动态图"
+          style={{
+            position: 'absolute',
+            left: dragPos.x,
+            top: dragPos.y,
+            width: GIF_SIZE,
+            height: 'auto',
+            cursor: 'move',
+            zIndex: 30,
+            pointerEvents: 'auto'
+          }}
+          onMouseDown={onDragStart}
+        />
+      )}
+      {/* 中部区域不再显示聊天气泡（统一由右下角整体承载） */}
       <div style={{ padding: '20px', borderBottom: '1px solid #f0f0f0' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {categoryIcon && !iconError ? (
@@ -386,7 +465,7 @@ const AIChat = ({ state, handlers, selectedCategory }) => {
       </div>
       
       {/* 底部固定区域 */}
-      <div style={{ 
+      <div ref={bottomAreaRef} style={{ 
         position: 'absolute',
         bottom: 0,
         left: 0,

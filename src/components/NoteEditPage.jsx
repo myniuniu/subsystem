@@ -1756,6 +1756,9 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 state={state}
                 handlers={aiChatHandlers}
                 selectedCategory={selectedCategory}
+                unreadMessageCount={unreadMessageCount}
+                onOpenMessageCenter={() => setShowMessageCenter(true)}
+                showGifOverlay={false}
               />
             </div>
 
@@ -2051,7 +2054,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         />
       </Modal>
       
-      {/* 悬浮消息图标 */}
+      {/* 悬浮消息图标（右下角整体，可拖动） */}
       <div
         style={{
           position: 'fixed',
@@ -2093,60 +2096,68 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
           }
         }}
       >
-        <div
-          style={{
-            width: '56px',
-            height: '56px',
-            backgroundColor: isDragging ? '#40a9ff' : '#1890ff',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: isDragging 
-              ? '0 8px 24px rgba(24, 144, 255, 0.8)' 
-              : '0 4px 12px rgba(24, 144, 255, 0.4)',
-            transition: isDragging ? 'none' : 'all 0.3s ease',
-            transform: isDragging ? 'scale(1.1)' : 'scale(1)',
-            position: 'relative',
-            userSelect: 'none'
-          }}
-          onMouseEnter={(e) => {
-            if (!isDragging) {
-              e.target.style.transform = 'scale(1.1)';
-              e.target.style.boxShadow = '0 6px 16px rgba(24, 144, 255, 0.6)';
+        <div style={{ position: 'relative', width: 240, height: 240 }}>
+          {/* 动图（头像） */}
+          <img
+            src={
+              selectedCategory === 'training_needs_management' ? '/assets/培训助理.gif' :
+              selectedCategory === 'teaching_research_office' ? '/assets/教研助理.gif' :
+              selectedCategory === 'my_evaluation' ? '/assets/评阅助手.gif' :
+              '/assets/动态.gif'
             }
-          }}
-          onMouseLeave={(e) => {
-            if (!isDragging) {
-              e.target.style.transform = 'scale(1)';
-              e.target.style.boxShadow = '0 4px 12px rgba(24, 144, 255, 0.4)';
-            }
-          }}
-        >
-          <MessageOutlined style={{ fontSize: '24px', color: 'white' }} />
-          {unreadMessageCount > 0 && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '-10px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                backgroundColor: '#ff4d4f',
-                color: 'white',
-                borderRadius: '50%',
-                width: '20px',
-                height: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '12px',
-                fontWeight: 'bold',
-                border: '2px solid white'
-              }}
-            >
-              {unreadMessageCount > 99 ? '99+' : unreadMessageCount}
-            </div>
-          )}
+            alt="动态图"
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              width: 220,
+              height: 'auto',
+              zIndex: 2
+            }}
+          />
+
+          {/* 聊天气泡（贴近头像顶部偏右） */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 10,
+              left: 120,
+              width: '44px',
+              height: '44px',
+              backgroundColor: '#1890ff',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 6px 16px rgba(24, 144, 255, 0.4)',
+              zIndex: 1
+            }}
+          >
+            <MessageOutlined style={{ fontSize: '22px', color: 'white' }} />
+            {unreadMessageCount > 0 && (
+              <div
+                style={{
+                  position: 'absolute',
+                  right: -6,
+                  top: -6,
+                  backgroundColor: '#ff4d4f',
+                  color: 'white',
+                  borderRadius: '999px',
+                  minWidth: '20px',
+                  height: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '12px',
+                  fontWeight: 'bold',
+                  boxShadow: '0 0 0 2px #fff',
+                  padding: '0 6px'
+                }}
+              >
+                {unreadMessageCount > 99 ? '99+' : unreadMessageCount}
+              </div>
+            )}
+          </div>
         </div>
        </div>
        
