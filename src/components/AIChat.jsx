@@ -71,7 +71,8 @@ const AIChat = ({ state, handlers, selectedCategory, unreadMessageCount = null, 
   const dragOffsetRef = useRef({ x: 0, y: 0 });
   const chatContainerRef = useRef(null);
   const bottomAreaRef = useRef(null);
-  const gifUrl = new URL('../../assets/动态.gif', import.meta.url).href;
+// 使用 public 目录下的静态资源路径，便于生产环境直接访问
+const gifUrl = '/assets/动态.gif';
   const GIF_SIZE = 220; // 动图更大
   const BUBBLE_SIZE = 40; // 气泡更小
   const BUBBLE_OFFSET_X = 18; // 相对居中再向右偏移一点
