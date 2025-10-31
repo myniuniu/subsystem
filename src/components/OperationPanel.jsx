@@ -7,7 +7,9 @@ import {
   Dropdown,
   Modal,
   Tooltip,
-  Space
+  Space,
+  Tag,
+  Progress
 } from 'antd';
 import {
   PlusOutlined,
@@ -19,7 +21,8 @@ import {
   LeftOutlined,
   RightOutlined,
   ColumnWidthOutlined,
-  MenuUnfoldOutlined
+  MenuUnfoldOutlined,
+  CloseCircleOutlined
 } from '@ant-design/icons';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -51,6 +54,7 @@ import TrainingDashboardViewer from './OperationPanel/TrainingDashboardViewer';
 import ToolGrid from './OperationPanel/ToolGrid';
 import { createGetAvailableAITools } from './OperationPanel/getAvailableAITools.jsx';
 import TrainingTypeSettingsViewer from './OperationPanel/TrainingTypeSettingsViewer';
+import { initialResources } from '../data/resourceLibraryData.js';
 
 // 导入自定义Hooks
 import { 
@@ -1047,6 +1051,141 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
       <TrainingDashboardViewer 
         setRightPanelView={setRightPanelView}
       />
+    );
+  }
+
+  // 课程选择右侧视图：显示已选及操作
+  if (rightPanelView === RIGHT_PANEL_VIEWS.COURSE_SELECTION_VIEWER) {
+    const categories = [
+      { id: 'teaching_resources', name: '教学资源库' },
+      { id: 'technology_training', name: '技术培训资源库' },
+      { id: 'family_education', name: '家庭教育资源库' },
+      { id: 'school_management', name: '学校管理资源库' },
+      { id: 'mental_health', name: '心理健康资源库' },
+      { id: 'new_teacher_resources', name: '新教师资源库' }
+    ];
+    const getCollectionThumbnail = (cat) => {
+      const map = {
+        teaching_resources: '/thumbnails/documents.png',
+        technology_training: '/thumbnails/videos.png',
+        family_education: '/thumbnails/presentations.png',
+        school_management: '/thumbnails/images.png',
+        mental_health: '/thumbnails/images.png',
+        new_teacher_resources: '/thumbnails/presentations.png'
+      };
+      return map[cat] || '/thumbnails/default.png';
+    };
+    const createDefaultCollections = () => {
+      const pickByCategory = (cat, limit = 8) => initialResources.filter(r => r.category === cat).slice(0, limit);
+      const cats = [
+        { id: 'teaching_resources', title: '教学资源精选' },
+        { id: 'technology_training', title: '技术培训精选' },
+        { id: 'family_education', title: '家庭教育精选' },
+        { id: 'school_management', title: '学校管理精选' },
+        { id: 'mental_health', title: '心理健康研修' }
+      ];
+      const result = [];
+      cats.forEach(cat => {
+        const items = pickByCategory(cat.id, 8);
+        for (let i = 0; i < Math.max(1, Math.ceil(items.length / 4)); i++) {
+          result.push({ id: `rc-${cat.id}-${i+1}`, title: cat.title, category: cat.id, createdAt: new Date().toLocaleDateString('zh-CN'), items });
+        }
+      });
+      return result;
+    };
+    const collections = createDefaultCollections();
+    const titleByCategory = {
+      teaching_resources: '教学资源精选',
+      technology_training: '技术培训精选',
+      family_education: '家庭教育精选',
+      school_management: '学校管理精选',
+      mental_health: '心理健康研修',
+      new_teacher_resources: '新教师资源'
+    };
+    const selectedCards = (state.courseSelectionSelectedIds || []).map(id => {
+      const found = collections.find(c => c.id === id);
+      if (found) return found;
+      const m = /^rc-([a-z_]+)-\d+$/.exec(String(id || ''));
+      const cat = m ? m[1] : 'teaching_resources';
+      return { id, title: titleByCategory[cat] || '资料集合', category: cat, items: [] };
+    });
+    const videoMinutesForItem = (resId) => {
+      // 确定性模拟：根据资源ID字符码映射到 30~90 分钟
+      const s = String(resId || '');
+      let sum = 0; for (let i = 0; i < s.length; i++) sum += s.charCodeAt(i);
+      return 30 + (sum % 61);
+    };
+    const totalMinutesForCollection = (rc) => {
+      if (!Array.isArray(rc.items)) return 0;
+      return rc.items.reduce((acc, it) => acc + (it.type === 'video' ? videoMinutesForItem(it.id) : 0), 0);
+    };
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
+        <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between' }}>
+          <Space>
+            <Text style={{ fontWeight: 600 }}>已选课程集合</Text>
+            <Tag color="geekblue">{(state.courseSelectionSelectedIds || []).length} 个</Tag>
+          </Space>
+          <Space>
+            <Button size="small" type="primary" onClick={() => setRightPanelView(RIGHT_PANEL_VIEWS.OPERATIONS)}>确定</Button>
+            <Button size="small" onClick={() => setRightPanelView(RIGHT_PANEL_VIEWS.OPERATIONS)}>取消</Button>
+          </Space>
+        </div>
+        {(() => {
+          // 计算配课完成进度：按视频总时长换算（60分钟 = 1学时）
+          const requiredHours = state.rightPanelTrainingPlanRecord?.requiredHours || 8;
+          const selectedTotalMinutes = selectedCards.reduce((acc, rc) => acc + totalMinutesForCollection(rc), 0);
+          const selectedHours = Math.round((selectedTotalMinutes / 60) * 10) / 10; // 保留1位小数
+          const percent = Math.min(100, Math.round((selectedHours / Math.max(1, requiredHours)) * 100));
+          return (
+            <div style={{ padding: '10px 16px', borderBottom: '1px dashed #efefef' }}>
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <Text type="secondary">配课进度：已选时长 {selectedTotalMinutes} 分钟（≈ {selectedHours} 学时）/ 要求学时 {requiredHours}（{percent}%）</Text>
+                <Progress percent={percent} size="small" showInfo={false} />
+              </Space>
+            </div>
+          );
+        })()}
+        <div style={{ flex: 1, overflow: 'auto', padding: 12 }}>
+          {(state.courseSelectionSelectedIds || []).length === 0 ? (
+            <Text type="secondary">尚未选择集合，请在中间区域选择。</Text>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12 }}>
+              {selectedCards.map(rc => (
+                <Card key={rc.id} hoverable bodyStyle={{ padding: 8 }} style={{ borderRadius: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 60, height: 40, borderRadius: 6, overflow: 'hidden', background: '#fafafa', border: '1px solid #f0f0f0' }}>
+                        <img src={getCollectionThumbnail(rc.category)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rc.title}</div>
+                        <div style={{ color: '#888', fontSize: 12 }}>{(categories.find(c => c.id === rc.category)?.name) || '资料集合'}</div>
+                        {(() => {
+                          const minutes = totalMinutesForCollection(rc);
+                          const hours = Math.round((minutes / 60) * 10) / 10;
+                          return <div style={{ color: '#8c8c8c', fontSize: 12, marginTop: 4 }}>视频总时长：{minutes} 分钟（≈ {hours} 学时）</div>;
+                        })()}
+                      </div>
+                    </div>
+                    <Tooltip title="取消选择">
+                      <Button size="small" type="text" onClick={() => {
+                        const next = (state.courseSelectionSelectedIds || []).filter(id => id !== rc.id);
+                        state.setCourseSelectionSelectedIds(next);
+                        try {
+                          window.dispatchEvent(new CustomEvent('courseSelectionUpdate', { detail: { phaseId: state.courseSelectionPhaseId, selectedIds: next } }));
+                        } catch {}
+                      }}>
+                        <CloseCircleOutlined style={{ color: '#f5222d' }} />
+                      </Button>
+                    </Tooltip>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     );
   }
 

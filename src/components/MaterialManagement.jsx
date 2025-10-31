@@ -2475,9 +2475,32 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                           </div>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
-                          <Text type="secondary" style={{ fontSize: 12, color: '#666' }}>
+                          <Text type="secondary" style={{ fontSize: 12, color: '#666', display: 'block', width: '100%', textAlign: 'right' }}>
                             {phase.startTime || '未定'} • {phase.endTime || '未定'}
                           </Text>
+                          {(() => {
+                            // 在日期行下方显示课程视频类别标识与配置入口（仅当该模块包含课程视频时）
+                            const materials = phase?.materials || {};
+                            const hasVideos = Array.isArray(materials.videos) && materials.videos.length > 0;
+                            if (!hasVideos) return null;
+                            const isElectivePhase = /课堂教学技能/.test(String(phase?.content || ''));
+                            const mandatory = !isElectivePhase; // 未配置时默认除“课堂教学技能”外均为必修
+                            const selectedCount = (materials.videos || []).length;
+                            return (
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                                <Space>
+                                  <Tag color={mandatory ? 'success' : 'processing'}>{mandatory ? '必修课' : '选修课'}</Tag>
+                                </Space>
+                                {!mandatory && (
+                                  <Button size="small" onClick={() => {
+                                    try {
+                                      window.dispatchEvent(new CustomEvent('openCourseSelection', { detail: { phaseId: phase.id, selectedIds: [] } }));
+                                    } catch {}
+                                  }}>配置课程</Button>
+                                )}
+                              </div>
+                            );
+                          })()}
                           {(phaseViewCompactMode || collapsedPhases.has(phase.id)) && (() => {
                             const status = assessPhasePass(phase);
                             const barColor = '#1890ff';

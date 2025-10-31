@@ -716,12 +716,14 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
         'rc-family_education-3',
         'rc-school_management-4',
       ];
+      const isElectivePhase = !!phase && /课堂教学技能/.test(String(phase?.content || ''));
       return {
         name: formatLabelByKey(formatKey),
         details: '',
         enabled: defaultEnabled,
         assessment: { method: '固定成绩', weight: 30, fixedScore: 100 },
         watch: { requiredPercent: 80 },
+        enrollment: { mandatory: !isElectivePhase, selectionMethod: 'student_choice' },
         selectedCollections: aiDefaults,
         aiSelectedIds: aiDefaults,
       };
@@ -829,6 +831,29 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
       configAreaRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [configModal.visible]);
+
+  // 课程选择联动：监听中间区域选择并写入当前训练方案配置
+  useEffect(() => {
+    const onUpdate = (e) => {
+      try {
+        const { phaseId, selectedIds } = e?.detail || {};
+        if (!phaseId || !Array.isArray(selectedIds)) return;
+        setFormatConfigs(prev => {
+          const next = { ...prev };
+          const phase = phaseMaterials.find(p => p.id === phaseId);
+          const baseAll = next[phaseId] || {};
+          const baseVideos = baseAll.videos || getDefaultConfig(phase, 'videos');
+          next[phaseId] = {
+            ...baseAll,
+            videos: { ...baseVideos, selectedCollections: selectedIds }
+          };
+          return next;
+        });
+      } catch {}
+    };
+    window.addEventListener('courseSelectionUpdate', onUpdate);
+    return () => window.removeEventListener('courseSelectionUpdate', onUpdate);
+  }, [phaseMaterials, getDefaultConfig]);
 
   // 首次加载：按 localStorage 记忆的左右分割比例设置宽度
   useEffect(() => {
@@ -1859,6 +1884,25 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                       模块 {phase.id}｜{phase.content}
                                     </Text>
                                   </div>
+                                  {/* 标题行下方：课程视频类别标识与配置入口 */}
+                                  {(() => {
+                                    const videosCfg = (formatConfigs[phase.id] && formatConfigs[phase.id].videos) || getDefaultConfig(phase, 'videos');
+                                    const hasVideos = Array.isArray((phase.materials || {}).videos) && (phase.materials.videos.length > 0);
+                                    if (!hasVideos) return null;
+                                    const isElectivePhase = /课堂教学技能/.test(String(phase?.content || ''));
+                                    const mandatory = (videosCfg?.enrollment?.mandatory != null) ? videosCfg.enrollment.mandatory : !isElectivePhase;
+                                    const selectedCount = Array.isArray(videosCfg?.selectedCollections) ? videosCfg.selectedCollections.length : 0;
+                                    return (
+                                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 }}>
+                                        <Space>
+                                          <Tag color={mandatory ? 'success' : 'processing'}>{mandatory ? '必修课' : '选修课'}</Tag>
+                                        </Space>
+                                        {!mandatory && (
+                                          <Button size="small" onClick={() => openConfigModal(phase.id, 'videos')}>配置课程</Button>
+                                        )}
+                                      </div>
+                                    );
+                                  })()}
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                                   {(() => {
                                     const s = summarizePhaseConfig(phase);
@@ -1868,6 +1912,31 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                     ];
                                   })()}
                                 </div>
+
+                                {/* 课程视频类别标题行（在形式卡片之前显示） */}
+                                {(() => {
+                                  const videosCfg = (formatConfigs[phase.id] && formatConfigs[phase.id].videos) || getDefaultConfig(phase, 'videos');
+                                  const hasVideos = Array.isArray((phase.materials || {}).videos) && (phase.materials.videos.length > 0);
+                                  if (!hasVideos) return null;
+                                  const isElectivePhase = /课堂教学技能/.test(String(phase?.content || ''));
+                                  const mandatory = (videosCfg?.enrollment?.mandatory != null) ? videosCfg.enrollment.mandatory : !isElectivePhase;
+                                  const selectedCount = Array.isArray(videosCfg?.selectedCollections) ? videosCfg.selectedCollections.length : 0;
+                                  return (
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 }}>
+                                      <Space>
+                                        <Tag color={mandatory ? 'success' : 'processing'}>{mandatory ? '必修课' : '选修课'}</Tag>
+                                      </Space>
+                                      {!mandatory && (
+                                        <Button size="small" onClick={() => {
+                                          try {
+                                            const selectedIds = Array.isArray(videosCfg?.selectedCollections) ? videosCfg.selectedCollections : [];
+                                            window.dispatchEvent(new CustomEvent('openCourseSelection', { detail: { phaseId: phase.id, selectedIds } }));
+                                          } catch {}
+                                        }}>配置课程</Button>
+                                      )}
+                                    </div>
+                                  );
+                                })()}
 
                                 {/* 学时与成绩配置进度 */}
                                 {(() => {
@@ -1930,10 +1999,25 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                     .filter(fmtKey => rightFilterCategory === 'all' || fmtKey === rightFilterCategory)
                                     .map((fmtKey) => {
                                       const cfg = (formatConfigs[phase.id] && formatConfigs[phase.id][fmtKey]) || getDefaultConfig(phase, fmtKey);
+                                      const isElectivePhase = /课堂教学技能/.test(String(phase?.content || ''));
+                                      const displayMandatory = (cfg?.enrollment?.mandatory != null) ? cfg.enrollment.mandatory : !isElectivePhase;
                                       return (
                                         <Card key={`phase-${phase.id}-fmt-${fmtKey}`} size="small" bodyStyle={{ padding: '6px 8px' }} style={{ border: '1px solid #e8e8e8', borderRadius: 6 }}>
                                           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
                                             <div style={{ flex: 1 }}>
+                                            {/* 视频类别标题区域：显示数量、必修/选修标识、配置课程按钮 */}
+                                            {fmtKey === 'videos' && (
+                                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                                                <Space>
+                                                  <Tag color={displayMandatory ? 'success' : 'processing'}>
+                                                    {displayMandatory ? '必修课' : '选修课'}
+                                                  </Tag>
+                                                </Space>
+                                                {!displayMandatory && (
+                                                  <Button size="small" onClick={() => openConfigModal(phase.id, 'videos')}>配置课程</Button>
+                                                )}
+                                              </div>
+                                            )}
                                             <div>
                                               {(() => {
                                                 const typeLabel = formatTypeByKey(fmtKey);

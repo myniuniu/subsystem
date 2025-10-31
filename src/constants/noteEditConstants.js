@@ -121,7 +121,9 @@ export const RIGHT_PANEL_VIEWS = {
   TRAINING_DASHBOARD_VIEWER: 'training_dashboard_viewer',
   TRAINING_SETTINGS_VIEWER: 'training_settings_viewer',
   CLASSROOM_BEHAVIOR_ANALYSIS_VIEWER: 'classroomBehaviorAnalysisViewer',
-  VIDEO_PLAYER: 'video_player'
+  VIDEO_PLAYER: 'video_player',
+  // 新增：课程选择视图（占用中间 + 右侧）
+  COURSE_SELECTION_VIEWER: 'course_selection_viewer'
 };
 
 // 直播状态常量

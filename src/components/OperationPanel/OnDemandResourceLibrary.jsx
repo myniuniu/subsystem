@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Layout, Card, Space, Typography, Tooltip, Button, Table, Tag as AntTag, Empty, message, Modal, Select, Checkbox } from 'antd'
+import { Layout, Card, Space, Typography, Tooltip, Button, Table, Tag as AntTag, Empty, message, Modal, Select, Checkbox, Input } from 'antd'
 import { AppstoreOutlined, UnorderedListOutlined, EditOutlined, DeleteOutlined, ShareAltOutlined, EyeOutlined, FileTextOutlined, BookOutlined, ExperimentOutlined, TeamOutlined, FolderOpenOutlined, HeartTwoTone } from '@ant-design/icons'
 import './OnDemandResourceLibrary.css'
 import { initialResources } from '../../data/resourceLibraryData'
@@ -157,7 +157,7 @@ const openCollectionPreview = (rc, currentSpace) => {
   })
 }
 
-export default function ResourceLibraryCopied({ selectMode = false, selectedCollectionIds = [], onSelectionChange, useExternalFilters = false, externalFilters = { query: '', category: 'all' }, defaultViewMode = 'list', onCategoryChange }) {
+export default function ResourceLibraryCopied({ selectMode = false, selectedCollectionIds = [], onSelectionChange, useExternalFilters = false, externalFilters = { query: '', category: 'all' }, defaultViewMode = 'list', onCategoryChange, hideCategorySidebar = false, hideHeader = false }) {
   // 空间切换监听
   const [currentSpace, setCurrentSpace] = useState(() => {
     try { return localStorage.getItem('current_knowledge_space') || DEFAULT_SPACE } catch { return DEFAULT_SPACE }
@@ -185,7 +185,18 @@ export default function ResourceLibraryCopied({ selectMode = false, selectedColl
   // 分类与集合视图
   const [selectedResourceCategory, setSelectedResourceCategory] = useState('all')
   const [collectionViewMode, setCollectionViewMode] = useState(defaultViewMode)
+  const [searchQuery, setSearchQuery] = useState('')
   const resourceCollections = useMemo(() => createDefaultCollections(), [])
+  // 模拟视频分钟数：给每个视频资源映射 30~90 分钟，保证确定性
+  const videoMinutesForItem = (resId) => {
+    const s = String(resId || '')
+    let sum = 0; for (let i = 0; i < s.length; i++) sum += s.charCodeAt(i)
+    return 30 + (sum % 61)
+  }
+  const totalMinutesForCollection = (rc) => {
+    if (!Array.isArray(rc.items)) return 0
+    return rc.items.reduce((acc, it) => acc + (it.type === 'video' ? videoMinutesForItem(it.id) : 0), 0)
+  }
 
   const effectiveSelectedCategory = useExternalFilters ? (externalFilters?.category || 'all') : selectedResourceCategory
   const LIBRARY_CATEGORY_IDS = categories.map(c => c.id)
@@ -322,28 +333,39 @@ export default function ResourceLibraryCopied({ selectMode = false, selectedColl
 
   return (
     <Layout className="docs-center" style={{ height: '100%', background: 'transparent' }}>
-      <Header style={{ background: 'transparent', padding: 0 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Space>
-            <Title level={4} style={{ margin: 0 }}>资源集合</Title>
-            <Select value={currentSpace} onChange={setCurrentSpace} style={{ width: 220 }} options={[DEFAULT_SPACE, '帮助文档'].map(s => ({ value: s, label: `空间：${s}` }))} />
-          </Space>
-          <Space>
-            <Tooltip title="网格视图"><Button size="small" type={collectionViewMode==='grid' ? 'primary' : 'text'} icon={<AppstoreOutlined />} onClick={() => setCollectionViewMode('grid')} /></Tooltip>
-            <Tooltip title="列表视图"><Button size="small" type={collectionViewMode==='list' ? 'primary' : 'text'} icon={<UnorderedListOutlined />} onClick={() => setCollectionViewMode('list')} /></Tooltip>
-          </Space>
-        </div>
-      </Header>
+      {!hideHeader && (
+        <Header style={{ background: 'transparent', padding: '0 12px', height: 56, display: 'flex', alignItems: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <Space>
+              <Title level={4} style={{ margin: 0 }}>资源集合</Title>
+              <Select value={currentSpace} onChange={setCurrentSpace} style={{ width: 220 }} options={[DEFAULT_SPACE, '帮助文档'].map(s => ({ value: s, label: `空间：${s}` }))} />
+            </Space>
+            <Space>
+              <Input
+                placeholder="搜索或提问"
+                allowClear
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ width: 260 }}
+              />
+              <Tooltip title="网格视图"><Button size="small" type={collectionViewMode==='grid' ? 'primary' : 'text'} icon={<AppstoreOutlined />} onClick={() => setCollectionViewMode('grid')} /></Tooltip>
+              <Tooltip title="列表视图"><Button size="small" type={collectionViewMode==='list' ? 'primary' : 'text'} icon={<UnorderedListOutlined />} onClick={() => setCollectionViewMode('list')} /></Tooltip>
+            </Space>
+          </div>
+        </Header>
+      )}
 
       <Layout>
-        <OnDemandResourceCategorySidebar
-          selectedCategory={selectedResourceCategory}
-          onCategoryChange={(cat) => { setSelectedResourceCategory(cat); if (useExternalFilters && typeof onCategoryChange === 'function') onCategoryChange(cat); }}
-          resources={mockResourcesForCategories}
-          categories={resourceCategoryData}
-          configVersion={1}
-          disableHoverActions
-        />
+        {!hideCategorySidebar && (
+          <OnDemandResourceCategorySidebar
+            selectedCategory={selectedResourceCategory}
+            onCategoryChange={(cat) => { setSelectedResourceCategory(cat); if (useExternalFilters && typeof onCategoryChange === 'function') onCategoryChange(cat); }}
+            resources={mockResourcesForCategories}
+            categories={resourceCategoryData}
+            configVersion={1}
+            disableHoverActions
+          />
+        )}
         <Content className="docs-main">
           {collectionViewMode === 'list' ? (
             collectionListData.length === 0 ? (
@@ -363,9 +385,9 @@ export default function ResourceLibraryCopied({ selectMode = false, selectedColl
             )
           ) : (
             <div style={{ marginTop: 12 }}>
-              <Space wrap>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 16 }}>
                 {collectionListData.map(row => (
-                  <Card key={row.id} hoverable style={{ width: 280, position: 'relative' }} onClick={() => { if (selectMode) { const checked = !selectedIds.includes(row.id); toggleSelect(row.id, checked) } else { message.info(`打开集合：${row.title}`) } }}>
+                  <Card key={row.id} hoverable style={{ position: 'relative' }} onClick={() => { if (selectMode) { const checked = !selectedIds.includes(row.id); toggleSelect(row.id, checked) } else { message.info(`打开集合：${row.title}`) } }}>
                     {selectMode && (
                       <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 1 }} onClick={(e) => e.stopPropagation()}>
                         <Tooltip title="预览集合"><Button size="small" type="text" icon={<EyeOutlined />} onClick={() => openCollectionPreview(row.rc, currentSpace)} /></Tooltip>
@@ -389,9 +411,14 @@ export default function ResourceLibraryCopied({ selectMode = false, selectedColl
                     <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                       {(row.tags || []).map(tag => <AntTag key={tag}>{tag}</AntTag>)}
                     </div>
+                    {(() => {
+                      const minutes = totalMinutesForCollection(row.rc)
+                      const hours = Math.round((minutes / 60) * 10) / 10
+                      return <div style={{ color: '#8c8c8c', fontSize: 12, marginTop: 6 }}>视频总时长：{minutes} 分钟（≈ {hours} 学时）</div>
+                    })()}
                   </Card>
                 ))}
-              </Space>
+              </div>
             </div>
           )}
         </Content>

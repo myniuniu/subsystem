@@ -441,6 +441,10 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   // 播放器宽屏模式状态
   const [isWidescreenMode, setIsWidescreenMode] = useState(false);
 
+  // 课程选择联动状态（中+右联动视图）
+  const [courseSelectionPhaseId, setCourseSelectionPhaseId] = useState(null);
+  const [courseSelectionSelectedIds, setCourseSelectionSelectedIds] = useState([]);
+
   // 能力分类选项
   const capabilityCategories = [
     { id: 'all', name: '全部能力' },
@@ -730,6 +734,12 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
     // 播放器宽屏模式状态
     isWidescreenMode,
     setIsWidescreenMode,
+
+    // 课程选择联动状态
+    courseSelectionPhaseId,
+    setCourseSelectionPhaseId,
+    courseSelectionSelectedIds,
+    setCourseSelectionSelectedIds,
 
     // 常量数据
     subtitleData,

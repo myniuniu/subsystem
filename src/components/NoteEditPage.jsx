@@ -14,7 +14,8 @@ import {
   Input,
   Badge,
   Avatar,
-  Space
+  Space,
+  Tabs
 } from 'antd';
 import { ArrowLeftOutlined, DownloadOutlined, MessageOutlined, VideoCameraOutlined, AudioOutlined, AudioMutedOutlined, StopOutlined, ShareAltOutlined, TeamOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -46,6 +47,7 @@ import CalendarCenter from './CalendarCenter';
 import ClassroomEvaluationFullscreen from './ClassroomEvaluationFullscreen';
 import ThemeSelectModal from './ThemeSelectModal';
 import TrainingPlanViewer from './OperationPanel/TrainingPlanViewer';
+import OnDemandResourceLibrary from './OperationPanel/OnDemandResourceLibrary';
 import SimpleTrainingPlanDetailView from './SimpleTrainingPlanDetailView';
 import notesService from '../services/notesService';
 
@@ -210,6 +212,23 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
   // 关联来源选择弹窗状态
   const [linkSourceModalVisible, setLinkSourceModalVisible] = useState(false);
   const [recordToLinkSource, setRecordToLinkSource] = useState(null);
+  // 选课视图页签（候选 / 自选）
+  const [courseTabKey, setCourseTabKey] = useState('candidate');
+
+  // 课程选择事件监听：打开中+右联动视图
+  useEffect(() => {
+    const openHandler = (e) => {
+      const phaseId = e?.detail?.phaseId;
+      const selectedIds = e?.detail?.selectedIds || [];
+      if (phaseId != null) {
+        state.setCourseSelectionPhaseId(phaseId);
+        state.setCourseSelectionSelectedIds(selectedIds);
+        state.setRightPanelView(RIGHT_PANEL_VIEWS.COURSE_SELECTION_VIEWER);
+      }
+    };
+    window.addEventListener('openCourseSelection', openHandler);
+    return () => window.removeEventListener('openCourseSelection', openHandler);
+  }, []);
   const [selectedSourceForLink, setSelectedSourceForLink] = useState(null);
 
   // 构建可选择来源列表（来自 MaterialManagement 的各类材料）
@@ -1749,22 +1768,84 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
 
             {/* 中间问答区域 */}
             <div style={{
-              // 当右侧为视频播放器时，中间区域减少30%（从5降至3.5）
+              // 右侧为视频播放器时，中区缩小；为选课视图时，中区扩大30%
               flex: (state.rightPanelView === RIGHT_PANEL_VIEWS.VIDEO_PLAYER)
                 ? 3.5
-                : ((state.rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR || state.rightPanelView === RIGHT_PANEL_VIEWS.QUESTION_VIEWER || state.rightPanelView === RIGHT_PANEL_VIEWS.GRADING_VIEWER)
-                  ? 3.5
-                  : 5),
-              transition: 'flex 0.3s ease'
+                : (state.rightPanelView === RIGHT_PANEL_VIEWS.COURSE_SELECTION_VIEWER
+                  ? 5.8
+                  : ((state.rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR || state.rightPanelView === RIGHT_PANEL_VIEWS.QUESTION_VIEWER || state.rightPanelView === RIGHT_PANEL_VIEWS.GRADING_VIEWER)
+                    ? 3.5
+                    : 5)),
+              transition: 'flex 0.3s ease',
+              margin: '16px 16px 0 16px'
             }}>
-              <AIChat 
-                state={state}
-                handlers={aiChatHandlers}
-                selectedCategory={selectedCategory}
-                unreadMessageCount={unreadMessageCount}
-                onOpenMessageCenter={() => setShowMessageCenter(true)}
-                showGifOverlay={false}
-              />
+              {state.rightPanelView === RIGHT_PANEL_VIEWS.COURSE_SELECTION_VIEWER ? (
+                <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ padding: '8px 12px', borderBottom: '1px solid #f0f0f0', background: '#fafafa' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center' }}>
+                      <div style={{ justifySelf: 'start', display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span>📚</span>
+                        <Text strong>选择课程内容集合</Text>
+                      </div>
+                      <div style={{ justifySelf: 'center', display: 'flex', alignItems: 'center' }}>
+                        <Tabs
+                          centered
+                          activeKey={courseTabKey}
+                          onChange={(key) => setCourseTabKey(key)}
+                          tabBarStyle={{ marginBottom: 0 }}
+                          items={[
+                            { key: 'candidate', label: '候选' },
+                            { key: 'self', label: '自选' }
+                          ]}
+                        />
+                      </div>
+                      <div />
+                    </div>
+                  </div>
+                  <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                    {courseTabKey === 'candidate' ? (
+                      <div style={{ height: '100%', overflow: 'auto' }}>
+                        <OnDemandResourceLibrary
+                          selectMode
+                          useExternalFilters
+                          externalFilters={{ category: 'all', query: '' }}
+                          hideCategorySidebar
+                          hideHeader
+                          selectedCollectionIds={state.courseSelectionSelectedIds}
+                          onSelectionChange={(ids) => {
+                            state.setCourseSelectionSelectedIds(ids);
+                            const phaseId = state.courseSelectionPhaseId;
+                            window.dispatchEvent(new CustomEvent('courseSelectionUpdate', { detail: { phaseId, selectedIds: ids } }));
+                          }}
+                          defaultViewMode="grid"
+                        />
+                      </div>
+                    ) : (
+                      <div style={{ height: '100%', overflow: 'auto' }}>
+                        <OnDemandResourceLibrary
+                          selectMode
+                          selectedCollectionIds={state.courseSelectionSelectedIds}
+                          onSelectionChange={(ids) => {
+                            state.setCourseSelectionSelectedIds(ids);
+                            const phaseId = state.courseSelectionPhaseId;
+                            window.dispatchEvent(new CustomEvent('courseSelectionUpdate', { detail: { phaseId, selectedIds: ids } }));
+                          }}
+                          defaultViewMode="grid"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <AIChat 
+                  state={state}
+                  handlers={aiChatHandlers}
+                  selectedCategory={selectedCategory}
+                  unreadMessageCount={unreadMessageCount}
+                  onOpenMessageCenter={() => setShowMessageCenter(true)}
+                  showGifOverlay={false}
+                />
+              )}
             </div>
 
             {/* 右侧操作区域 */}
@@ -1782,6 +1863,10 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 // 笔记编辑、试题查看或阅卷报告查看状态时，保持原有增加宽度的逻辑
                 if (state.rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR || state.rightPanelView === RIGHT_PANEL_VIEWS.QUESTION_VIEWER || state.rightPanelView === RIGHT_PANEL_VIEWS.GRADING_VIEWER) {
                   return baseRatio * 1.5;
+                }
+                // 选课视图：右区加宽（相对基础宽度增加约10%）
+                if (state.rightPanelView === RIGHT_PANEL_VIEWS.COURSE_SELECTION_VIEWER) {
+                  return baseRatio * 1.1;
                 }
                 return baseRatio;
               })(), 
