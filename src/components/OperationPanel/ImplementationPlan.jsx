@@ -1893,50 +1893,28 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                     const mandatory = (videosCfg?.enrollment?.mandatory != null) ? videosCfg.enrollment.mandatory : !isElectivePhase;
                                     const selectedCount = Array.isArray(videosCfg?.selectedCollections) ? videosCfg.selectedCollections.length : 0;
                                     return (
-                                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginTop: 6 }}>
                                         <Space>
                                           <Tag color={mandatory ? 'success' : 'processing'}>{mandatory ? '必修课' : '选修课'}</Tag>
                                         </Space>
-                                        {!mandatory && (
-                                          <Button size="small" onClick={() => openConfigModal(phase.id, 'videos')}>配置课程</Button>
-                                        )}
                                       </div>
                                     );
                                   })()}
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                                   {(() => {
                                     const s = summarizePhaseConfig(phase);
-                                    // 去掉培训形式标签与学时标签，仅保留权重信息
-                                    return [
+                                    const videosCfg = (formatConfigs[phase.id] && formatConfigs[phase.id].videos) || getDefaultConfig(phase, 'videos');
+                                    const isElectivePhase = /课堂教学技能/.test(String(phase?.content || ''));
+                                    const mandatory = (videosCfg?.enrollment?.mandatory != null) ? videosCfg.enrollment.mandatory : !isElectivePhase;
+                                    const tags = [
                                       <Tag color="purple" key={`phase-${phase.id}-weight`}>权重：{s.moduleWeightPercent}%</Tag>
                                     ];
+                                    if (!mandatory) {
+                                      tags.unshift(<Tag color="processing" key={`phase-${phase.id}-elective`}>选修课</Tag>);
+                                    }
+                                    return tags;
                                   })()}
                                 </div>
-
-                                {/* 课程视频类别标题行（在形式卡片之前显示） */}
-                                {(() => {
-                                  const videosCfg = (formatConfigs[phase.id] && formatConfigs[phase.id].videos) || getDefaultConfig(phase, 'videos');
-                                  const hasVideos = Array.isArray((phase.materials || {}).videos) && (phase.materials.videos.length > 0);
-                                  if (!hasVideos) return null;
-                                  const isElectivePhase = /课堂教学技能/.test(String(phase?.content || ''));
-                                  const mandatory = (videosCfg?.enrollment?.mandatory != null) ? videosCfg.enrollment.mandatory : !isElectivePhase;
-                                  const selectedCount = Array.isArray(videosCfg?.selectedCollections) ? videosCfg.selectedCollections.length : 0;
-                                  return (
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 }}>
-                                      <Space>
-                                        <Tag color={mandatory ? 'success' : 'processing'}>{mandatory ? '必修课' : '选修课'}</Tag>
-                                      </Space>
-                                      {!mandatory && (
-                                        <Button size="small" onClick={() => {
-                                          try {
-                                            const selectedIds = Array.isArray(videosCfg?.selectedCollections) ? videosCfg.selectedCollections : [];
-                                            window.dispatchEvent(new CustomEvent('openCourseSelection', { detail: { phaseId: phase.id, selectedIds } }));
-                                          } catch {}
-                                        }}>配置课程</Button>
-                                      )}
-                                    </div>
-                                  );
-                                })()}
 
                                 {/* 学时与成绩配置进度 */}
                                 {(() => {
@@ -2014,7 +1992,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                                                   </Tag>
                                                 </Space>
                                                 {!displayMandatory && (
-                                                  <Button size="small" onClick={() => openConfigModal(phase.id, 'videos')}>配置课程</Button>
+                                                  <Button size="small" onClick={() => openConfigModal(phase.id, 'videos')}>选修配课</Button>
                                                 )}
                                               </div>
                                             )}
