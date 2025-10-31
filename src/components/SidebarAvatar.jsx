@@ -40,8 +40,7 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
   // 新增：展开态内联搜索框状态与快捷键
   const [searchInlineValue, setSearchInlineValue] = useState('');
   const inputRef = useRef(null);
-  // 清理缓存弹窗
-  const [clearCacheModalVisible, setClearCacheModalVisible] = useState(false);
+  // 清理缓存：改为新窗口打开，不再使用弹窗
   const LS_KEY = 'global_search_history_v1';
   const FREQ_KEY = 'global_search_freq_v1';
   // 版本说明弹窗
@@ -293,7 +292,8 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
         </Space>
       ),
       onClick: () => {
-        setClearCacheModalVisible(true);
+        const url = `${window.location.origin}/clear-site-data.html`;
+        window.open(url, '_blank');
       }
     },
     {
@@ -545,21 +545,7 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
         currentTheme={getCurrentThemeData()}
       />
 
-      {/* 清理缓存弹窗 */}
-      <Modal
-        title="清理缓存"
-        open={clearCacheModalVisible}
-        onCancel={() => setClearCacheModalVisible(false)}
-        footer={null}
-        width={880}
-        styles={{ body: { padding: 0, overflow: 'hidden' } }}
-      >
-        <iframe
-          title="clear-site-data"
-          src={`${window.location.origin}/clear-site-data.html`}
-          style={{ width: '100%', height: '70vh', border: 'none' }}
-        />
-      </Modal>
+      {/* 清理缓存改为新窗口打开，不再使用弹窗 */}
 
       <LoginMoreModal
         open={loginMoreModalVisible}

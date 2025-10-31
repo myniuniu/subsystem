@@ -49,6 +49,8 @@ import AssessmentSection from './AssessmentSection';
 import GuaranteeSection from './GuaranteeSection';
 import TagsSection from './TagsSection';
 import ImplementationPlan from './ImplementationPlan';
+import { generateKnowledgeNodes } from '../../data/knowledgeGraphData';
+import { generateCapabilityNodes } from '../../data/capabilityMapData';
 import {
   DndContext,
   closestCenter,
@@ -80,6 +82,13 @@ const parseFormats = (val) => Array.isArray(val)
     ? val.split(/[+，,、]/).map(s => s.trim()).filter(Boolean)
     : []);
 const joinFormats = (arr) => (arr || []).join(' + ');
+
+// 体系化培训类型
+const SYSTEM_TRAINING_TYPES = [
+  { value: 'knowledge_graph', label: '知识图谱' },
+  { value: 'capability_model', label: '能力模型' },
+  { value: 'micro_major', label: '微专业' }
+];
 
 // 根据中文关键词推断类型键，用于默认初始化绑定
 const inferTypeKeyFromText = (text) => {
@@ -834,6 +843,14 @@ const TrainingPlanViewer = ({
     markdown += `\n**培训周期：**${plan.overview.duration}\n\n`;
     markdown += `**培训对象：**${plan.overview.participants}\n\n`;
     markdown += `**培训形式：**${plan.overview.format}\n\n`;
+    if (plan.overview?.systemTraining?.type) {
+      const typeLabel = plan.overview.systemTraining.type === 'knowledge_graph' ? '知识图谱'
+        : plan.overview.systemTraining.type === 'capability_model' ? '能力模型'
+        : plan.overview.systemTraining.type === 'micro_major' ? '微专业'
+        : plan.overview.systemTraining.type;
+      const refLabel = plan.overview.systemTraining.refLabel ? `（${plan.overview.systemTraining.refLabel}）` : '';
+      markdown += `**体系化培训：**${typeLabel}${refLabel}\n\n`;
+    }
 
     // 二、培训阶段与内容
     markdown += `## 二、培训阶段与内容\n\n`;
@@ -925,7 +942,8 @@ const TrainingPlanViewer = ({
       ],
       duration: '3个月（12周）',
       participants: '本学年新入职教师',
-      format: '线上直播课程 + 录播视频 + 线上研讨会 + 实践作业'
+      format: '线上直播课程 + 录播视频 + 线上研讨会 + 实践作业',
+      systemTraining: { type: null, refId: null, refLabel: null }
     },
     phases: [
       {
@@ -1691,6 +1709,14 @@ const TrainingPlanViewer = ({
     setVisualDraft(null);
     setEditingModulePath(null);
   };
+  // 体系化培训可选数据项（根据类型切换）
+  const knowledgeNodeOptions = useMemo(() => generateKnowledgeNodes().map(n => ({ value: n.id, label: n.name })), []);
+  const capabilityNodeOptions = useMemo(() => generateCapabilityNodes().map(n => ({ value: n.id, label: n.name })), []);
+  const microMajorOptions = useMemo(() => ([
+    { value: 'data-science', label: '数据科学微专业' },
+    { value: 'uiux-design', label: 'UI/UX设计微专业' },
+    { value: 'cloud-computing', label: '云计算微专业' }
+  ]), []);
   const saveInlineVisualEdit = () => {
     if (!editingSectionKey) return;
     try {
@@ -1846,6 +1872,36 @@ const TrainingPlanViewer = ({
                 value={parseFormats(visualDraft.format)}
                 onChange={(vals) => setVisualDraft(prev => ({ ...prev, format: joinFormats(vals) }))}
                 options={DEFAULT_FORMAT_OPTIONS.map(v => ({ value: v, label: v }))}
+              />
+            </Space>
+            <Title level={5} style={{ marginTop: 16 }}>体系化培训</Title>
+            <Space style={{ width: '100%', marginBottom: 8 }} align="center" wrap>
+              <Select
+                style={{ width: 180 }}
+                placeholder="选择类型"
+                value={visualDraft?.systemTraining?.type || null}
+                options={SYSTEM_TRAINING_TYPES}
+                onChange={(val) => setVisualDraft(prev => ({
+                  ...prev,
+                  systemTraining: { type: val, refId: null, refLabel: null }
+                }))}
+              />
+              <Select
+                style={{ minWidth: 240, flex: 1 }}
+                placeholder="选择数据项"
+                value={visualDraft?.systemTraining?.refId || null}
+                options={(() => {
+                  const type = visualDraft?.systemTraining?.type;
+                  if (type === 'knowledge_graph') return knowledgeNodeOptions;
+                  if (type === 'capability_model') return capabilityNodeOptions;
+                  if (type === 'micro_major') return microMajorOptions;
+                  return [];
+                })()}
+                onChange={(val, opt) => setVisualDraft(prev => ({
+                  ...prev,
+                  systemTraining: { ...(prev.systemTraining || {}), refId: val, refLabel: opt?.label || null }
+                }))}
+                disabled={!visualDraft?.systemTraining?.type}
               />
             </Space>
           </div>

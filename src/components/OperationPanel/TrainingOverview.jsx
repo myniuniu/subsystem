@@ -40,6 +40,20 @@ const TrainingOverview = ({ overview }) => {
           </Card>
         </Col>
       </Row>
+      {overview?.systemTraining?.type && (
+        <Row gutter={16} style={{ marginTop: '16px' }}>
+          <Col span={24}>
+            <Card size="small">
+              <Text strong>体系化培训：</Text>
+              <br />
+              <Text style={{ fontSize: '14px' }}>
+                {overview.systemTraining.type === 'knowledge_graph' ? '知识图谱' : overview.systemTraining.type === 'capability_model' ? '能力模型' : overview.systemTraining.type === 'micro_major' ? '微专业' : overview.systemTraining.type}
+                {overview.systemTraining.refLabel ? `（${overview.systemTraining.refLabel}）` : ''}
+              </Text>
+            </Card>
+          </Col>
+        </Row>
+      )}
     </div>
   );
 };

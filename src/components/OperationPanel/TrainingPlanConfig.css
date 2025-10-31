@@ -1,0 +1,16 @@
+.two-col-select-dropdown .ant-select-item {
+  display: inline-block;
+  width: 50%;
+  box-sizing: border-box;
+  padding-right: 8px;
+}
+
+.two-col-select-dropdown .ant-select-item-option-content {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.two-col-select-dropdown {
+  max-width: 100%;
+}

@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, Button, Tooltip, Typography, Modal, Form, Switch, Select, InputNumber, Input, Tag } from 'antd';
 import { DeleteOutlined, SettingOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { useDrag, useDrop } from 'react-dnd';
+import { generateKnowledgeNodes } from '../../data/knowledgeGraphData';
+import { generateCapabilityNodes } from '../../data/capabilityMapData';
+import './TrainingPlanConfig.css';
 
 const { Text } = Typography;
 
@@ -27,11 +30,28 @@ const DraggableOperationCard = ({
     description: '', // 方案补充说明
     trainingFormats: [], // 培训形式（多选）
     courseSelection: [], // 课程圈选
-    participantSelection: [] // 培训人员圈选
+    participantSelection: [], // 培训人员圈选
+    systemTrainingType: null, // 体系化培训类型
+    systemTrainingRef: null, // 选中的数据项 ID
+    systemTrainingRefLabel: null // 选中的数据项名称
   });
   
   // 卡片悬浮状态
   const [isHovered, setIsHovered] = useState(false);
+
+  // 体系化培训选项
+  const systemTypeOptions = [
+    { value: 'knowledge_graph', label: '知识图谱' },
+    { value: 'capability_model', label: '能力模型' },
+    { value: 'micro_major', label: '微专业' }
+  ];
+  const knowledgeNodeOptions = useMemo(() => generateKnowledgeNodes().map(n => ({ value: n.id, label: n.name })), []);
+  const capabilityNodeOptions = useMemo(() => generateCapabilityNodes().map(n => ({ value: n.id, label: n.name })), []);
+  const microMajorOptions = useMemo(() => ([
+    { value: 'data-science', label: '数据科学微专业' },
+    { value: 'uiux-design', label: 'UI/UX设计微专业' },
+    { value: 'cloud-computing', label: '云计算微专业' }
+  ]), []);
   
   // 处理培训方案卡片点击
   const handleTrainingPlanClick = () => {
@@ -376,13 +396,50 @@ const DraggableOperationCard = ({
             </div>
           </Form.Item>
           
-          {/* 第三行：结业证书 + 培训形式（跨两列放到下方） */}
-          <Form.Item label="结业证书" style={{ gridColumn: '1 / -1' }}>
+          {/* 第三行：证书 + 体系化培训 */}
+          <Form.Item label="证书" style={{ gridColumn: '1 / -1' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Text type="secondary">完成培训后颁发电子证书</Text>
               <Switch 
                 checked={config.certificateEnabled}
                 onChange={(checked) => setConfig({...config, certificateEnabled: checked})}
+              />
+            </div>
+          </Form.Item>
+
+          {/* 体系化培训：类型 + 数据项（紧跟证书，跨两列） */}
+          <Form.Item 
+            label={
+              <Tooltip title="绑定知识图谱/能力模型/微专业，用于方案的体系化配置" placement="top">
+                <span>体系化培训 <QuestionCircleOutlined style={{ color: '#8c8c8c', fontSize: '12px' }} /></span>
+              </Tooltip>
+            }
+            style={{ gridColumn: '1 / -1' }}
+          >
+            <div style={{ display: 'flex', gap: 12 }}>
+              <Select
+                value={config.systemTrainingType}
+                onChange={(val) => setConfig({ ...config, systemTrainingType: val, systemTrainingRef: null, systemTrainingRefLabel: null })}
+                placeholder="选择体系类型"
+                style={{ width: 220 }}
+                options={systemTypeOptions}
+              />
+              <Select
+                value={config.systemTrainingRef}
+                onChange={(val, opt) => setConfig({ ...config, systemTrainingRef: val, systemTrainingRefLabel: opt?.label || opt?.children || null })}
+                placeholder="选择数据项"
+                style={{ flex: 1 }}
+                disabled={!config.systemTrainingType}
+                options={(function(){
+                  if (config.systemTrainingType === 'knowledge_graph') return knowledgeNodeOptions;
+                  if (config.systemTrainingType === 'capability_model') return capabilityNodeOptions;
+                  if (config.systemTrainingType === 'micro_major') return microMajorOptions;
+                  return [];
+                })()}
+                showSearch
+                optionFilterProp="children"
+                dropdownClassName="two-col-select-dropdown"
+                dropdownMatchSelectWidth
               />
             </div>
           </Form.Item>
@@ -446,6 +503,8 @@ const DraggableOperationCard = ({
               <Select.Option value="offline">🏫 线下培训</Select.Option>
             </Select>
           </Form.Item>
+
+          
           
           </div>
           
