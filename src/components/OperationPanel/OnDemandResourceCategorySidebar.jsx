@@ -95,8 +95,8 @@ const ResourceCategorySidebar = ({
   const renderTreeNodeTitle = (category) => {
     const isEmojiIcon = category.icon && category.icon.length <= 2;
     const IconComponent = isEmojiIcon ? null : (iconMap[category.icon] || FileTextOutlined);
-    const showCount = true;
-    const count = getCategoryCount(category);
+    const showCount = false;
+    const count = 0;
     const showActions = !disableHoverActions && category.type === 'system' && !['all', 'starred', 'recent', 'shared'].includes(category.value);
 
     return (
@@ -107,7 +107,7 @@ const ResourceCategorySidebar = ({
           <IconComponent className="category-icon" />
         )}
         <span className="category-label">{category.label}</span>
-        {showCount && <span className="category-count">{count}</span>}
+        {/* 去掉数字统计显示 */}
         {showActions && (
           <span className="category-actions">
             <Tooltip title="新增分类">
