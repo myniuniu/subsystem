@@ -156,6 +156,8 @@ const NotesSidebar = ({
     const isEmojiIcon = category.icon && category.icon.length <= 2;
     const IconComponent = isEmojiIcon ? null : (iconMap[category.icon] || FileTextOutlined);
     const count = getCategoryCount(category);
+    // 显示文案覆盖：组织培训 -> 组织培训学习
+    const displayLabel = (category.value === 'organizational_training') ? '组织培训学习' : category.label;
     // 显示计数：非系统分类 + 特例（组织培训和培训需求管理显示进行中数量）；置顶后不显示数字
     const isPinned = !!category.pinned;
     const showCount = (
@@ -191,9 +193,7 @@ const NotesSidebar = ({
         ) : (
           <IconComponent className="category-icon" />
         )}
-        <span className="category-label">
-          {category.value === 'organizational_training' ? '组织培训' : category.label}
-        </span>
+        <span className="category-label">{displayLabel}</span>
         {showCount && <span className="category-count">{count}</span>}
         {showOrgRibbon && (
           <span className="category-ribbon">组织</span>
@@ -262,6 +262,7 @@ const NotesSidebar = ({
     const isEmojiIcon = category.icon && category.icon.length <= 2;
     const IconComponent = isEmojiIcon ? null : (iconMap[category.icon] || FileTextOutlined);
     const count = getCategoryCount(category);
+    const displayLabel = (category.value === 'organizational_training') ? '组织培训学习' : category.label;
     return (
       <div
         className={`category-item ${selectedCategory === category.value ? 'active' : ''}`}
@@ -272,7 +273,7 @@ const NotesSidebar = ({
         ) : (
           <IconComponent className="category-icon" />
         )}
-        <span className="category-label">{category.label}</span>
+        <span className="category-label">{displayLabel}</span>
         {onOpenSystemCategoryManager && !hideActions && (
           <span className="category-actions">
             <Tooltip title="新增分类">
@@ -910,7 +911,7 @@ const NotesSidebar = ({
               <div key="organizational_training_wrapper">
                 {renderCategoryItem({
                   value: 'organizational_training',
-                  label: '组织培训',
+                  label: '组织培训学习',
                   icon: 'TeamOutlined',
                   type: 'system'
                 })}

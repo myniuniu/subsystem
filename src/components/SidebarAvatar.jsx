@@ -44,6 +44,8 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
   const [clearCacheModalVisible, setClearCacheModalVisible] = useState(false);
   const LS_KEY = 'global_search_history_v1';
   const FREQ_KEY = 'global_search_freq_v1';
+  // 版本说明弹窗
+  const [versionModalVisible, setVersionModalVisible] = useState(false);
 
   const pushHistory = (text) => {
     if (!text) return;
@@ -262,6 +264,21 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
         </div>
       ),
       disabled: true
+    },
+    {
+      type: 'divider'
+    },
+    // 版本号
+    {
+      key: 'app-version',
+      label: (
+        <Space>
+          <FileText size={16} />
+          <span>版本号</span>
+          <span style={{ marginLeft: 6, fontSize: 12, color: 'var(--theme-primary)' }}>0.21.13</span>
+        </Space>
+      ),
+      onClick: () => setVersionModalVisible(true)
     },
     {
       type: 'divider'
@@ -555,6 +572,31 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
         onClose={() => setSearchModalVisible(false)}
         defaultQuery={searchInlineValue}
       />
+
+      {/* 版本说明弹窗 */}
+      <Modal
+        title="版本说明"
+        open={versionModalVisible}
+        onCancel={() => setVersionModalVisible(false)}
+        footer={null}
+        width={720}
+      >
+        <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>0.21.13</div>
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>组织培训分类主题内：</div>
+          <ul style={{ paddingLeft: 20, margin: 0 }}>
+            <li style={{ marginBottom: 6 }}>模块3，研修成果上传功能</li>
+            <li>模块6，配置选修课</li>
+          </ul>
+        </div>
+        <div>
+          <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>组织需求管理分类主题内：</div>
+          <ul style={{ paddingLeft: 20, margin: 0 }}>
+            <li style={{ marginBottom: 6 }}>智能工具：新增“培训方案”工具</li>
+            <li>操作记录，“培训方案”文档配置等</li>
+          </ul>
+        </div>
+      </Modal>
     </>
   );
 };
