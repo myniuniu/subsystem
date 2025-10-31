@@ -331,7 +331,7 @@ const gifUrl = '/assets/动态.gif';
       <div style={{ padding: '20px', borderBottom: '1px solid #f0f0f0' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {categoryIcon && !iconError ? (
-            <img src={categoryIcon} alt="AI助手" onError={() => setIconError(true)} style={{ width: 20, height: 20, borderRadius: '50%' }} />
+            <img src={categoryIcon} alt="AI助手" onError={() => setIconError(true)} style={{ width: 28, height: 28, borderRadius: '50%' }} />
           ) : (
             <span style={{ fontSize: '16px' }}>💬</span>
           )}

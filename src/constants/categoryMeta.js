@@ -1,22 +1,28 @@
 // 统一的稳定分类键常量与 AI 元数据（不依赖中文名称）
 // 使用 public 目录中的静态资源，构建后路径稳定为 /assets/...
-const peanutIcon = '/assets/果仁学伴.png';
+const assistantStudentIcon = '/assets/学伴.png';
+const trainingAssistantIcon = '/assets/培训助理.png';
+const researchAssistantIcon = '/assets/教研助理.png';
+const evaluationAssistantIcon = '/assets/评阅助手.png';
 
 // 所有逻辑仅以稳定的分类 key（value/slug）为准
 export const CATEGORY_META = {
   organizational_training: {
     aiTitle: '小果仁',
-    aiIcon: peanutIcon
+    aiIcon: assistantStudentIcon
   },
   teaching_research_office: {
-    aiTitle: '教研助手'
+    aiTitle: '教研助手',
+    aiIcon: researchAssistantIcon
   },
   training_needs_management: {
-    aiTitle: '培训助理'
+    aiTitle: '培训助理',
+    aiIcon: trainingAssistantIcon
   },
   // 我的评阅分类：AI标题改为“评阅助手”
   my_evaluation: {
-    aiTitle: '评阅助手'
+    aiTitle: '评阅助手',
+    aiIcon: evaluationAssistantIcon
   }
 };
 
