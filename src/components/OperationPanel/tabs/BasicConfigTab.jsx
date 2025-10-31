@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Form, Input, InputNumber, Switch, Select, DatePicker } from 'antd';
+import { Form, Input, InputNumber, Switch, Select, DatePicker, Radio } from 'antd';
 import dayjs from 'dayjs';
 import notesService from '../../../services/notesService';
 import { initialResources } from '../../../data/resourceLibraryData';
@@ -96,6 +96,63 @@ const BasicConfigTab = ({ draft, updateDraft, formatKey, configModal, formatConf
 
       {(formatKey === 'live' || formatKey === 'videos') && (
         <>
+          {/* 考核时间（到天即可，仅点播课显示） */}
+          {formatKey === 'videos' && (
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontWeight: 600, padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>考核时间</div>
+              <Form.Item required label="考核时间：" colon={false} style={{ marginTop: 8, marginBottom: 12 }}>
+                <DatePicker.RangePicker
+                  format="YYYY-MM-DD"
+                  placeholder={["开始时间", "结束时间"]}
+                  value={(
+                    draft?.assessment?.startDate && draft?.assessment?.endDate
+                      ? [dayjs(draft.assessment.startDate), dayjs(draft.assessment.endDate)]
+                      : null
+                  )}
+                  onChange={(vals) => {
+                    const [start, end] = vals || [];
+                    updateDraft('assessment.startDate', start ? start.format('YYYY-MM-DD') : null);
+                    updateDraft('assessment.endDate', end ? end.format('YYYY-MM-DD') : null);
+                  }}
+                  style={{ width: 380 }}
+                />
+              </Form.Item>
+            </div>
+          )}
+
+          {/* 选课设置（点播课） */}
+          {formatKey === 'videos' && (
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontWeight: 600, padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>选课设置</div>
+              <div style={{ marginTop: 12 }}>
+                {/* 是否必修 */}
+                <div style={{ marginBottom: 12 }}>
+                  <span style={{ marginRight: 8 }}>是否必修：</span>
+                  <Radio.Group
+                    value={draft.enrollment?.mandatory ?? false}
+                    onChange={(e) => updateDraft('enrollment.mandatory', e.target.value)}
+                  >
+                    <Radio value={true}>必修</Radio>
+                    <Radio value={false}>选修</Radio>
+                  </Radio.Group>
+                </div>
+                {/* 学员选课方式：仅当选修显示 */}
+                {!(draft.enrollment?.mandatory ?? false) && (
+                  <div>
+                    <span style={{ marginRight: 8 }}>学员选课方式：</span>
+                    <Radio.Group
+                      value={draft.enrollment?.selectionMethod || 'student_choice'}
+                      onChange={(e) => updateDraft('enrollment.selectionMethod', e.target.value)}
+                    >
+                      <Radio value={'student_choice'}>学员自选</Radio>
+                      <Radio value={'admin_assigned'}>管理员指定</Radio>
+                    </Radio.Group>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* 成绩设置 */}
           <div style={{ marginBottom: 12 }}>
             <div style={{ fontWeight: 600, padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>成绩设置</div>
