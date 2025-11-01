@@ -63,13 +63,13 @@ const AchievementDetailPanel = ({ state }) => {
     try {
       (state.addedTexts || []).forEach(t => add('text', t.id, `📝 文本｜${t.title || t.name || t.id}`, t));
       // 试卷统一按 exam 类型处理，便于与模块映射匹配
-      (state.uploadedFiles || []).forEach(f => add('exam', f.id, `🧪 试卷｜${f.name || f.title || f.id}`, f));
+      (state.uploadedFiles || []).forEach(f => add('exam', f.id, `🧪 考试｜${f.name || f.title || f.id}`, f));
       (state.courseVideos || []).forEach(v => add('video', v.id, `🎥 视频｜${v.title || v.name || v.id}`, v));
       (state.links || []).forEach(l => add('link', l.id, `🔗 链接｜${l.title || l.name || l.url || l.id}`, l));
       // 课程不参与未分类来源关联
       // (state.selectedCourses || []).forEach(c => add('course', c.id, `📚 课程｜${c.title || c.courseTitle || c.name || c.id}`, c));
       (state.liveStreams || []).forEach(s => add('live', s.id, `📡 直播｜${s.title || s.id}`, s));
-      (state.examFiles || []).forEach(f => add('exam', f.id, `🧪 试卷｜${f.name || f.title || f.id}`, f));
+      (state.examFiles || []).forEach(f => add('exam', f.id, `🧪 考试｜${f.name || f.title || f.id}`, f));
       (state.trainingProjects || []).forEach(p => add('project', p.id, `📁 项目｜${p.title || p.name || p.id}`, p));
     } catch (e) {
       // no-op
@@ -198,7 +198,7 @@ const AchievementDetailPanel = ({ state }) => {
   const getAttachmentMeta = (type) => {
     switch(type) {
       case 'text': return { label: '文本', icon: '📝', color: 'gold' };
-      case 'exam': return { label: '试卷', icon: '🧪', color: 'green' };
+      case 'exam': return { label: '考试', icon: '🧪', color: 'green' };
       case 'link': return { label: '链接', icon: '🔗', color: 'geekblue' };
       case 'live': return { label: '直播', icon: '📡', color: 'volcano' };
       default: return { label: '附件', icon: '📄', color: 'blue' };

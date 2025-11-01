@@ -105,7 +105,8 @@ export const VIEW_MODES = {
 
 // 新增：考试评阅占位页（全屏，占据 NoteEditPage 左中右区域）
 export const EXAM_VIEW_MODES = {
-  EXAM_REVIEW_FULLSCREEN: 'exam_review_fullscreen'
+  EXAM_REVIEW_FULLSCREEN: 'exam_review_fullscreen',
+  EXAM_FORM_FULLSCREEN: 'exam_form_fullscreen'
 };
 
 // 右侧面板视图常量
@@ -122,6 +123,7 @@ export const RIGHT_PANEL_VIEWS = {
   TRAINING_SETTINGS_VIEWER: 'training_settings_viewer',
   CLASSROOM_BEHAVIOR_ANALYSIS_VIEWER: 'classroomBehaviorAnalysisViewer',
   VIDEO_PLAYER: 'video_player',
+  EXAM_FORM_VIEWER: 'exam_form_viewer',
   // 新增：课程选择视图（占用中间 + 右侧）
   COURSE_SELECTION_VIEWER: 'course_selection_viewer'
 };

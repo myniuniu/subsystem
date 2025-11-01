@@ -29,3 +29,8 @@
 .mm-scroll::-webkit-scrollbar-track {
   background: transparent; /* keep track transparent */
 }
+
+/* Ensure clickable cards show hand cursor across entire area */
+.clickable-card, .clickable-card * {
+  cursor: pointer !important;
+}

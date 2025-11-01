@@ -227,7 +227,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
     const categories = [];
     if (videos.length > 0) categories.push({ key: 'videos', label: '课程视频', hours: 0, score: null });
     if (lives.length > 0) categories.push({ key: 'live', label: '直播课程', hours: liveHours, score: null });
-    if (exams.length > 0) categories.push({ key: 'exam', label: '考试/试卷', hours: 0, score: 0 });
+  if (exams.length > 0) categories.push({ key: 'exam', label: '考试', hours: 0, score: 0 });
 
     const totalHours = categories.reduce((sum, c) => sum + (Number(c.hours) || 0), 0);
     const totalScore = categories.reduce((sum, c) => {

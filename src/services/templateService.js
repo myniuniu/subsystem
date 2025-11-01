@@ -161,6 +161,109 @@ export const getTemplateById = async (templateId) => {
   }
 };
 
+// 文档/画板创建使用的模版数据（基于图示模拟）
+export const getAvailableNoteTemplates = async () => {
+  // 模拟 API 延迟
+  await new Promise(resolve => setTimeout(resolve, 200));
+  const templates = [
+    // 推荐（面向教师工作与教师培训）
+    { id: 'meeting-notes-teaching-simple', name: '会议纪要（教研/教务·简洁版）', description: '议题、要点、行动项与责任人', category: 'meeting_teaching', useCount: 915000, recommended: true },
+    { id: 'teacher-weekly', name: '教师工作周报', description: '本周进展、下周计划、问题与建议', category: 'general_docs', useCount: 1420000, recommended: true },
+    { id: 'todo-list-teacher', name: '教师待办清单', description: '时间、优先级、状态与负责人', category: 'general_docs', useCount: 3130000, recommended: true },
+    { id: 'training-plan-weekly', name: '培训进度周报', description: '进度、出勤、完成率与问题', category: 'training_plan', useCount: 420000, recommended: true },
+    { id: 'lesson-plan-basic', name: '教案模板（基础版）', description: '目标、重难点、过程与评价', category: 'teach_design', useCount: 980000, recommended: true },
+
+    // 最新（示例）
+    { id: 'teacher-year-summary', name: '教师年度总结', description: '教学成果、反思与改进计划', category: 'general_docs', useCount: 215000 },
+    { id: 'open-class-review', name: '公开课评课表', description: '教学目标、方法、效果与建议', category: 'teaching_research', useCount: 519500 },
+
+    // 教学设计
+    { id: 'teach-objectives-design', name: '教学目标设计', description: '知识/技能/过程方法/情感态度价值观', category: 'teach_design', useCount: 520000 },
+    { id: 'lesson-flow', name: '教学流程设计', description: '导入、讲授、练习、巩固与作业', category: 'teach_design', useCount: 340000 },
+    { id: 'evaluation-rubric', name: '课堂评价量表', description: '维度、权重、标准与记录表', category: 'teach_design', useCount: 260000 },
+
+    // 课堂管理
+    { id: 'classroom-observation', name: '课堂观察记录', description: '关注点、现象、改进建议', category: 'classroom_management', useCount: 410000 },
+    { id: 'classroom-rules', name: '课堂纪律约定', description: '规则、奖惩、执行与反馈', category: 'classroom_management', useCount: 330000 },
+
+    // 作业与评阅
+    { id: 'homework-mark', name: '作业批改记录', description: '评分、评语、错题与二次讲评', category: 'homework_review', useCount: 480000 },
+    { id: 'paper-review', name: '试卷评审模板', description: '题型、得分率、失分点与建议', category: 'homework_review', useCount: 350000 },
+
+    // 教研活动
+    { id: 'research-activity-plan', name: '教研活动方案', description: '主题、目标、流程与分工', category: 'teaching_research', useCount: 300000 },
+    { id: 'research-minutes', name: '教研纪要（标准版）', description: '背景、讨论要点、结论与行动', category: 'teaching_research', useCount: 270000 },
+
+    // 会议（教研/教务）
+    { id: 'prep-group-minutes', name: '备课组会议纪要', description: '议题、决议与行动项', category: 'meeting_teaching', useCount: 450000 },
+
+    // 教师发展 OKR
+    { id: 'teacher-okr-quarter', name: '教师季度 OKR 计划', description: '目标、关键结果与里程碑', category: 'teacher_development_okr', useCount: 370000 },
+    { id: 'teacher-okr-review', name: '教师 OKR 复盘', description: 'KR 完成度、经验总结与改进', category: 'teacher_development_okr', useCount: 260000 },
+
+    // 培训方案与管理
+    { id: 'training-plan', name: '培训方案模板', description: '目标、阶段模块、进度与考核', category: 'training_plan', useCount: 620000 },
+    { id: 'training-attendee-list', name: '参训人员清单', description: '人员、岗位、部门与联系方式', category: 'training_plan', useCount: 410000 },
+    { id: 'training-effect-eval', name: '培训效果评估表', description: '满意度、学习成效与改进建议', category: 'training_plan', useCount: 330000 },
+
+    // 培训需求管理
+    { id: 'training-needs-survey', name: '培训需求调研问卷', description: '对象、现状、痛点与诉求', category: 'training_needs', useCount: 510000 },
+    { id: 'training-needs-summary', name: '培训需求汇总表', description: '能力项、优先级与建议方案', category: 'training_needs', useCount: 430000 },
+
+    // 班级管理
+    { id: 'class-weekly', name: '班级工作周报', description: '事务进展、问题与改进', category: 'class_management', useCount: 480000 },
+    { id: 'class-duty', name: '班级值日安排', description: '值日表、职责与注意事项', category: 'class_management', useCount: 350000 },
+
+    // 家校沟通
+    { id: 'parent-communication', name: '家长沟通记录', description: '主题、沟通要点与跟进', category: 'home_school', useCount: 300000 },
+    { id: 'home-visit', name: '家访记录模板', description: '访谈、问题与支持计划', category: 'home_school', useCount: 270000 },
+
+    // 课程融合（E-PBL）
+    { id: 'e-pbl-project', name: '项目式学习方案', description: '项目目标、任务分解与评价', category: 'e_pbl', useCount: 520000 },
+
+    // 学情分析
+    { id: 'learning-analytics-report', name: '学情分析报告', description: '成绩分布、薄弱点与建议', category: 'learning_analytics', useCount: 470000 },
+    { id: 'error-analysis', name: '错题分析报告', description: '错因分类、改进策略与训练', category: 'learning_analytics', useCount: 360000 },
+
+    // 研究课题
+    { id: 'research-proposal', name: '课题申报书', description: '背景、目标、方法与计划', category: 'research_topic', useCount: 510000 },
+    { id: 'research-plan', name: '研究计划书', description: '阶段安排、任务与预算', category: 'research_topic', useCount: 430000 },
+
+    // 通用模板
+    { id: 'meeting-notes-simple', name: '会议纪要（简洁版）', description: '议题、要点、行动项与责任人', category: 'general_docs', useCount: 980000 },
+    { id: 'todo-list', name: '待办清单', description: '时间、优先级、状态与负责人', category: 'general_docs', useCount: 3130000 }
+  ];
+
+  return { success: true, data: templates, message: '获取文档/画板模版成功' };
+};
+
+// 面向教师与培训业务的模板分类
+export const getNoteTemplateCategories = async () => {
+  await new Promise(resolve => setTimeout(resolve, 50));
+  return {
+    success: true,
+    data: [
+      { key: 'recommend', label: '推荐' },
+      { key: 'latest', label: '最新' },
+      { key: 'teach_design', label: '教学设计' },
+      { key: 'classroom_management', label: '课堂管理' },
+      { key: 'homework_review', label: '作业与评阅' },
+      { key: 'teaching_research', label: '教研活动' },
+      { key: 'meeting_teaching', label: '会议纪要' },
+      { key: 'teacher_development_okr', label: '教师发展 OKR' },
+      { key: 'training_plan', label: '培训方案与管理' },
+      { key: 'training_needs', label: '培训需求管理' },
+      { key: 'class_management', label: '班级管理' },
+      { key: 'home_school', label: '家校沟通' },
+      { key: 'e_pbl', label: '课程融合（E-PBL）' },
+      { key: 'learning_analytics', label: '学情分析' },
+      { key: 'research_topic', label: '研究课题' },
+      { key: 'general_docs', label: '通用模板' }
+    ],
+    message: '获取模版分类成功'
+  };
+};
+
 // 创建新模版
 export const createTemplate = async (templateData) => {
   try {

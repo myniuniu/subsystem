@@ -50,7 +50,7 @@ import KnowledgeGraphMindMap from './KnowledgeGraphMindMap.jsx';
     CloseCircleOutlined
   } from '@ant-design/icons';
 import { Grid, Map as MapIcon } from 'lucide-react';
-import { VIEW_MODES } from '../constants/noteEditConstants';
+import { VIEW_MODES, RIGHT_PANEL_VIEWS, EXAM_VIEW_MODES } from '../constants/noteEditConstants';
 import { getMockCourseContentHierarchy, flattenCourseContentToVideos } from '../utils/mockCourseData';
 import { 
   generateSmartNote, 
@@ -1227,7 +1227,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     if (videos.length > 0) categories.push({ key: 'videos', label: '课程视频', hours: videoSummary.totalHours || 0, score: (videoScoreSum > 0 ? videoScoreSum : (videoSummary.avgScore ?? null)) });
     if (lives.length > 0) categories.push({ key: 'live', label: '直播课程', hours: liveHours || 0, score: null });
     if (achievementsArr.length > 0) categories.push({ key: 'achievements', label: '研修成果', hours: 0, score: achievementsScoreSum || null });
-    if (exams.length > 0) categories.push({ key: 'exam', label: '考试/试卷', hours: 0, score: examScoreSum });
+  if (exams.length > 0) categories.push({ key: 'exam', label: '考试', hours: 0, score: examScoreSum });
     if (linksArr.length > 0) categories.push({ key: 'links', label: '阅读材料', hours: 0, score: null });
     if (textsArr.length > 0) categories.push({ key: 'texts', label: '反思文本', hours: 0, score: null });
     if (projectsArr.length > 0) categories.push({ key: 'projects', label: '培训项目资料', hours: 0, score: null });
@@ -1980,7 +1980,10 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
               {/* 培训项目（置顶） */}
               {trainingProjects.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <div 
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, cursor: 'pointer' }}
+                    onClick={() => toggleSection('videos')}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       {collapsedSections.trainingProjects ? (
                         <RightOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('trainingProjects')} />
@@ -1993,11 +1996,11 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                     </div>
                   </div>
                   {!collapsedSections.trainingProjects && trainingProjects.map(p => (
-                    <Card
+                    <Card className="clickable-card"
                       key={`project-${p.id}`}
                       size="small"
-                      style={{ marginBottom: 8, border: '1px solid #e8e8e8', position: 'relative' }}
-                      bodyStyle={{ padding: '8px 12px' }}
+                      style={{ marginBottom: 8, border: '1px solid #e8e8e8', position: 'relative', cursor: 'pointer' }}
+                      bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}
                       onClick={() => handlers?.onViewTrainingProject && handlers.onViewTrainingProject(p)}
                       onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`project-${p.id}`]: true }))}
                       onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`project-${p.id}`]: false }))}
@@ -2076,7 +2079,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                     const tagSpecs = [
                       { key: 'live', present: modLive.length > 0, label: '直播课程', color: 'cyan' },
                       { key: 'videos', present: modVideos.length > 0, label: '课程视频', color: 'geekblue' },
-                      { key: 'exam', present: modExams.length > 0, label: '考试/试卷', color: 'purple' },
+  { key: 'exam', present: modExams.length > 0, label: '考试', color: 'purple' },
                       { key: 'links', present: modLinks.length > 0, label: '阅读材料', color: 'blue' },
                       // 在"我的评阅"分类下，分别显示两种评阅类型
                       ...(isMyEvaluation ? [
@@ -2108,7 +2111,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                 {modLive.map(stream => {
                                   const status = getLiveStreamStatus(stream);
                                   return (
-                                    <Card key={`mod-${mod.id}-live-${stream.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px' }}>
+                    <Card className="clickable-card" key={`mod-${mod.id}-live-${stream.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}>
                                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
                                           <PlayCircleOutlined style={{ color: '#1890ff' }} />
@@ -2132,14 +2135,23 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                           {/* 模块内 - 考试/试卷 */}
                           {modExams.length > 0 && (
                             <div style={{ marginBottom: 10 }}>
-                              <Text strong style={{ fontSize: 12, color: '#666' }}>🎓 考试/试卷 ({modExams.length})</Text>
+  <Text strong style={{ fontSize: 12, color: '#666' }}>🎓 考试 ({modExams.length})</Text>
                               <div style={{ marginTop: 6 }}>
                                 {modExams.map(file => (
-                                  <Card key={`mod-${mod.id}-file-${file.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8', position: 'relative' }} bodyStyle={{ padding: '8px 12px' }}>
+                                  <Card className="clickable-card"
+                                    key={`mod-${mod.id}-file-${file.id}`} 
+                                    size="small" 
+                                    style={{ marginBottom: 8, border: '1px solid #e8e8e8', position: 'relative' }} 
+                                    bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}
+                                    onClick={() => {
+                                      try { localStorage.setItem('current_exam_file', JSON.stringify(file)); } catch {}
+                                      state.setCurrentView && state.setCurrentView(EXAM_VIEW_MODES.EXAM_FORM_FULLSCREEN);
+                                    }}
+                                  >
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                       <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
                                         <FileTextOutlined style={{ color: '#722ed1', marginRight: 8, fontSize: 16 }} />
-                                        <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{file.name} <Tag color="purple" style={{ marginLeft: 6 }}>试卷</Tag></Text>
+                          <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{file.name} <Tag color="purple" style={{ marginLeft: 6 }}>考试</Tag></Text>
                                         <Text type="secondary" style={{ fontSize: 10, marginLeft: 8 }}>{file.uploadTime}</Text>
                                       </div>
                                       <Checkbox
@@ -2161,11 +2173,11 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                               </Text>
                               <div style={{ marginTop: 6 }}>
                                 {trainingReviewTexts.map(text => (
-                                  <Card
+                                  <Card className="clickable-card"
                                     key={`mod-${mod.id}-training-review-${text.id}`}
                                     size="small"
                                     style={{ marginBottom: 8, border: '1px solid #e8e8e8', position: 'relative' }}
-                                    bodyStyle={{ padding: '8px 12px' }}
+                                    bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}
                 onClick={() => {
                   console.log('🟡 模块内-研修成果评阅卡片点击', { textId: text.id, title: text.title, category: note?.category });
                   if (handlers?.onViewMaterial) {
@@ -2216,11 +2228,11 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                               </Text>
                               <div style={{ marginTop: 6 }}>
                                 {examReviewTexts.map(text => (
-                                  <Card
+                                  <Card className="clickable-card"
                                     key={`mod-${mod.id}-exam-review-${text.id}`}
                                     size="small"
                                     style={{ marginBottom: 8, border: '1px solid #e8e8e8', position: 'relative' }}
-                                    bodyStyle={{ padding: '8px 12px' }}
+                                    bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}
                 onClick={() => { if (handlers?.onViewMaterial) handlers.onViewMaterial(text, 'exam_review'); }}
                                   >
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -2433,7 +2445,10 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                     <div key={`phase-${phase.id}`} style={{ marginBottom: 14, border: '1px solid #e8e8e8', borderLeft: '2px solid #91d5ff', borderRadius: 8, background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 8px 6px 8px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4, flex: 1 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <div 
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
+                            onClick={() => togglePhase(phase.id)}
+                          >
                             {(phaseViewCompactMode || collapsedPhases.has(phase.id)) ? (
                               <RightOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => togglePhase(phase.id)} />
                             ) : (
@@ -2456,7 +2471,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                 { key: 'live', present: Array.isArray(m.live) && m.live.length > 0, label: '直播课程', color: 'cyan' },
                                 { key: 'videos', present: Array.isArray(m.videos) && m.videos.length > 0, label: '课程视频', color: 'geekblue' },
                                 { key: 'achievements', present: Array.isArray(m.achievements) && m.achievements.length > 0, label: '研修成果', color: 'magenta' },
-                                { key: 'exam', present: Array.isArray(m.exam) && m.exam.length > 0, label: '考试/试卷', color: 'purple' },
+  { key: 'exam', present: Array.isArray(m.exam) && m.exam.length > 0, label: '考试', color: 'purple' },
                                 { key: 'links', present: Array.isArray(m.links) && m.links.length > 0, label: '阅读材料', color: 'blue' },
                                 // 在"我的评阅"分类下，分别显示两种评阅类型
                                 ...(isMyEvaluation ? [
@@ -2610,7 +2625,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                     return (
                                       <div style={{ margin: '4px 0' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }} onClick={() => toggleGroup(group.courseId)}>
                                             {collapsed ? (
                                               <RightOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleGroup(group.courseId)} />
                                             ) : (
@@ -3117,7 +3132,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                   key={`phase-${phase.id}-achievement-${item.id}`}
                                   size="small"
                                   style={{ marginTop: 6, border: '1px solid #e8e8e8', position: 'relative' }}
-                                  bodyStyle={{ padding: '8px 12px' }}
+                                  bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}
                                   onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`achievement-${item.id}`]: true }))}
                                   onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`achievement-${item.id}`]: false }))}
                                   onClick={() => {
@@ -3298,15 +3313,19 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                           {/* 阶段内 - 考试/试卷 */}
                           {Array.isArray(phase.materials?.exam) && phase.materials.exam.length > 0 && (
                             <div style={{ marginTop: 12, background: '#ffffff', border: '1px solid #f0f0f0', borderLeft: '2px solid #d3adf7', borderRadius: 6, padding: 8 }}>
-                              <Text strong style={{ fontSize: 12, color: '#666' }}>🎓 考试/试卷 ({phase.materials.exam.length})</Text>
+  <Text strong style={{ fontSize: 12, color: '#666' }}>🎓 考试 ({phase.materials.exam.length})</Text>
                               {phase.materials.exam.map(file => (
-                                <Card
+                                <Card className="clickable-card"
                                   key={`phase-${phase.id}-exam-${file.id}`}
                                   size="small"
                                   style={{ marginTop: 6, border: '1px solid #e8e8e8', position: 'relative' }}
-                                  bodyStyle={{ padding: '8px 12px' }}
+                                  bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}
                                   onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`file-${file.id}`]: true }))}
                                   onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`file-${file.id}`]: false }))}
+                                  onClick={() => {
+                                    try { localStorage.setItem('current_exam_file', JSON.stringify(file)); } catch {}
+                                    state.setRightPanelView && state.setRightPanelView(RIGHT_PANEL_VIEWS.EXAM_FORM_VIEWER);
+                                  }}
                                 >
                                   <div style={{ position: 'absolute', top: 6, right: 8, display: 'flex', gap: 8, background: 'rgba(255,255,255,0.85)', borderRadius: 4, padding: '2px 6px', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', opacity: hoveredItems?.[`file-${file.id}`] ? 1 : 0, transition: 'opacity 0.2s' }}>
                                   </div>
@@ -3375,7 +3394,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                       )}
                                       <div style={{ flex: 1, minWidth: 0 }}>
                                         <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
-                                          {getFileDisplayName(file.name)} <Tag color="purple" style={{ marginLeft: 6 }}>试卷</Tag>
+                        {getFileDisplayName(file.name)} <Tag color="purple" style={{ marginLeft: 6 }}>考试</Tag>
                                         </Text>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                           {file.examType && (
@@ -3471,7 +3490,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                             {uncLive.map(stream => {
                               const status = getLiveStreamStatus(stream);
                               return (
-                                <Card key={`unc-live-${stream.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px' }}>
+                    <Card className="clickable-card" key={`unc-live-${stream.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
                                       {status === 'live' ? (
@@ -3539,16 +3558,25 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                             onClick={() => setUncategorizedExpanded(prev => ({ ...prev, exam: !prev.exam }))}
                           >
                             {uncategorizedExpanded.exam ? <DownOutlined style={{ fontSize: 10 }} /> : <RightOutlined style={{ fontSize: 10 }} />}
-                            <Text strong style={{ fontSize: 12, color: '#666' }}>🎓 考试/试卷 ({uncExams.length})</Text>
+  <Text strong style={{ fontSize: 12, color: '#666' }}>🎓 考试 ({uncExams.length})</Text>
                           </div>
                           {uncategorizedExpanded.exam && (
                             <div style={{ marginTop: 6 }}>
                             {uncExams.map(file => (
-                              <Card key={`unc-exam-${file.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px' }}>
+                              <Card 
+                                key={`unc-exam-${file.id}`} 
+                                size="small" 
+                                style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} 
+                                bodyStyle={{ padding: '8px 12px' }}
+                                onClick={() => {
+                                  try { localStorage.setItem('current_exam_file', JSON.stringify(file)); } catch {}
+                                  state.setRightPanelView && state.setRightPanelView(RIGHT_PANEL_VIEWS.EXAM_FORM_VIEWER);
+                                }}
+                              >
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
                                     <FileTextOutlined style={{ color: '#722ed1' }} />
-                                    <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{file.name} <Tag color="purple" style={{ marginLeft: 6 }}>试卷</Tag></Text>
+                        <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{file.name} <Tag color="purple" style={{ marginLeft: 6 }}>考试</Tag></Text>
                                     <Text type="secondary" style={{ fontSize: 10 }}>{file.uploadTime}</Text>
                                   </div>
                                   <Checkbox
@@ -3576,7 +3604,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                           {uncategorizedExpanded.links && (
                             <div style={{ marginTop: 6 }}>
                             {uncLinks.map(link => (
-                              <Card key={`unc-link-${link.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px' }}>
+                    <Card className="clickable-card" key={`unc-link-${link.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
                                     <LinkOutlined style={{ color: '#1890ff' }} />
@@ -3610,7 +3638,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                           {uncategorizedExpanded.texts && (
                             <div style={{ marginTop: 6 }}>
                             {uncTexts.map(text => (
-                              <Card key={`unc-text-${text.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px' }}>
+                    <Card className="clickable-card" key={`unc-text-${text.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
                                     <FileTextOutlined style={{ color: '#faad14' }} />
@@ -3646,7 +3674,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                           {uncategorizedExpanded.projects && (
                             <div style={{ marginTop: 6 }}>
                             {uncProjects.map(p => (
-                              <Card key={`unc-project-${p.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px' }}>
+                    <Card className="clickable-card" key={`unc-project-${p.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => handlers?.onViewTrainingProject && handlers.onViewTrainingProject(p)}>
                                     <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{p.title}</Text>
@@ -3673,7 +3701,10 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
               {/* 课程视频列表（按课程分组，支持一课多视频） */}
               {!isOrgTrainingView && modules.length === 0 && displayCourseVideos.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <div 
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, cursor: 'pointer' }}
+                    onClick={() => toggleSection('live')}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       {collapsedSections.videos ? (
                         <RightOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('videos')} />
@@ -3684,6 +3715,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                         📹 课程视频 ({displayCourseVideos.length})
                       </Text>
                     </div>
+                    <div onClick={(e) => e.stopPropagation()}>
                     <Button.Group>
                       <Tooltip title="平铺视图">
                         <Button 
@@ -3702,6 +3734,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                         />
                       </Tooltip>
                     </Button.Group>
+                    </div>
                   </div>
                   {!collapsedSections.videos && Object.values(displayCourseVideos.reduce((groups, v) => {
                     const cid = v.courseId || v.id;
@@ -3723,7 +3756,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                         return (
                           <div style={{ margin: '4px 0' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }} onClick={() => toggleGroup(group.courseId)}>
                                 {collapsed ? (
                                   <RightOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleGroup(group.courseId)} />
                                 ) : (
@@ -3930,7 +3963,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                     })()}
                     {!collapsedGroups.has(group.courseId) && videoViewMode === 'flat' && group.videos.map(video => (
                         <Tooltip title={getVideoHierarchyPath(group.courseId, video)} placement="top" key={`video-${video.id}`}>
-                        <Card 
+                        <Card className="clickable-card"
                           key={`video-${video.id}`}
                           id={`video-card-${video.id}`}
                           size="small" 
@@ -4151,11 +4184,11 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                   {!collapsedSections.live && liveStreams.map(stream => {
                     const status = getLiveStreamStatus(stream);
                     return (
-                      <Card 
-                        key={`live-${stream.id}`}
-                        size="small" 
-                        style={{ marginBottom: 8, border: '1px solid #e8e8e8', position: 'relative' }}
-                        bodyStyle={{ padding: '8px 12px' }}
+                    <Card 
+                      key={`live-${stream.id}`}
+                      size="small" 
+                      style={{ marginBottom: 8, border: '1px solid #e8e8e8', position: 'relative' }}
+                      bodyStyle={{ padding: '8px 12px' }}
                         onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`live-${stream.id}`]: true }))}
                         onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`live-${stream.id}`]: false }))}
                       >
@@ -4263,23 +4296,28 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                         <DownOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('examFiles')} />
                       )}
                       <Text strong style={{ fontSize: '12px', color: '#666' }}>
-                        🎓 考试/试卷 ({examFiles.length})
+  🎓 考试 ({examFiles.length})
                       </Text>
                     </div>
                   </div>
                   {!collapsedSections.examFiles && examFiles.map(file => (
-                    <Card 
+                    <Card className="clickable-card"
                       key={`file-${file.id}`}
                       size="small" 
                       style={{ 
                         marginBottom: 8,
+                        cursor: 'pointer',
                         border: '1px solid #e8e8e8',
                         position: 'relative'
                       }}
-                      bodyStyle={{ padding: '8px 12px' }}
-                      onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`file-${file.id}`]: true }))}
-                      onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`file-${file.id}`]: false }))}
-                    >
+                                  bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}
+                                  onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`file-${file.id}`]: true }))}
+                                  onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`file-${file.id}`]: false }))}
+                                  onClick={() => {
+                                    try { localStorage.setItem('current_exam_file', JSON.stringify(file)); } catch {}
+                                    state.setCurrentView && state.setCurrentView(EXAM_VIEW_MODES.EXAM_FORM_FULLSCREEN);
+                                  }}
+                                >
                       {/* 悬停操作图标 - More 菜单（试卷文件） */}
                       <div style={{ position: 'absolute', top: 6, right: 8, display: 'flex', gap: 8, background: 'rgba(255,255,255,0.85)', borderRadius: 4, padding: '2px 6px', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', opacity: hoveredItems?.[`file-${file.id}`] ? 1 : 0, transition: 'opacity 0.2s' }}>
 
@@ -4349,7 +4387,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                           )}
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
-                              {getFileDisplayName(file.name)} <Tag color="purple" style={{ marginLeft: 6 }}>试卷</Tag>
+                        {getFileDisplayName(file.name)} <Tag color="purple" style={{ marginLeft: 6 }}>考试</Tag>
                             </Text>
                             <Text type="secondary" style={{ fontSize: 10 }}>
                               {file.uploadTime}

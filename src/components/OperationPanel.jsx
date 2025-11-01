@@ -32,6 +32,7 @@ import {
   MORE_MENU_ACTIONS,
   OPERATION_CARDS
 } from '../constants/noteEditConstants';
+import { getCategoryKey, getAiIconForCategory } from '../constants/categoryMeta';
 import { getOperationIcon } from '../utils/noteEditUtils';
 import QuestionConfigModal from './QuestionConfigModal';
 import ThemeSelectModal from './ThemeSelectModal';
@@ -55,6 +56,7 @@ import ToolGrid from './OperationPanel/ToolGrid';
 import { createGetAvailableAITools } from './OperationPanel/getAvailableAITools.jsx';
 import TrainingTypeSettingsViewer from './OperationPanel/TrainingTypeSettingsViewer';
 import { initialResources } from '../data/resourceLibraryData.js';
+import { getAvailableNoteTemplates } from '../services/templateService.js';
 
 // 导入自定义Hooks
 import { 
@@ -121,7 +123,7 @@ if (typeof document !== 'undefined') {
   }
 }
 
-const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCategory = null }) => {
+  const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCategory = null }) => {
   // 先解构state中的变量
   const {
     operationRecords,
@@ -176,6 +178,9 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
   // 获取当前笔记的分类信息（优先使用选中的分类）
   const noteCategory = selectedCategory || note?.category || note?.courseType || null;
   console.log('=== OperationPanel noteCategory ===');
+  // 与中区问答区域保持一致：根据分类选择图标
+  const categoryKey = getCategoryKey(note?.category, selectedCategory);
+  const categoryIcon = getAiIconForCategory(categoryKey);
   console.log('传入的 state:', state);
   console.log('传入的 note:', note);
   console.log('noteCategory:', noteCategory);
@@ -296,31 +301,46 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
 
   // 新建笔记类型选择下拉菜单状态（靠近按钮显示）
   const [noteTypeDropdownVisible, setNoteTypeDropdownVisible] = useState(false);
+  // 模板库弹窗与数据
+  const [showNoteTemplateModal, setShowNoteTemplateModal] = useState(false);
+  const [noteTemplateLoading, setNoteTemplateLoading] = useState(false);
+  const [noteTemplates, setNoteTemplates] = useState([]);
+  const [noteCreationTargetSubType, setNoteCreationTargetSubType] = useState(null);
+  const [templateCategory, setTemplateCategory] = useState('recommend');
 
   // 根据选择的类型创建笔记并进入编辑器
-  const createNoteByType = (noteSubType) => {
-    const isWhiteboard = noteSubType === 'whiteboard';
-    const title = isWhiteboard ? '新建白板' : '新建文档';
+  const openNoteTemplateModal = async (noteSubType) => {
+    setNoteCreationTargetSubType(noteSubType);
+    setTemplateCategory('recommend');
+    setNoteTypeDropdownVisible(false);
+    setShowNoteTemplateModal(true);
+    setNoteTemplateLoading(true);
+    try {
+      const res = await getAvailableNoteTemplates();
+      setNoteTemplates(res?.data || []);
+    } finally {
+      setNoteTemplateLoading(false);
+    }
+  };
 
+  const createNoteFromTemplate = (template) => {
+    const isWhiteboard = noteCreationTargetSubType === 'whiteboard';
+    const title = template?.name ? template.name : (isWhiteboard ? '新建白板' : '新建文档');
     const newNote = {
       id: Date.now(),
       title,
-      source: '手动创建',
+      source: template?.name ? `模板：${template.name}` : '手动创建',
       time: new Date().toLocaleString('zh-CN'),
       type: 'note',
-      subType: noteSubType, // 记录笔记子类型：document 或 whiteboard
-      content: isWhiteboard ? '' : ''
+      subType: noteCreationTargetSubType || 'document',
+      content: isWhiteboard ? '' : (template?.description ? `<p>使用模板：${template.description}</p>` : '')
     };
-
     const newRecords = { ...operationRecords };
-    if (!newRecords.note) {
-      newRecords.note = [];
-    }
+    if (!newRecords.note) newRecords.note = [];
     newRecords.note.unshift(newNote);
     setOperationRecords(newRecords);
-
-    // 不打开右侧编辑器，仅生成记录
-    setNoteTypeDropdownVisible(false);
+    setShowNoteTemplateModal(false);
+    setNoteCreationTargetSubType(null);
     message.success(`${title}已创建`);
   };
   
@@ -682,28 +702,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
 
     // 培训方案类型添加提交按钮
     if (record.type === 'training-plan') {
-      const commonWithSettings = (() => {
-        const idx = commonItems.findIndex(i => i.key === 'markAgentCorpus');
-        const settingsItem = {
-          key: MORE_MENU_ACTIONS.OPEN_TRAINING_SETTINGS,
-          label: (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '16px' }}>⚙️</span>
-              <span>方案配置</span>
-            </div>
-          ),
-          onClick: (e) => {
-            e?.stopPropagation?.();
-            onMoreAction && onMoreAction(MORE_MENU_ACTIONS.OPEN_TRAINING_SETTINGS, record);
-          }
-        };
-        if (idx !== -1) {
-          const arr = [...commonItems];
-          arr.splice(idx + 1, 0, settingsItem);
-          return arr;
-        }
-        return [settingsItem, ...commonItems];
-      })();
+      const commonWithSettings = commonItems; // 移除“方案配置”选项
 
       return [
         {
@@ -1253,9 +1252,14 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
             marginBottom: '16px'
           }}>
             {!isCollapsed && (
-              <Title level={4} style={{ margin: 0, color: '#1890ff' }}>
-                🔧 智能工具
-              </Title>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {categoryIcon ? (
+                  <img src={categoryIcon} alt="AI助手" style={{ width: 22, height: 22, borderRadius: '50%' }} />
+                ) : (
+                  <span style={{ fontSize: '16px' }}>💬</span>
+                )}
+                <Title level={4} style={{ margin: 0, color: '#1890ff' }}>智能工具</Title>
+              </div>
             )}
             <Space size={8}>
               {!isCollapsed && (
@@ -1336,7 +1340,11 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
                   marginBottom: '3px',
                   border: '1.5px solid #7986cb'
                 }}>
-                  🔧
+                  {categoryIcon ? (
+                    <img src={categoryIcon} alt="AI助手" style={{ width: 18, height: 18, borderRadius: '50%' }} />
+                  ) : (
+                    <span>💬</span>
+                  )}
                 </div>
               </Tooltip>
               
@@ -1502,6 +1510,84 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
           )}
         </div>
       </DndProvider>
+
+      {/* 新建笔记 · 模板库弹窗 */}
+      <Modal
+        open={showNoteTemplateModal}
+        title={noteCreationTargetSubType === 'whiteboard' ? '选择画板模板' : '选择文档模板'}
+        onCancel={() => setShowNoteTemplateModal(false)}
+        footer={null}
+        width={960}
+        bodyStyle={{ padding: 0 }}
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', minHeight: 520 }}>
+          {/* 左侧分类菜单（静态） */}
+          <div style={{ borderRight: '1px solid #f0f0f0', padding: 16 }}>
+            {[
+              { key: 'recommend', label: '推荐' },
+              { key: 'latest', label: '最新' },
+              { key: 'teach_design', label: '教学设计' },
+              { key: 'classroom_management', label: '课堂管理' },
+              { key: 'homework_review', label: '作业与评阅' },
+              { key: 'teaching_research', label: '教研活动' },
+              { key: 'meeting_teaching', label: '会议纪要' },
+              { key: 'teacher_development_okr', label: '教师发展 OKR' },
+              { key: 'training_plan', label: '培训方案与管理' },
+              { key: 'training_needs', label: '培训需求管理' },
+              { key: 'class_management', label: '班级管理' },
+              { key: 'home_school', label: '家校沟通' },
+              { key: 'e_pbl', label: '课程融合（E-PBL）' },
+              { key: 'learning_analytics', label: '学情分析' },
+              { key: 'research_topic', label: '研究课题' },
+              { key: 'general_docs', label: '通用模板' }
+            ].map(item => (
+              <div
+                key={item.key}
+                onClick={() => setTemplateCategory(item.key)}
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  background: templateCategory === item.key ? '#f5f7ff' : 'transparent',
+                  marginBottom: 6
+                }}
+              >{item.label}</div>
+            ))}
+          </div>
+          {/* 右侧内容区 */}
+          <div style={{ padding: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
+              {/* 新建空白 */}
+              <Card
+                hoverable
+                style={{ height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                onClick={() => createNoteFromTemplate(null)}
+              >
+                <div style={{ textAlign: 'center', color: '#8c8c8c' }}>
+                  <div style={{ fontSize: 28, marginBottom: 8 }}>+</div>
+                  <div>新建空白{noteCreationTargetSubType === 'whiteboard' ? '画板' : '文档'}</div>
+                </div>
+              </Card>
+              {/* 模板列表 */}
+              {noteTemplateLoading ? (
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: 40 }}>
+                  <Text type="secondary">正在加载模板...</Text>
+                </div>
+              ) : (
+                (noteTemplates || []).filter(tpl => !templateCategory || templateCategory === 'recommend' ? true : tpl.category === templateCategory).map(tpl => (
+                  <Card key={tpl.id} hoverable onClick={() => createNoteFromTemplate(tpl)}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                      <span style={{ fontSize: 14 }}>📄</span>
+                      <span style={{ fontWeight: 500 }}>{tpl.name}</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: '#666' }}>{tpl.description}</div>
+                  </Card>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </Modal>
       
       {/* 操作记录区域 */}
       {!isCollapsed && (
@@ -1529,7 +1615,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
                       <span>文档</span>
                     </div>
                   ),
-                  onClick: () => createNoteByType('document')
+                  onClick: () => openNoteTemplateModal('document')
                 },
                 {
                   key: 'whiteboard',
@@ -1539,7 +1625,7 @@ const OperationPanel = ({ state, handlers, hideEmptySlots = false, selectedCateg
                       <span>白板</span>
                     </div>
                   ),
-                  onClick: () => createNoteByType('whiteboard')
+                  onClick: () => openNoteTemplateModal('whiteboard')
                 }
               ]
             }}

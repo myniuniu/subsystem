@@ -76,7 +76,7 @@ const AchievementDetailThreeColumn = ({ state }) => {
   const getAttachmentMeta = (type) => {
     switch(type) {
       case 'text': return { label: '文本', icon: '📝', color: 'gold' };
-      case 'exam': return { label: '试卷', icon: '🧪', color: 'green' };
+    case 'exam': return { label: '考试', icon: '🧪', color: 'green' };
       case 'link': return { label: '链接', icon: '🔗', color: 'geekblue' };
       case 'live': return { label: '直播', icon: '📡', color: 'volcano' };
       default: return { label: '附件', icon: '📄', color: 'blue' };

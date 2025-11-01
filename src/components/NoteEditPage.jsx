@@ -50,6 +50,7 @@ import TrainingPlanViewer from './OperationPanel/TrainingPlanViewer';
 import OnDemandResourceLibrary from './OperationPanel/OnDemandResourceLibrary';
 import SimpleTrainingPlanDetailView from './SimpleTrainingPlanDetailView';
 import notesService from '../services/notesService';
+import ExamForm from './ExamForm.jsx';
 
 // 导入hooks和工具
 import { useNoteEditState } from '../hooks/useNoteEditState';
@@ -214,6 +215,13 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
   const [recordToLinkSource, setRecordToLinkSource] = useState(null);
   // 选课视图页签（候选 / 自选）
   const [courseTabKey, setCourseTabKey] = useState('candidate');
+
+  // 若右侧视图进入考试表单，则自动切换为全屏试卷视图（覆盖左中右区域）
+  useEffect(() => {
+    if (state?.rightPanelView === RIGHT_PANEL_VIEWS.EXAM_FORM_VIEWER) {
+      setCurrentView(EXAM_VIEW_MODES.EXAM_FORM_FULLSCREEN);
+    }
+  }, [state?.rightPanelView]);
 
   // 课程选择事件监听：打开中+右联动视图
   useEffect(() => {
@@ -1644,6 +1652,23 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
             setCurrentView={setCurrentView}
             VIEW_MODES={VIEW_MODES}
           />
+        ) : currentView === EXAM_VIEW_MODES.EXAM_FORM_FULLSCREEN ? (
+          /* 考试试卷填写全屏模式：占据全部三栏区域 */
+          <div style={{ 
+            flex: 1, 
+            background: '#f0f2f5', 
+            margin: '8px', 
+            borderRadius: '12px', 
+            overflow: 'hidden', 
+            display: 'flex', 
+            flexDirection: 'column',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            position: 'relative'
+          }}>
+            <div style={{ flex: 1, background: '#fff' }}>
+              <ExamForm state={state} />
+            </div>
+          </div>
         ) : currentView === VIEW_MODES.TRAINING_PLAN_FULLSCREEN ? (
           /* 培训方案全屏模式：占据全部三栏区域 */
           <div style={{ 
@@ -1701,7 +1726,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               <div style={{ 
                 flex: 4, 
                 background: '#fff', 
-                margin: '16px 0 0 16px', 
+                margin: '4px 0 0 4px', 
                 borderRadius: '8px', 
                 overflow: 'hidden', 
                 display: 'flex', 
@@ -1721,7 +1746,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               <div style={{ 
                 flex: 4.6, 
                 background: '#fff', 
-                margin: '16px 0 0 16px', 
+                margin: '4px 0 0 4px', 
                 borderRadius: '8px', 
                 overflow: 'hidden', 
                 display: 'flex', 
@@ -1752,7 +1777,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               <div style={{ 
                 flex: 4, 
                 background: '#fff', 
-                margin: '16px 0 0 16px', 
+                margin: '8px 0 0 8px', 
                 borderRadius: '8px', 
                 overflow: 'hidden', 
                 display: 'flex', 
@@ -1777,7 +1802,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                     ? 3.5
                     : 5)),
               transition: 'flex 0.3s ease',
-              margin: '16px 16px 0 16px'
+              margin: '4px 4px 0 4px'
             }}>
               {state.rightPanelView === RIGHT_PANEL_VIEWS.COURSE_SELECTION_VIEWER ? (
                 <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -1836,6 +1861,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                     )}
                   </div>
                 </div>
+              ) : state.rightPanelView === RIGHT_PANEL_VIEWS.EXAM_FORM_VIEWER ? (
+                <ExamForm state={state} />
               ) : (
                 <AIChat 
                   state={state}
@@ -1871,7 +1898,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 return baseRatio;
               })(), 
               background: '#fff', 
-              margin: '16px 16px 0 0', 
+              margin: '4px 4px 0 0', 
               borderRadius: '8px', 
               overflow: 'hidden', 
               display: 'flex', 
@@ -2144,7 +2171,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         />
       </Modal>
       
-      {/* 悬浮消息图标（右下角整体，可拖动；最小化时下沉到右下角） */}
+      {/* 悬浮消息图标（考试期间隐藏；退出或完成考试再显示） */}
+      {!(currentView === EXAM_VIEW_MODES.EXAM_FORM_FULLSCREEN || state.rightPanelView === RIGHT_PANEL_VIEWS.EXAM_FORM_VIEWER) && (
       <div
         style={{
           position: 'fixed',
@@ -2297,7 +2325,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
           </div>
         </div>
        </div>
-       
+      )}
+      
        {/* 关联来源弹窗 */}
        <Modal
          open={linkSourceModalVisible}
