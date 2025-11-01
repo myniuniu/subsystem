@@ -125,7 +125,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
       const s = String(text || '').toLowerCase();
       // 线上研讨会优先识别（线上研讨会/线上会议/视频会议/网络研讨会）
       if (/线上研讨会|线上会议|视频会议|网络研讨会|webinar/i.test(text || '')) return 'webinar';
-      if (/考试|测评|测试/.test(text || '')) return 'exam';
+      if (/考试|测评|测试|测验|在线测试|线上测试/.test(text || '')) return 'exam';
       if (/录播|视频/.test(text || '')) return 'videos';
       // 将“经验交流/经验分享/交流会”等默认绑定为线上交流研讨
       if (/(经验交流|经验分享|交流会)/.test(text || '')) return 'seminar';
@@ -165,7 +165,9 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
       });
       // 根据考核文本补齐 exam/document 类型（优先作为显示名称）
       if (asmtStr) {
-        const aKey = boundAssessType || inferTypeKeyFromText(asmtStr);
+        // 优先使用文本推断的类型，避免旧绑定类型（如误设为document）覆盖
+        const inferredKey = inferTypeKeyFromText(asmtStr);
+        const aKey = inferredKey || boundAssessType;
         if (aKey === 'exam') {
           // 使用完整考核文案作为名称（如“在线测试/试卷”），放到前面以优先展示
           byType.exam.unshift(asmtStr);
@@ -479,7 +481,7 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
   }[k] || '研修成果');
 
   // 左侧“考核方式”明确标注映射：仅当左侧 assessment 文案明确指出该形式是考核时，右侧才加标注
-  const ASSESS_EXAM_KEYWORDS = ['考试', '试卷', '测试'];
+  const ASSESS_EXAM_KEYWORDS = ['考试', '试卷', '测试', '测验', '在线测试', '线上测试'];
   const ASSESS_ASSIGNMENT_KEYWORDS = ['试卷作业', '作业', '论文', '报告', '方案', '反思', '模拟授课', '教学设计', '教案设计'];
   const ASSESS_DOC_KEYWORDS = ['文档', '资料'];
 

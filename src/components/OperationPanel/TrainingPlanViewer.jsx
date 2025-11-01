@@ -95,8 +95,8 @@ const inferTypeKeyFromText = (text) => {
   const s = String(text || '').toLowerCase();
   // 线上研讨会优先识别（线上研讨会/线上会议/视频会议/网络研讨会）
   if (/线上研讨会|线上会议|视频会议|网络研讨会|webinar/i.test(text || '')) return 'webinar';
-  // 优先识别考试相关（包含“测试/在线测试/线上测试/测评/考试”）
-  if (/考试|测评|测试/.test(text || '')) return 'exam';
+  // 优先识别考试相关（包含“测试/在线测试/线上测试/测评/考试/测验”）
+  if (/考试|测评|测试|测验|在线测试|线上测试/.test(text || '')) return 'exam';
   if (/录播|视频/.test(text || '')) return 'videos';
   // 将“经验交流/经验分享/交流会”等默认绑定为线上交流研讨
   if (/(经验交流|经验分享|交流会)/.test(text || '')) return 'seminar';

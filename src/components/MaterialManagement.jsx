@@ -131,6 +131,81 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     setLocalTitle(note?.title || '');
   }, [note?.id, note?.title]);
 
+  // 统一计算附件挂载数量：兼容不同入口的ID前缀与标题匹配
+  const getAttachmentCountFor = (obj, displayTitle = null) => {
+    try {
+      const assocMap = state.achievementAssociations || {};
+      const keysToTry = [];
+      if (obj && obj.id) {
+        keysToTry.push(obj.id);
+        keysToTry.push(`file-${obj.id}`);
+        keysToTry.push(`project-${obj.id}`);
+        keysToTry.push(`video-${obj.id}`);
+        keysToTry.push(`live-${obj.id}`);
+      }
+      for (const k of keysToTry) {
+        const v = assocMap[k];
+        if (v) {
+          const ops = Array.isArray(v.linkedOperationIds) ? v.linkedOperationIds.length : 0;
+          const src = Array.isArray(v.linkedSourceIds) ? v.linkedSourceIds.length : 0;
+          return ops + src;
+        }
+      }
+      const titleToMatch = displayTitle ?? (obj && (obj.title || obj.name));
+      if (titleToMatch) {
+        const byTitle = Object.values(assocMap).find(x => String(x?.title || '') === String(titleToMatch));
+        if (byTitle) {
+          const ops = Array.isArray(byTitle.linkedOperationIds) ? byTitle.linkedOperationIds.length : 0;
+          const src = Array.isArray(byTitle.linkedSourceIds) ? byTitle.linkedSourceIds.length : 0;
+          return ops + src;
+        }
+      }
+      return 0;
+    } catch {
+      return 0;
+    }
+  };
+
+  // 计算试卷（考试文件）的评阅状态并返回标签
+  const getExamStatusForFile = (file) => {
+    try {
+      const map = state.evaluationSubmissions || {};
+      const keysToTry = [];
+      if (file && file.id) {
+        keysToTry.push(`file-${file.id}`);
+        keysToTry.push(file.id);
+      }
+      let submissions = null;
+      for (const k of keysToTry) {
+        if (Array.isArray(map[k])) { submissions = map[k]; break; }
+      }
+      // 缺省：未开始
+      let statusLabel = '未开始';
+      let color = 'default';
+      let tooltip = '未开始：尚无学员提交，等待开考或提交';
+      if (Array.isArray(submissions) && submissions.length > 0) {
+        const gradedCount = submissions.filter(s => typeof s.score === 'number').length;
+        const total = submissions.length;
+        if (gradedCount === 0) {
+          statusLabel = '已交卷';
+          color = 'geekblue';
+          tooltip = `已交卷：${total}人提交，尚未评分`;
+        } else if (gradedCount > 0 && gradedCount < total) {
+          statusLabel = '评阅中';
+          color = 'gold';
+          tooltip = `评阅中：已评分 ${gradedCount}/${total} 人`;
+        } else if (gradedCount === total) {
+          statusLabel = '评阅完成';
+          color = 'green';
+          tooltip = `评阅完成：全部 ${total} 人已评分`;
+        }
+      }
+      return { label: statusLabel, color, tooltip };
+    } catch {
+      return { label: '未开始', color: 'default', tooltip: '未开始：尚无学员提交，等待开考或提交' };
+    }
+  };
+
   // 重命名弹窗状态与处理
   const [renameModalVisible, setRenameModalVisible] = useState(false);
   const [renameTarget, setRenameTarget] = useState({ type: '', id: null });
@@ -2030,6 +2105,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                 onClick: () => setTrainingProjects(prev => prev.filter(x => x.id !== p.id))
                               }
                             ]
+                          , onClick: ({ domEvent }) => { if (domEvent && typeof domEvent.stopPropagation === 'function') domEvent.stopPropagation(); if (domEvent && typeof domEvent.preventDefault === 'function') domEvent.preventDefault(); }
                           }}
                           >
                             <Button type="link" size="small" icon={<MoreOutlined />} onClick={(e) => e.stopPropagation()} />
@@ -2115,17 +2191,26 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
                                           <PlayCircleOutlined style={{ color: '#1890ff' }} />
-                                          <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{stream.title}</Text>
-                                          <Tag color={status === 'live' ? 'red' : status === 'upcoming' ? 'gold' : 'green'} style={{ marginLeft: 6 }}>
-                                            {status === 'live' ? '直播中' : status === 'upcoming' ? '即将开始' : '已结束'}
-                                          </Tag>
-                                        </div>
-                                        <Checkbox
-                                          checked={selectedMaterials.includes(`live-${stream.id}`)}
-                                          onChange={(e) => handleSelectMaterial(`live-${stream.id}`, e.target.checked)}
-                                        />
+                                      <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{stream.title}</Text>
+                                      <Tag color={status === 'live' ? 'red' : status === 'upcoming' ? 'gold' : 'green'} style={{ marginLeft: 6 }}>
+                                        {status === 'live' ? '直播中' : status === 'upcoming' ? '即将开始' : '已结束'}
+                                      </Tag>
                                       </div>
-                                    </Card>
+                                      {(() => {
+                                        const count = getAttachmentCountFor(stream);
+                                        return (
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginRight: 8 }}>
+                                            <PaperClipOutlined style={{ color: count > 0 ? '#1890ff' : '#bfbfbf', fontSize: 14 }} />
+                                            <span style={{ fontSize: 12, color: count > 0 ? '#1890ff' : '#999' }}>{count}</span>
+                                          </div>
+                                        );
+                                      })()}
+                                      <Checkbox
+                                        checked={selectedMaterials.includes(`live-${stream.id}`)}
+                                        onChange={(e) => handleSelectMaterial(`live-${stream.id}`, e.target.checked)}
+                                      />
+                                    </div>
+                                  </Card>
                                   );
                                 })}
                               </div>
@@ -2148,10 +2233,12 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                       state.setCurrentView && state.setCurrentView(EXAM_VIEW_MODES.EXAM_FORM_FULLSCREEN);
                                     }}
                                   >
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                      <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
                                         <FileTextOutlined style={{ color: '#722ed1', marginRight: 8, fontSize: 16 }} />
-                          <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{file.name} <Tag color="purple" style={{ marginLeft: 6 }}>考试</Tag></Text>
+                          <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{file.name}
+                            {(() => { const st = getExamStatusForFile(file); return (<Tooltip title={st.tooltip}><Tag color={st.color} style={{ marginLeft: 6 }}>{st.label}</Tag></Tooltip>); })()}
+                          </Text>
                                         <Text type="secondary" style={{ fontSize: 10, marginLeft: 8 }}>{file.uploadTime}</Text>
                                       </div>
                                       <Checkbox
@@ -2196,7 +2283,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                         {text.updatedAt && (
                                           <Text type="secondary" style={{ fontSize: 10, marginLeft: 8 }}>{text.updatedAt}</Text>
                                         )}
-                                      </div>
+                                    </div>
                                       {(() => {
                                         const list = Array.isArray(state?.evaluationSubmissions?.[text.id]) ? state.evaluationSubmissions[text.id] : [];
                                         const total = list.length;
@@ -2205,6 +2292,15 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginRight: 8 }}>
                                             <Text type="secondary" style={{ fontSize: 10, marginRight: 8 }}>共{total}人</Text>
                                             <Text type="secondary" style={{ fontSize: 10 }}>{graded}/{total}</Text>
+                                            {(() => {
+                                              const count = getAttachmentCountFor(text);
+                                              return (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 8 }}>
+                                                  <PaperClipOutlined style={{ color: count > 0 ? '#1890ff' : '#bfbfbf', fontSize: 14 }} />
+                                                  <span style={{ fontSize: 12, color: count > 0 ? '#1890ff' : '#999' }}>{count}</span>
+                                                </div>
+                                              );
+                                            })()}
                                           </div>
                                         );
                                       })()}
@@ -2245,7 +2341,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                         {text.updatedAt && (
                                           <Text type="secondary" style={{ fontSize: 10, marginLeft: 8 }}>{text.updatedAt}</Text>
                                         )}
-                                      </div>
+                                    </div>
                                       {(() => {
                                         const list = Array.isArray(state?.evaluationSubmissions?.[text.id]) ? state.evaluationSubmissions[text.id] : [];
                                         const total = list.length;
@@ -2254,6 +2350,29 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginRight: 8 }}>
                                             <Text type="secondary" style={{ fontSize: 10, marginRight: 8 }}>共{total}人</Text>
                                             <Text type="secondary" style={{ fontSize: 10 }}>{graded}/{total}</Text>
+                                            {(() => {
+                                              const assocMap = state.achievementAssociations || {};
+                                              let count = 0;
+                                              const byId = assocMap[text.id];
+                                              if (byId) {
+                                                const ops = Array.isArray(byId.linkedOperationIds) ? byId.linkedOperationIds.length : 0;
+                                                const src = Array.isArray(byId.linkedSourceIds) ? byId.linkedSourceIds.length : 0;
+                                                count = ops + src;
+                                              } else {
+                                                const byTitle = Object.values(assocMap).find(x => String(x?.title || '') === String(text.title || ''));
+                                                if (byTitle) {
+                                                  const ops = Array.isArray(byTitle.linkedOperationIds) ? byTitle.linkedOperationIds.length : 0;
+                                                  const src = Array.isArray(byTitle.linkedSourceIds) ? byTitle.linkedSourceIds.length : 0;
+                                                  count = ops + src;
+                                                }
+                                              }
+                                              return (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 8 }}>
+                                                  <PaperClipOutlined style={{ color: count > 0 ? '#1890ff' : '#bfbfbf', fontSize: 14 }} />
+                                                  <span style={{ fontSize: 12, color: count > 0 ? '#1890ff' : '#999' }}>{count}</span>
+                                                </div>
+                                              );
+                                            })()}
                                           </div>
                                         );
                                       })()}
@@ -2993,10 +3112,19 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                                 </div>
                                               )}
                                             </div>
-                                          </div>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                            <Checkbox
-                                              checked={selectedMaterials.includes(`video-${video.id}`)}
+                              </div>
+                              {(() => {
+                                const count = getAttachmentCountFor(video);
+                                return (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginRight: 8 }}>
+                                    <PaperClipOutlined style={{ color: count > 0 ? '#1890ff' : '#bfbfbf', fontSize: 14 }} />
+                                    <span style={{ fontSize: 12, color: count > 0 ? '#1890ff' : '#999' }}>{count}</span>
+                                  </div>
+                                );
+                              })()}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  <Checkbox
+                                    checked={selectedMaterials.includes(`video-${video.id}`)}
                                               onChange={(e) => {
                                                 e.stopPropagation();
                                                 handleSelectMaterial(`video-${video.id}`, e.target.checked);
@@ -3038,7 +3166,9 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                               items: [
                                                 { key: 'attachments', label: '附件', icon: <PaperClipOutlined /> }
                                               ],
-                                              onClick: ({ key }) => {
+                                              onClick: ({ key, domEvent }) => {
+                                                if (domEvent && typeof domEvent.stopPropagation === 'function') domEvent.stopPropagation();
+                                                if (domEvent && typeof domEvent.preventDefault === 'function') domEvent.preventDefault();
                                                 if (key === 'attachments') {
                                                   try {
                                                     if (handlers && typeof handlers.onViewMaterial === 'function') {
@@ -3111,6 +3241,15 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                           </div>
                                         </div>
                                       </div>
+                                      {(() => {
+                                        const count = getAttachmentCountFor(stream);
+                                        return (
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginRight: 8 }}>
+                                            <PaperClipOutlined style={{ color: count > 0 ? '#1890ff' : '#bfbfbf', fontSize: 14 }} />
+                                            <span style={{ fontSize: 12, color: count > 0 ? '#1890ff' : '#999' }}>{count}</span>
+                                          </div>
+                                        );
+                                      })()}
                                       <Checkbox
                                         checked={selectedMaterials.includes(`live-${stream.id}`)}
                                         onChange={(e) => handleSelectMaterial(`live-${stream.id}`, e.target.checked)}
@@ -3342,7 +3481,9 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                               { key: 'convertToOperationRecord', label: '转为操作记录', icon: <FileTextOutlined /> },
                                               { key: 'delete', label: '删除', icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />, danger: true }
                                             ],
-                                            onClick: ({ key }) => {
+                                            onClick: ({ key, domEvent }) => {
+                                              if (domEvent && typeof domEvent.stopPropagation === 'function') domEvent.stopPropagation();
+                                              if (domEvent && typeof domEvent.preventDefault === 'function') domEvent.preventDefault();
                                               if (key === 'rename') {
                                                 openRename('file', file.id, getFileDisplayName(file.name));
                                               }
@@ -3394,7 +3535,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                       )}
                                       <div style={{ flex: 1, minWidth: 0 }}>
                                         <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
-                        {getFileDisplayName(file.name)} <Tag color="purple" style={{ marginLeft: 6 }}>考试</Tag>
+                        {getFileDisplayName(file.name)} {(() => { const st = getExamStatusForFile(file); return (<Tooltip title={st.tooltip}><Tag color={st.color} style={{ marginLeft: 6 }}>{st.label}</Tag></Tooltip>); })()}
                                         </Text>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                           {file.examType && (
@@ -3406,6 +3547,30 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                           {file.uploadTime}
                                         </Text>
                                       </div>
+                                      {(() => {
+                                        const assocMap = state.achievementAssociations || {};
+                                        let count = 0;
+                                        const byId = assocMap[file.id];
+                                        if (byId) {
+                                          const ops = Array.isArray(byId.linkedOperationIds) ? byId.linkedOperationIds.length : 0;
+                                          const src = Array.isArray(byId.linkedSourceIds) ? byId.linkedSourceIds.length : 0;
+                                          count = ops + src;
+                                        } else {
+                                          const displayName = getFileDisplayName(file.name);
+                                          const byTitle = Object.values(assocMap).find(x => String(x?.title || '') === String(displayName));
+                                          if (byTitle) {
+                                            const ops = Array.isArray(byTitle.linkedOperationIds) ? byTitle.linkedOperationIds.length : 0;
+                                            const src = Array.isArray(byTitle.linkedSourceIds) ? byTitle.linkedSourceIds.length : 0;
+                                            count = ops + src;
+                                          }
+                                        }
+                                        return (
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginRight: 8 }}>
+                                            <PaperClipOutlined style={{ color: count > 0 ? '#1890ff' : '#bfbfbf', fontSize: 14 }} />
+                                            <span style={{ fontSize: 12, color: count > 0 ? '#1890ff' : '#999' }}>{count}</span>
+                                          </div>
+                                        );
+                                      })()}
                                     </div>
                                     <Checkbox
                                       checked={selectedMaterials.includes(`file-${file.id}`)}
@@ -3503,6 +3668,15 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                         {(stream.schedule?.date || stream.liveDate || stream.startTime || '时间未定')}
                                       </Text>
                                     </div>
+                                    {(() => {
+                                      const count = getAttachmentCountFor(stream);
+                                      return (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginRight: 8 }}>
+                                          <PaperClipOutlined style={{ color: count > 0 ? '#1890ff' : '#bfbfbf', fontSize: 14 }} />
+                                          <span style={{ fontSize: 12, color: count > 0 ? '#1890ff' : '#999' }}>{count}</span>
+                                        </div>
+                                      );
+                                    })()}
                                     <Checkbox
                                       checked={selectedMaterials.includes(`live-${stream.id}`)}
                                       onChange={(e) => handleSelectMaterial(`live-${stream.id}`, e.target.checked)}
@@ -3576,7 +3750,9 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
                                     <FileTextOutlined style={{ color: '#722ed1' }} />
-                        <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{file.name} <Tag color="purple" style={{ marginLeft: 6 }}>考试</Tag></Text>
+                                      <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{file.name}
+                                        {(() => { const st = getExamStatusForFile(file); return (<Tooltip title={st.tooltip}><Tag color={st.color} style={{ marginLeft: 6 }}>{st.label}</Tag></Tooltip>); })()}
+                                      </Text>
                                     <Text type="secondary" style={{ fontSize: 10 }}>{file.uploadTime}</Text>
                                   </div>
                                   <Checkbox
@@ -3715,6 +3891,26 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                         📹 课程视频 ({displayCourseVideos.length})
                       </Text>
                     </div>
+                    {(() => {
+                      const assocMap = state.achievementAssociations || {};
+                      // 汇总当前列表中视频的附件挂载总数（可选显示）
+                      const total = (displayCourseVideos || []).reduce((sum, v) => {
+                        const byId = assocMap[v.id];
+                        if (byId) {
+                          const ops = Array.isArray(byId.linkedOperationIds) ? byId.linkedOperationIds.length : 0;
+                          const src = Array.isArray(byId.linkedSourceIds) ? byId.linkedSourceIds.length : 0;
+                          return sum + ops + src;
+                        }
+                        const byTitle = Object.values(assocMap).find(x => String(x?.title || '') === String(v.title || ''));
+                        if (byTitle) {
+                          const ops = Array.isArray(byTitle.linkedOperationIds) ? byTitle.linkedOperationIds.length : 0;
+                          const src = Array.isArray(byTitle.linkedSourceIds) ? byTitle.linkedSourceIds.length : 0;
+                          return sum + ops + src;
+                        }
+                        return sum;
+                      }, 0);
+                      return null; // 不在分组标题显示总数，保持简洁
+                    })()}
                     <div onClick={(e) => e.stopPropagation()}>
                     <Button.Group>
                       <Tooltip title="平铺视图">
@@ -3989,16 +4185,18 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                     items: [
                                       { key: 'attachments', label: '附件', icon: <PaperClipOutlined /> }
                                     ],
-                                    onClick: ({ key }) => {
-                                      if (key === 'attachments') {
-                                        try {
-                                          if (handlers && typeof handlers.onViewMaterial === 'function') {
-                                            handlers.onViewMaterial({ ...video, preferredView: 'attachments' }, 'achievement');
-                                          }
-                                        } catch (e) { /* no-op */ }
-                                      }
-                                    }
-                                  }}
+                                                  onClick: ({ key, domEvent }) => {
+                                                    if (domEvent && typeof domEvent.stopPropagation === 'function') domEvent.stopPropagation();
+                                                    if (domEvent && typeof domEvent.preventDefault === 'function') domEvent.preventDefault();
+                                                    if (key === 'attachments') {
+                                                      try {
+                                                        if (handlers && typeof handlers.onViewMaterial === 'function') {
+                                                          handlers.onViewMaterial({ ...video, preferredView: 'attachments' }, 'achievement');
+                                                        }
+                                                      } catch (e) { /* no-op */ }
+                                                    }
+                                                  }
+                                                }}
                                 >
                                   <Tooltip title="更多">
                                     <MoreOutlined style={{ color: '#8c8c8c', marginRight: 8, fontSize: 16 }} onClick={(e) => e.stopPropagation()} />
@@ -4273,6 +4471,15 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                               </div>
                             </div>
                           </div>
+                          {(() => {
+                            const count = getAttachmentCountFor(stream);
+                            return (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginRight: 8 }}>
+                                <PaperClipOutlined style={{ color: count > 0 ? '#1890ff' : '#bfbfbf', fontSize: 14 }} />
+                                <span style={{ fontSize: 12, color: count > 0 ? '#1890ff' : '#999' }}>{count}</span>
+                              </div>
+                            );
+                          })()}
                           <Checkbox
                             checked={selectedMaterials.includes(`live-${stream.id}`)}
                             onChange={(e) => handleSelectMaterial(`live-${stream.id}`, e.target.checked)}
@@ -4335,7 +4542,9 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                   { key: 'convertToOperationRecord', label: '转为操作记录', icon: <FileTextOutlined /> },
                                   { key: 'delete', label: '删除', icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />, danger: true }
                                 ],
-                                onClick: ({ key }) => {
+                                onClick: ({ key, domEvent }) => {
+                                  if (domEvent && typeof domEvent.stopPropagation === 'function') domEvent.stopPropagation();
+                                  if (domEvent && typeof domEvent.preventDefault === 'function') domEvent.preventDefault();
                                   if (key === 'rename') {
                                     openRename('file', file.id, getFileDisplayName(file.name));
                                   }
@@ -4386,9 +4595,9 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                             <FileTextOutlined style={{ color: '#722ed1', marginRight: 8, fontSize: 16 }} />
                           )}
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
-                        {getFileDisplayName(file.name)} <Tag color="purple" style={{ marginLeft: 6 }}>考试</Tag>
-                            </Text>
+                                        <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>
+                        {getFileDisplayName(file.name)} {(() => { const st = getExamStatusForFile(file); return (<Tooltip title={st.tooltip}><Tag color={st.color} style={{ marginLeft: 6 }}>{st.label}</Tag></Tooltip>); })()}
+                                        </Text>
                             <Text type="secondary" style={{ fontSize: 10 }}>
                               {file.uploadTime}
                             </Text>
