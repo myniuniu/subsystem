@@ -51,6 +51,7 @@ import ClassroomBehaviorAnalysisViewer from './OperationPanel/ClassroomBehaviorA
 import TrainingPlanViewer from './OperationPanel/TrainingPlanViewer';
 import TrainingReportViewer from './OperationPanel/TrainingReportViewer';
 import VideoPlayer from './VideoPlayer';
+import LivePlayer from './LivePlayer';
 import TrainingDashboardViewer from './OperationPanel/TrainingDashboardViewer';
 import ToolGrid from './OperationPanel/ToolGrid';
 import { createGetAvailableAITools } from './OperationPanel/getAvailableAITools.jsx';
@@ -1227,6 +1228,31 @@ if (typeof document !== 'undefined') {
                 note: [operationRecord, ...(prev.note || [])]
               }));
             }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // 直播播放器视图（嵌入式，复制点播结构但使用独立组件）
+  if (rightPanelView === RIGHT_PANEL_VIEWS.LIVE_PLAYER) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
+        <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => setRightPanelView(RIGHT_PANEL_VIEWS.OPERATIONS)}>
+            返回
+          </Button>
+          <Typography.Text style={{ fontWeight: 600 }}>
+            {selectedMaterial?.title || '直播播放器'}
+          </Typography.Text>
+        </div>
+        <div style={{ flex: 1, minHeight: 400, display: 'flex', flexDirection: 'column' }}>
+          <LivePlayer
+            embedded
+            style={{ height: '100%' }}
+            liveData={selectedMaterial}
+            isWidescreenMode={isWidescreenMode}
+            onToggleWidescreen={() => setIsWidescreenMode && setIsWidescreenMode(!isWidescreenMode)}
           />
         </div>
       </div>

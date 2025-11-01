@@ -2187,7 +2187,42 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                 {modLive.map(stream => {
                                   const status = getLiveStreamStatus(stream);
                                   return (
-                    <Card className="clickable-card" key={`mod-${mod.id}-live-${stream.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}>
+                    <Card className="clickable-card" key={`mod-${mod.id}-live-${stream.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8', cursor: 'pointer' }} bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }} onClick={() => {
+                      try {
+                        const statusNow = getLiveStreamStatus(stream);
+                        if (statusNow === 'live') {
+                          const fixedVideo = {
+                            id: `live-${stream.id}`,
+                            title: stream.title,
+                            url: stream.url || stream.replayUrl || '/assets/demo1.mp4',
+                            videoUrl: stream.url || stream.replayUrl || '/assets/demo1.mp4',
+                            type: 'live',
+                            liveDate: stream.liveDate,
+                            instructor: stream.instructor,
+                            audience: stream.audience,
+                            progress: 0,
+                            courseId: 'live-demo',
+                            courseTitle: '直播演示'
+                          };
+                          state.setSelectedMaterial && state.setSelectedMaterial(fixedVideo);
+                          state.setVideoStartTime && state.setVideoStartTime(0);
+                          state.setIsWidescreenMode && state.setIsWidescreenMode(false);
+                          state.setCurrentView && state.setCurrentView(VIEW_MODES.VIDEO);
+                        } else if (statusNow === 'ended') {
+                          const video = {
+                            id: `replay-${stream.id}`,
+                            title: stream.title + ' 回放',
+                            type: 'live_replay',
+                            liveDate: stream.liveDate,
+                            url: stream.replayUrl || stream.url,
+                            videoUrl: stream.replayUrl || stream.url,
+                            instructor: stream.instructor,
+                            audience: stream.audience
+                          };
+                          onPlayVideo(video);
+                        }
+                      } catch {}
+                    }}>
                                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
                                           <PlayCircleOutlined style={{ color: '#1890ff' }} />
@@ -3151,10 +3186,52 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                   <Card 
                                     key={`phase-${phase.id}-live-${stream.id}`}
                                     size="small" 
-                                    style={{ marginTop: 6, border: '1px solid #e8e8e8', position: 'relative' }}
-                                    bodyStyle={{ padding: '8px 12px' }}
+                                    hoverable
+                                    style={{ 
+                                      marginTop: 6, 
+                                      border: '1px solid #e8e8e8', 
+                                      position: 'relative',
+                                      cursor: (status === 'live' || status === 'ended') ? 'pointer' : 'default'
+                                    }}
+                                    bodyStyle={{ padding: '8px 12px', cursor: (status === 'live' || status === 'ended') ? 'pointer' : 'default' }}
                                     onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`live-${stream.id}`]: true }))}
                                     onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`live-${stream.id}`]: false }))}
+                                    onClick={() => {
+                                      try {
+                                        const statusNow = getLiveStreamStatus(stream);
+                                        if (statusNow === 'live') {
+                                          const fixedVideo = {
+                                            id: `live-${stream.id}`,
+                                            title: stream.title,
+                                            url: stream.url || stream.replayUrl || '/assets/demo1.mp4',
+                                            videoUrl: stream.url || stream.replayUrl || '/assets/demo1.mp4',
+                                            type: 'live',
+                                            liveDate: stream.liveDate,
+                                            instructor: stream.instructor,
+                                            audience: stream.audience,
+                                            progress: 0,
+                                            courseId: 'live-demo',
+                                            courseTitle: '直播演示'
+                                          };
+                                          state.setSelectedMaterial && state.setSelectedMaterial(fixedVideo);
+                                          state.setVideoStartTime && state.setVideoStartTime(0);
+                                          state.setIsWidescreenMode && state.setIsWidescreenMode(false);
+                                          state.setCurrentView && state.setCurrentView(VIEW_MODES.VIDEO);
+                                        } else if (statusNow === 'ended') {
+                                          const video = {
+                                            id: `replay-${stream.id}`,
+                                            title: stream.title + ' 回放',
+                                            type: 'live_replay',
+                                            liveDate: stream.liveDate,
+                                            url: stream.replayUrl || stream.url,
+                                            videoUrl: stream.replayUrl || stream.url,
+                                            instructor: stream.instructor,
+                                            audience: stream.audience
+                                          };
+                                          onPlayVideo(video);
+                                        }
+                                      } catch {}
+                                    }}
                                   >
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                       <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
@@ -3205,13 +3282,35 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                             <Tag color={status === 'live' ? 'red' : (status === 'scheduled' ? 'gold' : 'blue')}>
                                               {status === 'live' ? '直播中' : (status === 'scheduled' ? '已预约' : '已结束')}
                                             </Tag>
-                                            {status === 'live' && stream.url && (
+                                            {status === 'live' && (
                                               <Button
                                                 type="link"
                                                 size="small"
                                                 onClick={(e) => {
                                                   e.stopPropagation();
-                                                  window.open(stream.url, '_blank');
+                                                  try {
+                                                    // 组织培训下：使用右侧嵌入式直播播放器（复制自点播播放器）
+                                                    const fixedVideo = {
+                                                      id: `live-${stream.id}`,
+                                                      title: stream.title,
+                                                      url: stream.url || stream.replayUrl || '/assets/demo1.mp4',
+                                                      videoUrl: stream.url || stream.replayUrl || '/assets/demo1.mp4',
+                                                      type: 'live',
+                                                      liveDate: stream.liveDate,
+                                                      instructor: stream.instructor,
+                                                      audience: stream.audience,
+                                                      progress: 0,
+                                                      courseId: 'live-demo',
+                                                      courseTitle: '直播演示'
+                                                    };
+                                                    state.setSelectedMaterial && state.setSelectedMaterial(fixedVideo);
+                                                    state.setVideoStartTime && state.setVideoStartTime(0);
+                                                    state.setIsWidescreenMode && state.setIsWidescreenMode(false);
+                                                    state.setCurrentView && state.setCurrentView(VIEW_MODES.VIDEO);
+                                                  } catch (err) {
+                                                    // 回退：无法打开播放器时，外链打开直播间
+                                                    if (stream?.url) window.open(stream.url, '_blank');
+                                                  }
                                                 }}
                                               >
                                                 进入直播间
@@ -3655,7 +3754,42 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                             {uncLive.map(stream => {
                               const status = getLiveStreamStatus(stream);
                               return (
-                    <Card className="clickable-card" key={`unc-live-${stream.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}>
+                    <Card className="clickable-card" key={`unc-live-${stream.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8', cursor: 'pointer' }} bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }} onClick={() => {
+                      try {
+                        const statusNow = getLiveStreamStatus(stream);
+                        if (statusNow === 'live') {
+                          const fixedVideo = {
+                            id: `live-${stream.id}`,
+                            title: stream.title,
+                            url: stream.url || stream.replayUrl || '/assets/demo1.mp4',
+                            videoUrl: stream.url || stream.replayUrl || '/assets/demo1.mp4',
+                            type: 'live',
+                            liveDate: stream.liveDate,
+                            instructor: stream.instructor,
+                            audience: stream.audience,
+                            progress: 0,
+                            courseId: 'live-demo',
+                            courseTitle: '直播演示'
+                          };
+                          state.setSelectedMaterial && state.setSelectedMaterial(fixedVideo);
+                          state.setVideoStartTime && state.setVideoStartTime(0);
+                          state.setIsWidescreenMode && state.setIsWidescreenMode(false);
+                          state.setCurrentView && state.setCurrentView(VIEW_MODES.VIDEO);
+                        } else if (statusNow === 'ended') {
+                          const video = {
+                            id: `replay-${stream.id}`,
+                            title: stream.title + ' 回放',
+                            type: 'live_replay',
+                            liveDate: stream.liveDate,
+                            url: stream.replayUrl || stream.url,
+                            videoUrl: stream.replayUrl || stream.url,
+                            instructor: stream.instructor,
+                            audience: stream.audience
+                          };
+                          onPlayVideo(video);
+                        }
+                      } catch {}
+                    }}>
                                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
                                       {status === 'live' ? (
@@ -4437,13 +4571,33 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                 <Tag color={status === 'live' ? 'red' : (status === 'scheduled' ? 'gold' : 'blue')}>
                                   {status === 'live' ? '直播中' : (status === 'scheduled' ? '已预约' : '已结束')}
                                 </Tag>
-                                {status === 'live' && stream.url && (
+                                {status === 'live' && (
                                   <Button
                                     type="link"
                                     size="small"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      window.open(stream.url, '_blank');
+                                      try {
+                                        const fixedVideo = {
+                                          id: `live-${stream.id}`,
+                                          title: stream.title,
+                                          url: stream.url || stream.replayUrl || '/assets/demo1.mp4',
+                                          videoUrl: stream.url || stream.replayUrl || '/assets/demo1.mp4',
+                                          type: 'live',
+                                          liveDate: stream.liveDate,
+                                          instructor: stream.instructor,
+                                          audience: stream.audience,
+                                          progress: 0,
+                                          courseId: 'live-demo',
+                                          courseTitle: '直播演示'
+                                        };
+                                        state.setSelectedMaterial && state.setSelectedMaterial(fixedVideo);
+                                        state.setVideoStartTime && state.setVideoStartTime(0);
+                                        state.setIsWidescreenMode && state.setIsWidescreenMode(false);
+                                        state.setCurrentView && state.setCurrentView(VIEW_MODES.VIDEO);
+                                      } catch (err) {
+                                        if (stream?.url) window.open(stream.url, '_blank');
+                                      }
                                     }}
                                   >
                                     进入直播间

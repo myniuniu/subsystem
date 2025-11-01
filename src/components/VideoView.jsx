@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Button,
   Typography,
@@ -51,6 +51,57 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
     onToggleWidescreen,
     onVideoProgressUpdate
   } = handlers;
+
+  // 直播模拟：弹幕、观众数、延迟、直播时长
+  const isLive = selectedMaterial?.type === 'live';
+  const [showDanmu, setShowDanmu] = useState(isLive);
+  const [viewerCount, setViewerCount] = useState(() => 1000 + Math.floor(Math.random() * 500));
+  const [latency, setLatency] = useState(() => (0.8 + Math.random() * 1.2).toFixed(1));
+  const [liveElapsed, setLiveElapsed] = useState(0);
+  const [danmuList, setDanmuList] = useState([]);
+
+  useEffect(() => {
+    // 直播时长计时器（模拟）
+    if (!isLive) return;
+    const start = Date.now();
+    const timer = setInterval(() => {
+      setLiveElapsed(Math.floor((Date.now() - start) / 1000));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [isLive]);
+
+  useEffect(() => {
+    // 观众数与延迟随机波动（模拟）
+    if (!isLive) return;
+    const timer = setInterval(() => {
+      setViewerCount(v => v + Math.floor(Math.random() * 15));
+      setLatency((0.8 + Math.random() * 1.2).toFixed(1));
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [isLive]);
+
+  useEffect(() => {
+    // 弹幕生成（模拟）
+    if (!isLive || !showDanmu) return;
+    const messages = [
+      '讲得太好了！',
+      '这知识点刚好不懂～',
+      '点赞点赞👍',
+      '老师能再举个例子吗？',
+      '录屏了，回看～',
+      '弹幕测试：hello world',
+      '这段笔记记一下',
+      '直播质量很清晰',
+      '同事也在看～',
+      'PPT很漂亮！'
+    ];
+    const timer = setInterval(() => {
+      const idx = Math.floor(Math.random() * messages.length);
+      const top = 10 + Math.floor(Math.random() * 60); // 相对顶部百分比
+      setDanmuList(prev => [...prev, { id: Date.now(), text: messages[idx], top: `${top}%` }].slice(-20));
+    }, 1500);
+    return () => clearInterval(timer);
+  }, [isLive, showDanmu]);
 
   // 宽屏模式下禁用body滚动
   useEffect(() => {
@@ -429,7 +480,7 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
           background: '#f8f9fa'
         }}>
           <Text style={{ fontSize: '14px', color: '#666', lineHeight: '1.6' }}>
-            📝 视频摘要：本视频主要介绍了{selectedMaterial?.title || '相关内容'}，包含了重要的学习要点和实际示例。适合初学者和进阶学习者观看。
+            📝 {selectedMaterial?.type === 'live' ? '会议摘要' : '视频摘要'}：本{selectedMaterial?.type === 'live' ? '会议' : '视频'}主要介绍了{selectedMaterial?.title || '相关内容'}，包含了重要的学习要点和实际示例。适合初学者和进阶学习者观看。
           </Text>
         </div>
       )}
@@ -446,9 +497,37 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
         minHeight: isWidescreenMode ? '100vh' : '180px',
         maxHeight: isWidescreenMode ? '100vh' : '280px',
         height: isWidescreenMode ? '100vh' : 'auto',
-        width: '100%',
-        overflow: 'hidden'
-      }}>
+      width: '100%',
+      overflow: 'hidden'
+      , position: 'relative' }}>
+        {isLive && (
+          <>
+            {/* 弹幕动画样式 */}
+            <style>{`
+              @keyframes danmu-move {
+                0% { transform: translateX(0); opacity: 1; }
+                100% { transform: translateX(-120vw); opacity: 0.9; }
+              }
+            `}</style>
+            {/* 左上角直播信息条 */}
+            <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255, 77, 79, 0.9)', color: '#fff', padding: '4px 10px', borderRadius: 16, fontSize: 12 }}>
+              <span style={{ fontWeight: 600 }}>直播中</span>
+              <span style={{ opacity: 0.9 }}>观众 {viewerCount}</span>
+              <span style={{ opacity: 0.9 }}>延迟 {latency}s</span>
+              <span style={{ opacity: 0.9 }}>时长 {formatTime(liveElapsed)}</span>
+            </div>
+            {/* 右上角操作 */}
+            <div style={{ position: 'absolute', top: 8, right: 8, zIndex: 3, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Button size="small" onClick={() => setShowDanmu(s => !s)}>{showDanmu ? '关闭弹幕' : '开启弹幕'}</Button>
+            </div>
+            {/* 弹幕流 */}
+            {showDanmu && danmuList.map(dm => (
+              <div key={dm.id} style={{ position: 'absolute', top: dm.top, left: '100%', zIndex: 2, color: '#fff', textShadow: '0 1px 2px rgba(0,0,0,0.6)', whiteSpace: 'nowrap', fontSize: 14, animation: 'danmu-move 8s linear forwards' }}>
+                {dm.text}
+              </div>
+            ))}
+          </>
+        )}
         {selectedMaterial && (
           <VideoPlayer
             visible={false}
@@ -461,7 +540,9 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
               width: '100%',
               height: isWidescreenMode ? '100vh' : 'auto',
               maxWidth: '100%',
-              maxHeight: '100%'
+              maxHeight: '100%',
+              position: 'relative',
+              zIndex: 1
             }}
             onTimeUpdate={onVideoTimeUpdate}
             onProgressUpdate={onVideoProgressUpdate}
@@ -503,7 +584,7 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '16px' }}>📄</span>
               <Text style={{ fontSize: '14px', fontWeight: 'bold', color: '#1890ff' }}>
-                原文
+                {selectedMaterial?.type === 'live' ? '实时字幕' : '原文'}
               </Text>
             </div>
             <div style={{ 

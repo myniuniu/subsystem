@@ -123,6 +123,7 @@ export const RIGHT_PANEL_VIEWS = {
   TRAINING_SETTINGS_VIEWER: 'training_settings_viewer',
   CLASSROOM_BEHAVIOR_ANALYSIS_VIEWER: 'classroomBehaviorAnalysisViewer',
   VIDEO_PLAYER: 'video_player',
+  LIVE_PLAYER: 'live_player',
   EXAM_FORM_VIEWER: 'exam_form_viewer',
   // 新增：课程选择视图（占用中间 + 右侧）
   COURSE_SELECTION_VIEWER: 'course_selection_viewer'

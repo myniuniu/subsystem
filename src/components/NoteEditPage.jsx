@@ -35,6 +35,7 @@ import ExamReviewFullPage from './ExamReviewFullPage';
 import MaterialAddPage from './MaterialAddPage';
 import ExploreModal from './ExploreModal';
 import VideoPlayer from './VideoPlayer';
+import LivePlayer from './LivePlayer';
 import CapabilityMindMap from './CapabilityMindMap.jsx';
 import KnowledgeGraphMindMap from './KnowledgeGraphMindMap.jsx';
 
@@ -1884,7 +1885,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 }
                 const baseRatio = currentView === VIEW_MODES.VIDEO ? 3 : (state.viewMode === VIEW_MODES.MAP ? 3 : 2.5);
                 // 当右侧为视频播放器时，仅将中间减少的30%（1.5）加给右侧，左侧保持不变
-                if (state.rightPanelView === RIGHT_PANEL_VIEWS.VIDEO_PLAYER) {
+                if (state.rightPanelView === RIGHT_PANEL_VIEWS.VIDEO_PLAYER || state.rightPanelView === RIGHT_PANEL_VIEWS.LIVE_PLAYER) {
                   return baseRatio + 1.5;
                 }
                 // 笔记编辑、试题查看或阅卷报告查看状态时，保持原有增加宽度的逻辑
