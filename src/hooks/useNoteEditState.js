@@ -125,7 +125,7 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
 
     if (selectedCategory === 'training_needs_management' || note?.category === 'training_needs_management') {
       return [
-        { id: 'training_notice_001', url: 'https://example.com/new-teacher-training-notice', title: '新教师培训通知', addTime: '刚刚' }
+        { id: 'training_notice_001', url: '/assets/新教师入职培训安排及要求的通知.pdf', title: '新教师入职培训安排及要求的通知', addTime: '刚刚' }
       ];
     }
     if (isOrgTraining) {

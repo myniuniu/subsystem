@@ -528,7 +528,13 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
             ))}
           </>
         )}
-        {selectedMaterial && (
+        {selectedMaterial && selectedMaterial.type === 'pdf' ? (
+          <iframe
+            src={selectedMaterial.url}
+            title={selectedMaterial.title || 'PDF 预览'}
+            style={{ width: '100%', height: isWidescreenMode ? '100vh' : '280px', border: 'none', background: '#fff', zIndex: 1 }}
+          />
+        ) : selectedMaterial ? (
           <VideoPlayer
             visible={false}
             videoData={{
@@ -563,7 +569,7 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
             }}
             onNoteCreated={onNoteCreated}
           />
-        )}
+        ) : null}
       </div>
 
       {/* 跟随字幕区域 - 宽屏模式下隐藏 */}

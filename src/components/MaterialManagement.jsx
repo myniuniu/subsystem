@@ -349,6 +349,8 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
     texts: true,
     projects: true
   });
+  // 分类开关：培训需求管理不显示直播课程
+  const isTrainingNeedsManagement = (note?.category === 'training_needs_management');
   // 初始化：把现有资料归入默认模块
   useEffect(() => {
     try {
@@ -360,7 +362,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
         texts: {},
         projects: {}
       };
-      (Array.isArray(liveStreams) ? liveStreams : []).forEach(s => { next.live[s.id] = 'default'; });
+      (!isTrainingNeedsManagement && Array.isArray(liveStreams) ? liveStreams : []).forEach(s => { next.live[s.id] = 'default'; });
       (Array.isArray(courseVideos) ? courseVideos : []).forEach(v => { next.videos[v.id] = 'default'; });
       (Array.isArray(examFiles) ? examFiles : []).forEach(f => { next.exam[f.id] = 'default'; });
       (Array.isArray(links) ? links : []).forEach(l => { next.links[l.id] = 'default'; });
@@ -418,8 +420,26 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
       { id: Date.now() + 2, url: 'https://www.xiaohongshu.com/explore/66abcdeef0123456789', type: 'video', platform: '小红书', title: '备课与教学设计案例（小红书）', addTime: nowISO },
       { id: Date.now() + 3, url: 'https://www.moe.gov.cn/jyb_xxgk/zcwj/', type: 'website', platform: '普通网站', title: '教育部教师培训与课堂教学指导文件', addTime: nowISO }
     ];
+    // 培训需求管理分类：注入通知PDF
+    try {
+      const inNeedsMgmt = (selectedCategory === 'training_needs_management' || note?.category === 'training_needs_management');
+      if (inNeedsMgmt) {
+        seedLinks.push({ id: Date.now() + 2000, url: '/assets/新教师入职培训安排及要求的通知.pdf', type: 'pdf', platform: '文档', title: '新教师入职培训安排及要求的通知', addTime: nowISO });
+      }
+    } catch {}
     const linksToAdd = seedLinks.filter(s => !(Array.isArray(links) ? links : []).some(l => l.url === s.url || l.title === s.title));
-    if (linksToAdd.length) setLinks(prev => [...prev, ...linksToAdd]);
+    if (linksToAdd.length) {
+      setLinks(prev => [...prev, ...linksToAdd]);
+      // 为新注入的链接设置默认模块归属为“默认模块”
+      try {
+        setModuleAssignments(prev => {
+          const next = { ...prev };
+          next.links = { ...(prev?.links || {}) };
+          linksToAdd.forEach(l => { next.links[l.id] = 'default'; });
+          return next;
+        });
+      } catch {}
+    }
 
     // 注入文本内容
     const seedTexts = [
@@ -1099,8 +1119,8 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
 
     // 录播/示范视频：来自课程视频中非 live 类别
     const recordedVideos = (Array.isArray(courseVideos) ? courseVideos : []).filter(v => !String(v.type || '').startsWith('live'));
-    // 直播课：来自 liveStreams
-    const lives = Array.isArray(liveStreams) ? liveStreams : [];
+    // 直播课：在“培训需求管理”分类下不显示
+    const lives = isTrainingNeedsManagement ? [] : (Array.isArray(liveStreams) ? liveStreams : []);
 
     // 初始化所有阶段（含考试/试卷）
     const phaseMap = new Map(enrichedTrainingPhases.map(p => [p.id, { ...p, materials: { videos: [], live: [], links: [], texts: [], trainingProjects: [], exam: [] } }]));
@@ -2140,7 +2160,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
               {!isOrgTrainingView && (
                 <div style={{ marginBottom: 16 }}>
                   {modules.map(mod => {
-                    const modLive = (Array.isArray(liveStreams) ? liveStreams : []).filter(s => moduleAssignments.live[s.id] === mod.id);
+                    const modLive = (!isTrainingNeedsManagement && Array.isArray(liveStreams) ? liveStreams : []).filter(s => moduleAssignments.live[s.id] === mod.id);
                     const modVideos = (Array.isArray(courseVideos) ? courseVideos : []).filter(v => moduleAssignments.videos[v.id] === mod.id);
                     const modExams = (Array.isArray(examFiles) ? examFiles : []).filter(f => moduleAssignments.exam[f.id] === mod.id);
                     const modLinks = (Array.isArray(links) ? links : []).filter(l => moduleAssignments.links[l.id] === mod.id);
@@ -2248,6 +2268,34 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                   </Card>
                                   );
                                 })}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 模块内 - 阅读材料（链接） */}
+                          {modLinks.length > 0 && (
+                            <div style={{ marginBottom: 10 }}>
+                              <Text strong style={{ fontSize: 12, color: '#666' }}>📘 阅读材料 ({modLinks.length})</Text>
+                              <div style={{ marginTop: 6 }}>
+                                {modLinks.map(link => (
+                                  <Card className="clickable-card" key={`mod-${mod.id}-link-${link.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}
+                                    onClick={() => {
+                                      try { if (handlers?.onViewMaterial) handlers.onViewMaterial(link, 'link'); } catch {}
+                                    }}
+                                  >
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+                                        <LinkOutlined style={{ color: '#1890ff' }} />
+                                        <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{link.title}</Text>
+                                      </div>
+                                      <Checkbox
+                                        checked={selectedMaterials.includes(`link-${link.id}`)}
+                                        onChange={(e) => handleSelectMaterial(`link-${link.id}`, e.target.checked)}
+                                        onClick={(e) => e.stopPropagation()}
+                                      />
+                                    </div>
+                                  </Card>
+                                ))}
                               </div>
                             </div>
                           )}
@@ -3690,7 +3738,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
 
               {/* 组织培训下：未分类模块（卡片按类型分组） */}
               {isOrgTrainingView && (() => {
-                const uncLive = (Array.isArray(liveStreams) ? liveStreams : []).filter(s => moduleAssignments.live[s.id] === 'uncategorized');
+                const uncLive = (!isTrainingNeedsManagement && Array.isArray(liveStreams) ? liveStreams : []).filter(s => moduleAssignments.live[s.id] === 'uncategorized');
                 const uncVideos = (Array.isArray(courseVideos) ? courseVideos : []).filter(v => moduleAssignments.videos[v.id] === 'uncategorized');
                 const uncExams = (Array.isArray(examFiles) ? examFiles : []).filter(f => moduleAssignments.exam[f.id] === 'uncategorized');
                 const uncLinks = (Array.isArray(links) ? links : []).filter(l => moduleAssignments.links[l.id] === 'uncategorized');
@@ -3914,19 +3962,33 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                           {uncategorizedExpanded.links && (
                             <div style={{ marginTop: 6 }}>
                             {uncLinks.map(link => (
-                    <Card className="clickable-card" key={`unc-link-${link.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}>
+                    <Card className="clickable-card" key={`unc-link-${link.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }} onClick={() => {
+                      try {
+                        if (handlers && typeof handlers.onViewMaterial === 'function') {
+                          handlers.onViewMaterial(link, 'link');
+                        }
+                      } catch {}
+                    }}>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
                                     <LinkOutlined style={{ color: '#1890ff' }} />
                                     <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{link.title}</Text>
                                     {link.url && (
-                                      <Button type="link" size="small" onClick={(e) => { e.stopPropagation(); window.open(link.url, '_blank'); }}>打开</Button>
+                                      <Button type="link" size="small" onClick={(e) => { 
+                                        e.stopPropagation(); 
+                                        try {
+                                          if (handlers && typeof handlers.onViewMaterial === 'function') {
+                                            handlers.onViewMaterial(link, 'link');
+                                          }
+                                        } catch {}
+                                      }}>打开</Button>
                                     )}
                                   </div>
-                                  <Checkbox
-                                    checked={selectedMaterials.includes(`link-${link.id}`)}
-                                    onChange={(e) => handleSelectMaterial(`link-${link.id}`, e.target.checked)}
-                                  />
+                                      <Checkbox
+                                        checked={selectedMaterials.includes(`link-${link.id}`)}
+                                        onChange={(e) => handleSelectMaterial(`link-${link.id}`, e.target.checked)}
+                                        onClick={(e) => e.stopPropagation()}
+                                      />
                                 </div>
                               </Card>
                             ))}
@@ -4499,7 +4561,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
               )}
 
               {/* 直播课列表 */}
-              {!isOrgTrainingView && modules.length === 0 && Array.isArray(liveStreams) && liveStreams.length > 0 && (
+              {!isOrgTrainingView && !isTrainingNeedsManagement && modules.length === 0 && Array.isArray(liveStreams) && liveStreams.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

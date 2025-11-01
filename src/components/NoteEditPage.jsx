@@ -26,6 +26,7 @@ import MaterialManagement from './MaterialManagement';
 import AIChat from './AIChat';
 import OperationPanel from './OperationPanel';
 import VideoView from './VideoView';
+import DocumentView from './DocumentView';
 import ChatWindow from './ChatWindow';
 import AchievementDetailPanel from './AchievementDetailPanel';
 import AchievementDetailThreeColumn from './AchievementDetailThreeColumn';
@@ -601,6 +602,20 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         preferredView: material?.preferredView,
         currentCategory: state?.note?.category || selectedCategory 
       });
+      // 链接/文件的非视频类型：在左侧整块区域进行文档预览
+      if (type === 'link') {
+        const isPdf = typeof material?.url === 'string' && /\.pdf(\?.*)?$/i.test(material.url);
+        const docMaterial = {
+          id: material.id || `doc-${Date.now()}`,
+          title: material.title || (isPdf ? 'PDF 文档' : '网页链接'),
+          type: isPdf ? 'pdf' : 'document',
+          url: material.url
+        };
+        setSelectedMaterial(docMaterial);
+        setCurrentView(VIEW_MODES.DOCUMENT);
+        message.success(`已在左侧预览：${docMaterial.title}`);
+        return;
+      }
       
       if (type === 'video') {
         materialHandlers.onPlayVideo(material);
@@ -1785,10 +1800,14 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 flexDirection: 'column',
                 transition: 'flex 0.3s ease'
               }}>
-                <VideoView 
-                  state={state}
-                  handlers={videoHandlers}
-                />
+                {currentView === VIEW_MODES.DOCUMENT ? (
+                  <DocumentView state={state} onBack={() => setCurrentView(VIEW_MODES.MATERIALS)} />
+                ) : (
+                  <VideoView 
+                    state={state}
+                    handlers={videoHandlers}
+                  />
+                )}
               </div>
             )}
 

@@ -88,6 +88,7 @@ export const WEBSITE_TYPES = {
 export const VIEW_MODES = {
   MATERIALS: 'materials',
   VIDEO: 'video',
+  DOCUMENT: 'document',
   WIDESCREEN_VIDEO: 'widescreen_video',
   CARD: 'card',
   MAP: 'map',
