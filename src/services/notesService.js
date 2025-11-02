@@ -1707,7 +1707,15 @@ class NotesService {
         // 添加学习时间（如果是组织培训且没有提供）
         learningSchedule: noteData.learningSchedule || defaultLearningSchedule,
         // 为培训需求管理分类默认添加操作记录
-        operationRecords: noteData.operationRecords || (noteData.category === 'training_needs_management' ? { 'training-plan': [this.generateDefaultTrainingPlanRecord()] } : {})
+        operationRecords: noteData.operationRecords || (noteData.category === 'training_needs_management' ? {
+          'training-plan': [
+            this.generateDefaultTrainingPlanRecord('新教师入职培训-学段1'),
+            this.generateDefaultTrainingPlanRecord('新教师入职培训-学段2')
+          ],
+          'training-dashboard': [
+            this.generateDefaultTrainingDashboardRecord('培训报表')
+          ]
+        } : {})
       };
       
       notes.unshift(newNote);
@@ -2872,12 +2880,11 @@ ${course.description}
    * 生成默认的培训方案操作记录
    * @returns {Object} 默认的培训方案操作记录
    */
-  generateDefaultTrainingPlanRecord() {
+  generateDefaultTrainingPlanRecord(title = '新教师入职培训-学段1') {
     return {
       id: this.generateId(),
-      title: '培训方案',
+      title: title,
       type: 'training-plan',
-      source: '系统生成',
       time: new Date().toISOString(),
       content: {
         overview: '基于培训需求分析，制定针对性的培训方案，确保培训效果最大化。',
@@ -2902,6 +2909,17 @@ ${course.description}
           }
         ]
       }
+    };
+  }
+
+  generateDefaultTrainingDashboardRecord(title = '新教师入职培训-学段1') {
+    return {
+      id: this.generateId(),
+      title,
+      type: 'training-dashboard',
+      time: new Date().toISOString(),
+      source: '系统生成',
+      content: `<div style="padding:12px;color:#666;">默认培训报表：${title}</div>`
     };
   }
 }

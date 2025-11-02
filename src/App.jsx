@@ -44,6 +44,7 @@ import ThemeTemplateCenter from './components/ThemeTemplateCenter'
 import AIExperience from './components/AIExperience'
 import PWAInstallButton from './components/PWAInstallButton'
 import ModelRegistry from './components/ModelRegistry'
+import TrainingDashboardViewer from './components/OperationPanel/TrainingDashboardViewer'
 import ModelTrainingTemplate from './components/ModelTrainingTemplate'
 import ModelTrainingDetail from './components/ModelTrainingDetail'
 import MyCertificates from './components/MyCertificates'
@@ -432,6 +433,11 @@ function App() {
               <MyMedals />
             ) : currentView === 'ai-tool-house' ? (
               <AIToolHouse onAddToOperationPanel={handleAddAIToolToOperationPanel} />
+            ) : currentView === 'training-dashboard' ? (
+              <TrainingDashboardViewer 
+                record={{ title: '新教师入职培训-学段1', time: new Date().toLocaleString('zh-CN') }}
+                onBack={() => setCurrentView('smart-notes')}
+              />
             ) : currentView === 'note-edit-page' ? (
               <NoteEditPage 
                 onBack={() => handleViewChange('smart-notes')}

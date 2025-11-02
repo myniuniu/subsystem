@@ -177,9 +177,25 @@ export const useOperationHandlers = ({
 
   // 处理培训报表工具
   const handleTrainingDashboardToolAction = () => {
-    // 直接切换到培训报表视图
-    setRightPanelView(RIGHT_PANEL_VIEWS.TRAINING_DASHBOARD_VIEWER);
-    message.success('培训报表工具已启动！');
+    // 生成培训报表操作记录，名称同当前选中的培训项目
+    const selectedTitle = (typeof window !== 'undefined' && window.__selected_project_title__) || '培训报表';
+    const dashboardRecord = {
+      id: `training_dashboard_${Date.now()}`,
+      type: OPERATION_TYPES.TRAINING_DASHBOARD,
+      title: selectedTitle,
+      source: sourceInfo?.details || '基于当前数据源',
+      time: new Date().toLocaleString('zh-CN'),
+      sourceRefs: getSourceRefs(),
+      content: `<div style="padding: 12px; color:#666;">培训报表 - ${selectedTitle}</div>`
+    };
+
+    addRecordWithGenerating(OPERATION_TYPES.TRAINING_DASHBOARD, dashboardRecord, {
+      onComplete: () => {
+        message.success(`培训报表已生成：${selectedTitle}`);
+        // 全屏显示培训报表
+        try { window.dispatchEvent(new Event('openTrainingDashboardFullscreen')); } catch {}
+      }
+    });
   };
 
   // 处理培训报告工具
@@ -383,6 +399,9 @@ export const useOperationHandlers = ({
     } else if (card.key === 'training-report') {
       // 培训报告工具处理
       handleTrainingReportToolAction();
+    } else if (card.key === 'training-dashboard') {
+      // 培训报表工具处理：生成记录并全屏展示
+      handleTrainingDashboardToolAction();
     } else if (card.key === OPERATION_TYPES.TRAINING_PLAN) {
       // 直接生成培训方案记录，不弹出配置窗口
       const trainingPlanRecord = {

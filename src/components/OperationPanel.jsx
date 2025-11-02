@@ -1021,6 +1021,7 @@ if (typeof document !== 'undefined') {
         setRightPanelView={setRightPanelView}
         setRightPanelTrainingPlanRecord={setRightPanelTrainingPlanRecord}
         setRightPanelTrainingPlanContent={setRightPanelTrainingPlanContent}
+        selectedCategory={noteCategory}
       />
     );
   }
@@ -1339,6 +1340,9 @@ if (typeof document !== 'undefined') {
               getAvailableAITools={getAvailableAITools}
               loadingCards={loadingCards}
               hideEmptySlots={hideEmptySlots}
+              restrictedActive={window.__restrict_tools_stage1__ === true}
+              restrictedAllowedKeys={['training-report','training-dashboard']}
+              restrictedReason={'仅在选中“学段1”时允许培训报告/报表'}
             />
           )}
           
@@ -1489,6 +1493,7 @@ if (typeof document !== 'undefined') {
                     'grading': '✅',
                     'knowledge-graph': '🕸️',
                     'training-plan': '🎯',
+                    'training-dashboard': '📈',
                     'classroom-evaluation': '📊'
                   };
                   return iconMap[type] || '📄';

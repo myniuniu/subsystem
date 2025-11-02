@@ -17,7 +17,9 @@ const DraggableOperationCard = ({
   isEditMode, 
   hasSourceData, 
   sourceInfo,
-  isLoading = false // 新增加载状态
+  isLoading = false, // 新增加载状态
+  disabled = false,
+  disabledReason = ''
 }) => {
   // 培训方案配置窗口状态
   const [isConfigModalVisible, setIsConfigModalVisible] = useState(false);
@@ -53,32 +55,26 @@ const DraggableOperationCard = ({
     { value: 'cloud-computing', label: '云计算微专业' }
   ]), []);
   
-  // 处理培训方案卡片点击
-  const handleTrainingPlanClick = () => {
-    if (card.key === 'training-plan') {
+  // 处理需要确认/配置的卡片点击（培训方案、培训报表）
+  const handleCardClickWithConfirm = () => {
+    if (card.key === 'training-plan' || card.key === 'training-dashboard') {
       Modal.confirm({
-        title: '培训方案配置确认',
-        content: '是否已完成培训方案配置？',
+        title: card.key === 'training-dashboard' ? '培训报表生成确认' : '培训方案配置确认',
+        content: card.key === 'training-dashboard' ? '是否已完成报表生成参数配置？' : '是否已完成培训方案配置？',
         okText: '已配置，继续',
         cancelText: '去配置',
         icon: <SettingOutlined style={{ color: '#1890ff' }} />,
         onOk: () => {
-          // 用户确认已配置，执行原有的 onClick 逻辑
-          if (onClick) {
-            onClick();
-          }
+          if (onClick) onClick();
         },
         onCancel: () => {
-          // 用户选择去配置，打开配置窗口
           setIsConfigModalVisible(true);
         }
       });
-    } else {
-      // 其他工具直接执行 onClick
-      if (onClick) {
-        onClick();
-      }
+      return;
     }
+    // 其他工具直接执行 onClick
+    if (onClick) onClick();
   };
   
   // 所有工具在加载时都显示光圈效果
@@ -104,6 +100,31 @@ const DraggableOperationCard = ({
 
   // 渲染工具状态提示
   const renderStatusOverlay = () => {
+    // 受限状态覆盖层
+    if (disabled && !isEditMode) {
+      return (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.45)',
+          borderRadius: '8px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#fff',
+          fontSize: '10px',
+          textAlign: 'center',
+          padding: '4px'
+        }}>
+          <div style={{ fontSize: '16px', marginBottom: '2px' }}>🔒</div>
+          <div>{disabledReason || '当前不可用'}</div>
+        </div>
+      );
+    }
     // 加载状态覆盖层
     if (isLoading) {
       return (
@@ -188,9 +209,9 @@ const DraggableOperationCard = ({
       </style>
       
       <Tooltip 
-        title={!hasSourceData && !isEditMode ? 
+        title={disabled ? (disabledReason || '当前不可用') : (!hasSourceData && !isEditMode ? 
           `此工具需要数据源支持。当前状态：${sourceInfo?.details || '暂无数据源'}` : 
-          hasSourceData ? `基于${sourceInfo?.total || 0}个数据源` : card.title
+          hasSourceData ? `基于${sourceInfo?.total || 0}个数据源` : card.title)
         }
         placement="top"
       >
@@ -198,8 +219,8 @@ const DraggableOperationCard = ({
           ref={(node) => isEditMode ? drag(drop(node)) : node}
           style={{ 
             position: 'relative',
-            opacity: isDragging ? 0.5 : (hasSourceData || isEditMode) ? 1 : 0.6,
-            cursor: isLoading ? 'not-allowed' : (isEditMode ? 'move' : (hasSourceData ? 'pointer' : 'not-allowed'))
+            opacity: isDragging ? 0.5 : (disabled ? 0.55 : ((hasSourceData || isEditMode) ? 1 : 0.6)),
+            cursor: (isLoading || disabled) ? 'not-allowed' : (isEditMode ? 'move' : (hasSourceData ? 'pointer' : 'not-allowed'))
           }}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
@@ -212,22 +233,22 @@ const DraggableOperationCard = ({
           <Card 
             key={card.key}
             size="small" 
-            hoverable={!isLoading && (hasSourceData || isEditMode)}
-            onClick={!isEditMode && hasSourceData && !isLoading ? handleTrainingPlanClick : undefined}
+            hoverable={!isLoading && !disabled && (hasSourceData || isEditMode)}
+            onClick={!isEditMode && hasSourceData && !isLoading && !disabled ? handleCardClickWithConfirm : undefined}
             style={{ 
-              background: hasSourceData || isEditMode ? card.gradient : '#f5f5f5',
+              background: disabled ? '#f5f5f5' : (hasSourceData || isEditMode ? card.gradient : '#f5f5f5'),
               border: isEditMode ? '1px dashed #1890ff' : 'none',
               borderRadius: '8px',
               textAlign: 'center',
-              cursor: isLoading ? 'not-allowed' : (isEditMode ? 'move' : (hasSourceData ? 'pointer' : 'not-allowed')),
+              cursor: (isLoading || disabled) ? 'not-allowed' : (isEditMode ? 'move' : (hasSourceData ? 'pointer' : 'not-allowed')),
               transition: 'all 0.2s ease',
               height: '68px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               opacity: isEditMode ? 0.8 : 1,
-              filter: (!hasSourceData && !isEditMode) ? 'grayscale(100%)' : 'none',
-              pointerEvents: isLoading ? 'none' : 'auto' // 加载时禁止点击
+              filter: (disabled || (!hasSourceData && !isEditMode)) ? 'grayscale(100%)' : 'none',
+              pointerEvents: (isLoading || disabled) ? 'none' : 'auto' // 加载或受限时禁止点击
             }}
             styles={{ body: { padding: '4px' } }}
           >
@@ -236,7 +257,7 @@ const DraggableOperationCard = ({
               <Text style={{ 
                 fontSize: '10px', 
                 fontWeight: 500, 
-                color: hasSourceData || isEditMode ? card.color : '#999',
+                color: (disabled ? '#999' : (hasSourceData || isEditMode ? card.color : '#999')),
                 lineHeight: '1.2'
               }}>{card.title}</Text>
             </div>
@@ -245,8 +266,8 @@ const DraggableOperationCard = ({
           {/* 状态覆盖层 */}
           {renderStatusOverlay()}
           
-          {/* 培训方案配置按钮 - 一直显示，透明背景 */}
-          {card.key === 'training-plan' && !isEditMode && hasSourceData && (
+          {/* 培训方案/培训报表配置按钮 - 一直显示，透明背景 */}
+          {(card.key === 'training-plan' || card.key === 'training-dashboard') && !isEditMode && hasSourceData && (
             <Button
               type="text"
               size="small"
@@ -318,12 +339,12 @@ const DraggableOperationCard = ({
         </div>
       </Tooltip>
       
-      {/* 培训方案配置窗口 */}
+      {/* 培训方案/培训报表配置窗口 */}
       <Modal
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <SettingOutlined style={{ color: '#1890ff' }} />
-            <span>培训方案配置</span>
+            <span>{card.key === 'training-dashboard' ? '培训报表配置' : '培训方案配置'}</span>
           </div>
         }
         open={isConfigModalVisible}
@@ -332,12 +353,13 @@ const DraggableOperationCard = ({
           if (config.description && config.description.length > 2000) {
             Modal.warning({
               title: '字数超出限制',
-              content: `方案补充说明不能超过2000字，当前${config.description.length}字`,
+              content: `${card.key === 'training-dashboard' ? '报表补充说明' : '方案补充说明'}不能超过2000字，当前${config.description.length}字`,
             });
             return;
           }
           // 保存配置逻辑
-          localStorage.setItem('training_plan_config', JSON.stringify(config));
+          const key = card.key === 'training-dashboard' ? 'training_dashboard_config' : 'training_plan_config';
+          localStorage.setItem(key, JSON.stringify(config));
           setIsConfigModalVisible(false);
         }}
         onCancel={() => setIsConfigModalVisible(false)}

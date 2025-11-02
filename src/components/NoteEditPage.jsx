@@ -49,6 +49,7 @@ import CalendarCenter from './CalendarCenter';
 import ClassroomEvaluationFullscreen from './ClassroomEvaluationFullscreen';
 import ThemeSelectModal from './ThemeSelectModal';
 import TrainingPlanViewer from './OperationPanel/TrainingPlanViewer';
+import TrainingDashboardViewer from './OperationPanel/TrainingDashboardViewer';
 import OnDemandResourceLibrary from './OperationPanel/OnDemandResourceLibrary';
 import SimpleTrainingPlanDetailView from './SimpleTrainingPlanDetailView';
 import notesService from '../services/notesService';
@@ -1171,6 +1172,19 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         console.log('在右侧面板显示阅卷报告内容:', record.title);
         return;
       }
+
+      // 新增：培训报表记录点击，切换到全屏培训报表视图
+      if (record.type === 'training-dashboard') {
+        try {
+          setCurrentRecord(record);
+          setCurrentView(VIEW_MODES.TRAINING_DASHBOARD_FULLSCREEN);
+          message.success(`已打开培训报表：${record.title}`);
+        } catch (e) {
+          console.error('打开培训报表失败:', e);
+          message.error('打开培训报表失败，请稍后重试');
+        }
+        return;
+      }
       
       // 新增：课堂行为分析记录点击，右侧打开行为分析查看器
       if (record.type === 'classroom-behavior-analysis') {
@@ -1362,6 +1376,10 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               });
               return newRecords;
             });
+            try {
+              // 在资料管理默认模块生成“培训项目资料”条目，并打上“执行中”标签
+              window.dispatchEvent(new CustomEvent('trainingPlanSubmitted', { detail: { title: record.title } }));
+            } catch (e) { /* no-op */ }
             message.success(`培训方案"${record.title}"已成功提交！`);
             // 这里可以添加实际的提交逻辑，比如调用API
             console.log('提交培训方案:', record);
@@ -1559,6 +1577,13 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
     }
   };
 
+  // 监听打开培训报表全屏事件
+  useEffect(() => {
+    const openDashboard = () => setCurrentView(VIEW_MODES.TRAINING_DASHBOARD_FULLSCREEN);
+    window.addEventListener('openTrainingDashboardFullscreen', openDashboard);
+    return () => window.removeEventListener('openTrainingDashboardFullscreen', openDashboard);
+  }, []);
+
   return (
     <>
 
@@ -1661,6 +1686,52 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
             state={state}
             setCurrentView={setCurrentView}
           />
+        ) : currentView === VIEW_MODES.TRAINING_DASHBOARD_FULLSCREEN ? (
+          /* 培训报表全屏模式：占据全部三栏区域 */
+          <div style={{ 
+            flex: 1, 
+            background: '#f0f2f5', 
+            margin: '16px', 
+            borderRadius: '12px', 
+            overflow: 'hidden', 
+            display: 'flex', 
+            flexDirection: 'column',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            position: 'relative'
+          }}>
+            {/* 左上角返回图标 */}
+            <Button 
+              type="default"
+              shape="circle"
+              size="small"
+              icon={<ArrowLeftOutlined />}
+              onClick={() => setCurrentView(VIEW_MODES.MATERIALS)}
+              style={{ 
+                position: 'absolute',
+                top: '16px',
+                left: '16px',
+                zIndex: 1000,
+                color: '#666',
+                background: 'rgba(255,255,255,0.95)',
+                border: '1px solid #d9d9d9',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.08)'
+              }}
+            />
+
+            {/* 培训报表内容区域 */}
+            <div style={{ 
+              flex: 1, 
+              background: '#fff',
+              borderRadius: '12px',
+              overflow: 'hidden'
+            }}>
+              <TrainingDashboardViewer 
+                record={currentRecord}
+                content={currentRecord?.content}
+                onBack={() => setCurrentView(VIEW_MODES.MATERIALS)}
+              />
+            </div>
+          </div>
         ) : currentView === EXAM_VIEW_MODES.EXAM_REVIEW_FULLSCREEN ? (
           /* 考试评阅占位页：占据全部三栏区域 */
           <ExamReviewFullPage 

@@ -532,6 +532,50 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
 
   // 组织培训：置顶培训项目注入（来源于“培训需求管理”生成的培训方案）
   const [trainingProjects, setTrainingProjects] = useState([]);
+  // 培训需求管理：默认在“培训项目数据”中生成一条“新教师入职培训-学段1”（执行中）
+  useEffect(() => {
+    const inNeedsMgmt = (note?.category === 'training_needs_management');
+    if (!inNeedsMgmt) return;
+    const title = '新教师入职培训-学段1';
+    const nowISO = new Date().toISOString();
+    setTrainingProjects(prev => {
+      const list = Array.isArray(prev) ? prev : [];
+      if (list.some(p => p.title === title)) return list;
+      const newId = `tp_${Date.now()}`;
+      const item = { id: newId, title, category: 'training_project', sourceType: '培训方案', statusTag: '执行中', addTime: nowISO };
+      // 归属到默认模块
+      setModuleAssignments(prevAssign => {
+        const nextAssign = { ...prevAssign };
+        nextAssign.projects = { ...(prevAssign?.projects || {}) };
+        nextAssign.projects[newId] = 'default';
+        return nextAssign;
+      });
+      return [item, ...list];
+    });
+  }, [note?.id, note?.category]);
+  // 监听“培训方案提交”事件：在默认模块生成培训项目资料并标记为“执行中”
+  useEffect(() => {
+    const handler = (e) => {
+      const title = (e && e.detail && e.detail.title) ? e.detail.title : '未命名培训方案';
+      const nowISO = new Date().toISOString();
+      const newId = `tp_${Date.now()}`;
+      setTrainingProjects(prev => {
+        const list = Array.isArray(prev) ? prev : [];
+        const item = { id: newId, title, category: 'training_project', sourceType: '培训方案', statusTag: '执行中', addTime: nowISO };
+        return [item, ...list];
+      });
+      // 归属到默认模块
+      setModuleAssignments(prev => {
+        const next = { ...prev };
+        next.projects = { ...(prev?.projects || {}) };
+        next.projects[newId] = 'default';
+        return next;
+      });
+      message.success(`已生成培训项目资料：${title}`);
+    };
+    window.addEventListener('trainingPlanSubmitted', handler);
+    return () => window.removeEventListener('trainingPlanSubmitted', handler);
+  }, []);
   useEffect(() => {
     const isOrgTraining =
       note?.category === 'organizational_training' ||
@@ -2086,7 +2130,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                         <DownOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleSection('trainingProjects')} />
                       )}
                       <Text strong style={{ fontSize: '12px', color: '#666' }}>
-                        📌 培训项目资料 ({trainingProjects.length})
+                        {isTrainingNeedsManagement ? `📌 培训项目数据 (${trainingProjects.length})` : `📌 培训项目资料 (${trainingProjects.length})`}
                       </Text>
                     </div>
                   </div>
@@ -2139,14 +2183,28 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                           <Text strong style={{ fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {p.title}
                           </Text>
-                          <Tag color="blue">{p.sourceType || '培训方案'}</Tag>
+                          {!p.statusTag && (<Tag color="blue">{p.sourceType || '培训方案'}</Tag>)}
+                          {p.statusTag && (<Tag color="magenta">{p.statusTag}</Tag>)}
                           <Text type="secondary" style={{ fontSize: 10 }}>
                             {p.addTime}
                           </Text>
                         </div>
                         <Checkbox
                           checked={selectedMaterials.includes(`project-${p.id}`)}
-                          onChange={(e) => handleSelectMaterial(`project-${p.id}`, e.target.checked)}
+                          onChange={(e) => {
+                            handleSelectMaterial(`project-${p.id}`, e.target.checked);
+                            try {
+                              if (e.target.checked) {
+                                window.__selected_project_title__ = p.title;
+                              } else if (window.__selected_project_title__ === p.title) {
+                                window.__selected_project_title__ = undefined;
+                              }
+                              if (String(p.title || '').includes('新教师入职培训-学段1')) {
+                                window.__restrict_tools_stage1__ = !!e.target.checked;
+                              }
+                              window.dispatchEvent(new Event('aiToolsChanged'));
+                            } catch {}
+                          }}
                           onClick={(e) => e.stopPropagation()}
                         />
                       </div>
@@ -2184,7 +2242,7 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                       ] : [
                         { key: 'texts', present: modTexts.length > 0, label: '文本', color: 'gold' }
                       ]),
-                      { key: 'projects', present: modProjects.length > 0, label: '培训项目资料', color: 'green' }
+                      { key: 'projects', present: modProjects.length > 0, label: (isTrainingNeedsManagement ? '培训项目数据' : '培训项目资料'), color: 'green' }
                     ];
                     return (
                       <div key={`module-card-${mod.id}`} style={{ marginBottom: 14, border: '1px solid #e8e8e8', borderLeft: '2px solid #91d5ff', borderRadius: 8, background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
@@ -4050,12 +4108,26 @@ const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => handlers?.onViewTrainingProject && handlers.onViewTrainingProject(p)}>
                                     <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{p.title}</Text>
-                                    <Tag color="blue">{p.sourceType || '培训方案'}</Tag>
+                                    {!p.statusTag && (<Tag color="blue">{p.sourceType || '培训方案'}</Tag>)}
+                                    {p.statusTag && (<Tag color="magenta">{p.statusTag}</Tag>)}
                                     <Text type="secondary" style={{ fontSize: 10 }}>{p.addTime}</Text>
                                   </div>
                                   <Checkbox
                                     checked={selectedMaterials.includes(`project-${p.id}`)}
-                                    onChange={(e) => handleSelectMaterial(`project-${p.id}`, e.target.checked)}
+                                    onChange={(e) => {
+                                      handleSelectMaterial(`project-${p.id}`, e.target.checked);
+                                      try {
+                                        if (e.target.checked) {
+                                          window.__selected_project_title__ = p.title;
+                                        } else if (window.__selected_project_title__ === p.title) {
+                                          window.__selected_project_title__ = undefined;
+                                        }
+                                        if (String(p.title || '').includes('新教师入职培训-学段1')) {
+                                          window.__restrict_tools_stage1__ = !!e.target.checked;
+                                        }
+                                        window.dispatchEvent(new Event('aiToolsChanged'));
+                                      } catch {}
+                                    }}
                                     onClick={(e) => e.stopPropagation()}
                                   />
                                 </div>

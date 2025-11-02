@@ -97,6 +97,7 @@ export const VIEW_MODES = {
   LEARNING_PLAN_THREE_COLUMN: 'learning_plan_three_column',
   CLASSROOM_EVALUATION_FULLSCREEN: 'classroom_evaluation_fullscreen',
   TRAINING_PLAN_FULLSCREEN: 'training_plan_fullscreen',
+  TRAINING_DASHBOARD_FULLSCREEN: 'training_dashboard_fullscreen',
   TRAINING_PLAN_THREE_COLUMN: 'training_plan_three_column',
   // 研修成果详情（左侧面板内联显示）
   ACHIEVEMENT_DETAIL: 'achievement_detail',

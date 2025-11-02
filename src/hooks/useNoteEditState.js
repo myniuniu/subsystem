@@ -316,6 +316,41 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   
   const [operationRecords, setOperationRecords] = useState(getDefaultOperationRecords());
 
+  // 培训需求管理：规范培训方案操作记录的标题与来源，并补充“学段2”
+  useEffect(() => {
+    const isNeedsMgmt = (selectedCategory === 'training_needs_management' || note?.category === 'training_needs_management');
+    if (!isNeedsMgmt) return;
+    setOperationRecords(prev => {
+      const next = { ...prev };
+      const arr = Array.isArray(prev['training-plan']) ? [...prev['training-plan']] : [];
+      // 1) 将标题为“培训方案”的记录改名为“新教师入职培训-学段1”，并移除来源标签
+      for (let i = 0; i < arr.length; i++) {
+        const r = arr[i] || {};
+        if (String(r.title || '') === '培训方案') {
+          const { source, ...rest } = r;
+          arr[i] = { ...rest, title: '新教师入职培训-学段1', isSubmitted: true, submitTime: new Date().toLocaleString('zh-CN') };
+        }
+      }
+      // 若不存在任何培训方案记录，默认插入“学段1”
+      if (arr.length === 0) {
+        arr.push({ id: `tp-${Date.now()}`, title: '新教师入职培训-学段1', type: 'training-plan', time: new Date().toISOString(), isSubmitted: true, submitTime: new Date().toLocaleString('zh-CN') });
+      }
+      // 若仅一条，补充“学段2”
+      if (arr.length < 2) {
+        arr.unshift({ id: `tp-${Date.now() + 1}`, title: '新教师入职培训-学段2', type: 'training-plan', time: new Date().toISOString() });
+      }
+      next['training-plan'] = arr;
+      // 确保存在一条“新教师入职培训-学段1”的培训报表记录
+      const dashboards = Array.isArray(prev['training-dashboard']) ? [...prev['training-dashboard']] : [];
+      const hasStage1Dashboard = dashboards.some(r => String(r.title || '') === '新教师入职培训-学段1');
+      if (!hasStage1Dashboard) {
+        dashboards.unshift({ id: `td_${Date.now()}`, type: 'training-dashboard', title: '新教师入职培训-学段1', time: new Date().toISOString(), content: `<div style="padding:12px;color:#666;">默认培训报表：新教师入职培训-学段1</div>` });
+      }
+      next['training-dashboard'] = dashboards;
+      return next;
+    });
+  }, [note?.id, selectedCategory]);
+
   // 内容查看弹窗状态
   const [showContentModal, setShowContentModal] = useState(false);
   const [currentRecord, setCurrentRecord] = useState(null);

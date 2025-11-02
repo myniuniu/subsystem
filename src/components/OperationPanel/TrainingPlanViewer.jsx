@@ -66,6 +66,7 @@ import {
   useSortable
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { buildPlanSummary, publishPlanSummary } from '../../utils/trainingPlanSummary';
 
 const { Text, Title } = Typography;
 const { TabPane } = Tabs;
@@ -642,8 +643,11 @@ const TrainingPlanViewer = ({
   hideButtons = false,
   initialLayoutMode = 'both',
   readOnly = false,
-  showBackOnly = false
+  showBackOnly = false,
+  selectedCategory = null
 }) => {
+  // 组织培训分类下采用简洁详情视图；其他分类使用两栏布局
+  const useSimpleView = selectedCategory === 'organizational_training';
   // 编辑模式状态
   
   // 新增：人员清单弹窗状态与数据
@@ -1271,6 +1275,22 @@ const TrainingPlanViewer = ({
       setPlan((prev) => ({ ...prev, phases: nextPhases }));
     }
   }, [plan?.phases]);
+
+  // 发布方案摘要：供其他模块（如培训报表）消费
+  useEffect(() => {
+    try {
+      const summary = buildPlanSummary(plan || {});
+      publishPlanSummary(summary);
+    } catch (e) {}
+  }, [plan]);
+
+  // 发布方案摘要：用于报表模块消费（模块学习情况）
+  useEffect(() => {
+    try {
+      const summary = buildPlanSummary(plan || {});
+      publishPlanSummary(summary);
+    } catch (e) {}
+  }, [plan]);
 
   // 扁平化模块列表并保留索引路径
   const flattenModules = (phases = []) => {
@@ -2130,6 +2150,23 @@ const TrainingPlanViewer = ({
         return <Text type="secondary">暂未支持该部分的可视化编辑，请切换到 JSON 模式。</Text>;
     }
   };
+
+  // 简洁视图渲染（替代复杂编辑界面）
+  if (useSimpleView) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div style={{ padding: '16px', borderBottom: '1px solid #f0f0f0', background: '#fff' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <Button icon={<ArrowLeftOutlined />} onClick={handleBack} type="text">返回</Button>
+            <Title level={4} style={{ margin: 0 }}>{plan.title}</Title>
+          </div>
+        </div>
+        <div style={{ flex: 1, overflow: 'auto', padding: 16, background: '#f5f5f5' }}>
+          <SimpleTrainingPlanDetailView plan={plan} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>

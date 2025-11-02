@@ -18,7 +18,10 @@ const ToolGrid = ({
   onAddCard,
   getAvailableAITools = () => [],
   loadingCards = [], // 新增加载中的卡片列表
-  hideEmptySlots = false
+  hideEmptySlots = false,
+  restrictedActive = false,
+  restrictedAllowedKeys = [],
+  restrictedReason = ''
 }) => {
   const [moreMenuSearchTerm, setMoreMenuSearchTerm] = useState('');
   console.log('=== ToolGrid 渲染 ===');
@@ -52,6 +55,8 @@ const ToolGrid = ({
           const cardHasSourceData = card.key === 'addTool' ? true : hasSourceData;
           // 检查是否正在加载
           const isLoading = loadingCards.includes(card.key);
+          // 受限模式下，仅允许指定工具可用
+          const isRestrictedDisabled = restrictedActive && card.key !== 'addTool' && !restrictedAllowedKeys.includes(card.key);
           
           return (
             <DraggableOperationCard
@@ -65,6 +70,8 @@ const ToolGrid = ({
               hasSourceData={cardHasSourceData}
               sourceInfo={sourceInfo}
               isLoading={isLoading}
+              disabled={isRestrictedDisabled}
+              disabledReason={restrictedReason}
             />
           );
         })}
