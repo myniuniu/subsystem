@@ -54,8 +54,11 @@ import {
   TagsOutlined,
   PlusOutlined,
   AppstoreOutlined,
-  UnorderedListOutlined
+  UnorderedListOutlined,
+  RocketOutlined
 } from '@ant-design/icons'
+// 新增：取消发布图标与删除区分
+import { StopOutlined } from '@ant-design/icons'
 
 import './SmartNotes.css'
 import './ResourceLibrary.css'
@@ -308,6 +311,20 @@ const [collectionViewMode, setCollectionViewMode] = useState('grid') // 'grid' |
       width: 140
     },
     {
+      title: '状态',
+      key: 'publishStatus',
+      width: 100,
+      render: (_, record) => {
+        const s = record.rc?.publish?.status
+        if (!s) return <AntTag>未发布</AntTag>
+        return (
+          <AntTag color={s === 'published' ? 'green' : 'volcano'}>
+            {s === 'published' ? '已发布' : '草稿'}
+          </AntTag>
+        )
+      }
+    },
+    {
       title: '操作',
       key: 'actions',
       width: 220,
@@ -322,6 +339,15 @@ const [collectionViewMode, setCollectionViewMode] = useState('grid') // 'grid' |
           <Tooltip title="预览集合">
             <Button type="text" size="small" icon={<EyeOutlined />} onClick={(e) => { e.stopPropagation(); handlePreviewCollection(record.rc); }} />
           </Tooltip>
+          {record.rc?.publish?.status ? (
+            <Tooltip title="取消发布">
+              <Button type="text" size="small" danger icon={<StopOutlined />} onClick={(e) => { e.stopPropagation(); handleUnpublishCollection(record.rc); }} />
+            </Tooltip>
+          ) : (
+            <Tooltip title="发布集合">
+              <Button type="text" size="small" icon={<RocketOutlined />} onClick={(e) => { e.stopPropagation(); handleOpenPublishModal(record.rc); }} />
+            </Tooltip>
+          )}
           <Tooltip title="分享集合">
             <Button type="text" size="small" icon={<ShareAltOutlined />} onClick={(e) => { e.stopPropagation(); handleShareCollection(record.id); }} />
           </Tooltip>
@@ -478,7 +504,8 @@ const getCategoryIcon = (cat) => {
         items,
         tags: uniqueTags(items),
         isBookmarked: false,
-        isShared: false
+        isShared: false,
+        publish: c.id === 'technology_training' ? { status: 'published', space: DEFAULT_SPACE, title: c.title } : undefined
       }
     })
 
@@ -489,6 +516,7 @@ const getCategoryIcon = (cat) => {
         title: '新教师入职培训 · 教学方法入门',
         category: 'new_teacher_resources',
         createdAt: today,
+        publish: { status: 'published', space: DEFAULT_SPACE, title: '新教师入职培训 · 教学方法入门' },
         items: [
           { id: 'nt-1-v1', title: '课堂组织与管理（视频课程）', type: 'video', drive: 'org', size: '320 MB', lastModified: '2024-01-12', tags: ['新教师','视频课程','课堂组织'] },
           { id: 'nt-1-p1', title: '第一次课堂教学设计范例（教辅PPT）', type: 'ppt', drive: 'org', size: '2.4 MB', lastModified: '2024-01-11', tags: ['教辅','课件','教学设计'] },
@@ -654,6 +682,92 @@ const getCategoryIcon = (cat) => {
   const [editingCollection, setEditingCollection] = useState(null)
   const [editCollectionTitle, setEditCollectionTitle] = useState('')
   const [editCollectionTags, setEditCollectionTags] = useState([])
+
+  // 发布集合相关状态与处理
+  const [showPublishModal, setShowPublishModal] = useState(false)
+  const [publishingCollection, setPublishingCollection] = useState(null)
+  const [publishSpace, setPublishSpace] = useState(currentSpace)
+  const [publishImages, setPublishImages] = useState([])
+  const [publishTitle, setPublishTitle] = useState('')
+  const [publishSummary, setPublishSummary] = useState('')
+  const [publishLecturer, setPublishLecturer] = useState('')
+
+  const handleOpenPublishModal = (rc) => {
+    setPublishingCollection(rc)
+    setPublishSpace(currentSpace)
+    setPublishImages([])
+    setPublishTitle(rc?.title || '')
+    setPublishSummary('')
+    setPublishLecturer('')
+    setShowPublishModal(true)
+  }
+
+  const savePublishInfo = (status) => {
+    if (!publishingCollection) return
+    const imgUrls = (publishImages || []).map(f => f.url || f.thumbUrl).filter(Boolean)
+    const payload = {
+      space: publishSpace,
+      images: imgUrls,
+      title: publishTitle,
+      summary: publishSummary,
+      lecturer: publishLecturer,
+      status
+    }
+    setResourceCollections(prev => prev.map(c => c.id === publishingCollection.id ? { ...c, publish: payload } : c))
+    setActiveCollection(prev => prev && prev.id === publishingCollection.id ? { ...prev, publish: payload } : prev)
+
+    // 同步到本地存储，供学习广场读取
+    try {
+      const raw = localStorage.getItem('published_collections')
+      const map = raw ? JSON.parse(raw) : {}
+      map[publishingCollection.id] = payload
+      localStorage.setItem('published_collections', JSON.stringify(map))
+    } catch (e) {}
+  }
+
+  const handleSaveDraftPublish = () => {
+    savePublishInfo('draft')
+    setShowPublishModal(false)
+    setPublishingCollection(null)
+    message.success('已暂存发布信息')
+  }
+
+  const handleConfirmPublish = () => {
+    Modal.confirm({
+      title: '确认发布',
+      content: '是否要发布到学习广场？',
+      okText: '发布',
+      cancelText: '取消',
+      onOk: () => {
+        savePublishInfo('published')
+        setShowPublishModal(false)
+        setPublishingCollection(null)
+        message.success('集合已发布到学习广场')
+      }
+    })
+  }
+  const handleUnpublishCollection = (rc) => {
+    if (!rc) return
+    Modal.confirm({
+      title: '取消发布',
+      content: '确认将该集合取消发布？此操作不会删除内容。',
+      okText: '取消发布',
+      cancelText: '保留发布',
+      onOk: () => {
+        setResourceCollections(prev => prev.map(c => c.id === rc.id ? { ...c, publish: undefined } : c))
+        if (activeResource && activeResource.id === rc.id) {
+          setActiveResource(prev => ({ ...prev, publish: undefined }))
+        }
+        try {
+          const raw = localStorage.getItem('published_collections')
+          const map = raw ? JSON.parse(raw) : {}
+          delete map[rc.id]
+          localStorage.setItem('published_collections', JSON.stringify(map))
+        } catch (e) {}
+        message.success('已取消发布该集合')
+      }
+    })
+  }
   
   // 恢复云盘数据状态，供“从云盘添加”使用
   const [cloudDriveItems, setCloudDriveItems] = useState([
@@ -674,6 +788,16 @@ const getCategoryIcon = (cat) => {
   })))
   
   const [newCloudTarget, setNewCloudTarget] = useState('org')
+
+  // 收集可选空间（发布位置）
+  const availableSpaces = useMemo(() => {
+    const set = new Set([DEFAULT_SPACE])
+    ;(resourceCollections || []).forEach(rc => (rc.items || []).forEach(it => {
+      if (it.drive === 'org' && (it.space || DEFAULT_SPACE)) set.add(it.space || DEFAULT_SPACE)
+    }))
+    cloudDriveItems.forEach(it => { if (it.drive === 'org' && (it.space || DEFAULT_SPACE)) set.add(it.space || DEFAULT_SPACE) })
+    return Array.from(set)
+  }, [resourceCollections, cloudDriveItems])
 
   // 集合卡片动作处理（编辑/置顶/分享/删除）
   const handleEditCollection = (rc) => {
@@ -1978,7 +2102,14 @@ const getCategoryIcon = (cat) => {
                     <Row gutter={[16, 16]} style={{ marginTop: 12 }} className="notes-grid">
                       {displayCollections.map(rc => (
                         <Col key={rc.id} xs={24} sm={12} md={8} lg={6} xl={6}>
-                          <div className="note-card resource-card" onClick={() => { setActiveCollection(rc); setActiveResource(rc); setShowCollectionView(true); setSelectedCategoryKey(null); }}>
+                          <div className="note-card resource-card" style={{ position: 'relative' }} onClick={() => { setActiveCollection(rc); setActiveResource(rc); setShowCollectionView(true); setSelectedCategoryKey(null); }}>
+                            {rc.publish?.status && (
+                              <div style={{ position: 'absolute', top: -6, left: -6, zIndex: 10 }}>
+                                <AntTag color={rc.publish.status === 'published' ? 'green' : 'volcano'}>
+                                  {rc.publish.status === 'published' ? '已发布' : '草稿'}
+                                </AntTag>
+                              </div>
+                            )}
                             <Card
                               hoverable
                               actions={[
@@ -1987,6 +2118,13 @@ const getCategoryIcon = (cat) => {
                                   <TagsOutlined onClick={(e) => { e.stopPropagation(); handleEditCollection(rc) }} />
                                 </Tooltip>,
                                 <EyeOutlined key={`preview-${rc.id}`} onClick={(e) => { e.stopPropagation(); handlePreviewCollection(rc) }} />, 
+                                rc.publish?.status ? (
+                                  <Tooltip key={`unpublish-${rc.id}`} title="取消发布">
+                                    <StopOutlined onClick={(e) => { e.stopPropagation(); handleUnpublishCollection(rc) }} />
+                                  </Tooltip>
+                                ) : (
+                                  <RocketOutlined key={`publish-${rc.id}`} onClick={(e) => { e.stopPropagation(); handleOpenPublishModal(rc) }} />
+                                ), 
                                 <ShareAltOutlined key={`share-${rc.id}`} onClick={(e) => { e.stopPropagation(); handleShareCollection(rc.id) }} />, 
                                 <DeleteOutlined key={`del-${rc.id}`} onClick={(e) => { e.stopPropagation(); handleDeleteCollection(rc.id) }} />
                               ]}
@@ -2140,6 +2278,78 @@ const getCategoryIcon = (cat) => {
               </Col>
             ))}
         </Row>
+      </Modal>
+
+      {/* 发布集合弹窗 */}
+      <Modal
+        title="发布集合"
+        open={showPublishModal}
+        onCancel={() => { setShowPublishModal(false); setPublishingCollection(null) }}
+        footer={null}
+        width={640}
+        centered
+      >
+        <Space direction="vertical" style={{ width: '100%' }}>
+          <div>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>标题</div>
+            <Input
+              value={publishTitle}
+              onChange={(e) => setPublishTitle(e.target.value)}
+              placeholder="请输入集合标题"
+            />
+          </div>
+          <div>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>发布位置</div>
+            <Select
+              value={publishSpace}
+              onChange={setPublishSpace}
+              style={{ width: '100%' }}
+              placeholder="选择发布的空间"
+            >
+              {availableSpaces.map(sp => (
+                <Option key={sp} value={sp}>{sp}</Option>
+              ))}
+            </Select>
+          </div>
+          <div>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>轮播图（可多张）</div>
+            <Upload
+              listType="picture-card"
+              accept="image/*"
+              multiple
+              fileList={publishImages}
+              onChange={({ fileList }) => setPublishImages(fileList)}
+            >
+              <div>
+                <UploadOutlined />
+                <div style={{ marginTop: 8 }}>上传图片</div>
+              </div>
+            </Upload>
+          </div>
+          <div>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>内容简介</div>
+            <Input.TextArea
+              rows={3}
+              value={publishSummary}
+              onChange={(e) => setPublishSummary(e.target.value)}
+              placeholder="内容简介"
+            />
+          </div>
+          <div>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>讲师介绍</div>
+            <Input.TextArea
+              rows={3}
+              value={publishLecturer}
+              onChange={(e) => setPublishLecturer(e.target.value)}
+              placeholder="讲师介绍"
+            />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <Button onClick={handleSaveDraftPublish}>暂存</Button>
+            <Button type="primary" onClick={handleConfirmPublish}>发布</Button>
+            <Button onClick={() => { setShowPublishModal(false); setPublishingCollection(null) }}>取消</Button>
+          </div>
+        </Space>
       </Modal>
 
       {/* 集合项快速预览弹窗 */}

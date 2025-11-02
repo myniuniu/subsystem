@@ -1143,6 +1143,7 @@ const SmartNotes = ({ onViewChange }) => {
             background: '#ffffff'
           }
         } : null}
+        shareTargetSquareSection={selectedCategory === 'training_needs_management' ? 'training-projects' : undefined}
         sourceData={{
           uploadedFiles: [
             { id: 1, name: '教师专业发展指导手册.pdf', type: 'application/pdf', uploadTime: '刚刚' },

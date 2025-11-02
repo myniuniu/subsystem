@@ -57,6 +57,7 @@ const ThemeShareModal = ({
   onCancel, 
   theme,
   onShareSuccess,
+  shareTargetSquareSection,
   // 新增：来源区和操作记录区数据
   sourceData = {
     uploadedFiles: [],
@@ -156,12 +157,15 @@ const ThemeShareModal = ({
         sharedBy: '当前用户'
       };
 
-      const result = themeShareService.shareToLearningSquare(theme, shareOptions);
+      const result = shareTargetSquareSection === 'training-projects'
+        ? themeShareService.shareTrainingProjectToLearningSquare(theme, shareOptions)
+        : themeShareService.shareToLearningSquare(theme, shareOptions);
       
       if (result) {
         message.success('主题已成功分享到学习广场！');
         if (onShareSuccess) {
-          onShareSuccess('learning-square', result);
+          const target = shareTargetSquareSection === 'training-projects' ? 'learning-square-training-projects' : 'learning-square'
+          onShareSuccess(target, result);
         }
         onCancel();
       }

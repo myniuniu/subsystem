@@ -1706,14 +1706,11 @@ class NotesService {
         materials: noteData.materials || null,  // 关联的资料信息
         // 添加学习时间（如果是组织培训且没有提供）
         learningSchedule: noteData.learningSchedule || defaultLearningSchedule,
-        // 为培训需求管理分类默认添加操作记录
+        // 为培训需求管理分类默认添加操作记录（仅培训方案，不默认生成培训报表）
         operationRecords: noteData.operationRecords || (noteData.category === 'training_needs_management' ? {
           'training-plan': [
             this.generateDefaultTrainingPlanRecord('新教师入职培训-学段1'),
             this.generateDefaultTrainingPlanRecord('新教师入职培训-学段2')
-          ],
-          'training-dashboard': [
-            this.generateDefaultTrainingDashboardRecord('培训报表')
           ]
         } : {})
       };

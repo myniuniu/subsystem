@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Layout,
   Card,
@@ -44,12 +44,37 @@ import notesService from '../services/notesService';
 // 导入主题分享服务
 import themeShareService from '../services/themeShareService';
 import './LearningSquare.css';
+import { initialResources } from '../data/resourceLibraryData';
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
 const { Search } = Input;
 const { Option } = Select;
 const { TabPane } = Tabs;
+
+// 单行标签组件：超出一行时在末尾显示“…”
+const SingleLineTags = ({ tags = [], size = 'small' }) => {
+  const ref = useRef(null)
+  const [overflow, setOverflow] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const check = () => {
+      setOverflow(el.scrollWidth > el.clientWidth + 1)
+    }
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [tags])
+  return (
+    <div ref={ref} className="single-line-tags" style={{ width: '100%' }}>
+      {tags.map(tag => (
+        <Tag key={`tag-${tag}`} size={size}>{tag}</Tag>
+      ))}
+      {overflow && <Tag key="ellipsis" size={size}>…</Tag>}
+    </div>
+  )
+}
 
 const LearningSquare = () => {
   const [loading, setLoading] = useState(false);
@@ -58,12 +83,17 @@ const LearningSquare = () => {
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
   const [selectedPrice, setSelectedPrice] = useState('all');
   const [sharedThemes, setSharedThemes] = useState([]);
-  const [activeTab, setActiveTab] = useState('courses');
+  const [activeTab, setActiveTab] = useState('collections');
+  const [publishedCollections, setPublishedCollections] = useState([]);
+  const [filterSpace, setFilterSpace] = useState('all');
+  const [trainingProjects, setTrainingProjects] = useState([]);
 
   // 测试组件是否正常加载
   useEffect(() => {
     console.log('学习广场组件已加载');
     loadSharedThemes();
+    loadPublishedCollections();
+    loadTrainingProjects();
   }, []);
 
   // 加载分享的主题
@@ -71,6 +101,112 @@ const LearningSquare = () => {
     const themes = themeShareService.getLearningSquareThemes();
     setSharedThemes(themes);
   };
+
+  // 从资源库发布记录加载“已发布的资料集”
+  const DEFAULT_SPACE = '技术部-研发';
+  const categoryLabels = {
+    teaching_resources: '教学资源精选',
+    technology_training: '技术培训精选',
+    family_education: '家庭教育精选',
+    school_management: '学校管理精选',
+    mental_health: '心理健康研修',
+    new_teacher_resources: '新教师资源'
+  };
+
+  const createDefaultCollections = () => {
+    const pickByCategory = (cat, limit = 8) => initialResources.filter(r => r.category === cat).slice(0, limit);
+    const today = new Date().toLocaleDateString('zh-CN');
+    const cats = [
+      { id: 'teaching_resources', title: '教学资源精选' },
+      { id: 'technology_training', title: '技术培训精选' },
+      { id: 'family_education', title: '家庭教育精选' },
+      { id: 'school_management', title: '学校管理精选' },
+      { id: 'mental_health', title: '心理健康研修' }
+    ];
+    const uniqueTags = (items, limit = 12) => {
+      const set = new Set();
+      items.forEach(i => (i.tags || []).forEach(t => set.add(t)));
+      return Array.from(set).slice(0, limit);
+    };
+    const baseCollections = cats.map((c, idx) => {
+      const items = pickByCategory(c.id, 8);
+      return {
+        id: `rc-${c.id}-${idx+1}`,
+        title: c.title,
+        category: c.id,
+        createdAt: today,
+        items,
+        tags: uniqueTags(items)
+      };
+    });
+    const newTeacherCollections = [
+      {
+        id: 'rc-new_teacher_resources-1',
+        title: '新教师入职培训 · 教学方法入门',
+        category: 'new_teacher_resources',
+        createdAt: today,
+        items: []
+      }
+    ];
+    return [...baseCollections, ...newTeacherCollections];
+  };
+
+  const getCollectionThumbnail = (rc) => '/thumbnails/default.png';
+
+  const loadPublishedCollections = () => {
+    try {
+      const raw = localStorage.getItem('published_collections');
+      const map = raw ? JSON.parse(raw) : {};
+      const defaults = createDefaultCollections();
+
+      // 如果本地尚无发布记录，初始化两个默认“已发布”资料集
+      if (!raw || Object.keys(map).length === 0) {
+        const tech = defaults.find(c => c.id === 'rc-technology_training-2');
+        const nt1 = defaults.find(c => c.id === 'rc-new_teacher_resources-1');
+        if (tech) {
+          map[tech.id] = { status: 'published', space: DEFAULT_SPACE, title: tech.title };
+        }
+        if (nt1) {
+          map[nt1.id] = { status: 'published', space: DEFAULT_SPACE, title: nt1.title };
+        }
+        localStorage.setItem('published_collections', JSON.stringify(map));
+      }
+
+      const list = Object.entries(map).map(([id, publish]) => {
+        const rc = defaults.find(c => c.id === id) || { id, title: publish?.title || '资料集', category: 'teaching_resources', items: [], tags: [] };
+        return {
+          ...rc,
+          publish,
+          categoryLabel: categoryLabels[rc.category] || '资料集',
+          thumb: getCollectionThumbnail(rc)
+        };
+      });
+      setPublishedCollections(list);
+    } catch (e) {
+      setPublishedCollections([]);
+    }
+  };
+
+  const availableSpaces = useMemo(() => {
+    const set = new Set()
+    publishedCollections.forEach(rc => { const sp = rc.publish?.space; if (sp) set.add(sp) })
+    return ['all', ...Array.from(set)]
+  }, [publishedCollections])
+
+  const filteredCollections = useMemo(() => {
+    if (filterSpace === 'all') return publishedCollections
+    return (publishedCollections || []).filter(rc => (rc.publish?.space === filterSpace))
+  }, [publishedCollections, filterSpace])
+
+  // 加载培训项目
+  const loadTrainingProjects = () => {
+    try {
+      const list = themeShareService.getLearningSquareTrainingProjects?.() || [];
+      setTrainingProjects(list);
+    } catch {
+      setTrainingProjects([]);
+    }
+  }
 
   // 热门课程数据
   const hotCourses = [
@@ -234,28 +370,29 @@ const LearningSquare = () => {
     }}>
       {/* 顶部搜索区域 */}
       <div style={{ 
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        padding: '24px',
-        borderRadius: '0 0 16px 16px',
-        marginBottom: '16px',
+        background: '#fff',
+        padding: '12px 24px',
+        borderBottom: '1px solid #f0f0f0',
         flexShrink: 0
       }}>
-        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-          <Title level={2} style={{ color: 'white', margin: 0 }}>
-            🎓 学习广场
-          </Title>
-          <Text style={{ color: 'rgba(255,255,255,0.8)' }}>
-            发现优质课程，开启学习之旅
-          </Text>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <Title level={3} style={{ margin: 0 }}>学习广场</Title>
+          <Space>
+            <Select value={filterSpace} onChange={setFilterSpace} style={{ width: 160 }}>
+              {availableSpaces.map(sp => (
+                <Select.Option key={sp} value={sp}>{sp === 'all' ? '所有空间' : sp}</Select.Option>
+              ))}
+            </Select>
+            <Search
+              placeholder="搜索资料集..."
+              allowClear
+              enterButton
+              size="middle"
+              style={{ width: 360 }}
+              onSearch={handleSearch}
+            />
+          </Space>
         </div>
-        <Search
-          placeholder="搜索课程、主题、讲师..."
-          allowClear
-          enterButton
-          size="large"
-          style={{ maxWidth: '500px', margin: '0 auto', display: 'block' }}
-          onSearch={handleSearch}
-        />
       </div>
 
       {/* 主要内容区域 - 可滚动 */}
@@ -272,12 +409,67 @@ const LearningSquare = () => {
           tabBarStyle={{ marginBottom: '16px' }}
         >
           <TabPane 
-            tab={
-              <span>
-                <VideoCameraOutlined />
-                精品课程
-              </span>
-            } 
+            tab={<span>培训项目</span>} 
+            key="training-projects"
+          >
+            <div style={{ height: 'calc(100vh - 280px)', overflowY: 'auto', paddingRight: 8 }}>
+              {trainingProjects.length === 0 ? (
+                <Empty description="暂无分享的培训项目" />
+              ) : (
+                <Row gutter={[16, 16]}>
+                  {trainingProjects.map(p => (
+                    <Col key={p.id} xs={24} sm={12} md={8} lg={6}>
+                      <Card hoverable title={p.title}>
+                        <div style={{ marginBottom: 8 }}>
+                          <Tag>空间：{p.space || DEFAULT_SPACE}</Tag>
+                        </div>
+                        <div style={{ marginBottom: 8 }}>
+                          <Text type="secondary">由 {p.sharedBy} 分享 · {new Date(p.sharedAt).toLocaleDateString()}</Text>
+                        </div>
+                        <SingleLineTags tags={p.tags || []} />
+                        {p.description && (
+                          <div style={{ marginTop: 8, color: '#666' }}>{p.description}</div>
+                        )}
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+              )}
+            </div>
+          </TabPane>
+
+          <TabPane 
+            tab={<span>资料集</span>} 
+            key="collections"
+          >
+            <div style={{ height: 'calc(100vh - 280px)', overflowY: 'auto', paddingRight: 8 }}>
+              {filteredCollections.length === 0 ? (
+                <Empty description="暂无已发布的资料集" />
+              ) : (
+                <Row gutter={[16, 16]}>
+                  {filteredCollections.map(rc => (
+                    <Col key={rc.id} xs={24} sm={12} md={8} lg={6}>
+                      <Card
+                        hoverable
+                        style={{ height: 280, display: 'flex', flexDirection: 'column' }}
+                        title={<Space><span>{rc.title}</span><Tag color="green">已发布</Tag></Space>}
+                        extra={<Tag>空间：{rc.publish?.space || DEFAULT_SPACE}</Tag>}
+                        cover={<img alt="缩略图" src={rc.thumb} style={{ height: 140, objectFit: 'cover' }} />}
+                      >
+                        <div style={{ marginBottom: 8 }}>
+                          <Text type="secondary">分类：{rc.categoryLabel}</Text>
+                        </div>
+                        <SingleLineTags tags={(rc.tags || []).slice(0, 12)} />
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+              )}
+            </div>
+          </TabPane>
+          {false && (
+          <TabPane 
+            tab={<span><VideoCameraOutlined /> 精品课程</span>} 
             key="courses"
           >
             <div style={{ 
@@ -422,7 +614,7 @@ const LearningSquare = () => {
                 ))}
               </Row>
             </div>
-          </TabPane>
+          </TabPane>)}
 
           <TabPane 
             tab={
@@ -537,10 +729,9 @@ const LearningSquare = () => {
                                     {theme.rating || 5}
                                   </span>
                                 </div>
+                                <SingleLineTags tags={theme.tags || []} />
                                 <div style={{ marginBottom: '8px' }}>
-                                  {theme.tags?.map(tag => (
-                                    <Tag key={tag} color="blue" size="small">{tag}</Tag>
-                                  ))}
+                                  <Tag>空间：{theme.space || DEFAULT_SPACE}</Tag>
                                 </div>
                                 <div style={{ color: '#999', fontSize: '12px' }}>
                                   <ClockCircleOutlined /> {new Date(theme.sharedAt).toLocaleDateString()}

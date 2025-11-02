@@ -50,6 +50,8 @@ class ThemeShareService {
   // 分享主题到学习广场
   shareToLearningSquare(theme, shareOptions = {}) {
     try {
+      const DEFAULT_SPACE = '技术部-研发'
+      const currentSpace = (() => { try { return localStorage.getItem('current_knowledge_space') || DEFAULT_SPACE } catch { return DEFAULT_SPACE } })()
       const shareData = {
         id: `shared-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         themeId: theme.key,
@@ -61,6 +63,7 @@ class ThemeShareService {
         title: shareOptions.title || `${theme.name} - 精美主题分享`,
         description: shareOptions.description || `分享一个精美的${theme.name}主题，快来体验吧！`,
         tags: shareOptions.tags || ['主题', '界面', '美化'],
+        space: shareOptions.space || currentSpace,
         isPublic: true,
         likes: 0,
         downloads: 0,
@@ -90,6 +93,67 @@ class ThemeShareService {
       console.error('分享到学习广场失败:', error);
       message.error('分享失败，请重试');
       return null;
+    }
+  }
+
+  // 分享“培训项目”到学习广场（用于培训需求管理）
+  shareTrainingProjectToLearningSquare(theme, shareOptions = {}) {
+    try {
+      const DEFAULT_SPACE = '技术部-研发'
+      const currentSpace = (() => { try { return localStorage.getItem('current_knowledge_space') || DEFAULT_SPACE } catch { return DEFAULT_SPACE } })()
+      const project = {
+        id: `proj-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        themeId: theme?.key || theme?.id,
+        title: shareOptions.title || (theme?.name ? `${theme.name} · 培训项目` : '培训项目'),
+        description: shareOptions.description || '',
+        tags: shareOptions.tags || ['培训项目'],
+        sharedBy: shareOptions.sharedBy || '当前用户',
+        sharedAt: new Date().toISOString(),
+        space: shareOptions.space || currentSpace,
+        status: 'active'
+      }
+
+      // 写入本地存储
+      const raw = localStorage.getItem('learning_square_training_projects')
+      const list = raw ? JSON.parse(raw) : []
+      list.unshift(project)
+      localStorage.setItem('learning_square_training_projects', JSON.stringify(list))
+
+      // 同步到分享历史
+      this.shareHistory.unshift({
+        id: project.id,
+        type: 'learning_square_training_project',
+        themeName: theme?.name || '培训项目',
+        sharedAt: project.sharedAt,
+        status: 'success'
+      })
+      this.saveShareHistory()
+
+      message.success(`已将「${project.title}」分享到学习广场 · 培训项目`)
+      return project
+    } catch (error) {
+      console.error('分享到学习广场的培训项目失败:', error)
+      message.error('分享失败，请重试')
+      return null
+    }
+  }
+
+  // 获取学习广场的“培训项目”列表
+  getLearningSquareTrainingProjects() {
+    try {
+      const DEFAULT_SPACE = '技术部-研发'
+      const currentSpace = (() => { try { return localStorage.getItem('current_knowledge_space') || DEFAULT_SPACE } catch { return DEFAULT_SPACE } })()
+      const raw = localStorage.getItem('learning_square_training_projects')
+      let list = raw ? JSON.parse(raw) : []
+      let changed = false
+      list = (list || []).map(p => {
+        if (!p.space) { changed = true; return { ...p, space: currentSpace } }
+        return p
+      })
+      if (changed) localStorage.setItem('learning_square_training_projects', JSON.stringify(list))
+      return list.filter(p => p.status !== 'deleted')
+    } catch {
+      return []
     }
   }
 
@@ -160,6 +224,17 @@ class ThemeShareService {
 
   // 获取学习广场的分享主题
   getLearningSquareThemes() {
+    try {
+      const DEFAULT_SPACE = '技术部-研发'
+      const currentSpace = (() => { try { return localStorage.getItem('current_knowledge_space') || DEFAULT_SPACE } catch { return DEFAULT_SPACE } })()
+      // 为所有主题补齐 space 字段（若缺失）
+      let changed = false
+      this.sharedThemes = (this.sharedThemes || []).map(t => {
+        if (!t.space) { changed = true; return { ...t, space: currentSpace } }
+        return t
+      })
+      if (changed) this.saveSharedThemes()
+    } catch {}
     return this.sharedThemes.filter(theme => theme.shareType === 'learning_square' && theme.status === 'active');
   }
 

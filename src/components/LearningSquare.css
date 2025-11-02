@@ -26,9 +26,17 @@
 
 /* 卡片悬停效果 */
 .learning-square .ant-card:hover {
-  transform: translateY(-2px);
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important;
+  transition: box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+}
+
+/* 标签仅一行显示，超出隐藏 */
+.learning-square .single-line-tags {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 /* 标签页样式优化 */
