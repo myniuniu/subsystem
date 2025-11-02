@@ -1515,7 +1515,8 @@ if (typeof document !== 'undefined') {
                         cursor: record.isGenerating ? 'not-allowed' : 'pointer',
                         transition: 'all 0.3s ease',
                         boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-                        opacity: record.isGenerating ? 0.7 : 1
+                        opacity: record.isGenerating ? 0.7 : 1,
+                        position: 'relative'
                       }}
                       onMouseEnter={(e) => {
                         if (!record.isGenerating) {
@@ -1532,7 +1533,48 @@ if (typeof document !== 'undefined') {
                         }
                       }}
                     >
-                      {getIcon(record.type, record.isGenerating)}
+                      {(() => {
+                        // 左上角显示工具名称（简短标签）
+                        const typeLabelMap = {
+                          'audio': '音',
+                          'video': '视',
+                          'mindmap': '脑',
+                          'report': '报',
+                          'ppt': 'P',
+                          'webcode': '码',
+                          'scenario': '戏',
+                          'note': '记',
+                          'question': '题',
+                          'learning-plan': '学',
+                          'grading': '评',
+                          'knowledge-graph': '图',
+                          'training-plan': '培',
+                          'training-dashboard': '训',
+                          'classroom-evaluation': '课'
+                        };
+                        const label = typeLabelMap[record.type] || '工';
+                        return (
+                          <>
+                            <div style={{
+                              position: 'absolute',
+                              top: -4,
+                              left: -4,
+                              width: 18,
+                              height: 18,
+                              borderRadius: 6,
+                              background: 'linear-gradient(135deg, #f0f5ff 0%, #d6e4ff 100%)',
+                              border: '1px solid #91a7ff',
+                              color: '#1d39c4',
+                              fontSize: 11,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              boxShadow: '0 1px 2px rgba(0,0,0,0.08)'
+                            }}>{label}</div>
+                            {getIcon(record.type, record.isGenerating)}
+                          </>
+                        );
+                      })()}
                     </div>
                   </Tooltip>
                 );
@@ -1715,7 +1757,9 @@ if (typeof document !== 'undefined') {
                   cursor: record.isGenerating ? 'not-allowed' : 'pointer',
                   transition: 'all 0.2s ease',
                   opacity: record.isGenerating ? 0.7 : 1,
-                  background: record.isGenerating ? '#e6f7ff' : '#fff'
+                  background: record.isGenerating ? '#e6f7ff' : '#fff',
+                  position: 'relative',
+                  overflow: 'visible'
                 }}
                 styles={{ body: { padding: '8px 12px' } }}
                 onClick={(e) => {
@@ -1736,6 +1780,46 @@ if (typeof document !== 'undefined') {
                   }
                 }}
               >
+                {(() => {
+                  const typeFullNameMap = {
+                    'audio': '音频概览',
+                    'video': '视频概览',
+                    'mindmap': '思维导图',
+                    'report': '分析报告',
+                    'ppt': 'PPT演示',
+                    'webcode': '网页代码',
+                    'scenario': '场景模拟',
+                    'note': '笔记',
+                    'question': '试题',
+                    'learning-plan': '学习计划',
+                    'grading': '智能评阅',
+                    'knowledge-graph': '知识图谱',
+                    'training-plan': '培训方案',
+                    'training-dashboard': '培训报表',
+                    'classroom-evaluation': '课堂评价'
+                  };
+                  const badgeText = typeFullNameMap[record.type] || '智能工具';
+                  // 角标样式（右上角斜角丝带），低调配色
+                  return (
+                    <div style={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 48,
+                      padding: 0,
+                      maxWidth: 140,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#8c8c8c',
+                      fontSize: 10,
+                      fontWeight: 500,
+                      zIndex: 2,
+                      pointerEvents: 'none'
+                    }}>{badgeText}</div>
+                  );
+                })()}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
                     <div style={{
