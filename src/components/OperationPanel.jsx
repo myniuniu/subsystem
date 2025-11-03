@@ -1872,6 +1872,27 @@ if (typeof document !== 'undefined') {
                             </Tag>
                           );
                         })()}
+                        {(() => {
+                          // 生成方式标签：对白板、文档、培训方案、培训报表显示（AI / 手工）
+                          const isDoc = (record.type === 'note' && record.subType === 'document');
+                          const isWhiteboard = (record.type === 'whiteboard' || (record.type === 'note' && record.subType === 'whiteboard'));
+                          const isTrainingPlan = (record.type === 'training-plan');
+                          const isTrainingDashboard = (record.type === 'training-dashboard');
+                          if (!isDoc && !isWhiteboard && !isTrainingPlan && !isTrainingDashboard) return null;
+                          const genLabel = record.isAIGenerated ? 'AI' : '手工';
+                          const genColor = record.isAIGenerated ? 'processing' : 'default';
+                          return (
+                            <Tag color={genColor} style={{
+                              flexShrink: 0,
+                              margin: 0,
+                              fontSize: 12,
+                              lineHeight: '18px',
+                              height: 20
+                            }}>
+                              {genLabel}
+                            </Tag>
+                          );
+                        })()}
                         {/* 显示研修成果标记状态 */}
                         {record.tags && record.tags.includes('研修成果') && (
                           <div style={{

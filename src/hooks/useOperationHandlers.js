@@ -412,6 +412,7 @@ export const useOperationHandlers = ({
         source: sourceInfo?.details || '基于当前数据源',
         time: new Date().toLocaleString('zh-CN'),
         sourceRefs: getSourceRefs(),
+        isAIGenerated: true,
         content: `<div style="padding: 20px; text-align: center;">
           <h3>📄 EPBL教学设计</h3>
           <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的教学设计文档</p>
