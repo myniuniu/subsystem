@@ -34,6 +34,26 @@ const subtitleData = [
 ];
 
 export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCategory = null) => {
+  // 主题判定：E-PBL 且为“为什么有些人喝了咖啡反而更困?”
+  const isEPBLCategory = (selectedCategory === 'e_pbl' || note?.category === 'e_pbl' || selectedCategory === 'E-PBL' || note?.category === 'E-PBL');
+  const isCoffeeTopic = /咖啡/.test(String(note?.title || '')) && /更困/.test(String(note?.title || '')) || (String(note?.title || '') === '为什么有些人喝了咖啡反而更困?');
+  const isCoffeeEPBL = isEPBLCategory && isCoffeeTopic;
+  // 咖啡主题模拟资料（用于默认模块）
+  const COFFEE_SIM_FILES = [
+    { id: 'cf_paper_001', name: '咖啡因代谢与个体差异综述.pdf', type: 'application/pdf', uploadTime: '刚刚' },
+    { id: 'cf_paper_002', name: '睡眠压力与腺苷机制研究.pdf', type: 'application/pdf', uploadTime: '1分钟前' }
+  ];
+  const COFFEE_SIM_LINKS = [
+    { id: 'cf_link_01', url: 'https://www.sleepfoundation.org/nutrition/caffeine-and-sleep', title: '科普：咖啡因与睡眠', addTime: '刚刚' },
+    { id: 'cf_link_02', url: 'https://www.ncbi.nlm.nih.gov/books/NBK519065/', title: '文献：咖啡因的药理机制（腺苷受体）', addTime: '1分钟前' }
+  ];
+  const COFFEE_SIM_TEXTS = [
+    { id: 'cf_text_01', title: '研究假设', content: '假设一：少数人喝咖啡更困可能与腺苷受体敏感性、清除速度及睡眠债相关。', addTime: '刚刚' },
+    { id: 'cf_text_02', title: '实验设计草案', content: '采集受试者基线睡眠时长、摄入剂量、代谢时间窗，控制变量并记录主观困倦量表。', addTime: '1分钟前' }
+  ];
+  const COFFEE_SIM_VIDEOS = [
+    { id: 'cf_vid_01', title: '咖啡因与睡眠-科普讲解', courseId: 'cf_course', courseTitle: '咖啡与生理', url: '/assets/2.mp4', addTime: '刚刚', duration: '7分22秒', instructor: '生理学讲师', progress: 0, videoInfo: { type: 'single_video', progress: 0, duration: 442, instructor: '讲师' } }
+  ];
   // 特判：我的评阅分类下默认提供固定评阅来源数据（首项已改名）
   const isMyEvaluation = (
     selectedCategory === 'my_evaluation' ||
@@ -41,6 +61,10 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   );
   // 资料收集相关状态
   const [uploadedFiles, setUploadedFiles] = useState(() => {
+    // 咖啡主题：覆盖使用模拟文件
+    if (isCoffeeEPBL) {
+      return COFFEE_SIM_FILES;
+    }
     // 我的评阅：不注入默认试卷/文件
     if (isMyEvaluation) {
       return [];
@@ -108,6 +132,10 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
     projects: {}
   });
   const [links, setLinks] = useState(() => {
+    // 咖啡主题：覆盖使用模拟链接
+    if (isCoffeeEPBL) {
+      return COFFEE_SIM_LINKS;
+    }
     // 我的评阅：不注入默认链接
     if (isMyEvaluation) {
       return [];
@@ -159,6 +187,10 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   // 文字内容相关状态
   const [textContent, setTextContent] = useState('');
   const [addedTexts, setAddedTexts] = useState(() => {
+    // 咖啡主题：覆盖使用模拟文本
+    if (isCoffeeEPBL) {
+      return COFFEE_SIM_TEXTS;
+    }
     // 我的评阅：固定展示四条评阅来源数据（首项改为“学生管理基础 | 情景模拟”）
     if (isMyEvaluation) {
       return [
@@ -226,6 +258,10 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   const [videoTitle, setVideoTitle] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [courseVideos, setCourseVideos] = useState(() => {
+    // 咖啡主题：覆盖使用模拟视频
+    if (isCoffeeEPBL) {
+      return COFFEE_SIM_VIDEOS;
+    }
     // 我的评阅：不注入默认课程视频
     if (isMyEvaluation) {
       return [];
@@ -281,6 +317,8 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   // 操作记录状态
   const getDefaultOperationRecords = () => {
     const defaultRecords = {
+      // 将白板分组置于最前，确保白板记录在列表首位
+      whiteboard: [],
       audio: [],
       video: [],
       mindmap: [],
@@ -322,19 +360,19 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
     if (!isEPBL) return;
     setOperationRecords(prev => {
       const next = { ...prev };
-      const arr = Array.isArray(prev.note) ? [...prev.note] : [];
-      const hasWhiteboard = arr.some(r => r?.type === 'note' && r?.subType === 'whiteboard');
+      const arr = Array.isArray(prev.whiteboard) ? [...prev.whiteboard] : [];
+      const hasWhiteboard = arr.some(r => r?.type === 'whiteboard' || (r?.type === 'note' && r?.subType === 'whiteboard'));
       if (!hasWhiteboard) {
         arr.unshift({
           id: `wb_${Date.now()}`,
-          type: 'note',
+          type: 'whiteboard',
           subType: 'whiteboard',
-          title: '白板',
+          title: '为什么有些人喝了咖啡反而更困?',
           source: '系统生成',
           time: new Date().toISOString()
         });
       }
-      next.note = arr;
+      next.whiteboard = arr;
       return next;
     });
   }, [selectedCategory, note?.category]);
@@ -411,26 +449,29 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   const [videoProgress, setVideoProgress] = useState(0);
 
   // 直播流状态管理
-  const [liveStreams, setLiveStreams] = useState([
+  const [liveStreams, setLiveStreams] = useState(() => {
+    // 咖啡主题：不显示直播课程，置空
+    if (isCoffeeEPBL) {
+      return [];
+    }
     // 我的评阅：移除默认直播课程来源
-    ...(
-      isMyEvaluation
-        ? []
-        : [
-            {
-              id: 'live_001',
-              title: '《课程思政融入专业课教学》研讨会',
-              instructor: '张教授',
-              startTime: '2025-01-25 14:00',
-              endTime: '2025-01-25 16:00',
-              url: 'https://live.example.com/live/123456',
-              platform: '',
-              participants: 156,
-              status: 'live'
-            }
-          ]
-    )
-  ]);
+    if (isMyEvaluation) {
+      return [];
+    }
+    return [
+      {
+        id: 'live_001',
+        title: '《课程思政融入专业课教学》研讨会',
+        instructor: '张教授',
+        startTime: '2025-01-25 14:00',
+        endTime: '2025-01-25 16:00',
+        url: 'https://live.example.com/live/123456',
+        platform: '',
+        participants: 156,
+        status: 'live'
+      }
+    ];
+  });
 
   // 悬停状态管理
   const [hoveredItems, setHoveredItems] = useState({});

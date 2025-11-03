@@ -65,9 +65,9 @@ import './MaterialManagement.css';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
-const { Option } = Select;
+  const { Option } = Select;
 
-const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
+  const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
   const {
     uploadedFiles,
     setUploadedFiles,

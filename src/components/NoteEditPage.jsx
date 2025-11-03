@@ -899,8 +899,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
     },
     
     onRecordClick: (record) => {
-      // 白板类型：当为笔记且子类型为 whiteboard
-      if (record.type === 'note' && record.subType === 'whiteboard') {
+      // 白板类型：兼容旧记录（type=note, subType=whiteboard）与新记录（type=whiteboard）
+      if ((record.type === 'note' && record.subType === 'whiteboard') || record.type === 'whiteboard') {
         const catKey = getCategoryKey(state?.note?.category, selectedCategory);
         if (catKey === 'e_pbl') {
           setCurrentRecord(record);

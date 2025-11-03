@@ -719,6 +719,18 @@ const SmartNotes = ({ onViewChange }) => {
       );
     }
     
+    // 针对 E-PBL 分类：将“为什么有些人喝了咖啡反而更困?”置于最前
+    if (selectedCategory === 'e_pbl') {
+      const targetTitle = '为什么有些人喝了咖啡反而更困?';
+      filtered = [...filtered].sort((a, b) => {
+        const aIsTarget = String(a?.title || '').trim() === targetTitle;
+        const bIsTarget = String(b?.title || '').trim() === targetTitle;
+        if (aIsTarget && !bIsTarget) return -1;
+        if (!aIsTarget && bIsTarget) return 1;
+        // 保持其他项原有相对顺序（稳定排序）
+        return 0;
+      });
+    }
     setFilteredNotes(filtered);
   }, [notes, selectedCategory, searchTerm]);
 

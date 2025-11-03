@@ -332,13 +332,14 @@ if (typeof document !== 'undefined') {
       title,
       source: template?.name ? `模板：${template.name}` : '手动创建',
       time: new Date().toLocaleString('zh-CN'),
-      type: 'note',
+      type: isWhiteboard ? 'whiteboard' : 'note',
       subType: noteCreationTargetSubType || 'document',
       content: isWhiteboard ? '' : (template?.description ? `<p>使用模板：${template.description}</p>` : '')
     };
     const newRecords = { ...operationRecords };
-    if (!newRecords.note) newRecords.note = [];
-    newRecords.note.unshift(newNote);
+    const bucketKey = isWhiteboard ? 'whiteboard' : 'note';
+    if (!Array.isArray(newRecords[bucketKey])) newRecords[bucketKey] = [];
+    newRecords[bucketKey].unshift(newNote);
     setOperationRecords(newRecords);
     setShowNoteTemplateModal(false);
     setNoteCreationTargetSubType(null);
@@ -1780,46 +1781,7 @@ if (typeof document !== 'undefined') {
                   }
                 }}
               >
-                {(() => {
-                  const typeFullNameMap = {
-                    'audio': '音频概览',
-                    'video': '视频概览',
-                    'mindmap': '思维导图',
-                    'report': '分析报告',
-                    'ppt': 'PPT演示',
-                    'webcode': '网页代码',
-                    'scenario': '场景模拟',
-                    'note': '笔记',
-                    'question': '试题',
-                    'learning-plan': '学习计划',
-                    'grading': '智能评阅',
-                    'knowledge-graph': '知识图谱',
-                    'training-plan': '培训方案',
-                    'training-dashboard': '培训报表',
-                    'classroom-evaluation': '课堂评价'
-                  };
-                  const badgeText = typeFullNameMap[record.type] || '智能工具';
-                  // 角标样式（右上角斜角丝带），低调配色
-                  return (
-                    <div style={{
-                      position: 'absolute',
-                      top: 8,
-                      right: 48,
-                      padding: 0,
-                      maxWidth: 140,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      background: 'transparent',
-                      border: 'none',
-                      color: '#8c8c8c',
-                      fontSize: 10,
-                      fontWeight: 500,
-                      zIndex: 2,
-                      pointerEvents: 'none'
-                    }}>{badgeText}</div>
-                  );
-                })()}
+                {/* 移除右上角“智能工具”角标，类型标签改为标题右侧的【类型】 */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
                     <div style={{
@@ -1839,9 +1801,25 @@ if (typeof document !== 'undefined') {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                        <Text ellipsis style={{ fontSize: '12px', fontWeight: 500, flex: 1, color: record.isGenerating ? '#1890ff' : 'inherit' }}>
+                        <Text ellipsis style={{ fontSize: '12px', fontWeight: 500, flex: '0 1 auto', maxWidth: '70%', color: record.isGenerating ? '#1890ff' : 'inherit' }}>
                           {record.isGenerating ? '正在生成...' : record.title}
                         </Text>
+                        {(() => {
+                          // 计算【类型】标签：白板/文档，显示在标题右侧
+                          let typeLabel = null;
+                          if (record.type === 'whiteboard' || (record.type === 'note' && record.subType === 'whiteboard')) {
+                            typeLabel = '白板';
+                          } else if (record.type === 'note' && record.subType === 'document') {
+                            typeLabel = '文档';
+                          }
+                          return typeLabel ? (
+                            <span style={{
+                              flexShrink: 0,
+                              color: '#8c8c8c',
+                              fontSize: 12
+                            }}>{`【${typeLabel}】`}</span>
+                          ) : null;
+                        })()}
                         {/* 显示研修成果标记状态 */}
                         {record.tags && record.tags.includes('研修成果') && (
                           <div style={{
