@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Layout } from 'antd'
+import { Layout, Button, Typography, Modal, Input, Drawer, message } from 'antd'
 import Sidebar from './components/Sidebar'
 import MainContent from './components/MainContent'
 import UnifiedAICenter from './components/UnifiedAICenter'
@@ -51,6 +51,7 @@ import MyCertificates from './components/MyCertificates'
 import KnowledgeSpace from './components/KnowledgeSpace'
 import EpblFlowchart from './components/EpblFlowchart';
 import EpblFloatingToolbar from './components/EpblFloatingToolbar';
+import { BookOutlined, LinkOutlined, PlayCircleOutlined } from '@ant-design/icons';
 
 import './App.css'
 import notesService from './services/notesService'
@@ -61,6 +62,9 @@ const { Sider, Content } = Layout
 function App() {
   const [currentView, setCurrentView] = useState('smart-notes') // 默认进入果仁空间
   const [messages, setMessages] = useState([])
+  // 协作与素材库（用于 epbl-canvas 快捷路径）
+  const [shareModalVisible, setShareModalVisible] = useState(false)
+  const [assetsDrawerVisible, setAssetsDrawerVisible] = useState(false)
   
   // 页面状态管理
   const [pageState, setPageState] = useState({
@@ -478,8 +482,128 @@ function App() {
               <div style={{ flex: 1, background: '#f0f2f5', margin: '0', borderRadius: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', position: 'relative' }}>
                 {/* 悬浮画布工具栏（与 NoteEditPage 中一致） */}
                 <EpblFloatingToolbar />
+                {/* 右上角：协作 / 素材库 */}
+                <div style={{ position: 'absolute', top: 12, right: 16, zIndex: 1000, display: 'flex', gap: 12 }}>
+                  <button
+                    onClick={() => setShareModalVisible(true)}
+                    style={{
+                      padding: '12px 22px',
+                      borderRadius: 16,
+                      border: 'none',
+                      background: '#6C6CF4',
+                      color: '#fff',
+                      fontSize: 16,
+                      boxShadow: '0 8px 16px rgba(108,108,244,0.3)',
+                      cursor: 'pointer'
+                    }}
+                  >协作</button>
+                  <button
+                    onClick={() => setAssetsDrawerVisible(true)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '12px 18px',
+                      borderRadius: 16,
+                      border: 'none',
+                      background: '#eef0f7',
+                      color: '#1f2937',
+                      fontSize: 16,
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                      cursor: 'pointer'
+                    }}
+                  ><BookOutlined /> 素材库</button>
+                </div>
                 {/* 画布主体 */}
                 <EpblFlowchart />
+                {/* 素材库抽屉 */}
+                <Drawer placement="right" open={assetsDrawerVisible} onClose={() => setAssetsDrawerVisible(false)} width={360} closable={false}>
+                  <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                    {/* 顶部工具栏 */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                      <div style={{ width: 28, height: 28, borderRadius: 8, background: '#6C6CF4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700 }}>📖</div>
+                      <div style={{ flex: 1 }}>
+                        <Input placeholder="search library" allowClear size="small" />
+                      </div>
+                      <Button size="small" type="text">⋮</Button>
+                    </div>
+                    {/* 文案区 */}
+                    <Typography.Title level={5} style={{ color: '#6C6CF4', marginTop: 12 }}>个人素材库</Typography.Title>
+                    <Typography.Paragraph style={{ color: '#666', marginTop: 4 }}>选中画布上的项目添加到此处。</Typography.Paragraph>
+                    <Typography.Title level={5} style={{ color: '#6C6CF4', marginTop: 16 }}>Excalidraw 素材库</Typography.Title>
+                    {/* 图标栅格 */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 48px)', gap: 12, marginTop: 8 }}>
+                      {Array.from({ length: 72 }).map((_, i) => (
+                        <div key={i} style={{ width: 48, height: 48, borderRadius: 8, background: '#fff', boxShadow: '0 1px 2px rgba(0,0,0,0.06)', border: '1px solid #e8e8e8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {(() => {
+                            const idx = i % 12;
+                            const common = { width: 28, height: 18, border: '2px solid #9aa0a6', borderRadius: 4 };
+                            switch (idx) {
+                              case 0: return <div style={common} />;
+                              case 1: return <div style={{ width: 26, height: 26, borderRadius: 13, border: '2px solid #9aa0a6' }} />;
+                              case 2: return <div style={{ width: 26, height: 20, border: '2px dashed #9aa0a6', borderRadius: 6 }} />;
+                              case 3: return <div style={{ width: 26, height: 14, background: 'linear-gradient(180deg,#fff,#eaecef)', border: '2px solid #9aa0a6', borderRadius: 4 }} />;
+                              case 4: return <div style={{ width: 24, height: 24, border: '2px solid #9aa0a6', transform: 'rotate(45deg)' }} />;
+                              case 5: return <div style={{ width: 0, height: 0, borderTop: '2px solid transparent', borderBottom: '2px solid transparent', borderLeft: '18px solid #9aa0a6' }} />;
+                              case 6: return <div style={{ width: 24, height: 8, borderTop: '2px solid #9aa0a6', position: 'relative' }}><div style={{ position: 'absolute', right: -6, top: -5, width: 0, height: 0, borderTop: '6px solid transparent', borderBottom: '6px solid transparent', borderLeft: '8px solid #9aa0a6' }} /></div>;
+                              case 7: return <div style={{ width: 24, height: 2, background: '#9aa0a6', position: 'relative' }}><div style={{ position: 'absolute', left: 0, top: -6, width: 2, height: 14, background: '#9aa0a6' }} /></div>;
+                              case 8: return <div style={{ width: 18, height: 18, borderRadius: 9, border: '2px dotted #9aa0a6' }} />;
+                              case 9: return <div style={{ width: 26, height: 12, border: '2px solid #9aa0a6', borderRadius: 12 }} />;
+                              case 10: return <div style={{ width: 26, height: 18, borderBottom: '2px solid #9aa0a6', borderLeft: '2px solid #9aa0a6', borderRight: '2px solid #9aa0a6' }} />;
+                              case 11: return <div style={{ width: 24, height: 24, border: '2px solid #9aa0a6', borderRadius: 4, position: 'relative' }}><div style={{ width: 10, height: 10, border: '2px solid #9aa0a6', borderRadius: 2, position: 'absolute', right: -6, bottom: -6 }} /></div>;
+                              default: return null;
+                            }
+                          })()}
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ marginTop: 16 }}>
+                      <Button block style={{ background: '#6C6CF4', color: '#fff', borderRadius: 8 }}>浏览素材库</Button>
+                    </div>
+                  </div>
+                </Drawer>
+                {/* 协作弹窗 */}
+                <Modal title={null} open={shareModalVisible} onCancel={() => setShareModalVisible(false)} footer={null} width={560}>
+                  <div style={{ padding: '8px 6px' }}>
+                    <Typography.Title level={3} style={{ textAlign: 'center', color: '#6C6CF4', marginTop: 8 }}>实时协作</Typography.Title>
+                    <Typography.Paragraph style={{ textAlign: 'center', marginTop: 8, color: '#333' }}>
+                      你可以邀请其他人到当前的画面中与你协作。<br/>
+                      别担心，该会话使用端到端加密，无论给你们制作什么都将保持私密，甚至连我们的服务器也无法查看。
+                    </Typography.Paragraph>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}>
+                      <Button type="primary" size="large" icon={<PlayCircleOutlined />} style={{ background: '#6C6CF4' }}
+                        onClick={() => { message.success('已启动协作会话（示例）'); }}>
+                        开始会话
+                      </Button>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '24px 0' }}>
+                      <div style={{ flex: 1, height: 1, background: '#eee' }} />
+                      <span style={{ color: '#999' }}>Or</span>
+                      <div style={{ flex: 1, height: 1, background: '#eee' }} />
+                    </div>
+                    <Typography.Title level={4} style={{ textAlign: 'center', color: '#6C6CF4', marginTop: 0 }}>分享链接</Typography.Title>
+                    <Typography.Paragraph style={{ textAlign: 'center', color: '#333' }}>导出为只读链接。</Typography.Paragraph>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
+                      <Button size="large" icon={<LinkOutlined />} style={{ background: '#6C6CF4', color: '#fff' }}
+                        onClick={() => {
+                          try {
+                            const url = (typeof window !== 'undefined') ? `${window.location.origin}/#epbl-canvas` : '/#epbl-canvas';
+                            if (navigator.clipboard && navigator.clipboard.writeText) {
+                              navigator.clipboard.writeText(url);
+                              message.success('分享链接已复制到剪贴板');
+                            } else {
+                              window.open(url, '_blank', 'noopener,noreferrer');
+                              message.success('已在新标签页打开分享链接');
+                            }
+                          } catch (e) {
+                            message.warning('导出链接失败，请稍后重试');
+                          }
+                        }}>
+                        导出链接
+                      </Button>
+                    </div>
+                  </div>
+                </Modal>
               </div>
             ) : currentView === 'docs-center-org' ? (
               <DocsCenter initialDrive="org" />

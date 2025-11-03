@@ -15,9 +15,10 @@ import {
   Badge,
   Avatar,
   Space,
-  Tabs
+  Tabs,
+  Drawer
 } from 'antd';
-import { ArrowLeftOutlined, DownloadOutlined, MessageOutlined, VideoCameraOutlined, AudioOutlined, AudioMutedOutlined, StopOutlined, ShareAltOutlined, TeamOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, DownloadOutlined, MessageOutlined, VideoCameraOutlined, AudioOutlined, AudioMutedOutlined, StopOutlined, ShareAltOutlined, TeamOutlined, BookOutlined, LinkOutlined, PlayCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { getNewTeacherTrainingMessages } from '../data/trainingDiscussionMessages';
 
@@ -211,11 +212,17 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
   // 统一用容器悬停态，避免在 GIF 与按钮之间切换造成闪烁
   const [isGifGroupHovered, setIsGifGroupHovered] = useState(false);
   const [isBubbleHovered, setIsBubbleHovered] = useState(false);
+  // 分享弹窗可见性
+  const [shareModalVisible, setShareModalVisible] = useState(false);
+  // 素材库抽屉
+  const [assetsDrawerVisible, setAssetsDrawerVisible] = useState(false);
   
   // 操作面板收起状态
   const [operationPanelCollapsed, setOperationPanelCollapsed] = useState(false);
   // E-PBL 流程图选中节点（用于触发左右分区显示）
   const [epblSelectedNode, setEpblSelectedNode] = useState(null);
+  // 全局抑制：点击元素不要显示右侧（包含流程图节点）
+  const SUPPRESS_RIGHT_PANEL_CLICK = true;
 
   // 关联来源选择弹窗状态
   const [linkSourceModalVisible, setLinkSourceModalVisible] = useState(false);
@@ -899,6 +906,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
     },
     
     onRecordClick: (record) => {
+      // 开关：点击元素不显示右侧菜单（保留 E-PBL 白板全屏流程图）
+      const suppressRightPanelOnClick = true;
       // 白板类型：兼容旧记录（type=note, subType=whiteboard）与新记录（type=whiteboard）
       if ((record.type === 'note' && record.subType === 'whiteboard') || record.type === 'whiteboard') {
         const catKey = getCategoryKey(state?.note?.category, selectedCategory);
@@ -924,6 +933,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
       }
       
       if (record.type === 'note') {
+        if (suppressRightPanelOnClick) return;
         state.setRightPanelEditingNote(record);
         const initialContent = record.content || '<p>请在此处编写您的笔记内容...</p>';
         const contentWithLinks = convertTimeToLinks(initialContent);
@@ -1024,8 +1034,10 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
           }
           state.setVideoStartTime(record?.startTime || 0);
           state.setIsWidescreenMode(false);
-          state.setRightPanelView(RIGHT_PANEL_VIEWS.VIDEO_PLAYER);
-          message.success(`在右侧播放视频：${isVideoOverview ? '视频概览' : (material?.title || '视频')}`);
+          if (!suppressRightPanelOnClick) {
+            state.setRightPanelView(RIGHT_PANEL_VIEWS.VIDEO_PLAYER);
+            message.success(`在右侧播放视频：${isVideoOverview ? '视频概览' : (material?.title || '视频')}`);
+          }
         } catch (err) {
           console.error('打开视频失败:', err);
           message.error('打开视频失败，请稍后重试');
@@ -1039,6 +1051,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         console.log('record.content类型:', typeof record.content);
         console.log('record.content长度:', record.content ? record.content.length : 0);
         
+        if (suppressRightPanelOnClick) return;
         // 设置试题查看状态并在右侧面板显示
         state.setRightPanelQuestionRecord(record);
         
@@ -1066,6 +1079,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         console.log('学习计划记录点击，record.content存在:', !!record.content);
         console.log('record.metadata存在:', !!record.metadata);
         
+        if (suppressRightPanelOnClick) return;
         // 设置学习计划查看状态并在右侧面板显示
         state.setRightPanelLearningPlanRecord(record);
         
@@ -1091,7 +1105,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
       
       if (record.type === 'training-plan') {
         console.log('培训方案记录点击，切换到全屏模式');
-        
+        // 允许培训方案点击，即使开启了右侧抑制开关；培训方案走全屏视图不依赖右侧面板
         // 设置培训方案查看状态
         state.setRightPanelTrainingPlanRecord(record);
         
@@ -1780,12 +1794,44 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               <div style={{ flex: epblSelectedNode ? 2 : 1, borderRight: epblSelectedNode ? '1px solid #f0f0f0' : 'none', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
                 {/* 悬浮工具栏（与参考图一致的样式） */}
                 <EpblFloatingToolbar />
+                {/* 右上角：分享 / 素材库 */}
+                <div style={{ position: 'absolute', top: 12, right: 16, zIndex: 1000, display: 'flex', gap: 12 }}>
+                  <button
+                    onClick={() => setShareModalVisible(true)}
+                    style={{
+                      padding: '12px 22px',
+                      borderRadius: 16,
+                      border: 'none',
+                      background: '#6C6CF4',
+                      color: '#fff',
+                      fontSize: 16,
+                      boxShadow: '0 8px 16px rgba(108,108,244,0.3)',
+                      cursor: 'pointer'
+                    }}
+                  >协作</button>
+                  <button
+                    onClick={() => setAssetsDrawerVisible(true)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '12px 18px',
+                      borderRadius: 16,
+                      border: 'none',
+                      background: '#eef0f7',
+                      color: '#1f2937',
+                      fontSize: 16,
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                      cursor: 'pointer'
+                    }}
+                  ><BookOutlined /> 素材库</button>
+                </div>
                 {/* 画布区域 */}
                 <div style={{ flex: 1, overflow: 'auto' }}>
-                  <EpblFlowchart onSelectNode={(node) => setEpblSelectedNode(node)} />
+                  <EpblFlowchart onSelectNode={SUPPRESS_RIGHT_PANEL_CLICK ? () => {} : (node) => setEpblSelectedNode(node)} />
                 </div>
               </div>
-              {epblSelectedNode && (
+              {!SUPPRESS_RIGHT_PANEL_CLICK && epblSelectedNode && (
                 <div style={{ flex: 1, background: '#fff', overflowY: 'auto' }}>
                   <div style={{ padding: 16 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1809,6 +1855,95 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 </div>
               )}
             </div>
+            {/* 分享弹窗 */}
+            <Modal title={null} open={shareModalVisible} onCancel={() => setShareModalVisible(false)} footer={null} width={560}>
+              <div style={{ padding: '8px 6px' }}>
+                <Typography.Title level={3} style={{ textAlign: 'center', color: '#6C6CF4', marginTop: 8 }}>实时协作</Typography.Title>
+                <Typography.Paragraph style={{ textAlign: 'center', marginTop: 8, color: '#333' }}>
+                  你可以邀请其他人到当前的画面中与你协作。<br/>
+                  别担心，该会话使用端到端加密，无论给你们制作什么都将保持私密，甚至连我们的服务器也无法查看。
+                </Typography.Paragraph>
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}>
+                  <Button type="primary" size="large" icon={<PlayCircleOutlined />} style={{ background: '#6C6CF4' }}
+                    onClick={() => { message.success('已启动协作会话（示例）'); }}>
+                    开始会话
+                  </Button>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '24px 0' }}>
+                  <div style={{ flex: 1, height: 1, background: '#eee' }} />
+                  <span style={{ color: '#999' }}>Or</span>
+                  <div style={{ flex: 1, height: 1, background: '#eee' }} />
+                </div>
+                <Typography.Title level={4} style={{ textAlign: 'center', color: '#6C6CF4', marginTop: 0 }}>分享链接</Typography.Title>
+                <Typography.Paragraph style={{ textAlign: 'center', color: '#333' }}>导出为只读链接。</Typography.Paragraph>
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
+                  <Button size="large" icon={<LinkOutlined />} style={{ background: '#6C6CF4', color: '#fff' }}
+                    onClick={() => {
+                      try {
+                        const url = (typeof window !== 'undefined') ? `${window.location.origin}/#epbl-canvas` : '/#epbl-canvas';
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                          navigator.clipboard.writeText(url);
+                          message.success('分享链接已复制到剪贴板');
+                        } else {
+                          window.open(url, '_blank', 'noopener,noreferrer');
+                          message.success('已在新标签页打开分享链接');
+                        }
+                      } catch (e) {
+                        message.warning('导出链接失败，请稍后重试');
+                      }
+                    }}>
+                    导出链接
+                  </Button>
+                </div>
+              </div>
+            </Modal>
+            {/* 素材库抽屉（右侧） */}
+            <Drawer placement="right" open={assetsDrawerVisible} onClose={() => setAssetsDrawerVisible(false)} width={360} closable={false}>
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                {/* 顶部工具栏 */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: '#6C6CF4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700 }}>📖</div>
+                  <div style={{ flex: 1 }}>
+                    <Input placeholder="search library" allowClear size="small" />
+                  </div>
+                  <Button size="small" type="text">⋮</Button>
+                </div>
+                {/* 文案区 */}
+                <Typography.Title level={5} style={{ color: '#6C6CF4', marginTop: 12 }}>个人素材库</Typography.Title>
+                <Typography.Paragraph style={{ color: '#666', marginTop: 4 }}>选中画布上的项目添加到此处。</Typography.Paragraph>
+                <Typography.Title level={5} style={{ color: '#6C6CF4', marginTop: 16 }}>Excalidraw 素材库</Typography.Title>
+
+                {/* 图标栅格 - 复刻风格的线描元素 */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 48px)', gap: 12, marginTop: 8 }}>
+                  {Array.from({ length: 72 }).map((_, i) => (
+                    <div key={i} style={{ width: 48, height: 48, borderRadius: 8, background: '#fff', boxShadow: '0 1px 2px rgba(0,0,0,0.06)', border: '1px solid #e8e8e8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {(() => {
+                        const idx = i % 12;
+                        const common = { width: 28, height: 18, border: '2px solid #9aa0a6', borderRadius: 4 };
+                        switch (idx) {
+                          case 0: return <div style={common} />; // 矩形
+                          case 1: return <div style={{ width: 26, height: 26, borderRadius: 13, border: '2px solid #9aa0a6' }} />; // 圆
+                          case 2: return <div style={{ width: 26, height: 20, border: '2px dashed #9aa0a6', borderRadius: 6 }} />; // 虚线矩形
+                          case 3: return <div style={{ width: 26, height: 14, background: 'linear-gradient(180deg,#fff,#eaecef)', border: '2px solid #9aa0a6', borderRadius: 4 }} />; // 填充条
+                          case 4: return <div style={{ width: 24, height: 24, border: '2px solid #9aa0a6', transform: 'rotate(45deg)' }} />; // 菱形
+                          case 5: return <div style={{ width: 0, height: 0, borderTop: '2px solid transparent', borderBottom: '2px solid transparent', borderLeft: '18px solid #9aa0a6' }} />; // 三角
+                          case 6: return <div style={{ width: 24, height: 8, borderTop: '2px solid #9aa0a6', position: 'relative' }}><div style={{ position: 'absolute', right: -6, top: -5, width: 0, height: 0, borderTop: '6px solid transparent', borderBottom: '6px solid transparent', borderLeft: '8px solid #9aa0a6' }} /></div>; // 箭头
+                          case 7: return <div style={{ width: 24, height: 2, background: '#9aa0a6', position: 'relative' }}><div style={{ position: 'absolute', left: 0, top: -6, width: 2, height: 14, background: '#9aa0a6' }} /></div>; // T型
+                          case 8: return <div style={{ width: 18, height: 18, borderRadius: 9, border: '2px dotted #9aa0a6' }} />; // 点状圆
+                          case 9: return <div style={{ width: 26, height: 12, border: '2px solid #9aa0a6', borderRadius: 12 }} />; // 胶囊
+                          case 10: return <div style={{ width: 26, height: 18, borderBottom: '2px solid #9aa0a6', borderLeft: '2px solid #9aa0a6', borderRight: '2px solid #9aa0a6' }} />; // 开口矩形
+                          case 11: return <div style={{ width: 24, height: 24, border: '2px solid #9aa0a6', borderRadius: 4, position: 'relative' }}><div style={{ width: 10, height: 10, border: '2px solid #9aa0a6', borderRadius: 2, position: 'absolute', right: -6, bottom: -6 }} /></div>; // 组合
+                          default: return null;
+                        }
+                      })()}
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop: 16 }}>
+                  <Button block style={{ background: '#6C6CF4', color: '#fff', borderRadius: 8 }}>浏览素材库</Button>
+                </div>
+              </div>
+            </Drawer>
           </div>
         ) : currentView === EXAM_VIEW_MODES.EXAM_REVIEW_FULLSCREEN ? (
           /* 考试评阅占位页：占据全部三栏区域 */
