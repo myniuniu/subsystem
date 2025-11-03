@@ -19,6 +19,11 @@ export const CATEGORY_META = {
     aiTitle: '培训助理',
     aiIcon: trainingAssistantIcon
   },
+  // E-PBL 课程融合
+  e_pbl: {
+    aiTitle: '课程融合',
+    aiIcon: trainingAssistantIcon
+  },
   // 我的评阅分类：AI标题改为“评阅助手”
   my_evaluation: {
     aiTitle: '评阅助手',
@@ -34,6 +39,7 @@ export const getCategoryKey = (noteCategory, selectedCategory) => {
       '组织培训': 'organizational_training',
       '培训需求管理': 'training_needs_management',
       '教学研究室': 'teaching_research_office',
+      'E-PBL': 'e_pbl',
       '我的评阅': 'my_evaluation',
       '学习广场': 'learning_square',
       // 系统固定分类中文 -> 稳定 key

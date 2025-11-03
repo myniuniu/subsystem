@@ -316,6 +316,29 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   
   const [operationRecords, setOperationRecords] = useState(getDefaultOperationRecords());
 
+  // E-PBL 分类：默认生成一条白板操作记录
+  useEffect(() => {
+    const isEPBL = (selectedCategory === 'e_pbl' || note?.category === 'e_pbl' || selectedCategory === 'E-PBL' || note?.category === 'E-PBL');
+    if (!isEPBL) return;
+    setOperationRecords(prev => {
+      const next = { ...prev };
+      const arr = Array.isArray(prev.note) ? [...prev.note] : [];
+      const hasWhiteboard = arr.some(r => r?.type === 'note' && r?.subType === 'whiteboard');
+      if (!hasWhiteboard) {
+        arr.unshift({
+          id: `wb_${Date.now()}`,
+          type: 'note',
+          subType: 'whiteboard',
+          title: '白板',
+          source: '系统生成',
+          time: new Date().toISOString()
+        });
+      }
+      next.note = arr;
+      return next;
+    });
+  }, [selectedCategory, note?.category]);
+
   // 培训需求管理：规范培训方案操作记录的标题与来源，并补充“学段2”
   useEffect(() => {
     const isNeedsMgmt = (selectedCategory === 'training_needs_management' || note?.category === 'training_needs_management');

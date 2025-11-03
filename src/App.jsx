@@ -49,6 +49,8 @@ import ModelTrainingTemplate from './components/ModelTrainingTemplate'
 import ModelTrainingDetail from './components/ModelTrainingDetail'
 import MyCertificates from './components/MyCertificates'
 import KnowledgeSpace from './components/KnowledgeSpace'
+import EpblFlowchart from './components/EpblFlowchart';
+import EpblFloatingToolbar from './components/EpblFloatingToolbar';
 
 import './App.css'
 import notesService from './services/notesService'
@@ -472,6 +474,13 @@ function App() {
               <ThemeTemplateCenter onBack={() => handleViewChange('home')} />
             ) : currentView === 'admin-center' ? (
               <AdminCenter />
+            ) : currentView === 'epbl-canvas' ? (
+              <div style={{ flex: 1, background: '#f0f2f5', margin: '0', borderRadius: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+                {/* 悬浮画布工具栏（与 NoteEditPage 中一致） */}
+                <EpblFloatingToolbar />
+                {/* 画布主体 */}
+                <EpblFlowchart />
+              </div>
             ) : currentView === 'docs-center-org' ? (
               <DocsCenter initialDrive="org" />
             ) : currentView === 'docs-center-my' ? (

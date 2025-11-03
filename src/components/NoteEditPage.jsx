@@ -54,6 +54,8 @@ import OnDemandResourceLibrary from './OperationPanel/OnDemandResourceLibrary';
 import SimpleTrainingPlanDetailView from './SimpleTrainingPlanDetailView';
 import notesService from '../services/notesService';
 import ExamForm from './ExamForm.jsx';
+import EpblFlowchart from './EpblFlowchart';
+import EpblFloatingToolbar from './EpblFloatingToolbar';
 
 // 导入hooks和工具
 import { useNoteEditState } from '../hooks/useNoteEditState';
@@ -212,6 +214,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
   
   // 操作面板收起状态
   const [operationPanelCollapsed, setOperationPanelCollapsed] = useState(false);
+  // E-PBL 流程图选中节点（用于触发左右分区显示）
+  const [epblSelectedNode, setEpblSelectedNode] = useState(null);
 
   // 关联来源选择弹窗状态
   const [linkSourceModalVisible, setLinkSourceModalVisible] = useState(false);
@@ -895,8 +899,16 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
     },
     
     onRecordClick: (record) => {
-      // 白板类型：当为笔记且子类型为 whiteboard，点击打开 Excalidraw
+      // 白板类型：当为笔记且子类型为 whiteboard
       if (record.type === 'note' && record.subType === 'whiteboard') {
+        const catKey = getCategoryKey(state?.note?.category, selectedCategory);
+        if (catKey === 'e_pbl') {
+          setCurrentRecord(record);
+          setCurrentView(VIEW_MODES.EPBL_FLOWCHART_FULLSCREEN);
+          message.success('已在全屏区域显示 E-PBL 流程图');
+          return;
+        }
+        // 非 E-PBL 分类：打开 Excalidraw
         try {
           if (typeof window !== 'undefined') {
             window.open('https://excalidraw.com/', '_blank', 'noopener,noreferrer');
@@ -1730,6 +1742,72 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 content={currentRecord?.content}
                 onBack={() => setCurrentView(VIEW_MODES.MATERIALS)}
               />
+            </div>
+          </div>
+        ) : currentView === VIEW_MODES.EPBL_FLOWCHART_FULLSCREEN ? (
+          /* E-PBL 流程图全屏模式：占据全部三栏区域 */
+          <div style={{ 
+            flex: 1, 
+            background: '#f0f2f5', 
+            margin: '16px', 
+            borderRadius: '12px', 
+            overflow: 'hidden', 
+            display: 'flex', 
+            flexDirection: 'column',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            position: 'relative'
+          }}>
+            {/* 左上角返回图标 */}
+            <Button 
+              type="default"
+              shape="circle"
+              size="small"
+              icon={<ArrowLeftOutlined />}
+              onClick={() => setCurrentView(VIEW_MODES.MATERIALS)}
+              style={{ 
+                position: 'absolute',
+                top: '16px',
+                left: '16px',
+                zIndex: 1000,
+                color: '#666',
+                background: 'rgba(255,255,255,0.95)',
+                border: '1px solid #d9d9d9',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.08)'
+              }}
+            />
+            {/* 左右分区：左侧流程图 + 右侧占位内容（选中节点后显示） */}
+            <div style={{ flex: 1, background: '#fff', display: 'flex', overflow: 'hidden' }}>
+              <div style={{ flex: epblSelectedNode ? 2 : 1, borderRight: epblSelectedNode ? '1px solid #f0f0f0' : 'none', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
+                {/* 悬浮工具栏（与参考图一致的样式） */}
+                <EpblFloatingToolbar />
+                {/* 画布区域 */}
+                <div style={{ flex: 1, overflow: 'auto' }}>
+                  <EpblFlowchart onSelectNode={(node) => setEpblSelectedNode(node)} />
+                </div>
+              </div>
+              {epblSelectedNode && (
+                <div style={{ flex: 1, background: '#fff', overflowY: 'auto' }}>
+                  <div style={{ padding: 16 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Title level={5} style={{ margin: 0 }}>节点详情（占位）</Title>
+                      <Button size="small" onClick={() => setEpblSelectedNode(null)}>关闭右侧</Button>
+                    </div>
+                    <div style={{ marginTop: 12, color: '#666' }}>
+                      <p>当前选中：<Text strong>{epblSelectedNode?.label}</Text></p>
+                      <p style={{ color: '#999', fontSize: 12 }}>这里将展示与该节点相关的内容（暂不实现）。</p>
+                      <div style={{ marginTop: 12, padding: 12, border: '1px dashed #d9d9d9', borderRadius: 8 }}>
+                        <p style={{ marginBottom: 8 }}>预留区块：</p>
+                        <ul style={{ paddingLeft: 18 }}>
+                          <li>文本/说明</li>
+                          <li>图片/图表</li>
+                          <li>表格/数据</li>
+                          <li>交互控件</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ) : currentView === EXAM_VIEW_MODES.EXAM_REVIEW_FULLSCREEN ? (
