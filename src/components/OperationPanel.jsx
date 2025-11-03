@@ -1805,20 +1805,72 @@ if (typeof document !== 'undefined') {
                           {record.isGenerating ? '正在生成...' : record.title}
                         </Text>
                         {(() => {
-                          // 计算【类型】标签：白板/文档，显示在标题右侧
+                          // 计算类型标签，并以 Tag 样式显示在标题右侧
                           let typeLabel = null;
+                          let typeKey = null;
                           if (record.type === 'whiteboard' || (record.type === 'note' && record.subType === 'whiteboard')) {
                             typeLabel = '白板';
+                            typeKey = 'whiteboard';
                           } else if (record.type === 'note' && record.subType === 'document') {
                             typeLabel = '文档';
+                            typeKey = 'note_document';
+                          } else {
+                            const map = {
+                              audio: '音频',
+                              video: '视频',
+                              mindmap: '思维导图',
+                              report: '报告',
+                              ppt: 'PPT',
+                              webcode: '网页',
+                              scenario: '场景',
+                              'training-plan': '培训方案',
+                              'training-report': '培训报告',
+                              'training-dashboard': '培训报表',
+                              'learning-plan': '学习计划',
+                              grading: '阅卷',
+                              'classroom-evaluation': '课堂评价',
+                              'classroom-behavior-analysis': '课堂行为分析',
+                              question: '试题',
+                              'exam-paper': '试卷',
+                              'smart-evaluation': '智能评阅'
+                            };
+                            typeLabel = map[record.type] || null;
+                            typeKey = record.type || null;
                           }
-                          return typeLabel ? (
-                            <span style={{
+                          if (!typeLabel) return null;
+                          const colorMap = {
+                            whiteboard: 'geekblue',
+                            note_document: 'blue',
+                            audio: 'cyan',
+                            video: 'green',
+                            mindmap: 'magenta',
+                            report: 'orange',
+                            ppt: 'red',
+                            webcode: 'blue',
+                            scenario: 'purple',
+                            'training-plan': 'geekblue',
+                            'training-report': 'orange',
+                            'training-dashboard': 'geekblue',
+                            'learning-plan': 'blue',
+                            grading: 'pink',
+                            'classroom-evaluation': 'green',
+                            'classroom-behavior-analysis': 'geekblue',
+                            question: 'gold',
+                            'exam-paper': 'gold',
+                            'smart-evaluation': 'purple'
+                          };
+                          const tagColor = colorMap[typeKey] || 'default';
+                          return (
+                            <Tag color={tagColor} style={{
                               flexShrink: 0,
-                              color: '#8c8c8c',
-                              fontSize: 12
-                            }}>{`【${typeLabel}】`}</span>
-                          ) : null;
+                              margin: 0,
+                              fontSize: 12,
+                              lineHeight: '18px',
+                              height: 20
+                            }}>
+                              {typeLabel}
+                            </Tag>
+                          );
                         })()}
                         {/* 显示研修成果标记状态 */}
                         {record.tags && record.tags.includes('研修成果') && (
@@ -1960,27 +2012,7 @@ if (typeof document !== 'undefined') {
                           ) : null;
                         })()}
                       </div>
-                      {Array.isArray(record.sourceRefs) && record.sourceRefs.length > 0 ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
-                          <Text type="secondary" style={{ fontSize: '11px' }}>来源：</Text>
-                          {record.sourceRefs.slice(0, 3).map((ref, idx) => (
-                            <span key={`${record.id}-src-${idx}`} style={{
-                              fontSize: '10px',
-                              color: '#555',
-                              padding: '2px 6px',
-                              border: '1px solid #eee',
-                              borderRadius: '8px',
-                              background: '#fafafa'
-                            }}>
-                              {ref.type === 'text' ? '📝 文本' : ref.type === 'file' ? '📄 文件' : ref.type === 'video' ? '🎥 视频' : ref.type === 'link' ? '🔗 链接' : '📁 来源'}｜{ref.title}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <Text style={{ fontSize: '10px', color: '#999', display: 'block' }}>
-                          {record.source}
-                        </Text>
-                      )}
+                      {/* 不显示来源与来源标签（统一精简卡片信息） */}
                       <Text style={{ fontSize: '10px', color: '#999' }}>
                         {record.time}
                       </Text>

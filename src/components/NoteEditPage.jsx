@@ -933,6 +933,19 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
       }
       
       if (record.type === 'note') {
+        // 特例：EPBL教学设计文档，切换到全屏文档视图，加载富文本HTML模板
+        const isEpblDesignDoc = (record.subType === 'document' && String(record.title || '').includes('EPBL教学设计'));
+        if (isEpblDesignDoc) {
+          state.setSelectedMaterial({
+            id: record.id,
+            title: record.title || 'EPBL教学设计',
+            type: 'document',
+            url: '/assets/项目教学设计模板.html'
+          });
+          setCurrentView(VIEW_MODES.DOCUMENT_FULLSCREEN);
+          message.success('已在全屏区域打开：EPBL教学设计');
+          return;
+        }
         if (suppressRightPanelOnClick) return;
         state.setRightPanelEditingNote(record);
         const initialContent = record.content || '<p>请在此处编写您的笔记内容...</p>';
@@ -2006,6 +2019,23 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         ) : currentView === VIEW_MODES.ACHIEVEMENT_DETAIL_THREE_COLUMN ? (
           /* 研修成果评阅三栏模式：占据三栏区域 */
           <AchievementDetailThreeColumn state={state} />
+        ) : currentView === VIEW_MODES.DOCUMENT_FULLSCREEN ? (
+          /* 文档全屏模式：占据全部三栏区域 */
+          <div style={{ 
+            flex: 1, 
+            background: '#f0f2f5', 
+            margin: '16px', 
+            borderRadius: '12px', 
+            overflow: 'hidden', 
+            display: 'flex', 
+            flexDirection: 'column',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            position: 'relative'
+          }}>
+            <div style={{ flex: 1, background: '#fff' }}>
+              <DocumentView state={state} onBack={() => setCurrentView(VIEW_MODES.MATERIALS)} />
+            </div>
+          </div>
         ) : (
           /* 普通三栏布局模式 */
           <>

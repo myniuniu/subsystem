@@ -402,6 +402,27 @@ export const useOperationHandlers = ({
     } else if (card.key === 'training-dashboard') {
       // 培训报表工具处理：生成记录并全屏展示
       handleTrainingDashboardToolAction();
+    } else if (card.key === 'e-pbl-planning') {
+      // E-PBL教学设计：生成文档型记录
+      const designRecord = {
+        id: `epbl_design_${Date.now()}`,
+        type: 'note',
+        subType: 'document',
+        title: 'EPBL教学设计',
+        source: sourceInfo?.details || '基于当前数据源',
+        time: new Date().toLocaleString('zh-CN'),
+        sourceRefs: getSourceRefs(),
+        content: `<div style="padding: 20px; text-align: center;">
+          <h3>📄 EPBL教学设计</h3>
+          <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的教学设计文档</p>
+          <p style="color: #999; font-size: 14px;">${sourceInfo?.details || '数据源分析'} • ${new Date().toLocaleString('zh-CN')}</p>
+        </div>`
+      };
+      addRecordWithGenerating('note', designRecord, {
+        onComplete: () => {
+          message.success('EPBL教学设计已生成，记录已添加。点击查看详情');
+        }
+      });
     } else if (card.key === OPERATION_TYPES.TRAINING_PLAN) {
       // 直接生成培训方案记录，不弹出配置窗口
       const trainingPlanRecord = {

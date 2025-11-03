@@ -377,6 +377,29 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
     });
   }, [selectedCategory, note?.category]);
 
+  // E-PBL 分类：初始化插入“EPBL教学设计”文档型操作记录（不含来源）
+  useEffect(() => {
+    const isEPBL = (selectedCategory === 'e_pbl' || note?.category === 'e_pbl' || selectedCategory === 'E-PBL' || note?.category === 'E-PBL');
+    if (!isEPBL) return;
+    setOperationRecords(prev => {
+      const next = { ...prev };
+      const notesArr = Array.isArray(prev.note) ? [...prev.note] : [];
+      const hasEpblDesign = notesArr.some(r => (r?.subType === 'document') && String(r.title || '').includes('EPBL教学设计'));
+      if (!hasEpblDesign) {
+        notesArr.unshift({
+          id: `epbl_design_${Date.now()}`,
+          type: 'note',
+          subType: 'document',
+          title: 'EPBL教学设计',
+          time: new Date().toISOString()
+          // 不设置 source / sourceRefs，以确保卡片不显示“来源”
+        });
+      }
+      next.note = notesArr;
+      return next;
+    });
+  }, [selectedCategory, note?.category]);
+
   // 培训需求管理：规范培训方案操作记录的标题与来源，并补充“学段2”
   useEffect(() => {
     const isNeedsMgmt = (selectedCategory === 'training_needs_management' || note?.category === 'training_needs_management');

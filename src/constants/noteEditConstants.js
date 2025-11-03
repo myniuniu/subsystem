@@ -89,6 +89,7 @@ export const VIEW_MODES = {
   MATERIALS: 'materials',
   VIDEO: 'video',
   DOCUMENT: 'document',
+  DOCUMENT_FULLSCREEN: 'document_fullscreen',
   WIDESCREEN_VIDEO: 'widescreen_video',
   CARD: 'card',
   MAP: 'map',
@@ -584,7 +585,7 @@ export const OPERATION_CARDS = [
   // 新增：E-PBL策划卡片
   {
     key: 'e-pbl-planning',
-    title: 'E-PBL策划',
+    title: 'E-PBL教学设计',
     icon: '策',
     gradient: 'linear-gradient(135deg, #fffbe6 0%, #ffe58f 100%)',
     color: '#faad14'
