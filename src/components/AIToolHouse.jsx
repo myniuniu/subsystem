@@ -34,6 +34,7 @@ import {
   CrownOutlined,
   GiftOutlined
 } from '@ant-design/icons'
+import { EditOutlined } from '@ant-design/icons'
 import { AI_TOOL_CATEGORIES, AI_TOOL_CATEGORY_LABELS, AI_TOOL_STATUS } from '../constants/noteEditConstants'
 import './AIToolHouse.css'
 
@@ -41,6 +42,86 @@ const { Title, Text, Paragraph } = Typography
 const { Option } = Select
 
 const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
+  // 输入类型与输出类型：统一枚举与标签
+  const INPUT_TYPE_LABELS = {
+    knowledge_graph: '知识图谱',
+    capability_model: '能力模型',
+    micro_major: '微专业',
+    training_project: '培训项目',
+    training_product: '培训产品',
+    course_video: '课程视频',
+    cloud_drive: '云盘',
+    exam_practice: '考试/练习',
+    live_course: '直播课',
+    knowledge_market: '知识广场',
+    link: '链接',
+    pasted_text: '粘贴文字'
+  }
+
+  const DEFAULT_INPUT_TYPES_BY_CATEGORY = {
+    [AI_TOOL_CATEGORIES.TEACHING]: ['cloud_drive', 'course_video', 'link', 'pasted_text'],
+    [AI_TOOL_CATEGORIES.ANALYSIS]: ['cloud_drive', 'link'],
+    [AI_TOOL_CATEGORIES.WRITING]: ['cloud_drive', 'link', 'pasted_text'],
+    [AI_TOOL_CATEGORIES.CREATIVE]: ['cloud_drive', 'link', 'pasted_text'],
+    [AI_TOOL_CATEGORIES.PRODUCTIVITY]: ['cloud_drive', 'link']
+  }
+
+  const DEFAULT_OUTPUT_TYPES_BY_CATEGORY = {
+    [AI_TOOL_CATEGORIES.TEACHING]: ['文档', '模版'],
+    [AI_TOOL_CATEGORIES.ANALYSIS]: ['文档'],
+    [AI_TOOL_CATEGORIES.WRITING]: ['文档'],
+    [AI_TOOL_CATEGORIES.CREATIVE]: ['文档', '白板'],
+    [AI_TOOL_CATEGORIES.PRODUCTIVITY]: ['文档']
+  }
+
+  const resolveInputTypes = (tool) => {
+    const arr = tool.supportedInputTypes || DEFAULT_INPUT_TYPES_BY_CATEGORY[tool.category] || []
+    return Array.isArray(arr) ? arr : []
+  }
+
+  const resolveOutputTypes = (tool) => {
+    const arr = tool.outputTypes || DEFAULT_OUTPUT_TYPES_BY_CATEGORY[tool.category] || []
+    return Array.isArray(arr) ? arr : []
+  }
+  // 覆盖与编辑：本地配置（localStorage）+ 编辑态
+  const getOverrides = () => {
+    try { return JSON.parse(localStorage.getItem('aitool_overrides') || '{}') } catch { return {} }
+  }
+  const applyToolOverrides = (tool) => {
+    const o = getOverrides()[tool.id] || {}
+    return { ...tool, ...o }
+  }
+  const INPUT_TYPE_OPTIONS = Object.entries(INPUT_TYPE_LABELS).map(([value, label]) => ({ value, label }))
+  const OUTPUT_TYPE_OPTIONS = ['文档','白板','模版'].map(v => ({ value: v, label: v }))
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editForm, setEditForm] = useState({ name: '', description: '', usage: '', supportedInputTypes: [], outputTypes: [] })
+  const openEditForTool = (tool) => {
+    const t = applyToolOverrides(tool)
+    setSelectedTool(t)
+    setEditForm({
+      name: t.name || '',
+      description: t.description || '',
+      usage: t.usage || '',
+      supportedInputTypes: resolveInputTypes(t),
+      outputTypes: resolveOutputTypes(t)
+    })
+    setIsEditMode(true)
+    setDetailModalVisible(true)
+  }
+  const saveToolEdits = () => {
+    if (!selectedTool) return
+    const overrides = getOverrides()
+    overrides[selectedTool.id] = {
+      name: editForm.name,
+      description: editForm.description,
+      usage: editForm.usage,
+      supportedInputTypes: editForm.supportedInputTypes,
+      outputTypes: editForm.outputTypes
+    }
+    localStorage.setItem('aitool_overrides', JSON.stringify(overrides))
+    message.success('工具属性已保存')
+    setIsEditMode(false)
+  }
   console.log('=== AIToolHouse 组件渲染 ===');
   console.log('接收到的 noteCategory:', noteCategory);
   console.log('noteCategory 类型:', typeof noteCategory);
@@ -1680,86 +1761,29 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
   return (
     <div className="ai-tool-house">
       <div className="ai-tool-house-header">
-        <div className="header-title">
-          <RobotOutlined className="header-icon" />
-          <Title level={2} style={{ color: 'var(--theme-textPrimary)', margin: 0 }}>AI工具屋</Title>
-          <Tag color="gold" style={{ marginLeft: 8 }}>社区贡献</Tag>
-        </div>
-        <Paragraph type="secondary" style={{ margin: '8px 0 0 0' }}>
-          发现社区贡献的优质AI工具，一键添加到果仁操作面板
-        </Paragraph>
-        
-        {/* 第三方平台支持提示 */}
-        <div style={{
-          background: 'var(--theme-cardBackground)',
-          border: '1px solid var(--theme-border)',
-          borderRadius: '8px',
-          padding: '12px 16px',
-          marginTop: '16px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.06)'
-        }}>
-          <div style={{ fontSize: '20px' }}>🤖</div>
-          <div style={{ flex: 1 }}>
-            <Text strong style={{ color: 'var(--theme-primary)' }}>支持第三方智能体平台</Text>
-            <div style={{ marginTop: '4px', fontSize: '13px', color: '#666' }}>
-              支持集成 <Tag size="small">Coze</Tag> <Tag size="small">Dify</Tag> <Tag size="small">智谱清言</Tag> <Tag size="small">ChatGPT</Tag> 等平台开发的智能体工具
-            </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div className="header-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Title level={3} style={{ color: 'var(--theme-textPrimary)', margin: 0 }}>AI工具屋</Title>
           </div>
-        </div>
-      </div>
-
-      <div className="ai-tool-house-filters">
-        <Row gutter={16} align="middle" style={{ marginBottom: 16 }}>
-          <Col flex="auto">
+          <div className="header-search" style={{ flexShrink: 0 }}>
             <Input
               placeholder="搜索AI工具名称、描述或标签"
               allowClear
               prefix={<SearchOutlined />}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              size="large"
+              size="middle"
+              style={{ width: 360 }}
             />
-          </Col>
-          <Col>
-            <Select
-              value={selectedCategory}
-              onChange={setSelectedCategory}
-              size="large"
-              style={{ width: 140 }}
-            >
-              {Object.entries(AI_TOOL_CATEGORY_LABELS).map(([key, config]) => (
-                <Option key={key} value={key}>
-                  <Space>
-                    <span>{config.icon}</span>
-                    <span>{config.label}</span>
-                  </Space>
-                </Option>
-              ))}
-            </Select>
-          </Col>
-          <Col>
-            <Select
-              value={selectedStatus}
-              onChange={setSelectedStatus}
-              size="large"
-              style={{ width: 120 }}
-            >
-              {statusOptions.map(option => (
-                <Option key={option.value} value={option.value}>
-                  {option.label}
-                </Option>
-              ))}
-            </Select>
-          </Col>
-        </Row>
+          </div>
+        </div>
       </div>
+
+      {/* 过滤控件已移除 */}
 
       <div className="ai-tool-house-content">
         {/* 推荐工具区域 */}
-        <div className="featured-tools">
+        <div className="featured-tools" style={{ display: 'none' }}>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
             <FireOutlined style={{ color: 'var(--theme-primary)', marginRight: 8 }} />
             <Title level={3} style={{ margin: 0 }}>热门推荐</Title>
@@ -1788,27 +1812,15 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
                         </Tooltip>
                       ),
                       (
-                        isToolAdded(tool.id) ? (
-                          <Tooltip title="已在操作面板">
-                            <Button
-                              key={`added-${tool.id}`}
-                              type="text"
-                              size="small"
-                              icon={<CheckOutlined />}
-                              onClick={(e) => { e.stopPropagation(); showToolDetail(tool); }}
-                            />
-                          </Tooltip>
-                        ) : (
-                          <Tooltip title="添加到操作面板">
-                            <Button
-                              key={`add-${tool.id}`}
-                              type="text"
-                              size="small"
-                              icon={<PlusOutlined />}
-                              onClick={(e) => { e.stopPropagation(); addToOperationPanel(tool); }}
-                            />
-                          </Tooltip>
-                        )
+                        <Tooltip title="修改工具属性">
+                          <Button
+                            key={`edit-${tool.id}`}
+                            type="text"
+                            size="small"
+                            icon={<EditOutlined />}
+                            onClick={(e) => { e.stopPropagation(); openEditForTool(tool); }}
+                          />
+                        </Tooltip>
                       ),
                       (
                         <Tooltip title="查看详情">
@@ -1851,9 +1863,7 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
                           </Tag>
                         )}
                       </div>
-                      <div className="click-hint">
-                        <EyeOutlined style={{ fontSize: 12, color: '#999' }} />
-                      </div>
+                      {/* 移除悬停提示：点击查看详情 */}
                     </div>
                   }
                   
@@ -1866,17 +1876,7 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
                     <div className="tool-description">
                       {tool.description}
                     </div>
-                    <div className="tool-meta">
-                      <div className="tool-rating">
-                        <Rate disabled defaultValue={tool.rating} style={{ fontSize: 12 }} />
-                        <span className="rating-text">{tool.rating}</span>
-                      </div>
-                      <div className="tool-downloads">
-                        <Text type="secondary" style={{ fontSize: 12 }}>
-                          {tool.downloads.toLocaleString()} 下载
-                        </Text>
-                      </div>
-                    </div>
+                    {/* 简化卡片元信息：去掉评分与下载 */}
                     <div className="tool-tags">
                       {tool.tags.slice(0, 3).map((tag, tagIndex) => {
                         // 为不同标签设置清新的颜色
@@ -1884,6 +1884,20 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
                           <Tag key={tag} size="small">{tag}</Tag>
                         );
                       })}
+                      {/* 支持的输入类型 */}
+                      <div style={{ marginTop: 6 }}>
+                        <Text type="secondary" style={{ fontSize: 12, marginRight: 6 }}>输入:</Text>
+                        {resolveInputTypes(tool).map((t) => (
+                          <Tag key={`${tool.id}-in-${t}`} color="blue" style={{ marginBottom: 4 }}>{INPUT_TYPE_LABELS[t] || t}</Tag>
+                        ))}
+                      </div>
+                      {/* 输出类型 */}
+                      <div style={{ marginTop: 4 }}>
+                        <Text type="secondary" style={{ fontSize: 12, marginRight: 6 }}>输出:</Text>
+                        {resolveOutputTypes(tool).map((t) => (
+                          <Tag key={`${tool.id}-out-${t}`} color="geekblue" style={{ marginBottom: 4 }}>{t}</Tag>
+                        ))}
+                      </div>
                     </div>
                   </div>
                   </Card>
@@ -1896,13 +1910,7 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
 
         {/* 全部工具区域 */}
         <div className="all-tools">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <ThunderboltOutlined style={{ color: 'var(--theme-primary)', marginRight: 8 }} />
-                <Title level={3} style={{ margin: 0 }}>全部工具</Title>
-                <Text type="secondary" style={{ marginLeft: 8 }}>({filteredTools.length})</Text>
-              </div>
-            </div>
+            {/* 分类标题已移除，直接展示所有工具 */}
           
           {filteredTools.length === 0 ? (
             <Empty
@@ -1935,27 +1943,15 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
                         </Tooltip>
                       ),
                       (
-                        isToolAdded(tool.id) ? (
-                          <Tooltip title="已在操作面板">
-                            <Button
-                              key={`added-${tool.id}`}
-                              type="text"
-                              size="small"
-                              icon={<CheckOutlined />}
-                              onClick={(e) => { e.stopPropagation(); showToolDetail(tool); }}
-                            />
-                          </Tooltip>
-                        ) : (
-                          <Tooltip title="添加到操作面板">
-                            <Button
-                              key={`add-${tool.id}`}
-                              type="text"
-                              size="small"
-                              icon={<PlusOutlined />}
-                              onClick={(e) => { e.stopPropagation(); addToOperationPanel(tool); }}
-                            />
-                          </Tooltip>
-                        )
+                        <Tooltip title="修改工具属性">
+                          <Button
+                            key={`edit-${tool.id}`}
+                            type="text"
+                            size="small"
+                            icon={<EditOutlined />}
+                            onClick={(e) => { e.stopPropagation(); openEditForTool(tool); }}
+                          />
+                        </Tooltip>
                       ),
                       (
                         <Tooltip title="查看详情">
@@ -1990,25 +1986,19 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
                               {tool.platform}
                             </Tag>
                           )}
-                          {tool.featured && (
-                            <Tag color="gold" size="small" icon={<CrownOutlined />}>
-                              推荐
-                            </Tag>
-                          )}
-                          {tool.status === AI_TOOL_STATUS.NEW && (
-                            <Tag color="blue" size="small">
-                              最新
-                            </Tag>
-                          )}
-                          {tool.status === AI_TOOL_STATUS.BETA && (
-                            <Tag color="orange" size="small">
-                              测试
-                            </Tag>
-                          )}
+                          {/* 移除“热门推荐”标签 */}
+                        {tool.status === AI_TOOL_STATUS.NEW && (
+                          <Tag color="blue" size="small">
+                            最新
+                          </Tag>
+                        )}
+                        {tool.status === AI_TOOL_STATUS.BETA && (
+                          <Tag color="orange" size="small">
+                            测试
+                          </Tag>
+                        )}
                         </div>
-                        <div className="click-hint">
-                          <EyeOutlined style={{ fontSize: 12, color: '#999' }} />
-                        </div>
+                        {/* 移除悬停提示：点击查看详情 */}
                       </div>
                     }
                     
@@ -2021,23 +2011,25 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
                       <div className="tool-description">
                         {tool.description}
                       </div>
-                      <div className="tool-meta">
-                        <div className="tool-rating">
-                          <Rate disabled defaultValue={tool.rating} style={{ fontSize: 12 }} />
-                          <span className="rating-text">{tool.rating}</span>
-                        </div>
-                        <div className="tool-downloads">
-                          <Text type="secondary" style={{ fontSize: 12 }}>
-                            {tool.downloads.toLocaleString()} 下载
-                          </Text>
-                        </div>
-                      </div>
+                      {/* 简化卡片元信息：去掉评分与下载 */}
                       <div className="tool-tags">
                         {tool.tags.slice(0, 3).map((tag, tagIndex) => {
                           return (
                             <Tag key={tag} size="small">{tag}</Tag>
                           );
                         })}
+                        <div style={{ marginTop: 6 }}>
+                          <Text type="secondary" style={{ fontSize: 12, marginRight: 6 }}>输入:</Text>
+                          {resolveInputTypes(tool).map((t) => (
+                            <Tag key={`${tool.id}-in-${t}`} color="blue" style={{ marginBottom: 4 }}>{INPUT_TYPE_LABELS[t] || t}</Tag>
+                          ))}
+                        </div>
+                        <div style={{ marginTop: 4 }}>
+                          <Text type="secondary" style={{ fontSize: 12, marginRight: 6 }}>输出:</Text>
+                          {resolveOutputTypes(tool).map((t) => (
+                            <Tag key={`${tool.id}-out-${t}`} color="geekblue" style={{ marginBottom: 4 }}>{t}</Tag>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </Card>
@@ -2056,31 +2048,15 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
               {selectedTool?.icon}
             </div>
             <div>
-              <Title level={4} style={{ margin: 0 }}>{selectedTool?.name}</Title>
-              <Text type="secondary">by {selectedTool?.author} · 工具详情</Text>
+              <Title level={4} style={{ margin: 0 }}>{isEditMode ? '修改工具属性' : selectedTool?.name}</Title>
+              <Text type="secondary">by {selectedTool?.author} · {isEditMode ? '编辑' : '工具详情'}</Text>
             </div>
           </div>
         )}
         open={detailModalVisible}
         onCancel={() => setDetailModalVisible(false)}
         footer={[
-          <Tooltip title={selectedTool && isToolAdded(selectedTool.id) ? '已在操作面板' : '添加到操作面板'}>
-            <Button
-              key="primary"
-              type={selectedTool && isToolAdded(selectedTool.id) ? 'default' : 'primary'}
-              icon={selectedTool && isToolAdded(selectedTool.id) ? <CheckOutlined /> : <PlusOutlined />}
-              onClick={() => {
-                if (!selectedTool) return;
-                if (isToolAdded(selectedTool.id)) {
-                  removeFromOperationPanel(selectedTool);
-                } else {
-                  addToOperationPanel(selectedTool);
-                }
-              }}
-            >
-              {selectedTool && isToolAdded(selectedTool.id) ? '移除' : '添加到操作面板'}
-            </Button>
-          </Tooltip>,
+          isEditMode ? (<Button key="save" type="primary" onClick={saveToolEdits}>保存修改</Button>) : null,
           <Tooltip title={selectedTool && favoriteTools.includes(selectedTool.id) ? '取消收藏' : '收藏工具'}>
             <Button
               key="fav"
@@ -2094,9 +2070,11 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
             关闭
           </Button>
         ]}
-        width={700}
+        width={1000}
+        bodyStyle={{ overflowY: 'visible' }}
+        style={{ top: 32 }}
       >
-        {selectedTool && (
+        {selectedTool && !isEditMode && (
           <div className="tool-detail">
             <Descriptions column={2} size="small" style={{ marginBottom: 16 }}>
               <Descriptions.Item label="版本">{selectedTool.version}</Descriptions.Item>
@@ -2151,6 +2129,64 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
                   );
                 })}
               </div>
+            </div>
+            <Divider style={{ margin: '16px 0' }} />
+            <div>
+              <Title level={5}>支持的输入类型</Title>
+              <div>
+                {resolveInputTypes(selectedTool).map((t) => (
+                  <Tag key={`detail-in-${t}`} color="blue" style={{ marginBottom: 4 }}>{INPUT_TYPE_LABELS[t] || t}</Tag>
+                ))}
+              </div>
+            </div>
+            <div style={{ marginTop: 12 }}>
+              <Title level={5}>输出类型</Title>
+              <div>
+                {resolveOutputTypes(selectedTool).map((t) => (
+                  <Tag key={`detail-out-${t}`} color="geekblue" style={{ marginBottom: 4 }}>{t}</Tag>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        {selectedTool && isEditMode && (
+          <div className="tool-detail">
+            <div style={{ marginBottom: 16 }}>
+              <Title level={5}>基础信息</Title>
+              <Row gutter={12}>
+                <Col span={12}>
+                  <Paragraph type="secondary">名称</Paragraph>
+                  <Input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+                </Col>
+                <Col span={12}>
+                  <Paragraph type="secondary">使用方法</Paragraph>
+                  <Input value={editForm.usage} onChange={(e) => setEditForm({ ...editForm, usage: e.target.value })} />
+                </Col>
+              </Row>
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <Title level={5}>描述</Title>
+              <Input.TextArea value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} rows={4} />
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <Title level={5}>支持的输入类型</Title>
+              <Select
+                mode="multiple"
+                value={editForm.supportedInputTypes}
+                options={INPUT_TYPE_OPTIONS}
+                style={{ width: '100%' }}
+                onChange={(vals) => setEditForm({ ...editForm, supportedInputTypes: vals })}
+              />
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <Title level={5}>输出类型</Title>
+              <Select
+                mode="multiple"
+                value={editForm.outputTypes}
+                options={OUTPUT_TYPE_OPTIONS}
+                style={{ width: '100%' }}
+                onChange={(vals) => setEditForm({ ...editForm, outputTypes: vals })}
+              />
             </div>
           </div>
         )}

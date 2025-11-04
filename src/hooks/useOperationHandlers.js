@@ -185,6 +185,7 @@ export const useOperationHandlers = ({
       title: selectedTitle,
       source: sourceInfo?.details || '基于当前数据源',
       time: new Date().toLocaleString('zh-CN'),
+      isAIGenerated: true,
       sourceRefs: getSourceRefs(),
       content: `<div style="padding: 12px; color:#666;">培训报表 - ${selectedTitle}</div>`
     };
@@ -207,6 +208,7 @@ export const useOperationHandlers = ({
       title: '培训需求与管理系统整体培训报告',
       source: sourceInfo?.details || '基于当前数据源',
       time: new Date().toLocaleString('zh-CN'),
+      isAIGenerated: true,
       content: `<div style="padding: 20px; text-align: center;">
         <h3>📊 培训需求与管理系统整体培训报告</h3>
         <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的综合培训分析报告</p>
@@ -259,6 +261,7 @@ export const useOperationHandlers = ({
         title: '智能试题',
         source: sourceInfo?.details || '基于当前数据源',
         time: new Date().toLocaleString('zh-CN'),
+        isAIGenerated: true,
         sourceRefs: getSourceRefs(),
         content: `<div style="padding: 20px; text-align: center;">
           <h3>📝 智能试题</h3>
@@ -280,6 +283,7 @@ export const useOperationHandlers = ({
         title: '智能学习计划',
         source: sourceInfo?.details || '基于当前数据源',
         time: new Date().toLocaleString('zh-CN'),
+        isAIGenerated: true,
         sourceRefs: getSourceRefs(),
         content: `<div style="padding: 20px; text-align: center;">
           <h3>🎯 智能学习计划</h3>
@@ -304,6 +308,7 @@ export const useOperationHandlers = ({
         title: '智能报告',
         source: sourceInfo?.details || '基于当前数据源',
         time: new Date().toLocaleString('zh-CN'),
+        isAIGenerated: true,
         sourceRefs: getSourceRefs(),
         content: `<div style="padding: 20px; text-align: center;">
           <h3>📄 智能报告</h3>
@@ -327,6 +332,7 @@ export const useOperationHandlers = ({
         title: '课堂评价',
         source: sourceInfo?.details || '基于当前数据源',
         time: new Date().toLocaleString('zh-CN'),
+        isAIGenerated: true,
         sourceRefs: getSourceRefs(),
         content: `<div style="padding: 20px; text-align: center;">
           <h3>📊 课堂评价报告</h3>
@@ -348,6 +354,7 @@ export const useOperationHandlers = ({
         title: '课堂行为分析',
         source: sourceInfo?.details || '基于当前数据源',
         time: new Date().toLocaleString('zh-CN'),
+        isAIGenerated: true,
         sourceRefs: getSourceRefs(),
         content: `<div style="padding: 20px; text-align: center;">
           <h3>🎯 课堂行为分析</h3>
@@ -432,6 +439,7 @@ export const useOperationHandlers = ({
         title: '培训方案',
         source: sourceInfo?.details || '基于当前数据源',
         time: new Date().toLocaleString('zh-CN'),
+        isAIGenerated: true,
         sourceRefs: getSourceRefs(),
         content: `<div style="padding: 20px; text-align: center;">
           <h3>📋 培训方案</h3>
