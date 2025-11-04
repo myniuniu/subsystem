@@ -1,0 +1,66 @@
+/* 督学模块样式 */
+.supervision {
+  height: 100vh;
+  background: #f5f7fa;
+}
+
+.supervision .ant-layout {
+  height: 100vh;
+  background: transparent;
+}
+
+.supervision-sidebar {
+  background: #fff;
+  border-right: 1px solid #e8e8e8;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.06);
+}
+
+.sidebar-content {
+  padding: 16px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-top {
+  flex: 0 0 auto;
+}
+
+.sidebar-section-title {
+  margin-bottom: 8px;
+}
+
+.sidebar-bottom {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+/* 调整督学菜单的图标大小与节点间距 */
+.supervision-sidebar .category-icon {
+  font-size: 14px;
+}
+.supervision-sidebar .ant-tree-treenode {
+  padding: 8px 0; /* 增加垂直间距 */
+}
+.supervision-sidebar .ant-tree-node-content-wrapper {
+  padding: 6px 8px;
+}
+
+.supervision-content {
+  background: #f5f7fa;
+  padding: 16px;
+}
+
+.content-wrapper {
+  height: 100%;
+}
+
+.content-title {
+  font-weight: 600;
+}
+
+.content-placeholder {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

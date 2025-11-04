@@ -9,6 +9,8 @@ import {
   Row,
   Col,
   Empty,
+  Space,
+  Popover,
   message
 } from 'antd'
 import {
@@ -39,6 +41,10 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
     const saved = localStorage.getItem('added-apps')
     return saved ? JSON.parse(saved) : []
   })
+  // 批量管理所选标签
+  const [batchTag, setBatchTag] = useState('')
+  const [batchVisible, setBatchVisible] = useState(false)
+  const [selectedBatchTag, setSelectedBatchTag] = useState('')
 
   // 监听localStorage变化，同步菜单应用状态
   useEffect(() => {
@@ -57,7 +63,6 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
     
     // 监听自定义事件（同一页面内）
     window.addEventListener('menuAppsChanged', handleStorageChange)
-    
     return () => {
       window.removeEventListener('storage', handleStorageChange)
       window.removeEventListener('menuAppsChanged', handleStorageChange)
@@ -182,7 +187,7 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
       description: '智能作业布置、批改和统计分析系统',
       icon: 'EditOutlined',
       category: 'management',
-      tags: ['作业', '批改', '管理'],
+      tags: ['作业', '批改'],
       grade: ['小学', '初中', '高中'],
       subject: ['语文', '数学', '英语', '物理', '化学', '生物'],
       rating: 4.7,
@@ -307,7 +312,7 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
       description: '高清视频会议，支持屏幕共享和在线白板功能',
       icon: 'VideoCameraOutlined',
       category: 'media',
-      tags: ['视频', '会议', '直播'],
+      tags: ['基础', '视频', '会议', '直播'],
       grade: ['幼儿', '小学', '初中', '高中', '大学'],
       subject: ['语文', '数学', '英语', '科学', '艺术'],
       rating: 4.5,
@@ -319,23 +324,115 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
       menuLabel: '视频会议',
       menuColor: '#1890ff'
     },
+    
+    // 以下为从应用中心添加的可选基础/AI/标注/培训类应用
     {
-      id: 'app-store',
-      name: '应用商店',
-      description: '发现更多教育应用，一站式应用管理平台',
+      id: 'ai-assistant-app',
+      name: 'AI智能中心',
+      description: '统一管理与体验平台内的AI工具',
+      icon: 'DashboardOutlined',
+      category: 'ai',
+      tags: ['AI', '工具'],
+      grade: ['小学', '初中', '高中', '大学'],
+      subject: ['综合'],
+      rating: 4.5,
+      downloads: 3200,
+      version: 'v1.0.0',
+      developer: 'AI中心',
+      featured: false,
+      menuId: 'ai-assistant',
+      menuLabel: 'AI智能中心',
+      menuColor: '#667eea'
+    },
+    {
+      id: 'ai-tool-house-app',
+      name: 'AI工具屋',
+      description: '收纳常用AI工具，支持配置与扩展',
       icon: 'AppstoreOutlined',
-      category: 'tools',
-      tags: ['应用', '商店', '管理'],
-      grade: ['幼儿', '小学', '初中', '高中', '大学'],
+      category: 'ai',
+      tags: ['AI', '工具'],
+      grade: ['小学', '初中', '高中', '大学'],
+      subject: ['综合'],
+      rating: 4.4,
+      downloads: 2800,
+      version: 'v1.0.0',
+      developer: '工具屋',
+      featured: false,
+      menuId: 'ai-tool-house',
+      menuLabel: 'AI工具屋',
+      menuColor: '#722ed1'
+    },
+    {
+      id: 'theme-template-center-app',
+      name: '智能体中心',
+      description: '管理与使用各类主题智能体模板',
+      icon: 'DashboardOutlined',
+      category: 'ai',
+      tags: ['AI', '管理'],
+      grade: ['小学', '初中', '高中', '大学'],
       subject: ['综合'],
       rating: 4.3,
-      downloads: 9500,
+      downloads: 2000,
       version: 'v1.0.0',
-      developer: '平台开发组',
+      developer: '智能体中心',
       featured: false,
-      menuId: 'app-store',
-      menuLabel: '应用商店',
-      menuColor: '#52c41a'
+      menuId: 'theme-template-center',
+      menuLabel: '智能体',
+      menuColor: '#1890ff'
+    },
+    {
+      id: 'resource-annotation-app',
+      name: '资源标注',
+      description: '对资料进行标注、规则管理与批量处理',
+      icon: 'FileTextOutlined',
+      category: 'annotation',
+      tags: ['标注', '管理'],
+      grade: ['小学', '初中', '高中', '大学'],
+      subject: ['综合'],
+      rating: 4.4,
+      downloads: 2400,
+      version: 'v1.0.0',
+      developer: '标注中心',
+      featured: false,
+      menuId: 'resource-annotation',
+      menuLabel: '资源标注',
+      menuColor: '#f759ab'
+    },
+    {
+      id: 'student-annotation-app',
+      name: '学员标注',
+      description: '面向学员的标注与批注工作台',
+      icon: 'FileTextOutlined',
+      category: 'annotation',
+      tags: ['标注', '管理'],
+      grade: ['小学', '初中', '高中', '大学'],
+      subject: ['综合'],
+      rating: 4.2,
+      downloads: 1800,
+      version: 'v1.0.0',
+      developer: '标注中心',
+      featured: false,
+      menuId: 'student-annotation',
+      menuLabel: '学员标注',
+      menuColor: '#722ed1'
+    },
+    {
+      id: 'certificates-app',
+      name: '我的证书',
+      description: '查看与管理培训证书与完成记录',
+      icon: 'FileTextOutlined',
+      category: 'training',
+      tags: ['培训'],
+      grade: ['小学', '初中', '高中', '大学'],
+      subject: ['综合'],
+      rating: 4.1,
+      downloads: 1600,
+      version: 'v1.0.0',
+      developer: '培训中心',
+      featured: false,
+      menuId: 'my-certificates',
+      menuLabel: '我的证书',
+      menuColor: '#1890ff'
     },
     {
       id: 'ai-experience-app',
@@ -343,7 +440,7 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
       description: '探索AI交互与体验功能入口',
       icon: 'DashboardOutlined',
       category: 'lab',
-      tags: ['实验室'],
+      tags: ['AI', '实验室'],
       grade: ['小学', '初中', '高中', '大学'],
       subject: ['综合'],
       rating: 4.3,
@@ -361,7 +458,7 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
       description: '管理与实验模型配置及版本',
       icon: 'AppstoreOutlined',
       category: 'lab',
-      tags: ['实验室'],
+      tags: ['AI', '实验室'],
       grade: ['小学', '初中', '高中', '大学'],
       subject: ['综合'],
       rating: 4.2,
@@ -392,11 +489,30 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
     DashboardOutlined: <DashboardOutlined />
   }
 
+  // 获取包含自定义标签的全部标签
+  const getAllTags = (app) => {
+    const builtin = Array.isArray(app.tags) ? app.tags : []
+    return builtin
+  }
+
+  // 获取全局唯一标签列表
+  const getAllUniqueTags = () => {
+    const set = new Set()
+    apps.forEach(a => {
+      const tags = getAllTags(a)
+      tags.forEach(t => set.add(t))
+    })
+    return Array.from(set)
+  }
+
   // 筛选应用
   const filteredApps = apps.filter(app => {
-    const matchesSearch = app.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         app.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         app.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+    const tags = getAllTags(app)
+    const label = (app.menuLabel || app.name || '').toLowerCase()
+    const query = searchTerm.toLowerCase()
+    const matchesSearch = label.includes(query) ||
+                         (app.description || '').toLowerCase().includes(query) ||
+                         tags.some(tag => (tag || '').toLowerCase().includes(query))
     return matchesSearch
   })
 
@@ -408,6 +524,8 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
         : [...menuApps, app.menuId]
       setMenuApps(newMenuApps)
       localStorage.setItem('added-apps', JSON.stringify(newMenuApps))
+      // 通知同页其他组件更新（如侧栏）
+      window.dispatchEvent(new Event('menuAppsChanged'))
       
       if (onAddToMenu) {
         onAddToMenu({
@@ -418,7 +536,7 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
         })
       }
       
-      message.success(`${app.name} 已添加到菜单`)
+      message.success(`${app.menuLabel || app.name} 已添加到菜单`)
     } catch (error) {
       message.error('添加失败，请重试')
     }
@@ -430,20 +548,41 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
       const newMenuApps = menuApps.filter(id => id !== app.menuId && id !== app.id)
       setMenuApps(newMenuApps)
       localStorage.setItem('added-apps', JSON.stringify(newMenuApps))
+      // 通知同页其他组件更新（如侧栏）
+      window.dispatchEvent(new Event('menuAppsChanged'))
       
       if (onRemoveFromMenu) {
         onRemoveFromMenu(app.menuId)
       }
       
-      message.success(`${app.name} 已从菜单移除`)
+      message.success(`${app.menuLabel || app.name} 已从菜单移除`)
     } catch (error) {
       message.error('移除失败，请重试')
     }
   }
 
-  // 检查应用是否已添加（兼容旧数据）
+  // 检查应用是否已添加
   const isAppAdded = (app) => {
-    return menuApps.includes(app.menuId) || menuApps.includes(app.id)
+    try {
+      // 1) 已通过应用中心添加的（动态或恢复默认），记录在 added-apps
+      if (menuApps.includes(app.menuId) || menuApps.includes(app.id)) return true
+
+      // 2) 默认菜单项未被移除，也视为“已添加”
+      const defaultMenuIds = [
+        'ai-assistant',
+        'ai-tool-house',
+        'theme-template-center',
+        'resource-annotation',
+        'student-annotation',
+        'my-certificates'
+      ]
+      const removedDefaultsRaw = localStorage.getItem('removed-default-apps')
+      const removedDefaults = removedDefaultsRaw ? JSON.parse(removedDefaultsRaw) : []
+      const isDefaultPresent = defaultMenuIds.includes(app.menuId) && !removedDefaults.includes(app.menuId)
+      return isDefaultPresent
+    } catch {
+      return false
+    }
   }
 
   return (
@@ -456,104 +595,142 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
               <Title level={2} style={{ margin: 0 }}>应用中心</Title>
             </div>
           </Col>
+          <Col>
+            <Space>
+              <Popover
+                placement="bottomRight"
+                trigger="click"
+                open={batchVisible}
+                onOpenChange={(v) => setBatchVisible(v)}
+                content={(
+                  <div style={{ width: 420 }}>
+                    <Space>
+                      <Input
+                        placeholder="输入标签进行批量管理"
+                        allowClear
+                        value={batchTag}
+                        onChange={(e) => setBatchTag(e.target.value)}
+                        onPressEnter={(e) => setBatchTag(e.target.value)}
+                        style={{ width: 240 }}
+                      />
+                      <Button
+                        type="primary"
+                        onClick={() => {
+                          const tagInput = batchTag.trim()
+                          const chosenTag = (selectedBatchTag || tagInput)
+                          if (!chosenTag) return
+                          const targetApps = apps.filter(a => getAllTags(a).some(t => t.toLowerCase() === chosenTag.toLowerCase()))
+                          if (targetApps.length === 0) {
+                            message.warning(`没有找到标签“${chosenTag}”对应的应用`)
+                            return
+                          }
+                          targetApps.forEach(app => handleAddToMenu(app))
+                          message.success(`批量添加：标签“${chosenTag}”匹配 ${targetApps.length} 个应用`)
+                          setBatchVisible(false)
+                        }}
+                      >
+                        批量添加
+                      </Button>
+                      <Button
+                        danger
+                        onClick={() => {
+                          const tagInput = batchTag.trim()
+                          const chosenTag = (selectedBatchTag || tagInput)
+                          if (!chosenTag) return
+                          const targetApps = apps.filter(a => getAllTags(a).some(t => t.toLowerCase() === chosenTag.toLowerCase()))
+                          if (targetApps.length === 0) {
+                            message.warning(`没有找到标签“${chosenTag}”对应的应用`)
+                            return
+                          }
+                          targetApps.forEach(app => handleRemoveFromMenu(app))
+                          message.success(`批量移除：标签“${chosenTag}”匹配 ${targetApps.length} 个应用`)
+                          setBatchVisible(false)
+                        }}
+                      >
+                        批量移除
+                      </Button>
+                    </Space>
+                  {/* 匹配到的标签列表 */}
+                  <div style={{ marginTop: 12 }}>
+                    <div style={{ marginBottom: 6, color: '#666' }}>匹配到的标签（点击选择）</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {(() => {
+                        const q = batchTag.trim().toLowerCase()
+                        const allTags = getAllUniqueTags()
+                        const matched = q ? allTags.filter(t => t.toLowerCase().includes(q)) : allTags.slice(0, 20)
+                        if (matched.length === 0) {
+                          return <Text type="secondary">未匹配到标签</Text>
+                        }
+                        return matched.map(tag => (
+                          <Tag
+                            key={tag}
+                            color={selectedBatchTag === tag ? 'volcano' : 'blue'}
+                            onClick={() => setSelectedBatchTag(tag)}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            {tag}
+                          </Tag>
+                        ))
+                      })()}
+                    </div>
+                  </div>
+                  {/* 实时检索列表 */}
+                  {batchTag.trim() && (
+                    <div style={{ marginTop: 12 }}>
+                      {(() => {
+                          const tagInput = batchTag.trim()
+                          const chosenTag = (selectedBatchTag || tagInput)
+                          const matchedApps = chosenTag
+                            ? apps.filter(a => getAllTags(a).some(t => t.toLowerCase() === chosenTag.toLowerCase()))
+                            : []
+                          return (
+                            <div>
+                              <div style={{ marginBottom: 8, color: '#666' }}>
+                                {chosenTag ? `标签“${chosenTag}”对应 ${matchedApps.length} 个应用` : '请选择一个标签'}
+                              </div>
+                              <div style={{ maxHeight: 220, overflowY: 'auto' }}>
+                                {matchedApps.slice(0, 12).map(app => (
+                                  <Row key={app.id} align="middle" style={{ padding: '6px 0' }}>
+                                    <Col flex="auto">
+                                      <span style={{ fontWeight: 500 }}>{app.menuLabel || app.name}</span>
+                                      <span style={{ color: '#999', marginLeft: 8 }}>{app.developer}</span>
+                                    </Col>
+                                    <Col>
+                                      {isAppAdded(app) ? (
+                                        <Button size="small" type="link" onClick={() => handleRemoveFromMenu(app)}>已添加，移除</Button>
+                                      ) : (
+                                        <Button size="small" type="link" onClick={() => handleAddToMenu(app)}>添加</Button>
+                                      )}
+                                    </Col>
+                                  </Row>
+                                ))}
+                              </div>
+                            </div>
+                          )
+                        })()}
+                    </div>
+                  )}
+                </div>
+              )}
+              >
+                <Button type="primary">批量安装/移除</Button>
+              </Popover>
+              <Input
+                placeholder="搜索应用名称、描述或标签"
+                allowClear
+                prefix={<SearchOutlined />}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onPressEnter={(e) => setSearchTerm(e.target.value)}
+                style={{ width: 320 }}
+              />
+            </Space>
+          </Col>
         </Row>
       </Card>
 
-      <div className="app-center-filters">
-        <Row gutter={16} align="middle" style={{ marginBottom: 8 }}>
-          <Col flex="auto">
-            <Input
-              placeholder="搜索应用名称、描述或标签"
-              allowClear
-              prefix={<SearchOutlined />}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onPressEnter={(e) => setSearchTerm(e.target.value)}
-            />
-          </Col>
-        </Row>
-      </div>
-
       <div className="app-center-content">
-        {/* 推荐应用区域 */}
-        <div className="featured-apps">
-          <Title level={3}>推荐应用</Title>
-          <Row gutter={[12, 12]}>
-            {apps.filter(app => app.featured).map(app => (
-              <Col key={app.id} xs={24} sm={12} md={8} lg={6}>
-                <Card
-                  className="app-card"
-                  hoverable
-                  actions={[
-                    isAppAdded(app) ? (
-                      <Button
-                        key="remove"
-                        type="text"
-                        size="small"
-                        icon={<CheckOutlined />}
-                        onClick={() => handleRemoveFromMenu(app)}
-                        style={{ color: '#52c41a' }}
-                      >
-                        已添加
-                      </Button>
-                    ) : (
-                      <Button
-                        key="add"
-                        className="app-add-btn"
-                        size="small"
-                        icon={<PlusOutlined />}
-                        onClick={() => handleAddToMenu(app)}
-                      >
-                        添加
-                      </Button>
-                    )
-                  ]}
-                >
-                  <div className="app-card-header">
-                    <Avatar
-                      size={40}
-                      icon={iconMap[app.icon]}
-                      style={{ backgroundColor: app.menuColor }}
-                    />
-                    <div className="app-info">
-                      <h4>{app.name}</h4>
-                      <Text type="secondary">{app.developer}</Text>
-                    </div>
-                    {app.featured && (
-                        <Tag className="featured-tag" color="gold">
-                          推荐
-                        </Tag>
-                      )}
-                      {app.tags && app.tags.includes('实验室') && (
-                        <Tag className="lab-tag" color="purple">
-                          实验室
-                        </Tag>
-                      )}
-                    </div>
-                    <div className="app-description">
-                    {app.description}
-                  </div>
-                  <div className="app-grade-subject">
-                    <div>
-                      <Text type="secondary">学段:</Text>
-                      {app.grade.slice(0, 3).map(grade => (
-                        <Tag key={grade} size="small" color="blue">{grade}</Tag>
-                      ))}
-                      {app.grade.length > 3 && <Text type="secondary" style={{ fontSize: '10px' }}>+{app.grade.length - 3}</Text>}
-                    </div>
-                    <div>
-                      <Text type="secondary">学科:</Text>
-                      {app.subject.slice(0, 2).map(subject => (
-                        <Tag key={subject} size="small" color="green">{subject}</Tag>
-                      ))}
-                      {app.subject.length > 2 && <Text type="secondary" style={{ fontSize: '10px' }}>+{app.subject.length - 2}</Text>}
-                    </div>
-                  </div>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        </div>
+        {/* 移除推荐区，统一展示所有应用 */}
 
         {/* 应用列表区域 */}
         <div className="apps-list">
@@ -602,7 +779,7 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
                         style={{ backgroundColor: app.menuColor }}
                       />
                       <div className="app-info">
-                        <h4>{app.name}</h4>
+                        <h4>{app.menuLabel || app.name}</h4>
                         <Text type="secondary">{app.developer}</Text>
                       </div>
                       {app.featured && (
@@ -619,22 +796,14 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
                     <div className="app-description">
                       {app.description}
                     </div>
-                     <div className="app-grade-subject">
-                       <div>
-                         <Text type="secondary">学段:</Text>
-                         {app.grade.slice(0, 3).map(grade => (
-                           <Tag key={grade} size="small" color="blue">{grade}</Tag>
-                         ))}
-                         {app.grade.length > 3 && <Text type="secondary" style={{ fontSize: '10px' }}>+{app.grade.length - 3}</Text>}
-                       </div>
-                       <div>
-                         <Text type="secondary">学科:</Text>
-                         {app.subject.slice(0, 2).map(subject => (
-                           <Tag key={subject} size="small" color="green">{subject}</Tag>
-                         ))}
-                         {app.subject.length > 2 && <Text type="secondary" style={{ fontSize: '10px' }}>+{app.subject.length - 2}</Text>}
-                       </div>
-                     </div>
+                    {/* 标签展示（仅显示，不支持编辑） */}
+                    <div className="app-tags">
+                      {getAllTags(app).map(tag => (
+                        <Tag key={tag} color={'blue'}>
+                          {tag}
+                        </Tag>
+                      ))}
+                    </div>
                   </Card>
                 </Col>
               ))}

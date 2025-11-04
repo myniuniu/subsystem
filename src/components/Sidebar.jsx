@@ -155,7 +155,7 @@ const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onCli
 
   const handleRemove = (e) => {
     e.stopPropagation()
-    if (onRemove && isDynamic) {
+    if (onRemove && (isDynamic || item.removable)) {
       Modal.confirm({
         title: '确认移除应用',
         content: `确定要从菜单中移除「${item.label}」吗？`,
@@ -317,7 +317,7 @@ const SortableMenuItem = ({ item, isActive, unreadCount, downloadingCount, onCli
                       style={{ color: isGroupActive ? 'white' : 'var(--theme-textSecondary)' }}
                     />
                   )}
-                  {isDynamic && (
+                  {(isDynamic || item.removable) && (
                     <button 
                       className="remove-button"
                       onClick={handleRemove}
@@ -403,6 +403,16 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
     return []
   })
 
+  // 记录被移除的默认应用（可恢复）
+  const [removedDefaultApps, setRemovedDefaultApps] = useState(() => {
+    const saved = localStorage.getItem('removed-default-apps')
+    try {
+      return saved ? JSON.parse(saved) : []
+    } catch (e) {
+      return []
+    }
+  })
+
   // 2级菜单数据结构
   const defaultMenuItems = [
     { 
@@ -413,13 +423,22 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
        color: '#52c41a',
        type: 'single'
      },
+    {
+      id: 'supervision',
+      icon: ClipboardCheck,
+      label: '督学',
+      shortLabel: '督学',
+      color: '#1890ff',
+      type: 'single'
+    },
     { 
       id: 'ai-assistant', 
       icon: Bot, 
       label: 'AI智能中心', 
       shortLabel: 'AI工具',
       color: '#667eea',
-      type: 'single'
+      type: 'single',
+      removable: true
     },
     { 
       id: 'message-center', 
@@ -474,7 +493,8 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
        label: 'AI工具屋', 
        shortLabel: '工具屋',
        color: '#722ed1',
-       type: 'single'
+       type: 'single',
+       removable: true
      },
     { 
        id: 'theme-template-center', 
@@ -482,7 +502,8 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
        label: '智能体', 
        shortLabel: '智能体',
        color: '#1890ff',
-       type: 'single'
+       type: 'single',
+       removable: true
      },
 
 
@@ -493,7 +514,8 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
        label: '资源标注', 
        shortLabel: '资源标注',
        color: '#f759ab',
-       type: 'single'
+       type: 'single',
+       removable: true
      },
     { 
        id: 'student-annotation', 
@@ -501,7 +523,8 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
        label: '学员标注', 
        shortLabel: '学员标注',
        color: '#722ed1',
-       type: 'single'
+       type: 'single',
+       removable: true
      },
 
     
@@ -537,7 +560,8 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       label: '我的证书',
       shortLabel: '证书',
       color: '#1890ff',
-      type: 'single'
+      type: 'single',
+      removable: true
     },
     
     { 
@@ -560,21 +584,69 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
 
   // 添加动态应用到菜单
   const addDynamicApp = (app) => {
-    const newApp = {
-      id: app.id,
-      icon: Grid, // 默认图标
-      label: app.label,
-      color: app.color || '#1890ff'
+    try {
+      const alreadyDynamic = (dynamicApps || []).some(d => d.id === app.id)
+      const isDefaultItem = defaultMenuItems.some(item => item.id === app.id)
+      const isRemovedDefault = (removedDefaultApps || []).includes(app.id)
+
+      if (isDefaultItem) {
+        if (isRemovedDefault) {
+          // 恢复默认应用而不是新增动态项，避免重复
+          const newRemoved = (removedDefaultApps || []).filter(id => id !== app.id)
+          setRemovedDefaultApps(newRemoved)
+          localStorage.setItem('removed-default-apps', JSON.stringify(newRemoved))
+
+          // 同步 added-apps（供 AppCenter 显示已添加状态）
+          const addedApps = JSON.parse(localStorage.getItem('added-apps') || '[]')
+          if (!addedApps.includes(app.id)) {
+            localStorage.setItem('added-apps', JSON.stringify([...addedApps, app.id]))
+          }
+
+          // 重建菜单
+          const itemsWithState = defaultMenuItems.map(item => ({
+            ...item,
+            expanded: item.type === 'group' ? (menuExpandState[item.id] || false) : undefined
+          }))
+          const filteredDefaults = itemsWithState.filter(item => !(newRemoved || []).includes(item.id))
+          const allItems = [...filteredDefaults, ...dynamicApps]
+          setMenuItems(allItems)
+          localStorage.setItem('sidebar-menu-order', JSON.stringify(allItems.map(item => item.id)))
+
+          // 通知 AppCenter 更新
+          window.dispatchEvent(new Event('menuAppsChanged'))
+          return
+        } else {
+          // 默认应用已存在，避免重复添加动态项
+          return
+        }
+      }
+
+      if (alreadyDynamic) return
+
+      const newApp = {
+        id: app.id,
+        icon: Grid, // 默认图标
+        label: app.label,
+        color: app.color || '#1890ff'
+      }
+      const newDynamicApps = [...dynamicApps, newApp]
+      setDynamicApps(newDynamicApps)
+      localStorage.setItem('dynamic-menu-apps', JSON.stringify(newDynamicApps))
+
+      const allItems = [...defaultMenuItems, ...newDynamicApps]
+      setMenuItems(allItems)
+      localStorage.setItem('sidebar-menu-order', JSON.stringify(allItems.map(item => item.id)))
+
+      // 更新 added-apps（供 AppCenter 显示已添加状态）
+      const addedApps = JSON.parse(localStorage.getItem('added-apps') || '[]')
+      if (!addedApps.includes(app.id)) {
+        localStorage.setItem('added-apps', JSON.stringify([...addedApps, app.id]))
+      }
+
+      window.dispatchEvent(new Event('menuAppsChanged'))
+    } catch (e) {
+      // no-op
     }
-    
-    const newDynamicApps = [...dynamicApps, newApp]
-    setDynamicApps(newDynamicApps)
-    localStorage.setItem('dynamic-menu-apps', JSON.stringify(newDynamicApps))
-    
-    // 更新菜单项
-    const allItems = [...defaultMenuItems, ...newDynamicApps]
-    setMenuItems(allItems)
-    localStorage.setItem('sidebar-menu-order', JSON.stringify(allItems.map(item => item.id)))
   }
 
   // 移除动态应用
@@ -597,6 +669,35 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
     window.dispatchEvent(new Event('menuAppsChanged'))
   }
 
+  // 移除默认应用（标记为已移除）
+  const removeDefaultApp = (appId) => {
+    const newRemoved = Array.from(new Set([...(removedDefaultApps || []), appId]))
+    setRemovedDefaultApps(newRemoved)
+    localStorage.setItem('removed-default-apps', JSON.stringify(newRemoved))
+
+    // 更新菜单项
+    // 同时移除同名动态应用，避免重复
+    const prunedDynamic = (dynamicApps || []).filter(app => app.id !== appId)
+    setDynamicApps(prunedDynamic)
+    localStorage.setItem('dynamic-menu-apps', JSON.stringify(prunedDynamic))
+
+    const itemsWithState = defaultMenuItems
+      .filter(item => !newRemoved.includes(item.id))
+      .map(item => ({
+        ...item,
+        expanded: item.type === 'group' ? (menuExpandState[item.id] || false) : undefined
+      }))
+    const allItems = [...itemsWithState, ...prunedDynamic]
+    setMenuItems(allItems)
+    localStorage.setItem('sidebar-menu-order', JSON.stringify(allItems.map(item => item.id)))
+
+    // 同步更新AppCenter的状态
+    const currentAddedApps = JSON.parse(localStorage.getItem('added-apps') || '[]')
+    const updatedAddedApps = currentAddedApps.filter(id => id !== appId)
+    localStorage.setItem('added-apps', JSON.stringify(updatedAddedApps))
+    window.dispatchEvent(new Event('menuAppsChanged'))
+  }
+
   // 菜单展开状态管理
   const [menuExpandState, setMenuExpandState] = useState(() => {
     const saved = localStorage.getItem('menu-expand-state')
@@ -616,7 +717,8 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       ...item,
       expanded: item.type === 'group' ? (menuExpandState[item.id] || false) : undefined
     }))
-    const allMenuItems = [...itemsWithState, ...dynamicApps]
+    const filteredDefaults = itemsWithState.filter(item => !(removedDefaultApps || []).includes(item.id))
+    const allMenuItems = [...filteredDefaults, ...dynamicApps]
     
     // 应用保存的子菜单排序
     const savedChildrenOrder = localStorage.getItem('submenu-order')
@@ -709,9 +811,10 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       ...item,
       expanded: item.type === 'group' ? (menuExpandState[item.id] || false) : undefined
     }))
-    const allMenuItems = [...itemsWithState, ...dynamicApps]
+    const filteredDefaults = itemsWithState.filter(item => !(removedDefaultApps || []).includes(item.id))
+    const allMenuItems = [...filteredDefaults, ...dynamicApps]
     setMenuItems(allMenuItems)
-  }, [dynamicApps, menuExpandState])
+  }, [dynamicApps, menuExpandState, removedDefaultApps])
 
   // 暴露添加和移除应用的方法给父组件
   React.useEffect(() => {
@@ -719,9 +822,17 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       window.addAppToMenu = addDynamicApp
     }
     if (onRemoveApp) {
-      window.removeAppFromMenu = removeDynamicApp
+      window.removeAppFromMenu = (appId) => {
+        // 同时移除默认与动态项，彻底避免重复残留
+        try {
+          removeDefaultApp(appId)
+        } catch (e) { /* no-op */ }
+        try {
+          removeDynamicApp(appId)
+        } catch (e) { /* no-op */ }
+      }
     }
-  }, [onAddApp, onRemoveApp])
+  }, [onAddApp, onRemoveApp, dynamicApps])
 
   const sensors = useSensors(
     useSensor(PointerSensor),

@@ -33,6 +33,7 @@ import SimulationPlatform from './components/SimulationPlatform'
 // import NeedEditPage from './components/NeedEditPage'
 import LearningAnalyticsCenter from './components/LearningAnalyticsCenter'
 import SmartNotes from './components/SmartNotes'
+import Supervision from './components/Supervision'
 import AIToolHouse from './components/AIToolHouse'
 import NoteEditPage from './components/NoteEditPage'
 import ResourceAnnotation from './components/ResourceAnnotation'
@@ -433,6 +434,8 @@ function App() {
               <KnowledgeSpace />
             ) : currentView === 'smart-notes' ? (
               <SmartNotes onViewChange={handleViewChange} />
+            ) : currentView === 'supervision' ? (
+              <Supervision />
             ) : currentView === 'my-certificates' ? (
               <MyCertificates />
             ) : currentView === 'my-medals' ? (
