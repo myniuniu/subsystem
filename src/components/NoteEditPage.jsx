@@ -2591,11 +2591,11 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                     )}
                   />
                 </div>
-                {/* 输入与发送区固定在底部 */}
+                {/* 输入与发送区固定在底部：改为弹性布局，输入框横向撑满 */}
                 <div style={{ marginTop: 12 }}>
-                  <Input.Group compact>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <Input
-                      style={{ width: 'calc(100% - 80px)' }}
+                      style={{ flex: 1 }}
                       placeholder="输入会议聊天内容..."
                       onPressEnter={(e) => {
                         if (e.target.value.trim()) {
@@ -2618,10 +2618,9 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                       }}
                     />
                     <Button 
-                      type="primary" 
-                      style={{ width: 80 }}
+                      type="primary"
                       onClick={(e) => {
-                        const input = e.target.parentElement.querySelector('input');
+                        const input = e.currentTarget.parentElement.querySelector('input');
                         if (input && input.value.trim()) {
                           const newMessage = {
                             id: Date.now(),
@@ -2643,7 +2642,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                     >
                       发送
                     </Button>
-                  </Input.Group>
+                  </div>
                 </div>
               </Card>
             </div>

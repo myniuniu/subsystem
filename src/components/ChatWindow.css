@@ -301,7 +301,7 @@
 
 /* 消息输入区域 */
 .chat-input {
-  padding: 20px 24px;
+  padding: 12px 0; /* 去掉左右内边距，使输入框撑满容器 */
   border-top: 1px solid rgba(52, 152, 219, 0.1);
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 249, 250, 0.96));
   backdrop-filter: blur(12px);
@@ -313,12 +313,13 @@
 
 /* Ant Design Input 样式覆盖 */
 .chat-input .ant-input-affix-wrapper {
+  display: flex; /* 由 inline-flex 改为 flex，保证 100% 宽度生效 */
   width: 100%;
   border-radius: 12px;
   border: 1px solid #e0e0e0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  padding: 8px 16px;
-  min-height: 48px;
+  padding: 10px 14px;
+  min-height: 56px; /* 增加输入框高度，避免被底部遮挡感 */
 }
 
 .chat-input .ant-input-affix-wrapper:hover {
@@ -334,9 +335,15 @@
   border: none;
   box-shadow: none;
   font-size: 15px;
-  line-height: 1.5;
+  line-height: 1.6;
   padding: 0;
+  flex: 1;
+  min-width: 0; /* 允许在 flex 容器中收缩以填满 */
 }
+
+/* 输入包裹容器占满宽度，避免右侧空白 */
+.chat-input > div { width: 100%; }
+.chat-input .ant-input-suffix { flex-shrink: 0; }
 
 .chat-input .ant-input:focus {
   box-shadow: none;
@@ -433,7 +440,7 @@
   }
 
   .chat-input {
-    padding: 12px 16px;
+    padding: 8px 0; /* 小屏也去掉左右内边距 */
   }
 }
 
@@ -1338,6 +1345,20 @@
 .discussion-modal .chat-main { overflow: hidden; }
 .discussion-modal .chat-messages { overflow-y: auto; }
 .discussion-modal .chat-input { position: sticky; bottom: 0; background: rgba(255,255,255,0.98); }
+
+/* 输入下方工具栏样式：使按钮不占用输入框横向空间 */
+.input-tools {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.input-tools .ant-space { width: 100%; }
+.input-tools .ant-btn { border: none; box-shadow: none; background: transparent; }
+.input-tools .ant-btn:hover { background: rgba(0,0,0,0.04); }
+
+/* 在讨论弹窗中恢复 chat-main 的滚动，避免底部输入被裁切 */
+.discussion-modal .chat-main { overflow-y: auto; }
 .chat-input .ant-btn {
   border: none;
   box-shadow: none;
