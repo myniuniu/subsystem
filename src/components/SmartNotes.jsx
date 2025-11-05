@@ -126,6 +126,15 @@ const initializeDefaultAITools = () => {
       icon: '💻',
       category: 'generation',
       enabled: true
+    },
+    {
+      id: 'supervision-task',
+      name: '督学任务',
+      description: '用于督学任务创建、分配、督办与追踪',
+      icon: '督',
+      category: 'supervision',
+      applicableNoteCategories: ['supervision'],
+      enabled: true
     }
   ];
 
@@ -155,7 +164,7 @@ const SmartNotes = ({ onViewChange }) => {
   const [filteredNotes, setFilteredNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('organizational_training');
+  const [selectedCategory, setSelectedCategory] = useState('supervision');
   const [showNoteEditor, setShowNoteEditor] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
@@ -234,6 +243,7 @@ const SmartNotes = ({ onViewChange }) => {
     { value: 'personal', label: '个人主题', icon: 'UserOutlined', type: 'system' },
     { value: 'ideas', label: '想法灵感', icon: 'BulbOutlined', type: 'system' },
     { value: 'meeting', label: '会议记录', icon: 'TeamOutlined', type: 'system' },
+    { value: 'supervision', label: '督学', icon: 'FileTextOutlined', type: 'system' },
     { value: 'learning_analytics', label: '学情分析', icon: 'RadarChartOutlined', type: 'system' },
     { value: 'educational_topics', label: '教育课题', icon: 'FileTextOutlined', type: 'system' },
     { value: 'classroom_integration', label: '课堂融合', icon: 'NodeIndexOutlined', type: 'system' },
@@ -622,7 +632,49 @@ const SmartNotes = ({ onViewChange }) => {
           }
         }
       }
+
+      // 确保“督学”分类下存在默认主题：安全专项督导（开学季）
+      try {
+        const newTitle = '安全专项督导（2025年开学季)'.replace(')', '）').replace('(', '（');
+        const oldTitle = '安全专项督导（开学季）';
+        const supervisionNotes = Array.isArray(notesData) ? notesData.filter(n => n?.category === 'supervision') : [];
+        const oldNote = supervisionNotes.find(n => String(n.title || '').trim() === oldTitle);
+        const newExists = supervisionNotes.some(n => String(n.title || '').trim() === newTitle);
+        if (oldNote && !newExists) {
+          // 直接重命名旧标题，避免重复卡片
+          try {
+            await notesService.updateNote(oldNote.id, { title: newTitle });
+            notesData = await notesService.getAllNotes();
+          } catch (e) {}
+        } else if (!newExists) {
+          const baseTags = ['督学','安全','开学季','专项督导'];
+          const content = `# ${newTitle}\n\n## 督导目标\n- 排查校园设施与管理安全隐患\n- 检查师生安全培训与演练落实情况\n- 明确问题清单与整改责任人\n\n## 建议检查要点\n- 消防设施（有效期/压力/通道）\n- 校舍建筑（裂缝/护栏/器材完好）\n- 校园安保（值守记录/入校登记/防护装备）\n\n> 可在右侧操作面板继续生成“督学任务”并跟踪整改。`;
+          await notesService.createNote({
+            title: newTitle,
+            content,
+            category: 'supervision',
+            tags: baseTags,
+            starred: true
+          });
+          notesData = await notesService.getAllNotes();
+        }
+      } catch (e) {
+        console.warn('确保督学默认主题存在失败:', e);
+      }
       
+      // 去重：督学分类下按标题“安全专项督导（2025年开学季）”只保留最新一条
+      try {
+        const targetTitle = '安全专项督导（2025年开学季）';
+        const supNotes = Array.isArray(notesData) ? notesData.filter(n => n.category === 'supervision' && String(n.title || '').trim() === targetTitle) : [];
+        if (supNotes.length > 1) {
+          const sorted = [...supNotes].sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0));
+          const toDelete = sorted.slice(1);
+          for (const n of toDelete) {
+            try { await notesService.deleteNote(n.id); } catch (e) {}
+          }
+          notesData = await notesService.getAllNotes();
+        }
+      } catch (e) {}
       setNotes(notesData);
       
     } catch (error) {

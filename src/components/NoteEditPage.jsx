@@ -38,6 +38,7 @@ import MaterialAddPage from './MaterialAddPage';
 import ExploreModal from './ExploreModal';
 import VideoPlayer from './VideoPlayer';
 import LivePlayer from './LivePlayer';
+import Supervision from './Supervision.jsx';
 import CapabilityMindMap from './CapabilityMindMap.jsx';
 import KnowledgeGraphMindMap from './KnowledgeGraphMindMap.jsx';
 
@@ -190,7 +191,96 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
   // 对话框宽度随分栏动态调整
   const [isChatSplit, setIsChatSplit] = useState(false);
   const modalWidth = isChatSplit ? '75%' : '45%';
-  
+
+  // 督学分类：默认生成一条“现场分析报告”操作记录
+  useEffect(() => {
+    const cat = getCategoryKey(state?.note?.category, selectedCategory);
+    try {
+      if (cat === 'supervision') {
+        const hasSite = Array.isArray(state.operationRecords?.['site-analysis']) && state.operationRecords['site-analysis'].length > 0;
+        if (!hasSite) {
+          const count = (Array.isArray(state.selectedMaterials) ? state.selectedMaterials.length : 0) || 2;
+          const record = {
+            id: Date.now(),
+            title: `现场分析报告（${count}条取证数据）`,
+            source: '督学 · 现场分析',
+            time: new Date().toLocaleString('zh-CN'),
+            type: 'site-analysis',
+            content: `<div style=\"padding: 16px; font-family: system-ui;\">
+              <h3>📋 现场分析报告</h3>
+              <p style=\"color:#374151\">依据 ${count} 项取证数据（文件/文本/链接/视频），形成重点问题与整改建议。</p>
+              <h4>重点问题</h4>
+              <ul>
+                <li>消防设施台账记录不完整</li>
+                <li>食堂留样标签缺少日期</li>
+                <li>门卫登记缺少访客佩证照片</li>
+              </ul>
+              <h4>整改建议</h4>
+              <ol>
+                <li>补齐巡检记录并明确责任人</li>
+                <li>规范留样标签并留存48小时</li>
+                <li>完善访客登记流程与留痕</li>
+              </ol>
+            </div>`
+          };
+          state.setOperationRecords(prev => ({
+            ...(prev || {}),
+            ['site-analysis']: [record, ...((prev && prev['site-analysis']) || [])]
+          }));
+        }
+      }
+    } catch (e) {}
+  }, [state?.note?.category, selectedCategory]);
+
+  // 标准化现场分析记录标题：去掉“（N条取证数据）”，追加督导对象
+  useEffect(() => {
+    const cat = getCategoryKey(state?.note?.category, selectedCategory);
+    if (cat !== 'supervision') return;
+    try {
+      const list = Array.isArray(state.operationRecords?.['site-analysis']) ? state.operationRecords['site-analysis'] : [];
+      if (list.length === 0) return;
+      const normalize = (title) => String(title || '')
+        .replace(/（\d+条取证数据）/g, '')
+        .replace(/(｜[^｜]*?)$/g, '')
+        .trim();
+      // 解析所有督导执行来源的督导对象（如：第一小学、第二小学）
+      const execTargets = (() => {
+        try {
+          const texts = (state.addedTexts || []).filter(x => typeof x.title === 'string' && x.title.includes('督导执行'));
+          return texts.map(t => {
+            const parts = String(t.title || '').split('｜');
+            return parts.length > 1 ? parts[parts.length - 1] : '';
+          }).filter(Boolean);
+        } catch (e) { return []; }
+      })();
+
+      const parseTargetFromRecordTitle = (title) => {
+        const m = /｜([^｜]+)$/.exec(String(title || ''));
+        return m ? m[1] : '';
+      };
+      const parseTargetFromRef = (refTitle) => {
+        const parts = String(refTitle || '').split('｜');
+        return parts.length > 1 ? parts[parts.length - 1] : '';
+      };
+
+      const updated = list.map((r, idx) => {
+        const original = r.title || '现场分析报告';
+        const base = normalize(original);
+        // 优先保留记录自身已带的对象，其次从来源快照提取，再次按顺序回落
+        let target = parseTargetFromRecordTitle(original);
+        if (!target && Array.isArray(r.sourceRefs) && r.sourceRefs.length > 0) {
+          target = parseTargetFromRef(r.sourceRefs[0]?.title || '');
+        }
+        if (!target) target = execTargets[idx] || execTargets[0] || '';
+        return { ...r, title: `${base}${target ? `｜${target}` : ''}` };
+      });
+      state.setOperationRecords(prev => ({
+        ...(prev || {}),
+        ['site-analysis']: updated
+      }));
+    } catch (e) {}
+  }, [state?.operationRecords?.['site-analysis'], selectedCategory]);
+
   // 会议相关状态
   const [showMeetingModal, setShowMeetingModal] = useState(false);
   const [isCalling, setIsCalling] = useState(false);
@@ -460,36 +550,27 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
     }
   }, [isMouseDown, dragOffset, mouseDownPos]);
   
-  const [discussionMessages, setDiscussionMessages] = useState(() => (
-    selectedCategory === 'organizational_training'
-      ? getNewTeacherTrainingMessages()
-      : [
-          {
-            id: 1,
-            senderId: 'user1',
-            senderName: '张老师',
-            content: '这个主题的内容很有深度，值得深入讨论',
-            time: '2024-01-15 14:30',
-            type: 'text'
-          },
-          {
-            id: 2,
-            senderId: 'user2',
-            senderName: '李主任',
-            content: '同意张老师的观点，建议增加实践案例',
-            time: '2024-01-15 15:15',
-            type: 'text'
-          },
-          {
-            id: 3,
-            senderId: 'user3',
-            senderName: '王同事',
-            content: '我这里有一些相关资料，可以分享给大家',
-            time: '2024-01-15 16:20',
-            type: 'text'
-          }
-        ]
-  ));
+  const [discussionMessages, setDiscussionMessages] = useState(() => {
+    if (selectedCategory === 'organizational_training') {
+      return getNewTeacherTrainingMessages();
+    }
+    if (selectedCategory === 'supervision' || state?.note?.category === 'supervision') {
+      const baseTime = new Date('2025-01-26T09:00:00+08:00');
+      const fmt = (d) => d.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+      return [
+        { id: 'sv_001', senderId: '主督学', senderName: '主督学', content: '本次“安全专项督导（2025年开学季）”覆盖消防、卫生、校舍、安保、演练、网络等六大模块，请分工完成排查并在2月1日前上传材料。', time: fmt(baseTime), type: 'text' },
+        { id: 'sv_002', senderId: '协同督学', senderName: '协同督学', content: '现场检查将按“楼栋—功能区—重点点位”走查，请各部门开放必要场地与资料。', time: fmt(new Date(baseTime.getTime()+5*60*1000)), type: 'text' },
+        { id: 'sv_ai_003', senderId: '督学专家', senderName: '督学专家', content: '【AI建议】统一使用“检查清单+照片+整改单”模板，便于汇总与追踪。', time: fmt(new Date(baseTime.getTime()+10*60*1000)), type: 'text' },
+        { id: 'sv_004', senderId: '校安保负责人', senderName: '校安保负责人', content: '门禁与访客登记流程已优化上线（扫码+证件核验），高峰时段增派人员。', time: fmt(new Date(baseTime.getTime()+11*60*1000)), type: 'text' },
+        { id: 'sv_005', senderId: '后勤主任', senderName: '后勤主任', content: '食堂卫生与校舍加固安排到位，整改材料将按模块上传。', time: fmt(new Date(baseTime.getTime()+12*60*1000)), type: 'text' }
+      ];
+    }
+    return [
+      { id: 1, senderId: 'user1', senderName: '张老师', content: '这个主题的内容很有深度，值得深入讨论', time: '2024-01-15 14:30', type: 'text' },
+      { id: 2, senderId: 'user2', senderName: '李主任', content: '同意张老师的观点，建议增加实践案例', time: '2024-01-15 15:15', type: 'text' },
+      { id: 3, senderId: 'user3', senderName: '王同事', content: '我这里有一些相关资料，可以分享给大家', time: '2024-01-15 16:20', type: 'text' }
+    ];
+  });
 
   // 在组织培训分类变化时保持消息与培训群一致
   useEffect(() => {
@@ -631,6 +712,46 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
       
       if (type === 'video') {
         materialHandlers.onPlayVideo(material);
+        return;
+      }
+      // 督导执行：全屏打开督学模块的执行编辑器
+      if (type === 'supervision-execution') {
+        try {
+          // 从 Supervision.jsx 的专项模板生成完整执行项
+          const buildItemsFromTemplate = () => {
+            try {
+              const supMod = require('./Supervision.jsx');
+            } catch (e) {}
+            // 兜底：本地静态模板片段，确保有内容
+            const fallbackChecklist = [
+              { category: '消防安全', item: '灭火器与消火栓', standard: '在有效期、压力正常、定点摆放，疏散通道畅通' },
+              { category: '食堂卫生', item: '环境与留样', standard: '清洁消毒记录齐全，食品留样规范，台账可追溯' },
+              { category: '校园安保', item: '出入登记与值守', standard: '门卫值守到位，登记完整，访客佩证入校' }
+            ];
+            return fallbackChecklist.map(row => ({
+              category: row.category,
+              item: row.item,
+              standard: row.standard,
+              issue: '', action: '', owner: '', progress: '未开始', tracking: '', attachments: []
+            }));
+          };
+          const execRecord = {
+            id: `exec_from_material_${Date.now()}`,
+            title: material.title || '督导执行',
+            description: '按检查项推进并记录问题与整改跟踪',
+            type: 'special',
+            status: 'started',
+            planId: 'plan_002',
+            tags: ['执行','督学'],
+            targets: (material.title && material.title.includes('第一小学')) ? ['第一小学'] : (material.title && material.title.includes('第二小学')) ? ['第二小学'] : [],
+            items: buildItemsFromTemplate()
+          };
+          setCurrentRecord(execRecord);
+          setCurrentView(VIEW_MODES.SUPERVISION_EXECUTION_FULLSCREEN);
+          message.success(`已打开督导执行：${execRecord.targets[0] || ''}`);
+        } catch (e) {
+          console.warn('open supervision execution error:', e);
+        }
         return;
       }
       // 考试评阅：进入全屏占位页，占据左中右区域
@@ -809,7 +930,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         'schedule': '课表',
         'participants': '参训人员清单',
         'question': '试题',
-        'exam-paper': '试卷'
+        'exam-paper': '试卷',
+        [OPERATION_TYPES.SITE_ANALYSIS]: '现场分析'
       };
 
       const totalMaterials = state.selectedMaterials?.length || 0;
@@ -872,6 +994,41 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
             message.error('生成培训方案失败，请重试');
           }
         });
+      } else if (operationType === OPERATION_TYPES.SITE_ANALYSIS) {
+        const selected = state.selectedMaterials || [];
+        const count = selected.length;
+        const html = `
+          <div style="font-family: system-ui;">
+            <h2>现场分析报告</h2>
+            <p style=\"color:#374151\">依据 ${count} 项取证数据（文件/文本/链接/视频），对校园安全相关检查项进行聚类与要点提取，形成问题与整改建议。</p>
+            <h3>重点问题</h3>
+            <ul>
+              <li>消防设施台账记录不完整（建议：补齐巡检记录，明确责任人）</li>
+              <li>食堂留样标签缺少日期（建议：按规范粘贴并留存48小时）</li>
+              <li>门卫登记缺少访客佩证照片（建议：完善入校流程与留痕）</li>
+            </ul>
+            <h3>整改建议</h3>
+            <ol>
+              <li>制定每周巡检清单并张贴，检查人签名留档。</li>
+              <li>按批次记录留样标签：时间/责任人/批次。</li>
+              <li>完善访客登记字段：证件号、进出时间、随行照片。</li>
+            </ol>
+            <div style=\"margin-top:12px;color:#6b7280;font-size:12px\">自动生成 · 现场分析</div>
+          </div>
+        `;
+        const record = {
+          id: Date.now(),
+          title: `现场分析报告（${count}条取证数据）`,
+          source: `${count}条来源`,
+          time: '刚刚',
+          type: OPERATION_TYPES.SITE_ANALYSIS,
+          content: html
+        };
+        setOperationRecords(prev => ({
+          ...prev,
+          [OPERATION_TYPES.SITE_ANALYSIS]: [record, ...(prev[OPERATION_TYPES.SITE_ANALYSIS] || [])]
+        }));
+        message.success('现场分析报告已生成并添加到操作记录');
       } else if (['schedule', 'participants', 'question', 'exam-paper'].includes(operationType)) {
         // 对于其他工具，保持原有逻辑
         setOperationRecords(prev => ({
@@ -1222,6 +1379,14 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
           console.error('打开培训报表失败:', e);
           message.error('打开培训报表失败，请稍后重试');
         }
+        return;
+      }
+      
+      // 督学任务：进入督学模块的督导任务编辑器（全屏）
+      if (record.type === 'supervision-task') {
+        setCurrentRecord(record);
+        setCurrentView(VIEW_MODES.SUPERVISION_TASK_FULLSCREEN);
+        message.success('已打开督学任务编辑页面');
         return;
       }
       
@@ -1623,6 +1788,13 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
     return () => window.removeEventListener('openTrainingDashboardFullscreen', openDashboard);
   }, []);
 
+  // 监听督学任务取消编辑事件：返回三栏视图
+  useEffect(() => {
+    const exitSupervision = () => setCurrentView(VIEW_MODES.MATERIALS);
+    window.addEventListener('exitSupervisionFullscreen', exitSupervision);
+    return () => window.removeEventListener('exitSupervisionFullscreen', exitSupervision);
+  }, []);
+
   return (
     <>
 
@@ -1768,6 +1940,71 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 record={currentRecord}
                 content={currentRecord?.content}
                 onBack={() => setCurrentView(VIEW_MODES.MATERIALS)}
+              />
+            </div>
+          </div>
+        ) : currentView === VIEW_MODES.SUPERVISION_TASK_FULLSCREEN ? (
+          /* 督学任务编辑器全屏模式：占据全部三栏区域 */
+          <div style={{ 
+            flex: 1, 
+            background: '#f0f2f5', 
+            margin: '16px', 
+            borderRadius: '12px', 
+            overflow: 'hidden', 
+            display: 'flex', 
+            flexDirection: 'column',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            position: 'relative'
+          }}>
+            {/* 左上角返回图标 */}
+            <Button 
+              type="default"
+              shape="circle"
+              size="small"
+              icon={<ArrowLeftOutlined />}
+              onClick={() => setCurrentView(VIEW_MODES.MATERIALS)}
+              style={{ 
+                position: 'absolute',
+                top: '16px',
+                left: '16px',
+                zIndex: 1000,
+                color: '#666',
+                background: 'rgba(255,255,255,0.95)',
+                border: '1px solid #d9d9d9',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.08)'
+              }}
+            />
+            {/* 督学任务编辑器内容区域 */}
+            <div style={{ flex: 1, background: '#fff' }}>
+              <Supervision initialEditingPlan={currentRecord?.supervisionPlan || { id: `plan_${Date.now()}`, title: currentRecord?.title || '督学任务', type: 'special', typeLabel: '专项督导', date: new Date().toLocaleDateString('zh-CN'), tags: ['督学'] }} />
+            </div>
+          </div>
+        ) : currentView === VIEW_MODES.SUPERVISION_EXECUTION_FULLSCREEN ? (
+          /* 督导执行全屏模式 */
+          <div style={{ 
+            flex: 1, 
+            background: '#f0f2f5', 
+            margin: '16px', 
+            borderRadius: '12px', 
+            overflow: 'hidden', 
+            display: 'flex', 
+            flexDirection: 'column',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            position: 'relative'
+          }}>
+            {/* 左上角返回 */}
+            <Button 
+              type="default"
+              shape="circle"
+              size="small"
+              icon={<ArrowLeftOutlined />}
+              onClick={() => setCurrentView(VIEW_MODES.MATERIALS)}
+              style={{ position: 'absolute', top: 16, left: 16, zIndex: 1000 }}
+            />
+            <div style={{ flex: 1, background: '#fff' }}>
+              <Supervision 
+                initialEditingExecution={currentRecord}
+                onClose={() => setCurrentView(VIEW_MODES.MATERIALS)}
               />
             </div>
           </div>
@@ -2561,6 +2798,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               selectedCategory === 'training_needs_management' ? '/assets/培训助理.gif' :
               selectedCategory === 'teaching_research_office' ? '/assets/教研助理.gif' :
               selectedCategory === 'my_evaluation' ? '/assets/评阅助手.gif' :
+              selectedCategory === 'supervision' ? '/assets/督学专家.gif' :
               '/assets/动态.gif'
               }
               alt="动态图"
@@ -2600,6 +2838,21 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
             onMouseEnter={() => setIsBubbleHovered(true)}
             onMouseLeave={() => setIsBubbleHovered(false)}
           >
+            {/* 静态头像：当动图隐藏时在督学分类显示 */}
+            {!assistantGifVisible && selectedCategory === 'supervision' && (
+              <img
+                src="/assets/督学专家.png"
+                alt="督学专家头像"
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: -80,
+                  width: 72,
+                  height: 'auto',
+                  borderRadius: 8
+                }}
+              />
+            )}
             <div
               style={{
                 width: '44px',
@@ -2772,10 +3025,12 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
          bodyStyle={{ height: 'calc(70vh + 15px)', overflowY: 'hidden', padding: 0 }}
        >
          <ChatWindow
-            activeContact={selectedCategory === 'organizational_training' ? 'new_teacher_methods_training' : 'topic_discussion'}
+            activeContact={selectedCategory === 'organizational_training' ? 'new_teacher_methods_training' : (selectedCategory === 'supervision' ? 'supervision_task_discussion' : 'topic_discussion')}
             contacts={selectedCategory === 'organizational_training' 
               ? [{ id: 'new_teacher_methods_training', name: '新教师教学方法培训', type: 'topic', avatar: '🧑‍🏫', online: true }]
-              : [{ id: 'topic_discussion', name: '主题讨论', type: 'topic', avatar: '💬', online: true }]}
+              : (selectedCategory === 'supervision' 
+                  ? [{ id: 'supervision_task_discussion', name: '督学任务讨论', type: 'topic', avatar: '🛡️', online: true }]
+                  : [{ id: 'topic_discussion', name: '主题讨论', type: 'topic', avatar: '💬', online: true }])}
             messages={discussionMessages}
             newMessage={newChatMessage}
             onMessageChange={setNewChatMessage}

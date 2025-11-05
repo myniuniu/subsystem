@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Form, Input, Button, Space, Typography, Divider, Tabs, AutoComplete } from 'antd';
+import { Card, Form, Input, Button, Space, Typography, Divider, Tabs, AutoComplete, Select } from 'antd';
 import supervisionDictionary from '../services/supervisionDictionary';
 
 const { Title, Text } = Typography;
@@ -26,6 +26,7 @@ const SupervisionTemplateEditor = ({ item, onSave, onCancel }) => {
           category: row.category || '',
           item: row.item || '',
           standard: row.standard || '',
+          method: Array.isArray(row.method) ? row.method : (row.method ? [row.method] : []),
           notes: row.notes || ''
         }))
       });
@@ -47,6 +48,7 @@ const SupervisionTemplateEditor = ({ item, onSave, onCancel }) => {
         category: r.category || '',
         item: r.item || '',
         standard: r.standard || '',
+        method: Array.isArray(r.method) ? r.method : (r.method ? [r.method] : []),
         notes: r.notes || ''
       })) : [];
       onSave && onSave(next);
@@ -102,10 +104,11 @@ const SupervisionTemplateEditor = ({ item, onSave, onCancel }) => {
               <>
                 <div style={{ marginBottom: 12, color: '#6b7280' }}>可动态添加/删除行</div>
                 <div style={{ border: '1px solid #e8e8e8', borderRadius: 8, overflow: 'hidden' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.2fr 1.4fr 1.4fr 80px', gap: 0, background: '#fafafa', borderBottom: '1px solid #e8e8e8' }}>
-                    <div style={{ padding: 8, fontWeight: 600 }}>必查大类</div>
-                    <div style={{ padding: 8, fontWeight: 600 }}>具体子项</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.2fr 1.4fr 1.2fr 1.4fr 80px', gap: 0, background: '#fafafa', borderBottom: '1px solid #e8e8e8' }}>
+                    <div style={{ padding: 8, fontWeight: 600 }}>检查类目</div>
+                    <div style={{ padding: 8, fontWeight: 600 }}>检查项目</div>
                     <div style={{ padding: 8, fontWeight: 600 }}>参考标准</div>
+                    <div style={{ padding: 8, fontWeight: 600 }}>督查方式</div>
                     <div style={{ padding: 8, fontWeight: 600 }}>记录要点</div>
                     <div style={{ padding: 8 }} />
                   </div>
@@ -113,7 +116,7 @@ const SupervisionTemplateEditor = ({ item, onSave, onCancel }) => {
                     {(fields, { add, remove }) => (
                       <>
                         {fields.map(field => (
-                          <div key={field.key} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.2fr 1.4fr 1.4fr 80px', gap: 0, borderBottom: '1px solid #f0f0f0' }}>
+                          <div key={field.key} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.2fr 1.4fr 1.2fr 1.4fr 80px', gap: 0, borderBottom: '1px solid #f0f0f0' }}>
                             <div style={{ padding: 8 }}>
                               <Form.Item name={[field.name, 'category']} style={{ margin: 0 }}>
                                 <AutoComplete
@@ -143,6 +146,22 @@ const SupervisionTemplateEditor = ({ item, onSave, onCancel }) => {
                             <div style={{ padding: 8 }}>
                               <Form.Item name={[field.name, 'standard']} style={{ margin: 0 }}>
                                 <TextArea rows={4} placeholder="参考标准" />
+                              </Form.Item>
+                            </div>
+                            <div style={{ padding: 8 }}>
+                              <Form.Item name={[field.name, 'method']} style={{ margin: 0 }}>
+                                <Select
+                                  mode="multiple"
+                                  placeholder="选择或输入督查方式"
+                                  options={[
+                                    { value: '实地查看', label: '实地查看' },
+                                    { value: '查阅相关材料', label: '查阅相关材料' },
+                                    { value: '查看相关记录', label: '查看相关记录' },
+                                    { value: '走访教职工', label: '走访教职工' },
+                                    { value: '查阅相关会议材料', label: '查阅相关会议材料' }
+                                  ]}
+                                  allowClear
+                                />
                               </Form.Item>
                             </div>
                             <div style={{ padding: 8 }}>

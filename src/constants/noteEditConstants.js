@@ -24,7 +24,8 @@ export const OPERATION_TYPES = {
   GRADING: 'grading',
   CLASSROOM_EVALUATION: 'classroom-evaluation',
   TRAINING_DASHBOARD: 'training-dashboard',
-  CLASSROOM_BEHAVIOR_ANALYSIS: 'classroom-behavior-analysis'
+  CLASSROOM_BEHAVIOR_ANALYSIS: 'classroom-behavior-analysis',
+  SITE_ANALYSIS: 'site-analysis'
 };
 
 // 操作按钮标题映射
@@ -47,6 +48,7 @@ export const OPERATION_TITLES = {
   [OPERATION_TYPES.CLASSROOM_EVALUATION]: '课堂评价',
   [OPERATION_TYPES.TRAINING_DASHBOARD]: '培训报表',
   [OPERATION_TYPES.CLASSROOM_BEHAVIOR_ANALYSIS]: '课堂行为分析'
+  , [OPERATION_TYPES.SITE_ANALYSIS]: '现场分析'
 };
 
 // 材料类型图标映射
@@ -104,7 +106,10 @@ export const VIEW_MODES = {
   // 研修成果详情（左侧面板内联显示）
   ACHIEVEMENT_DETAIL: 'achievement_detail',
   // 研修成果评阅（三栏布局显示）
-  ACHIEVEMENT_DETAIL_THREE_COLUMN: 'achievement_detail_three_column'
+  ACHIEVEMENT_DETAIL_THREE_COLUMN: 'achievement_detail_three_column',
+  // 督学任务编辑器全屏
+  SUPERVISION_TASK_FULLSCREEN: 'supervision_task_fullscreen',
+  SUPERVISION_EXECUTION_FULLSCREEN: 'supervision_execution_fullscreen'
 };
 
 // 新增：考试评阅占位页（全屏，占据 NoteEditPage 左中右区域）
@@ -419,6 +424,11 @@ export const CATEGORY_COMMON_QUESTIONS = {
     { key: 'mh_support', text: '如何建立同伴支持与校内心理支持体系？', message: '如何建立同伴支持与校内心理支持体系？' },
     { key: 'mh_policy', text: '心理危机应对与政策流程如何落实？', message: '心理危机应对与政策流程如何落实？' }
   ],
+  supervision: [
+    { key: 'sv_checklist', text: '如何制定开学季安全专项督导清单？', message: '如何制定开学季安全专项督导清单（消防、食堂、安保）？' },
+    { key: 'sv_evidence', text: '督导取证材料如何规范整理留痕？', message: '督导取证材料如何规范整理（照片、台账、整改单）并留痕？' },
+    { key: 'sv_followup', text: '整改跟踪与复查要怎么做？', message: '整改跟踪与复查要怎么做（责任人、完成时限、复查记录）？' }
+  ],
   default: COMMON_QUESTIONS
 };
 
@@ -581,6 +591,13 @@ export const OPERATION_CARDS = [
     icon: '报',
     gradient: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
     color: '#0369a1'
+  },
+  {
+    key: OPERATION_TYPES.SITE_ANALYSIS,
+    title: '现场分析',
+    icon: '现',
+    gradient: 'linear-gradient(135deg, #e8f5fe 0%, #c7e9ff 100%)',
+    color: '#1d4ed8'
   },
   // 新增：E-PBL策划卡片
   {

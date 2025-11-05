@@ -1121,6 +1121,27 @@ export const createGetAvailableAITools = ({
     if (!Array.isArray(aiToolsFromStorage) || aiToolsFromStorage.length < 10) {
       aiTools = [...aiTools, ...hardcodedAITools];
     }
+
+    // 特殊处理：督学分类仅保留“督学任务”工具
+    if (noteCategory === 'supervision') {
+      availableTools = availableTools.filter(tool => tool.id === 'supervision-task');
+      if (availableTools.length === 0) {
+        availableTools = [{
+          id: 'supervision-task',
+          name: '督学任务',
+          description: '用于督学任务创建、分配、督办与追踪',
+          icon: '督',
+          applicableNoteCategories: ['supervision'],
+          menuConfig: {
+            key: 'supervision-task',
+            title: '督学任务',
+            icon: '督',
+            gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+            color: '#1677ff'
+          }
+        }];
+      }
+    }
     // 去重
     const seenIds = new Set();
     aiTools = aiTools.filter(t => {
@@ -1156,7 +1177,8 @@ export const createGetAvailableAITools = ({
       'classroom_integration',
       'homework_system',
       'learning_analytics',
-      'educational_topics'
+      'educational_topics',
+      'supervision'
     ]);
     if (noteCategory && knownCategories.has(noteCategory)) {
       availableTools = availableTools.filter(tool => {

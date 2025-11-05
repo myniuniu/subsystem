@@ -802,7 +802,7 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
     const newRecord = {
       id: Date.now(),
       title: `AI问答需求 - ${new Date().toLocaleString()}`,
-      source: 'AI智能问答',
+      source: '督学专家',
       time: '刚刚',
       type: 'report',
       content: content
@@ -2533,7 +2533,7 @@ return smartNote;
       <div style={{ flex: 5, margin: '16px', background: '#fff', borderRadius: '8px', display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 200px)' }}>
           <div style={{ padding: '20px', borderBottom: '1px solid #f0f0f0', flexShrink: 0 }}>
             <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
-              💬 智能问答
+              💬 督学专家
             </Title>
           </div>
           

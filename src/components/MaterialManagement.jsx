@@ -128,6 +128,44 @@ const { TextArea } = Input;
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [localTitle, setLocalTitle] = useState(note?.title || '');
   useEffect(() => {
+    // 督学分类：默认模块仅保留一条指定的 PDF 作为“阅读材料”，其它数据不注入
+    try {
+      const isSupervision = (selectedCategory === 'supervision' || note?.category === 'supervision');
+      if (isSupervision) {
+        const nowISO = new Date().toISOString();
+        const linkItem = {
+          id: Date.now(),
+          url: '/assets/关于开展 2025 年寒假开学前校园安全专项督查的通知.pdf',
+          type: 'pdf',
+          platform: '文档',
+          title: '关于开展 2025 年寒假开学前校园安全专项督查的通知',
+          addTime: nowISO
+        };
+        setUploadedFiles([]);
+        setLinks([linkItem]);
+        setAddedTexts([]);
+        setOrganizationalCourses([]);
+        if (typeof setLiveStreams === 'function') setLiveStreams([]);
+        // 将该链接归属到“默认模块”
+        try {
+          setModuleAssignments(prev => ({
+            live: {},
+            videos: {},
+            exam: {},
+            links: { [linkItem.id]: 'default' },
+            texts: {},
+            projects: {}
+          }));
+        } catch {}
+        // 重置模块并激活默认模块
+        setModules([
+          { id: 'default', title: '默认模块' },
+          { id: 'uncategorized', title: '未分类模块' }
+        ]);
+        setActiveModuleId('default');
+        return; // 不再注入其它示例数据
+      }
+    } catch {}
     setLocalTitle(note?.title || '');
   }, [note?.id, note?.title]);
 
@@ -304,6 +342,53 @@ const { TextArea } = Input;
     ]);
     setActiveModuleId('default');
   }, [note?.id]);
+
+  // 强制：督学分类默认模块仅保留一条指定PDF链接，清空其他类型
+  useEffect(() => {
+    if (note?.category !== 'supervision') return;
+    const nowISO = new Date().toISOString();
+    const targetTitle = '关于开展 2025 年寒假开学前校园安全专项督查的通知';
+    const existingLink = (Array.isArray(links) ? links : []).find(l => l.title === targetTitle || l.url?.includes('关于开展 2025 年寒假开学前校园安全专项督查的通知'));
+    const onlyLink = existingLink || {
+      id: Date.now(),
+      url: '/assets/关于开展 2025 年寒假开学前校园安全专项督查的通知.pdf',
+      type: 'pdf',
+      platform: '文档',
+      title: targetTitle,
+      addTime: nowISO
+    };
+    setUploadedFiles([]);
+    setLinks([onlyLink]);
+    setAddedTexts([]);
+    setCourseVideos([]);
+    setOrganizationalCourses([]);
+    if (typeof setLiveStreams === 'function') setLiveStreams([]);
+    setModuleAssignments(prev => ({
+      live: {},
+      videos: {},
+      exam: {},
+      links: { [onlyLink.id]: 'default' },
+      texts: {},
+      projects: {},
+      files: {}
+    }));
+    setModules([
+      { id: 'default', title: '默认模块' },
+      { id: 'uncategorized', title: '未分类模块' }
+    ]);
+    setActiveModuleId('default');
+  }, [note?.id, note?.category]);
+
+  // 当链接变化时，确保归属到“默认模块”（避免首次初始化因异步未映射导致不显示）
+  useEffect(() => {
+    if (note?.category !== 'supervision') return;
+    if (!Array.isArray(links) || links.length === 0) return;
+    setModuleAssignments(prev => {
+      const next = { ...prev, links: { ...(prev?.links || {}) } };
+      links.forEach(l => { next.links[l.id] = 'default'; });
+      return next;
+    });
+  }, [links, note?.category]);
 
   const handleAddModule = () => {
     const name = (newModuleName || '').trim();
@@ -551,6 +636,34 @@ const { TextArea } = Input;
         return nextAssign;
       });
       return [item, ...list];
+    });
+  }, [note?.id, note?.category]);
+
+  // 督学分类：在“默认模块”内初始化两条督导执行来源（文本型）
+  useEffect(() => {
+    const inSupervision = (note?.category === 'supervision');
+    if (!inSupervision) return;
+    const nowISO = new Date().toISOString();
+    const titleBase = '安全专项督导（2025年开学季）';
+    const schoolItems = [
+      { id: `sv_exec_text_${Date.now()}_1`, title: `${titleBase}｜督导执行｜第一小学`, content: '按检查项推进并记录问题与整改跟踪（督导对象：第一小学）', addTime: nowISO, subType: 'supervision-execution' },
+      { id: `sv_exec_text_${Date.now()}_2`, title: `${titleBase}｜督导执行｜第二小学`, content: '按检查项推进并记录问题与整改跟踪（督导对象：第二小学）', addTime: nowISO, subType: 'supervision-execution' }
+    ];
+    setAddedTexts(prev => {
+      const list = Array.isArray(prev) ? prev : [];
+      const titles = new Set(list.map(t => String(t.title || '')));
+      const toAdd = schoolItems.filter(s => !titles.has(s.title)).map(s => ({ ...s, type: 'text' }));
+      if (toAdd.length === 0) return list;
+      // 归属到默认模块
+      try {
+        setModuleAssignments(prevAssign => {
+          const nextAssign = { ...prevAssign };
+          nextAssign.texts = { ...(prevAssign?.texts || {}) };
+          toAdd.forEach(t => { nextAssign.texts[t.id] = 'default'; });
+          return nextAssign;
+        });
+      } catch {}
+      return [...toAdd, ...list];
     });
   }, [note?.id, note?.category]);
   // 监听“培训方案提交”事件：在默认模块生成培训项目资料并标记为“执行中”
@@ -2240,7 +2353,7 @@ const { TextArea } = Input;
                         { key: 'trainingReview', present: trainingReviewTexts.length > 0, label: '研修成果评阅', color: 'gold' },
                         { key: 'examReview', present: examReviewTexts.length > 0, label: '考试评阅', color: 'purple' }
                       ] : [
-                        { key: 'texts', present: modTexts.length > 0, label: '文本', color: 'gold' }
+                        { key: 'texts', present: modTexts.length > 0, label: (note?.category === 'supervision' ? '督导执行' : '文本'), color: 'gold' }
                       ]),
                       { key: 'projects', present: modProjects.length > 0, label: (isTrainingNeedsManagement ? '培训项目数据' : '培训项目资料'), color: 'green' }
                     ];
@@ -2533,7 +2646,7 @@ const { TextArea } = Input;
                           {!isMyEvaluation && modTexts.length > 0 && (
                             <div style={{ marginBottom: 10 }}>
                               <Text strong style={{ fontSize: 12, color: '#666' }}>
-                                📝 文本 ({modTexts.length})
+                                {note?.category === 'supervision' ? '📋 督导执行' : '📝 文本'} ({modTexts.length})
                               </Text>
                               <div style={{ marginTop: 6 }}>
                                 {modTexts.map(text => (
@@ -2542,14 +2655,23 @@ const { TextArea } = Input;
                                     size="small"
                                     style={{ marginBottom: 8, border: '1px solid #e8e8e8', position: 'relative' }}
                                     bodyStyle={{ padding: '8px 12px' }}
-                onClick={() => { if (handlers?.onViewMaterial) handlers.onViewMaterial(text, 'text'); }}
+                onClick={() => { 
+                  if (handlers?.onViewMaterial) {
+                    const isExec = (text?.subType === 'supervision-execution') || (typeof text?.title === 'string' && text.title.includes('督导执行'));
+                    handlers.onViewMaterial(text, isExec ? 'supervision-execution' : 'text');
+                  }
+                }}
                                   >
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                       <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
                                         <FileTextOutlined style={{ color: '#1890ff', marginRight: 8, fontSize: 16 }} />
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                                           <Text strong style={{ fontSize: 12, display: 'block' }}>{text.title || '未命名'}</Text>
-                                          <Tag color="blue">文本</Tag>
+                                          {text?.subType === 'supervision-execution' || (typeof text?.title === 'string' && text.title.includes('督导执行')) ? (
+                                            <Tag color="geekblue">督导执行</Tag>
+                                          ) : (
+                                            <Tag color="blue">文本</Tag>
+                                          )}
                                         </div>
                                         {text.updatedAt && (
                                           <Text type="secondary" style={{ fontSize: 10, marginLeft: 8 }}>{text.updatedAt}</Text>

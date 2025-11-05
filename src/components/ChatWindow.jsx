@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Input, Button, Space, Modal, Tooltip } from 'antd';
 import { MessageSquare, Send, MoreVertical, Type, Smile, AtSign, Scissors, HelpCircle, Maximize2, FileText, Search, Video, UserPlus, Calendar, X, Mic, MicOff, VideoOff, Settings, Volume2, VolumeX, ChevronRight, Users, User, Layers, Folder, Pin, Megaphone } from 'lucide-react';
 import './ChatWindow.css';
@@ -34,6 +34,15 @@ const ChatWindow = ({
   const currentContact = contacts.find(c => c.id === activeContact);
   const isGroupHeader = currentContact?.type === 'group' || currentContact?.type === 'topic';
   const [groupHeaderTab, setGroupHeaderTab] = useState('消息');
+  // @提及：面板与关键词
+  const [mentionVisible, setMentionVisible] = useState(false);
+  const [mentionKeyword, setMentionKeyword] = useState('');
+  const memberNames = useMemo(() => (contacts || []).map(c => c.name).filter(Boolean), [contacts]);
+  const mentionCandidates = useMemo(() => {
+    const kw = (mentionKeyword || '').toLowerCase();
+    if (!kw) return memberNames.slice(0, 6);
+    return memberNames.filter(n => String(n).toLowerCase().includes(kw)).slice(0, 6);
+  }, [mentionKeyword, memberNames]);
 
   // 模板数据与处理函数（保持原有功能）
   const templates = [
@@ -274,6 +283,7 @@ const ChatWindow = ({
               const hash = (displaySenderName || '').split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
               const palette = avatarPalettes[hash % avatarPalettes.length];
               const avatarBg = `linear-gradient(135deg, ${palette[0]}, ${palette[1]})`;
+              const isSupervisorExpert = (displaySenderName || '').includes('督学专家') || message.senderId === '督学专家';
 
               return (
                 <div 
@@ -282,9 +292,13 @@ const ChatWindow = ({
                 >
                   {isGroupChat && (
                     <div className="message-sender">
-                      <span className="message-avatar" style={{ background: avatarBg }}>
-                        {(displaySenderName || '').charAt(0)}
-                      </span>
+                      {isSupervisorExpert ? (
+                        <img src="/assets/督学专家.png" alt="督学专家" style={{ width: 24, height: 24, borderRadius: '50%', boxShadow: '0 1px 3px rgba(0,0,0,0.12)' }} />
+                      ) : (
+                        <span className="message-avatar" style={{ background: avatarBg }}>
+                          {(displaySenderName || '').charAt(0)}
+                        </span>
+                      )}
                       <span className="message-author">{displaySenderName}</span>
                     </div>
                   )}
@@ -302,9 +316,22 @@ const ChatWindow = ({
         
         {/* 聊天输入框 */}
         <div className="chat-input">
+          <div style={{ position: 'relative' }}>
           <Input
             value={newMessage}
-            onChange={(e) => onMessageChange(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              onMessageChange(val);
+              // 识别最后一个@后的关键词
+              const m = /@([^@\s]*)$/u.exec(val);
+              if (m) {
+                setMentionKeyword(m[1] || '');
+                setMentionVisible(true);
+              } else {
+                setMentionVisible(false);
+                setMentionKeyword('');
+              }
+            }}
             onPressEnter={onSendMessage}
             placeholder="输入消息，支持 @人、#话题、/命令"
             allowClear
@@ -321,6 +348,26 @@ const ChatWindow = ({
               </Space>
             }
           />
+          {mentionVisible && (
+            <div style={{ position: 'absolute', bottom: 40, left: 8, background: '#fff', boxShadow: '0 6px 18px rgba(0,0,0,0.08)', border: '1px solid #f0f0f0', borderRadius: 8, padding: 8, minWidth: 200, zIndex: 20 }}>
+              <div style={{ fontSize: 12, color: '#666', padding: '0 4px 6px 4px' }}>提及联系人</div>
+              {mentionCandidates.length === 0 ? (
+                <div style={{ padding: '6px 8px', color: '#999', fontSize: 12 }}>无匹配联系人</div>
+              ) : (
+                mentionCandidates.map(name => (
+                  <button key={name} onClick={() => {
+                    const updated = newMessage.replace(/@([^@\s]*)$/u, `@${name} `);
+                    onMessageChange(updated);
+                    setMentionVisible(false);
+                    setMentionKeyword('');
+                  }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '6px 8px', border: 'none', background: 'transparent', cursor: 'pointer' }}>
+                    @{name}
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+          </div>
         </div>
       </div>
 

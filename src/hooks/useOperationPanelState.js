@@ -22,6 +22,30 @@ export const useOperationPanelState = (noteCategory = null) => {
       return result;
     }
 
+    // 督学分类：显示“督学任务”和“现场分析”
+    if (category === 'supervision') {
+      const siteAnalysisCard = OPERATION_CARDS.find(c => c.key === 'site-analysis') || {
+        key: 'site-analysis',
+        title: '现场分析',
+        icon: '现',
+        gradient: 'linear-gradient(135deg, #e8f5fe 0%, #c7e9ff 100%)',
+        color: '#1d4ed8'
+      };
+      const supervisionCards = [
+        {
+          key: 'supervision-task',
+          title: '督学任务',
+          icon: '督',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1677ff',
+          isAITool: true
+        },
+        siteAnalysisCard
+      ];
+      console.log('督学分类，返回的卡片:', supervisionCards);
+      return supervisionCards;
+    }
+
     // 组织培训分类：仅默认显示指定的六个工具
     if (category === 'organizational_training') {
       const allowedKeys = [

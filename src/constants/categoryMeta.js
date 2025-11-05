@@ -19,6 +19,11 @@ export const CATEGORY_META = {
     aiTitle: '培训助理',
     aiIcon: trainingAssistantIcon
   },
+  // 督学分类：显示“督学专家”与对应头像
+  supervision: {
+    aiTitle: '督学专家',
+    aiIcon: '/assets/督学专家.png'
+  },
   // E-PBL 课程融合
   e_pbl: {
     aiTitle: '课程融合',

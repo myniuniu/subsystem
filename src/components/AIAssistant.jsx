@@ -552,7 +552,7 @@ const AIAssistant = ({
         icon={<QuestionCircleOutlined />}
         onClick={() => setActiveFeature('qa')}
       >
-        {isMyEvaluation ? '评阅助手' : '智能问答'}
+        {isMyEvaluation ? '评阅助手' : (note?.category === 'supervision' ? '督学专家' : '智能问答')}
       </Button>
     </div>
   );

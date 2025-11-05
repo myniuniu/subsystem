@@ -14,7 +14,8 @@ export const DEFAULT_SYSTEM_CATEGORY_CONFIG = {
   extraCategories: [
     { value: 'e_pbl', label: 'E-PBL', icon: 'BookOutlined', type: 'system', pinned: true },
     { value: 'teaching_research_office', label: '教研室', icon: 'BookOutlined', type: 'custom', pinned: true },
-    { value: 'my_evaluation', label: '我的评阅', icon: 'FileTextOutlined', type: 'system', pinned: true }
+    { value: 'my_evaluation', label: '我的评阅', icon: 'FileTextOutlined', type: 'system', pinned: true, pinnedAt: '2025-01-01T00:00:00Z' },
+    { value: 'supervision', label: '督学', icon: 'FileTextOutlined', type: 'system', pinned: true, pinnedAt: '2025-01-02T00:00:00Z' }
   ]
 };
 

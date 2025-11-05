@@ -337,6 +337,10 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
       'learning-plan': [], // 添加学习计划操作类型
       grading: [] // 添加阅卷工具操作类型
     };
+    // 新增：现场分析工具记录
+    defaultRecords['site-analysis'] = Array.isArray(defaultRecords['site-analysis']) ? defaultRecords['site-analysis'] : [];
+    // 督学任务操作类型
+    defaultRecords['supervision-task'] = Array.isArray(defaultRecords['supervision-task']) ? defaultRecords['supervision-task'] : [];
     
     // 如果有传入的operationRecords，合并并确保每个字段都是数组
     if (note?.operationRecords) {
@@ -441,6 +445,33 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
       return next;
     });
   }, [note?.id, selectedCategory]);
+
+  // 督学分类：默认生成一条“安全专项督导（开学季）”文档记录
+  useEffect(() => {
+    const isSupervision = (selectedCategory === 'supervision' || note?.category === 'supervision');
+    if (!isSupervision) return;
+    setOperationRecords(prev => {
+      const next = { ...prev };
+      // 1) 删除默认文档型记录“安全专项督导（开学季）”
+      const notesArr = Array.isArray(prev.note) ? prev.note.filter(r => !(r?.subType === 'document' && String(r.title || '') === '安全专项督导（开学季）')) : [];
+      next.note = notesArr;
+      // 2) 默认生成一条“督学任务”操作记录（避免重复）
+      const tasksArr = Array.isArray(prev['supervision-task']) ? [...prev['supervision-task']] : [];
+      const hasTask = tasksArr.some(r => String(r.title || '').includes('督学任务'));
+      if (!hasTask) {
+        tasksArr.unshift({
+          id: `supervision_task_${Date.now()}`,
+          type: 'supervision-task',
+          title: '督学任务',
+          isAIGenerated: false,
+          time: new Date().toISOString(),
+          content: '<div style="padding:12px;color:#666;">默认督学任务，点击进入编辑页面。</div>'
+        });
+      }
+      next['supervision-task'] = tasksArr;
+      return next;
+    });
+  }, [selectedCategory, note?.category]);
 
   // 内容查看弹窗状态
   const [showContentModal, setShowContentModal] = useState(false);

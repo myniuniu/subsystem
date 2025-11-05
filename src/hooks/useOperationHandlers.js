@@ -374,6 +374,31 @@ export const useOperationHandlers = ({
           message.success('课堂行为分析已生成，记录已添加。点击查看详情');
         }
       });
+    } else if (card.key === OPERATION_TYPES.SITE_ANALYSIS) {
+      // 现场分析：根据勾选来源生成分析报告（每条记录对应一个督导对象）
+      const count = (Array.isArray(selectedMaterials) ? selectedMaterials.length : 0) || (sourceInfo?.total || 0);
+      const refs = getSelectedSourceRefs();
+      const firstTitle = (refs[0]?.title || '').trim();
+      const target = (() => {
+        if (!firstTitle) return '';
+        const parts = firstTitle.split('｜');
+        return parts.length > 1 ? parts[parts.length - 1] : firstTitle;
+      })();
+      const siteRecord = {
+        id: `site_analysis_${Date.now()}`,
+        type: OPERATION_TYPES.SITE_ANALYSIS,
+        title: `现场分析报告${target ? `｜${target}` : ''}`,
+        source: sourceInfo?.details || '基于当前数据源',
+        time: new Date().toLocaleString('zh-CN'),
+        isAIGenerated: true,
+        sourceRefs: refs,
+        content: `<div style=\"padding: 16px; font-family: system-ui;\">\n          <h3>📋 现场分析报告${target ? `（督导对象：${target}）` : ''}</h3>\n          <p style=\"color:#374151\">依据 ${count} 项取证数据（文件/文本/链接/视频），对校园安全相关检查项进行聚类与要点提取，形成问题与整改建议。</p>\n          <h4>重点问题</h4>\n          <ul>\n            <li>消防设施台账记录不完整（建议：补齐巡检记录，明确责任人）。</li>\n            <li>食堂留样标签缺少日期（建议：按规范粘贴并留存48小时）。</li>\n            <li>门卫登记缺少访客佩证照片（建议：完善入校流程与留痕）。</li>\n          </ul>\n          <h4>整改建议</h4>\n          <ol>\n            <li>制定每周巡检清单并张贴，检查人签名留档。</li>\n            <li>按批次记录留样标签：时间/责任人/批次。</li>\n            <li>完善访客登记字段：证件号、进出时间、随行照片。</li>\n          </ol>\n          <div style=\"margin-top:8px;color:#6b7280;font-size:12px\">自动生成 · 现场分析</div>\n        </div>`
+      };
+      addRecordWithGenerating(OPERATION_TYPES.SITE_ANALYSIS, siteRecord, {
+        onComplete: () => {
+          message.success('现场分析报告已生成，记录已添加。点击查看详情');
+        }
+      });
     } else if (card.key === 'smart-evaluation') {
       // 智能评阅：生成一条操作记录，点击记录进入三栏评阅视图
       const selectedList = Array.isArray(selectedMaterials) ? selectedMaterials : [];
@@ -429,6 +454,33 @@ export const useOperationHandlers = ({
       addRecordWithGenerating('note', designRecord, {
         onComplete: () => {
           message.success('EPBL教学设计已生成，记录已添加。点击查看详情');
+        }
+      });
+    } else if (card.key === 'supervision-task') {
+      // 督学任务：生成一条操作记录，点击记录进入督学模块的督导任务编辑器（全屏）
+      const plan = {
+        id: `plan_${Date.now()}`,
+        title: '安全专项督导（2025年开学季）',
+        description: '围绕消防设施、食堂卫生等安全要点，排查隐患并督促整改',
+        type: 'special',
+        typeLabel: '专项督导',
+        date: new Date().toLocaleDateString('zh-CN'),
+        tags: ['安全', '开学季']
+      };
+      const record = {
+        id: `supervision_task_${Date.now()}`,
+        type: 'supervision-task',
+        title: plan.title,
+        source: sourceInfo?.details || '基于当前数据源',
+        time: new Date().toLocaleString('zh-CN'),
+        isAIGenerated: true,
+        sourceRefs: getSourceRefs(),
+        content: `<div style="padding: 12px; color:#666;">督学任务：${plan.title}。点击记录进入督学任务编辑器。</div>`,
+        supervisionPlan: plan
+      };
+      addRecordWithGenerating('supervision-task', record, {
+        onComplete: () => {
+          message.success('督学任务记录已生成，点击操作记录进入编辑页面');
         }
       });
     } else if (card.key === OPERATION_TYPES.TRAINING_PLAN) {
