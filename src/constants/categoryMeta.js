@@ -1,6 +1,6 @@
 // 统一的稳定分类键常量与 AI 元数据（不依赖中文名称）
 // 使用 public 目录中的静态资源，构建后路径稳定为 /assets/...
-const assistantStudentIcon = '/assets/学伴.png';
+const assistantStudentIcon = '/assets/果仁学伴.png';
 const trainingAssistantIcon = '/assets/培训助理.png';
 const researchAssistantIcon = '/assets/教研助理.png';
 const evaluationAssistantIcon = '/assets/评阅助手.png';

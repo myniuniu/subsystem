@@ -12,28 +12,16 @@
   "categories": ["productivity", "education", "utilities"],
   "icons": [
     {
-      "src": "/icon-192x192.svg",
+      "src": "/assets/果仁-头像.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon-512x512.svg", 
+      "src": "/assets/果仁-头像.png", 
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
-    },
-    {
-      "src": "/apple-touch-icon.svg",
-      "sizes": "180x180", 
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "/favicon.svg",
-      "sizes": "32x32",
-      "type": "image/svg+xml",
-      "purpose": "any"
     }
   ],
   "shortcuts": [
@@ -44,8 +32,9 @@
       "url": "/?shortcut=notes",
       "icons": [
         {
-          "src": "/favicon.svg",
-          "sizes": "32x32"
+          "src": "/assets/果仁-头像.png",
+          "sizes": "32x32",
+          "type": "image/png"
         }
       ]
     },
@@ -56,8 +45,9 @@
       "url": "/?shortcut=training",
       "icons": [
         {
-          "src": "/favicon.svg",
-          "sizes": "32x32"
+          "src": "/assets/果仁-头像.png",
+          "sizes": "32x32",
+          "type": "image/png"
         }
       ]
     }

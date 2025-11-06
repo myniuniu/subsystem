@@ -2793,7 +2793,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
           {assistantGifVisible && (
             <img
               src={
-              selectedCategory === 'organizational_training' ? '/assets/学伴.gif' :
+              selectedCategory === 'organizational_training' ? '/assets/果仁-动态.gif' :
               selectedCategory === 'training_needs_management' ? '/assets/培训助理.gif' :
               selectedCategory === 'teaching_research_office' ? '/assets/教研助理.gif' :
               selectedCategory === 'my_evaluation' ? '/assets/评阅助手.gif' :
