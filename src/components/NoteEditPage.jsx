@@ -559,7 +559,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
       const fmt = (d) => d.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
       return [
         { id: 'sv_001', senderId: '主督学', senderName: '主督学', content: '本次“安全专项督导（2025年开学季）”覆盖消防、卫生、校舍、安保、演练、网络等六大模块，请分工完成排查并在2月1日前上传材料。', time: fmt(baseTime), type: 'text' },
-        { id: 'sv_002', senderId: '协同督学', senderName: '协同督学', content: '现场检查将按“楼栋—功能区—重点点位”走查，请各部门开放必要场地与资料。', time: fmt(new Date(baseTime.getTime()+5*60*1000)), type: 'text' },
+        { id: 'sv_002', senderId: '协同督学', senderName: '协同督学', content: '现场检查将按“楼栋—功能区—重点点位”走查，请各部门开放必要场地与资料。 @督学专家 有什么好的建议？', time: fmt(new Date(baseTime.getTime()+5*60*1000)), type: 'text' },
         { id: 'sv_ai_003', senderId: '督学专家', senderName: '督学专家', content: '【AI建议】统一使用“检查清单+照片+整改单”模板，便于汇总与追踪。', time: fmt(new Date(baseTime.getTime()+10*60*1000)), type: 'text' },
         { id: 'sv_004', senderId: '校安保负责人', senderName: '校安保负责人', content: '门禁与访客登记流程已优化上线（扫码+证件核验），高峰时段增派人员。', time: fmt(new Date(baseTime.getTime()+11*60*1000)), type: 'text' },
         { id: 'sv_005', senderId: '后勤主任', senderName: '后勤主任', content: '食堂卫生与校舍加固安排到位，整改材料将按模块上传。', time: fmt(new Date(baseTime.getTime()+12*60*1000)), type: 'text' }
