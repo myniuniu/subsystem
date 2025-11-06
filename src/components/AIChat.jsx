@@ -18,7 +18,9 @@ import {
 } from '@ant-design/icons';
 import { COMMON_QUESTIONS, CATEGORY_COMMON_QUESTIONS } from '../constants/noteEditConstants';
 import { generateSummaryContent } from '../utils/noteEditUtils';
+import './UnifiedAICenter.css';
 import notesService from '../services/notesService';
+import ChatActionButtons from './ChatActionButtons';
 
 import { getCategoryKey, getAiTitleForCategory, getAiIconForCategory } from '../constants/categoryMeta';
 const { Title, Text, Paragraph } = Typography;
@@ -394,83 +396,58 @@ const gifUrl = '/assets/动态.gif';
         </div>
       </div>
       
-      {/* 消息列表 */}
-      <div style={{ 
-        flex: 1, 
-        padding: '20px', 
-        overflowY: 'auto', 
-        paddingBottom: '140px',
-        minHeight: 0
-      }}>
+      {/* 消息列表（统一为 AI智能中心样式结构）*/}
+      <div className="messages-container" style={{ flex: 1, paddingBottom: '140px', minHeight: 0 }}>
+        <div className="messages-list">
         {messages.map((msg, index) => {
           // 查找对应的用户问题
           const correspondingUserMessage = msg.type === 'assistant' ? 
             messages.slice(0, index).reverse().find(m => m.type === 'user') : null;
           
           return (
-            <div key={msg.id} style={{ marginBottom: 16 }}>
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: msg.type === 'user' ? 'flex-end' : 'flex-start',
-                alignItems: 'flex-start',
-                gap: 8
-              }}>
-                {msg.type === 'assistant' && (
-                  <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#1890ff' }} />
-                )}
-                <div style={{
-                  maxWidth: '70%'
-                }}>
-                  <div style={{
-                    padding: '12px 16px',
-                    borderRadius: '12px',
-                    backgroundColor: msg.type === 'user' ? '#1890ff' : '#f6f6f6',
-                    color: msg.type === 'user' ? '#fff' : '#333'
-                  }}>
-                    <Text style={{ color: 'inherit' }}>{msg.content}</Text>
-                  </div>
-                  {msg.type === 'assistant' && (
-                    <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'flex-start' }}>
-                      <Button
-                        size="small"
-                        type="text"
-                        icon={<SaveOutlined />}
-                        onClick={() => handleSaveToNote(msg.content, correspondingUserMessage?.content)}
-                        style={{
-                          fontSize: '12px',
-                          color: '#666',
-                          padding: '4px 8px',
-                          height: 'auto'
-                        }}
-                      >
-                        保存到笔记
-                      </Button>
-                    </div>
-                  )}
-                </div>
-                {msg.type === 'user' && (
-                  <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#52c41a' }} />
-                )}
+            <div key={msg.id} className={`message-item ${msg.type === 'user' ? 'user' : 'ai'}`}>
+              {msg.type !== 'user' && (
+                <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#667eea' }} />
+              )}
+              <div className="message-text">
+                {msg.content}
               </div>
+              {msg.type === 'user' && (
+                <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#52c41a' }} />
+              )}
+              {msg.type !== 'user' && (
+                <div className="message-actions">
+                  <Button
+                    size="small"
+                    type="text"
+                    icon={<SaveOutlined />}
+                    onClick={() => handleSaveToNote(msg.content, correspondingUserMessage?.content)}
+                    style={{ fontSize: '12px', color: '#6b7280' }}
+                  >
+                    保存到笔记
+                  </Button>
+                </div>
+              )}
             </div>
           );
         })}
         {isLoading && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#1890ff' }} />
-            <div style={{ padding: '12px 16px', backgroundColor: '#f6f6f6', borderRadius: '12px' }}>
-              <Text>正在思考中...</Text>
+          <div className="message-item ai">
+            <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#667eea' }} />
+            <div className="message-text">
+              <div className="typing-indicator"><span></span><span></span><span></span></div>
             </div>
           </div>
         )}
+        </div>
       </div>
       
       {/* 底部固定区域 */}
       <div ref={bottomAreaRef} style={{ 
         position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
+        bottom: 8,
+        left: 8,
+        right: 8,
         borderTop: '1px solid #f0f0f0',
         backgroundColor: '#fff',
         zIndex: 10,
@@ -502,9 +479,9 @@ const gifUrl = '/assets/动态.gif';
           </div>
         </div>
         
-        {/* 输入区域 */}
-        <div style={{ padding: '0 20px 20px 20px' }}>
-          <Space.Compact style={{ width: '100%', position: 'relative' }}>
+        {/* 输入区域（统一 AI中心样式容器）*/}
+        <div className="chat-input-container" style={{ width: '100%' }}>
+          <div className="input-container" style={{ width: '100%', position: 'relative', display: 'flex', alignItems: 'center', gap: '8px' }}>
             {/* 选中资料数量提示 - 浮动显示 */}
             {selectedMaterials.length > 0 && (
               <div style={{ 
@@ -535,17 +512,15 @@ const gifUrl = '/assets/动态.gif';
                   handleSendMessage();
                 }
               }}
+              className="custom-textarea"
             />
-            <Button 
-              type="primary" 
-              icon={<SendOutlined />}
-              onClick={handleSendMessage}
+            <ChatActionButtons 
+              onSend={handleSendMessage}
+              disabledSend={!inputMessage.trim() || selectedMaterials.length === 0}
               loading={isLoading}
-              disabled={!inputMessage.trim() || selectedMaterials.length === 0}
-            >
-              发送
-            </Button>
-          </Space.Compact>
+              setInputMessage={setInputMessage}
+            />
+          </div>
         </div>
       </div>
     </div>
