@@ -1495,7 +1495,11 @@ if (typeof document !== 'undefined') {
                     'knowledge-graph': '🕸️',
                     'training-plan': '🎯',
                     'training-dashboard': '📈',
-                    'classroom-evaluation': '📊'
+                    'classroom-evaluation': '📊',
+                    'site-analysis': '🔍',
+                    'supervision-execution': '🛡️',
+                    'supervision-task': '🗂️',
+                    'supervision-report': '📄'
                   };
                   return iconMap[type] || '📄';
                 };
@@ -1815,25 +1819,29 @@ if (typeof document !== 'undefined') {
                             typeLabel = '文档';
                             typeKey = 'note_document';
                           } else {
-                            const map = {
-                              audio: '音频',
-                              video: '视频',
-                              mindmap: '思维导图',
-                              report: '报告',
-                              ppt: 'PPT',
-                              webcode: '网页',
-                              scenario: '场景',
-                              'training-plan': '培训方案',
-                              'training-report': '培训报告',
-                              'training-dashboard': '培训报表',
-                              'learning-plan': '学习计划',
-                              grading: '阅卷',
-                              'classroom-evaluation': '课堂评价',
-                              'classroom-behavior-analysis': '课堂行为分析',
-                              question: '试题',
-                              'exam-paper': '试卷',
-                              'smart-evaluation': '智能评阅'
-                            };
+                          const map = {
+                            audio: '音频',
+                            video: '视频',
+                            mindmap: '思维导图',
+                            report: '报告',
+                            ppt: 'PPT',
+                            webcode: '网页',
+                            scenario: '场景',
+                            'training-plan': '培训方案',
+                            'training-report': '培训报告',
+                            'training-dashboard': '培训报表',
+                            'learning-plan': '学习计划',
+                            grading: '阅卷',
+                            'classroom-evaluation': '课堂评价',
+                            'classroom-behavior-analysis': '课堂行为分析',
+                            question: '试题',
+                            'site-analysis': '现场分析',
+                            'supervision-execution': '督学执行',
+                            'supervision-task': '督学任务',
+                            'supervision-report': '督学报告',
+                            'exam-paper': '试卷',
+                            'smart-evaluation': '智能评阅'
+                          };
                             typeLabel = map[record.type] || null;
                             typeKey = record.type || null;
                           }
@@ -1855,6 +1863,10 @@ if (typeof document !== 'undefined') {
                             grading: 'pink',
                             'classroom-evaluation': 'green',
                             'classroom-behavior-analysis': 'geekblue',
+                            'site-analysis': 'purple',
+                            'supervision-execution': 'geekblue',
+                            'supervision-task': 'geekblue',
+                            'supervision-report': 'geekblue',
                             question: 'gold',
                             'exam-paper': 'gold',
                             'smart-evaluation': 'purple'
@@ -1878,8 +1890,10 @@ if (typeof document !== 'undefined') {
                           const isWhiteboard = (record.type === 'whiteboard' || (record.type === 'note' && record.subType === 'whiteboard'));
                           const isTrainingPlan = (record.type === 'training-plan');
                           const isTrainingDashboard = (record.type === 'training-dashboard');
-                          if (!isDoc && !isWhiteboard && !isTrainingPlan && !isTrainingDashboard) return null;
-                          const genLabel = record.isAIGenerated ? 'AI' : '手工';
+                          const isSiteAnalysis = (record.type === 'site-analysis');
+                          const isSupervision = (record.type === 'supervision-execution' || record.type === 'supervision-task' || record.type === 'supervision-report');
+                          if (!isDoc && !isWhiteboard && !isTrainingPlan && !isTrainingDashboard && !isSiteAnalysis && !isSupervision) return null;
+                          const genLabel = (record.isAIGenerated || isSiteAnalysis) ? 'AI' : '手工';
                           const genColor = record.isAIGenerated ? 'processing' : 'default';
                           return (
                             <Tag color={genColor} style={{

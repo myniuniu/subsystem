@@ -37,15 +37,47 @@
 
 /* 调整督学菜单的图标大小与节点间距 */
 .supervision-sidebar .category-icon {
-  font-size: 16px;
+  font-size: 19px; /* 文件夹图标稍微再大一点 */
+  vertical-align: middle; /* 与标题垂直居中 */
+}
+.supervision-sidebar .tree-group-title {
+  font-size: 15px; /* 组标题再减 2px */
+  display: flex;
+  align-items: center; /* 组标题与图标垂直居中 */
 }
 .supervision-sidebar .ant-tree-treenode {
-  padding: 10px 0; /* 增加垂直间距 */
+  padding: 0; /* 节点垂直间距改为 0px */
 }
 .supervision-sidebar .ant-tree-node-content-wrapper {
-  padding: 10px 12px; /* 增大块尺寸 */
+  display: flex;
+  align-items: center; /* 内容与图标垂直居中 */
+}
+.supervision-sidebar .ant-tree-switcher {
+  display: inline-flex;
+  align-items: center; /* 折叠小三角垂直居中 */
+  position: relative;
+  width: 22px;
+  height: 22px;
+}
+.supervision-sidebar .ant-tree-switcher:hover {
+  background: transparent !important; /* 悬停时不显示灰色背景 */
+}
+.supervision-sidebar .ant-tree-treenode:hover .ant-tree-switcher {
+  background: transparent !important; /* 父节点悬停也保持透明 */
+}
+.supervision-sidebar .ant-tree-switcher::before,
+.supervision-sidebar .ant-tree-switcher::after {
+  content: none !important; /* 移除可能的伪元素灰块 */
+}
+.supervision-sidebar .ant-tree-switcher .anticon,
+.supervision-sidebar .ant-tree-switcher svg {
+  vertical-align: middle;
+}
+.supervision-sidebar .ant-tree-node-content-wrapper {
+  padding: 11px 13px; /* 适度增大块尺寸 */
   border-radius: 8px;
-  font-size: 14px; /* 放大菜单字体 */
+  font-size: 15px; /* 菜单字体适度增大 */
+  line-height: 1.5;
 }
 .supervision-sidebar .ant-tree-node-content-wrapper:hover {
   background: #f5f7ff;

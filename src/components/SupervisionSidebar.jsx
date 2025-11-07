@@ -40,7 +40,7 @@ const SupervisionSidebar = ({ selectedKey, onSelect }) => {
   ];
 
   return (
-    <Sider width={isCollapsed ? 56 : 280} className="notes-sidebar">
+    <Sider width={isCollapsed ? 56 : 280} className="notes-sidebar supervision-sidebar">
       <div className="sidebar-content">
         {/* 顶部区域（与 NotesSidebar 的结构一致） */}
         <div className="sidebar-top">

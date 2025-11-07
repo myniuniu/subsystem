@@ -206,7 +206,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
             source: '督学 · 现场分析',
             time: new Date().toLocaleString('zh-CN'),
             type: 'site-analysis',
-            content: `<div style=\"padding: 16px; font-family: system-ui;\">
+            isAIGenerated: true,
+            content: `<div style=\"padding: 16px; font-family: system-ui;\"> 
               <h3>📋 现场分析报告</h3>
               <p style=\"color:#374151\">依据 ${count} 项取证数据（文件/文本/链接/视频），形成重点问题与整改建议。</p>
               <h4>重点问题</h4>

@@ -22,7 +22,7 @@ export const useOperationPanelState = (noteCategory = null) => {
       return result;
     }
 
-    // 督学分类：显示“督学任务”和“现场分析”
+    // 督学分类：显示“督学任务”“现场分析”“督学报告”
     if (category === 'supervision') {
       const siteAnalysisCard = OPERATION_CARDS.find(c => c.key === 'site-analysis') || {
         key: 'site-analysis',
@@ -30,6 +30,13 @@ export const useOperationPanelState = (noteCategory = null) => {
         icon: '现',
         gradient: 'linear-gradient(135deg, #e8f5fe 0%, #c7e9ff 100%)',
         color: '#1d4ed8'
+      };
+      const supervisionReportCard = OPERATION_CARDS.find(c => c.key === 'supervision-report') || {
+        key: 'supervision-report',
+        title: '督学报告',
+        icon: '报',
+        gradient: 'linear-gradient(135deg, #f5f7ff 0%, #e6ebff 100%)',
+        color: '#2f54eb'
       };
       const supervisionCards = [
         {
@@ -40,7 +47,8 @@ export const useOperationPanelState = (noteCategory = null) => {
           color: '#1677ff',
           isAITool: true
         },
-        siteAnalysisCard
+        siteAnalysisCard,
+        supervisionReportCard
       ];
       console.log('督学分类，返回的卡片:', supervisionCards);
       return supervisionCards;

@@ -483,6 +483,32 @@ export const useOperationHandlers = ({
           message.success('督学任务记录已生成，点击操作记录进入编辑页面');
         }
       });
+    } else if (card.key === 'supervision-report') {
+      // 督学报告：汇总现场分析与执行进展，生成报告型操作记录
+      const record = {
+        id: `supervision_report_${Date.now()}`,
+        type: 'supervision-report',
+        title: '督学报告',
+        source: sourceInfo?.details || '基于当前数据源',
+        time: new Date().toLocaleString('zh-CN'),
+        isAIGenerated: true,
+        sourceRefs: getSourceRefs(),
+        content: `<div style="padding: 20px;">
+          <h3>📄 督学报告</h3>
+          <p style="color:#666;">自动汇总现场分析与督导执行进展，形成督学阶段性报告。</p>
+          <ul style="color:#666;">
+            <li>现场分析要点与整改建议</li>
+            <li>督导执行进展（完成项/待整改项）</li>
+            <li>下一步安排与责任分工</li>
+          </ul>
+          <p style="color:#999; font-size:12px;">${sourceInfo?.details || '数据源分析'} • ${new Date().toLocaleString('zh-CN')}</p>
+        </div>`
+      };
+      addRecordWithGenerating('supervision-report', record, {
+        onComplete: () => {
+          message.success('督学报告已生成，记录已添加。点击查看详情');
+        }
+      });
     } else if (card.key === OPERATION_TYPES.TRAINING_PLAN) {
       // 直接生成培训方案记录，不弹出配置窗口
       const trainingPlanRecord = {

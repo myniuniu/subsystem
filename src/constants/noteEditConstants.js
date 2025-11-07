@@ -25,7 +25,8 @@ export const OPERATION_TYPES = {
   CLASSROOM_EVALUATION: 'classroom-evaluation',
   TRAINING_DASHBOARD: 'training-dashboard',
   CLASSROOM_BEHAVIOR_ANALYSIS: 'classroom-behavior-analysis',
-  SITE_ANALYSIS: 'site-analysis'
+  SITE_ANALYSIS: 'site-analysis',
+  SUPERVISION_REPORT: 'supervision-report'
 };
 
 // 操作按钮标题映射
@@ -49,6 +50,7 @@ export const OPERATION_TITLES = {
   [OPERATION_TYPES.TRAINING_DASHBOARD]: '培训报表',
   [OPERATION_TYPES.CLASSROOM_BEHAVIOR_ANALYSIS]: '课堂行为分析'
   , [OPERATION_TYPES.SITE_ANALYSIS]: '现场分析'
+  , [OPERATION_TYPES.SUPERVISION_REPORT]: '督学报告'
 };
 
 // 材料类型图标映射
@@ -78,6 +80,7 @@ export const MATERIAL_ICONS = {
   [OPERATION_TYPES.CLASSROOM_EVALUATION]: '评',
   [OPERATION_TYPES.TRAINING_DASHBOARD]: '报',
   [OPERATION_TYPES.CLASSROOM_BEHAVIOR_ANALYSIS]: '行'
+  , [OPERATION_TYPES.SUPERVISION_REPORT]: '报'
 };
 
 // 网站类型常量
@@ -598,6 +601,13 @@ export const OPERATION_CARDS = [
     icon: '现',
     gradient: 'linear-gradient(135deg, #e8f5fe 0%, #c7e9ff 100%)',
     color: '#1d4ed8'
+  },
+  {
+    key: OPERATION_TYPES.SUPERVISION_REPORT,
+    title: '督学报告',
+    icon: '报',
+    gradient: 'linear-gradient(135deg, #f5f7ff 0%, #e6ebff 100%)',
+    color: '#2f54eb'
   },
   // 新增：E-PBL策划卡片
   {

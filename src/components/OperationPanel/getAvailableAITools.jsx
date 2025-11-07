@@ -1122,24 +1122,54 @@ export const createGetAvailableAITools = ({
       aiTools = [...aiTools, ...hardcodedAITools];
     }
 
-    // 特殊处理：督学分类仅保留“督学任务”工具
+    // 特殊处理：督学分类保留“督学任务”“现场分析”“督学报告”三项工具
     if (noteCategory === 'supervision') {
-      availableTools = availableTools.filter(tool => tool.id === 'supervision-task');
+      availableTools = availableTools.filter(tool => ['supervision-task', 'site-analysis', 'supervision-report'].includes(tool.id));
       if (availableTools.length === 0) {
-        availableTools = [{
-          id: 'supervision-task',
-          name: '督学任务',
-          description: '用于督学任务创建、分配、督办与追踪',
-          icon: '督',
-          applicableNoteCategories: ['supervision'],
-          menuConfig: {
-            key: 'supervision-task',
-            title: '督学任务',
+        availableTools = [
+          {
+            id: 'supervision-task',
+            name: '督学任务',
+            description: '用于督学任务创建、分配、督办与追踪',
             icon: '督',
-            gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
-            color: '#1677ff'
+            applicableNoteCategories: ['supervision'],
+            menuConfig: {
+              key: 'supervision-task',
+              title: '督学任务',
+              icon: '督',
+              gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+              color: '#1677ff'
+            }
+          },
+          {
+            id: 'site-analysis',
+            name: '现场分析',
+            description: '现场取证数据自动梳理要点与整改建议',
+            icon: '现',
+            applicableNoteCategories: ['supervision'],
+            menuConfig: {
+              key: 'site-analysis',
+              title: '现场分析',
+              icon: '现',
+              gradient: 'linear-gradient(135deg, #e8f5fe 0%, #c7e9ff 100%)',
+              color: '#1d4ed8'
+            }
+          },
+          {
+            id: 'supervision-report',
+            name: '督学报告',
+            description: '汇总现场分析与执行进展，生成督学报告',
+            icon: '报',
+            applicableNoteCategories: ['supervision'],
+            menuConfig: {
+              key: 'supervision-report',
+              title: '督学报告',
+              icon: '报',
+              gradient: 'linear-gradient(135deg, #f5f7ff 0%, #e6ebff 100%)',
+              color: '#2f54eb'
+            }
           }
-        }];
+        ];
       }
     }
     // 去重

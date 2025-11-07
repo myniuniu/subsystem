@@ -463,7 +463,7 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
           id: `supervision_task_${Date.now()}`,
           type: 'supervision-task',
           title: '督学任务',
-          isAIGenerated: false,
+          isAIGenerated: true,
           time: new Date().toISOString(),
           content: '<div style="padding:12px;color:#666;">默认督学任务，点击进入编辑页面。</div>'
         });
