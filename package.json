@@ -47,5 +47,18 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
     "vite": "^4.4.5"
-  }
+  },
+  "main": "clear_training_data.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/myniuniu/subsystem.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/myniuniu/subsystem/issues"
+  },
+  "homepage": "https://github.com/myniuniu/subsystem#readme",
+  "description": ""
 }

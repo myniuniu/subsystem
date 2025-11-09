@@ -308,6 +308,7 @@
 .contacts-list {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden; /* 移除横向滚动条 */
 }
 
 .contact-item {

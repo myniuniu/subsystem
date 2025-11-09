@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ContactList from './ContactList';
 import ChatWindow from './ChatWindow';
+import TopicDiscussion from './TopicDiscussion';
 import './MessageCenter.css';
 import { getNewTeacherTrainingMessages } from '../data/trainingDiscussionMessages';
 
@@ -81,6 +82,22 @@ const MessageCenter = ({ contacts: propContacts }) => {
         minute: '2-digit'
       }),
       unreadCount: 8,
+      online: true
+    },
+    {
+      id: 'org_training_new_teacher_discuss',
+      name: '【组织培训】新教师教学方法培训讨论',
+      type: 'topic',
+      avatar: '🎓',
+      lastMessage: '进入主题讨论',
+      lastTime: new Date().toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      unreadCount: 0,
       online: true
     },
     // 新增30个不同姓氏的联系人
@@ -652,7 +669,8 @@ const MessageCenter = ({ contacts: propContacts }) => {
         type: 'text'
       }
     ],
-    new_teacher_training: getNewTeacherTrainingMessages()
+    new_teacher_training: getNewTeacherTrainingMessages(),
+    org_training_new_teacher_discuss: getNewTeacherTrainingMessages()
   });
 
   useEffect(() => {
@@ -853,6 +871,35 @@ const MessageCenter = ({ contacts: propContacts }) => {
     }
   };
 
+  // 将话题收藏加入左侧会话列表（组件内部使用 setContacts）
+  const addBookmarkedTopicContact = (post) => {
+    if (!post || !post.id) return;
+    const id = `topic_post_${post.id}`;
+    setContacts(prev => {
+      if (prev.find(c => c.id === id)) return prev;
+      const now = new Date().toLocaleString('zh-CN', {
+        year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+      });
+      const summary = (post.content || '').slice(0, 28) + ((post.content || '').length > 28 ? '…' : '');
+      const author = post.author || '发布人';
+      const title = post.title || '话题';
+      const displayName = `${author} ${title}`; // 溢出由样式控制为 ...
+      return [
+        {
+          id,
+          name: displayName,
+          type: 'topic',
+          avatar: '📌',
+          lastMessage: summary || '话题详情',
+          lastTime: now,
+          unreadCount: 0,
+          online: true
+        },
+        ...prev
+      ];
+    });
+  };
+
   return (
     <div className="message-center">
       <ContactList
@@ -861,17 +908,25 @@ const MessageCenter = ({ contacts: propContacts }) => {
         onContactSelect={setActiveContact}
         totalUnreadCount={getTotalUnreadCount()}
       />
-      
-      <ChatWindow
-        activeContact={activeContact}
-        contacts={contacts}
-        messages={getCurrentMessages()}
-        newMessage={newMessage}
-        onMessageChange={setNewMessage}
-        onSendMessage={sendMessage}
-        onKeyPress={handleKeyPress}
-        onSimulateMe={() => simulateMyMessages(5)}
-      />
+      {
+        (activeContact === 'org_training_new_teacher_discuss' || (typeof activeContact === 'string' && activeContact.startsWith('topic_post_'))) ? (
+          <TopicDiscussion 
+            onBookmarkTopic={addBookmarkedTopicContact}
+            openTopicId={typeof activeContact === 'string' && activeContact.startsWith('topic_post_') ? Number(activeContact.replace('topic_post_', '')) : null}
+          />
+        ) : (
+          <ChatWindow
+            activeContact={activeContact}
+            contacts={contacts}
+            messages={getCurrentMessages()}
+            newMessage={newMessage}
+            onMessageChange={setNewMessage}
+            onSendMessage={sendMessage}
+            onKeyPress={handleKeyPress}
+            onSimulateMe={() => simulateMyMessages(5)}
+          />
+        )
+      }
     </div>
   );
 };

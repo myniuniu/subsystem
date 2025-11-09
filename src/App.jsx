@@ -206,6 +206,22 @@ function App() {
       }),
       unreadCount: 8,
       online: true
+    },
+    {
+      id: 'org_training_new_teacher_discuss',
+      name: '【组织培训】新教师教学方法培训讨论',
+      type: 'topic',
+      avatar: '🎓',
+      lastMessage: '进入主题讨论',
+      lastTime: new Date().toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      unreadCount: 0,
+      online: true
     }
   ];
 

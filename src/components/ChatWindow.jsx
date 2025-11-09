@@ -335,20 +335,20 @@ const ChatWindow = ({
             onPressEnter={onSendMessage}
             placeholder="输入消息，支持 @人、#话题、/命令"
             allowClear
-            suffix={<Button type="primary" size="small" icon={<Send size={16} />} onClick={onSendMessage} disabled={!newMessage.trim()} />}
+            suffix={
+              <div className="input-suffix-tools">
+                <Button type="text" size="small" icon={<Type size={16} />} title="文本工具" />
+                <Button type="text" size="small" icon={<Smile size={16} />} title="表情" />
+                <Button type="text" size="small" icon={<AtSign size={16} />} title="@提及" />
+                <Button type="text" size="small" icon={<Scissors size={16} />} title="剪切板" />
+                <Button type="text" size="small" icon={<HelpCircle size={16} />} title="帮助" />
+                <Button type="text" size="small" icon={<FileText size={16} />} title="模板" onClick={() => setShowTemplateModal(true)} />
+                <Button type="text" size="small" icon={<Maximize2 size={16} />} title="全屏" />
+                <Button type="primary" size="small" icon={<Send size={16} />} onClick={onSendMessage} disabled={!newMessage.trim()} />
+              </div>
+            }
           />
-          {/* 输入下方工具栏：将功能按钮移出 suffix，增加输入区域可视宽度 */}
-          <div className="input-tools">
-            <Space wrap size={4}>
-              <Button type="text" size="small" icon={<Type size={16} />} title="文本工具" />
-              <Button type="text" size="small" icon={<Smile size={16} />} title="表情" />
-              <Button type="text" size="small" icon={<AtSign size={16} />} title="@提及" />
-              <Button type="text" size="small" icon={<Scissors size={16} />} title="剪切板" />
-              <Button type="text" size="small" icon={<HelpCircle size={16} />} title="帮助" />
-              <Button type="text" size="small" icon={<FileText size={16} />} title="模板" onClick={() => setShowTemplateModal(true)} />
-              <Button type="text" size="small" icon={<Maximize2 size={16} />} title="全屏" />
-            </Space>
-          </div>
+          {/* 工具已移入输入框右侧 suffix */}
           {mentionVisible && (
             <div style={{ position: 'absolute', bottom: 40, left: 8, background: '#fff', boxShadow: '0 6px 18px rgba(0,0,0,0.08)', border: '1px solid #f0f0f0', borderRadius: 8, padding: 8, minWidth: 200, zIndex: 20 }}>
               <div style={{ fontSize: 12, color: '#666', padding: '0 4px 6px 4px' }}>提及联系人</div>

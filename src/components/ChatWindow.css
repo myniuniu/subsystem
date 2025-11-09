@@ -345,6 +345,21 @@
 .chat-input > div { width: 100%; }
 .chat-input .ant-input-suffix { flex-shrink: 0; }
 
+/* 输入框右侧内嵌工具区（在 Input.suffix 中） */
+.input-suffix-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.input-suffix-tools .ant-btn {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+.input-suffix-tools .ant-btn.ant-btn-primary {
+  padding: 0 10px;
+}
+
 .chat-input .ant-input:focus {
   box-shadow: none;
 }
