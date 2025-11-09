@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ContactList from './ContactList';
 import ChatWindow from './ChatWindow';
 import TopicDiscussion from './TopicDiscussion';
@@ -702,6 +702,33 @@ const MessageCenter = ({ contacts: propContacts }) => {
 
   const [activeContact, setActiveContact] = useState('system');
   const [newMessage, setNewMessage] = useState('');
+  // 左右宽度拖拽
+  const [leftWidth, setLeftWidth] = useState(416); // 默认扩大后的宽度
+  const [isResizing, setIsResizing] = useState(false);
+  const startXRef = useRef(0);
+  const startWidthRef = useRef(0);
+
+  const onMouseDownResizer = (e) => {
+    setIsResizing(true);
+    startXRef.current = e.clientX;
+    startWidthRef.current = leftWidth;
+    document.addEventListener('mousemove', onMouseMoveResizer);
+    document.addEventListener('mouseup', onMouseUpResizer);
+    e.preventDefault();
+  };
+  const onMouseMoveResizer = (e) => {
+    const delta = e.clientX - startXRef.current;
+    let next = startWidthRef.current + delta;
+    const min = 280; const max = 640; // 合理范围
+    if (next < min) next = min;
+    if (next > max) next = max;
+    setLeftWidth(next);
+  };
+  const onMouseUpResizer = () => {
+    setIsResizing(false);
+    document.removeEventListener('mousemove', onMouseMoveResizer);
+    document.removeEventListener('mouseup', onMouseUpResizer);
+  };
 
 
   // 模拟“我”的多条消息，用于快速演示
@@ -902,13 +929,17 @@ const MessageCenter = ({ contacts: propContacts }) => {
   };
 
   return (
-    <div className="message-center">
-      <ContactList
+    <div className={`message-center ${isResizing ? 'resizing' : ''}`}>
+      <div className="mc-left" style={{ width: leftWidth }}>
+        <ContactList
         contacts={contacts}
         activeContact={activeContact}
         onContactSelect={setActiveContact}
         totalUnreadCount={getTotalUnreadCount()}
+        width={leftWidth}
       />
+      </div>
+      <div className="mc-resizer" onMouseDown={onMouseDownResizer} />
       {
         (activeContact === 'org_training_new_teacher_discuss' || (typeof activeContact === 'string' && activeContact.startsWith('topic_post_'))) ? (
           <TopicDiscussion 
@@ -916,7 +947,8 @@ const MessageCenter = ({ contacts: propContacts }) => {
             openTopicId={typeof activeContact === 'string' && activeContact.startsWith('topic_post_') ? Number(activeContact.replace('topic_post_', '')) : null}
           />
         ) : (
-          <ChatWindow
+          <div className="mc-right">
+            <ChatWindow
             activeContact={activeContact}
             contacts={contacts}
             messages={getCurrentMessages()}
@@ -925,7 +957,8 @@ const MessageCenter = ({ contacts: propContacts }) => {
             onSendMessage={sendMessage}
             onKeyPress={handleKeyPress}
             onSimulateMe={() => simulateMyMessages(5)}
-          />
+            />
+          </div>
         )
       }
     </div>

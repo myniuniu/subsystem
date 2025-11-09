@@ -33,3 +33,12 @@
   flex-direction: column;
   overflow-y: auto;
 }
+
+/* 仅在消息模块中增大会话列表宽度（+30%） */
+.message-center .contacts-panel { width: 416px; }
+
+/* 拖拽分栏布局 */
+.message-center .mc-left { flex: 0 0 auto; height: 100%; display: flex; }
+.message-center .mc-right { flex: 1 1 auto; min-width: 0; height: 100%; }
+.message-center .mc-resizer { width: 6px; cursor: col-resize; background: linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent); }
+.message-center.resizing { user-select: none; }

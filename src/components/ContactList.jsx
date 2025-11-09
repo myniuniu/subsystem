@@ -7,7 +7,8 @@ const ContactList = ({
   contacts, 
   activeContact, 
   onContactSelect,
-  totalUnreadCount 
+  totalUnreadCount,
+  width
 }) => {
   // 置顶会话状态管理
   const [pinnedContacts, setPinnedContacts] = useState([]);
@@ -45,6 +46,29 @@ const ContactList = ({
   // 获取联系人（保留置顶会话在列表中）
   const getUnpinnedContacts = () => {
     return contacts;
+  };
+
+  // 显示为 MM/DD 的时间格式
+  const formatMonthDay = (s) => {
+    try {
+      const str = String(s || '').trim();
+      if (!str) return '';
+      const m = /([0-9]{1,2})[\/\-.]([0-9]{1,2})/.exec(str);
+      if (m) {
+        const mm = m[1].padStart(2, '0');
+        const dd = m[2].padStart(2, '0');
+        return `${mm}/${dd}`;
+      }
+      const d = new Date(str);
+      if (!isNaN(d.getTime())) {
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${mm}/${dd}`;
+      }
+      return str;
+    } catch (e) {
+      return s;
+    }
   };
 
   // 事件派发辅助（交互占位，便于后续接入真实逻辑）
@@ -85,7 +109,7 @@ const ContactList = ({
   };
 
   return (
-    <div className="contacts-panel">
+    <div className="contacts-panel" style={width ? { width } : undefined}>
       <div className="contacts-header">
         <h2>消息</h2>
       </div>
@@ -172,17 +196,17 @@ const ContactList = ({
             </div>
             
             <div className="contact-info">
-              <div className="contact-name">
-                {contact.type === 'topic' && (
-                  <span className="type-badge topic">话题</span>
-                )}
-                {contact.name}
-              </div>
+              <div className="contact-name">{contact.name}</div>
               <div className="last-message">{contact.lastMessage}</div>
             </div>
-            
+
             <div className="contact-meta">
-              <div className="last-time">{contact.lastTime}</div>
+              <div className="last-time">
+                {formatMonthDay(contact.lastTime)}
+                {contact.type === 'topic' && (
+                  <span className="type-badge topic" style={{ marginLeft: 8 }}>话题</span>
+                )}
+              </div>
               {contact.unreadCount > 0 && (
                 <div className="unread-count">{contact.unreadCount}</div>
               )}
