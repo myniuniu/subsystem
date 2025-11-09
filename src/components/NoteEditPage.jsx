@@ -29,6 +29,8 @@ import OperationPanel from './OperationPanel';
 import VideoView from './VideoView';
 import DocumentView from './DocumentView';
 import ChatWindow from './ChatWindow';
+import TopicDiscussion from './TopicDiscussion';
+import ContactList from './ContactList';
 import AchievementDetailPanel from './AchievementDetailPanel';
 import AchievementDetailThreeColumn from './AchievementDetailThreeColumn';
 import ExamReviewFullPage from './ExamReviewFullPage';
@@ -187,10 +189,37 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
   const [unreadMessageCount, setUnreadMessageCount] = useState(3); // 模拟未读消息数量
   const [isGroupCreated, setIsGroupCreated] = useState(false); // 群组创建状态
   const [newChatMessage, setNewChatMessage] = useState('');
+  // 会话列表（对话+话题）初始化：匹配截图红框两条记录
+  const [modalContacts, setModalContacts] = useState(() => {
+    const now = new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    return [
+      {
+        id: 'new_teacher_training_dialogue',
+        name: '新教师教学方法培训',
+        type: 'group',
+        avatar: '🎓',
+        lastMessage: '欢迎加入培训群，先查看公告与日程',
+        lastTime: now,
+        unreadCount: 8,
+        online: true,
+      },
+      {
+        id: 'org_training_new_teacher_discuss',
+        name: '【组织培训】新教师教学方法培训讨论',
+        type: 'topic',
+        avatar: '🎓',
+        lastMessage: '进入主题讨论',
+        lastTime: now,
+        unreadCount: 0,
+        online: true,
+      }
+    ];
+  });
+  const [activeModalContact, setActiveModalContact] = useState('new_teacher_training_dialogue');
   
   // 对话框宽度随分栏动态调整
   const [isChatSplit, setIsChatSplit] = useState(false);
-  const modalWidth = isChatSplit ? '75%' : '45%';
+  const modalWidth = isChatSplit ? '85%' : '60%';
 
   // 督学分类：默认生成一条“现场分析报告”操作记录
   useEffect(() => {
@@ -572,6 +601,23 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
       { id: 3, senderId: 'user3', senderName: '王同事', content: '我这里有一些相关资料，可以分享给大家', time: '2024-01-15 16:20', type: 'text' }
     ];
   });
+
+  // 对话类型（培训群）初始化示例消息
+  const [dialogueMessages, setDialogueMessages] = useState(() => {
+    const fmt = (d) => d.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    const base = new Date();
+    return [
+      { id: 'dlg_001', senderId: '培训管理员', senderName: '培训管理员', content: '欢迎加入“新教师教学方法培训”。请先查看公告与日程。', time: fmt(base), type: 'text' },
+      { id: 'dlg_002', senderId: '学员王小明', senderName: '学员王小明', content: '大家好，我已报名本次培训，期待交流。', time: fmt(new Date(base.getTime()+2*60*1000)), type: 'text' },
+      { id: 'dlg_003', senderId: '我', senderName: '我', content: '收到，今晚会先浏览课程主页和资源区。', time: fmt(new Date(base.getTime()+4*60*1000)), type: 'text' },
+    ];
+  });
+
+  // 根据当前会话获取消息（对话或话题）
+  const getModalMessages = () => {
+    if (activeModalContact === 'org_training_new_teacher_discuss') return getNewTeacherTrainingMessages();
+    return dialogueMessages;
+  };
 
   // 在组织培训分类变化时保持消息与培训群一致
   useEffect(() => {
@@ -3012,7 +3058,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
          </div>
        </Modal>
 
-       {/* 消息讨论弹窗 */}
+       {/* 消息讨论弹窗（含会话列表页） */}
        <Modal
          open={showMessageCenter}
          footer={null}
@@ -3022,38 +3068,43 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
          destroyOnClose
          title={null}
          className="discussion-modal"
-         bodyStyle={{ height: 'calc(70vh + 15px)', overflowY: 'hidden', padding: 0 }}
+         bodyStyle={{ height: 'calc(70vh + 15px)', overflowY: 'hidden', padding: 0, display: 'flex' }}
        >
-         <ChatWindow
-            activeContact={selectedCategory === 'organizational_training' ? 'new_teacher_methods_training' : (selectedCategory === 'supervision' ? 'supervision_task_discussion' : 'topic_discussion')}
-            contacts={selectedCategory === 'organizational_training' 
-              ? [{ id: 'new_teacher_methods_training', name: '新教师教学方法培训', type: 'topic', avatar: '🧑‍🏫', online: true }]
-              : (selectedCategory === 'supervision' 
-                  ? [{ id: 'supervision_task_discussion', name: '督学任务讨论', type: 'topic', avatar: '🛡️', online: true }]
-                  : [{ id: 'topic_discussion', name: '主题讨论', type: 'topic', avatar: '💬', online: true }])}
-            messages={discussionMessages}
-            newMessage={newChatMessage}
-            onMessageChange={setNewChatMessage}
-            onSendMessage={() => {
-              if (!newChatMessage.trim()) return;
-              const newMsg = {
-                id: Date.now(),
-                senderId: 'me',
-                senderName: '我',
-                content: newChatMessage,
-                time: new Date().toLocaleString('zh-CN', {
-                  month: '2-digit',
-                  day: '2-digit',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                }),
-                type: 'text'
-              };
-              setDiscussionMessages(prev => [...prev, newMsg]);
-              setNewChatMessage('');
-              message.success('消息发送成功');
-            }}
-          />
+         <div style={{ width: 360, borderRight: '1px solid #eef2f7', background: '#fff' }}>
+           <ContactList
+             contacts={modalContacts}
+             activeContact={activeModalContact}
+             onContactSelect={setActiveModalContact}
+             totalUnreadCount={modalContacts.reduce((sum,c)=>sum+(c.unreadCount||0),0)}
+           />
+         </div>
+         <div style={{ flex: 1, minWidth: 0 }}>
+           {activeModalContact === 'org_training_new_teacher_discuss' ? (
+             <TopicDiscussion compact embedded onRequestClose={() => { setShowMessageCenter(false); setUnreadMessageCount(0); setIsChatSplit(false); }} />
+           ) : (
+             <ChatWindow
+               activeContact={activeModalContact}
+               contacts={modalContacts}
+               messages={getModalMessages()}
+               newMessage={newChatMessage}
+               onMessageChange={setNewChatMessage}
+               onSendMessage={() => {
+                 if (!newChatMessage.trim()) return;
+                 const newMsg = {
+                   id: Date.now(),
+                   senderId: 'me',
+                   senderName: '我',
+                   content: newChatMessage,
+                   time: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+                   type: 'text'
+                 };
+                 setDialogueMessages(prev => [...prev, newMsg]);
+                 setNewChatMessage('');
+                 message.success('消息发送成功');
+               }}
+             />
+           )}
+         </div>
        </Modal>
      </>
    );

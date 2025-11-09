@@ -382,6 +382,18 @@
   margin-right: 12px;
 }
 
+/* 订阅（话题）井号角标 */
+.hashtag-badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #2dd4bf; /* teal */
+  color: #ffffff; font-weight: 800; font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
 .avatar-placeholder {
   width: 44px;
   height: 44px;
@@ -451,16 +463,7 @@
 }
 
 .online-indicator {
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  width: 12px;
-  height: 12px;
-  background: linear-gradient(135deg, #27ae60, #2ecc71);
-  border: 2px solid white;
-  border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.4);
-  animation: onlinePulse 2s infinite;
+  display: none !important; /* 移除右下角绿点 */
 }
 
 @keyframes onlinePulse {

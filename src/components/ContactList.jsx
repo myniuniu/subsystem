@@ -164,6 +164,10 @@ const ContactList = ({
                   {contact.name.charAt(0)}
                 </div>
               )}
+              {/* 订阅话题的井号角标 */}
+              {contact.type === 'topic' && contact.isSubscribed && (
+                <span className="hashtag-badge">#</span>
+              )}
               {contact.online && <div className="online-indicator"></div>}
             </div>
             

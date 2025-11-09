@@ -893,7 +893,8 @@ const MessageCenter = ({ contacts: propContacts }) => {
           lastMessage: summary || '话题详情',
           lastTime: now,
           unreadCount: 0,
-          online: true
+          online: true,
+          isSubscribed: true
         },
         ...prev
       ];

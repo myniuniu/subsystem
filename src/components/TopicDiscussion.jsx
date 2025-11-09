@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Modal, Input, Button, Tag, message, Tooltip } from 'antd';
 import { LikeOutlined, LikeFilled, MessageOutlined, ShareAltOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
-import { Home, Bell, Pin, Tag as TagIcon, Search, HelpCircle } from 'lucide-react';
+import { Megaphone, Search, Settings, UserPlus, X as CloseIcon } from 'lucide-react';
 import './TopicDiscussion.css';
 
-const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null }) => {
+const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false, embedded = false, onRequestClose }) => {
   const [activeTab, setActiveTab] = useState('全部');
   const [showNewPost, setShowNewPost] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -217,18 +217,30 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null }) => {
   };
 
   return (
-    <div className="topic-page">
-      <div className="topic-header">
-        <div className="topic-title"><span className="emoji">📚</span>【组织培训】新教师教学方法培训讨论</div>
-        <div className="topic-tabs">
-          {['全部','我订阅的'].map(tab => (
-            <button key={tab} className={`topic-tab ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>{tab}</button>
-          ))}
-        </div>
-      </div>
-
-      <div className="topic-body">
+    <div className={`topic-page ${embedded ? 'embedded' : ''}`}>
+      <div className={`topic-body ${embedded ? 'embedded' : ''}`}>
         <div className="topic-list" aria-label="话题列表">
+          {/* 左侧标题区（不跨越右侧工具栏） */}
+          <div className="topic-header">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div className="topic-title"><span className="emoji">📚</span>【组织培训】新教师教学方法培训讨论</div>
+              <div className="topic-header-actions">
+                <Tooltip title="添加群成员"><button className="add-member-btn"><UserPlus size={16} /><span style={{ marginLeft: 6 }}>添加群成员</span></button></Tooltip>
+                {embedded && (
+                  <Tooltip title="关闭">
+                    <button className="close-btn" onClick={(e)=>{ e.stopPropagation(); if (typeof onRequestClose==='function') onRequestClose(); }} aria-label="关闭">
+                      <CloseIcon size={16} />
+                    </button>
+                  </Tooltip>
+                )}
+              </div>
+            </div>
+            <div className="topic-tabs" style={{ marginTop: 8 }}>
+              {['全部','我订阅的'].map(tab => (
+                <button key={tab} className={`topic-tab ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>{tab}</button>
+              ))}
+            </div>
+          </div>
           {/* 置顶公告 */}
           {posts.filter(p => p.pinned).map(p => (
             <div key={`pinned-${p.id}`} className="pinned-announcement">
@@ -238,8 +250,8 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null }) => {
             </div>
           ))}
 
-          {/* 帖子列表 */}
-          {posts.map(post => (
+          {/* 帖子列表（根据“我订阅的”筛选） */}
+          {posts.filter(p => !p.pinned && (activeTab === '全部' || p.bookmarked)).map(post => (
             !post.pinned && (
               <div key={post.id} className="post-card" onClick={() => openDetail(post)} style={{ cursor: 'pointer' }}>
                 <div className="post-header">
@@ -270,8 +282,8 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null }) => {
                   <button className="action-btn" title="分享" onClick={(e) => { e.stopPropagation(); message.success('链接已复制到剪贴板（占位）'); } }>
                     <ShareAltOutlined /><span>分享</span>
                   </button>
-                  <button className={`action-btn ${post.bookmarked ? 'active' : ''}`} title="收藏" onClick={(e) => { e.stopPropagation(); toggleBookmark(post.id); }}>
-                    {post.bookmarked ? <StarFilled /> : <StarOutlined />}<span>{post.bookmarked ? '已收藏' : '收藏'}</span>
+                  <button className={`action-btn ${post.bookmarked ? 'active' : ''}`} title="订阅" onClick={(e) => { e.stopPropagation(); toggleBookmark(post.id); }}>
+                    {post.bookmarked ? <StarFilled /> : <StarOutlined />}<span>{post.bookmarked ? '已订阅' : '订阅'}</span>
                   </button>
                 </div>
               </div>
@@ -279,12 +291,12 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null }) => {
           ))}
           {showDetail && selectedPost && (
             <div className={`detail-panel ${showDetail ? 'show' : ''}`}>
-              <button className="detail-close" onClick={closeDetail}>×</button>
+              <button className="detail-close" onClick={(e) => { e.stopPropagation(); closeDetail(); }} aria-label="关闭详情">×</button>
               <div className="detail-header">
                 <div className="detail-title">{selectedPost.title}</div>
                 <div className="detail-header-actions absolute">
                   <button className="icon-btn" title="分享" onClick={handleShare}><ShareAltOutlined /></button>
-                  <button className={`icon-btn ${selectedPost.bookmarked ? 'active' : ''}`} title={selectedPost.bookmarked ? '取消收藏' : '收藏'} onClick={() => toggleBookmark(selectedPost.id)}>
+                  <button className={`icon-btn ${selectedPost.bookmarked ? 'active' : ''}`} title={selectedPost.bookmarked ? '取消订阅' : '订阅'} onClick={() => toggleBookmark(selectedPost.id)}>
                     {selectedPost.bookmarked ? <StarFilled /> : <StarOutlined />}
                   </button>
                 </div>
@@ -333,22 +345,19 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null }) => {
               </div>
             </div>
           )}
+          {/* 右下角新建按钮（在左侧区域，详情页时隐藏） */}
+          {!showDetail && (
+            <button className="floating-new-btn" title="新建话题" onClick={() => setShowNewPost(true)}>＋</button>
+          )}
         </div>
 
-        {/* 右侧竖向工具栏，仅占显示图标所需宽度 */}
+        {/* 右侧竖向工具栏：仅保留公告、搜索、设置 */}
         <div className="topic-toolbar" aria-label="话题工具">
-          <Tooltip title="主页"><button className="tool-btn"><Home size={18} /></button></Tooltip>
-          <Tooltip title="提醒"><button className="tool-btn"><Bell size={18} /></button></Tooltip>
-          <Tooltip title="置顶"><button className="tool-btn"><Pin size={18} /></button></Tooltip>
-          <div className="tool-sep" />
-          <Tooltip title="标签"><button className="tool-btn"><TagIcon size={18} /></button></Tooltip>
+          <Tooltip title="公告"><button className="tool-btn"><Megaphone size={18} /></button></Tooltip>
           <Tooltip title="搜索"><button className="tool-btn"><Search size={18} /></button></Tooltip>
-          <Tooltip title="帮助"><button className="tool-btn"><HelpCircle size={18} /></button></Tooltip>
+          <Tooltip title="设置"><button className="tool-btn"><Settings size={18} /></button></Tooltip>
         </div>
       </div>
-
-      {/* 新建话题按钮 */}
-      <button className="floating-new-btn" title="新建话题" onClick={() => setShowNewPost(true)}>＋</button>
 
       <Modal
         open={showNewPost}

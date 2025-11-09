@@ -8,10 +8,12 @@
   background: linear-gradient(135deg, #f8f9fa 0%, #eef1f5 50%, #fdfdfd 100%);
 }
 
+/* 嵌入弹窗时的高度与滚动控制 */
+.topic-page.embedded { height: 100%; }
+.topic-page.embedded .topic-body { height: calc(100% - 60px); }
+
 .topic-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: block;
   padding: 16px 20px;
   border-bottom: 1px solid rgba(52,152,219,0.12);
   background: linear-gradient(135deg, rgba(52, 152, 219, 0.06), rgba(155, 89, 182, 0.06));
@@ -24,6 +26,18 @@
   color: #1f2937;
 }
 .topic-title .emoji { font-size: 18px; }
+.topic-header-actions { display: inline-flex; align-items: center; gap: 8px; }
+.add-member-btn { 
+  display: inline-flex; align-items: center; gap: 4px; 
+  padding: 6px 10px; border-radius: 16px; border: 1px solid #e6e8ec; background: #fff; color: #475569; cursor: pointer;
+}
+.add-member-btn:hover { background: rgba(22,119,255,0.08); color: #1677ff; border-color: rgba(22,119,255,0.18); }
+.close-btn { 
+  margin-left: 8px; display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 50%; border: 1px solid #e6e8ec; background: #fff; color: #475569; cursor: pointer;
+  z-index: 100; /* 保证可点击 */
+}
+.close-btn:hover { background: #f5f7fb; color: #1f2937; }
 .topic-tabs { display: flex; gap: 10px; }
 .topic-tab { 
   padding: 6px 12px; border-radius: 16px; border: none; cursor: pointer; 
@@ -127,6 +141,7 @@
   top: 12px;
   width: 28px; height: 28px; border-radius: 50%; border: 1px solid #e5e7eb; cursor: pointer;
   display: flex; align-items: center; justify-content: center; background: #fff; color: #64748b;
+  z-index: 100; /* 保证在叠加层上方 */
 }
 .detail-close:hover { background: #f5f7fb; color: #1f2937; }
 
