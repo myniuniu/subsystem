@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Input, Button, Tag, message, Tooltip } from 'antd';
-import { LikeOutlined, LikeFilled, MessageOutlined, ShareAltOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
+import { LikeOutlined, LikeFilled, MessageOutlined, ShareAltOutlined, StarOutlined, StarFilled, SmileOutlined, PictureOutlined, ScissorOutlined, SendOutlined } from '@ant-design/icons';
 import { Megaphone, Search, Settings, UserPlus, X as CloseIcon } from 'lucide-react';
 import './TopicDiscussion.css';
 
@@ -12,6 +12,38 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false,
   const [expandedIds, setExpandedIds] = useState([]);
   const [showDetail, setShowDetail] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
+
+  // 模拟每个话题的最近回复（用于卡片预览，展示最新2条）
+  const mockReplies = React.useMemo(() => ({
+    1: [
+      { user: '李仕佳', avatar: '👨‍🏫', text: '怪不得你这么考虑', time: '刚刚' },
+      { user: '铁冰ice', avatar: '🧊', text: '但无论怎样摘要异步执行就失了这个中间作用', time: '1分钟前' },
+      { user: '培训管理员', avatar: '🎓', text: '欢迎补充更多案例与做法', time: '3分钟前' }
+    ],
+    2: [
+      { user: '学员王小明', avatar: '🧑‍🏫', text: '我也在准备观察维度的表格', time: '刚刚' },
+      { user: '教研助理', avatar: '🛠', text: '模板已上传至资源区', time: '2分钟前' }
+    ],
+    3: [
+      { user: '培训管理员', avatar: '🎓', text: '评分标准文档已更新至v2', time: '刚刚' },
+      { user: '学员李华', avatar: '👩‍🏫', text: '已经下载并阅读', time: '5分钟前' }
+    ],
+    4: [
+      { user: '学员李华', avatar: '👩‍🏫', text: '资源位置找到了，感谢', time: '刚刚' },
+      { user: '学员王小明', avatar: '🧑‍🏫', text: '准备把方法融入到微课中', time: '2分钟前' }
+    ],
+    5: [
+      { user: '教研助理', avatar: '📝', text: '欢迎反馈更多课堂观察维度', time: '刚刚' },
+      { user: '培训管理员', avatar: '🎓', text: '周日晚研讨，别忘了参与', time: '4分钟前' }
+    ]
+  }), []);
+
+  const getRecentReplies = (postId, count = 2) => {
+    const arr = mockReplies[postId] || [];
+    if (arr.length <= count) return arr;
+    return arr.slice(-count);
+  };
 
   const toggleExpand = (id) => {
     setExpandedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -149,6 +181,39 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false,
             </button>
           </div>
         </div>
+
+        {/* 设置面板（在左侧内容与右侧工具栏之间） */}
+        {showSettings && (
+          <div className="settings-panel show">
+            <div className="settings-header">
+              <div className="settings-title">设置</div>
+              <button className="settings-close-btn" onClick={() => setShowSettings(false)} aria-label="关闭设置"><CloseIcon size={16} /></button>
+            </div>
+            <div className="settings-content">
+              <div className="settings-section">
+                <div className="section-title">群成员</div>
+                <div className="card-row">
+                  <span>成员管理</span>
+                  <button className="card-btn">打开</button>
+                </div>
+              </div>
+              <div className="settings-section">
+                <div className="section-title">标签</div>
+                <div className="card-row">
+                  <span>添加标签</span>
+                  <button className="card-btn">添加</button>
+                </div>
+              </div>
+              <div className="settings-section">
+                <div className="section-title">提醒</div>
+                <div className="card-row">
+                  <span>消息免打扰</span>
+                  <input type="checkbox" className="card-checkbox" />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="detail-main" style={{ flex: 1, overflowY: 'auto' }}>
           <div className="detail-block">
             <div className="detail-meta">
@@ -216,6 +281,7 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false,
     message.success('已发布话题');
   };
 
+  const memberCount = 2;
   return (
     <div className={`topic-page ${embedded ? 'embedded' : ''}`}>
       <div className={`topic-body ${embedded ? 'embedded' : ''}`}>
@@ -235,6 +301,7 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false,
                 )}
               </div>
             </div>
+            <div className="topic-members"><span className="members-icon">👥</span><span>{memberCount}</span></div>
             <div className="topic-tabs" style={{ marginTop: 8 }}>
               {['全部','我订阅的'].map(tab => (
                 <button key={tab} className={`topic-tab ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>{tab}</button>
@@ -255,11 +322,11 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false,
             !post.pinned && (
               <div key={post.id} className="post-card" onClick={() => openDetail(post)} style={{ cursor: 'pointer' }}>
                 <div className="post-header">
-                  <div className="post-author"><span>{post.avatar}</span><span>{post.author}</span></div>
+                  <div className="post-author"><span className="post-avatar">{post.avatar}</span><span>{post.author}</span></div>
                   <div className="post-time">{post.time}</div>
                 </div>
                 <div className="post-body">
-                  <div style={{ fontWeight: 600, marginBottom: 6 }}>{post.title}</div>
+                  <div className="post-title">{post.title}</div>
                   <div>
                     {expandedIds.includes(post.id) ? post.content : (post.content.length > 88 ? post.content.slice(0, 88) + '…' : post.content)}
                   </div>
@@ -272,6 +339,19 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false,
                     </div>
                   )}
                 </div>
+                {/* 最近回复预览（展示2条） */}
+                {getRecentReplies(post.id).length > 0 && (
+                  <div className="replies-preview">
+                    <div className="replies-header">查看更早 18 条回复</div>
+                    {getRecentReplies(post.id).map((r, idx) => (
+                      <div key={`${post.id}-reply-${idx}`} className="reply-item">
+                        <div className="reply-avatar">{r.avatar}</div>
+                        <div className="reply-content"><span className="reply-author">{r.user}</span>{r.text}</div>
+                        <div className="reply-time">{r.time}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="post-actions">
                   <button className={`action-btn ${post.liked ? 'active' : ''}`} onClick={(e) => { e.stopPropagation(); toggleLike(post.id); }}>
                     {post.liked ? <LikeFilled /> : <LikeOutlined />}<span>{post.likes || 0}</span>
@@ -351,35 +431,140 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false,
           )}
         </div>
 
+        {/* 设置面板（在左侧内容与右侧工具栏之间） */}
+        {showSettings && (
+          <div className="settings-panel show">
+            <div className="settings-header">
+              <div className="settings-title">设置</div>
+              <button className="settings-close-btn" onClick={() => setShowSettings(false)} aria-label="关闭设置"><CloseIcon size={16} /></button>
+            </div>
+            <div className="settings-content">
+              {/* 顶部群信息 */}
+              <div className="settings-group-header">
+                <div className="group-avatar">👥</div>
+                <div className="group-meta">
+                  <div className="group-name">张洪磊, 金朴峰</div>
+                  <div><span className="group-edit-link">编辑群信息</span></div>
+                </div>
+                <div className="group-actions">
+                  <span className="group-action-icon" title="群概览">⎇</span>
+                  <span className="group-action-icon" title="外部分享">↗</span>
+                </div>
+              </div>
+
+              {/* 群成员 */}
+              <div className="settings-section">
+                <h4>群成员 <span style={{ color:'#9aa3af' }}>{memberCount}</span></h4>
+                <input className="settings-search" placeholder="搜索" />
+                <div className="members-row">
+                  <div className="member-chip"><span>🧑</span><span>张洪磊</span></div>
+                  <div className="member-chip"><span>🧑</span><span>林峰</span></div>
+                  <button className="circle-btn" title="添加">＋</button>
+                  <button className="circle-btn" title="移除">－</button>
+                </div>
+              </div>
+
+              {/* 群机器人 */}
+              <div className="settings-section">
+                <div className="list-row">
+                  <span>群机器人</span>
+                  <span className="chevron">›</span>
+                </div>
+              </div>
+
+              {/* 群管理 */}
+              <div className="settings-section">
+                <div className="list-row">
+                  <span>群管理</span>
+                  <span className="chevron">›</span>
+                </div>
+              </div>
+
+              {/* 群昵称 */}
+              <div className="settings-section">
+                <h4>群昵称</h4>
+                <input className="settings-input" placeholder="添加我在本群的昵称" />
+              </div>
+
+              {/* 标签 */}
+              <div className="settings-section">
+                <h4>标签 <span style={{ color:'#64748b' }}>添加标签</span></h4>
+                <div className="list-row">
+                  <span>标签管理</span>
+                  <span className="chevron">›</span>
+                </div>
+              </div>
+
+              {/* 开关选项 */}
+              <div className="settings-section">
+                <div className="checkbox-list">
+                  <label className="checkbox-row"><input type="checkbox" /> 消息免打扰</label>
+                  <label className="checkbox-row"><input type="checkbox" /> @所有人的消息不提示</label>
+                  <label className="checkbox-row"><input type="checkbox" /> 置顶会话</label>
+                  <label className="checkbox-row"><input type="checkbox" /> 添加到标记</label>
+                </div>
+              </div>
+
+              {/* 翻译助手 */}
+              <div className="settings-section">
+                <div className="list-row">
+                  <span>翻译助手</span>
+                  <span className="chevron">›</span>
+                </div>
+              </div>
+
+              {/* 底部危险操作 */}
+              <div className="danger-actions">
+                <button className="danger-btn">退出话题群</button>
+                <button className="danger-btn">解散群组</button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 右侧竖向工具栏：仅保留公告、搜索、设置 */}
         <div className="topic-toolbar" aria-label="话题工具">
           <Tooltip title="公告"><button className="tool-btn"><Megaphone size={18} /></button></Tooltip>
           <Tooltip title="搜索"><button className="tool-btn"><Search size={18} /></button></Tooltip>
-          <Tooltip title="设置"><button className="tool-btn"><Settings size={18} /></button></Tooltip>
+          <Tooltip title="设置"><button className="tool-btn" onClick={() => setShowSettings(true)}><Settings size={18} /></button></Tooltip>
         </div>
       </div>
 
       <Modal
         open={showNewPost}
         onCancel={() => setShowNewPost(false)}
-        onOk={createPost}
-        okText="发布"
-        cancelText="取消"
-        title="新建话题"
-        className="new-post-modal"
+        footer={null}
+        title={null}
+        centered
+        width={'80%'}
+        className="new-topic-editor"
       >
-        <Input
-          placeholder="标题"
-          value={newTitle}
-          onChange={e => setNewTitle(e.target.value)}
-          style={{ marginBottom: 8 }}
-        />
-        <Input.TextArea
-          rows={6}
-          placeholder="内容（与“新教师教学方法培训”相关）"
-          value={newContent}
-          onChange={e => setNewContent(e.target.value)}
-        />
+        <div className="editor-toolbar">
+          <button className="tool-btn">B</button>
+          <button className="tool-btn">S</button>
+          <button className="tool-btn">I</button>
+          <button className="tool-btn">U</button>
+          <button className="tool-btn">“”</button>
+          <button className="tool-btn">•</button>
+          <button className="tool-btn">#</button>
+          <button className="tool-btn">{`{}`}</button>
+        </div>
+        <div className="editor-area">
+          <textarea
+            className="editor-input"
+            placeholder="分享你的想法..."
+            value={newContent}
+            onChange={(e) => setNewContent(e.target.value)}
+          />
+        </div>
+        {/* 右下角工具按钮（完整复刻） */}
+        <div className="editor-bottom-tools">
+          <button className="bottom-tool-btn" title="表情"><SmileOutlined /></button>
+          <button className="bottom-tool-btn" title="@提及">@</button>
+          <button className="bottom-tool-btn" title="图片"><PictureOutlined /></button>
+          <button className="bottom-tool-btn" title="剪切"><ScissorOutlined /></button>
+          <button className="bottom-tool-btn primary" title="发送" onClick={createPost}><SendOutlined /></button>
+        </div>
       </Modal>
 
       {/* 右侧面板已改为覆盖列表区域的滑出层 */}

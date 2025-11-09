@@ -172,7 +172,12 @@ const ContactList = ({
             </div>
             
             <div className="contact-info">
-              <div className="contact-name">{contact.name}</div>
+              <div className="contact-name">
+                {contact.type === 'topic' && (
+                  <span className="type-badge topic">话题</span>
+                )}
+                {contact.name}
+              </div>
               <div className="last-message">{contact.lastMessage}</div>
             </div>
             
