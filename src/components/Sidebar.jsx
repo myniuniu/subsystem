@@ -440,6 +440,14 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       type: 'single',
       removable: true
     },
+    {
+      id: 'knowledge-qa',
+      icon: BookOpen,
+      label: '知识问答',
+      shortLabel: '问答',
+      color: '#6C6CF4',
+      type: 'single'
+    },
     { 
       id: 'message-center', 
       icon: MessageSquare, 

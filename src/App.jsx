@@ -52,6 +52,7 @@ import ModelTrainingTemplate from './components/ModelTrainingTemplate'
 import ModelTrainingDetail from './components/ModelTrainingDetail'
 import MyCertificates from './components/MyCertificates'
 import KnowledgeSpace from './components/KnowledgeSpace'
+import KnowledgeQA from './components/KnowledgeQA'
 import EpblFlowchart from './components/EpblFlowchart';
 import EpblFloatingToolbar from './components/EpblFloatingToolbar';
 import { BookOutlined, LinkOutlined, PlayCircleOutlined } from '@ant-design/icons';
@@ -452,6 +453,8 @@ function App() {
               <ModelRegistry />
             ) : currentView === 'knowledge-space' ? (
               <KnowledgeSpace />
+            ) : currentView === 'knowledge-qa' ? (
+              <KnowledgeQA />
             ) : currentView === 'smart-notes' ? (
               <SmartNotes onViewChange={handleViewChange} />
             ) : currentView === 'supervision' ? (
