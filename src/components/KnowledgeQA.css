@@ -294,6 +294,9 @@
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 /* Bottom two-card section */
@@ -384,6 +387,8 @@
 .qa-right {
   flex: 1;
   padding: 40px 24px 60px;
+  display: flex;
+  flex-direction: column;
 }
 
 /* --- More menu (dropdown) --- */
@@ -428,14 +433,27 @@
 
 /* === 主题详情视图样式（历史对话点击后右侧显示）=== */
 .qa-left-list-item.active { background: #e9efff; color: #3346e6; font-weight: 600; }
+.qa-subsection-title {
+  display: inline-block;
+  margin: 8px 0 6px;
+  font-size: 13px;
+  color: #6b7280;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 9999px;
+  padding: 4px 10px;
+}
 .qa-topic-pill {
   display: inline-block;
-  background: #eef2ff;
-  color: #3346e6;
-  border: 1px solid #dbeafe;
   border-radius: 9999px;
   padding: 8px 12px;
   font-weight: 600;
+}
+.qa-topic-pill.qa-user-title {
+  background: #f9fafb;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 .qa-permission-card {
   background: #fff;
@@ -467,3 +485,61 @@
 .qa-permission-actions { margin-top: 12px; }
 .qa-permission-note { color: #6b7280; font-size: 13px; margin-top: 8px; }
 .qa-checkbox-row { margin-top: 4px; }
+
+/* === 多轮对话气泡 === */
+.qa-conversation {
+  width: min(880px, 92vw);
+  margin: 8px auto 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.qa-msg { display: flex; }
+.qa-msg.assistant { justify-content: flex-start; }
+.qa-msg.user { justify-content: flex-end; }
+.qa-bubble {
+  max-width: 72%;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 10px 12px;
+  color: #111827;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.qa-msg.user .qa-bubble { background: #eef2ff; border-color: #dbeafe; }
+.qa-bubble-text { line-height: 1.6; }
+
+/* === 数据来源预览（资料库/云盘）=== */
+.qa-source-preview {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #e5e7eb;
+}
+.qa-source-section { margin-bottom: 10px; }
+.qa-source-title {
+  font-size: 12px;
+  color: #9aa0a6;
+  margin-bottom: 6px;
+}
+.qa-source-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.qa-source-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #e6e8eb;
+  border-radius: 9999px;
+  padding: 6px 10px;
+  background: #f9fafb;
+  color: #111827;
+}
+.qa-source-chip .anticon { color: #6b7280; }
+.qa-source-name {
+  max-width: 240px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

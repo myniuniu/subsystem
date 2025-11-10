@@ -54,6 +54,47 @@ const KnowledgeQA = () => {
     { id: 'special_prep', title: '专项备课·教研要点资料集', permissions: ['选题方向', '资料清单', '关键要点', '评估标准'] }
   ]
 
+  // 模拟资料库与云盘的相关数据（用于授权卡片中的来源预览）
+  const kbDocs = [
+    { title: '白板与多媒体应用指南.pdf', type: 'pdf' },
+    { title: '课堂互动操作手册.docx', type: 'docx' },
+    { title: '课堂演示课件示例.ppt', type: 'ppt' },
+    { title: '设备连接快速排查.txt', type: 'text' }
+  ]
+  const driveDocs = [
+    { title: '培训日程与场地安排.docx', type: 'docx' },
+    { title: '培训讲师资料清单.pdf', type: 'pdf' },
+    { title: '示范课PPT（定稿）.ppt', type: 'ppt' }
+  ]
+
+  // 模拟各主题的多轮对话数据
+  const topicConversations = {
+    tech_training: [
+      { role: 'user', text: '我们下周有新教师培训，如何安排课堂讲解？' },
+      { role: 'assistant', text: '可以按“导入-讲解-演示-练习-总结”五段式来组织。' },
+      { role: 'user', text: '讲解阶段建议控制在多久？' },
+      { role: 'assistant', text: '核心知识点讲解8-12分钟较合适，中间穿插示例。' }
+    ],
+    dify_tutorial: [
+      { role: 'user', text: '如何用 Dify 做一个回答学校政策的助手？' },
+      { role: 'assistant', text: '先创建知识库，导入政策文档，再配置工作流与工具。' },
+      { role: 'user', text: '知识库要如何分段？' },
+      { role: 'assistant', text: '建议按章节与主题分段，保持每段500-1500字，便于检索。' }
+    ],
+    it_whiteboard: [
+      { role: 'user', text: '多媒体白板无法投屏怎么办？' },
+      { role: 'assistant', text: '检查连接线、输入源与网络；重启投屏接收端后再试。' }
+    ],
+    career_growth: [
+      { role: 'user', text: '教师成长档案要记录哪些内容？' },
+      { role: 'assistant', text: '包括教学反思、教研活动、公开课记录与培训证书等。' }
+    ],
+    special_prep: [
+      { role: 'user', text: '我要组织一次专题备课，怎么确定选题？' },
+      { role: 'assistant', text: '依据学情与课程标准，列出候选主题并评估教学价值。' }
+    ]
+  }
+
   // 视图状态：null 表示“新对话”默认页；选中主题时为对应 id
   const [activeTopicId, setActiveTopicId] = useState(null)
   const activeTopic = historyTopics.find(t => t.id === activeTopicId)
@@ -122,6 +163,15 @@ const KnowledgeQA = () => {
       </div>
     </div>
   );
+
+  // 取首条用户消息以及剩余消息
+  const getFirstUserAndRest = () => {
+    const arr = topicConversations[activeTopicId] || []
+    const idx = arr.findIndex(m => m.role === 'user')
+    const first = idx >= 0 ? arr[idx] : null
+    const rest = idx >= 0 ? arr.slice(idx + 1) : arr
+    return { first, rest }
+  }
 
   return (
     <div className="qa-page">
@@ -251,9 +301,15 @@ const KnowledgeQA = () => {
               </>
             ) : (
               <>
-                <div className="qa-hero">
-                  <div className="qa-topic-pill">{activeTopic?.title}</div>
-                </div>
+                {getFirstUserAndRest().first && (
+                  <div className="qa-conversation qa-first">
+                    <div className="qa-msg user">
+                      <div className="qa-bubble">
+                        <span className="qa-bubble-text">{getFirstUserAndRest().first.text}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div className="qa-permission-card">
                   <div className="qa-permission-title">正在等待授权</div>
                   <div className="qa-permission-tags">
@@ -279,10 +335,75 @@ const KnowledgeQA = () => {
                       <input type="checkbox" /> 总是允许 AI 使用资料生成
                     </label>
                   </div>
+
+                  {/* 数据来源预览：资料库与云盘 */}
+                  <div className="qa-source-preview">
+                    <div className="qa-source-section">
+                      <div className="qa-source-title">资料库</div>
+                      <div className="qa-source-list">
+                        {kbDocs.map((d, i) => (
+                          <div key={i} className="qa-source-chip" title={d.title}>
+                            {renderFileIcon(d.type)}
+                            <span className="qa-source-name">{d.title}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="qa-source-section">
+                      <div className="qa-source-title">云盘</div>
+                      <div className="qa-source-list">
+                        {driveDocs.map((d, i) => (
+                          <div key={i} className="qa-source-chip" title={d.title}>
+                            {renderFileIcon(d.type)}
+                            <span className="qa-source-name">{d.title}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 历史视图：多轮对话展示（除首条用户消息） */}
+                <div className="qa-conversation">
+                  {(getFirstUserAndRest().rest.length ? getFirstUserAndRest().rest : [
+                    { role: 'assistant', text: '暂无历史消息，可在下方继续提问。' }
+                  ]).map((m, idx) => (
+                    <div key={idx} className={`qa-msg ${m.role}`}>
+                      <div className="qa-bubble">
+                        <span className="qa-bubble-text">{m.text}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </>
             )}
           </div>
+          {/* 历史视图输入区固定在底部 */}
+          {activeTopicId !== null && (
+            <div className="qa-query">
+              <div className="qa-query-inner">
+                <div className="qa-query-top">
+                  <Input.TextArea
+                    className="qa-query-textarea"
+                    placeholder="问个问题，或用知识写点内容"
+                    autoSize={{ minRows: 2, maxRows: 6 }}
+                  />
+                </div>
+                <div className="qa-query-actions">
+                  <div className="qa-query-left">
+                    <button className="qa-icon-btn" aria-label="插入图片"><PictureOutlined /></button>
+                    <div className="qa-pill"><GlobalOutlined /> 联网搜索</div>
+                  </div>
+                  <div className="qa-query-right">
+                    <Dropdown overlay={moreMenu} trigger={["click"]} placement="bottomRight">
+                      <button className="qa-icon-btn" aria-label="更多选项"><EllipsisOutlined /></button>
+                    </Dropdown>
+                    <button className="qa-send-btn" aria-label="发送"><ArrowRightOutlined /></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </div>
