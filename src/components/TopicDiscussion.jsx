@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Input, Button, Tag, message, Tooltip } from 'antd';
-import { LikeOutlined, LikeFilled, MessageOutlined, ShareAltOutlined, StarOutlined, StarFilled, SmileOutlined, PictureOutlined, ScissorOutlined, SendOutlined } from '@ant-design/icons';
+import { LikeOutlined, LikeFilled, MessageOutlined, ShareAltOutlined, StarOutlined, StarFilled, SmileOutlined, PictureOutlined, ScissorOutlined, SendOutlined, MoreOutlined } from '@ant-design/icons';
 import { Megaphone, Search, Settings, UserPlus, X as CloseIcon } from 'lucide-react';
 import './TopicDiscussion.css';
 
@@ -84,7 +84,7 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false,
       attachments: ['互动设计示例'],
       liked: false,
       likes: 8,
-      bookmarked: false,
+      bookmarked: true,
       comments: 2,
     },
     {
@@ -144,6 +144,8 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false,
     }));
   };
 
+  // 移除自动同步逻辑：避免在打开非订阅话题时生成订阅条目
+
   const handleShare = () => {
     const post = selectedPost;
     if (!post) return;
@@ -155,6 +157,24 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false,
     } else {
       message.success('分享链接已生成');
     }
+  };
+
+  const toggleDetailLike = () => {
+    if (!selectedPost) return;
+    const likedNext = !selectedPost.liked;
+    const likesNext = likedNext ? (selectedPost.likes || 0) + 1 : Math.max(0, (selectedPost.likes || 0) - 1);
+    setSelectedPost(prev => ({ ...prev, liked: likedNext, likes: likesNext }));
+    setPosts(prev => prev.map(p => p.id === selectedPost.id ? { ...p, liked: likedNext, likes: likesNext } : p));
+  };
+
+  const handleMoreActions = () => {
+    message.info('更多操作（占位）：标记、复制链接、举报等');
+  };
+
+  const handleReplyAction = () => {
+    message.success('打开回复输入框');
+    const inputArea = document.querySelector('.detail-input');
+    if (inputArea) inputArea.scrollIntoView({ behavior: 'smooth', block: 'end' });
   };
 
   // 外部请求打开指定话题详情（从会话列表点击）
@@ -214,22 +234,28 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false,
             </div>
           </div>
         )}
-        <div className="detail-main" style={{ flex: 1, overflowY: 'auto' }}>
-          <div className="detail-block">
-            <div className="detail-meta">
-              <div className="detail-avatar">{selectedPost.avatar || '👤'}</div>
-              <div className="detail-meta-info">
-                <div className="detail-author">{selectedPost.author || '发布人'}</div>
-                <div className="detail-time">{selectedPost.time}</div>
+          <div className="detail-main" style={{ flex: 1, overflowY: 'auto' }}>
+            <div className="detail-block">
+              <div className="detail-meta">
+                <div className="detail-avatar">{selectedPost.avatar || '👤'}</div>
+                <div className="detail-meta-info">
+                  <div className="detail-author">{selectedPost.author || '发布人'}</div>
+                  <div className="detail-time">{selectedPost.time}</div>
+                </div>
+              </div>
+              <div style={{ color: '#1f2937', lineHeight: 1.7, marginTop: 6 }}>{selectedPost.content}</div>
+              {selectedPost.attachments && selectedPost.attachments.length > 0 && (
+                <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {selectedPost.attachments.map(a => (<span key={a} className="chip">{a}</span>))}
+                </div>
+              )}
+              <div className="hover-actions">
+                <button className={`icon-btn ${selectedPost?.liked ? 'active' : ''}`} title={selectedPost?.liked ? '取消点赞' : '点赞'} onClick={toggleDetailLike}><LikeOutlined /></button>
+                <button className="icon-btn" title="回复" onClick={handleReplyAction}><MessageOutlined /></button>
+                <button className="icon-btn" title="转发" onClick={handleShare}><ShareAltOutlined /></button>
+                <button className="icon-btn" title="更多" onClick={handleMoreActions}><MoreOutlined /></button>
               </div>
             </div>
-            <div style={{ color: '#1f2937', lineHeight: 1.7, marginTop: 6 }}>{selectedPost.content}</div>
-            {selectedPost.attachments && selectedPost.attachments.length > 0 && (
-              <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {selectedPost.attachments.map(a => (<span key={a} className="chip">{a}</span>))}
-              </div>
-            )}
-          </div>
           <div className="detail-block">
             <div style={{ fontWeight: 600, marginBottom: 6 }}>话题相关讨论</div>
             <div style={{ color: '#334155' }}>
@@ -247,6 +273,12 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false,
                 <div className="comment-content">
                   <div className="comment-meta"><span style={{ fontWeight: 600, color: '#2c3e50' }}>{c.user}</span><span>{c.time}</span></div>
                   <div className="comment-text">{c.text}</div>
+                </div>
+                <div className="hover-actions">
+                  <button className="icon-btn" title="点赞" onClick={() => message.success('已点赞（占位）')}><LikeOutlined /></button>
+                  <button className="icon-btn" title="回复" onClick={handleReplyAction}><MessageOutlined /></button>
+                  <button className="icon-btn" title="转发" onClick={handleShare}><ShareAltOutlined /></button>
+                  <button className="icon-btn" title="更多" onClick={handleMoreActions}><MoreOutlined /></button>
                 </div>
               </div>
             ))}
@@ -414,6 +446,12 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false,
                       <div className="comment-content">
                         <div className="comment-meta"><span style={{ fontWeight: 600, color: '#2c3e50' }}>{c.user}</span><span>{c.time}</span></div>
                         <div className="comment-text">{c.text}</div>
+                        <div className="hover-actions">
+                          <button className="icon-btn" title="点赞" onClick={() => message.success('已点赞（占位）')}><LikeOutlined /></button>
+                          <button className="icon-btn" title="回复" onClick={handleReplyAction}><MessageOutlined /></button>
+                          <button className="icon-btn" title="转发" onClick={handleShare}><ShareAltOutlined /></button>
+                          <button className="icon-btn" title="更多" onClick={handleMoreActions}><MoreOutlined /></button>
+                        </div>
                       </div>
                     </div>
                   ))}

@@ -40,6 +40,24 @@
   background-clip: text;
 }
 
+/* 标题右侧的搜索与新建工具 */
+.contacts-header .header-tools { display: flex; align-items: center; gap: 10px; }
+.contacts-header .header-search { position: relative; }
+.contacts-header .header-search input {
+  width: 160px; height: 32px; border-radius: 16px; border: 1px solid #e0e6ed;
+  padding: 6px 28px 6px 12px; background: #fff; outline: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+.contacts-header .header-search svg { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: #7f8c8d; }
+.contacts-header .header-plus {
+  width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; background: #1677ff; color: #fff;
+  box-shadow: 0 6px 16px rgba(22, 119, 255, 0.35);
+}
+.contacts-header .header-plus:hover { filter: brightness(1.05); }
+
+/* 加号悬停提示样式 */
+
 .unread-badge {
   background: linear-gradient(135deg, #e74c3c, #c0392b);
   color: white;
@@ -508,6 +526,7 @@
   background: rgba(22,119,255,0.12);
   color: #1677ff;
 }
+.type-row { margin-bottom: 2px; }
 
 .last-message {
   font-size: 13px;

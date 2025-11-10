@@ -4,6 +4,7 @@ import ChatWindow from './ChatWindow';
 import TopicDiscussion from './TopicDiscussion';
 import './MessageCenter.css';
 import { getNewTeacherTrainingMessages } from '../data/trainingDiscussionMessages';
+import CreateGroupModal from './CreateGroupModal';
 
 const MessageCenter = ({ contacts: propContacts }) => {
   // 联系人数据 - 使用传入的props或默认数据
@@ -693,12 +694,46 @@ const MessageCenter = ({ contacts: propContacts }) => {
     });
   }, [messageHistory]);
 
-  // 当传入联系人变化时，同步到本地联系人（随后由上面的 effect 用历史补充摘要）
+  // 当传入联系人变化时，同步到本地联系人
   useEffect(() => {
     if (propContacts && Array.isArray(propContacts)) {
       setContacts(propContacts);
     }
   }, [propContacts]);
+
+  // 进入页面即初始化一个“已订阅的话题”到会话列表（与点击订阅效果一致）
+  const ensureDefaultSubscribedTopic = React.useCallback(() => {
+    setContacts(prev => {
+      if (prev.some(c => c.id === 'topic_post_2')) return prev;
+      const now = new Date().toLocaleString('zh-CN', {
+        year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+      });
+      const displayName = '学员王小明 微课互动设计是否需要准备评估表？';
+      const summary = '请问研讨的“互动设计”是否需要准备课堂观察表或学生反馈问卷？如果有模板能否提供？';
+      const subscribedContact = {
+        id: 'topic_post_2',
+        name: displayName,
+        type: 'topic',
+        avatar: '📌',
+        lastMessage: summary.slice(0, 28) + (summary.length > 28 ? '…' : ''),
+        lastTime: now,
+        unreadCount: 0,
+        online: true,
+        isSubscribed: true
+      };
+      return [subscribedContact, ...prev];
+    });
+  }, []);
+
+  // 首次进入页面时初始化
+  useEffect(() => {
+    ensureDefaultSubscribedTopic();
+  }, [ensureDefaultSubscribedTopic]);
+
+  // 当联系人列表变化时也确保订阅话题存在
+  useEffect(() => {
+    ensureDefaultSubscribedTopic();
+  }, [contacts, ensureDefaultSubscribedTopic]);
 
   const [activeContact, setActiveContact] = useState('system');
   const [newMessage, setNewMessage] = useState('');
@@ -728,6 +763,29 @@ const MessageCenter = ({ contacts: propContacts }) => {
     setIsResizing(false);
     document.removeEventListener('mousemove', onMouseMoveResizer);
     document.removeEventListener('mouseup', onMouseUpResizer);
+  };
+
+  // 创建群组弹窗
+  const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
+  useEffect(() => {
+    const openNew = () => setShowCreateGroupModal(true);
+    window.addEventListener('openNewConversation', openNew);
+    return () => window.removeEventListener('openNewConversation', openNew);
+  }, []);
+  const handleCreateGroup = (payload) => {
+    // 占位：创建群组后可以在联系人列表插入一个新的群会话
+    const newId = `group_${Date.now()}`;
+    setContacts(prev => [{
+      id: newId,
+      name: payload.name || '新建群组',
+      type: payload.mode === '话题' ? 'topic' : 'group',
+      avatar: payload.avatar || '👥',
+      lastMessage: '群组已创建',
+      lastTime: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit' }),
+      unreadCount: 0,
+      online: true
+    }, ...prev]);
+    setShowCreateGroupModal(false);
   };
 
 
@@ -961,6 +1019,7 @@ const MessageCenter = ({ contacts: propContacts }) => {
           </div>
         )
       }
+      <CreateGroupModal open={showCreateGroupModal} onCancel={()=>setShowCreateGroupModal(false)} onCreate={handleCreateGroup} contacts={contacts} />
     </div>
   );
 };

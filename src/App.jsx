@@ -10,6 +10,8 @@ import AdminCenter from './components/AdminCenter'
 import LessonObservation from './components/LessonObservation'
 import MeetingCenter from './components/MeetingCenter'
 import MessageCenter from './components/MessageCenter'
+import OrgMembersDepartments from './components/OrgMembersDepartments'
+import ContactsDirectory from './components/ContactsDirectory'
 import CalendarCenter from './components/CalendarCenter'
 import AppCenter from './components/AppCenter'
 import LearningAnalytics from './components/LearningAnalytics'
@@ -389,6 +391,8 @@ function App() {
               <CalendarCenter />
             ) : currentView === 'download-center' ? (
               <DownloadCenter downloads={downloads} />
+            ) : currentView === 'contacts' ? (
+              <ContactsDirectory />
             ) : currentView === 'docs-center-org' ? (
               <DocsCenter initialDrive="org" />
             ) : currentView === 'docs-center-my' ? (

@@ -164,7 +164,7 @@ const SmartNotes = ({ onViewChange }) => {
   const [filteredNotes, setFilteredNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('supervision');
+  const [selectedCategory, setSelectedCategory] = useState('organizational_training');
   const [showNoteEditor, setShowNoteEditor] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);

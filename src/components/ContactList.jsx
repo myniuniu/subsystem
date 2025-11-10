@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MoreVertical, Pin, Bell, X } from 'lucide-react';
+import { MoreVertical, Pin, Bell, X, Search as SearchIcon, Plus } from 'lucide-react';
 import { Dropdown, Tooltip } from 'antd';
 import './ContactList.css';
 
@@ -112,6 +112,18 @@ const ContactList = ({
     <div className="contacts-panel" style={width ? { width } : undefined}>
       <div className="contacts-header">
         <h2>消息</h2>
+        <div className="header-tools">
+          <div className="header-search">
+            <input
+              type="text"
+              placeholder="搜索会话..."
+              onFocus={() => window.dispatchEvent(new CustomEvent('conversationSearchOpen', { detail: { chatId: activeContact } }))}
+              onChange={(e)=>{ /* 占位：可接入左侧过滤 */ }}
+            />
+            <SearchIcon size={16} />
+          </div>
+          <button className="header-plus" title="新建" onClick={()=>window.dispatchEvent(new CustomEvent('openNewConversation',{}))}><Plus size={16} /></button>
+        </div>
       </div>
       
       {/* 置顶区域 */}
@@ -201,11 +213,11 @@ const ContactList = ({
             </div>
 
             <div className="contact-meta">
+              {contact.type === 'topic' && (
+                <div className="type-row"><span className="type-badge topic">话题</span></div>
+              )}
               <div className="last-time">
                 {formatMonthDay(contact.lastTime)}
-                {contact.type === 'topic' && (
-                  <span className="type-badge topic" style={{ marginLeft: 8 }}>话题</span>
-                )}
               </div>
               {contact.unreadCount > 0 && (
                 <div className="unread-count">{contact.unreadCount}</div>

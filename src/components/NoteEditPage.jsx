@@ -189,6 +189,32 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
   const [unreadMessageCount, setUnreadMessageCount] = useState(3); // 模拟未读消息数量
   const [isGroupCreated, setIsGroupCreated] = useState(false); // 群组创建状态
   const [newChatMessage, setNewChatMessage] = useState('');
+  // 对话弹窗左右分栏拖拽宽度
+  const [leftWidth, setLeftWidth] = useState(416); // 会话列表默认宽度（在基础320上+30%）
+  const [isResizing, setIsResizing] = useState(false);
+  const modalStartXRef = useRef(0);
+  const modalStartWidthRef = useRef(0);
+  const onModalResizerMouseDown = (e) => {
+    setIsResizing(true);
+    modalStartXRef.current = e.clientX;
+    modalStartWidthRef.current = leftWidth;
+    document.addEventListener('mousemove', onModalResizerMouseMove);
+    document.addEventListener('mouseup', onModalResizerMouseUp);
+    e.preventDefault();
+  };
+  const onModalResizerMouseMove = (e) => {
+    const delta = e.clientX - modalStartXRef.current;
+    let next = modalStartWidthRef.current + delta;
+    const min = 280; const max = 640; // 限制范围
+    if (next < min) next = min;
+    if (next > max) next = max;
+    setLeftWidth(next);
+  };
+  const onModalResizerMouseUp = () => {
+    setIsResizing(false);
+    document.removeEventListener('mousemove', onModalResizerMouseMove);
+    document.removeEventListener('mouseup', onModalResizerMouseUp);
+  };
   // 会话列表（对话+话题）初始化：匹配截图红框两条记录
   const [modalContacts, setModalContacts] = useState(() => {
     const now = new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
@@ -216,6 +242,28 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
     ];
   });
   const [activeModalContact, setActiveModalContact] = useState('new_teacher_training_dialogue');
+  // 打开对话弹窗时，确保订阅话题条目存在（与点击订阅效果一致）
+  useEffect(() => {
+    if (!showMessageCenter) return;
+    try {
+      const now = new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+      setModalContacts(prev => {
+        if (Array.isArray(prev) && prev.some(c => c.id === 'topic_post_2')) return prev;
+        const subscribedContact = {
+          id: 'topic_post_2',
+          name: '学员王小明 微课互动设计是否需要准备评估表？',
+          type: 'topic',
+          avatar: '📌',
+          lastMessage: '请问研讨的“互动设计”是否需要准备课堂观察表或学生反馈问卷？如果有模板能否提供？',
+          lastTime: now,
+          unreadCount: 0,
+          online: true,
+          isSubscribed: true
+        };
+        return [subscribedContact, ...(prev || [])];
+      });
+    } catch (e) {}
+  }, [showMessageCenter]);
   
   // 对话框宽度随分栏动态调整
   const [isChatSplit, setIsChatSplit] = useState(false);
@@ -3070,17 +3118,24 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
          className="discussion-modal"
          bodyStyle={{ height: 'calc(70vh + 15px)', overflowY: 'hidden', padding: 0, display: 'flex' }}
        >
-         <div style={{ width: 360, borderRight: '1px solid #eef2f7', background: '#fff' }}>
+         <div className={`mc-left ${isResizing ? 'resizing' : ''}`} style={{ width: leftWidth, borderRight: '1px solid #eef2f7', background: '#fff' }}>
            <ContactList
              contacts={modalContacts}
              activeContact={activeModalContact}
              onContactSelect={setActiveModalContact}
              totalUnreadCount={modalContacts.reduce((sum,c)=>sum+(c.unreadCount||0),0)}
+             width={leftWidth}
            />
          </div>
-         <div style={{ flex: 1, minWidth: 0 }}>
-           {activeModalContact === 'org_training_new_teacher_discuss' ? (
-             <TopicDiscussion compact embedded onRequestClose={() => { setShowMessageCenter(false); setUnreadMessageCount(0); setIsChatSplit(false); }} />
+         <div className="mc-resizer" onMouseDown={onModalResizerMouseDown} />
+         <div className="mc-right" style={{ flex: 1, minWidth: 0 }}>
+           {(activeModalContact === 'org_training_new_teacher_discuss' || (typeof activeModalContact === 'string' && activeModalContact.startsWith('topic_post_'))) ? (
+             <TopicDiscussion 
+               compact 
+               embedded 
+               onRequestClose={() => { setShowMessageCenter(false); setUnreadMessageCount(0); setIsChatSplit(false); }}
+               openTopicId={typeof activeModalContact === 'string' && activeModalContact.startsWith('topic_post_') ? Number(activeModalContact.replace('topic_post_', '')) : null}
+             />
            ) : (
              <ChatWindow
                activeContact={activeModalContact}

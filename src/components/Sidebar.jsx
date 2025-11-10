@@ -448,6 +448,14 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       color: '#f39c12',
       type: 'single'
     },
+    {
+      id: 'contacts',
+      icon: Users,
+      label: '通讯录',
+      shortLabel: '通讯录',
+      color: '#1890ff',
+      type: 'single'
+    },
     { 
       id: 'docs-center', 
       icon: Cloud, 

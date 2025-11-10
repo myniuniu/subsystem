@@ -140,16 +140,31 @@
 .detail-author { font-size: 13px; color: #334155; font-weight: 600; }
 .detail-time { font-size: 12px; color: #95a5a6; }
 .detail-main { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
-.detail-block { background: #fff; border: none; border-radius: 12px; padding: 12px 14px; }
+.detail-block { background: #fff; border: none; border-radius: 12px; padding: 12px 14px; transition: background 0.15s ease, box-shadow 0.15s ease; }
+.detail-block { position: relative; }
 .detail-actions { display: flex; gap: 10px; padding: 12px 20px; border-top: 1px solid #eef2f7; }
 .detail-comments { padding: 12px 20px; display: flex; flex-direction: column; gap: 12px; }
 .comment-item { display: flex; gap: 10px; }
+.comment-item { position: relative; }
 .comment-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #eef1f5; }
-.comment-content { flex: 1; background: #fff; border: none; border-radius: 10px; padding: 8px 10px; }
+.comment-content { flex: 1; background: #fff; border: none; border-radius: 10px; padding: 8px 10px; transition: background 0.15s ease, box-shadow 0.15s ease; }
 .comment-meta { display: flex; justify-content: space-between; font-size: 12px; color: #95a5a6; margin-bottom: 4px; }
 .comment-text { color: #1f2937; }
 .detail-input { padding: 12px 20px; border-top: 1px solid #eef2f7; background: #fafafa; position: sticky; bottom: 0; }
 .detail-input .ant-input { border-radius: 8px; }
+
+/* 悬停高亮，表示当前操作条作用范围 */
+.detail-block:hover { background: #f5f7fb; box-shadow: inset 0 0 0 1px #e6e8ec; }
+.comment-content:hover { background: #f5f7fb; box-shadow: inset 0 0 0 1px #e6e8ec; }
+
+/* 悬停操作条（点赞/回复/转发/更多） */
+.hover-actions { 
+  position: absolute; right: -6px; top: 50%; transform: translateY(-50%);
+  display: flex; gap: 8px; padding: 4px 6px; border-radius: 8px; 
+  background: rgba(255,255,255,0.98); border: 1px solid #e6e8ec; box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  opacity: 0; pointer-events: none; transition: opacity 0.15s ease-in-out; z-index: 5;
+}
+.detail-block:hover .hover-actions, .comment-item:hover .hover-actions, .hover-actions:hover { opacity: 1; pointer-events: auto; }
 
 /* 覆盖话题列表区域的右侧滑出面板 */
 .detail-panel {
@@ -328,3 +343,7 @@
 }
 .card-btn:hover { filter: brightness(1.03); }
 .card-checkbox { width: 16px; height: 16px; }
+.comment-text { display: inline; }
+.comment-content .hover-actions { position: static; display: inline-flex; margin-left: 8px; padding: 2px 6px; border-radius: 8px; background: rgba(255,255,255,0.98); border: 1px solid #e6e8ec; box-shadow: 0 6px 18px rgba(0,0,0,0.06); vertical-align: middle; }
+.detail-block .hover-actions { position: static; display: inline-flex; margin-left: 8px; padding: 2px 6px; border-radius: 8px; background: rgba(255,255,255,0.98); border: 1px solid #e6e8ec; box-shadow: 0 6px 18px rgba(0,0,0,0.06); vertical-align: middle; }
+.comment-content:hover .hover-actions, .detail-block:hover .hover-actions, .hover-actions:hover { opacity: 1; pointer-events: auto; }
