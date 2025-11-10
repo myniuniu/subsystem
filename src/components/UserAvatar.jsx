@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dropdown, Avatar, Space, Divider, message, Modal, Button } from 'antd';
+import { Dropdown, Avatar, Space, Divider, message } from 'antd';
 import { 
   User, 
   LogOut, 
@@ -10,13 +10,13 @@ import {
 } from 'lucide-react';
 import { BgColorsOutlined, CheckOutlined, ShareAltOutlined, FileTextOutlined } from '@ant-design/icons';
 import { themes, getCurrentTheme, setTheme, getThemeList } from '../utils/themeManager';
+import { runSiteDataCleanup } from '../utils/clearSiteData';
 import ThemeShareModal from './ThemeShareModal';
 import './UserAvatar.css';
 
 const UserAvatar = ({ onThemeChange }) => {
   const [currentTheme, setCurrentTheme] = useState(getCurrentTheme());
   const [shareModalVisible, setShareModalVisible] = useState(false);
-  const [clearCacheVisible, setClearCacheVisible] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(true); // 模拟登录状态
   const [userInfo, setUserInfo] = useState({
     name: '张老师',
@@ -126,7 +126,7 @@ const UserAvatar = ({ onThemeChange }) => {
     {
       type: 'divider'
     },
-    // 清理缓存（弹窗展示清理页面内容）
+    // 清理缓存：直接执行清理逻辑
     {
       key: 'clear-cache',
       label: (
@@ -135,7 +135,24 @@ const UserAvatar = ({ onThemeChange }) => {
           <span>清理缓存</span>
         </Space>
       ),
-      onClick: () => setClearCacheVisible(true)
+      onClick: async () => {
+        const hide = message.loading('正在清理站点数据...', 0);
+        try {
+          const result = await runSiteDataCleanup({
+            clearCaches: true,
+            unregisterSW: true,
+            clearLocalStorage: true,
+            clearIndexedDB: true
+          });
+          hide();
+          const cache = result.steps.cache || {}; const sw = result.steps.sw || {}; const ls = result.steps.ls || {}; const idb = result.steps.idb || {};
+          message.success(`完成：Cache(${cache.removed ?? 0}/${cache.total ?? 0})、SW(${sw.count ?? 0})、localStorage(${ls.count ?? 0})、IndexedDB(${idb.success ?? 0}/${idb.total ?? 0})`);
+          if (idb.message) message.warning(idb.message);
+        } catch (e) {
+          hide();
+          message.error(`清理失败：${e?.message || '未知错误'}`);
+        }
+      }
     },
     {
       type: 'divider'
@@ -244,25 +261,7 @@ const UserAvatar = ({ onThemeChange }) => {
         currentTheme={getCurrentThemeData()}
       />
 
-      {/* 清理缓存弹窗：以内嵌页面方式展示，端口动态取自 window.location.origin */}
-      <Modal
-        title="清理缓存"
-        open={clearCacheVisible}
-        onCancel={() => setClearCacheVisible(false)}
-        footer={[
-          <Button key="close" onClick={() => setClearCacheVisible(false)}>关闭</Button>
-        ]}
-        width={800}
-        destroyOnClose
-      >
-        <div style={{ height: 500, border: '1px solid #f0f0f0', borderRadius: 8, overflow: 'hidden' }}>
-          <iframe
-            title="clear-site-data"
-            src={`${window.location.origin}/clear-site-data.html`}
-            style={{ width: '100%', height: '100%', border: 'none' }}
-          />
-        </div>
-      </Modal>
+      {/* 清理缓存入口现在直接执行，无弹窗 */}
     </>
   );
 };

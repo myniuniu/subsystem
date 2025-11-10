@@ -297,6 +297,52 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // 督学分类：初始化课程推荐对话（仅在无历史消息时注入一次）
+  useEffect(() => {
+    const isSupervision = (selectedCategory === 'supervision' || note?.category === 'supervision');
+    if (!isSupervision) return;
+    setMessages(prev => {
+      if (Array.isArray(prev) && prev.length > 0) return prev;
+      const content = '需要的话我可以在“选择课程内容集合”中为你预选候选资源，或生成督学任务清单与检查记录模板。';
+      const initQuestion = {
+        id: Date.now() - 1,
+        type: 'user',
+        content: '针对本次督学专题，请提供一下学习的素材（课程/文档/视频等）。',
+        timestamp: new Date().toISOString()
+      };
+        const initMsg = {
+          id: Date.now(),
+          type: 'assistant',
+          content,
+          recommendations: [
+            {
+              thumbSrc: '/assets/课程缩略图/生成课程缩略图.png',
+              thumbAlt: '校园安全制度课程缩略图',
+              videoSrc: '/assets/demo1.mp4',
+              title: '校园安全制度与日常巡查（30分钟）',
+              bullets: ['巡查清单、记录要点、常见问题归类', '可作为现场督导与整改闭环的基础课程']
+            },
+            {
+              thumbSrc: '/assets/课程缩略图/生成课程缩略图 (2).png',
+              thumbAlt: '消防安全与演练课程缩略图',
+              videoSrc: '/assets/2.mp4',
+              title: '消防安全基础与演练流程（40分钟）',
+              bullets: ['火灾隐患识别、疏散路径设计、演练组织', '适配“应急演练与安全教育”专项督导']
+            },
+            {
+              thumbSrc: '/assets/课程缩略图/生成课程缩略图 (3).png',
+              thumbAlt: '食品安全与卫生课程缩略图',
+              videoSrc: '/assets/demo1.mp4',
+              title: '食品安全与卫生规范（35分钟）',
+              bullets: ['留样制度、台账规范、操作间卫生要点', '适配“食堂与供餐”专项检查与整改']
+            }
+          ],
+          timestamp: new Date().toISOString()
+        };
+      return [initQuestion, initMsg];
+    });
+  }, [selectedCategory, note?.category]);
+
   // 快捷操作相关状态
   const [quickActions] = useState([
     { key: 'summarize', label: '内容总结', icon: '📄' },

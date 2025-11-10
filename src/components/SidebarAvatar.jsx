@@ -13,6 +13,7 @@ import {
   FileText
 } from 'lucide-react';
 import { getCurrentTheme, setTheme, getThemeList } from '../utils/themeManager';
+import { runSiteDataCleanup } from '../utils/clearSiteData';
 import ThemeShareModal from './ThemeShareModal';
 import LoginMoreModal from './LoginMoreModal';
 import DesktopDownloadModal from './DesktopDownloadModal';
@@ -291,9 +292,24 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
           <span>清理缓存</span>
         </Space>
       ),
-      onClick: () => {
-        const url = `${window.location.origin}/clear-site-data.html`;
-        window.open(url, '_blank');
+      onClick: async () => {
+        const hide = message.loading('正在清理站点数据...', 0);
+        try {
+          const result = await runSiteDataCleanup({
+            clearCaches: true,
+            unregisterSW: true,
+            clearLocalStorage: true,
+            clearIndexedDB: true
+          });
+          hide();
+          // 结果提示（简要）
+          const cache = result.steps.cache || {}; const sw = result.steps.sw || {}; const ls = result.steps.ls || {}; const idb = result.steps.idb || {};
+          message.success(`完成：Cache(${cache.removed ?? 0}/${cache.total ?? 0})、SW(${sw.count ?? 0})、localStorage(${ls.count ?? 0})、IndexedDB(${idb.success ?? 0}/${idb.total ?? 0})`);
+          if (idb.message) message.warning(idb.message);
+        } catch (e) {
+          hide();
+          message.error(`清理失败：${e?.message || '未知错误'}`);
+        }
       }
     },
     {

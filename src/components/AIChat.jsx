@@ -21,6 +21,7 @@ import { generateSummaryContent } from '../utils/noteEditUtils';
 import './UnifiedAICenter.css';
 import notesService from '../services/notesService';
 import ChatActionButtons from './ChatActionButtons';
+import VideoPlayer from './VideoPlayer';
 
 import { getCategoryKey, getAiTitleForCategory, getAiIconForCategory } from '../constants/categoryMeta';
 const { Title, Text, Paragraph } = Typography;
@@ -299,6 +300,15 @@ const gifUrl = '/assets/动态.gif';
       }, 3000);
     }
   };
+  // 推荐视频弹窗状态
+  const [videoModalVisible, setVideoModalVisible] = useState(false);
+  const [videoData, setVideoData] = useState(null);
+
+  const openVideoFromRecommendation = (rec) => {
+    const url = rec.videoSrc || '/assets/demo1.mp4';
+    setVideoData({ title: rec.title || '推荐视频', url });
+    setVideoModalVisible(true);
+  };
 
   return (
     <div ref={chatContainerRef} style={{ 
@@ -407,10 +417,50 @@ const gifUrl = '/assets/动态.gif';
           return (
             <div key={msg.id} className={`message-item ${msg.type === 'user' ? 'user' : 'ai'}`}>
               {msg.type !== 'user' && (
-                <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#667eea' }} />
+                currentCategory === 'supervision' ? (
+                  <Avatar src="/assets/督学专家.png" style={{ backgroundColor: '#fff' }} />
+                ) : (
+                  <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#667eea' }} />
+                )
               )}
               <div className="message-text">
                 {msg.content}
+                {Array.isArray(msg.recommendations) && msg.recommendations.length > 0 && (
+                  <div style={{ marginTop: 14, display: 'grid', gap: 12 }}>
+                    {msg.recommendations.map((rec, ri) => (
+                      <div key={`rec-${ri}`} style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 12, alignItems: 'start' }}>
+                        <div
+                          onClick={() => openVideoFromRecommendation(rec)}
+                          style={{
+                            width: '100%',
+                            aspectRatio: '4 / 3',
+                            background: '#f1f5f9',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: 8,
+                            overflow: 'hidden',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer'
+                          }}
+                          title="点击播放视频"
+                        >
+                          <img src={rec.thumbSrc} alt={rec.thumbAlt || '课程缩略图'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 600, color: '#1f2937', marginBottom: 6 }}>{rec.title}</div>
+                          {Array.isArray(rec.bullets) && (
+                            <ul style={{ margin: 0, paddingLeft: 18, color: '#334155', lineHeight: 1.7 }}>
+                              {rec.bullets.map((b, bi) => (
+                                <li key={`b-${ri}-${bi}`}>{b}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               {msg.type === 'user' && (
                 <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#52c41a' }} />
@@ -523,6 +573,13 @@ const gifUrl = '/assets/动态.gif';
           </div>
         </div>
       </div>
+      {videoModalVisible && (
+        <VideoPlayer
+          visible={videoModalVisible}
+          onClose={() => setVideoModalVisible(false)}
+          videoData={videoData || { title: '推荐视频', url: '/assets/demo1.mp4' }}
+        />
+      )}
     </div>
   );
 };
