@@ -88,6 +88,11 @@ const LearningSquare = () => {
   const [filterSpace, setFilterSpace] = useState('all');
   const [trainingProjects, setTrainingProjects] = useState([]);
 
+  // 轮播图图片（来自 public/assets/轮播图）
+  const bannerImages = useMemo(() => (
+    Array.from({ length: 12 }, (_, i) => `/assets/轮播图/生成教师培训轮播海报 (${i + 20}).png`)
+  ), []);
+
   // 测试组件是否正常加载
   useEffect(() => {
     console.log('学习广场组件已加载');
@@ -363,8 +368,9 @@ const LearningSquare = () => {
 
   return (
     <div className="learning-square" style={{ 
-      height: 'calc(100vh - 64px)', // 减去Header高度
-      overflow: 'hidden',
+      height: '100vh',
+      minHeight: '100vh',
+      overflowY: 'auto',
       display: 'flex',
       flexDirection: 'column'
     }}>
@@ -398,9 +404,21 @@ const LearningSquare = () => {
       {/* 主要内容区域 - 可滚动 */}
       <div style={{ 
         flex: 1,
-        overflow: 'hidden',
-        padding: '0 24px'
+        overflowY: 'auto',
+        padding: '0 24px',
+        height: '100%'
       }}>
+        {/* 顶部轮播图 */}
+        <div className="banner-container">
+          <Carousel autoplay dots>
+            {bannerImages.map((src, idx) => (
+              <div key={idx}>
+                <img src={src} alt={`轮播图${idx + 1}`} className="banner-slide" />
+              </div>
+            ))}
+          </Carousel>
+        </div>
+
         <Tabs 
           activeKey={activeTab} 
           onChange={setActiveTab}
@@ -412,7 +430,7 @@ const LearningSquare = () => {
             tab={<span>培训项目</span>} 
             key="training-projects"
           >
-            <div style={{ height: 'calc(100vh - 280px)', overflowY: 'auto', paddingRight: 8 }}>
+            <div style={{ paddingRight: 8 }}>
               {trainingProjects.length === 0 ? (
                 <Empty description="暂无分享的培训项目" />
               ) : (
@@ -442,7 +460,7 @@ const LearningSquare = () => {
             tab={<span>资料集</span>} 
             key="collections"
           >
-            <div style={{ height: 'calc(100vh - 280px)', overflowY: 'auto', paddingRight: 8 }}>
+            <div style={{ paddingRight: 8 }}>
               {filteredCollections.length === 0 ? (
                 <Empty description="暂无已发布的资料集" />
               ) : (
@@ -750,9 +768,7 @@ const LearningSquare = () => {
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
                   style={{ marginTop: '60px' }}
                 >
-                  <Button type="primary" icon={<BulbOutlined />}>
-                    分享我的主题
-                  </Button>
+                  {null}
                 </Empty>
               )}
             </div>

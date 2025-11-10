@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Input, Button, Tag, message, Tooltip } from 'antd';
 import { LikeOutlined, LikeFilled, MessageOutlined, ShareAltOutlined, StarOutlined, StarFilled, SmileOutlined, PictureOutlined, ScissorOutlined, SendOutlined, MoreOutlined } from '@ant-design/icons';
 import { Megaphone, Search, Settings, UserPlus, X as CloseIcon } from 'lucide-react';
@@ -13,6 +13,26 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false,
   const [showDetail, setShowDetail] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [groupTitle, setGroupTitle] = useState('【组织培训】新教师教学方法培训讨论');
+  const [showGroupInfoEditor, setShowGroupInfoEditor] = useState(false);
+  const [groupInfo, setGroupInfo] = useState({
+    avatar: '🌅',
+    name: '【组织培训】新教师教学方法培训讨论',
+    description: '面向新教师教学方法培训的学习与交流群，围绕直播/录播安排、研讨话题、互动设计、课堂管理与实践作业等内容进行分享与讨论。'
+  });
+
+  // 公告展示控制：生成文案并在10秒后隐藏整个区域
+  const [showAnnouncement, setShowAnnouncement] = useState(true);
+  const [announcementText, setAnnouncementText] = useState('');
+
+  const generateAnnouncementFromPosts = (list) => {
+    if (!Array.isArray(list) || list.length === 0) return '';
+    const pinned = list.find(p => p.pinned);
+    if (pinned && pinned.content) return pinned.content;
+    const latest = list[0];
+    return latest?.content || '';
+  };
+
 
   // 模拟每个话题的最近回复（用于卡片预览，展示最新2条）
   const mockReplies = React.useMemo(() => ({
@@ -127,6 +147,15 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false,
       comments: 4,
     },
   ]);
+
+  // 生成公告并在10秒后隐藏，需在 posts 初始化之后执行
+  useEffect(() => {
+    const text = generateAnnouncementFromPosts(posts);
+    setAnnouncementText(text);
+    setShowAnnouncement(Boolean(text));
+    const timer = setTimeout(() => setShowAnnouncement(false), 10000);
+    return () => clearTimeout(timer);
+  }, [posts]);
 
   const toggleLike = (id) => {
     setPosts(prev => prev.map(p => p.id === id ? { ...p, liked: !p.liked, likes: p.liked ? Math.max(0, (p.likes||0) - 1) : (p.likes||0) + 1 } : p));
@@ -321,7 +350,7 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false,
           {/* 左侧标题区（不跨越右侧工具栏） */}
           <div className="topic-header">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div className="topic-title"><span className="emoji">📚</span>【组织培训】新教师教学方法培训讨论</div>
+              <div className="topic-title"><span className="emoji">📚</span>{groupTitle}</div>
               <div className="topic-header-actions">
                 <Tooltip title="添加群成员"><button className="add-member-btn"><UserPlus size={16} /><span style={{ marginLeft: 6 }}>添加群成员</span></button></Tooltip>
                 {embedded && (
@@ -333,21 +362,21 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false,
                 )}
               </div>
             </div>
-            <div className="topic-members"><span className="members-icon">👥</span><span>{memberCount}</span></div>
-            <div className="topic-tabs" style={{ marginTop: 8 }}>
-              {['全部','我订阅的'].map(tab => (
-                <button key={tab} className={`topic-tab ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>{tab}</button>
-              ))}
+          <div className="topic-members"><span className="members-icon">👥</span><span>{memberCount}</span><span className="members-desc">{groupInfo.description}</span></div>
+          {/* 置顶公告移至“我订阅的”页签上方 */}
+          {showAnnouncement && announcementText && (
+            <div className="pinned-announcement" style={{ marginTop: 8 }}>
+              <div className="pinned-title">📢 公告</div>
+              <div className="pinned-content">{announcementText}</div>
             </div>
+          )}
+          <div className="topic-tabs" style={{ marginTop: 8 }}>
+            {['全部','我订阅的'].map(tab => (
+              <button key={tab} className={`topic-tab ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>{tab}</button>
+            ))}
           </div>
-          {/* 置顶公告 */}
-          {posts.filter(p => p.pinned).map(p => (
-            <div key={`pinned-${p.id}`} className="pinned-announcement">
-              <div className="pinned-title">📌 {p.title}</div>
-              <div style={{ color: '#34495e' }}>{p.content}</div>
-              <div className="pinned-meta">{p.author} · {p.time}</div>
-            </div>
-          ))}
+        </div>
+        {/* 置顶公告已上移至标题区上方，这里不再渲染 */}
 
           {/* 帖子列表（根据“我订阅的”筛选） */}
           {posts.filter(p => !p.pinned && (activeTab === '全部' || p.bookmarked)).map(post => (
@@ -481,12 +510,15 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false,
               <div className="settings-group-header">
                 <div className="group-avatar">👥</div>
                 <div className="group-meta">
-                  <div className="group-name">张洪磊, 金朴峰</div>
-                  <div><span className="group-edit-link">编辑群信息</span></div>
-                </div>
-                <div className="group-actions">
-                  <span className="group-action-icon" title="群概览">⎇</span>
-                  <span className="group-action-icon" title="外部分享">↗</span>
+                  <div className="group-name-row">
+                    <div className="group-name">{groupTitle}</div>
+                    <div className="group-actions">
+                      <span className="group-action-icon" title="群概览">⎇</span>
+                      <span className="group-action-icon" title="外部分享">↗</span>
+                    </div>
+                  </div>
+                  <div className="group-desc">{groupInfo.description}</div>
+                  <div><span className="group-edit-link" onClick={() => { setGroupInfo(prev => ({ ...prev, name: groupTitle })); setShowGroupInfoEditor(true); }}>编辑群信息</span></div>
                 </div>
               </div>
 
@@ -556,6 +588,36 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false,
                 <button className="danger-btn">退出话题群</button>
                 <button className="danger-btn">解散群组</button>
               </div>
+              {/* 覆盖式群信息编辑器 */}
+              {showGroupInfoEditor && (
+                <div className="group-info-overlay show" role="dialog" aria-label="编辑群信息">
+                  <div className="group-info-header">
+                    <div className="group-info-title">编辑群信息</div>
+                    <button className="settings-close-btn" onClick={() => setShowGroupInfoEditor(false)} aria-label="关闭"><CloseIcon size={16} /></button>
+                  </div>
+                  <div className="group-info-body">
+                    <div className="group-info-row">
+                      <div className="group-info-label">群头像</div>
+                      <div className="group-info-avatar">
+                        <span className="group-info-avatar-img" aria-label="avatar" role="img">{groupInfo.avatar}</span>
+                        <button className="group-info-action" onClick={() => message.info('更换头像（占位）')}>更换</button>
+                      </div>
+                    </div>
+                    <div className="group-info-row">
+                      <div className="group-info-label">群名称</div>
+                      <Input value={groupInfo.name} onChange={(e) => setGroupInfo(prev => ({ ...prev, name: e.target.value }))} />
+                    </div>
+                    <div className="group-info-row">
+                      <div className="group-info-label">群描述</div>
+                      <Input.TextArea rows={5} value={groupInfo.description} onChange={(e) => setGroupInfo(prev => ({ ...prev, description: e.target.value }))} />
+                    </div>
+                    <div className="group-info-footer">
+                      <Button type="primary" onClick={() => { setGroupTitle(groupInfo.name); message.success('群信息已保存（占位）'); setShowGroupInfoEditor(false); }}>保存</Button>
+                      <Button onClick={() => setShowGroupInfoEditor(false)}>取消</Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

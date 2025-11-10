@@ -46,6 +46,9 @@ const NoteEditor = ({
   onCancel,
   mode = 'create' // 'create' | 'edit' | 'view'
 }) => {
+  // 标签标准化：将“人工智能”统一显示/保存为“AI”
+  const normalizeTag = (t) => (t === '人工智能' ? 'AI' : t);
+  const normalizedTagsList = (tags || []).map(normalizeTag);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
@@ -63,10 +66,10 @@ const NoteEditor = ({
           title: note.title,
           content: note.content,
           category: note.category,
-          tags: note.tags,
+          tags: (note.tags || []).map(normalizeTag),
           starred: note.starred
         });
-        setSelectedTags(note.tags || []);
+        setSelectedTags((note.tags || []).map(normalizeTag));
         setWordCount(getWordCount(note.content || ''));
       } else {
         form.resetFields();
@@ -100,7 +103,7 @@ const NoteEditor = ({
       
       const noteData = {
         ...values,
-        tags: selectedTags
+        tags: selectedTags.map(normalizeTag)
       };
       
       await onSave(noteData);
@@ -117,8 +120,9 @@ const NoteEditor = ({
 
   // 添加标签
   const handleAddTag = () => {
-    if (newTag && !selectedTags.includes(newTag)) {
-      setSelectedTags([...selectedTags, newTag]);
+    const normalized = normalizeTag(newTag);
+    if (normalized && !selectedTags.includes(normalized)) {
+      setSelectedTags([...selectedTags, normalized]);
       setNewTag('');
     }
   };
@@ -346,7 +350,7 @@ const NoteEditor = ({
                   onClose={() => handleRemoveTag(tag)}
                   className="custom-tag"
                 >
-                  {tag}
+                  {normalizeTag(tag)}
                 </Tag>
               ))}
             </div>
@@ -374,15 +378,16 @@ const NoteEditor = ({
                   size="small"
                   value={undefined}
                   onChange={(value) => {
-                    if (value && !selectedTags.includes(value)) {
-                      setSelectedTags([...selectedTags, value]);
+                    const normalized = normalizeTag(value);
+                    if (normalized && !selectedTags.includes(normalized)) {
+                      setSelectedTags([...selectedTags, normalized]);
                     }
                   }}
                 >
-                  {tags
+                  {normalizedTagsList
                     .filter(tag => !selectedTags.includes(tag))
                     .map(tag => (
-                      <Option key={tag} value={tag}>{tag}</Option>
+                      <Option key={tag} value={tag}>{normalizeTag(tag)}</Option>
                     ))
                   }
                 </Select>
