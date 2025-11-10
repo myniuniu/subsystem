@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ContactList from './ContactList';
 import ChatWindow from './ChatWindow';
+import KnowledgeQA from './KnowledgeQA';
 import TopicDiscussion from './TopicDiscussion';
 import './MessageCenter.css';
 import { getNewTeacherTrainingMessages } from '../data/trainingDiscussionMessages';
@@ -17,6 +18,22 @@ const MessageCenter = ({ contacts: propContacts }) => {
       lastMessage: '系统将于今晚22:00-24:00进行维护升级',
       lastTime: '2024-01-15 10:00',
       unreadCount: 2,
+      online: true
+    },
+    {
+      id: 'knowledge_qa',
+      name: '知识问答',
+      type: 'assistant',
+      avatar: '🧠',
+      lastMessage: '问知识库，帮你找答案',
+      lastTime: new Date().toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      unreadCount: 0,
       online: true
     },
     {
@@ -1004,17 +1021,21 @@ const MessageCenter = ({ contacts: propContacts }) => {
             onBookmarkTopic={addBookmarkedTopicContact}
             openTopicId={typeof activeContact === 'string' && activeContact.startsWith('topic_post_') ? Number(activeContact.replace('topic_post_', '')) : null}
           />
+        ) : activeContact === 'knowledge_qa' ? (
+          <div className="mc-right">
+            <KnowledgeQA />
+          </div>
         ) : (
           <div className="mc-right">
             <ChatWindow
-            activeContact={activeContact}
-            contacts={contacts}
-            messages={getCurrentMessages()}
-            newMessage={newMessage}
-            onMessageChange={setNewMessage}
-            onSendMessage={sendMessage}
-            onKeyPress={handleKeyPress}
-            onSimulateMe={() => simulateMyMessages(5)}
+              activeContact={activeContact}
+              contacts={contacts}
+              messages={getCurrentMessages()}
+              newMessage={newMessage}
+              onMessageChange={setNewMessage}
+              onSendMessage={sendMessage}
+              onKeyPress={handleKeyPress}
+              onSimulateMe={() => simulateMyMessages(5)}
             />
           </div>
         )

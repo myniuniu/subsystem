@@ -155,6 +155,18 @@ function App() {
       online: true
     },
     {
+      id: 'knowledge_qa',
+      name: '知识问答',
+      type: 'assistant',
+      avatar: '🧠',
+      lastMessage: '问知识库，帮你找答案',
+      lastTime: new Date().toLocaleString('zh-CN', {
+        year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+      }),
+      unreadCount: 0,
+      online: true
+    },
+    {
       id: 'user1',
       name: '张老师',
       type: 'user',
