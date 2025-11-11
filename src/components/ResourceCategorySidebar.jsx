@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Layout, Tree, Button, Tooltip, Dropdown, message } from 'antd';
+import { Layout, Tree, Button, Tooltip, Dropdown, message, Checkbox } from 'antd';
 import {
   BookOutlined,
   FileTextOutlined,
@@ -17,7 +17,13 @@ import {
   CloudOutlined,
   DesktopOutlined,
   MobileOutlined,
-  GlobalOutlined
+  GlobalOutlined,
+  VideoCameraOutlined,
+  PictureOutlined,
+  AudioOutlined,
+  FilePptOutlined,
+  ClockCircleOutlined,
+  ShareAltOutlined
 } from '@ant-design/icons';
 import './ResourceCategorySidebar.css';
 
@@ -28,7 +34,13 @@ const ResourceCategorySidebar = ({
   onCategoryChange,
   resources,
   categories,
-  configVersion
+  configVersion,
+  // 可选：显示右侧复选框，仅应用于需要批选的页面
+  checkableRight = false,
+  checkedKeys: controlledCheckedKeys,
+  onCheckedKeysChange,
+  // 可选：隐藏标题和条目上的操作按钮，贴近极简样式
+  hideActions = false
 }) => {
   const iconMap = {
     FileTextOutlined,
@@ -45,7 +57,13 @@ const ResourceCategorySidebar = ({
     CloudOutlined,
     DesktopOutlined,
     MobileOutlined,
-    GlobalOutlined
+    GlobalOutlined,
+    VideoCameraOutlined,
+    PictureOutlined,
+    AudioOutlined,
+    FilePptOutlined,
+    ClockCircleOutlined,
+    ShareAltOutlined
   };
 
   const getCategoryCount = (category) => {
@@ -91,12 +109,27 @@ const ResourceCategorySidebar = ({
     }
   };
 
+  const [internalCheckedKeys, setInternalCheckedKeys] = useState([]);
+  const effectiveCheckedKeys = controlledCheckedKeys ?? internalCheckedKeys;
+
+  const toggleCheck = (key) => {
+    const next = effectiveCheckedKeys.includes(key)
+      ? effectiveCheckedKeys.filter(k => k !== key)
+      : [...effectiveCheckedKeys, key];
+    if (onCheckedKeysChange) {
+      onCheckedKeysChange(next);
+    } else {
+      setInternalCheckedKeys(next);
+    }
+  };
+
   const renderTreeNodeTitle = (category) => {
     const isEmojiIcon = category.icon && category.icon.length <= 2;
     const IconComponent = isEmojiIcon ? null : (iconMap[category.icon] || FileTextOutlined);
     const showCount = false;
-    const count = 0;
-    const showActions = category.type === 'system' && !['all', 'starred', 'recent', 'shared'].includes(category.value);
+    const count = getCategoryCount(category);
+    const showActions = !hideActions && category.type === 'system' && !['all', 'starred', 'recent', 'shared'].includes(category.value);
+    const isChecked = effectiveCheckedKeys.includes(category.value);
 
     return (
       <div className={`category-item ${selectedCategory === category.value ? 'active' : ''}`} style={{ paddingLeft: 0 }}>
@@ -106,7 +139,16 @@ const ResourceCategorySidebar = ({
           <IconComponent className="category-icon" />
         )}
         <span className="category-label">{category.label}</span>
-        {/* 去掉数字统计显示 */}
+        {showCount && (
+          <span className="category-count">{count}</span>
+        )}
+        {checkableRight && (
+          <Checkbox
+            className="category-checkbox-right"
+            checked={isChecked}
+            onChange={(e) => { e.stopPropagation(); toggleCheck(category.value); }}
+          />
+        )}
         {showActions && (
           <span className="category-actions">
             <Tooltip title="新增分类">
@@ -206,17 +248,19 @@ const ResourceCategorySidebar = ({
             <GroupIconComponent className="category-icon" />
           )}
           <span>{group.title}</span>
-          <span className="category-actions">
-            <Tooltip title="新增分类">
-              <Button
-                type="text"
-                size="small"
-                onClick={(e) => { e.stopPropagation(); message.info('新增一级分类将在后续版本提供'); }}
-                icon={<PlusOutlined className="transparent-maintain-icon" />}
-                aria-label="新增一级分类"
-              />
-            </Tooltip>
-          </span>
+          {!hideActions && (
+            <span className="category-actions">
+              <Tooltip title="新增分类">
+                <Button
+                  type="text"
+                  size="small"
+                  onClick={(e) => { e.stopPropagation(); message.info('新增一级分类将在后续版本提供'); }}
+                  icon={<PlusOutlined className="transparent-maintain-icon" />}
+                  aria-label="新增一级分类"
+                />
+              </Tooltip>
+            </span>
+          )}
         </span>
       ),
       selectable: false,

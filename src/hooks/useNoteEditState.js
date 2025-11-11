@@ -453,6 +453,39 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
     });
   }, [selectedCategory, note?.category]);
 
+  // 组织培训分类：默认生成一条“场景模拟”操作记录（首次进入时注入）
+  useEffect(() => {
+    const isOrgTraining = (
+      selectedCategory === 'organizational_training' ||
+      note?.category === 'organizational_training' ||
+      note?.courseType === 'organizational_training' ||
+      note?.source === '组织培训' ||
+      (Array.isArray(note?.tags) && note.tags.includes('组织培训'))
+    );
+    if (!isOrgTraining) return;
+    setOperationRecords(prev => {
+      const next = { ...prev };
+      const arr = Array.isArray(prev.scenario) ? [...prev.scenario] : [];
+      const hasDefault = arr.some(r => String(r.title || '').includes('默认场景') || String(r.id || '').includes('scenario_default_'));
+      if (arr.length === 0 || !hasDefault) {
+        arr.unshift({
+          id: `scenario_default_${Date.now()}`,
+          type: 'scenario',
+          title: '默认场景：新教师入职培训互动演练',
+          description: '示例场景，点击卡片即可在中间区域进入场景主页进行查看与运行。',
+          source: '系统默认',
+          time: '刚刚',
+          status: 'ready',
+          // 统一使用内置场景 HTML 作为缩略图/入口路径
+          thumbnail: '/gen-html/ai-mental-health-scenario.html',
+          isAIGenerated: true
+        });
+      }
+      next.scenario = arr;
+      return next;
+    });
+  }, [selectedCategory, note?.category]);
+
   // 培训需求管理：规范培训方案操作记录的标题与来源，并补充“学段2”
   useEffect(() => {
     const isNeedsMgmt = (selectedCategory === 'training_needs_management' || note?.category === 'training_needs_management');

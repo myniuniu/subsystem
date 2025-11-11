@@ -1,0 +1,165 @@
+.tag-management {
+  height: 100%;
+  min-height: 100vh; /* 页面根容器至少和视口等高，避免出现第二层底边 */
+}
+
+.tag-sider {
+  background: #fff;
+  border-right: 1px solid #f0f0f0;
+  padding: 12px;
+  overflow: auto;
+}
+
+.sider-top {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sider-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sider-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.tree-wrap {
+  padding: 8px 0;
+  margin: 8px 0;
+}
+
+.batch-area {
+  margin-top: 8px;
+}
+
+.tag-content {
+  padding: 0; /* 去掉左右内边距，让表格撑满 */
+  background: #fafafa;
+  overflow: auto;
+  min-height: 100vh; /* 以视口为参考，始终延伸到页面底部，不受子容器影响 */
+  display: flex; /* 让内部卡片可拉伸填满 */
+  flex-direction: column;
+}
+
+/* 让标签列表表格左右撑满父区域 */
+.tag-content .ant-card { display: flex; flex-direction: column; flex: 1; }
+.tag-content .ant-card-body { padding: 0 16px; flex: 1; display: flex; flex-direction: column; }
+.tag-content .ant-tabs { display: flex; flex-direction: column; height: 100%; }
+.tag-content .ant-tabs-content-holder { flex: 1; }
+.tag-content .ant-tabs-tabpane { height: 100%; }
+.tag-content .ant-table-wrapper,
+.tag-content .ant-table,
+.tag-content .ant-table-container { width: 100%; }
+
+.tag-toolbar {
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tool-btn {
+  border-radius: 6px;
+  min-width: 96px;
+}
+
+.highlight {
+  background: #fff8e1;
+}
+
+.tag-parent-path {
+  margin-top: -6px;
+  margin-bottom: 10px;
+  color: #94a3b8;
+}
+
+.form-extra {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.relation-area {
+  padding: 8px 0;
+}
+
+.tag-add-input {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.selected-chips {
+  min-height: 36px;
+}
+
+.suggestions-title {
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.tag-cloud-filter .cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.cloud-tag {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.cloud-tag.active {
+  color: #1677ff;
+}
+
+.hierarchy-filter {
+  margin-top: 8px;
+}
+
+.entity-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.entity-tag {
+  background: #eef2ff;
+  color: #334155;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.sider-actions .ant-btn {
+  font-size: 16px;
+}
+
+.sider-search {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tree-node-title {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.tree-node-title .more-btn {
+  margin-left: auto;
+  display: none; /* Hidden by default */
+}
+
+.ant-tree-treenode:hover .more-btn {
+  display: inline-block; /* Show on hover */
+}
+
+.tag-parent-path {
+  margin-top: -16px;
+  margin-bottom: 16px;
+}

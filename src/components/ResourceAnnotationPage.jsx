@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Layout,
   Input,
@@ -22,6 +22,7 @@ import {
   Dropdown,
   Popover,
   Collapse,
+  Tabs,
   Radio
 } from 'antd';
 import MaterialAddPage from './MaterialAddPage';
@@ -29,6 +30,7 @@ import ExploreModal from './ExploreModal';
 import RuleAnnotationModal from './RuleAnnotationModal';
 import RuleManagementModal from './RuleManagementModal';
 import ResourceTreeView from './ResourceTreeView';
+import ResourceSidebarForAnnotation from './ResourceSidebarForAnnotation';
 import ruleScheduler from '../utils/ruleScheduler';
 import {
   ArrowLeftOutlined,
@@ -54,6 +56,8 @@ import {
   ClockCircleOutlined
 } from '@ant-design/icons';
 import { Lightbulb } from 'lucide-react';
+import { getMockCourseContentHierarchy, flattenCourseContentToVideos } from '../utils/mockCourseData.js';
+import { getSystemCategoryConfig, saveSystemCategoryConfig } from '../services/categoryConfigService.js';
 
 const { Content, Sider } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -227,6 +231,96 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
       addTime: '20分钟前' 
     }
   ]);
+
+  // —— 培训课程资源页签：左侧分类菜单（副本组件）所需数据 ——
+  const [selectedCategoryKey, setSelectedCategoryKey] = useState(null);
+  const [configVersion, setConfigVersion] = useState(0);
+  const prevSystemConfigRef = useRef(null);
+
+  // 课程层级（模拟）
+  const courseHierarchy = useMemo(() => getMockCourseContentHierarchy()?.[0] || null, []);
+  const courseGroups = useMemo(() => {
+    if (!courseHierarchy) return [];
+    const chapterGroups = (courseHierarchy.chapters || []).map(ch => ({
+      key: `group_${ch.id}`,
+      title: ch.title,
+      templateId: null,
+      icon: 'FolderOpenOutlined',
+      childrenValues: (ch.sections || []).map(sec => `${sec.id}`),
+      groups: []
+    }));
+    const relatedGroup = {
+      key: 'group_related_materials',
+      title: '相关资料',
+      templateId: null,
+      icon: 'FolderOpenOutlined',
+      childrenValues: ['related_materials'],
+      groups: []
+    };
+    return [...chapterGroups, relatedGroup];
+  }, [courseHierarchy]);
+
+  // 节级分类（每个节作为叶子分类，追加“相关资料”）
+  const sectionCategories = useMemo(() => {
+    if (!courseHierarchy) return [];
+    const cats = [];
+    (courseHierarchy.chapters || []).forEach(ch => {
+      (ch.sections || []).forEach(sec => {
+        cats.push({ value: `${sec.id}`, label: sec.title, icon: 'FileTextOutlined', type: 'system' });
+      });
+    });
+    cats.push({ value: 'related_materials', label: '相关资料', icon: 'FileTextOutlined', type: 'system' });
+    return cats;
+  }, [courseHierarchy]);
+
+  // 将课程层级扁平化为“集合项”，用于计数映射
+  const flatVideos = useMemo(() => flattenCourseContentToVideos(getMockCourseContentHierarchy()), []);
+  const sectionIds = useMemo(() => (
+    (courseHierarchy?.chapters || []).flatMap(ch => (ch.sections || []).map(sec => sec.id))
+  ), [courseHierarchy]);
+  const getItemCategoryValue = (item) => {
+    if (!sectionIds.length) return null;
+    const idx = Math.abs((item.title || '').length + String(item.id || '').length) % sectionIds.length;
+    return sectionIds[idx];
+  };
+  const notesForCounts = useMemo(() => {
+    const items = flatVideos || [];
+    const sectionMapped = items.map(it => ({
+      id: it.id,
+      category: getItemCategoryValue(it) || 'unknown',
+      starred: false,
+      tags: [],
+      source: '个人盘'
+    }));
+    const typeMapped = items
+      .map(it => ({
+        id: `${it.id}-related`,
+        category: 'related_materials',
+        starred: false,
+        tags: [],
+        source: '个人盘'
+      }));
+    return [...sectionMapped, ...typeMapped];
+  }, [flatVideos, sectionIds]);
+
+  // 进入页面时设置系统分组为课程分组，离开时恢复
+  useEffect(() => {
+    try {
+      const prev = getSystemCategoryConfig();
+      prevSystemConfigRef.current = prev;
+      const nextConfig = { groups: courseGroups, extraCategories: [] };
+      saveSystemCategoryConfig(nextConfig);
+      setConfigVersion(v => v + 1);
+    } catch (e) {}
+    return () => {
+      try {
+        if (prevSystemConfigRef.current) {
+          saveSystemCategoryConfig(prevSystemConfigRef.current);
+          setConfigVersion(v => v + 1);
+        }
+      } catch (e) {}
+    };
+  }, [courseGroups]);
   
   // 智能问答相关状态
   const [messages, setMessages] = useState([]);
@@ -2283,116 +2377,38 @@ return smartNote;
     <>
       <div style={{ display: 'flex', height: '100vh', background: '#f5f5f5' }}>
       {/* 左侧资料收集区域 */}
-      <div style={{ flex: 2.5, background: '#fff', margin: '16px 0 16px 16px', borderRadius: '8px', overflow: 'hidden' }}>
-          <div style={{ padding: '20px' }}>
-            {/* 页面头部 - 标题和操作按钮 */}
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  {mode === 'edit' && (
-                    <Button 
-                      type="primary" 
-                      icon={<SaveOutlined />}
-                      onClick={handleSaveNeed}
-                      size="small"
-                    >
-                      保存
-                    </Button>
-                  )}
-                </div>
-              </div>
-              
-
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {selectedMaterials.length > 0 && (
-                  <Popconfirm
-                    title="确认删除"
-                    description={`确定要删除选中的 ${selectedMaterials.length} 个资料吗？`}
-                    onConfirm={handleBatchDelete}
-                    okText="确定"
-                    cancelText="取消"
-                  >
-                    <Button 
-                      type="text" 
-                      icon={<DeleteOutlined />}
-                      danger
-                      size="small"
-                    >
-                      删除选中
-                    </Button>
-                  </Popconfirm>
-                )}
-              </div>
-            </div>
-            {/* 资源记录区域 - 上下分区布局 */}
-            <div style={{ height: 'calc(100vh - 240px)', display: 'flex', flexDirection: 'column' }}>
-              {/* 上方区域 - 树形菜单区域 (70%) */}
-              <div style={{ flex: 7, borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>
-                <div style={{ marginBottom: '8px' }}>
-                  <Text strong style={{ fontSize: '14px', color: '#1f1f1f' }}>📁 培训课程资源</Text>
-                </div>
-                <ResourceTreeView 
-                  style={{ height: '100%' }}
-                  onResourceSelect={(selectedResources) => {
-                    // 处理资源选择
-                    console.log('选中的资源:', selectedResources);
-                    setSelectedTreeResources(selectedResources);
-                  }}
-                  recommendedResources={recommendedResources}
-                  isRefreshing={isRefreshingResourceTree}
-                  onQuickPreview={(resource) => {
-                    const payload = buildQuickPreviewPayload(resource);
-                    handlePreviewMaterial(payload.data, payload.type);
-                  }}
-                />
-              </div>
-              
-              {/* 下方区域 - 知识图谱来源数据区域 (30%) */}
-              <div style={{ flex: 3, paddingTop: '8px' }}>
-                <Collapse 
-                  defaultActiveKey={['1']} 
-                  ghost
-                  size="small"
-                  style={{ 
-                    backgroundColor: 'transparent',
-                    border: 'none'
-                  }}
-                >
-                  <Panel 
-                    header={
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Text strong style={{ fontSize: '14px', color: '#1f1f1f' }}>
-                          🕸️ 知识图谱来源
-                        </Text>
+      <div style={{ flex: 2.5, margin: 0, background: 'transparent', borderRadius: 0, overflow: 'visible' }}>
+          <div style={{ padding: '16px 20px 20px' }}>
+            {/* 顶部页签区域：资料库 / 知识图谱来源 */}
+            <div style={{ minHeight: 0, display: 'flex', flexDirection: 'column', marginBottom: 16 }}>
+              <Tabs defaultActiveKey="course" style={{ flex: 1 }} items={[
+                {
+                  key: 'course',
+                  label: (<span>📁 资料库</span>),
+                  children: (
+                    <div style={{ height: 'calc(100vh - 140px)', display: 'flex', flexDirection: 'column' }}>
+                      <ResourceSidebarForAnnotation
+                        selectedCategory={selectedCategoryKey}
+                        onCategoryChange={setSelectedCategoryKey}
+                        notes={notesForCounts}
+                        categories={sectionCategories}
+                        configVersion={configVersion}
+                      />
+                    </div>
+                  )
+                },
+                {
+                  key: 'kg',
+                  label: (<span>🕸️ 知识图谱来源</span>),
+                  children: (
+                    <div style={{ height: 'calc(100vh - 140px)', overflowY: 'auto', paddingTop: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                         {selectedKnowledgeGraph && (
                           <Text style={{ fontSize: '12px', color: '#1890ff' }}>
                             已选择: {selectedKnowledgeGraph.title}
                           </Text>
                         )}
                       </div>
-                    } 
-                    key="1"
-                    style={{
-                      backgroundColor: '#fafafa',
-                      borderRadius: '6px',
-                      border: '1px solid #f0f0f0',
-                      marginBottom: 0
-                    }}
-                  >
-                    <div style={{ 
-                      height: '100%',
-                      maxHeight: 'calc(30vh - 60px)',
-                      overflowY: 'auto',
-                      padding: '8px 0'
-                    }}>
-                      {/* 知识图谱数据列表 */}
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {knowledgeGraphData.map(item => (
                           <Card 
@@ -2459,15 +2475,11 @@ return smartNote;
                                   )}
                                 </div>
                               </div>
-                              
-                              {/* 右侧单选框 */}
                               <Radio
                                 checked={selectedKnowledgeGraph && selectedKnowledgeGraph.id === item.id}
                                 onChange={() => handleKnowledgeGraphClick(item)}
                                 style={{ marginRight: '8px' }}
                               />
-                              
-                              {/* 悬停操作按钮 */}
                               <div 
                                 className="hover-actions"
                                 style={{
@@ -2510,7 +2522,6 @@ return smartNote;
                           </Card>
                         ))}
                       </div>
-                      
                       {knowledgeGraphData.length === 0 && (
                         <div style={{ 
                           textAlign: 'center', 
@@ -2522,10 +2533,57 @@ return smartNote;
                         </div>
                       )}
                     </div>
-                  </Panel>
-                </Collapse>
+                  )
+                }
+              ]} />
+            </div>
+            {/* 页面头部 - 标题和操作按钮 */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {mode === 'edit' && (
+                    <Button 
+                      type="primary" 
+                      icon={<SaveOutlined />}
+                      onClick={handleSaveNeed}
+                      size="small"
+                    >
+                      保存
+                    </Button>
+                  )}
+                </div>
+              </div>
+              
+
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {selectedMaterials.length > 0 && (
+                  <Popconfirm
+                    title="确认删除"
+                    description={`确定要删除选中的 ${selectedMaterials.length} 个资料吗？`}
+                    onConfirm={handleBatchDelete}
+                    okText="确定"
+                    cancelText="取消"
+                  >
+                    <Button 
+                      type="text" 
+                      icon={<DeleteOutlined />}
+                      danger
+                      size="small"
+                    >
+                      删除选中
+                    </Button>
+                  </Popconfirm>
+                )}
               </div>
             </div>
+            
           </div>
         </div>
 
@@ -2614,7 +2672,7 @@ return smartNote;
 
           
           {/* 输入区域 */}
-          <div style={{ padding: '20px', borderTop: '1px solid #f0f0f0', flexShrink: 0 }}>
+          <div style={{ padding: '20px', borderTop: 'none', flexShrink: 0 }}>
             {/* 选中资料数量提示 - 浮动显示 */}
             {selectedMaterials.length > 0 && (
               <div style={{ 
@@ -2637,7 +2695,7 @@ return smartNote;
               display: 'flex',
               alignItems: 'center',
               backgroundColor: '#f8f9fa',
-              border: '1px solid #e9ecef',
+              border: 'none',
               borderRadius: '24px',
               padding: '8px 16px',
               gap: '12px',

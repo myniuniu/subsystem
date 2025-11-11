@@ -4,7 +4,7 @@ import { LikeOutlined, LikeFilled, MessageOutlined, ShareAltOutlined, StarOutlin
 import { Megaphone, Search, Settings, UserPlus, X as CloseIcon } from 'lucide-react';
 import './TopicDiscussion.css';
 
-const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false, embedded = false, onRequestClose }) => {
+const TopicDiscussion = ({ onBookmarkTopic, onUnbookmarkTopic, openTopicId = null, compact = false, embedded = false, onRequestClose }) => {
   const [activeTab, setActiveTab] = useState('全部');
   const [showNewPost, setShowNewPost] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -162,15 +162,21 @@ const TopicDiscussion = ({ onBookmarkTopic, openTopicId = null, compact = false,
   };
 
   const toggleBookmark = (id) => {
+    let changed;
     setPosts(prev => prev.map(p => {
       if (p.id !== id) return p;
       const next = { ...p, bookmarked: !p.bookmarked };
-      // 收藏时，将话题显示到会话列表
-      if (next.bookmarked && typeof onBookmarkTopic === 'function') {
-        onBookmarkTopic(next);
+      changed = next;
+      if (next.bookmarked) {
+        if (typeof onBookmarkTopic === 'function') onBookmarkTopic(next);
+      } else {
+        if (typeof onUnbookmarkTopic === 'function') onUnbookmarkTopic(next.id);
       }
       return next;
     }));
+    if (selectedPost && selectedPost.id === id && changed) {
+      setSelectedPost(prev => ({ ...prev, bookmarked: changed.bookmarked }));
+    }
   };
 
   // 移除自动同步逻辑：避免在打开非订阅话题时生成订阅条目

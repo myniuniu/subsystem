@@ -61,6 +61,8 @@ import mockDataGenerator from '../utils/mockDataGenerator';
 import './ResourceAnnotation.css';
 import NoteEditPage from './NoteEditPage';
 import ResourceAnnotationTree from './ResourceAnnotationTree';
+import ResourceCategorySidebar from './ResourceCategorySidebar';
+import { resourceCategoryData, mockResourcesForCategories } from '../data/resourceCategoryData';
 
 const { Content, Sider } = Layout;
 const { Search } = Input;
@@ -91,6 +93,11 @@ const ResourceAnnotation = ({ onViewChange, pageState }) => {
   const [stats, setStats] = useState({});
   const [showTrainingNeedsEditPage, setShowTrainingNeedsEditPage] = useState(false);
   const [showTreeView, setShowTreeView] = useState(false);
+  // 资料库同款侧栏所需状态（用于高亮与受控刷新）
+  const [selectedResourceCategory, setSelectedResourceCategory] = useState(null);
+  const [configVersion, setConfigVersion] = useState(0);
+  // 右侧复选框选中项（批选）
+  const [checkedResourceCategoryKeys, setCheckedResourceCategoryKeys] = useState([]);
   const [form] = Form.useForm();
 
   // 资源标注分类
@@ -610,52 +617,18 @@ ${timelineData.map(note => {
   return (
     <div className="resource-annotation">
       <Layout>
-        {/* 侧边栏 */}
-        <Sider width={280} className="annotation-sidebar">
-          <div className="sidebar-content">
-            {/* 搜索框 */}
-            <Search
-              placeholder="搜索标签标注..."
-              allowClear
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-            />
-
-            {/* 分类列表 */}
-            <div className="category-section">
-              <Text strong>分类</Text>
-              <div className="category-list">
-                {categories.map(category => {
-                  const iconMap = {
-                    FileTextOutlined,
-                    FolderOpenOutlined,
-                    BookOutlined,
-                    UserOutlined,
-                    BulbOutlined,
-                    StarOutlined
-                  };
-                  const IconComponent = iconMap[category.icon] || FileTextOutlined;
-                  const count = stats.categories?.[category.value] || 0;
-                  
-                  return (
-                    <div
-                      key={category.value}
-                      className={`category-item ${
-                        selectedCategory === category.value ? 'active' : ''
-                      }`}
-                      onClick={() => setSelectedCategory(category.value)}
-                    >
-                      <IconComponent className="category-icon" />
-                      <span className="category-label">{category.label}</span>
-                      <span className="category-count">{count}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </Sider>
+        {/* 资料库同款：资源分类侧栏（数据与样式一致） */}
+        <ResourceCategorySidebar
+          selectedCategory={selectedResourceCategory}
+          onCategoryChange={setSelectedResourceCategory}
+          resources={mockResourcesForCategories}
+          categories={resourceCategoryData}
+          configVersion={configVersion}
+          checkableRight
+          checkedKeys={checkedResourceCategoryKeys}
+          onCheckedKeysChange={setCheckedResourceCategoryKeys}
+          hideActions
+        />
 
         {/* 主内容区 */}
         <Content className="annotation-content">

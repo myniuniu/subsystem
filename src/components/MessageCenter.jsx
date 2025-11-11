@@ -721,10 +721,11 @@ const MessageCenter = ({ contacts: propContacts }) => {
   // 进入页面即初始化一个“已订阅的话题”到会话列表（与点击订阅效果一致）
   const ensureDefaultSubscribedTopic = React.useCallback(() => {
     setContacts(prev => {
+      const blocklistRaw = localStorage.getItem('topic-unsubscribed');
+      const blocklist = Array.isArray(blocklistRaw ? JSON.parse(blocklistRaw) : []) ? JSON.parse(blocklistRaw || '[]') : [];
+      if (blocklist.includes(2)) return prev;
       if (prev.some(c => c.id === 'topic_post_2')) return prev;
-      const now = new Date().toLocaleString('zh-CN', {
-        year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
-      });
+      const now = new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
       const displayName = '学员王小明 微课互动设计是否需要准备评估表？';
       const summary = '请问研讨的“互动设计”是否需要准备课堂观察表或学生反馈问卷？如果有模板能否提供？';
       const subscribedContact = {
@@ -1019,6 +1020,22 @@ const MessageCenter = ({ contacts: propContacts }) => {
         (activeContact === 'org_training_new_teacher_discuss' || (typeof activeContact === 'string' && activeContact.startsWith('topic_post_'))) ? (
           <TopicDiscussion 
             onBookmarkTopic={addBookmarkedTopicContact}
+            onUnbookmarkTopic={(postId) => {
+              const id = `topic_post_${postId}`;
+              setContacts(prev => prev.filter(c => c.id !== id));
+              setMessageHistory(prev => {
+                const next = { ...prev };
+                delete next[id];
+                return next;
+              });
+              setActiveContact(prev => (prev === id ? 'system' : prev));
+              try {
+                const raw = localStorage.getItem('topic-unsubscribed');
+                const arr = Array.isArray(raw ? JSON.parse(raw) : []) ? JSON.parse(raw || '[]') : [];
+                if (!arr.includes(postId)) arr.push(postId);
+                localStorage.setItem('topic-unsubscribed', JSON.stringify(arr));
+              } catch {}
+            }}
             openTopicId={typeof activeContact === 'string' && activeContact.startsWith('topic_post_') ? Number(activeContact.replace('topic_post_', '')) : null}
           />
         ) : activeContact === 'knowledge_qa' ? (

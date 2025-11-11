@@ -37,7 +37,7 @@ export const OPERATION_TITLES = {
   [OPERATION_TYPES.REPORT]: '分析报告',
   [OPERATION_TYPES.PPT]: 'PPT演示',
   [OPERATION_TYPES.WEBCODE]: '网页代码',
-  [OPERATION_TYPES.SCENARIO]: '场景模拟',
+  [OPERATION_TYPES.SCENARIO]: '场景/情境模拟',
   [OPERATION_TYPES.TRAINING_PLAN]: '培训方案',
   [OPERATION_TYPES.SCHEDULE]: '课表',
   [OPERATION_TYPES.PARTICIPANTS]: '参训人员清单',
@@ -520,7 +520,7 @@ export const OPERATION_CARDS = [
   },
   {
     key: OPERATION_TYPES.SCENARIO,
-    title: '场景模拟',
+    title: '场景/情境模拟',
     icon: '场',
     gradient: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)',
     color: '#7b1fa2'

@@ -147,7 +147,7 @@ const ResourceSidebar = ({
   const renderTreeNodeTitle = (category) => {
     const isEmojiIcon = category.icon && category.icon.length <= 2;
     const IconComponent = isEmojiIcon ? null : (iconMap[category.icon] || FileTextOutlined);
-    const showCount = true;
+    const showCount = false;
     const count = getCategoryCount(category);
     const showActions = category.type === 'system' && category.value !== 'organizational_training' && category.value !== 'training_needs_management';
 

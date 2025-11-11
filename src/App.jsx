@@ -47,6 +47,7 @@ import ThemeTemplateCenter from './components/ThemeTemplateCenter'
 import AIExperience from './components/AIExperience'
 import PWAInstallButton from './components/PWAInstallButton'
 import ModelRegistry from './components/ModelRegistry'
+import TagManagement from './components/TagManagement'
 import TrainingDashboardViewer from './components/OperationPanel/TrainingDashboardViewer'
 import ModelTrainingTemplate from './components/ModelTrainingTemplate'
 import ModelTrainingDetail from './components/ModelTrainingDetail'
@@ -469,6 +470,8 @@ function App() {
               <KnowledgeQA />
             ) : currentView === 'smart-notes' ? (
               <SmartNotes onViewChange={handleViewChange} />
+            ) : currentView === 'tag-management' ? (
+              <TagManagement />
             ) : currentView === 'supervision' ? (
               <Supervision />
             ) : currentView === 'my-certificates' ? (

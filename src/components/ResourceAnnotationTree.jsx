@@ -100,6 +100,7 @@ const ResourceAnnotationTree = () => {
   const [treeData, setTreeData] = useState([]);
   const [expandedKeys, setExpandedKeys] = useState(['root']);
   const [selectedKeys, setSelectedKeys] = useState([]);
+  const [checkedKeys, setCheckedKeys] = useState([]);
   const [searchValue, setSearchValue] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterSourceType, setFilterSourceType] = useState('');
@@ -207,6 +208,11 @@ const ResourceAnnotationTree = () => {
     } else {
       setSelectedNode(null);
     }
+  };
+
+  // 复选框选中处理
+  const handleCheck = (keys) => {
+    setCheckedKeys(keys);
   };
 
   // 节点展开处理
@@ -405,6 +411,9 @@ const ResourceAnnotationTree = () => {
                 treeData={filteredTreeData}
                 onSelect={handleSelect}
                 onExpand={handleExpand}
+                checkable
+                checkedKeys={checkedKeys}
+                onCheck={handleCheck}
                 className="resource-tree"
                 titleRender={(nodeData) => (
                   <Dropdown

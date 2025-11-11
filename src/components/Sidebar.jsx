@@ -423,14 +423,6 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
        color: '#52c41a',
        type: 'single'
      },
-    {
-      id: 'supervision',
-      icon: ClipboardCheck,
-      label: '督学',
-      shortLabel: '督学',
-      color: '#1890ff',
-      type: 'single'
-    },
     { 
       id: 'ai-assistant', 
       icon: Bot, 
@@ -521,6 +513,14 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
        type: 'single',
        removable: true
      },
+    {
+      id: 'tag-management',
+      icon: Tag,
+      label: '标签管理',
+      shortLabel: '标签',
+      color: '#d946ef',
+      type: 'single'
+    },
 
 
 
@@ -586,6 +586,14 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       label: '下载中心', 
       shortLabel: '下载',
       color: '#ff9a9e',
+      type: 'single'
+    },
+    {
+      id: 'supervision',
+      icon: ClipboardCheck,
+      label: '督学',
+      shortLabel: '督学',
+      color: '#1890ff',
       type: 'single'
     },
     { 

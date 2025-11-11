@@ -110,11 +110,28 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding-right: 56px; /* 仅为计数预留空间，按钮不预留 */
+  padding-right: 0; /* 移除计数预留空间，使文本占满 */
 }
 .resource-sidebar .category-count {
   right: 12px; /* 更靠右 */
 }
 .resource-sidebar .category-item:hover .category-count {
   right: 44px; /* 悬停时计数左移，避开按钮 */
+}
+
+/* 右侧复选框绝对定位到最右，保持与计数/操作区一致 */
+.resource-sidebar .category-checkbox-right,
+.notes-sidebar .category-checkbox-right {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+}
+
+/* 调整复选框尺寸以贴近视觉 */
+.resource-sidebar .category-checkbox-right .ant-checkbox-inner,
+.notes-sidebar .category-checkbox-right .ant-checkbox-inner {
+  width: 14px;
+  height: 14px;
 }

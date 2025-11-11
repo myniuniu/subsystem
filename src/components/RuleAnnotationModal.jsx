@@ -115,7 +115,7 @@ const RuleAnnotationModal = ({ onClose, onRuleCreate, onRuleManage, existingRule
   };
 
   return (
-    <div style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+    <>
       <Alert
         message="智能规则标注"
         description="通过设置规则，系统可以自动识别和标注符合条件的资源，支持关键词匹配、条件筛选和定时执行。"
@@ -418,7 +418,7 @@ const RuleAnnotationModal = ({ onClose, onRuleCreate, onRuleManage, existingRule
           </div>
         </>
       )}
-    </div>
+    </>
   );
 };
 
