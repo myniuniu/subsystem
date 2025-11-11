@@ -7,25 +7,27 @@ import KnowledgeSpaceSettingsModal from './KnowledgeSpaceSettingsModal'
 const { Title, Text } = Typography
 
 const initialSpaces = [
-  { id: 'a1', title: '学习公社6.0【产品】', badge: '置顶', cover: 'public/微缩.png' },
-  { id: 'a2', title: '学习公社6.0外包工作', badge: '在处理', cover: 'public/微缩.png' },
-  { id: 'a3', title: '技术部-研发', cover: 'public/课堂讲解.png' },
-  { id: 'a4', title: '学习公社3.0/网络及部署', badge: '更新', cover: 'public/微缩.png' },
-  { id: 'a5', title: '帮助文档', cover: 'public/微缩.png' },
-  { id: 'a6', title: '技术栈-技术栈梳理', cover: 'public/课堂讲解.png' },
-  { id: 'a7', title: '学习公社6.0产品操作手册', badge: '更新提示', cover: 'public/课堂讲解.png' },
-  { id: 'a8', title: 'Dify操作手册', cover: 'public/微缩.png' }
+  { id: 'a1', title: '学习公社6.0【产品】', badge: '置顶', cover: '/assets/知识空间封面/创建知识库分类卡片封面 (1).png' },
+  { id: 'a2', title: '学习公社6.0外包工作', badge: '在处理', cover: '/assets/知识空间封面/创建知识库分类卡片封面 (2).png' },
+  { id: 'a3', title: '技术部-研发', cover: '/assets/知识空间封面/创建知识库分类卡片封面 (3).png' },
+  { id: 'a4', title: '学习公社3.0/网络及部署', badge: '更新', cover: '/assets/知识空间封面/创建知识库分类卡片封面 (4).png' },
+  { id: 'a5', title: '帮助文档', cover: '/assets/知识空间封面/创建知识库分类卡片封面 (5).png' },
+  { id: 'a6', title: '技术栈-技术栈梳理', cover: '/assets/知识空间封面/创建知识库分类卡片封面 (6).png' },
+  { id: 'a7', title: '学习公社6.0产品操作手册', badge: '更新提示', cover: '/assets/知识空间封面/创建知识库分类卡片封面 (7).png' },
+  { id: 'a8', title: 'Dify操作手册', cover: '/assets/知识空间封面/创建知识库分类卡片封面 (8).png' }
 ]
 
 // 已移除 mockPinned/mockAll，统一使用 initialSpaces + state 管理
 
 const KnowledgeCard = ({ data, isCurrent, onSelect, onSettings, onTogglePinned }) => {
+  const coverPath = data.cover || '/thumbnails/default.png'
+  const coverStyle = { backgroundImage: `url("${encodeURI(coverPath)}")` }
   return (
     <Card
       hoverable
       className={`knowledge-card ${isCurrent ? 'current' : ''}`}
       cover={
-        <div className="cover" style={{ backgroundImage: `url(${data.cover})` }}>
+        <div className="cover" style={coverStyle}>
           <div className="card-actions">
             <Button size="small" className="card-action-btn" onClick={(e) => { e.stopPropagation(); onTogglePinned && onTogglePinned(data) }}>{data.pinned ? '取消置顶' : '置顶'}</Button>
             <Button size="small" className="card-settings-btn" onClick={(e) => { e.stopPropagation(); onSettings && onSettings(data) }}>设置</Button>

@@ -1665,10 +1665,23 @@ const getCategoryIcon = (cat) => {
     setPreviewItem(item)
     setShowPreviewModal(true)
   }
+  // 资料库封面图集合（来自 public/assets/资料库）
+  const resourceCoverFiles = React.useMemo(() => {
+    const base = ['/assets/资料库/解释图片内容.png']
+    const numbered = Array.from({ length: 22 }, (_, i) => `/assets/资料库/解释图片内容 (${i + 1}).png`)
+    return [...base, ...numbered]
+  }, [])
+
+  const pickCoverByKey = (key) => {
+    const k = String(key || '')
+    const sum = k.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
+    const idx = sum % resourceCoverFiles.length
+    return encodeURI(resourceCoverFiles[idx])
+  }
+
   const getItemThumbnail = (item) => {
-    if (!item) return '/微缩.png'
-    if (item.type === 'video') return '/课堂讲解.png'
-    return '/微缩.png'
+    if (!item) return pickCoverByKey('default-item')
+    return pickCoverByKey(item.id || item.title || item.type)
   }
   const renderItemPreviewContent = (item) => {
     if (!item) return null
@@ -1869,9 +1882,9 @@ const getCategoryIcon = (cat) => {
   const [previewCollection, setPreviewCollection] = useState(null)
   const [showCollectionPreview, setShowCollectionPreview] = useState(false)
   const getCollectionThumbnail = (rc) => {
-    if (!rc || !rc.items || rc.items.length === 0) return '/微缩.png'
-    const hasVideo = rc.items.some(i => i.type === 'video')
-    return hasVideo ? '/课堂讲解.png' : '/微缩.png'
+    // 为每个集合稳定映射一张封面图（来自 /assets/资料库），避免使用占位图
+    const key = rc?.id || rc?.title || 'default-collection'
+    return pickCoverByKey(key)
   }
   const handlePreviewCollection = (rc) => {
     setPreviewCollection(rc)
