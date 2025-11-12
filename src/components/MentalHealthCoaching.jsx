@@ -13,6 +13,8 @@ const MentalHealthCoaching = ({ onBack }) => {
   const [completedScenarios, setCompletedScenarios] = useState([])
   const [selectedScenario, setSelectedScenario] = useState(null)
   const [showScenarioModal, setShowScenarioModal] = useState(false)
+  const [showEvaluationModal, setShowEvaluationModal] = useState(false)
+  const [evaluationData, setEvaluationData] = useState(null)
 
   // 心理健康辅导场景数据
   const scenarios = [
@@ -129,11 +131,19 @@ const MentalHealthCoaching = ({ onBack }) => {
     setProgress(0)
   }
 
-  const handleScenarioComplete = (scenarioId, score) => {
-    setCompletedScenarios([...completedScenarios, scenarioId])
-    setIsTraining(false)
-    setCurrentScenario(null)
-    message.success(`场景训练完成！得分：${score}分`)
+  const handleScenarioComplete = (finalResults) => {
+    try {
+      const { scenarioId, score } = finalResults || {};
+      if (scenarioId) {
+        setCompletedScenarios(prev => Array.from(new Set([...prev, scenarioId])));
+      }
+      setEvaluationData(finalResults);
+      setShowEvaluationModal(true);
+      message.success(`场景训练完成！得分：${score}分`);
+    } finally {
+      setIsTraining(false);
+      setCurrentScenario(null);
+    }
   }
 
   const handleBackToLibrary = () => {
@@ -171,6 +181,61 @@ const MentalHealthCoaching = ({ onBack }) => {
           onComplete={handleScenarioComplete}
           onProgress={setProgress}
         />
+        {/* 评估报告弹窗 */}
+        <Modal
+          title={evaluationData?.scenarioTitle ? `${evaluationData.scenarioTitle} - 评估报告` : '评估报告'}
+          open={showEvaluationModal}
+          onCancel={() => setShowEvaluationModal(false)}
+          footer={[
+            <Button key="close" type="primary" onClick={() => setShowEvaluationModal(false)}>关闭</Button>
+          ]}
+          width={720}
+          style={{ top: 40 }}
+        >
+          {evaluationData ? (
+            <div style={{ display: 'grid', gap: 16 }}>
+              <Card>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div>
+                    <Title level={5} style={{ marginBottom: 8 }}>综合得分</Title>
+                    <Text style={{ fontSize: 24, fontWeight: 600 }}>{evaluationData.score} 分</Text>
+                  </div>
+                  <div>
+                    <Title level={5} style={{ marginBottom: 8 }}>用时</Title>
+                    <Text>{evaluationData.duration}s</Text>
+                  </div>
+                </div>
+              </Card>
+
+              <Card title="能力维度评分">
+                <Row gutter={16}>
+                  {Object.entries(evaluationData.skillScores || {}).map(([key, val], idx) => (
+                    <Col span={12} key={idx} style={{ marginBottom: 12 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <Text strong>{key}</Text>
+                        <Text>{val}</Text>
+                      </div>
+                      <Progress percent={Math.min(100, Math.round((val / (evaluationData.score || 1)) * 100))} showInfo={false} />
+                    </Col>
+                  ))}
+                </Row>
+              </Card>
+
+              <Card title="对话记录摘要">
+                {(evaluationData.responses || []).map((r, i) => (
+                  <div key={i} style={{ marginBottom: 8 }}>
+                    <Text>{`第${i + 1}轮（类型：${r.type}，得分：${r.score}）`}</Text>
+                    <div style={{ color: '#666' }}>{r.choice}</div>
+                  </div>
+                ))}
+              </Card>
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: 24 }}>
+              <Text>正在生成评估数据...</Text>
+            </div>
+          )}
+        </Modal>
       </div>
     )
   }

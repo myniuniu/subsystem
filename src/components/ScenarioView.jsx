@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Typography, message } from 'antd';
+import { Typography, message } from 'antd';
 import { VIEW_MODES } from '../constants/noteEditConstants';
 import { generateScenarioThumbnail } from '../utils/scenarioThumbnailUtils';
 
@@ -67,6 +67,22 @@ const ScenarioView = ({
     }
   }, [selectedScenarios]);
 
+  // 监听来自iframe的退出指令
+  React.useEffect(() => {
+    const handleMessage = (event) => {
+      const data = event?.data;
+      if (data && data.type === 'EXIT_SCENARIO') {
+        setCurrentView(VIEW_MODES.MATERIALS);
+        setSelectedScenarios([]);
+        message.info('已退出场景模拟');
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [setCurrentView, setSelectedScenarios]);
+
   return (
     <div style={{ 
       flex: 1, 
@@ -79,65 +95,30 @@ const ScenarioView = ({
     }}>
       {/* 场景主页内容 */}
       {selectedScenarios.length > 0 ? (
-        <>
-          <div style={{ 
-            padding: '12px 16px', 
-            background: '#f0f9ff', 
-            borderBottom: '1px solid #e8e8e8',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '16px' }}>场</span>
-              <Text strong style={{ color: '#1890ff' }}>
-                场景模拟：{selectedScenarios[0].title}
-              </Text>
-            </div>
-            <Button 
-              type="text" 
-              size="small"
-              icon={<span style={{ fontSize: '14px' }}>✕</span>}
-              onClick={() => {
-                console.log('退出场景视图');
-                setCurrentView(VIEW_MODES.MATERIALS);
-                setSelectedScenarios([]);
-                message.info('已退出场景模拟');
-              }}
-              style={{
-                color: '#666',
-                padding: '4px 8px',
-                height: 'auto'
-              }}
-            >
-              退出
-            </Button>
-          </div>
-          <div style={{ 
-            flex: 1, 
-            position: 'relative',
-            background: '#f5f5f5'
-          }}>
-            {/* 直接显示iframe，保持原有交互功能；增加安全回退 */}
-            <iframe 
-              src={(selectedScenarios[0]?.thumbnail 
-                || selectedScenarios[0]?.files?.html 
-                || selectedScenarios[0]?.htmlPath 
-                || '/gen-html/ai-mental-health-scenario.html')}
-              title={selectedScenarios[0]?.title || '场景预览'}
-              style={{ 
-                width: '100%', 
-                height: '100%', 
-                border: 'none',
-                position: 'absolute',
-                top: 0,
-                left: 0
-              }}
-              onLoad={() => console.log('iframe已加载:', (selectedScenarios[0]?.thumbnail || selectedScenarios[0]?.files?.html || selectedScenarios[0]?.htmlPath))}
-              onError={() => console.error('iframe加载失败:', (selectedScenarios[0]?.thumbnail || selectedScenarios[0]?.files?.html || selectedScenarios[0]?.htmlPath))}
-            />
-          </div>
-        </>
+        <div style={{ 
+          flex: 1, 
+          position: 'relative',
+          background: '#f5f5f5'
+        }}>
+          {/* 直接显示iframe，保持原有交互功能；增加安全回退 */}
+          <iframe 
+            src={(selectedScenarios[0]?.thumbnail 
+              || selectedScenarios[0]?.files?.html 
+              || selectedScenarios[0]?.htmlPath 
+              || '/gen-html/ai-mental-health-scenario.html')}
+            title={selectedScenarios[0]?.title || '场景预览'}
+            style={{ 
+              width: '100%', 
+              height: '100%', 
+              border: 'none',
+              position: 'absolute',
+              top: 0,
+              left: 0
+            }}
+            onLoad={() => console.log('iframe已加载:', (selectedScenarios[0]?.thumbnail || selectedScenarios[0]?.files?.html || selectedScenarios[0]?.htmlPath))}
+            onError={() => console.error('iframe加载失败:', (selectedScenarios[0]?.thumbnail || selectedScenarios[0]?.files?.html || selectedScenarios[0]?.htmlPath))}
+          />
+        </div>
       ) : (
         <div style={{ 
           padding: '40px', 

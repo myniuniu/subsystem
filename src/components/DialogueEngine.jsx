@@ -3,6 +3,7 @@ import { Send, RotateCcw, Lightbulb, AlertTriangle, CheckCircle, Clock } from 'l
 import './DialogueEngine.css';
 
 const DialogueEngine = ({ scenario, onComplete, onBack }) => {
+  const MAX_ROUNDS = 5; // 最多5轮咨询师回应后自动结束
   const [messages, setMessages] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [gameState, setGameState] = useState({
@@ -229,10 +230,18 @@ const DialogueEngine = ({ scenario, onComplete, onBack }) => {
 
     setShowChoices(false);
 
-    // 继续到下一步
+    // 判断是否达到最大轮次（以咨询师回应次数为准）
+    const nextResponseCount = (gameState.responses?.length || 0) + 1;
+
     setTimeout(() => {
       setFeedback(null);
-      proceedToNextStep(choice.nextStep);
+      if (nextResponseCount >= MAX_ROUNDS) {
+        // 达到5轮，自动结束并生成评估报告
+        completeScenario('已达到5轮对话，自动结束。正在生成评估报告...');
+      } else {
+        // 继续到下一步
+        proceedToNextStep(choice.nextStep);
+      }
     }, 3000);
   };
 
@@ -258,12 +267,13 @@ const DialogueEngine = ({ scenario, onComplete, onBack }) => {
     }
   };
 
-  const completeScenario = () => {
+  const completeScenario = (reasonMessage) => {
     const endTime = Date.now();
     const duration = Math.round((endTime - gameState.startTime) / 1000);
     
     const finalResults = {
       scenarioId: scenario.id,
+      scenarioTitle: scenario.title,
       score: gameState.score,
       duration,
       skillScores: gameState.skillScores,
@@ -271,7 +281,7 @@ const DialogueEngine = ({ scenario, onComplete, onBack }) => {
       completedAt: new Date().toISOString()
     };
 
-    addMessage('system', '场景训练完成！正在生成评估报告...', 'completion');
+    addMessage('system', reasonMessage || '场景训练完成！正在生成评估报告...', 'completion');
     
     setTimeout(() => {
       onComplete(finalResults);

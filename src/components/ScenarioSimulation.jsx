@@ -5,7 +5,8 @@ import {
   Button,
   Typography,
   message,
-  Select
+  Select,
+  Input
 } from 'antd';
 import scenarioService from '../services/scenarioService';
 import { generateScenarioThumbnail } from '../utils/scenarioThumbnailUtils';
@@ -151,6 +152,7 @@ const ScenarioSimulation = ({
 
   // AI创建场景处理函数
   const handleAICreateScenario = () => {
+    let aiScenarioDescription = '';
     Modal.confirm({
       title: 'AI智能创建场景',
       width: 600,
@@ -190,6 +192,20 @@ const ScenarioSimulation = ({
               <li>基于资料的交互式场景内容</li>
             </ul>
           </div>
+
+          <div style={{ marginTop: '16px' }}>
+            <Text style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '8px' }}>
+              场景说明（最多1000字）
+            </Text>
+            <Input.TextArea
+              placeholder="请输入您希望AI参考的场景说明，如背景、目标、重点等（最多1000字）"
+              maxLength={1000}
+              showCount
+              allowClear
+              rows={4}
+              onChange={(e) => { aiScenarioDescription = e.target.value; }}
+            />
+          </div>
         </div>
       ),
       okText: '🎨 开始AI创建',
@@ -214,6 +230,7 @@ const ScenarioSimulation = ({
           status: 'creating',
           progress: 0,
           description: 'AI正在分析您的学习资料并智能生成个性化场景模拟...',
+          scenarioDescription: (aiScenarioDescription || '').trim(),
           isAIGenerated: true,
           materialCount: totalMaterials
         };

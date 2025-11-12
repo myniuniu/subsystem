@@ -1,0 +1,249 @@
+{
+  "version": "1.0",
+  "language": "zh-CN",
+  "note": "每个场景包含20轮双向对话（学生→老师），供训练或展示使用。",
+  "scenarios": [
+    {
+      "id": "academic-stress",
+      "title": "学业压力过大",
+      "participants": { "student": "李同学", "counselor": "张老师" },
+      "rounds": [
+        {"round":1,"messages":[{"role":"student","text":"老师，我最近压力特别大，复习越多越焦虑，晚上也睡不好。"},{"role":"counselor","text":"我听到了你的焦虑与疲惫。我们先一起梳理压力来源，好吗？"}],
+         "options":[
+           {"key":"clarify_sources","text":"能具体说说是什么让你最担心吗？","reply":"目前主要是高数和英语两门临近考试，我怕挂科影响绩点。"},
+           {"key":"empathize_plan","text":"我能理解你的压力，我们一起把具体压力量化看看？","reply":"如果按课程看，高数复习进度慢，英语词汇也落下，所以压力很大。"},
+           {"key":"suggest_support","text":"如果你愿意，可以预约学校心理咨询，获取更多支持。","reply":"我想先尝试一些方法，如果不行我再考虑预约心理咨询。"}
+         ],
+         "inputReplyDefault":"主要是高数和英语让我压力最大，担心绩点受影响。",
+         "inputReplyMap":{"高数":"主要是高数让我紧张，进度落后。","英语":"英语词汇落下比较多，让我担心。","挂科":"我担心挂科影响绩点，所以压力很大。"}
+        },
+        {"round":2,"messages":[{"role":"student","text":"主要是高数和英语，两门都临近考试，我怕挂科影响绩点。"},{"role":"counselor","text":"担心绩点很正常。我们可以把任务拆小，先明确这周的重点与可实现目标。"}],
+         "options":[
+           {"key":"agree_breakdown","text":"我们把任务拆小，先定这周的重点目标。","reply":"我可以先专注高数极限章节和英语词汇，每天安排两段复习。"},
+           {"key":"ask_details","text":"你觉得哪部分最难，我们先从那入手？","reply":"高数里极限和导数部分最难，容易卡住。"},
+           {"key":"time_management","text":"试试制定可执行的日程表，并设定休息间隔。","reply":"可以，我觉得番茄钟可能有帮助，能让我更专注。"}
+         ],
+         "inputReplyDefault":"我先把高数和英语分开安排，逐步完成小目标。",
+         "inputReplyMap":{"计划":"我会做一个细化的计划表来执行。","目标":"这周的目标是极限章节和词汇巩固。","番茄":"我会用番茄钟来提升专注。"}
+        },
+        {"round":3,"messages":[{"role":"student","text":"我试着列了计划，但总觉得完成不了，拖延得更厉害。"},{"role":"counselor","text":"让计划更具体：每天两段45分钟复习高数，一个30分钟英语词汇巩固，留出休息与复盘。"}],
+         "options":[
+           {"key":"confirm_schedule","text":"按每天两段高数+一段英语词汇的计划执行。","reply":"听起来可行，我愿意按这个计划执行并记录效果。"},
+           {"key":"ask_barrier","text":"你觉得完成这些时最大的阻碍是什么？","reply":"我容易分心，被手机消息打断，所以效率很低。"},
+           {"key":"start_easy","text":"先从最容易完成的一项开始，建立信心。","reply":"好，我先从英语词汇开始，找回完成感。"}
+         ],
+         "inputReplyDefault":"我会按建议细化日程并记录复盘，先从容易的部分开始。",
+         "inputReplyMap":{"手机":"我会关闭通知，避免被手机打断。","词汇":"我先做英语词汇巩固找回掌握感。"}
+        },
+        {"round":4,"messages":[{"role":"student","text":"我一坐下就担心自己看不懂题目，心跳很快。"},{"role":"counselor","text":"这属于考前焦虑的典型反应。我们用呼吸放松法，进入学习前做2分钟深呼吸。"}],
+         "options":[
+           {"key":"breathing","text":"学习前做2分钟深呼吸，降低激活。","reply":"我愿意试试，刚练了一下就感觉心率有下降。"},
+           {"key":"allow_anxiety","text":"允许紧张但仍开始任务，降低对紧张的恐惧。","reply":"这样想确实缓解一些，我会带着紧张也开始学习。"},
+           {"key":"grounding","text":"做专注练习，如描述周围细节或数步走。","reply":"好的，我可以用专注练习帮助进入学习状态。"}
+         ],
+         "inputReplyDefault":"我会用呼吸和专注练习先稳定，再开始学习。",
+         "inputReplyMap":{"呼吸":"我会做深呼吸帮助降低心率。","专注":"我会做专注练习进入状态。"}
+        },
+        {"round":5,"messages":[{"role":"student","text":"昨晚做了呼吸，稍微好一点，但情绪还是容易波动。"},{"role":"counselor","text":"试试情绪记录：写下触发点、感受强度、可行对策，帮你把情绪和任务分离。"}],
+         "options":[
+           {"key":"record_emotion","text":"记录触发点、强度与对策，把情绪和任务分离。","reply":"我记录了“做不完计划”时的焦虑，并写下拆分任务的对策。"},
+           {"key":"coping_list","text":"准备一个应对清单，情绪高时照着做。","reply":"有用，我会按清单执行，感觉更有掌控。"},
+           {"key":"peer_support","text":"和同伴简短聊聊，分享感受与进展。","reply":"我可以找同学讨论一次，获得支持。"}
+         ],
+         "inputReplyDefault":"我会把情绪触发点和对策写下来，减少干扰。",
+         "inputReplyMap":{"记录":"我会记录情绪和对策来分离任务。","同学":"我会和同学聊聊，获得支持。"}
+        },
+        {"round":6,"messages":[{"role":"student","text":"我经常被手机消息打断，效率很低。"},{"role":"counselor","text":"用番茄钟与专注模式，45分钟学习期间关闭通知，学习后再统一处理消息。"}],
+         "options":[
+           {"key":"pomodoro","text":"用番茄钟与专注模式，学习期关闭通知。","reply":"行，我会把通知关掉，并用番茄钟计时学习。"},
+           {"key":"env_change","text":"调整学习环境，选择更安静的地点。","reply":"我会去图书馆学习，那里的干扰更少。"},
+           {"key":"app_limit","text":"设置应用限时，屏蔽社交媒体。","reply":"我已设置限时，希望能提升效率。"}
+         ],
+         "inputReplyDefault":"我会关闭通知并用番茄钟学习，减少分心。",
+         "inputReplyMap":{"通知":"我会关闭通知避免打断。","番茄":"我会用番茄钟维持专注。","图书馆":"我会去图书馆学习。"}
+        },
+        {"round":7,"messages":[{"role":"student","text":"高数的极限部分总是看不懂，容易卡住很久。"},{"role":"counselor","text":"先做“可掌握题”，建立掌握感，再针对不会的知识点查教材和课程讲义，必要时约同学互助。"}],
+         "options":[
+           {"key":"start_mastered","text":"先做可掌握题建立掌握感，再攻克难点。","reply":"我先做基础题，有疑惑再查教材和讲义。"},
+           {"key":"peer_help","text":"必要时约同学互助，一起攻克难点。","reply":"我会约同学一起专攻极限部分。"},
+           {"key":"use_resources","text":"对照课程讲义与习题解析系统化复习。","reply":"我会对照讲义梳理知识点，避免死磕。"}
+         ],
+         "inputReplyDefault":"我会先做基础题建立掌握感，再用讲义查难点。",
+         "inputReplyMap":{"极限":"我会和同学一起攻克极限部分。","讲义":"我会对照讲义整理知识点。"}
+        },
+        {"round":8,"messages":[{"role":"student","text":"和同学讨论过一次，感觉确实帮助很大。"},{"role":"counselor","text":"很好。每周安排一次小组学习，把难点集中解决，同时分享解题思路。"}],
+         "options":[
+           {"key":"weekly_group","text":"每周安排一次小组学习，集中解决难点。","reply":"好，我会固定每周一次小组学习来攻克难题。"},
+           {"key":"share_thinking","text":"小组内分享解题思路，互补优势。","reply":"我能讲我擅长的部分，互相帮忙解决薄弱点。"},
+           {"key":"track_progress","text":"记录每次小组学习的收获与卡点。","reply":"我会记录每次收获和问题，方便复盘。"}
+         ],
+         "inputReplyDefault":"我会固定每周一次小组学习并记录收获。",
+         "inputReplyMap":{"小组":"我会组织小组学习提高效率。","分享":"我会在组里分享思路互相帮助。"}
+        },
+        {"round":9,"messages":[{"role":"student","text":"词汇记忆老是忘，越背越乱。"},{"role":"counselor","text":"采用间隔复习：今天新背+明天复习+周末总复盘，同时把词汇放进例句中使用。"}],
+         "options":[
+           {"key":"spaced","text":"按间隔复习计划背词并用例句应用。","reply":"我会按间隔计划背词，并把词汇放进例句里。"},
+           {"key":"mnemonic","text":"尝试联想记忆或分组法。","reply":"我更喜欢分组法，感觉更容易记住。"},
+           {"key":"practice_use","text":"每天造三句来实际使用词汇。","reply":"我会每天造三句来巩固词汇。"}
+         ],
+         "inputReplyDefault":"我会采用间隔复习并用例句使用，加深记忆。",
+         "inputReplyMap":{"间隔":"我会按间隔复习安排背词。","例句":"我会用例句把词汇放入情境。"}
+        },
+        {"round":10,"messages":[{"role":"student","text":"作息还是很晚，第二天注意力不集中。"},{"role":"counselor","text":"设定固定就寝时间，睡前1小时不看屏幕，用拉伸或阅读放松，建立睡眠仪式。"}],
+         "options":[
+           {"key":"sleep_hygiene","text":"固定就寝时间，睡前不看屏幕。","reply":"我会在11点前睡，睡前读书代替刷手机。"},
+           {"key":"sleep_ritual","text":"建立睡前仪式，如拉伸与放松训练。","reply":"我会做拉伸和呼吸放松，帮助入睡。"},
+           {"key":"track_sleep","text":"记录睡眠质量与第二天状态并调整。","reply":"我会记录醒来精神度，逐步调整作息。"}
+         ],
+         "inputReplyDefault":"我会固定就寝时间，并用拉伸与阅读放松。",
+         "inputReplyMap":{"就寝":"我会固定就寝时间保证休息。","屏幕":"睡前不看屏幕，避免影响入睡。","拉伸":"我会做拉伸和放松训练。"}
+        },
+        {"round":11,"messages":[{"role":"student","text":"这两天情绪稳定些了，但见到难题还是慌。"},{"role":"counselor","text":"把难题拆步：先读懂题意→写出已知与求解→挑一种方法尝试→记录卡点，避免陷入“全盘失败”感。"}]},
+        {"round":12,"messages":[{"role":"student","text":"我担心父母知道我可能考不好会失望。"},{"role":"counselor","text":"担心可以理解。你可以与父母沟通过程与努力，而不仅是结果，寻求支持而非评判。"}]},
+        {"round":13,"messages":[{"role":"student","text":"我开始按计划复习了，效率还不错。"},{"role":"counselor","text":"太好了。继续用学习日志记录完成情况与心得，积累正反馈。"}]},
+        {"round":14,"messages":[{"role":"student","text":"临近考试，我还是会紧张，手心出汗。"},{"role":"counselor","text":"考前仪式：进考场前做3次深呼吸、积极自我暗示一句话，例如“我已准备充分，稳步作答”。"}]},
+        {"round":15,"messages":[{"role":"student","text":"我担心第一题不会会影响后面发挥。"},{"role":"counselor","text":"先从把握度高的题入手，保证得分；不会的题先做标记，稳住节奏后再回看。"}]},
+        {"round":16,"messages":[{"role":"student","text":"模拟试卷做完，我有几处粗心错误。"},{"role":"counselor","text":"建立错题清单：记录题型、错误原因、改进策略，考前再过一遍，减少重复失误。"}]},
+        {"round":17,"messages":[{"role":"student","text":"英语作文不知道怎么展开。"},{"role":"counselor","text":"准备3个万能段落模板，积累连接词与常用观点，考试时按模板快速组织结构。"}]},
+        {"round":18,"messages":[{"role":"student","text":"这周整体感觉好多了。"},{"role":"counselor","text":"保持节奏，注意劳逸结合。用“完成三件小事”结束每天，为自己点赞。"}]},
+        {"round":19,"messages":[{"role":"student","text":"我觉得自己能面对考试了。"},{"role":"counselor","text":"你已经具备策略与信心。无论结果如何，过程中的成长更重要。"}]},
+        {"round":20,"messages":[{"role":"student","text":"谢谢老师的帮助，我会按计划执行。"},{"role":"counselor","text":"加油，祝你发挥稳定。如后续需要支持，随时联系我。"}]}
+      ]
+    },
+    {
+      "id": "social-anxiety",
+      "title": "社交焦虑障碍",
+      "participants": { "student": "王同学", "counselor": "张老师" },
+      "rounds": [
+        {"round":1,"messages":[{"role":"student","text":"我在课堂上不敢发言，感觉大家都在盯着我。"},{"role":"counselor","text":"你感到被关注与紧张。我们先从可控的小目标开始练习表达。"}]},
+        {"round":2,"messages":[{"role":"student","text":"一想到发言就心跳加速，脸会红。"},{"role":"counselor","text":"这是社交情境常见的生理反应。我们可以用“呼吸—关注当下”的方法降低激活。"}]},
+        {"round":3,"messages":[{"role":"student","text":"同学提问我时，我脑子一片空白。"},{"role":"counselor","text":"准备3句“缓冲语”：如“让我想一下”“我理解的是…”，给自己几秒组织语言。"}]},
+        {"round":4,"messages":[{"role":"student","text":"我怕说错被笑话，所以都尽量沉默。"},{"role":"counselor","text":"我们做阶梯式暴露：先与一位熟悉同学练习，再到小组，再到课堂简短发言。"}]},
+        {"round":5,"messages":[{"role":"student","text":"我试着在小组里说了一句，紧张但还能坚持。"},{"role":"counselor","text":"很好。记录暴露练习：情境、紧张度、坚持时间、结果评价，观察逐步下降。"}]},
+        {"round":6,"messages":[{"role":"student","text":"我害怕别人觉得我笨。"},{"role":"counselor","text":"挑战自动化想法：证据是什么？有没有替代解释？别人也会紧张，关注点未必在你。"}]},
+        {"round":7,"messages":[{"role":"student","text":"老师让我下次做分享，我很担心。"},{"role":"counselor","text":"先做提纲与要点卡片，彩排两次，设计一个开场缓冲句，降低首次发言压力。"}]},
+        {"round":8,"messages":[{"role":"student","text":"彩排时还是很紧张。"},{"role":"counselor","text":"紧张可接受，目标是带着紧张也能完成。试试带朋友作为“安全人物”坐前排支持。"}]},
+        {"round":9,"messages":[{"role":"student","text":"分享当天我出汗很多，但勉强讲完了。"},{"role":"counselor","text":"这是一次成功的暴露。复盘有效点与可改进处，给自己正向反馈。"}]},
+        {"round":10,"messages":[{"role":"student","text":"有两位同学后来还和我讨论内容。"},{"role":"counselor","text":"这说明你的表达被认可。继续在小场景中练习，逐步增加难度。"}]},
+        {"round":11,"messages":[{"role":"student","text":"我还是怕被质疑，心里不踏实。"},{"role":"counselor","text":"准备两种回答策略：确认问题→给出观点→如果不确定，坦诚查证后再补充。"}]},
+        {"round":12,"messages":[{"role":"student","text":"我在社团活动中能多说几句了。"},{"role":"counselor","text":"很好。设置每周两个社交任务，如主动问候或提出一个简短建议。"}]},
+        {"round":13,"messages":[{"role":"student","text":"有一次我卡壳了，现场有点尴尬。"},{"role":"counselor","text":"用幽默化解或承认紧张，继续推进。目标是保持互动，而非零失误。"}]},
+        {"round":14,"messages":[{"role":"student","text":"我开始不那么害怕眼神交流了。"},{"role":"counselor","text":"很棒。把注意力从“自我评判”转向“信息传递”，提高沟通质量。"}]},
+        {"round":15,"messages":[{"role":"student","text":"有时我还是会躲避社交。"},{"role":"counselor","text":"允许波动，但持续练习。给自己奖励，比如完成任务后休息或做喜欢的事。"}]},
+        {"round":16,"messages":[{"role":"student","text":"最近一次课堂发言比以前自然。"},{"role":"counselor","text":"保持频率。你在面对焦虑时已经具备行动和复盘能力。"}]},
+        {"round":17,"messages":[{"role":"student","text":"我希望在求职面试中也能稳定。"},{"role":"counselor","text":"模拟面试：准备常见问答、练习目光与节奏，录音回看改进。"}]},
+        {"round":18,"messages":[{"role":"student","text":"模拟时紧张度在5到6之间，但完成度较好。"},{"role":"counselor","text":"很好，目标不是零紧张，而是在可接受水平下完成任务。继续。"}]},
+        {"round":19,"messages":[{"role":"student","text":"我感觉社交能力真的在提升。"},{"role":"counselor","text":"保持练习与记录，遇到高难度场景时回到基础策略。"}]},
+        {"round":20,"messages":[{"role":"student","text":"谢谢老师的指导，我会继续练习。"},{"role":"counselor","text":"为你的改变点赞。如需要更多支持，随时来找我。"}]}
+      ]
+    },
+    {
+      "id": "depression",
+      "title": "抑郁倾向识别",
+      "participants": { "student": "赵同学", "counselor": "张老师" },
+      "rounds": [
+        {"round":1,"messages":[{"role":"student","text":"最近很低落，什么都提不起兴趣，作业也拖着不做。"},{"role":"counselor","text":"你感到低能量与失趣。我们先了解持续时长、睡眠与食欲变化。"}]},
+        {"round":2,"messages":[{"role":"student","text":"差不多持续了两个月，睡得很浅，食欲也下降。"},{"role":"counselor","text":"这段时间很辛苦。我们会关注安全与功能，逐步恢复日常节律。"}]},
+        {"round":3,"messages":[{"role":"student","text":"每天醒来都不想起床，觉得自己没用。"},{"role":"counselor","text":"无力与自责很常见。我们先安排晨间小目标，比如起床后洗脸、晒太阳5分钟。"}]},
+        {"round":4,"messages":[{"role":"student","text":"我试过，但很快就坚持不下去。"},{"role":"counselor","text":"降低门槛，坚持“微行动”：两分钟整理书桌、一页阅读，让身体动起来。"}]},
+        {"round":5,"messages":[{"role":"student","text":"有时会想到如果我消失就好了。"},{"role":"counselor","text":"谢谢你坦诚。我非常重视安全问题。我们一起制定危机应对计划与求助清单。"}]},
+        {"round":6,"messages":[{"role":"student","text":"我没有明确计划伤害自己，但会想到这些。"},{"role":"counselor","text":"明白。我会提供校心理中心与24小时热线，若念头升级，请立刻求助。"}]},
+        {"round":7,"messages":[{"role":"student","text":"上课注意力不集中，常走神。"},{"role":"counselor","text":"将课程分段，课前设定一个关注点，课后用3句总结要点，逐步恢复专注。"}]},
+        {"round":8,"messages":[{"role":"student","text":"同学邀请我活动，我都拒绝了。"},{"role":"counselor","text":"社交激活有帮助。选择低压力活动，如散步或短时聊天，每周安排一次。"}]},
+        {"round":9,"messages":[{"role":"student","text":"我担心他们会觉得我很奇怪。"},{"role":"counselor","text":"给自己允许与解释：你在调整阶段，选择适度参与，逐步适应即可。"}]},
+        {"round":10,"messages":[{"role":"student","text":"我试着去散步了，心情稍微轻一点。"},{"role":"counselor","text":"很好。将散步、晒太阳、规律饮食作为“情绪维持三件事”，每日打卡。"}]},
+        {"round":11,"messages":[{"role":"student","text":"作业还是慢，担心会被老师批评。"},{"role":"counselor","text":"与任课老师沟通现状，争取分阶段提交或额外指导，减少压力性回避。"}]},
+        {"round":12,"messages":[{"role":"student","text":"我和家里联系减少了，怕他们担心。"},{"role":"counselor","text":"尝试每周一次短通话，传达你的努力与计划，寻求情感支持。"}]},
+        {"round":13,"messages":[{"role":"student","text":"我的睡眠还是不好。"},{"role":"counselor","text":"建立睡眠卫生：固定起床时间、睡前减少蓝光、放松训练。必要时考虑专业评估。"}]},
+        {"round":14,"messages":[{"role":"student","text":"我愿意去校心理中心试试。"},{"role":"counselor","text":"非常好。我可以协助预约，也会继续跟进你的状态。"}]},
+        {"round":15,"messages":[{"role":"student","text":"第一次咨询让我感觉被理解。"},{"role":"counselor","text":"被理解很重要。你可以把咨询中的策略与我们的计划结合使用。"}]},
+        {"round":16,"messages":[{"role":"student","text":"我开始做一些喜欢的事，比如画画。"},{"role":"counselor","text":"恢复兴趣是好信号。每周给自己一个“兴趣时段”，作为奖励与滋养。"}]},
+        {"round":17,"messages":[{"role":"student","text":"情绪仍会波动，但不再完全失控。"},{"role":"counselor","text":"允许波动，重要的是你掌握了调节与求助。继续记录触发与应对效果。"}]},
+        {"round":18,"messages":[{"role":"student","text":"我完成了一次作业提交。"},{"role":"counselor","text":"恭喜！给自己肯定。把成功经验写入“自信档案”，提升自我效能感。"}]},
+        {"round":19,"messages":[{"role":"student","text":"我想继续咨询，以及跟您保持联系。"},{"role":"counselor","text":"当然。我们保持支持网络与节律，稳步前行。"}]},
+        {"round":20,"messages":[{"role":"student","text":"谢谢老师，我觉得自己正在好起来。"},{"role":"counselor","text":"为你感到欣慰。继续按照计划进行，如有需要随时联系。"}]}
+      ]
+    },
+    {
+      "id": "family-issues",
+      "title": "家庭关系问题",
+      "participants": { "student": "刘同学", "counselor": "张老师" },
+      "rounds": [
+        {"round":1,"messages":[{"role":"student","text":"最近和父母争吵很多，他们总是否定我的选择。"},{"role":"counselor","text":"你感到被否定与挫败。我们先区分核心分歧与可协商部分。"}]},
+        {"round":2,"messages":[{"role":"student","text":"他们希望我考研，我想先工作。"},{"role":"counselor","text":"理解不同期待。先明确你的理由与计划，准备与父母的对话结构。"}]},
+        {"round":3,"messages":[{"role":"student","text":"一谈这个问题就会升温，最后谁都不满意。"},{"role":"counselor","text":"尝试“非冲突时间”沟通，约定规则：不打断、先理解、再表达观点。"}]},
+        {"round":4,"messages":[{"role":"student","text":"我怕他们只看重成绩，不看重我的感受。"},{"role":"counselor","text":"表达你的需求：希望被理解、获得支持。用我信息句式，“我需要…因为…”。"}]},
+        {"round":5,"messages":[{"role":"student","text":"我写了一些要点，但开口还是紧张。"},{"role":"counselor","text":"先用书信或消息表达，再约面对面谈。循序渐进降低情绪冲击。"}]},
+        {"round":6,"messages":[{"role":"student","text":"他们认为我不够努力。"},{"role":"counselor","text":"提供事实与计划：实习安排、求职路线、学习提升方案，让对方看到你的责任感。"}]},
+        {"round":7,"messages":[{"role":"student","text":"谈到钱的问题时气氛更僵。"},{"role":"counselor","text":"采用“问题—方案—折中”框架：明确成本、可承担范围、分步达成，降低冲突。"}]},
+        {"round":8,"messages":[{"role":"student","text":"我试着按这个框架和他们沟通了一次。"},{"role":"counselor","text":"效果如何？我们可以复盘措辞与时机，继续优化。"}]},
+        {"round":9,"messages":[{"role":"student","text":"他们愿意听，但仍坚持考研更好。"},{"role":"counselor","text":"承认对方关心的出发点，提出阶段性方案：先工作试用期再评估是否考研。"}]},
+        {"round":10,"messages":[{"role":"student","text":"他们开始考虑折中可能性。"},{"role":"counselor","text":"建立共同目标：职业发展与身心健康。以此为基础进行协商。"}]},
+        {"round":11,"messages":[{"role":"student","text":"我也在调整自己的语气，避免顶撞。"},{"role":"counselor","text":"很有进步。继续用积极倾听、复述对方观点，营造尊重氛围。"}]},
+        {"round":12,"messages":[{"role":"student","text":"我们讨论了我的实习与未来可能方向。"},{"role":"counselor","text":"把讨论转化为行动计划：时间表、里程碑、反馈节点，让家人看到具体进展。"}]},
+        {"round":13,"messages":[{"role":"student","text":"最近一次沟通几乎没有争吵。"},{"role":"counselor","text":"继续保持。遇到分歧时先暂停，确定问题点，再回到框架沟通。"}]},
+        {"round":14,"messages":[{"role":"student","text":"我觉得关系在慢慢好转。"},{"role":"counselor","text":"关系修复需要时间。把共识与成功经验记录下来，成为以后参考。"}]},
+        {"round":15,"messages":[{"role":"student","text":"他们仍然会担心我的稳定性。"},{"role":"counselor","text":"用事实减少担忧：工作反馈、导师评价、学习计划，让稳定性可见。"}]},
+        {"round":16,"messages":[{"role":"student","text":"我开始更理解他们的出发点。"},{"role":"counselor","text":"相互理解是关键。保持边界与尊重，避免把协商变成服从或对抗。"}]},
+        {"round":17,"messages":[{"role":"student","text":"他们提出如果半年不顺利就考虑考研。"},{"role":"counselor","text":"这是一种阶段性约定。设定半年评估指标，公平地看待结果。"}]},
+        {"round":18,"messages":[{"role":"student","text":"我愿意先试试工作，再综合评估。"},{"role":"counselor","text":"很成熟的选择。把风险与支持系统也写进方案，提高弹性。"}]},
+        {"round":19,"messages":[{"role":"student","text":"谢谢老师，我觉得我们家在朝着更好的方向走。"},{"role":"counselor","text":"为你们的努力点赞。需要时可以家庭共谈或转介专业咨询。"}]},
+        {"round":20,"messages":[{"role":"student","text":"我会继续按计划执行并保持沟通。"},{"role":"counselor","text":"祝顺利，有进展就来更新，我们持续支持。"}]}
+      ]
+    },
+    {
+      "id": "identity-crisis",
+      "title": "自我认同危机",
+      "participants": { "student": "陈同学", "counselor": "张老师" },
+      "rounds": [
+        {"round":1,"messages":[{"role":"student","text":"我不知道自己到底适合做什么，感觉很迷茫。"},{"role":"counselor","text":"迷茫说明你在探索阶段。我们从兴趣、价值与能力三个维度梳理。"}]},
+        {"round":2,"messages":[{"role":"student","text":"兴趣很分散，学业也一般。"},{"role":"counselor","text":"列出你做完后有满足感的事情，再评估相关技能与成长可能。"}]},
+        {"round":3,"messages":[{"role":"student","text":"我喜欢设计也喜欢写作，但怕自己不够好。"},{"role":"counselor","text":"允许不确定。先做小项目，记录体验与反馈，用行动检验适配度。"}]},
+        {"round":4,"messages":[{"role":"student","text":"我担心家里不支持我选择创意行业。"},{"role":"counselor","text":"准备沟通材料：行业信息、入门路径、风险与对策，体现你的思考与责任。"}]},
+        {"round":5,"messages":[{"role":"student","text":"我做了一个简单海报设计，朋友说挺好。"},{"role":"counselor","text":"很好。把作品整理成作品集，设定每周一项产出，建立积累。"}]},
+        {"round":6,"messages":[{"role":"student","text":"写作方面我不稳定，时好时坏。"},{"role":"counselor","text":"建立写作仪式与主题库，先求完成，再逐步打磨质量。"}]},
+        {"round":7,"messages":[{"role":"student","text":"我很怕别人否定我。"},{"role":"counselor","text":"区分“作品评价”与“自我价值”。用反馈改进作品，不等同否定你这个人。"}]},
+        {"round":8,"messages":[{"role":"student","text":"我试着投了一个校园海报设计。"},{"role":"counselor","text":"无论结果如何，都是探索的证据。复盘流程与学习点。"}]},
+        {"round":9,"messages":[{"role":"student","text":"我开始能更清楚地描述我喜欢的风格。"},{"role":"counselor","text":"这是身份叙事的形成。继续积累关键词与价值观陈述。"}]},
+        {"round":10,"messages":[{"role":"student","text":"家人仍旧更看重稳定。"},{"role":"counselor","text":"用“双轨方案”：主业与副业并行，逐步测试可能，降低风险。"}]},
+        {"round":11,"messages":[{"role":"student","text":"我感觉自己在慢慢找到方向。"},{"role":"counselor","text":"用行动与作品强化身份认同，建立自我效能感。"}]},
+        {"round":12,"messages":[{"role":"student","text":"有时还是会怀疑自己。"},{"role":"counselor","text":"怀疑是探索的一部分。把怀疑转化为问题清单，逐项验证。"}]},
+        {"round":13,"messages":[{"role":"student","text":"我接受了一次小的设计兼职。"},{"role":"counselor","text":"恭喜。记录真实体验、沟通技巧与专业要求，作为后续选择参考。"}]},
+        {"round":14,"messages":[{"role":"student","text":"我对写作也保持每周两次更新了。"},{"role":"counselor","text":"很好。你的身份正在通过“持续行动”塑形。"}]},
+        {"round":15,"messages":[{"role":"student","text":"我开始能向别人介绍自己做什么。"},{"role":"counselor","text":"形成自我介绍模板：我是谁、我在做什么、我关注的价值。"}]},
+        {"round":16,"messages":[{"role":"student","text":"虽然不完美，但我愿意继续。"},{"role":"counselor","text":"保持成长心态：作品迭代、技能提升、持续反馈。"}]},
+        {"round":17,"messages":[{"role":"student","text":"家人也在慢慢理解我。"},{"role":"counselor","text":"很棒。把共识写下来，减少误解，建立支持系统。"}]},
+        {"round":18,"messages":[{"role":"student","text":"我计划下学期选修两门相关课程。"},{"role":"counselor","text":"合理。结合实践项目，稳步探索与定位。"}]},
+        {"round":19,"messages":[{"role":"student","text":"谢谢老师，我感觉好多了。"},{"role":"counselor","text":"为你的探索精神点赞。继续前进，有需要随时来谈。"}]},
+        {"round":20,"messages":[{"role":"student","text":"我会把计划落实并记录进展。"},{"role":"counselor","text":"祝顺利，期待看到你的作品与成长。"}]}
+      ]
+    },
+    {
+      "id": "addiction",
+      "title": "网络成瘾问题",
+      "participants": { "student": "孙同学", "counselor": "张老师" },
+      "rounds": [
+        {"round":1,"messages":[{"role":"student","text":"我最近打游戏很久，作业和学习都被耽误。"},{"role":"counselor","text":"你注意到使用时间过长并影响功能。我们先评估触发与模式。"}]},
+        {"round":2,"messages":[{"role":"student","text":"一般是一紧张或无聊就开始玩，停不下来。"},{"role":"counselor","text":"这是用游戏缓解情绪的模式。我们设计替代行为与时间边界。"}]},
+        {"round":3,"messages":[{"role":"student","text":"我设置过提醒，但总是忽略。"},{"role":"counselor","text":"采用强约束：卸载高频游戏或限制时段，放置阻断器如家长控制或应用锁。"}]},
+        {"round":4,"messages":[{"role":"student","text":"我怕一下子断掉会反弹。"},{"role":"counselor","text":"用“阶梯减少”：每天减少30分钟，改为运动或线下社交，逐步替换。"}]},
+        {"round":5,"messages":[{"role":"student","text":"开始减少后我很烦躁。"},{"role":"counselor","text":"预期戒断反应。用情绪调节工具：深呼吸、短跑步、音乐或写感受。"}]},
+        {"round":6,"messages":[{"role":"student","text":"晚上的时间最容易失控。"},{"role":"counselor","text":"设定晚间时间线：洗漱—阅读—睡前拉伸，关闭设备并放在远处。"}]},
+        {"round":7,"messages":[{"role":"student","text":"我想和朋友一起玩，但又怕影响进度。"},{"role":"counselor","text":"约定社交与学习的边界：先完成任务，再限定时间社交游戏。"}]},
+        {"round":8,"messages":[{"role":"student","text":"我试了两天，完成任务后玩半小时。"},{"role":"counselor","text":"很好。用奖励系统强化：达成学习目标才解锁娱乐时间。"}]},
+        {"round":9,"messages":[{"role":"student","text":"有时会偷偷延长时间。"},{"role":"counselor","text":"把延长记录下来，分析触发，增加替代活动与监督机制。"}]},
+        {"round":10,"messages":[{"role":"student","text":"我让室友提醒我按时停止。"},{"role":"counselor","text":"社会支持有效。继续用清单记录完成率与情绪变化。"}]},
+        {"round":11,"messages":[{"role":"student","text":"空闲时间不知道干什么，容易回到游戏。"},{"role":"counselor","text":"准备“代替活动菜单”：运动、画画、学习社团、线下聚会，先试两项。"}]},
+        {"round":12,"messages":[{"role":"student","text":"我参加了羽毛球活动，有点累但挺开心。"},{"role":"counselor","text":"很棒。把体育与线下互动作为稳态支撑，减少线上依赖。"}]},
+        {"round":13,"messages":[{"role":"student","text":"这周玩游戏的时间降到每天1小时以内。"},{"role":"counselor","text":"继续巩固，保持学习优先与夜间设备远离。"}]},
+        {"round":14,"messages":[{"role":"student","text":"偶尔还是会超时。"},{"role":"counselor","text":"允许波动，但要复盘诱因并调整计划。必要时进一步限制应用。"}]},
+        {"round":15,"messages":[{"role":"student","text":"我开始更能控制自己了。"},{"role":"counselor","text":"很好。把自主感写进“进步记录”，增强自我效能。"}]},
+        {"round":16,"messages":[{"role":"student","text":"作业完成度提升了，老师也表扬我。"},{"role":"counselor","text":"正反馈非常重要。继续维持边界与替代活动。"}]},
+        {"round":17,"messages":[{"role":"student","text":"我想保持这个状态。"},{"role":"counselor","text":"把策略固化为习惯清单，设置每周自查与调整。"}]},
+        {"round":18,"messages":[{"role":"student","text":"谢谢老师，我觉得自己能掌控时间。"},{"role":"counselor","text":"你做得很好。保持弹性，如有反复及时求助。"}]},
+        {"round":19,"messages":[{"role":"student","text":"我会继续参与线下活动。"},{"role":"counselor","text":"很好，这会让生活更平衡。"}]},
+        {"round":20,"messages":[{"role":"student","text":"目前计划稳定执行。"},{"role":"counselor","text":"继续加油，有变化再来沟通，我们一直在。"}]}
+      ]
+    }
+  ]
+}

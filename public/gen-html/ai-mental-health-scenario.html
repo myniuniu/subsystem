@@ -52,6 +52,129 @@
             }
         }
     </style>
+    <!-- 复制 message-center 的聊天样式到本页（限定在 .scenario-chat 范围内） -->
+    <style>
+        .scenario-chat.chat-panel {
+            display: flex;
+            flex-direction: column;
+            /* 高度改为由脚本计算：视口高度减去当前容器到视口顶部的偏移，避免整页滚动 */
+            height: auto;
+            overflow: hidden;
+            background: linear-gradient(180deg, #f6f8fb 0%, #ffffff 100%);
+        }
+        .scenario-chat .chat-header {
+            position: sticky;
+            top: 0;
+            background: rgba(59, 130, 246, 0.1);
+            border-bottom: 1px solid #e5e7eb; /* gray-200 */
+            z-index: 1;
+        }
+        .scenario-chat .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto; /* 仅内部滚动 */
+        }
+        .scenario-chat .chat-messages {
+            flex: 1; /* 撑满剩余空间，输入栏置底 */
+            padding: 1rem; /* 16px */
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .scenario-chat .chat-input {
+            background: #ffffff;
+            border-top: 1px solid #e5e7eb;
+            padding: 0.75rem; /* 12px */
+            position: sticky;
+            bottom: 0;
+            z-index: 10; /* 始终可见 */
+        }
+        .scenario-chat .chat-input .input {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+        }
+        .scenario-chat .chat-input .send-btn {
+            background: #3B82F6; /* primary */
+            color: #fff;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+        }
+
+        /* 气泡样式，复制 message-center 更贴近的样式 */
+        .scenario-chat .message-bubble {
+            max-width: 750px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            animation: messageSlideIn 0.3s ease;
+        }
+        .scenario-chat .message-bubble.sent { align-self: flex-end; }
+        .scenario-chat .message-bubble.received { align-self: flex-start; }
+        .scenario-chat .message-bubble .message-sender {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #58616b;
+            padding: 0 2px;
+        }
+        .scenario-chat .message-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        }
+        .scenario-chat .message-author { font-weight: 600; color: #2c3e50; }
+        .scenario-chat .message-content {
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 14px;
+            line-height: 1.5;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .scenario-chat .message-bubble.received .message-content {
+            background: #ffffff;
+            color: #333333;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e9ecef;
+        }
+        .scenario-chat .message-bubble.sent .message-content {
+            background: #007bff; /* message-center 发送方蓝 */
+            color: #fff;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 123, 255, 0.3);
+        }
+        /* 群聊内边距对齐：头像+间距 32px */
+        .scenario-chat .message-bubble.group.received .message-content { margin-left: 32px; }
+        .scenario-chat .message-bubble.group.sent .message-content { margin-right: 32px; }
+        .scenario-chat .message-time {
+            font-size: 12px;
+            color: #9ca3af; /* gray-400 */
+            text-align: right;
+            padding: 0 4px;
+        }
+        /* 评分报告卡片：去掉最外层边框，扩大卡片宽度 */
+        .scenario-chat #feedback-card-inline { max-width: 860px; }
+        .scenario-chat #feedback-card-inline .message-content {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            padding: 0; /* 由内部卡片自行定义留白 */
+        }
+        @keyframes messageSlideIn {
+            0% { opacity: 0; transform: translateY(6px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 <body class="bg-gray-50 font-sans text-gray-800 min-h-screen">
     <!-- 导航栏 -->
@@ -66,8 +189,7 @@
                 <a href="#" class="text-gray-600 hover:text-primary transition-colors duration-200" id="nav-scenarios">场景库</a>
                 <a href="#" class="text-gray-600 hover:text-primary transition-colors duration-200" id="nav-resources">资源中心</a>
                 <a href="#" class="text-gray-600 hover:text-primary transition-colors duration-200" id="nav-profile">我的进度</a>
-                <a href="#" class="text-gray-600 hover:text-primary transition-colors duration-200" id="nav-review" onclick="openMyEvaluation(); return false;">我的评阅</a>
-                <a href="#" class="text-gray-600 hover:text-primary transition-colors duration-200" id="nav-back" onclick="window.close(); return false;">返回</a>
+                <a href="#" class="text-gray-600 hover:text-primary transition-colors duration-200" id="nav-exit" onclick="exitToHost(); return false;">退出</a>
             </div>
             <button class="md:hidden text-gray-600 focus:outline-none" id="mobile-menu-button">
                 <i class="fa fa-bars text-xl"></i>
@@ -80,8 +202,7 @@
                 <a href="#" class="text-gray-600 hover:text-primary py-2 transition-colors duration-200">场景库</a>
                 <a href="#" class="text-gray-600 hover:text-primary py-2 transition-colors duration-200">资源中心</a>
                 <a href="#" class="text-gray-600 hover:text-primary py-2 transition-colors duration-200">我的进度</a>
-                <a href="#" class="text-gray-600 hover:text-primary py-2 transition-colors duration-200" onclick="openMyEvaluation(); return false;">我的评阅</a>
-                <a href="#" class="text-gray-600 hover:text-primary py-2 transition-colors duration-200" onclick="window.close(); return false;">返回</a>
+                <a href="#" class="text-gray-600 hover:text-primary py-2 transition-colors duration-200" onclick="exitToHost(); return false;">退出</a>
             </div>
         </div>
     </nav>
@@ -186,11 +307,7 @@
                 <!-- 场景卡片 1 -->
                 <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover scenario-card" data-scenario="academic-stress">
                     <div class="h-48 overflow-hidden">
-                        <div class="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center transition-transform duration-500 hover:scale-110">
-                            <svg class="w-16 h-16 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
+                        <img src="/assets/场景模拟/辅导员与学生的交流.png" alt="辅导员与学生的交流" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
                     </div>
                     <div class="p-6">
                         <div class="flex items-center mb-3">
@@ -382,11 +499,29 @@
             <div class="flex flex-col lg:flex-row gap-8">
                 <!-- 左侧：场景和对话 -->
                 <div class="lg:w-2/3">
-                    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
-                        <div class="bg-primary/10 p-4 flex items-center justify-between">
-                            <div class="flex items-center">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6 scenario-chat chat-panel">
+                        <div class="chat-header p-4 flex items-center justify-between">
+                            <div class="flex items-center relative group">
                                 <i class="fa fa-bookmark text-primary mr-2"></i>
                                 <h3 class="font-bold text-gray-800" id="current-scenario-title">学业压力过大</h3>
+                                <!-- 标题帮助：鼠标悬停显示提示图标与“辅导要点”卡片 -->
+                                <button id="title-help-btn" class="ml-2 text-primary/80 hover:text-primary" aria-label="查看辅导要点">
+                                    <i class="fa fa-question-circle"></i>
+                                </button>
+                                <div id="title-help-card" class="hidden group-hover:block absolute left-0 top-full mt-2 w-[320px] bg-white border border-primary/20 rounded-xl shadow-xl z-40">
+                                    <div class="bg-primary/5 px-3 py-2 rounded-t-xl flex items-center gap-2">
+                                        <i class="fa fa-lightbulb-o text-primary"></i>
+                                        <span class="font-medium text-gray-800">辅导要点</span>
+                                    </div>
+                                    <div class="p-3 text-sm text-gray-700">
+                                        <ul class="space-y-2">
+                                            <li class="flex items-start"><i class="fa fa-check-circle text-secondary mt-1 mr-2"></i><span>积极倾听，让学生感受到被理解和接纳</span></li>
+                                            <li class="flex items-start"><i class="fa fa-check-circle text-secondary mt-1 mr-2"></i><span>关注学生的情绪体验，而非仅仅解决问题</span></li>
+                                            <li class="flex items-start"><i class="fa fa-check-circle text-secondary mt-1 mr-2"></i><span>识别压力源，区分可控与不可控</span></li>
+                                            <li class="flex items-start"><i class="fa fa-check-circle text-secondary mt-1 mr-2"></i><span>提供可操作策略：时间管理、放松技巧等</span></li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                             <div class="flex items-center gap-3">
                                 <div class="hidden md:flex items-center text-sm text-gray-600">
@@ -398,42 +533,51 @@
                                 </button>
                             </div>
                         </div>
-                        
-                        <!-- 场景描述 -->
-                        <div class="p-6 border-b border-gray-100" id="scenario-description">
-                            <p>你是一名大学辅导员，正在办公室工作。大二学生李明敲门进来，他看起来很疲惫，眼神躲闪，坐立不安。他告诉你最近考试很多，感觉压力很大，晚上睡不着觉，上课也无法集中注意力。</p>
-                        </div>
-                        
-                        <!-- 对话区域 -->
-                        <div class="p-6 h-80 overflow-y-auto" id="dialog-container">
-                            <div class="flex mb-6 dialog-appear">
-                                <div class="w-12 h-12 rounded-full mr-4 bg-blue-200 flex items-center justify-center">
+                        <div class="chat-main">
+                            <!-- 场景描述 -->
+                            <div class="p-6 border-b border-gray-100" id="scenario-description">
+                                <p>你是一名大学辅导员，正在办公室工作。大二学生李明敲门进来，他看起来很疲惫，眼神躲闪，坐立不安。他告诉你最近考试很多，感觉压力很大，晚上睡不着觉，上课也无法集中注意力。</p>
+                            </div>
+                            
+                            <!-- 对话区域（消息区） -->
+                            <div class="chat-messages p-6" id="dialog-container">
+                                <div class="flex mb-6 dialog-appear">
+                                    <div class="w-12 h-12 rounded-full mr-4 bg-blue-200 flex items-center justify-center">
                     <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
                     </svg>
                 </div>
-                                <div class="bg-gray-100 rounded-lg rounded-tl-none px-4 py-3 max-w-md">
-                                    <p class="text-gray-800">老师，我最近感觉压力特别大，马上要期末考试了，我担心考不好，晚上总是睡不着觉。</p>
+                                    <div class="bg-gray-100 rounded-lg rounded-tl-none px-4 py-3 max-w-md">
+                                        <p class="text-gray-800">老师，我最近感觉压力特别大，马上要期末考试了，我担心考不好，晚上总是睡不着觉。</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 选择区域（随消息滚动） -->
+                            <div class="p-6 border-t border-gray-100 bg-gray-50" id="choices-container">
+                                <h4 class="font-medium text-gray-700 mb-4">你会如何回应？</h4>
+                                <div class="space-y-3">
+                                    <button class="choice-btn w-full text-left bg-white border border-gray-200 rounded-lg px-4 py-3 hover:bg-primary/5 hover:border-primary transition-colors" data-choice="1">
+                                        <p>"别担心，大家考试前都会紧张，过几天就好了。"</p>
+                                    </button>
+                                    <button class="choice-btn w-full text-left bg-white border border-gray-200 rounded-lg px-4 py-3 hover:bg-primary/5 hover:border-primary transition-colors" data-choice="2">
+                                        <p>"我能看出你现在确实很焦虑。能具体说说是什么让你最担心吗？"</p>
+                                    </button>
+                                    <button class="choice-btn w-full text-left bg-white border border-gray-200 rounded-lg px-4 py-3 hover:bg-primary/5 hover:border-primary transition-colors" data-choice="3">
+                                        <p>"你应该调整一下学习方法，制定一个复习计划，这样就不会那么紧张了。"</p>
+                                    </button>
+                                    <button class="choice-btn w-full text-left bg-white border border-gray-200 rounded-lg px-4 py-3 hover:bg-primary/5 hover:border-primary transition-colors" data-choice="4">
+                                        <p>"听起来你压力很大，已经影响到睡眠了。我们可以一起想办法解决这个问题。"</p>
+                                    </button>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- 选择区域 -->
-                        <div class="p-6 border-t border-gray-100 bg-gray-50" id="choices-container">
-                            <h4 class="font-medium text-gray-700 mb-4">你会如何回应？</h4>
-                            <div class="space-y-3">
-                                <button class="choice-btn w-full text-left bg-white border border-gray-200 rounded-lg px-4 py-3 hover:bg-primary/5 hover:border-primary transition-colors" data-choice="1">
-                                    <p>"别担心，大家考试前都会紧张，过几天就好了。"</p>
-                                </button>
-                                <button class="choice-btn w-full text-left bg-white border border-gray-200 rounded-lg px-4 py-3 hover:bg-primary/5 hover:border-primary transition-colors" data-choice="2">
-                                    <p>"我能看出你现在确实很焦虑。能具体说说是什么让你最担心吗？"</p>
-                                </button>
-                                <button class="choice-btn w-full text-left bg-white border border-gray-200 rounded-lg px-4 py-3 hover:bg-primary/5 hover:border-primary transition-colors" data-choice="3">
-                                    <p>"你应该调整一下学习方法，制定一个复习计划，这样就不会那么紧张了。"</p>
-                                </button>
-                                <button class="choice-btn w-full text-left bg-white border border-gray-200 rounded-lg px-4 py-3 hover:bg-primary/5 hover:border-primary transition-colors" data-choice="4">
-                                    <p>"听起来你压力很大，已经影响到睡眠了。我们可以一起想办法解决这个问题。"</p>
-                                </button>
+                        <!-- 底部聊天输入栏（固定在面板底部） -->
+                        <div class="chat-input p-4">
+                            <div class="flex gap-3">
+                                <input id="custom-input" type="text" class="input flex-1" placeholder="请输入你自己的回应..." />
+                                <button id="custom-send-btn" class="send-btn">发送</button>
                             </div>
                         </div>
                     </div>
@@ -479,6 +623,16 @@
                                 <div id="hint-content" class="mt-3 p-3 bg-primary/5 rounded-lg text-sm text-gray-700 hidden">
                                     <p>尝试先共情学生的感受，认可他的情绪体验，再进一步了解具体情况。</p>
                                 </div>
+                            </div>
+
+                            <!-- 历史记录区域（始终展示标题，无记录时显示空态） -->
+                            <div id="history-section" class="mt-6 pt-4 border-t border-gray-100">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h4 class="font-bold text-gray-800 flex items-center"><i class="fa fa-history mr-2"></i> 历史记录</h4>
+                                    <button id="history-clear-btn" class="text-xs text-gray-500 hover:text-gray-700">清空</button>
+                                </div>
+                                <ul id="history-list" class="space-y-2 text-sm text-gray-700"></ul>
+                                <p id="history-empty" class="text-xs text-gray-500">暂无记录，回答后自动生成。</p>
                             </div>
                         </div>
                     </div>
@@ -564,6 +718,9 @@
                         <button id="review-resources-btn" class="flex-1 bg-white border-2 border-primary text-primary hover:bg-primary/5 font-medium py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center">
                             <i class="fa fa-book mr-2"></i> 查看学习资源
                         </button>
+                        <button id="retry-on-report-btn" class="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center">
+                            <i class="fa fa-undo mr-2"></i> 再试一次
+                        </button>
                     </div>
                 </div>
             </div>
@@ -574,6 +731,7 @@
             <div class="mb-10">
                 <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-800 mb-4">心理健康辅导资源中心</h2>
                 <p class="text-gray-600 max-w-3xl">这里提供专业的心理健康辅导知识、工具和参考资料，帮助你提升辅导技能。</p>
+                <p id="resources-recommend-text" class="text-gray-700 max-w-3xl mt-2"></p>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -893,6 +1051,20 @@
 
 
     <script>
+        // 向父页面发送退出指令（iframe集成场景）
+        function exitToHost() {
+            try {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'EXIT_SCENARIO' }, '*');
+                } else {
+                    // 独立打开时的降级处理
+                    const baseUrl = window.location.origin;
+                    window.location.href = `${baseUrl}/`;
+                }
+            } catch (err) {
+                console.error('发送退出消息失败:', err);
+            }
+        }
         // 全局函数，处理开始训练按钮点击
         function handleStartTraining() {
             console.log('全局函数：开始训练被点击');
@@ -910,6 +1082,292 @@
         
         // 页面导航逻辑
         document.addEventListener('DOMContentLoaded', function() {
+            // ====== JSON 场景数据接入与模拟控制 ======
+            let dialoguesData = null; // mental-health-dialogues.json
+            let currentScenarioId = 'academic-stress';
+            let currentRounds = [];
+            let currentRoundIndex = 0;
+            let autoPlayRunning = false;
+            let roundHasResponded = false; // 当前轮是否已由辅导员回复（选项或自定义输入）
+            let autoPlayTimeoutId = null;
+            // 会话最大轮次（达到后自动结束并生成反馈）
+            const MAX_ROUNDS = 5;
+
+            async function loadDialoguesData() {
+                if (dialoguesData) return dialoguesData;
+                try {
+                    const res = await fetch('./mental-health-dialogues.json');
+                    dialoguesData = await res.json();
+                    return dialoguesData;
+                } catch (err) {
+                    console.error('加载JSON失败:', err);
+                    return null;
+                }
+            }
+            function getScenarioById(id) {
+                if (!dialoguesData) return null;
+                return (dialoguesData.scenarios || []).find(s => s.id === id) || null;
+            }
+            function clearAutoPlay() {
+                autoPlayRunning = false;
+                if (autoPlayTimeoutId) {
+                    clearTimeout(autoPlayTimeoutId);
+                    autoPlayTimeoutId = null;
+                }
+            }
+            function renderBubble(role, text, participants) {
+                const dialogContainer = document.getElementById('dialog-container');
+                const isStudent = role === 'student';
+                const name = isStudent ? (participants && participants.student || '学生') : (participants && participants.counselor || '老师');
+                const avatarText = name ? name[0] : (isStudent ? '学' : '师');
+                const color = isStudent ? '#e74c3c' : '#2ecc71';
+                const bubbleClass = isStudent ? 'received' : 'sent';
+                const html = `
+                    <div class="message-bubble ${bubbleClass} group">
+                        <div class="message-sender">
+                            <span class="message-avatar" style="background:${color};">${avatarText}</span>
+                            <span class="message-author">${name}</span>
+                        </div>
+                        <div class="message-content">${text}</div>
+                        <div class="message-time">${new Date().toLocaleString()}</div>
+                    </div>
+                `;
+                dialogContainer.insertAdjacentHTML('beforeend', html);
+                dialogContainer.scrollTop = dialogContainer.scrollHeight;
+            }
+            function renderRound(index, scenario) {
+                // 手动问答模式：仅展示学生当轮消息
+                return new Promise(resolve => {
+                    if (!scenario || !scenario.rounds || !scenario.rounds[index]) {
+                        resolve();
+                        return;
+                    }
+                    const round = scenario.rounds[index];
+                    const studentMsg = (round.messages || []).find(m => m.role === 'student');
+                    if (studentMsg) {
+                        renderBubble('student', studentMsg.text, scenario.participants);
+                    }
+                    resolve();
+                });
+            }
+
+            // 交互模式：在每轮中循环展示三种模式
+            function getModeForRound(index) {
+                const schedule = ['select_only', 'select_and_input', 'input_only'];
+                return schedule[index % schedule.length];
+            }
+            function setInputEnabled(enabled) {
+                const inputEl = document.getElementById('custom-input');
+                const sendEl = document.getElementById('custom-send-btn');
+                if (inputEl) {
+                    inputEl.disabled = !enabled;
+                    inputEl.placeholder = enabled ? '请输入你的回复...' : '本轮为“仅选项”，不能输入';
+                }
+                if (sendEl) {
+                    sendEl.disabled = !enabled;
+                    sendEl.classList.toggle('opacity-50', !enabled);
+                    sendEl.classList.toggle('cursor-not-allowed', !enabled);
+                }
+            }
+            function buildOptionsForRound(scenario, roundIndex) {
+                const round = scenario && scenario.rounds && scenario.rounds[roundIndex];
+                // 从 JSON 中读取预生成选项（包含 key/text/reply）
+                if (round && Array.isArray(round.options) && round.options.length > 0) {
+                    return round.options.map(o => ({ key: o.key, text: o.text }));
+                }
+                // 兼容旧数据：回退为辅导员消息 + 通用建议（无映射回复）
+                const counselorMsg = round ? (round.messages || []).find(m => m.role === 'counselor') : null;
+                const primary = counselorMsg && counselorMsg.text || '';
+                const generic = [
+                    { key: 'clarify_sources', text: '能具体说说是什么让你最担心吗？' },
+                    { key: 'empathize', text: '我能理解你的压力，我们可以一起想办法。' },
+                    { key: 'suggest_support', text: '如果你愿意，可以预约学校心理咨询，获取更多支持。' }
+                ];
+                const options = [];
+                if (primary) options.push({ key: 'primary', text: primary });
+                options.push(generic[0], generic[1]);
+                return options;
+            }
+            function getInputReplyForRound(round, counselorText) {
+                // 基于关键词匹配的预设回复；否则使用默认；最后使用通用正面回复
+                if (round && round.inputReplyMap && typeof round.inputReplyMap === 'object') {
+                    for (const kw in round.inputReplyMap) {
+                        if (!Object.prototype.hasOwnProperty.call(round.inputReplyMap, kw)) continue;
+                        if (kw && counselorText && counselorText.includes(kw)) {
+                            return round.inputReplyMap[kw];
+                        }
+                    }
+                }
+                if (round && round.inputReplyDefault) return round.inputReplyDefault;
+                return '好的，我会按您的建议具体化计划并立刻开始执行。';
+            }
+            function renderStudentFollowup(scenario, roundIndex, overrideText) {
+                // 优先使用传入的覆盖文本；其次使用该轮的 followup；最后使用默认正面回复
+                const round = scenario && scenario.rounds && scenario.rounds[roundIndex];
+                const text = overrideText || (round && round.studentFollowup) || (round && round.inputReplyDefault) || '好的，我会按您的建议试试。';
+                const dialogContainer = document.getElementById('dialog-container');
+                const studentHtml = `
+                    <div class="message-bubble received group">
+                        <div class="message-sender">
+                            <span class="message-avatar" style="background:#e74c3c;">李</span>
+                            <span class="message-author">李同学</span>
+                        </div>
+                        <div class="message-content">${text}</div>
+                        <div class="message-time">${new Date().toLocaleString()}</div>
+                    </div>
+                `;
+                dialogContainer.insertAdjacentHTML('beforeend', studentHtml);
+                dialogContainer.scrollTop = dialogContainer.scrollHeight;
+            }
+            function updateControlsForRound(scenario, roundIndex) {
+                const choicesContainer = document.getElementById('choices-container');
+                if (!choicesContainer) return;
+                const total = scenario && scenario.rounds ? scenario.rounds.length : 0;
+                const mode = getModeForRound(roundIndex);
+                const options = buildOptionsForRound(scenario, roundIndex);
+                let optionsHtml = '';
+                if (mode !== 'input_only') {
+                    optionsHtml = `
+                        <div class="space-y-2">
+                            ${options.map(opt => `
+                                <button class="choice-btn w-full text-left bg-white border border-gray-200 rounded-lg px-4 py-2 hover:bg-primary/5 hover:border-primary transition-colors" data-option-key="${opt.key}" data-option-text="${opt.text.replace(/"/g,'&quot;')}">
+                                    <p>${opt.text}</p>
+                                </button>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                choicesContainer.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-medium text-gray-700">你会如何回应？</h4>
+                    </div>
+                    ${optionsHtml}
+                    <div class="text-xs text-gray-500 mt-2">当前模式：${mode === 'select_only' ? '仅选项' : mode === 'select_and_input' ? '选项+可输入' : '仅输入'}</div>
+                `;
+
+                // 输入框状态
+                setInputEnabled(mode !== 'select_only');
+
+                // 绑定选项点击
+                const optionBtns = choicesContainer.querySelectorAll('[data-option-key]');
+                    optionBtns.forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const text = btn.getAttribute('data-option-text') || '';
+                            const key = btn.getAttribute('data-option-key') || '';
+                            if (text) {
+                                // 直接以辅导员身份发送该文本
+                                const dialogContainer = document.getElementById('dialog-container');
+                                const counselorHtml = `
+                                    <div class="message-bubble sent group">
+                                        <div class="message-sender">
+                                            <span class="message-avatar" style="background:#2ecc71;">张</span>
+                                            <span class="message-author">张老师</span>
+                                        </div>
+                                        <div class="message-content">${text}</div>
+                                        <div class="message-time">${new Date().toLocaleString()}</div>
+                                    </div>
+                                `;
+                                dialogContainer.insertAdjacentHTML('beforeend', counselorHtml);
+                                dialogContainer.scrollTop = dialogContainer.scrollHeight;
+                                // 一问一答：不插入本轮额外“学生跟进”，直接进入下一轮
+                                setTimeout(() => {
+                                    playNextOnce();
+                                }, 700);
+                            }
+                        });
+                    });
+
+                // 已去除“下一轮”按钮与绑定逻辑
+            }
+            async function resetToScenario(scenarioId) {
+                await loadDialoguesData();
+                const scenario = getScenarioById(scenarioId) || getScenarioById('academic-stress');
+                currentScenarioId = scenario ? scenario.id : 'academic-stress';
+                currentRounds = scenario ? (scenario.rounds || []) : [];
+                currentRoundIndex = 0;
+                roundHasResponded = false;
+                clearAutoPlay();
+                const dialogContainer = document.getElementById('dialog-container');
+                dialogContainer.innerHTML = '';
+                // 初始化展示第1轮，避免空白
+                if (currentRounds.length > 0) {
+                    await renderRound(0, scenario);
+                    currentRoundIndex = 1; // 下一轮从索引1开始
+                }
+                // 刷新控制区
+                updateControlsForRound(scenario, 0);
+                // 重置计时器
+                startTimer();
+            }
+            // 旧的推荐回复控件已移除，采用按轮次动态控件
+            function playNextOnce() {
+                const scenario = getScenarioById(currentScenarioId);
+                if (!scenario) return;
+                if (currentRoundIndex >= Math.min(scenario.rounds.length, MAX_ROUNDS)) {
+                    finishAndFeedback();
+                    return;
+                }
+                renderRound(currentRoundIndex, scenario).then(() => {
+                    currentRoundIndex++;
+                    // 进入新一轮，重置“本轮已回复”标记
+                    roundHasResponded = false;
+                    if (currentRoundIndex >= Math.min(scenario.rounds.length, MAX_ROUNDS)) {
+                        finishAndFeedback();
+                    }
+                });
+            }
+            function startAutoplay(limit = MAX_ROUNDS) {
+                clearAutoPlay();
+                autoPlayRunning = true;
+                const scenario = getScenarioById(currentScenarioId);
+                const maxRounds = Math.min((scenario && scenario.rounds ? scenario.rounds.length : 0), limit);
+                const step = () => {
+                    if (!autoPlayRunning) return; // paused
+                    if (!scenario || currentRoundIndex >= maxRounds) {
+                        finishAndFeedback();
+                        clearAutoPlay();
+                        return;
+                    }
+                    renderRound(currentRoundIndex, scenario).then(() => {
+                        currentRoundIndex++;
+                        autoPlayTimeoutId = setTimeout(step, 900);
+                    });
+                };
+                step();
+            }
+            function finishAndFeedback() {
+                // 清除计时器
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                }
+                // 结束训练，重置回复标记
+                roundHasResponded = false;
+                // 简单评分：以 MAX_ROUNDS 为基准，完成≥MAX_ROUNDS 给85分，否则线性计算
+                const scenario = getScenarioById(currentScenarioId);
+                const total = Math.min(MAX_ROUNDS, scenario ? (scenario.rounds || []).length : 0);
+                const done = Math.min(currentRoundIndex, total);
+                const score = done >= total ? 85 : Math.max(60, Math.round((done / total) * 85));
+                document.getElementById('feedback-score').textContent = score;
+                const feedbackRating = document.getElementById('feedback-rating');
+                if (score >= 90) {
+                    feedbackRating.textContent = '卓越';
+                    feedbackRating.className = 'text-xl font-bold text-secondary';
+                } else if (score >= 80) {
+                    feedbackRating.textContent = '优秀';
+                    feedbackRating.className = 'text-xl font-bold text-primary';
+                } else if (score >= 70) {
+                    feedbackRating.textContent = '良好';
+                    feedbackRating.className = 'text-xl font-bold text-accent';
+                } else {
+                    feedbackRating.textContent = '有待提高';
+                    feedbackRating.className = 'text-xl font-bold text-neutral';
+                }
+                // 在对话末尾插入“评分报告查看卡片”，不自动跳转
+                appendFeedbackCard(score, feedbackRating.textContent);
+                // 保存一次训练的完整历史记录（用于回放）
+                addTrainingHistoryRecord(score, feedbackRating.textContent);
+            }
             // 获取所有屏幕元素
             const homeScreen = document.getElementById('home-screen');
             const scenariosScreen = document.getElementById('scenarios-screen');
@@ -925,6 +1383,8 @@
             const navProfile = document.getElementById('nav-profile');
             const startGameBtn = document.getElementById('start-game-btn');
             const learnMoreBtn = document.getElementById('learn-more-btn');
+            const resourcesRecommendText = document.getElementById('resources-recommend-text');
+            let currentScenarioTitle = '';
             
             // 检查按钮元素是否存在
             console.log('按钮元素检查:', {
@@ -934,6 +1394,7 @@
             const exitGameBtn = document.getElementById('exit-game-btn');
             const anotherScenarioBtn = document.getElementById('another-scenario-btn');
             const reviewResourcesBtn = document.getElementById('review-resources-btn');
+            const retryOnReportBtn = document.getElementById('retry-on-report-btn');
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
             const hintBtn = document.getElementById('hint-btn');
@@ -989,6 +1450,8 @@
             
             navResources.addEventListener('click', function(e) {
                 e.preventDefault();
+                // 更新资源推荐文案
+                updateResourcesRecommend();
                 showScreen(resourcesScreen);
                 mobileMenu.classList.add('hidden');
             });
@@ -1016,12 +1479,14 @@
             }
             
             learnMoreBtn.addEventListener('click', function() {
+                updateResourcesRecommend();
                 showScreen(resourcesScreen);
             });
             
             exitGameBtn.addEventListener('click', function() {
                 if (confirm('确定要退出当前场景吗？进度将不会保存。')) {
-                    showScreen(scenariosScreen);
+                    // 如果作为嵌入式iframe运行，优先通知父页面退出
+                    exitToHost();
                 }
             });
             
@@ -1030,8 +1495,18 @@
             });
             
             reviewResourcesBtn.addEventListener('click', function() {
+                updateResourcesRecommend();
                 showScreen(resourcesScreen);
             });
+            if (retryOnReportBtn) {
+                retryOnReportBtn.addEventListener('click', function() {
+                    // 在报告页直接重新开始当前场景训练
+                    resetToScenario(currentScenarioId);
+                    showScreen(gameScreen);
+                    const dialog = document.getElementById('dialog-container');
+                    if (dialog) dialog.scrollTop = 0;
+                });
+            }
             
             // 提示按钮切换
             hintBtn.addEventListener('click', function() {
@@ -1064,26 +1539,43 @@
                             scenarioTitle.textContent = '网络成瘾问题';
                             break;
                     }
+                    currentScenarioTitle = scenarioTitle.textContent || '';
                     showScreen(gameScreen);
-                    // 重置对话容器
-                    resetGame();
+                    // 进入游戏界面后，根据当前面板位置计算高度，避免整页滚动
+                    adjustChatPanelHeight();
+                    // 基于JSON重置并加载场景
+                    resetToScenario(scenario);
                 });
             });
+
+            // 更新资源中心推荐文案
+            function updateResourcesRecommend() {
+                const baseText = '推荐给您的关于';
+                const suffix = '的资源';
+                const title = (currentScenarioTitle || '').trim();
+                if (resourcesRecommendText) {
+                    if (title) {
+                        resourcesRecommendText.textContent = `${baseText}${title}${suffix}`;
+                    } else {
+                        resourcesRecommendText.textContent = '为您推荐的心理健康辅导资源';
+                    }
+                }
+            }
             
-            // 重置游戏状态
+            // 根据聊天面板到视口顶部的偏移，设置面板高度为可视区域高度，确保底部输入栏始终可见
+            function adjustChatPanelHeight() {
+                const panel = document.querySelector('.scenario-chat.chat-panel');
+                if (!panel) return;
+                const top = panel.getBoundingClientRect().top;
+                panel.style.height = `calc(100vh - ${Math.max(top, 0)}px)`;
+            }
+            // 页面首次渲染与窗口尺寸变化时重算
+            adjustChatPanelHeight();
+            window.addEventListener('resize', adjustChatPanelHeight);
+            
+            // 保留API名称但改为调用JSON场景重置（兼容旧调用）
             function resetGame() {
-                const dialogContainer = document.getElementById('dialog-container');
-                dialogContainer.innerHTML = `
-                    <div class="flex mb-6 dialog-appear">
-                        <img src="https://picsum.photos/id/1012/100" alt="学生头像" class="w-12 h-12 rounded-full mr-4">
-                        <div class="bg-gray-100 rounded-lg rounded-tl-none px-4 py-3 max-w-md">
-                            <p class="text-gray-800">老师，我最近感觉压力特别大，马上要期末考试了，我担心考不好，晚上总是睡不着觉。</p>
-                        </div>
-                    </div>
-                `;
-                
-                // 重置计时器
-                startTimer();
+                resetToScenario(currentScenarioId);
             }
             
             // 计时器功能
@@ -1109,6 +1601,225 @@
                 const remainingSeconds = seconds % 60;
                 const timerDisplay = document.getElementById('game-timer');
                 timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+            }
+
+            // ===== 历史记录：数据结构与渲染 =====
+            const historyState = {
+                items: [], // {id, round, title, time, snapshot}
+                counter: 1
+            };
+            function ensureHistoryVisible() {
+                const sec = document.getElementById('history-section');
+                const empty = document.getElementById('history-empty');
+                if (sec) sec.classList.remove('hidden');
+                if (empty) empty.classList.add('hidden');
+            }
+            function truncate(text, max = 18) {
+                const t = (text || '').replace(/\s+/g, ' ').trim();
+                return t.length > max ? t.slice(0, max) + '…' : t;
+            }
+            function renderHistoryList() {
+                const list = document.getElementById('history-list');
+                if (!list) return;
+                list.innerHTML = historyState.items.map(it => `
+                    <li>
+                        <button class="w-full text-left px-3 py-2 rounded-lg bg-white hover:bg-primary/5 transition-colors history-item" data-id="${it.id}">
+                            <div class="flex items-center justify-between">
+                                <span class="font-medium text-gray-800">${it.title}</span>
+                                <span class="text-xs text-gray-500">${it.time}</span>
+                            </div>
+                        </button>
+                    </li>
+                `).join('');
+                // 绑定点击回放
+                list.querySelectorAll('.history-item').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const id = btn.getAttribute('data-id');
+                        openReplayById(id);
+                    });
+                });
+                // 清空按钮
+                const clearBtn = document.getElementById('history-clear-btn');
+                if (clearBtn && !clearBtn._bound) {
+                    clearBtn.addEventListener('click', () => {
+                        historyState.items = [];
+                        const empty = document.getElementById('history-empty');
+                        const section = document.getElementById('history-section');
+                        if (empty) empty.classList.remove('hidden');
+                        if (section) section.classList.remove('hidden');
+                        renderHistoryList();
+                    });
+                    clearBtn._bound = true;
+                }
+            }
+            function addHistoryRecord(roundIndex, answerText) {
+                try {
+                    const dialog = document.getElementById('dialog-container');
+                    if (!dialog) return;
+                    const snapshot = dialog.innerHTML;
+                    const id = 'h' + historyState.counter++;
+                    const item = {
+                        id,
+                        round: (roundIndex + 1),
+                        title: `回答：${truncate(answerText)}`,
+                        time: new Date().toLocaleTimeString(),
+                        snapshot
+                    };
+                    historyState.items.unshift(item);
+                    ensureHistoryVisible();
+                    renderHistoryList();
+                } catch (e) {
+                    console.warn('addHistoryRecord failed', e);
+                }
+            }
+            // 每次训练仅保存一条历史记录（完整回放）
+            function addTrainingHistoryRecord(score, ratingText) {
+                try {
+                    const dialog = document.getElementById('dialog-container');
+                    const titleEl = document.getElementById('current-scenario-title');
+                    if (!dialog) return;
+                    const snapshot = dialog.innerHTML;
+                    const id = 'h' + historyState.counter++;
+                    const scenarioTitle = (titleEl && titleEl.textContent ? titleEl.textContent : (currentScenarioTitle || '')).trim() || '场景训练';
+                    const item = {
+                        id,
+                        round: 1,
+                        title: `${scenarioTitle}（得分${score}，${ratingText || ''}）`,
+                        time: new Date().toLocaleTimeString(),
+                        snapshot
+                    };
+                    historyState.items.unshift(item);
+                    ensureHistoryVisible();
+                    renderHistoryList();
+                } catch (e) {
+                    console.warn('addTrainingHistoryRecord failed', e);
+                }
+            }
+            // 在左侧聊天面板内覆盖显示回放内容；若当前轮已回复则提示进行中
+            function openReplayById(id) {
+                const item = historyState.items.find(x => x.id === id);
+                if (!item) return;
+                if (roundHasResponded) {
+                    showInlineNotice('当前训练进行中，请结束本轮后再查看回放');
+                    return;
+                }
+                const chatPanel = document.querySelector('.scenario-chat.chat-panel');
+                if (!chatPanel) return;
+                // 确保父容器可定位
+                chatPanel.style.position = 'relative';
+                // 若已有覆盖层，先移除
+                const old = document.getElementById('replay-overlay');
+                if (old) old.remove();
+                const overlay = document.createElement('div');
+                overlay.id = 'replay-overlay';
+                overlay.className = 'absolute inset-0 bg-white/95 backdrop-blur-sm z-40 overflow-auto';
+                overlay.innerHTML = `
+                    <div class="p-4 border-b flex items-center justify-between sticky top-0 bg-white/95">
+                        <div class="font-bold text-gray-800 flex items-center"><i class="fa fa-play-circle mr-2 text-primary"></i> 回放</div>
+                        <button class="text-gray-600 hover:text-gray-800" id="replay-overlay-close"><i class="fa fa-times"></i></button>
+                    </div>
+                    <div class="p-4">
+                        <div class="text-sm text-gray-500 mb-2">${item.title} · ${item.time}</div>
+                        <!-- 逐条播放容器，1秒间隔 -->
+                        <div class="chat-messages p-0" id="replay-overlay-messages"></div>
+                    </div>
+                `;
+                chatPanel.appendChild(overlay);
+                // 逐条播放消息，间隔1秒
+                const msgsContainer = overlay.querySelector('#replay-overlay-messages');
+                const temp = document.createElement('div');
+                temp.innerHTML = item.snapshot;
+                const nodes = Array.from(temp.querySelectorAll('.message-bubble'));
+                let idx = 0;
+                function appendNext() {
+                    if (idx >= nodes.length) {
+                        if (overlay._timer) { clearInterval(overlay._timer); overlay._timer = null; }
+                        return;
+                    }
+                    const clone = nodes[idx].cloneNode(true);
+                    msgsContainer.appendChild(clone);
+                    // 自动滚动到底部
+                    overlay.scrollTop = overlay.scrollHeight;
+                    idx++;
+                }
+                // 先立即显示第一条，然后每1秒显示下一条
+                appendNext();
+                overlay._timer = setInterval(appendNext, 1000);
+
+                const closeBtn = overlay.querySelector('#replay-overlay-close');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        if (overlay._timer) { clearInterval(overlay._timer); }
+                        overlay.remove();
+                    });
+                }
+            }
+            // 简易内联提示（2.5秒自动消失）
+            function showInlineNotice(message) {
+                const chatPanel = document.querySelector('.scenario-chat.chat-panel');
+                if (!chatPanel) return;
+                const n = document.createElement('div');
+                n.className = 'absolute top-3 left-1/2 -translate-x-1/2 bg-black/75 text-white text-sm px-3 py-2 rounded z-50 shadow';
+                n.textContent = message || '提示';
+                chatPanel.style.position = 'relative';
+                chatPanel.appendChild(n);
+                setTimeout(() => { try { n.remove(); } catch(e){} }, 2500);
+            }
+            (function bindReplayClose(){
+                const modal = document.getElementById('replay-modal');
+                const closeBtn = document.getElementById('replay-close');
+                if (closeBtn && !closeBtn._bound) {
+                    closeBtn.addEventListener('click', () => {
+                        if (!modal) return;
+                        modal.classList.add('hidden');
+                        modal.classList.remove('flex');
+                    });
+                    closeBtn._bound = true;
+                }
+            })();
+
+            // 在聊天记录末尾生成一张“评分报告查看卡片”，点击后进入评分页面
+            function appendFeedbackCard(score, ratingText) {
+                const dialogContainer = document.getElementById('dialog-container');
+                // 若已有旧卡片，先移除避免重复
+                const old = document.getElementById('feedback-card-inline');
+                if (old) old.remove();
+                const html = `
+                    <div id="feedback-card-inline" class="message-bubble received group">
+                        <div class="message-sender">
+                            <span class="message-avatar" style="background:#3498db;">评</span>
+                            <span class="message-author">系统</span>
+                        </div>
+                        <div class="message-content">
+                            <div class="bg-primary/5 border border-primary/30 rounded-lg p-4 flex items-center justify-between gap-3">
+                                <div>
+                                    <p class="font-medium">训练已完成，已生成评分报告</p>
+                                    <p class="text-sm text-gray-600">本次得分：<span class="font-semibold">${score}</span>，评级：${ratingText || ''}</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button id="view-feedback-card-btn" class="px-3 py-2 bg-primary text-white rounded hover:bg-primary/90">查看评分报告</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="message-time">${new Date().toLocaleString()}</div>
+                    </div>
+                `;
+                dialogContainer.insertAdjacentHTML('beforeend', html);
+                dialogContainer.scrollTop = dialogContainer.scrollHeight;
+                // 禁用输入与选项区域，提示通过卡片查看
+                const choicesContainer = document.getElementById('choices-container');
+                if (choicesContainer) {
+                    choicesContainer.innerHTML = '<div class="text-sm text-gray-500">训练已完成，请点击对话末尾的卡片查看评分报告。</div>';
+                }
+                setInputEnabled(false);
+                // 绑定卡片按钮点击，进入评分页面
+                const btn = document.getElementById('view-feedback-card-btn');
+                if (btn) {
+                    btn.addEventListener('click', function() {
+                        showScreen(feedbackScreen);
+                    });
+                }
+                // 回放页不再展示“再试一次”，该按钮仅在评分报告页提供
             }
             
             // 对话选择处理
@@ -1136,15 +1847,13 @@
                     }
                     
                     const counselorHtml = `
-                        <div class="flex justify-end mb-6 dialog-appear">
-                            <div class="bg-primary text-white rounded-lg rounded-tr-none px-4 py-3 max-w-md">
-                                <p>${counselorResponse}</p>
+                        <div class="message-bubble sent group">
+                            <div class="message-sender">
+                                <span class="message-avatar" style="background:#2ecc71;">张</span>
+                                <span class="message-author">张老师</span>
                             </div>
-                            <div class="w-12 h-12 rounded-full ml-4 bg-green-200 flex items-center justify-center">
-                        <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
-                        </svg>
-                    </div>
+                            <div class="message-content">${counselorResponse}</div>
+                            <div class="message-time">${new Date().toLocaleString()}</div>
                         </div>
                     `;
                     
@@ -1204,11 +1913,13 @@
                         }
                         
                         const studentHtml = `
-                            <div class="flex mb-6 dialog-appear">
-                                <img src="https://picsum.photos/id/1012/100" alt="学生头像" class="w-12 h-12 rounded-full mr-4">
-                                <div class="bg-gray-100 rounded-lg rounded-tl-none px-4 py-3 max-w-md">
-                                    <p class="text-gray-800">${studentResponse}</p>
+                            <div class="message-bubble received group">
+                                <div class="message-sender">
+                                    <span class="message-avatar" style="background:#e74c3c;">李</span>
+                                    <span class="message-author">李同学</span>
                                 </div>
+                                <div class="message-content">${studentResponse}</div>
+                                <div class="message-time">${new Date().toLocaleString()}</div>
                             </div>
                         `;
                         
@@ -1245,11 +1956,13 @@
                 }
                 
                 const counselorHtml = `
-                    <div class="flex justify-end mb-6 dialog-appear">
-                        <div class="bg-primary text-white rounded-lg rounded-tr-none px-4 py-3 max-w-md">
-                            <p>${counselorResponse}</p>
+                    <div class="message-bubble sent group">
+                        <div class="message-sender">
+                            <span class="message-avatar" style="background:#2ecc71;">张</span>
+                            <span class="message-author">张老师</span>
                         </div>
-                        <img src="https://picsum.photos/id/1005/100" alt="辅导员头像" class="w-12 h-12 rounded-full ml-4">
+                        <div class="message-content">${counselorResponse}</div>
+                        <div class="message-time">${new Date().toLocaleString()}</div>
                     </div>
                 `;
                 
@@ -1266,11 +1979,13 @@
                     }
                     
                     const studentHtml = `
-                        <div class="flex mb-6 dialog-appear">
-                            <img src="https://picsum.photos/id/1012/100" alt="学生头像" class="w-12 h-12 rounded-full mr-4">
-                            <div class="bg-gray-100 rounded-lg rounded-tl-none px-4 py-3 max-w-md">
-                                <p class="text-gray-800">${studentResponse}</p>
+                        <div class="message-bubble received group">
+                            <div class="message-sender">
+                                <span class="message-avatar" style="background:#e74c3c;">李</span>
+                                <span class="message-author">李同学</span>
                             </div>
+                            <div class="message-content">${studentResponse}</div>
+                            <div class="message-time">${new Date().toLocaleString()}</div>
                         </div>
                     `;
                     
@@ -1315,9 +2030,51 @@
                             feedbackRating.className = 'text-xl font-bold text-neutral';
                         }
                         
-                        showScreen(feedbackScreen);
+                        // 插入评分报告查看卡片，不自动跳转
+                        appendFeedbackCard(score, feedbackRating.textContent);
                     }, 2000);
                 }, 1000);
+            }
+
+            // ====== 自定义输入发送（复制 message-center 交互体验） ======
+            const customInput = document.getElementById('custom-input');
+            const customSendBtn = document.getElementById('custom-send-btn');
+            function sendCustomMessage() {
+                const text = (customInput && customInput.value || '').trim();
+                if (!text) return;
+                // 若本轮为“仅选项”，阻止输入发送
+                if (customInput && customInput.disabled) return;
+                const dialogContainer = document.getElementById('dialog-container');
+                const counselorHtml = `
+                    <div class="message-bubble sent group">
+                        <div class="message-sender">
+                            <span class="message-avatar" style="background:#2ecc71;">张</span>
+                            <span class="message-author">张老师</span>
+                        </div>
+                        <div class="message-content">${text}</div>
+                        <div class="message-time">${new Date().toLocaleString()}</div>
+                    </div>
+                `;
+                dialogContainer.insertAdjacentHTML('beforeend', counselorHtml);
+                dialogContainer.scrollTop = dialogContainer.scrollHeight;
+                // 标记当前轮已回复
+                roundHasResponded = true;
+                if (customInput) customInput.value = '';
+                // 一问一答：不插入本轮额外“学生跟进”，直接进入下一轮
+                setTimeout(() => {
+                    playNextOnce();
+                }, 700);
+            }
+            if (customSendBtn) {
+                customSendBtn.addEventListener('click', sendCustomMessage);
+            }
+            if (customInput) {
+                customInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        sendCustomMessage();
+                    }
+                });
             }
         });
         
@@ -1336,5 +2093,16 @@
             }
         }
     </script>
+    
+    <!-- 回放模态框 -->
+    <div id="replay-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-xl w-[90%] max-w-2xl max-h-[80vh] overflow-hidden">
+            <div class="p-4 border-b flex items-center justify-between">
+                <div class="font-bold text-gray-800 flex items-center"><i class="fa fa-play-circle mr-2 text-primary"></i> 回放</div>
+                <button id="replay-close" class="text-gray-500 hover:text-gray-700"><i class="fa fa-times"></i></button>
+            </div>
+            <div id="replay-content" class="p-4 overflow-auto"></div>
+        </div>
+    </div>
 </body>
 </html>

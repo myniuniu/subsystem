@@ -14,7 +14,6 @@ const ScenarioSelector = ({ onSelectScenario, completedScenarios = [] }) => {
       category: 'stress',
       difficulty: '初级',
       duration: '15-20分钟',
-      thumbnail: '/assets/模拟仿真封面/生成主题封面 (1).png',
       skills: ['倾听技巧', '共情能力', '压力管理'],
       studentProfile: {
         name: '小李',
@@ -37,7 +36,6 @@ const ScenarioSelector = ({ onSelectScenario, completedScenarios = [] }) => {
       category: 'anxiety',
       difficulty: '中级',
       duration: '20-25分钟',
-      thumbnail: '/assets/模拟仿真封面/生成主题封面 (2).png',
       skills: ['心理评估', '认知重构', '行为干预'],
       studentProfile: {
         name: '小王',
@@ -60,7 +58,6 @@ const ScenarioSelector = ({ onSelectScenario, completedScenarios = [] }) => {
       category: 'depression',
       difficulty: '高级',
       duration: '25-30分钟',
-      thumbnail: '/assets/模拟仿真封面/生成主题封面 (3).png',
       skills: ['危机识别', '自杀评估', '转介技巧'],
       studentProfile: {
         name: '小张',
@@ -83,7 +80,6 @@ const ScenarioSelector = ({ onSelectScenario, completedScenarios = [] }) => {
       category: 'family',
       difficulty: '中级',
       duration: '20-25分钟',
-      thumbnail: '/assets/模拟仿真封面/生成主题封面 (4).png',
       skills: ['家庭治疗', '边界设定', '资源整合'],
       studentProfile: {
         name: '小陈',
@@ -106,7 +102,6 @@ const ScenarioSelector = ({ onSelectScenario, completedScenarios = [] }) => {
       category: 'identity',
       difficulty: '中级',
       duration: '20-25分钟',
-      thumbnail: '/assets/模拟仿真封面/生成主题封面 (5).png',
       skills: ['生涯规划', '价值澄清', '决策支持'],
       studentProfile: {
         name: '小刘',
@@ -129,7 +124,6 @@ const ScenarioSelector = ({ onSelectScenario, completedScenarios = [] }) => {
       category: 'relationship',
       difficulty: '初级',
       duration: '15-20分钟',
-      thumbnail: '/assets/模拟仿真封面/生成主题封面.png',
       skills: ['沟通技巧', '冲突解决', '情绪管理'],
       studentProfile: {
         name: '小赵',
@@ -238,15 +232,6 @@ const ScenarioSelector = ({ onSelectScenario, completedScenarios = [] }) => {
             } animate-slide-in-up`}
             style={{ animationDelay: `${index * 0.1}s` }}
           >
-            {/* 封面图片 */}
-            <div className="scenario-cover-wrapper">
-              <img
-                src={encodeURI(scenario.thumbnail || '/thumbnails/default.png')}
-                alt={`${scenario.title} 封面`}
-                className="scenario-cover-img"
-                onError={(e) => { e.currentTarget.src = '/thumbnails/default.png'; }}
-              />
-            </div>
             <div className="scenario-header">
               <div className="scenario-title-section">
                 <h3 className="scenario-title">{scenario.title}</h3>
