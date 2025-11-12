@@ -788,15 +788,17 @@ const { TextArea } = Input;
     };
 
 
-    // 考试/试卷（处置方案设计）
+    // 情境模拟场景训练文件（不再作为考试/试卷归类）
     const sceneExam = {
       id: 'exam_phase_3_scene_design',
-      name: '学生管理基础｜情景处置方案设计（100分）.pdf',
+      name: '学生管理基础｜心理健康辅导场景训练（100分）.pdf',
       type: 'application/pdf',
       size: 180 * 1024,
-      isPaper: true,
+      // 关键：不作为试卷归类，避免进入“考试”分组
+      isPaper: false,
       fullScore: 100,
-      examType: '方案设计',
+      // 将类型从“考试”语义调整为“情境模拟”，以符合页面展示需求
+      examType: '情境模拟',
       phaseId: 3,
       uploadTime: nowISO
     };
@@ -845,9 +847,28 @@ const { TextArea } = Input;
       next.live[sceneLive.id] = 'uncategorized';
       next.links[sceneLink.id] = 'uncategorized';
       next.texts[sceneText.id] = 'uncategorized';
+      // 仍使用 exam 类型的映射键，便于在“研修成果附件”里作为来源选择；
+      // 但由于 isPaper=false，该文件不会进入“考试”分组渲染。
       next.exam[sceneExam.id] = 'uncategorized';
       return next;
     });
+
+    // 预关联研修成果与该PDF来源，便于在“附件”视图看到计数
+    try {
+      if (state && typeof state.setAchievementAssociations === 'function') {
+        state.setAchievementAssociations(prev => ({
+          ...(prev || {}),
+          'achv-scene-1': {
+            ...((prev || {})['achv-scene-1'] || { linkedOperationIds: [], linkedSourceIds: [] }),
+            title: '情景模拟：心理健康辅导场景训练',
+            linkedSourceIds: [
+              ...(Array.isArray(((prev || {})['achv-scene-1'] || {}).linkedSourceIds) ? ((prev || {})['achv-scene-1'] || {}).linkedSourceIds : []),
+              `exam:${sceneExam.id}`
+            ]
+          }
+        }));
+      }
+    } catch (e) { /* no-op */ }
   }, [note?.id, note?.category, note?.courseType, note?.source, note?.tags]);
 
   // 组织培训：补充第一阶段直播讲座，并为第二阶段注入“教学基本规范”录播
@@ -1318,9 +1339,9 @@ const { TextArea } = Input;
       if (p3) {
         const scenarioAchievement = {
           id: 'achv-scene-1',
-          title: '情景模拟：班级突发事件处置',
+          title: '情景模拟：心理健康辅导场景训练',
           type: 'scenario_simulation',
-          description: '通过角色扮演模拟学生冲突场景，评估管理与沟通能力',
+          description: '围绕心理辅导场景开展演练与反思，评估沟通与支持能力',
           time: '本周',
           phaseId: 3,
           score: null,
