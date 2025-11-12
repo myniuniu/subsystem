@@ -1351,6 +1351,25 @@ const { TextArea } = Input;
       }
     }
 
+    // 在教育技术应用模块（第4阶段）添加一条“研修成果”记录
+    {
+      const p4 = phaseMap.get(4);
+      if (p4) {
+        const resultAchievement = {
+          id: 'achv-edu-tech-1',
+          title: '研修成果：微课作品与教学应用',
+          type: 'study_result',
+          description: '围绕教育技术工具制作微课并上传作品，结合教学场景应用说明',
+          time: '本周',
+          phaseId: 4,
+          score: null,
+          isCompleted: false
+        };
+        const existing = Array.isArray(p4.materials.achievements) ? p4.materials.achievements : [];
+        p4.materials.achievements = [...existing, resultAchievement];
+      }
+    }
+
     // 理论学习：把链接作为阅读材料归入第9周
     if (Array.isArray(links) && links.length > 0) {
       const p9 = phaseMap.get(9);
@@ -1499,7 +1518,7 @@ const { TextArea } = Input;
     const categories = [];
     if (videos.length > 0) categories.push({ key: 'videos', label: '课程视频', hours: videoSummary.totalHours || 0, score: (videoScoreSum > 0 ? videoScoreSum : (videoSummary.avgScore ?? null)) });
     if (lives.length > 0) categories.push({ key: 'live', label: '直播课程', hours: liveHours || 0, score: null });
-    if (achievementsArr.length > 0) categories.push({ key: 'achievements', label: '研修成果', hours: 0, score: achievementsScoreSum || null });
+    if (achievementsArr.length > 0) categories.push({ key: 'achievements', label: '情景模拟', hours: 0, score: achievementsScoreSum || null });
   if (exams.length > 0) categories.push({ key: 'exam', label: '考试', hours: 0, score: examScoreSum });
     if (linksArr.length > 0) categories.push({ key: 'links', label: '阅读材料', hours: 0, score: null });
     if (textsArr.length > 0) categories.push({ key: 'texts', label: '反思文本', hours: 0, score: null });
@@ -2371,7 +2390,7 @@ const { TextArea } = Input;
                       { key: 'links', present: modLinks.length > 0, label: '阅读材料', color: 'blue' },
                       // 在"我的评阅"分类下，分别显示两种评阅类型
                       ...(isMyEvaluation ? [
-                        { key: 'trainingReview', present: trainingReviewTexts.length > 0, label: '研修成果评阅', color: 'gold' },
+                        { key: 'trainingReview', present: trainingReviewTexts.length > 0, label: '情景模拟评阅', color: 'gold' },
                         { key: 'examReview', present: examReviewTexts.length > 0, label: '考试评阅', color: 'purple' }
                       ] : [
                         { key: 'texts', present: modTexts.length > 0, label: (note?.category === 'supervision' ? '督导执行' : '文本'), color: 'gold' }
@@ -2527,11 +2546,11 @@ const { TextArea } = Input;
                             </div>
                           )}
 
-                          {/* 模块内 - 研修成果评阅 */}
+                          {/* 模块内 - 情景模拟评阅 */}
                           {isMyEvaluation && trainingReviewTexts.length > 0 && (
                             <div style={{ marginBottom: 10 }}>
                               <Text strong style={{ fontSize: 12, color: '#666' }}>
-                                📝 研修成果评阅 ({trainingReviewTexts.length})
+                                📝 情景模拟评阅 ({trainingReviewTexts.length})
                               </Text>
                               <div style={{ marginTop: 6 }}>
                                 {trainingReviewTexts.map(text => (
@@ -2541,9 +2560,9 @@ const { TextArea } = Input;
                                     style={{ marginBottom: 8, border: '1px solid #e8e8e8', position: 'relative' }}
                                     bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}
                 onClick={() => {
-                  console.log('🟡 模块内-研修成果评阅卡片点击', { textId: text.id, title: text.title, category: note?.category });
+                  console.log('🟡 模块内-情景模拟评阅卡片点击', { textId: text.id, title: text.title, category: note?.category });
                   if (handlers?.onViewMaterial) {
-                    console.log('🚀 调用 onViewMaterial (我的评阅-研修成果)', { material: text, type: 'achievement' });
+                    console.log('🚀 调用 onViewMaterial (我的评阅-情景模拟)', { material: text, type: 'achievement' });
                     handlers.onViewMaterial(text, 'achievement');
                   }
                 }}
@@ -2553,7 +2572,7 @@ const { TextArea } = Input;
                                         <FileTextOutlined style={{ color: '#1890ff', marginRight: 8, fontSize: 16 }} />
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                                           <Text strong style={{ fontSize: 12, display: 'block' }}>{text.title || '未命名'}</Text>
-                                          <Tag color="gold">研修成果评阅</Tag>
+                                          <Tag color="gold">情景模拟评阅</Tag>
                                         </div>
                                         {text.updatedAt && (
                                           <Text type="secondary" style={{ fontSize: 10, marginLeft: 8 }}>{text.updatedAt}</Text>
@@ -2719,11 +2738,11 @@ const { TextArea } = Input;
                 </div>
               )}
               {/* 组织培训下：阶段分组视图 */}
-              {/* 评阅记录 - 学员研修成果评分弹窗 */}
+              {/* 评阅记录 - 学员情景模拟评分弹窗 */}
               <Modal
                 title={
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Text strong>评阅记录：研修成果提交清单</Text>
+                    <Text strong>评阅记录：情景模拟提交清单</Text>
                     {currentEvalText?.title && (
                       <Tag color="gold">{currentEvalText.title}</Tag>
                     )}
@@ -2739,7 +2758,7 @@ const { TextArea } = Input;
                 width={900}
               >
                 <div style={{ marginBottom: 8 }}>
-                  <Text type="secondary">为每位学员的“研修成果”附件进行评分（0-100分）。</Text>
+                  <Text type="secondary">为每位学员的“情景模拟”附件进行评分（0-100分）。</Text>
                 </div>
                 <Table
                   size="small"
@@ -2873,12 +2892,12 @@ const { TextArea } = Input;
                               const tagSpecs = [
                                 { key: 'live', present: Array.isArray(m.live) && m.live.length > 0, label: '直播课程', color: 'cyan' },
                                 { key: 'videos', present: Array.isArray(m.videos) && m.videos.length > 0, label: '课程视频', color: 'geekblue' },
-                                { key: 'achievements', present: Array.isArray(m.achievements) && m.achievements.length > 0, label: '研修成果', color: 'magenta' },
+                                { key: 'achievements', present: Array.isArray(m.achievements) && m.achievements.length > 0, label: '情景模拟', color: 'magenta' },
   { key: 'exam', present: Array.isArray(m.exam) && m.exam.length > 0, label: '考试', color: 'purple' },
                                 { key: 'links', present: Array.isArray(m.links) && m.links.length > 0, label: '阅读材料', color: 'blue' },
                                 // 在"我的评阅"分类下，分别显示两种评阅类型
                                 ...(isMyEvaluation ? [
-                                  { key: 'trainingReview', present: trainingReviewTexts.length > 0, label: '研修成果评阅', color: 'gold' },
+                                  { key: 'trainingReview', present: trainingReviewTexts.length > 0, label: '情景模拟评阅', color: 'gold' },
                                   { key: 'examReview', present: examReviewTexts.length > 0, label: '考试评阅', color: 'purple' }
                                 ] : [
                                   { key: 'texts', present: Array.isArray(m.texts) && m.texts.length > 0, label: '文本', color: 'gold' }
@@ -3610,192 +3629,276 @@ const { TextArea } = Input;
                             </div>
                           )}
 
-                          {/* 阶段内 - 研修成果 */}
-                          {Array.isArray(phase.materials?.achievements) && phase.materials.achievements.length > 0 && (
-                            <div style={{ marginTop: 12, background: '#ffffff', border: '1px solid #f0f0f0', borderLeft: '2px solid #eb2f96', borderRadius: 6, padding: 8 }}>
-                              <Text strong style={{ fontSize: 12, color: '#666' }}>📄 研修成果 ({phase.materials.achievements.length})</Text>
-                              {phase.materials.achievements.map(item => (
-                                <Card
-                                  key={`phase-${phase.id}-achievement-${item.id}`}
-                                  size="small"
-                                  style={{ marginTop: 6, border: '1px solid #e8e8e8', position: 'relative' }}
-                                  bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}
-                                  onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`achievement-${item.id}`]: true }))}
-                                  onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`achievement-${item.id}`]: false }))}
-                                  onClick={() => {
-                                    // 点击研修成果记录：在阶段材料区，统一打开附件管理页
-                                    console.log('🔍 研修成果卡片点击事件触发', { 
-                                      itemId: item.id, 
-                                      itemTitle: item.title,
-                                      preferredView: 'attachments',
-                                      handlers: !!handlers,
-                                      onViewMaterial: typeof handlers?.onViewMaterial
-                                    });
-                                    try {
-                                      if (handlers && typeof handlers.onViewMaterial === 'function') {
-                                        const materialWithPreference = { ...item, preferredView: 'attachments' };
-                                        console.log('🚀 调用 onViewMaterial', { materialWithPreference, type: 'achievement' });
-                                        handlers.onViewMaterial(materialWithPreference, 'achievement');
-                                      } else {
-                                        console.error('❌ handlers.onViewMaterial 不可用');
-                                      }
-                                    } catch (e) {
-                                      console.error('❌ 研修成果点击事件错误:', e);
-                                    }
-                                  }}
-                                >
-                                  {/* 悬停操作图标 - More 菜单（研修成果） - 已迁移到左侧，隐藏右上角容器 */}
-                                  <div style={{ display: 'none' }}>
-                                    {hoveredItems?.[`achievement-${item.id}`] ? (
-                                      <Dropdown
-                                        trigger={['click']}
-                                        placement="bottomLeft"
-                                        menu={{
-                                          items: (() => {
-                                            const completed = (achievementCompletion?.[item.id] ?? item.isCompleted) === true;
-                                            return [
-                                              { key: 'attachments', label: '附件', icon: <PaperClipOutlined /> },
-                                              { type: 'divider' },
-                                              completed
-                                                ? { key: 'markUncompleted', label: '标记未完成', icon: <CloseCircleOutlined /> }
-                                                : { key: 'markCompleted', label: '标记完成', icon: <CheckCircleOutlined /> }
-                                            ];
-                                          })(),
-                                          onClick: ({ key, domEvent }) => {
-                                            if (domEvent && typeof domEvent.stopPropagation === 'function') {
-                                              domEvent.stopPropagation();
+                          {/* 阶段内 - 情景模拟 与 研修成果（拆分渲染） */}
+                          {(() => {
+                            const achievements = Array.isArray(phase.materials?.achievements) ? phase.materials.achievements : [];
+                            if (achievements.length === 0) return null;
+
+                            const scenarioItems = achievements.filter(a => a?.type === 'scenario_simulation');
+                            const otherItems = achievements.filter(a => a?.type !== 'scenario_simulation');
+
+                            return (
+                              <React.Fragment>
+                                {scenarioItems.length > 0 && (
+                                  <div style={{ marginTop: 12, background: '#ffffff', border: '1px solid #f0f0f0', borderLeft: '2px solid #eb2f96', borderRadius: 6, padding: 8 }}>
+                                    <Text strong style={{ fontSize: 12, color: '#666' }}>🎭 情景模拟 ({scenarioItems.length})</Text>
+                                    {scenarioItems.map(item => (
+                                      <Card
+                                        key={`phase-${phase.id}-achievement-${item.id}`}
+                                        size="small"
+                                        style={{ marginTop: 6, border: '1px solid #e8e8e8', position: 'relative' }}
+                                        bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}
+                                        onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`achievement-${item.id}`]: true }))}
+                                        onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`achievement-${item.id}`]: false }))}
+                                        onClick={() => {
+                                          // 指定记录关联到现有静态页面：/gen-html/mental-health-coach.html
+                                          if (item?.title === '情景模拟：心理健康辅导场景训练') {
+                                            try {
+                                              state.setSelectedMaterial && state.setSelectedMaterial({
+                                                id: 'mental-health-coach',
+                                                title: item.title,
+                                                type: 'document',
+                                                url: '/gen-html/mental-health-coach.html'
+                                              });
+                                              state.setCurrentView && state.setCurrentView(VIEW_MODES.DOCUMENT_FULLSCREEN);
+                                              return;
+                                            } catch (e) {
+                                              console.error('❌ 打开 mental-health-coach 页面失败:', e);
                                             }
-                                            if (domEvent && typeof domEvent.preventDefault === 'function') {
-                                              domEvent.preventDefault();
+                                          }
+
+                                          // 其他情景模拟记录保持原有行为（打开附件视图）
+                                          try {
+                                            if (handlers && typeof handlers.onViewMaterial === 'function') {
+                                              handlers.onViewMaterial({ ...item, preferredView: 'attachments' }, 'achievement');
                                             }
-                                            if (key === 'attachments') {
-                                              try {
-                                                if (handlers && typeof handlers.onViewMaterial === 'function') {
-                                                  handlers.onViewMaterial({ ...item, preferredView: 'attachments' }, 'achievement');
-                                                }
-                                              } catch (e) { /* no-op */ }
-                                            }
-                                            if (key === 'markCompleted') {
-                                              setAchievementCompletion(prev => ({ ...prev, [item.id]: true }));
-                                              message.success('已标记为完成');
-                                            }
-                                            if (key === 'markUncompleted') {
-                                              setAchievementCompletion(prev => ({ ...prev, [item.id]: false }));
-                                              message.success('已标记为未完成');
-                                            }
+                                          } catch (e) {
+                                            console.error('❌ 情景模拟点击事件错误:', e);
                                           }
                                         }}
                                       >
-                                        <Tooltip title="更多">
-                                          <MoreOutlined style={{ color: '#8c8c8c', marginRight: 8, fontSize: 16 }} onClick={(e) => e.stopPropagation()} />
-                                        </Tooltip>
-                                      </Dropdown>
-                                    ) : (
-                                      <></>
-                                    )}
-                                  </div>
-                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
-                                      {hoveredItems?.[`achievement-${item.id}`] ? (
-                                        <Dropdown
-                                          trigger={['click']}
-                                          placement="bottomLeft"
-                                          menu={{
-                                            items: (() => {
-                                              const completed = (achievementCompletion?.[item.id] ?? item.isCompleted) === true;
-                                              return [
-                                                { key: 'attachments', label: '附件', icon: <PaperClipOutlined /> },
-                                                { type: 'divider' },
-                                                completed
-                                                  ? { key: 'markUncompleted', label: '标记未完成', icon: <CloseCircleOutlined /> }
-                                                  : { key: 'markCompleted', label: '标记完成', icon: <CheckCircleOutlined /> }
-                                              ];
-                                            })(),
-                                            onClick: ({ key, domEvent }) => {
-                                              if (domEvent && typeof domEvent.stopPropagation === 'function') {
-                                                domEvent.stopPropagation();
-                                              }
-                                              if (domEvent && typeof domEvent.preventDefault === 'function') {
-                                                domEvent.preventDefault();
-                                              }
-                                              if (key === 'attachments') {
-                                                try {
-                                                  if (handlers && typeof handlers.onViewMaterial === 'function') {
-                                                    handlers.onViewMaterial({ ...item, preferredView: 'attachments' }, 'achievement');
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                                            {hoveredItems?.[`achievement-${item.id}`] ? (
+                                              <Dropdown
+                                                trigger={['click']}
+                                                placement="bottomLeft"
+                                                menu={{
+                                                  items: (() => {
+                                                    const completed = (achievementCompletion?.[item.id] ?? item.isCompleted) === true;
+                                                    return [
+                                                      { key: 'attachments', label: '附件', icon: <PaperClipOutlined /> },
+                                                      { type: 'divider' },
+                                                      completed
+                                                        ? { key: 'markUncompleted', label: '标记未完成', icon: <CloseCircleOutlined /> }
+                                                        : { key: 'markCompleted', label: '标记完成', icon: <CheckCircleOutlined /> }
+                                                    ];
+                                                  })(),
+                                                  onClick: ({ key, domEvent }) => {
+                                                    if (domEvent && typeof domEvent.stopPropagation === 'function') domEvent.stopPropagation();
+                                                    if (domEvent && typeof domEvent.preventDefault === 'function') domEvent.preventDefault();
+                                                    if (key === 'attachments') {
+                                                      try {
+                                                        if (handlers && typeof handlers.onViewMaterial === 'function') {
+                                                          handlers.onViewMaterial({ ...item, preferredView: 'attachments' }, 'achievement');
+                                                        }
+                                                      } catch (e) { /* no-op */ }
+                                                    }
+                                                    if (key === 'markCompleted') {
+                                                      setAchievementCompletion(prev => ({ ...prev, [item.id]: true }));
+                                                      message.success('已标记为完成');
+                                                    }
+                                                    if (key === 'markUncompleted') {
+                                                      setAchievementCompletion(prev => ({ ...prev, [item.id]: false }));
+                                                      message.success('已标记为未完成');
+                                                    }
                                                   }
-                                                } catch (e) { /* no-op */ }
-                                              }
-                                              if (key === 'markCompleted') {
-                                                setAchievementCompletion(prev => ({ ...prev, [item.id]: true }));
-                                                message.success('已标记为完成');
-                                              }
-                                              if (key === 'markUncompleted') {
-                                                setAchievementCompletion(prev => ({ ...prev, [item.id]: false }));
-                                                message.success('已标记为未完成');
+                                                }}
+                                              >
+                                                <Tooltip title="更多">
+                                                  <MoreOutlined style={{ color: '#8c8c8c', marginRight: 8, fontSize: 16 }} onClick={(e) => e.stopPropagation()} />
+                                                </Tooltip>
+                                              </Dropdown>
+                                            ) : (
+                                              <FileTextOutlined style={{ color: '#eb2f96', marginRight: 8, fontSize: 16 }} />
+                                            )}
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
+                                              <Text style={{ fontSize: 12 }} ellipsis>
+                                                {item.title}
+                                              </Text>
+                                              {item.description && (
+                                                <Text type="secondary" style={{ fontSize: 12 }} ellipsis>
+                                                  {item.description}
+                                                </Text>
+                                              )}
+                                            </div>
+                                          </div>
+                                          {(() => {
+                                            const completed = (achievementCompletion?.[item.id] ?? item.isCompleted) === true;
+                                            const assocMap = (state && state.achievementAssociations) || {};
+                                            let count = 0;
+                                            const byId = assocMap[item.id];
+                                            if (byId) {
+                                              const ops = Array.isArray(byId.linkedOperationIds) ? byId.linkedOperationIds.length : 0;
+                                              const src = Array.isArray(byId.linkedSourceIds) ? byId.linkedSourceIds.length : 0;
+                                              count = ops + src;
+                                            } else {
+                                              const byTitle = Object.values(assocMap).find(x => String(x?.title || '') === String(item.title));
+                                              if (byTitle) {
+                                                const ops = Array.isArray(byTitle.linkedOperationIds) ? byTitle.linkedOperationIds.length : 0;
+                                                const src = Array.isArray(byTitle.linkedSourceIds) ? byTitle.linkedSourceIds.length : 0;
+                                                count = ops + src;
                                               }
                                             }
-                                          }}
-                                        >
-                                          <Tooltip title="更多">
-                                            <MoreOutlined style={{ color: '#8c8c8c', marginRight: 8, fontSize: 16 }} onClick={(e) => e.stopPropagation()} />
-                                          </Tooltip>
-                                        </Dropdown>
-                                      ) : (
-                                        <FileTextOutlined style={{ color: '#eb2f96', marginRight: 8, fontSize: 16 }} />
-                                      )}
-                                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
-                                        <Text style={{ fontSize: 12 }} ellipsis>
-                                          {item.title}
-                                        </Text>
-                                        {item.description && (
-                                          <Text type="secondary" style={{ fontSize: 12 }} ellipsis>
-                                            {item.description}
-                                          </Text>
-                                        )}
-                                      </div>
-                                    </div>
-                                    {/* 状态与附件数量：右侧垂直排列，附件在状态下方 */}
-                                    {(() => {
-                                      const completed = (achievementCompletion?.[item.id] ?? item.isCompleted) === true;
-                                      const assocMap = (state && state.achievementAssociations) || {};
-                                      let count = 0;
-                                      // 优先按 ID 精确匹配
-                                      const byId = assocMap[item.id];
-                                      if (byId) {
-                                        const ops = Array.isArray(byId.linkedOperationIds) ? byId.linkedOperationIds.length : 0;
-                                        const src = Array.isArray(byId.linkedSourceIds) ? byId.linkedSourceIds.length : 0;
-                                        count = ops + src;
-                                      } else {
-                                        // 兼容旧数据或不同入口的键不一致：尝试用标题匹配
-                                        const byTitle = Object.values(assocMap).find(x => String(x?.title || '') === String(item.title));
-                                        if (byTitle) {
-                                          const ops = Array.isArray(byTitle.linkedOperationIds) ? byTitle.linkedOperationIds.length : 0;
-                                          const src = Array.isArray(byTitle.linkedSourceIds) ? byTitle.linkedSourceIds.length : 0;
-                                          count = ops + src;
-                                        }
-                                      }
-                                      return (
-                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginRight: 8 }}>
-                                          <Tag color={completed ? 'green' : 'default'}>
-                                            {completed ? '已完成' : '未完成'}
-                                          </Tag>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                                            <PaperClipOutlined style={{ color: count > 0 ? '#1890ff' : '#bfbfbf', fontSize: 14 }} />
-                                            <span style={{ fontSize: 12, color: count > 0 ? '#1890ff' : '#999' }}>{count}</span>
-                                          </div>
+                                            return (
+                                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginRight: 8 }}>
+                                                <Tag color={completed ? 'green' : 'default'}>
+                                                  {completed ? '已完成' : '未完成'}
+                                                </Tag>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                                                  <PaperClipOutlined style={{ color: count > 0 ? '#1890ff' : '#bfbfbf', fontSize: 14 }} />
+                                                  <span style={{ fontSize: 12, color: count > 0 ? '#1890ff' : '#999' }}>{count}</span>
+                                                </div>
+                                              </div>
+                                            );
+                                          })()}
+                                          <Checkbox
+                                            checked={selectedMaterials.includes(`achievement-${item.id}`)}
+                                            onChange={(e) => handleSelectMaterial(`achievement-${item.id}`, e.target.checked)}
+                                            onClick={(e) => e.stopPropagation()}
+                                          />
                                         </div>
-                                      );
-                                    })()}
-                                    <Checkbox
-                                      checked={selectedMaterials.includes(`achievement-${item.id}`)}
-                                      onChange={(e) => handleSelectMaterial(`achievement-${item.id}`, e.target.checked)}
-                                      onClick={(e) => e.stopPropagation()}
-                                    />
+                                      </Card>
+                                    ))}
                                   </div>
-                                </Card>
-                              ))}
-                            </div>
-                          )}
+                                )}
+
+                                {otherItems.length > 0 && (
+                                  <div style={{ marginTop: 12, background: '#ffffff', border: '1px solid #f0f0f0', borderLeft: '2px solid #eb2f96', borderRadius: 6, padding: 8 }}>
+                                    <Text strong style={{ fontSize: 12, color: '#666' }}>📄 研修成果 ({otherItems.length})</Text>
+                                    {otherItems.map(item => (
+                                      <Card
+                                        key={`phase-${phase.id}-achievement-${item.id}`}
+                                        size="small"
+                                        style={{ marginTop: 6, border: '1px solid #e8e8e8', position: 'relative' }}
+                                        bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}
+                                        onMouseEnter={() => setHoveredItems(prev => ({ ...(prev || {}), [`achievement-${item.id}`]: true }))}
+                                        onMouseLeave={() => setHoveredItems(prev => ({ ...(prev || {}), [`achievement-${item.id}`]: false }))}
+                                        onClick={() => {
+                                          console.log('🔍 研修成果卡片点击事件触发', { 
+                                            itemId: item.id, 
+                                            itemTitle: item.title,
+                                            preferredView: 'attachments',
+                                            handlers: !!handlers,
+                                            onViewMaterial: typeof handlers?.onViewMaterial
+                                          });
+                                          try {
+                                            if (handlers && typeof handlers.onViewMaterial === 'function') {
+                                              handlers.onViewMaterial({ ...item, preferredView: 'attachments' }, 'achievement');
+                                            }
+                                          } catch (e) {
+                                            console.error('❌ 研修成果点击事件错误:', e);
+                                          }
+                                        }}
+                                      >
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                                            {hoveredItems?.[`achievement-${item.id}`] ? (
+                                              <Dropdown
+                                                trigger={['click']}
+                                                placement="bottomLeft"
+                                                menu={{
+                                                  items: (() => {
+                                                    const completed = (achievementCompletion?.[item.id] ?? item.isCompleted) === true;
+                                                    return [
+                                                      { key: 'attachments', label: '附件', icon: <PaperClipOutlined /> },
+                                                      { type: 'divider' },
+                                                      completed
+                                                        ? { key: 'markUncompleted', label: '标记未完成', icon: <CloseCircleOutlined /> }
+                                                        : { key: 'markCompleted', label: '标记完成', icon: <CheckCircleOutlined /> }
+                                                    ];
+                                                  })(),
+                                                  onClick: ({ key, domEvent }) => {
+                                                    if (domEvent && typeof domEvent.stopPropagation === 'function') domEvent.stopPropagation();
+                                                    if (domEvent && typeof domEvent.preventDefault === 'function') domEvent.preventDefault();
+                                                    if (key === 'attachments') {
+                                                      try {
+                                                        if (handlers && typeof handlers.onViewMaterial === 'function') {
+                                                          handlers.onViewMaterial({ ...item, preferredView: 'attachments' }, 'achievement');
+                                                        }
+                                                      } catch (e) { /* no-op */ }
+                                                    }
+                                                    if (key === 'markCompleted') {
+                                                      setAchievementCompletion(prev => ({ ...prev, [item.id]: true }));
+                                                      message.success('已标记为完成');
+                                                    }
+                                                    if (key === 'markUncompleted') {
+                                                      setAchievementCompletion(prev => ({ ...prev, [item.id]: false }));
+                                                      message.success('已标记为未完成');
+                                                    }
+                                                  }
+                                                }}
+                                              >
+                                                <Tooltip title="更多">
+                                                  <MoreOutlined style={{ color: '#8c8c8c', marginRight: 8, fontSize: 16 }} onClick={(e) => e.stopPropagation()} />
+                                                </Tooltip>
+                                              </Dropdown>
+                                            ) : (
+                                              <FileTextOutlined style={{ color: '#eb2f96', marginRight: 8, fontSize: 16 }} />
+                                            )}
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
+                                              <Text style={{ fontSize: 12 }} ellipsis>
+                                                {item.title}
+                                              </Text>
+                                              {item.description && (
+                                                <Text type="secondary" style={{ fontSize: 12 }} ellipsis>
+                                                  {item.description}
+                                                </Text>
+                                              )}
+                                            </div>
+                                          </div>
+                                          {(() => {
+                                            const completed = (achievementCompletion?.[item.id] ?? item.isCompleted) === true;
+                                            const assocMap = (state && state.achievementAssociations) || {};
+                                            let count = 0;
+                                            const byId = assocMap[item.id];
+                                            if (byId) {
+                                              const ops = Array.isArray(byId.linkedOperationIds) ? byId.linkedOperationIds.length : 0;
+                                              const src = Array.isArray(byId.linkedSourceIds) ? byId.linkedSourceIds.length : 0;
+                                              count = ops + src;
+                                            } else {
+                                              const byTitle = Object.values(assocMap).find(x => String(x?.title || '') === String(item.title));
+                                              if (byTitle) {
+                                                const ops = Array.isArray(byTitle.linkedOperationIds) ? byTitle.linkedOperationIds.length : 0;
+                                                const src = Array.isArray(byTitle.linkedSourceIds) ? byTitle.linkedSourceIds.length : 0;
+                                                count = ops + src;
+                                              }
+                                            }
+                                            return (
+                                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginRight: 8 }}>
+                                                <Tag color={completed ? 'green' : 'default'}>
+                                                  {completed ? '已完成' : '未完成'}
+                                                </Tag>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                                                  <PaperClipOutlined style={{ color: count > 0 ? '#1890ff' : '#bfbfbf', fontSize: 14 }} />
+                                                  <span style={{ fontSize: 12, color: count > 0 ? '#1890ff' : '#999' }}>{count}</span>
+                                                </div>
+                                              </div>
+                                            );
+                                          })()}
+                                          <Checkbox
+                                            checked={selectedMaterials.includes(`achievement-${item.id}`)}
+                                            onChange={(e) => handleSelectMaterial(`achievement-${item.id}`, e.target.checked)}
+                                            onClick={(e) => e.stopPropagation()}
+                                          />
+                                        </div>
+                                      </Card>
+                                    ))}
+                                  </div>
+                                )}
+                              </React.Fragment>
+                            );
+                          })()}
 
                           {/* 阶段内 - 考试/试卷 */}
                           {Array.isArray(phase.materials?.exam) && phase.materials.exam.length > 0 && (

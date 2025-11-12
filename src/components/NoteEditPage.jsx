@@ -47,6 +47,7 @@ import KnowledgeGraphMindMap from './KnowledgeGraphMindMap.jsx';
 // 导入场景仿真组件
 import ScenarioSimulation from './ScenarioSimulation';
 import ScenarioView from './ScenarioView';
+import MentalHealthCoaching from './MentalHealthCoaching';
 import LearningPlanCalendarFullscreen from './LearningPlanCalendarFullscreen';
 import LearningPlanCalendar from './LearningPlanCalendar';
 import CalendarCenter from './CalendarCenter';
@@ -69,7 +70,8 @@ import {
   MORE_MENU_ACTIONS,
   OPERATION_TYPES,
   TOOL_CATEGORIES,
-  EXAM_VIEW_MODES
+  EXAM_VIEW_MODES,
+  MENTAL_HEALTH_VIEW_MODES
 } from '../constants/noteEditConstants';
 import {
   getLiveStreamStatus,
@@ -1940,6 +1942,44 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
             setSelectedScenarios={setSelectedScenarios}
             setCurrentView={setCurrentView}
           />
+        ) : currentView === MENTAL_HEALTH_VIEW_MODES.MENTAL_HEALTH_COACHING_FULLSCREEN ? (
+          /* 心理健康辅导场景训练全屏：占据全部三栏区域 */
+          <div style={{ 
+            flex: 1, 
+            background: '#f0f2f5', 
+            margin: '16px', 
+            borderRadius: '12px', 
+            overflow: 'hidden', 
+            display: 'flex', 
+            flexDirection: 'column',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            position: 'relative'
+          }}>
+            <Button 
+              type="text"
+              icon={<ArrowLeftOutlined />}
+              onClick={() => {
+                setCurrentView(VIEW_MODES.MATERIALS);
+                message.info('已退出心理辅导场景训练全屏');
+              }}
+              style={{ 
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                zIndex: 1000,
+                color: '#666',
+                border: '1px solid #d9d9d9',
+                borderRadius: '6px',
+                background: 'rgba(255, 255, 255, 0.9)',
+                backdropFilter: 'blur(10px)'
+              }}
+            >
+              返回三栏视图
+            </Button>
+            <div style={{ flex: 1, background: '#fff', borderRadius: '12px', overflow: 'auto' }}>
+              <MentalHealthCoaching onBack={() => setCurrentView(VIEW_MODES.MATERIALS)} />
+            </div>
+          </div>
         ) : currentView === VIEW_MODES.LEARNING_PLAN_CALENDAR ? (
           /* 日历演示全屏模式：占据全部三栏区域 */
           <div style={{ 

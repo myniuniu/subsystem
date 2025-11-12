@@ -1143,17 +1143,17 @@
             
             if (!modal || !imgEl || !capEl || !progressEl || !prevBtn || !nextBtn) return onComplete && onComplete();
             const slides = [
-                { img: '/public/assets/场景模拟/辅导员与学生的交流1.png', text: '李明来到辅导员办公室，轻轻敲门后走进。' },
-                { img: '/public/assets/场景模拟/辅导员与学生的交流2.png', text: '李明表达最近的学业压力，辅导员认真倾听。' },
-                { img: '/public/assets/场景模拟/辅导员与学生的交流3.png', text: '辅导员给出建议与方法，氛围逐渐放松。' },
-                { img: '/public/assets/场景模拟/辅导员与学生的交流4.png', text: '李明心情好转，露出笑容，感谢辅导员的帮助。' }
+                { img: '/assets/场景模拟/辅导员与学生的交流1.png', text: '李明来到辅导员办公室，轻轻敲门后走进。' },
+                { img: '/assets/场景模拟/辅导员与学生的交流2.png', text: '李明表达最近的学业压力，辅导员认真倾听。' },
+                { img: '/assets/场景模拟/辅导员与学生的交流3.png', text: '辅导员给出建议与方法，氛围逐渐放松。' },
+                { img: '/assets/场景模拟/辅导员与学生的交流4.png', text: '李明心情好转，露出笑容，感谢辅导员的帮助。' }
             ];
             let index = 0;
             let selectedMode = window.chatMode || 'voice';
             const render = () => {
                 const s = slides[index];
                 imgEl.src = s.img;
-                imgEl.onerror = () => { imgEl.src = '/public/thumbnails/images.png'; };
+                imgEl.onerror = () => { imgEl.src = '/thumbnails/images.png'; };
                 capEl.textContent = s.text;
                 progressEl.textContent = `${index + 1} / ${slides.length}`;
                 prevBtn.disabled = index === 0;
@@ -1221,17 +1221,17 @@
             const closeBtn = document.getElementById('illustration-close');
             if (!modal || !imgEl || !progressEl || !prevBtn || !nextBtn || !continueBtn) return onComplete && onComplete();
             const slides = [
-                { img: '/public/assets/场景模拟/辅导员与学生的交流.png' },
-                { img: '/public/assets/场景模拟/辅导员与学生的交流1.png' },
-                { img: '/public/assets/场景模拟/辅导员与学生的交流2.png' },
-                { img: '/public/assets/场景模拟/辅导员与学生的交流 3.png' },
-                { img: '/public/assets/场景模拟/辅导员与学生的交流4.png' }
+                { img: '/assets/场景模拟/辅导员与学生的交流.png' },
+                { img: '/assets/场景模拟/辅导员与学生的交流1.png' },
+                { img: '/assets/场景模拟/辅导员与学生的交流2.png' },
+                { img: '/assets/场景模拟/辅导员与学生的交流 3.png' },
+                { img: '/assets/场景模拟/辅导员与学生的交流4.png' }
             ];
             let index = 0;
             const render = () => {
                 const s = slides[index];
                 imgEl.src = s.img;
-                imgEl.onerror = () => { imgEl.src = '/public/thumbnails/images.png'; };
+                imgEl.onerror = () => { imgEl.src = '/thumbnails/images.png'; };
                 progressEl.textContent = `${index + 1} / ${slides.length}`;
                 prevBtn.disabled = index === 0;
                 nextBtn.classList.toggle('hidden', index === slides.length - 1);

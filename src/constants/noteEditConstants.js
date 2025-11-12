@@ -115,6 +115,12 @@ export const VIEW_MODES = {
   SUPERVISION_EXECUTION_FULLSCREEN: 'supervision_execution_fullscreen'
 };
 
+// 新增：心理健康辅导场景训练页（全屏）
+// 用于 MaterialManagement 中点击“情景模拟：心理健康辅导场景训练”记录时的跳转
+export const MENTAL_HEALTH_VIEW_MODES = {
+  MENTAL_HEALTH_COACHING_FULLSCREEN: 'mental_health_coaching_fullscreen'
+};
+
 // 新增：考试评阅占位页（全屏，占据 NoteEditPage 左中右区域）
 export const EXAM_VIEW_MODES = {
   EXAM_REVIEW_FULLSCREEN: 'exam_review_fullscreen',
