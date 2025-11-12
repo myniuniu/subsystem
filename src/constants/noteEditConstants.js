@@ -31,7 +31,7 @@ export const OPERATION_TYPES = {
 
 // 操作按钮标题映射
 export const OPERATION_TITLES = {
-  [OPERATION_TYPES.AUDIO]: '音频概览',
+  [OPERATION_TYPES.AUDIO]: '音频播客',
   [OPERATION_TYPES.VIDEO]: '视频概览',
   [OPERATION_TYPES.MINDMAP]: '思维导图',
   [OPERATION_TYPES.REPORT]: '分析报告',
@@ -485,7 +485,7 @@ export const OPERATION_CARDS = [
   },
   {
     key: OPERATION_TYPES.AUDIO,
-    title: '音频概览',
+    title: '音频播客',
     icon: '音',
     gradient: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
     color: '#1565c0'

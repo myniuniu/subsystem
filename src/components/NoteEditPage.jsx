@@ -1013,7 +1013,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
 
       const operationTitles = {
         [OPERATION_TYPES.KNOWLEDGE_GRAPH]: '知识图谱',
-        [OPERATION_TYPES.AUDIO]: '音频概览',
+        [OPERATION_TYPES.AUDIO]: '音频播客',
         [OPERATION_TYPES.VIDEO]: '视频概览',
         [OPERATION_TYPES.MINDMAP]: '思维导图',
         [OPERATION_TYPES.REPORT]: '分析报告',
@@ -2759,7 +2759,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         <div style={{ padding: '20px 0' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
             {[
-              { key: 'audio', icon: '🎵', title: '音频概览' },
+              { key: 'audio', icon: '🎵', title: '音频播客' },
               { key: 'video', icon: '📹', title: '视频概览' },
               { key: 'mindmap', icon: '🧠', title: '思维导图' },
               { key: 'report', icon: '📊', title: '报告' },
