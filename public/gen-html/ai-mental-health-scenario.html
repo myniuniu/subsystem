@@ -81,6 +81,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
+            position: relative; /* 允许内部绝对定位悬浮元素 */
         }
         .scenario-chat .chat-input {
             background: #ffffff;
@@ -305,7 +306,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- 场景卡片 1 -->
-                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover scenario-card" data-scenario="academic-stress">
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover scenario-card cursor-pointer" data-scenario="academic-stress">
                     <div class="h-48 overflow-hidden">
                         <img src="/assets/场景模拟/辅导员与学生的交流.png" alt="辅导员与学生的交流" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
                     </div>
@@ -316,7 +317,7 @@
                         </div>
                         <h3 class="text-xl font-bold mb-2">学业压力过大</h3>
                         <p class="text-gray-600 text-sm mb-4">一名大二学生因多门课程考试临近而感到极度焦虑，出现失眠和注意力不集中的情况。</p>
-                        <div class="flex items-center justify-between">
+                        <div class="flex items-center justify-start">
                             <div class="flex items-center">
                                 <i class="fa fa-star text-accent"></i>
                                 <i class="fa fa-star text-accent"></i>
@@ -325,15 +326,12 @@
                                 <i class="fa fa-star-half-o text-accent"></i>
                                 <span class="ml-2 text-sm text-gray-500">4.5</span>
                             </div>
-                            <button class="text-primary hover:text-primary/80 font-medium text-sm flex items-center">
-                                开始 <i class="fa fa-arrow-right ml-1"></i>
-                            </button>
                         </div>
                     </div>
                 </div>
 
                 <!-- 场景卡片 2 -->
-                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover scenario-card" data-scenario="social-anxiety">
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover scenario-card cursor-pointer" data-scenario="social-anxiety">
                     <div class="h-48 overflow-hidden">
                         <div class="w-full h-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center transition-transform duration-500 hover:scale-110">
                             <svg class="w-16 h-16 text-green-400" fill="currentColor" viewBox="0 0 20 20">
@@ -348,7 +346,7 @@
                         </div>
                         <h3 class="text-xl font-bold mb-2">社交焦虑障碍</h3>
                         <p class="text-gray-600 text-sm mb-4">一名新生因无法适应集体生活，害怕与人交往，经常独自待在宿舍，甚至不愿去上课。</p>
-                        <div class="flex items-center justify-between">
+                        <div class="flex items-center justify-start">
                             <div class="flex items-center">
                                 <i class="fa fa-star text-accent"></i>
                                 <i class="fa fa-star text-accent"></i>
@@ -357,15 +355,12 @@
                                 <i class="fa fa-star-o text-accent"></i>
                                 <span class="ml-2 text-sm text-gray-500">4.0</span>
                             </div>
-                            <button class="text-primary hover:text-primary/80 font-medium text-sm flex items-center">
-                                开始 <i class="fa fa-arrow-right ml-1"></i>
-                            </button>
                         </div>
                     </div>
                 </div>
 
                 <!-- 场景卡片 3 -->
-                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover scenario-card" data-scenario="depression">
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover scenario-card cursor-pointer" data-scenario="depression">
                     <div class="h-48 overflow-hidden">
                         <div class="w-full h-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center transition-transform duration-500 hover:scale-110">
                             <svg class="w-16 h-16 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
@@ -380,7 +375,7 @@
                         </div>
                         <h3 class="text-xl font-bold mb-2">抑郁倾向识别</h3>
                         <p class="text-gray-600 text-sm mb-4">一名学生近期情绪低落，对以往感兴趣的事物失去兴趣，成绩明显下滑，有自伤想法。</p>
-                        <div class="flex items-center justify-between">
+                        <div class="flex items-center justify-start">
                             <div class="flex items-center">
                                 <i class="fa fa-star text-accent"></i>
                                 <i class="fa fa-star text-accent"></i>
@@ -389,15 +384,12 @@
                                 <i class="fa fa-star text-accent"></i>
                                 <span class="ml-2 text-sm text-gray-500">5.0</span>
                             </div>
-                            <button class="text-primary hover:text-primary/80 font-medium text-sm flex items-center">
-                                开始 <i class="fa fa-arrow-right ml-1"></i>
-                            </button>
                         </div>
                     </div>
                 </div>
 
                 <!-- 场景卡片 4 -->
-                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover scenario-card" data-scenario="family-issues">
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover scenario-card cursor-pointer" data-scenario="family-issues">
                     <div class="h-48 overflow-hidden">
                         <div class="w-full h-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center transition-transform duration-500 hover:scale-110">
                             <svg class="w-16 h-16 text-orange-400" fill="currentColor" viewBox="0 0 20 20">
@@ -412,7 +404,7 @@
                         </div>
                         <h3 class="text-xl font-bold mb-2">家庭关系问题</h3>
                         <p class="text-gray-600 text-sm mb-4">一名学生因家庭矛盾（父母离异）而情绪不稳定，影响学习和生活，需要情感支持。</p>
-                        <div class="flex items-center justify-between">
+                        <div class="flex items-center justify-start">
                             <div class="flex items-center">
                                 <i class="fa fa-star text-accent"></i>
                                 <i class="fa fa-star text-accent"></i>
@@ -421,15 +413,12 @@
                                 <i class="fa fa-star-o text-accent"></i>
                                 <span class="ml-2 text-sm text-gray-500">3.5</span>
                             </div>
-                            <button class="text-primary hover:text-primary/80 font-medium text-sm flex items-center">
-                                开始 <i class="fa fa-arrow-right ml-1"></i>
-                            </button>
                         </div>
                     </div>
                 </div>
 
                 <!-- 场景卡片 5 -->
-                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover scenario-card" data-scenario="identity-crisis">
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover scenario-card cursor-pointer" data-scenario="identity-crisis">
                     <div class="h-48 overflow-hidden">
                         <div class="w-full h-full bg-gradient-to-br from-pink-100 to-pink-200 flex items-center justify-center transition-transform duration-500 hover:scale-110">
                             <svg class="w-16 h-16 text-pink-400" fill="currentColor" viewBox="0 0 20 20">
@@ -444,7 +433,7 @@
                         </div>
                         <h3 class="text-xl font-bold mb-2">自我认同危机</h3>
                         <p class="text-gray-600 text-sm mb-4">一名大三学生对未来感到迷茫，不确定自己的职业方向，出现自我怀疑和焦虑情绪。</p>
-                        <div class="flex items-center justify-between">
+                        <div class="flex items-center justify-start">
                             <div class="flex items-center">
                                 <i class="fa fa-star text-accent"></i>
                                 <i class="fa fa-star text-accent"></i>
@@ -453,15 +442,12 @@
                                 <i class="fa fa-star-o text-accent"></i>
                                 <span class="ml-2 text-sm text-gray-500">4.0</span>
                             </div>
-                            <button class="text-primary hover:text-primary/80 font-medium text-sm flex items-center">
-                                开始 <i class="fa fa-arrow-right ml-1"></i>
-                            </button>
                         </div>
                     </div>
                 </div>
 
                 <!-- 场景卡片 6 -->
-                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover scenario-card" data-scenario="addiction">
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover scenario-card cursor-pointer" data-scenario="addiction">
                     <div class="h-48 overflow-hidden">
                         <div class="w-full h-full bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center transition-transform duration-500 hover:scale-110">
                             <svg class="w-16 h-16 text-red-400" fill="currentColor" viewBox="0 0 20 20">
@@ -476,7 +462,7 @@
                         </div>
                         <h3 class="text-xl font-bold mb-2">网络成瘾问题</h3>
                         <p class="text-gray-600 text-sm mb-4">一名学生沉迷网络游戏，经常逃课，昼夜颠倒，与同学关系疏远，有明显的戒断反应。</p>
-                        <div class="flex items-center justify-between">
+                        <div class="flex items-center justify-start">
                             <div class="flex items-center">
                                 <i class="fa fa-star text-accent"></i>
                                 <i class="fa fa-star text-accent"></i>
@@ -485,9 +471,6 @@
                                 <i class="fa fa-star-half-o text-accent"></i>
                                 <span class="ml-2 text-sm text-gray-500">4.5</span>
                             </div>
-                            <button class="text-primary hover:text-primary/80 font-medium text-sm flex items-center">
-                                开始 <i class="fa fa-arrow-right ml-1"></i>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -1051,6 +1034,229 @@
 
 
     <script>
+        // ====== 对话模式：语音或文本 ======
+        // 全局模式，默认文本
+        window.chatMode = 'text';
+
+        // 模式选择弹窗模板（插入到页面末尾）
+        (function ensureModeSelectModal() {
+            if (document.getElementById('mode-select-modal')) return;
+            const modal = document.createElement('div');
+            modal.id = 'mode-select-modal';
+            modal.className = 'fixed inset-0 bg-black/40 flex items-center justify-center z-50 hidden';
+            modal.innerHTML = `
+                <div class="bg-white rounded-xl shadow-xl w-[min(90vw,480px)] p-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">选择对话模式</h3>
+                    <p class="text-sm text-gray-600 mb-5">进入场景前，请选择使用语音对话或文本对话。</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button id="mode-voice-btn" class="flex items-center justify-center gap-2 bg-primary text-white px-4 py-3 rounded-lg hover:bg-primary/90 transition-colors">
+                            <i class="fa fa-microphone"></i>
+                            <span>语音对话</span>
+                        </button>
+                        <button id="mode-text-btn" class="flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-800 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors">
+                            <i class="fa fa-keyboard-o"></i>
+                            <span>文本对话</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        })();
+
+        // 打开模式选择弹窗并在选择后执行回调
+        function openModeSelect(callback) {
+            const modal = document.getElementById('mode-select-modal');
+            const voiceBtn = document.getElementById('mode-voice-btn');
+            const textBtn = document.getElementById('mode-text-btn');
+            if (!modal || !voiceBtn || !textBtn) {
+                console.warn('模式选择弹窗不存在，直接继续');
+                callback && callback('text');
+                return;
+            }
+            modal.classList.remove('hidden');
+            const cleanup = () => {
+                modal.classList.add('hidden');
+                voiceBtn.removeEventListener('click', onVoice);
+                textBtn.removeEventListener('click', onText);
+            };
+            const onVoice = () => {
+                window.chatMode = 'voice';
+                cleanup();
+                callback && callback('voice');
+            };
+            const onText = () => {
+                window.chatMode = 'text';
+                cleanup();
+                callback && callback('text');
+            };
+            voiceBtn.addEventListener('click', onVoice);
+            textBtn.addEventListener('click', onText);
+        }
+
+        // ====== 绘本分镜弹窗 ======
+        (function ensureStoryboardModal() {
+            if (document.getElementById('storybook-modal')) return;
+            const modal = document.createElement('div');
+            modal.id = 'storybook-modal';
+            modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-[60] hidden';
+            modal.innerHTML = `
+                <div class="w-[min(92vw,880px)] max-h-[90vh] bg-[#fffaf0] rounded-2xl shadow-2xl overflow-hidden border border-amber-200 flex flex-col">
+                    <div class="bg-amber-100/70 px-6 py-3 flex items-center justify-between">
+                        <h3 class="text-lg font-bold text-amber-900">场景概要</h3>
+                        <button id="storybook-close" class="text-amber-700 hover:text-amber-900"><i class="fa fa-times"></i></button>
+                    </div>
+                    <div class="flex-1 overflow-auto p-6">
+                        <div id="storybook-page" class="bg-white rounded-xl shadow-md p-4 flex flex-col items-center">
+                            <img id="storybook-image" src="" alt="分镜" class="w-full max-w-[720px] h-auto rounded-lg border border-amber-200" />
+                            <p id="storybook-caption" class="mt-4 text-amber-900 text-base leading-relaxed"></p>
+                        </div>
+                    </div>
+                    <div class="relative px-6 py-4 bg-amber-50">
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm text-amber-700"><span id="storybook-progress">1 / 4</span></div>
+                            <div class="flex items-center gap-3">
+                                <button id="storybook-prev" class="px-4 py-2 rounded-lg border border-amber-200 text-amber-800 bg-white hover:bg-amber-100">上一页</button>
+                                <button id="storybook-next" class="px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600">下一页</button>
+                            </div>
+                        </div>
+                        <div class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 pointer-events-none" id="storybook-start-group">
+                            <div id="storybook-start-wrapper" class="relative pointer-events-auto">
+                                <button id="storybook-start" class="px-5 py-2.5 rounded-lg bg-primary text-white hover:bg-primary/90">开始训练</button>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        })();
+
+        function openStoryboard(onComplete) {
+            const modal = document.getElementById('storybook-modal');
+            const imgEl = document.getElementById('storybook-image');
+            const capEl = document.getElementById('storybook-caption');
+            const progressEl = document.getElementById('storybook-progress');
+            const prevBtn = document.getElementById('storybook-prev');
+            const nextBtn = document.getElementById('storybook-next');
+            const startBtn = document.getElementById('storybook-start');
+            const closeBtn = document.getElementById('storybook-close');
+            
+            const startGroup = document.getElementById('storybook-start-group');
+            
+            if (!modal || !imgEl || !capEl || !progressEl || !prevBtn || !nextBtn) return onComplete && onComplete();
+            const slides = [
+                { img: '/public/assets/场景模拟/辅导员与学生的交流1.png', text: '李明来到辅导员办公室，轻轻敲门后走进。' },
+                { img: '/public/assets/场景模拟/辅导员与学生的交流2.png', text: '李明表达最近的学业压力，辅导员认真倾听。' },
+                { img: '/public/assets/场景模拟/辅导员与学生的交流3.png', text: '辅导员给出建议与方法，氛围逐渐放松。' },
+                { img: '/public/assets/场景模拟/辅导员与学生的交流4.png', text: '李明心情好转，露出笑容，感谢辅导员的帮助。' }
+            ];
+            let index = 0;
+            let selectedMode = window.chatMode || 'voice';
+            const render = () => {
+                const s = slides[index];
+                imgEl.src = s.img;
+                imgEl.onerror = () => { imgEl.src = '/public/thumbnails/images.png'; };
+                capEl.textContent = s.text;
+                progressEl.textContent = `${index + 1} / ${slides.length}`;
+                prevBtn.disabled = index === 0;
+                nextBtn.classList.toggle('hidden', index === slides.length - 1);
+                
+            };
+            const cleanup = () => {
+                prevBtn.removeEventListener('click', onPrev);
+                nextBtn.removeEventListener('click', onNext);
+                // 移除未定义的 onStart 引用，避免报错
+                closeBtn && closeBtn.removeEventListener('click', onClose);
+                startBtn && startBtn.removeEventListener('click', onStart);
+            };
+            const onPrev = () => { if (index > 0) { index--; render(); } };
+            const onNext = () => { if (index < slides.length - 1) { index++; render(); } };
+            
+            const onClose = () => { cleanup(); modal.classList.add('hidden'); };
+            const onStart = () => { cleanup(); modal.classList.add('hidden'); onComplete && onComplete(); };
+            prevBtn.addEventListener('click', onPrev);
+            nextBtn.addEventListener('click', onNext);
+            
+            closeBtn && closeBtn.addEventListener('click', onClose);
+            startBtn && startBtn.addEventListener('click', onStart);
+            modal.classList.remove('hidden');
+            render();
+        }
+
+        // ====== 图示弹窗（仅图片，无文字） ======
+        (function ensureIllustrationModal() {
+            if (document.getElementById('illustration-modal')) return;
+            const modal = document.createElement('div');
+            modal.id = 'illustration-modal';
+            modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-[60] hidden';
+            modal.innerHTML = `
+                <div class="w-[min(92vw,880px)] max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200 flex flex-col">
+                    <div class="bg-gray-50 px-6 py-3 flex items-center justify-between">
+                        <h3 class="text-lg font-bold text-gray-800">场景图示</h3>
+                        <button id="illustration-close" class="text-gray-600 hover:text-gray-800"><i class="fa fa-times"></i></button>
+                    </div>
+                    <div class="flex-1 overflow-auto p-6">
+                        <div id="illustration-page" class="bg-white rounded-xl p-2 flex flex-col items-center">
+                            <img id="illustration-image" src="" alt="图示" class="w-full max-w-[720px] h-auto rounded-lg border border-gray-200" />
+                        </div>
+                    </div>
+                    <div class="px-6 py-4 bg-gray-50 flex items-center justify-between">
+                        <div class="text-sm text-gray-600"><span id="illustration-progress">1 / 4</span></div>
+                        <div class="flex items-center gap-3">
+                            <button id="illustration-prev" class="px-4 py-2 rounded-lg border border-gray-200 text-gray-800 bg-white hover:bg-gray-100">上一页</button>
+                            <button id="illustration-next" class="px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-900">下一页</button>
+                            <button id="illustration-continue" class="hidden px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90">继续</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        })();
+
+        function openIllustration(onComplete) {
+            const modal = document.getElementById('illustration-modal');
+            const imgEl = document.getElementById('illustration-image');
+            const progressEl = document.getElementById('illustration-progress');
+            const prevBtn = document.getElementById('illustration-prev');
+            const nextBtn = document.getElementById('illustration-next');
+            const continueBtn = document.getElementById('illustration-continue');
+            const closeBtn = document.getElementById('illustration-close');
+            if (!modal || !imgEl || !progressEl || !prevBtn || !nextBtn || !continueBtn) return onComplete && onComplete();
+            const slides = [
+                { img: '/public/assets/场景模拟/辅导员与学生的交流.png' },
+                { img: '/public/assets/场景模拟/辅导员与学生的交流1.png' },
+                { img: '/public/assets/场景模拟/辅导员与学生的交流2.png' },
+                { img: '/public/assets/场景模拟/辅导员与学生的交流 3.png' },
+                { img: '/public/assets/场景模拟/辅导员与学生的交流4.png' }
+            ];
+            let index = 0;
+            const render = () => {
+                const s = slides[index];
+                imgEl.src = s.img;
+                imgEl.onerror = () => { imgEl.src = '/public/thumbnails/images.png'; };
+                progressEl.textContent = `${index + 1} / ${slides.length}`;
+                prevBtn.disabled = index === 0;
+                nextBtn.classList.toggle('hidden', index === slides.length - 1);
+                continueBtn.classList.toggle('hidden', index !== slides.length - 1);
+            };
+            const cleanup = () => {
+                prevBtn.removeEventListener('click', onPrev);
+                nextBtn.removeEventListener('click', onNext);
+                continueBtn.removeEventListener('click', onContinue);
+                closeBtn && closeBtn.removeEventListener('click', onClose);
+            };
+            const onPrev = () => { if (index > 0) { index--; render(); } };
+            const onNext = () => { if (index < slides.length - 1) { index++; render(); } };
+            const onContinue = () => { cleanup(); modal.classList.add('hidden'); onComplete && onComplete(); };
+            const onClose = () => { cleanup(); modal.classList.add('hidden'); };
+            prevBtn.addEventListener('click', onPrev);
+            nextBtn.addEventListener('click', onNext);
+            continueBtn.addEventListener('click', onContinue);
+            closeBtn && closeBtn.addEventListener('click', onClose);
+            modal.classList.remove('hidden');
+            render();
+        }
+
         // 向父页面发送退出指令（iframe集成场景）
         function exitToHost() {
             try {
@@ -1513,38 +1719,80 @@
                 hintContent.classList.toggle('hidden');
             });
             
-            // 场景选择
+            // 场景选择：点击卡片仅展示绘本分镜；点击卡片内“开始”按钮仅展示模式选择
             scenarioCards.forEach(card => {
                 card.addEventListener('click', function() {
                     const scenario = this.getAttribute('data-scenario');
-                    // 更新当前场景标题
-                    const scenarioTitle = document.getElementById('current-scenario-title');
-                    switch(scenario) {
-                        case 'academic-stress':
-                            scenarioTitle.textContent = '学业压力过大';
-                            break;
-                        case 'social-anxiety':
-                            scenarioTitle.textContent = '社交焦虑障碍';
-                            break;
-                        case 'depression':
-                            scenarioTitle.textContent = '抑郁倾向识别';
-                            break;
-                        case 'family-issues':
-                            scenarioTitle.textContent = '家庭关系问题';
-                            break;
-                        case 'identity-crisis':
-                            scenarioTitle.textContent = '自我认同危机';
-                            break;
-                        case 'addiction':
-                            scenarioTitle.textContent = '网络成瘾问题';
-                            break;
-                    }
-                    currentScenarioTitle = scenarioTitle.textContent || '';
-                    showScreen(gameScreen);
-                    // 进入游戏界面后，根据当前面板位置计算高度，避免整页滚动
-                    adjustChatPanelHeight();
-                    // 基于JSON重置并加载场景
-                    resetToScenario(scenario);
+                    openStoryboard(() => {
+                        const scenarioTitle = document.getElementById('current-scenario-title');
+                        switch(scenario) {
+                            case 'academic-stress':
+                                scenarioTitle.textContent = '学业压力过大';
+                                break;
+                            case 'social-anxiety':
+                                scenarioTitle.textContent = '社交焦虑障碍';
+                                break;
+                            case 'depression':
+                                scenarioTitle.textContent = '抑郁倾向识别';
+                                break;
+                            case 'family-issues':
+                                scenarioTitle.textContent = '家庭关系问题';
+                                break;
+                            case 'identity-crisis':
+                                scenarioTitle.textContent = '自我认同危机';
+                                break;
+                            case 'addiction':
+                                scenarioTitle.textContent = '网络成瘾问题';
+                                break;
+                        }
+                        currentScenarioTitle = scenarioTitle.textContent || '';
+                        showScreen(gameScreen);
+                        adjustChatPanelHeight();
+                        resetToScenario(scenario);
+                        // 进入场景后先选择对话模式，再应用UI
+                        openModeSelect(() => {
+                            applyChatModeUI();
+                        });
+                    });
+                });
+            });
+
+            // 卡片内“开始”按钮：仅展示图示内容，然后选择模式
+            const cardStartButtons = document.querySelectorAll('.scenario-card .flex.items-center button');
+            cardStartButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const scenario = this.closest('.scenario-card').getAttribute('data-scenario');
+                    openIllustration(() => {
+                        openModeSelect(() => {
+                            const scenarioTitle = document.getElementById('current-scenario-title');
+                            switch(scenario) {
+                                case 'academic-stress':
+                                    scenarioTitle.textContent = '学业压力过大';
+                                    break;
+                                case 'social-anxiety':
+                                    scenarioTitle.textContent = '社交焦虑障碍';
+                                    break;
+                                case 'depression':
+                                    scenarioTitle.textContent = '抑郁倾向识别';
+                                    break;
+                                case 'family-issues':
+                                    scenarioTitle.textContent = '家庭关系问题';
+                                    break;
+                                case 'identity-crisis':
+                                    scenarioTitle.textContent = '自我认同危机';
+                                    break;
+                                case 'addiction':
+                                    scenarioTitle.textContent = '网络成瘾问题';
+                                    break;
+                            }
+                            currentScenarioTitle = scenarioTitle.textContent || '';
+                            showScreen(gameScreen);
+                            adjustChatPanelHeight();
+                            resetToScenario(scenario);
+                            applyChatModeUI();
+                        });
+                    });
                 });
             });
 
@@ -1601,6 +1849,90 @@
                 const remainingSeconds = seconds % 60;
                 const timerDisplay = document.getElementById('game-timer');
                 timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+            }
+
+            // ===== 输入模式UI与语音识别 =====
+            function applyChatModeUI() {
+                const inputEl = document.getElementById('custom-input');
+                const sendBtn = document.getElementById('custom-send-btn');
+                let voiceControls = document.getElementById('voice-controls');
+                const inputWrap = inputEl ? inputEl.parentElement : null;
+                const messagesEl = document.getElementById('dialog-container');
+                if (!inputEl || !sendBtn || !inputWrap || !messagesEl) return;
+                // 确保消息容器成为定位上下文，避免绝对定位失效
+                messagesEl.classList.add('relative');
+                messagesEl.classList.add('overflow-visible');
+                // 创建语音控件容器
+                if (!voiceControls) {
+                    voiceControls = document.createElement('div');
+                    voiceControls.id = 'voice-controls';
+                    // 悬浮于聊天消息区域居中位置，无状态文本
+                    voiceControls.className = 'hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 flex';
+                    voiceControls.innerHTML = `
+                        <button id="start-voice-btn" class="flex items-center gap-2 bg-primary text-white px-5 py-3 rounded-full shadow-lg hover:bg-primary/90">
+                            <i class="fa fa-microphone"></i><span>开始语音</span>
+                        </button>
+                    `;
+                    // 将语音控件插入到聊天消息区域，以便在红框区域居中
+                    messagesEl.appendChild(voiceControls);
+                }
+                const startBtn = document.getElementById('start-voice-btn');
+                const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+                if (window.chatMode === 'voice') {
+                    // 显示语音控件，隐藏文本输入
+                    inputEl.classList.add('hidden');
+                    sendBtn.classList.add('hidden');
+                    voiceControls.classList.remove('hidden');
+                } else {
+                    // 恢复文本输入
+                    inputEl.classList.remove('hidden');
+                    sendBtn.classList.remove('hidden');
+                    voiceControls.classList.add('hidden');
+                }
+
+                // 语音识别逻辑（仅在模式为语音时绑定）
+                if (window.chatMode === 'voice') {
+                    // 即使浏览器不支持，也保持按钮可见，点击时给出提示
+                    if (!Recognition) {
+                        startBtn.replaceWith(startBtn.cloneNode(true));
+                        const fallbackBtn = document.getElementById('start-voice-btn');
+                        fallbackBtn.addEventListener('click', () => {
+                            alert('当前浏览器不支持语音识别，请选择文本对话或更换浏览器');
+                        });
+                        return;
+                    }
+                    const recognition = new Recognition();
+                    recognition.lang = 'zh-CN';
+                    recognition.interimResults = false;
+                    recognition.maxAlternatives = 1;
+                    const startHandler = () => {
+                        try {
+                            recognition.start();
+                        } catch (err) {
+                            console.warn('语音识别启动失败:', err);
+                        }
+                    };
+                    // 先移除旧的绑定，避免重复绑定
+                    startBtn.replaceWith(startBtn.cloneNode(true));
+                    const newStartBtn = document.getElementById('start-voice-btn');
+                    newStartBtn.addEventListener('click', startHandler);
+                    recognition.addEventListener('result', (event) => {
+                        const transcript = Array.from(event.results)
+                            .map(r => r[0] && r[0].transcript || '')
+                            .join('')
+                            .trim();
+                        if (transcript) {
+                            const customInput = document.getElementById('custom-input');
+                            if (customInput) customInput.value = transcript;
+                            // 复用文本发送流程
+                            if (typeof sendCustomMessage === 'function') {
+                                sendCustomMessage();
+                            }
+                        }
+                    });
+                    // 不显示状态文案，识别结束无需更新UI
+                }
             }
 
             // ===== 历史记录：数据结构与渲染 =====
