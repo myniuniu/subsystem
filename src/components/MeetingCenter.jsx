@@ -51,7 +51,9 @@ import {
   PhoneOutlined,
   LockOutlined,
   CloseOutlined,
-  FullscreenOutlined
+  FullscreenOutlined,
+  FileTextOutlined,
+  
 } from '@ant-design/icons';
 import { UploadOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -65,6 +67,7 @@ const MeetingCenter = () => {
   const [inMeetingOpen, setInMeetingOpen] = useState(false);
   const [historySelected, setHistorySelected] = useState(null);
   const [participantsExpanded, setParticipantsExpanded] = useState(false);
+  const [recordingOpen, setRecordingOpen] = useState(false);
   const [meetings, setMeetings] = useState([
     {
       id: 1,
@@ -1232,6 +1235,9 @@ const MeetingCenter = () => {
                   participants: ['守','宝','张','李','王'],
                   participantsFull: ['盈守宝','张洪磊','李明','王芳','赵强','陈伟','刘洁'],
                   recording: { title: '6.0产品的视频会议', owner: '盈守宝' },
+                  ownerName: 'AJ',
+                  createdText: '2024年5月10日 下午8:01',
+                  summaryTitle: '5月10日 罗文分享「夸学校闪活动」 AI Agent篇 认识插件',
                   events: [
                     { t: '16:02', label: '离开会议' },
                     { t: '15:45', label: '加入会议' }
@@ -1317,7 +1323,7 @@ const MeetingCenter = () => {
               </Popover>
             </div>
             <div className="recording-header">录制文件（妙记）</div>
-            <div className="recording-item">
+            <div className="recording-item" onClick={() => setRecordingOpen(true)}>
               <div className="recording-thumb">
                 <div className="recording-lock"><LockOutlined /></div>
                 <div className="recording-watermark">w</div>
@@ -1335,6 +1341,221 @@ const MeetingCenter = () => {
                   <div className="timeline-label">{ev.label}</div>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {recordingOpen && historySelected && (
+        <div className="recording-overlay">
+          <div className="recording-overlay-header">
+            <div className="overlay-title">{historySelected.recording?.title || historySelected.title}</div>
+            <Space>
+              <Button type="default" icon={<ShareAltOutlined />}>分享</Button>
+              <Button type="text" icon={<CloseOutlined />} onClick={() => setRecordingOpen(false)} />
+            </Space>
+          </div>
+          <div className="recording-overlay-body">
+            <div className="recording-left">
+              <div className="left-top">
+                <div className="recording-player">
+                  <div className="player-watermark">w</div>
+                  <div className="player-center">
+                    <PlayCircleOutlined />
+                  </div>
+                  <div className="player-controls">
+                    <Space>
+                      <Button type="text" icon={<PlayCircleOutlined />} />
+                      <Button type="text" icon={<PauseCircleOutlined />} />
+                      <Button type="text" icon={<StopOutlined />} />
+                    </Space>
+                    <div className="progress-bar"><div className="progress-fill" /></div>
+                    <div className="time-text">00:00 / {historySelected.durationText || '00:00'}</div>
+                  </div>
+                </div>
+              </div>
+              <div className="left-bottom">
+                <Tabs
+                  items={[
+                    {
+                      key: 'speakers',
+                      label: `发言人(${(historySelected.participantsFull || []).length})`,
+                      children: (
+                        <div className="speaker-table">
+                          {((historySelected.participantsFull || [])).map((name, idx) => {
+                            const percents = [84, 14, 7, 3, 2, 1, 1, 1, 1];
+                            const percent = percents[idx] || 1;
+                            const colors = ['#5b8def','#22c55e','#8b5cf6','#f59e0b','#06b6d4','#ef4444','#a855f7','#10b981','#3b82f6'];
+                            const color = colors[idx % colors.length];
+                            const segmentCount = Math.max(2, Math.min(10, Math.round(percent / 10)));
+                            const segments = Array.from({ length: segmentCount }).map((_, j) => {
+                              const base = (j + 1) * (100 / (segmentCount + 1));
+                              const jitter = ((idx * 13 + j * 7) % 10) - 5;
+                              let left = Math.max(1, Math.min(99, base + jitter));
+                              const width = Math.max(4, Math.min(18, Math.round(percent * 0.12) + (j % 5)));
+                              left = Math.max(1, Math.min(99 - width, left));
+                              return { left, width };
+                            });
+                            return (
+                              <div key={idx} className="speaker-row">
+                                <div className="speaker-id">
+                                  <Avatar size={28} style={{ background: '#eef2ff', color: '#1f2937' }}>{name[0]}</Avatar>
+                                  <div className="speaker-meta">
+                                    <div className="speaker-name">{name}</div>
+                                    <div className="speaker-percent">{percent}%</div>
+                                  </div>
+                                </div>
+                                <div className="speaker-track">
+                                  <div className="speaker-line" />
+                                  {segments.map((s, j) => (
+                                    <span key={j} className="speaker-block" style={{ left: `${s.left}%`, width: `${s.width}%`, background: color }} />
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )
+                    },
+                    {
+                      key: 'meeting',
+                      label: '会议信息',
+                      children: (
+                        <div className="meeting-info">
+                          <div className="info-row">
+                            <div className="info-label">所有者</div>
+                            <div className="info-value">
+                              <Avatar size={28} style={{ background: '#f0f3ff', color: '#1f2937' }}>{(historySelected.ownerName || historySelected.recording?.owner || 'A')[0]}</Avatar>
+                              <span className="info-name">{historySelected.ownerName || historySelected.recording?.owner}</span>
+                            </div>
+                          </div>
+                          <div className="info-row">
+                            <div className="info-label">创建时间</div>
+                            <div className="info-value">{historySelected.createdText || historySelected.dateText}</div>
+                          </div>
+                          <div className="info-row">
+                            <div className="info-label">会议纪要</div>
+                            <div className="info-value">
+                              <FileTextOutlined className="info-icon" />
+                              <a className="info-link">{historySelected.summaryTitle || (historySelected.recording?.title || historySelected.title)}</a>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    }
+                  ]}
+                />
+              </div>
+            </div>
+            <div className="recording-side">
+              <Tabs
+                className="side-tabs"
+                items={[
+                  {
+                    key: 'smart',
+                    label: '智能纪要',
+                    children: (
+                      <div className="smart-summary">
+                        <div className="smart-block">
+                          <div className="smart-desc">会议讨论了 AI 工具的使用方法、工具流和工作效率的改进，以及如何使用 voagi 和 AI agent 智能体的相关问题，主要内容包括：</div>
+                          <ol className="smart-list-numbered">
+                            <li>罗文介绍了使用插件的方式、如何使用工具、插件的安装、如何使用集体标示和提醒需遵守等。</li>
+                            <li>讨论了如何使用工作流和工具提高工作效率，包含了使用屏幕录入和操作的方式、流程的创建副本、设置可编辑权限、调阅稽核等操作。</li>
+                            <li>还讨论了如何使用 voagi，以及 AI agent 智能体的相关问题，包含 host 暂留目录位置，以及如何找到知识和活动的获取等。</li>
+                          </ol>
+                          <div className="smart-checks">
+                            {[
+                              { text: '罗文将插件文档链接发送到群里', t: '00:24:00' },
+                              { text: '大圣整理会中的同学发言截图', t: '00:49:04' },
+                              { text: '罗文发送总结地址', t: '01:10:12' },
+                              { text: 'AJ将插件中的一份到voagi的知识库', t: '02:01:37' }
+                            ].map((row, idx) => (
+                              <div key={idx} className="smart-check-row">
+                                <div className="smart-check">
+                                  <span className="check-box" />
+                                  <span className="check-text">{row.text}</span>
+                                </div>
+                                <div className="smart-right">
+                                  <div className="smart-time">{row.t}</div>
+                                  <Tooltip title="查看原文">
+                                    <div className="smart-action"><FileTextOutlined /></div>
+                                  </Tooltip>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="smart-block">
+                          <div className="smart-title">章节纪要</div>
+                          <div className="chapter-list">
+                            {[
+                              { t: '00:00:00', title: '罗文分享如何使用插件一键生成标题', text: '讨论了插件自动生成标题、标签、并分析了团队内的首标题的特点。随后，还提到了敦促分享插件的使用方法。' },
+                              { t: '00:02:23', title: '罗文分享使用插件替换智能体的方式与流程', text: '介绍了如何使用插件替换智能体的方式与流程，包含自我介绍、产品经历以及个人经验分享。' },
+                              { t: '00:05:48', title: '罗文分享 AI 智能体的用法及相关设置和调阅', text: '介绍了 AI 工具的使用方法，如何利用 AI 工具提高团队以及个人的知识库内容。演示了如何使用 AI 工具执行“文档梳理、标签、分类与解析、翻译、编辑”等操作。' },
+                              { t: '00:18:30', title: '罗文讲解了智能体的定义、方法设定和示范', text: '展示了如何设置智能体和方法，包含方法论配置和流程图的示范。' },
+                              { t: '00:26:10', title: '如何使用插件提升工作效率', text: '分享如何使用插件提升工作效率，包含示例、流程与规范。' },
+                              { t: '00:42:44', title: '如何快速了解插件的用途及使用的因素', text: '通过快速了解插件的用途和使用的因素，介绍插件“发送这个是做什么”，可以编辑并添加内容。' }
+                            ].map((c, idx) => (
+                              <div key={idx} className="chapter-item">
+                                <div className="chapter-left">{c.t}</div>
+                                <div className="chapter-center"><span className="chapter-dot" /></div>
+                                <div className="chapter-right">
+                                  <div className="chapter-title">{c.title}</div>
+                                  <div className="chapter-text">{c.text}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  },
+                  {
+                    key: 'text',
+                    label: '文字记录',
+                    children: (
+                      <div className="transcript-page">
+                        <div className="transcript-toolbar">
+                          <Input prefix={<SearchOutlined />} placeholder="搜索" allowClear />
+                        </div>
+                        <div className="transcript-list">
+                          {[
+                            { time: '00:48:52', name: '罗文', color: '#ef4444', text: '你看我的工作清晰度会详增了，所以说我只是举个例子，大家，实际上我们可以做个回顾？谁谁，要不要做个回顾？就是一个多维框架，现在同时间人在糅。' },
+                            { time: '00:49:06', name: 'A小J', color: '#f59e0b', text: '我已经好了，刚才就在做。' },
+                            { time: '00:49:10', name: '罗文', color: '#ef4444', text: '哈哈，可以从这些同学节奏再看一下。' },
+                            { time: '00:49:13', name: '大圣', color: '#3b82f6', text: '给他们供使用，加入一个。' },
+                            { time: '00:49:15', name: '罗文', color: '#ef4444', text: '对，看着有节吗慢，确有个从就是那场，你看他也还是有人从聊聊 开开完，我不会这么传啊，OK，先列举在上面的问题的，我还有输出自填式更现实分享啊。你或是讲讲什么，什么时候，对吧 这个就配合到那个小标其实某某是一样的，有时候你不该满足标准，他按照自己的边的标准，我们不应该必须要实现这个了，所以说我们要到列对说的这个，理在意，就是我大家尽量把这一下，因为人为弱势，这个没办法这个方法。安住没有办法哈。' },
+                            { time: '00:50:12', name: '罗文', color: '#ef4444', text: '那重置做的内容，重置的就查扣一下，准备化了。' },
+                            { time: '00:50:49', name: 'A小J', color: '#f59e0b', text: '没事，我觉得你要想的对象就选一下就好。' },
+                            { time: '00:51:49', name: '罗文', color: '#ef4444', text: '嗯，罗文取个大标题，顺个和句子再帮写个下，把它改下一下，后台的小伙伴我说我们没次下。哈哈哈。' },
+                            { time: '00:52:16', name: '大圣', color: '#3b82f6', text: 'ha ha，我差不多也要。' },
+                            { time: '00:52:46', name: '罗文', color: '#ef4444', text: '好，大家有没有提写完的问号？' }
+                          ].map((m, idx) => (
+                            <div key={idx} className="transcript-item">
+                              <div className="transcript-time">{m.time}</div>
+                              <div className="transcript-body">
+                                <Avatar size={24} style={{ backgroundColor: m.color }}>{m.name[0]}</Avatar>
+                                <div className="transcript-text">
+                                  <span className="transcript-name">{m.name}：</span>
+                                  {m.text}
+                                  {idx === 0 && (
+                                    <span className="transcript-highlight">大家</span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="transcript-side">
+                                {idx % 3 === 0 && (
+                                  <div className="transcript-q">?</div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  }
+                ]}
+              />
             </div>
           </div>
         </div>
