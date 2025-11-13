@@ -526,6 +526,11 @@
   background: rgba(22,119,255,0.12);
   color: #1677ff;
 }
+.type-badge.ai {
+  border-color: rgba(34,197,94,0.28);
+  background: rgba(34,197,94,0.12);
+  color: #22c55e;
+}
 .type-row { margin-bottom: 2px; }
 
 .last-message {

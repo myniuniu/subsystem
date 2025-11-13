@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Input, Button, Space, Modal, Tooltip } from 'antd';
 import { MessageSquare, Send, MoreVertical, Type, Smile, AtSign, Scissors, HelpCircle, Maximize2, FileText, Search, Video, UserPlus, Calendar, X, Mic, MicOff, VideoOff, Settings, Volume2, VolumeX, ChevronRight, Users, User, Layers, Folder, Pin, Megaphone } from 'lucide-react';
 import './ChatWindow.css';
@@ -19,6 +19,9 @@ const ChatWindow = ({
   const [showSearchPanel, setShowSearchPanel] = useState(false);
   const [showCalendarPanel, setShowCalendarPanel] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [showContactCard, setShowContactCard] = useState(false);
+  const avatarRef = useRef(null);
+  const cardRef = useRef(null);
 
   // 会议弹窗相关状态
   const [showMeetingModal, setShowMeetingModal] = useState(false);
@@ -104,6 +107,12 @@ const ChatWindow = ({
     setShowAddMembersModal(true);
     window.dispatchEvent(new CustomEvent('addChatMember', { detail: { chatId: activeContact } }));
   };
+  const handleStartVoiceCall = () => {
+    setMicEnabled(true);
+    setCameraEnabled(false);
+    setShowMeetingModal(true);
+    window.dispatchEvent(new CustomEvent('startVoiceCall', { detail: { chatId: activeContact } }));
+  };
   const handleMemberCalendar = () => {
     setShowCalendarPanel(true);
     setShowSearchPanel(false);
@@ -129,6 +138,19 @@ const ChatWindow = ({
     return text.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
+  useEffect(() => {
+    const onDocClick = (e) => {
+      if (!showContactCard) return;
+      const a = avatarRef.current;
+      const c = cardRef.current;
+      if (!a || !c) return;
+      if (a.contains(e.target) || c.contains(e.target)) return;
+      setShowContactCard(false);
+    };
+    document.addEventListener('click', onDocClick, true);
+    return () => document.removeEventListener('click', onDocClick, true);
+  }, [showContactCard]);
+
   return (
     <div className={`chat-panel ${showSearchPanel ? 'split' : ''} ${showCalendarPanel ? 'calendar-split' : ''}`}>
       {/* 左侧聊天主内容 */}
@@ -136,7 +158,7 @@ const ChatWindow = ({
         {/* 聊天头部 */}
         <div className="chat-header">
           <div className="chat-contact-info">
-            <div className="contact-avatar small">
+            <div className="contact-avatar small" ref={avatarRef} onClick={() => setShowContactCard(v => !v)}>
               {currentContact.avatar ? (
                 currentContact.avatar.startsWith('http') || currentContact.avatar.startsWith('/') ? (
                   <img src={currentContact.avatar} alt="" />
@@ -150,10 +172,75 @@ const ChatWindow = ({
                   {currentContact.name?.charAt(0)}
                 </div>
               )}
+              {showContactCard && (
+                <div className="contact-detail-card" ref={cardRef}>
+                  <div className="detail-header">
+                    <div className="detail-avatar">
+                      {currentContact?.avatar ? (
+                        currentContact.avatar.startsWith('http') || currentContact.avatar.startsWith('/') ? (
+                          <img src={currentContact.avatar} alt="avatar" />
+                        ) : (
+                          <div className="detail-avatar-emoji">{currentContact.avatar}</div>
+                        )
+                      ) : (
+                        <div className="detail-avatar-initial">{(currentContact?.name || '').charAt(0)}</div>
+                      )}
+                    </div>
+                    <div className="detail-info">
+                      <div className="detail-name">{currentContact?.name || ''}</div>
+                      <div className="detail-motto">{currentContact?.motto || '保持热爱，奔赴山海'}</div>
+                    </div>
+                    <button className="detail-close-btn" onClick={() => setShowContactCard(false)}>
+                      <X size={14} />
+                    </button>
+                  </div>
+                  <div className="detail-actions">
+                    <button className="detail-action" onClick={() => setShowContactCard(false)}>
+                      <MessageSquare size={14} />
+                      <span>消息</span>
+                    </button>
+                    <button className="detail-action" onClick={handleStartVoiceCall}>
+                      <Mic size={14} />
+                      <span>语音</span>
+                    </button>
+                    <button className="detail-action" onClick={handleStartVideoMeeting}>
+                      <Video size={14} />
+                      <span>视频</span>
+                    </button>
+                  </div>
+                  <div className="detail-links">
+                    <button className="detail-link" onClick={handleMemberCalendar}>
+                      <Calendar size={14} />
+                      <span>查看日程</span>
+                    </button>
+                  </div>
+                   <div className="detail-fields">
+                     <div className="detail-field">
+                       <span className="field-label">部门</span>
+                       <span className="field-value">{currentContact?.department || '暂无'}</span>
+                     </div>
+                    <div className="detail-field">
+                      <span className="field-label">来源</span>
+                      <span className="field-value">
+                        {currentContact?.source || '—'}
+                        {currentContact?.sourceLink && (
+                          <a className="detail-source-link" href={currentContact.sourceLink} target="_blank" rel="noopener noreferrer">{currentContact?.sourceTitle || '历史记录'}</a>
+                        )}
+                      </span>
+                    </div>
+                    <div className="detail-field">
+                      <span className="field-label">备注与描述</span>
+                      <button className="detail-edit">编辑内容</button>
+                    </div>
+                    <div className="detail-note">{currentContact?.description || '暂无'}</div>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="contact-details">
-              <div className="contact-name">
-                {currentContact.name}
+              <div className="contact-title">
+                <span className="contact-name">{currentContact.name}</span>
+                <span className="contact-motto">{currentContact?.motto || '路虽远，行则将至；事虽难，做则必成。'}</span>
               </div>
               {isGroupHeader ? (
                 <div className="group-header-tabs">
@@ -302,7 +389,7 @@ const ChatWindow = ({
                       <span className="message-author">{displaySenderName}</span>
                     </div>
                   )}
-                  <div className={`message-content ${typeof message.content === 'string' && !message.content.includes('\n') && message.content.trim().length <= 16 ? 'single-line' : ''}`}>
+                  <div className={`message-content ${typeof message.content === 'string' && !message.content.includes('\n') && message.content.trim().length <= 28 ? 'single-line' : ''}`}>
                     {message.content}
                   </div>
                   <div className="message-time">

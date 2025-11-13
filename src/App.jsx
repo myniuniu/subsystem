@@ -111,6 +111,21 @@ function App() {
         console.log('Navigating to my-evaluation')
         setCurrentView('my-evaluation')
       }
+      if (event.data && event.data.type === 'ADD_FRIEND') {
+        setCurrentView('message-center')
+        const contact = event.data.contact || {
+          id: 'student_li_ming',
+          name: '李明',
+          type: 'user',
+          avatar: '🧑‍🎓',
+          unreadCount: 0,
+          online: true,
+          lastMessage: '老师您好，我是李明。谢谢您的辅导。'
+        }
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('addScenarioFriend', { detail: { contact } }))
+        }, 0)
+      }
     }
     
     window.addEventListener('message', handleMessage)

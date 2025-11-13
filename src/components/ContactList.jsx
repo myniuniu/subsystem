@@ -216,6 +216,9 @@ const ContactList = ({
               {contact.type === 'topic' && (
                 <div className="type-row"><span className="type-badge topic">话题</span></div>
               )}
+              {contact.isAI && (
+                <div className="type-row"><span className="type-badge ai">AI</span></div>
+              )}
               <div className="last-time">
                 {formatMonthDay(contact.lastTime)}
               </div>

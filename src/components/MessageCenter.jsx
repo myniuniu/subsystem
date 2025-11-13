@@ -711,6 +711,51 @@ const MessageCenter = ({ contacts: propContacts }) => {
     });
   }, [messageHistory]);
 
+  useEffect(() => {
+    const handler = (e) => {
+      const c = e.detail && e.detail.contact;
+      if (!c || !c.id) return;
+      const now = new Date().toLocaleString('zh-CN', {
+        year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+      });
+      setContacts(prev => {
+        if (prev.find(x => x.id === c.id)) return prev;
+        const contact = {
+          id: c.id,
+          name: c.name || '新好友',
+          type: 'user',
+          avatar: c.avatar || '👤',
+          lastMessage: c.lastMessage || `你好，我是${c.name || '新好友'}`,
+          lastTime: now,
+          unreadCount: 0,
+          online: c.online !== false,
+          description: c.description || '',
+          department: c.department,
+          motto: c.motto,
+          isAI: c.isAI === true,
+          source: c.source,
+          sourceLink: c.sourceLink,
+          sourceTitle: c.sourceTitle
+        };
+        return [contact, ...prev];
+      });
+      setMessageHistory(prev => {
+        const welcome = {
+          id: Date.now(),
+          senderId: c.id,
+          senderName: c.name || '新好友',
+          content: c.lastMessage || `你好，我是${c.name || '新好友'}`,
+          time: now,
+          type: 'text'
+        };
+        return { ...prev, [c.id]: [...(prev[c.id] || []), welcome] };
+      });
+      setActiveContact(c.id);
+    };
+    window.addEventListener('addScenarioFriend', handler);
+    return () => window.removeEventListener('addScenarioFriend', handler);
+  }, []);
+
   // 当传入联系人变化时，同步到本地联系人
   useEffect(() => {
     if (propContacts && Array.isArray(propContacts)) {
