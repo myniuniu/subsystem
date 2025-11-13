@@ -163,7 +163,7 @@
 .detail-fields { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
 .detail-field { display: flex; align-items: center; justify-content: space-between; }
 .field-label { color: #7f8c8d; font-size: 12px; }
-.field-value { color: #2c3e50; font-size: 13px; }
+.field-value { color: #2c3e50; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; max-width: 60%; text-align: right; }
 .detail-edit { border: none; background: transparent; color: #1677ff; cursor: pointer; }
 .detail-note {
   margin-top: 4px;

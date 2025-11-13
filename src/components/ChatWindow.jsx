@@ -4,6 +4,14 @@ import { MessageSquare, Send, MoreVertical, Type, Smile, AtSign, Scissors, HelpC
 import './ChatWindow.css';
 import CalendarCenter from './CalendarCenter.jsx';
 
+const ORG_NAMES = [
+  '陈安', '李雪', '王明', '赵丽', '孙浩', '周洋', '吴倩', '郑宇', '冯晨', '褚凯',
+  '卫婷', '蒋磊', '沈静', '韩博', '杨帆', '朱敏', '秦峰', '尤然', '许泽', '何佳',
+  '吕倩', '施乐', '张越', '孔扬', '曹楠', '严宁', '华清', '金波', '魏巍', '陶然',
+  '姜楠', '戚鑫', '谢婧', '邹昊', '喻辰', '柏林', '水晶', '窦羽', '章琴', '云舒',
+  '苏航', '潘磊', '葛亮', '奚悦', '范慧', '彭越', '鲁宁', '韦华', '昌乐', '苗云'
+];
+
 const ChatWindow = ({ 
   activeContact,
   contacts,
@@ -22,6 +30,9 @@ const ChatWindow = ({
   const [showContactCard, setShowContactCard] = useState(false);
   const avatarRef = useRef(null);
   const cardRef = useRef(null);
+  const [showReplayModal, setShowReplayModal] = useState(false);
+  const [replayItems, setReplayItems] = useState([]);
+  const replayTimerRef = useRef(null);
 
   // 会议弹窗相关状态
   const [showMeetingModal, setShowMeetingModal] = useState(false);
@@ -40,12 +51,98 @@ const ChatWindow = ({
   // @提及：面板与关键词
   const [mentionVisible, setMentionVisible] = useState(false);
   const [mentionKeyword, setMentionKeyword] = useState('');
-  const memberNames = useMemo(() => (contacts || []).map(c => c.name).filter(Boolean), [contacts]);
+  const memberObjects = useMemo(() => {
+    const map = new Map();
+    (contacts || []).forEach(c => {
+      if (!c?.name) return;
+      map.set(c.name, { name: c.name, avatar: c.avatar || '', motto: c.motto || '', isAI: !!c.isAI });
+    });
+    (messages || []).forEach(m => {
+      const n = m?.senderName;
+      if (!n) return;
+      if (map.has(n)) return;
+      const c = (contacts || []).find(x => x.name === n);
+      map.set(n, { name: n, avatar: c?.avatar || '', motto: c?.motto || '', isAI: !!c?.isAI });
+    });
+    try {
+      const raw = localStorage.getItem('theme-templates');
+      let templates = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(templates) || templates.length === 0) {
+        templates = [
+          { id: 'teaching-research', name: '教研智能体', avatarUrl: '/images/agents/teacher.svg', description: '' },
+          { id: 'class-teacher', name: '班主任智能体', avatarUrl: '', description: '' },
+          { id: 'counselor', name: '辅导员智能体', avatarUrl: '', description: '' },
+          { id: 'supervisor', name: '督学智能体', avatarUrl: '', description: '' },
+          { id: 'principal', name: '校长智能体', avatarUrl: '', description: '' },
+          { id: 'scientific-research', name: '科研智能体', avatarUrl: '', description: '' }
+        ];
+      }
+      templates.forEach(t => {
+        const nm = t?.name;
+        if (!nm || map.has(nm)) return;
+        map.set(nm, { name: nm, avatar: t?.avatarUrl || '', motto: t?.description || '', isAI: true });
+      });
+    } catch {}
+    if (!map.has('李明')) {
+      map.set('李明', { name: '李明', avatar: '/assets/场景模拟/小男孩头像.png', motto: '保持热爱，奔赴山海', isAI: true });
+    }
+    ORG_NAMES.forEach(n => { if (!map.has(n)) map.set(n, { name: n, avatar: '', motto: '', isAI: false }); });
+    return Array.from(map.values());
+  }, [contacts, messages]);
+  const DEFAULT_SUGGESTION_OBJS = useMemo(() => (
+    [
+      { name: '张老师', avatar: '', motto: '', isAI: false },
+      { name: '李主任', avatar: '', motto: '', isAI: false },
+      { name: '李明', avatar: '/assets/场景模拟/小男孩头像.png', motto: '保持热爱，奔赴山海', isAI: true },
+      { name: '教研智能体', avatar: '/images/agents/teacher.svg', motto: '', isAI: true },
+      { name: '辅导员智能体', avatar: '', motto: '', isAI: true },
+      { name: '班主任智能体', avatar: '', motto: '', isAI: true }
+    ]
+  ), []);
   const mentionCandidates = useMemo(() => {
-    const kw = (mentionKeyword || '').toLowerCase();
-    if (!kw) return memberNames.slice(0, 6);
-    return memberNames.filter(n => String(n).toLowerCase().includes(kw)).slice(0, 6);
-  }, [mentionKeyword, memberNames]);
+    const kwRaw = (mentionKeyword || '').toLowerCase();
+    const kw = kwRaw.replace(/[^\w\u4e00-\u9fa5]/g, '');
+    const base = (memberObjects && memberObjects.length) ? memberObjects : DEFAULT_SUGGESTION_OBJS;
+    const filtered = kw
+      ? base.filter(o => String(o.name || '').toLowerCase().includes(kw)).slice(0, 6)
+      : base.slice(0, 6);
+    return filtered.length ? filtered : base.slice(0, 6);
+  }, [mentionKeyword, memberObjects, DEFAULT_SUGGESTION_OBJS]);
+
+  const openContactSourceReplay = () => {
+    const snap = currentContact?.sourceSnapshot;
+    if (!snap) {
+      const href = currentContact?.sourceLink;
+      if (href) window.open(href, '_blank', 'noopener');
+      return;
+    }
+    try {
+      const temp = document.createElement('div');
+      temp.innerHTML = snap;
+      const nodes = Array.from(temp.querySelectorAll('.message-bubble'));
+      setReplayItems([]);
+      setShowReplayModal(true);
+      if (replayTimerRef.current) { clearInterval(replayTimerRef.current); replayTimerRef.current = null; }
+      let idx = 0;
+      const appendNext = () => {
+        if (idx >= nodes.length) {
+          if (replayTimerRef.current) { clearInterval(replayTimerRef.current); replayTimerRef.current = null; }
+          return;
+        }
+        const html = nodes[idx].outerHTML;
+        setReplayItems(prev => [...prev, html]);
+        idx++;
+      };
+      appendNext();
+      replayTimerRef.current = setInterval(appendNext, 1000);
+    } catch {}
+  };
+
+  const closeReplayModal = () => {
+    if (replayTimerRef.current) { clearInterval(replayTimerRef.current); replayTimerRef.current = null; }
+    setShowReplayModal(false);
+    setReplayItems([]);
+  };
 
   // 模板数据与处理函数（保持原有功能）
   const templates = [
@@ -215,16 +312,28 @@ const ChatWindow = ({
                     </button>
                   </div>
                    <div className="detail-fields">
-                     <div className="detail-field">
-                       <span className="field-label">部门</span>
-                       <span className="field-value">{currentContact?.department || '暂无'}</span>
-                     </div>
+                    <div className="detail-field">
+                      <span className="field-label">部门</span>
+                      <span className="field-value">{currentContact?.department || '暂无'}</span>
+                    </div>
                     <div className="detail-field">
                       <span className="field-label">来源</span>
                       <span className="field-value">
-                        {currentContact?.source || '—'}
-                        {currentContact?.sourceLink && (
-                          <a className="detail-source-link" href={currentContact.sourceLink} target="_blank" rel="noopener noreferrer">{currentContact?.sourceTitle || '历史记录'}</a>
+                        {(
+                          currentContact?.source || (
+                            (currentContact?.id === 'new_teacher_training' || currentContact?.id === 'org_training_new_teacher_discuss')
+                              ? '果仁空间 · 组织培训'
+                              : '—'
+                          )
+                        )}
+                        {(currentContact?.sourceLink || currentContact?.sourceSnapshot) ? (
+                          <a className="detail-source-link" href={currentContact.sourceLink || '#'} onClick={(e) => { e.preventDefault(); openContactSourceReplay(); }}>
+                            {currentContact?.sourceTitle || '【组织培训】新教师教学方法培训'}
+                          </a>
+                        ) : (
+                          (currentContact?.id === 'new_teacher_training' || currentContact?.id === 'org_training_new_teacher_discuss') && (
+                            <span style={{ marginLeft: 6, color: '#666' }}>【组织培训】新教师教学方法培训</span>
+                          )
                         )}
                       </span>
                     </div>
@@ -409,18 +518,21 @@ const ChatWindow = ({
             onChange={(e) => {
               const val = e.target.value;
               onMessageChange(val);
-              // 识别最后一个@后的关键词
-              const m = /@([^@\s]*)$/u.exec(val);
-              if (m) {
-                setMentionKeyword(m[1] || '');
+              // 面板触发：只要包含 @ 就显示；关键词按最后一个 @ 提取
+              const atIndex = val.lastIndexOf('@');
+              if (atIndex >= 0) {
+                const tail = val.slice(atIndex + 1);
+                const m = /^([^@\s,，。\.\!！\?？；;:\\/\-]*)/.exec(tail);
+                setMentionKeyword((m && m[1]) ? m[1] : '');
                 setMentionVisible(true);
+                try { console.debug('mentionKeyword=', (m && m[1]) ? m[1] : '', 'memberNamesCount=', (memberNames || []).length); } catch {}
               } else {
                 setMentionVisible(false);
                 setMentionKeyword('');
               }
             }}
             onPressEnter={onSendMessage}
-            placeholder="输入消息，支持 @人、#话题、/命令"
+            placeholder="输入消息"
             allowClear
             suffix={
               <div className="input-suffix-tools">
@@ -437,22 +549,32 @@ const ChatWindow = ({
           />
           {/* 工具已移入输入框右侧 suffix */}
           {mentionVisible && (
-            <div style={{ position: 'absolute', bottom: 40, left: 8, background: '#fff', boxShadow: '0 6px 18px rgba(0,0,0,0.08)', border: '1px solid #f0f0f0', borderRadius: 8, padding: 8, minWidth: 200, zIndex: 20 }}>
+            <div style={{ position: 'absolute', bottom: 40, left: 8, background: '#fff', boxShadow: '0 6px 18px rgba(0,0,0,0.12)', border: '1px solid #e5e5e5', borderRadius: 8, padding: 8, minWidth: 220, maxHeight: 220, overflowY: 'auto', zIndex: 1000 }}>
               <div style={{ fontSize: 12, color: '#666', padding: '0 4px 6px 4px' }}>提及联系人</div>
-              {mentionCandidates.length === 0 ? (
-                <div style={{ padding: '6px 8px', color: '#999', fontSize: 12 }}>无匹配联系人</div>
-              ) : (
-                mentionCandidates.map(name => (
-                  <button key={name} onClick={() => {
-                    const updated = newMessage.replace(/@([^@\s]*)$/u, `@${name} `);
-                    onMessageChange(updated);
-                    setMentionVisible(false);
-                    setMentionKeyword('');
-                  }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '6px 8px', border: 'none', background: 'transparent', cursor: 'pointer' }}>
-                    @{name}
-                  </button>
-                ))
-              )}
+              {(mentionCandidates.length === 0 ? DEFAULT_SUGGESTION_OBJS.slice(0,6) : mentionCandidates).map(item => (
+                <button key={item.name} onClick={() => {
+                  const updated = newMessage.replace(/@([^@\s]*)$/u, `@${item.name} `);
+                  onMessageChange(updated);
+                  setMentionVisible(false);
+                  setMentionKeyword('');
+                }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left', padding: '6px 8px', border: 'none', background: 'transparent', cursor: 'pointer', color: '#333' }}>
+                  <div style={{ width: 24, height: 24, borderRadius: '50%', overflow: 'hidden', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {item.avatar ? (
+                      item.avatar.startsWith('http') || item.avatar.startsWith('/') ? (
+                        <img src={item.avatar} alt="avatar" style={{ width: '100%', height: '100%' }} />
+                      ) : (
+                        <span style={{ fontSize: 12 }}>{item.avatar}</span>
+                      )
+                    ) : (
+                      <span style={{ fontSize: 12 }}>{(item.name || '').slice(0,1)}</span>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: 13, color: '#333' }}>{item.name}</span>
+                    {!!item.motto && <span style={{ fontSize: 12, color: '#999' }}>{item.motto}</span>}
+                  </div>
+                </button>
+              ))}
             </div>
           )}
           </div>
@@ -604,6 +726,23 @@ const ChatWindow = ({
           <Button type="primary" disabled={selectedAddMembers.length === 0}>
             确定(⌘+Enter)
           </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        open={showReplayModal}
+        onCancel={closeReplayModal}
+        footer={null}
+        title="回放"
+        width={720}
+      >
+        <div style={{ marginBottom: 8, color: '#64748b', fontSize: 12 }}>
+          {(currentContact?.sourceTitle || '历史记录') + (currentContact?.sourceTime ? ` · ${currentContact.sourceTime}` : '')}
+        </div>
+        <div className="chat-messages" style={{ maxHeight: 480, overflow: 'auto', padding: 0 }}>
+          {replayItems.map((html, idx) => (
+            <div key={idx} dangerouslySetInnerHTML={{ __html: html }} />
+          ))}
         </div>
       </Modal>
 

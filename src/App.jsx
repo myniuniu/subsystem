@@ -171,6 +171,23 @@ function App() {
       online: true
     },
     {
+      id: 'student_li_ming',
+      name: '李明',
+      type: 'user',
+      avatar: '/assets/场景模拟/小男孩头像.png',
+      lastMessage: '老师您好，我是李明。谢谢您的辅导。',
+      lastTime: new Date().toLocaleString('zh-CN', {
+        year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+      }),
+      unreadCount: 0,
+      online: true,
+      description: '大二学生李明，近期考试较多、压力大，夜间失眠，上课难以集中注意力。来到辅导员办公室表达困扰，期望获得情绪调适与学习规划建议。',
+      isAI: true,
+      source: '场景模拟',
+      sourceLink: '/gen-html/ai-mental-health-scenario.html#history-latest',
+      sourceTitle: '学业压力过大'
+    },
+    {
       id: 'knowledge_qa',
       name: '知识问答',
       type: 'assistant',

@@ -1334,10 +1334,13 @@
                 const avatarText = name ? name[0] : (isStudent ? '学' : '师');
                 const color = isStudent ? '#e74c3c' : '#2ecc71';
                 const bubbleClass = isStudent ? 'received' : 'sent';
+                const senderAvatarHtml = isStudent
+                  ? `<img src="/assets/场景模拟/小男孩头像.png" alt="${name}" style="width:24px;height:24px;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.12);object-fit:cover;" />`
+                  : `<span class="message-avatar" style="background:${color};">${avatarText}</span>`;
                 const html = `
                     <div class="message-bubble ${bubbleClass} group">
                         <div class="message-sender">
-                            <span class="message-avatar" style="background:${color};">${avatarText}</span>
+                            ${senderAvatarHtml}
                             <span class="message-author">${name}</span>
                         </div>
                         <div class="message-content">${text}</div>
@@ -1421,7 +1424,7 @@
                 const studentHtml = `
                     <div class="message-bubble received group">
                         <div class="message-sender">
-                            <span class="message-avatar" style="background:#e74c3c;">李</span>
+                            <img src="/assets/场景模拟/小男孩头像.png" alt="李同学" style="width:24px;height:24px;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.12);object-fit:cover;" />
                             <span class="message-author">李同学</span>
                         </div>
                         <div class="message-content">${text}</div>
@@ -1735,7 +1738,7 @@
                 const html = `
                     <div class="message-bubble received group">
                         <div class="message-sender">
-                            <span class="message-avatar" style="background:#e74c3c;">李</span>
+                            <img src="/assets/场景模拟/小男孩头像.png" alt="李同学" style="width:24px;height:24px;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.12);object-fit:cover;" />
                             <span class="message-author">李同学</span>
                         </div>
                         <div class="message-content">老师，如果可以的话，能加您为好友吗？以后遇到问题也可以再请教您。</div>
@@ -2301,7 +2304,7 @@
                         const studentHtml = `
                             <div class="message-bubble received group">
                                 <div class="message-sender">
-                                    <span class="message-avatar" style="background:#e74c3c;">李</span>
+                                    <img src="/assets/场景模拟/小男孩头像.png" alt="李同学" style="width:24px;height:24px;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.12);object-fit:cover;" />
                                     <span class="message-author">李同学</span>
                                 </div>
                                 <div class="message-content">${studentResponse}</div>
@@ -2367,7 +2370,7 @@
                     const studentHtml = `
                         <div class="message-bubble received group">
                             <div class="message-sender">
-                                <span class="message-avatar" style="background:#e74c3c;">李</span>
+                                <img src="/assets/场景模拟/小男孩头像.png" alt="李同学" style="width:24px;height:24px;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.12);object-fit:cover;" />
                                 <span class="message-author">李同学</span>
                             </div>
                             <div class="message-content">${studentResponse}</div>
@@ -2490,20 +2493,24 @@
                           var t = document.getElementById('current-scenario-title');
                           return (t && t.textContent ? t.textContent.trim() : '场景训练');
                         })();
+                    var latestSnapshot = (hs && Array.isArray(hs.items) && hs.items.length > 0) ? hs.items[0].snapshot : (function(){ var d = document.getElementById('dialog-container'); return d ? d.innerHTML : ''; })();
+                    var latestTime = (hs && Array.isArray(hs.items) && hs.items.length > 0) ? hs.items[0].time : (new Date().toLocaleTimeString());
                     window.parent.postMessage({
                         type: 'ADD_FRIEND',
                         contact: {
                             id: 'student_li_ming',
                             name: '李明',
                             type: 'user',
-                            avatar: '🧑‍🎓',
+                            avatar: '/assets/场景模拟/小男孩头像.png',
                             lastMessage: '老师您好，我是李明。谢谢您的辅导。',
                             online: true,
                             description: '大二学生李明，近期考试较多、压力大，夜间失眠，上课难以集中注意力。来到辅导员办公室表达困扰，期望获得情绪调适与学习规划建议。',
                             isAI: true,
                             source: '场景模拟',
                             sourceLink: (function(){ try { return window.location.href + '#history-latest'; } catch(e) { return '/gen-html/ai-mental-health-scenario.html#history-latest'; } })(),
-                            sourceTitle: latestTitle
+                            sourceTitle: latestTitle,
+                            sourceSnapshot: latestSnapshot,
+                            sourceTime: latestTime
                         }
                     }, '*');
                 }

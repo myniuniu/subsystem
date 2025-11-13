@@ -239,15 +239,21 @@ const ContactList = ({
                   <Bell size={16} />
                 </button>
               </Tooltip>
-              <Dropdown
-                trigger={["click"]}
-                placement="bottomRight"
-                menu={{ items: getMoreMenuItems(contact) }}
-              >
-                <button className="action-icon" title="更多">
-                  <MoreVertical size={16} />
-                </button>
-              </Dropdown>
+              {(() => {
+                const isPinned = pinnedContacts.some(p => p.id === contact.id);
+                const items = isPinned ? getMoreMenuItemsPinned(contact) : getMoreMenuItems(contact);
+                return (
+                  <Dropdown
+                    trigger={["click"]}
+                    placement="bottomRight"
+                    menu={{ items }}
+                  >
+                    <button className="action-icon" title="更多">
+                      <MoreVertical size={16} />
+                    </button>
+                  </Dropdown>
+                );
+              })()}
             </div>
           </div>
         ))}
