@@ -145,6 +145,44 @@ class ThemeShareService {
       const currentSpace = (() => { try { return localStorage.getItem('current_knowledge_space') || DEFAULT_SPACE } catch { return DEFAULT_SPACE } })()
       const raw = localStorage.getItem('learning_square_training_projects')
       let list = raw ? JSON.parse(raw) : []
+
+      // 如果没有任何培训项目，则初始化一些示例数据（仅样式演示，保留数据结构）
+      if (!Array.isArray(list) || list.length === 0) {
+        const now = new Date().toISOString()
+        list = [
+          {
+            id: 'seed-project-1',
+            title: '新教师入职培训',
+            sharedBy: '系统示例',
+            sharedAt: now,
+            tags: ['教师培训', '入职', '课堂管理', '教学设计'],
+            description: '围绕课堂管理、教学设计与信息化应用的基础培训。',
+            space: currentSpace,
+            status: 'active'
+          },
+          {
+            id: 'seed-project-2',
+            title: '信息技术应用能力提升',
+            sharedBy: '系统示例',
+            sharedAt: now,
+            tags: ['数字化', '技术应用', '平台使用'],
+            description: '提升教师数字化教学设计与平台使用能力。',
+            space: currentSpace,
+            status: 'active'
+          },
+          {
+            id: 'seed-project-3',
+            title: '课堂评价与作业设计',
+            sharedBy: '系统示例',
+            sharedAt: now,
+            tags: ['教学评价', '作业设计', '过程性评价'],
+            description: '围绕过程性评价与作业优化的专项培训。',
+            space: currentSpace,
+            status: 'active'
+          }
+        ]
+        try { localStorage.setItem('learning_square_training_projects', JSON.stringify(list)) } catch {}
+      }
       let changed = false
       list = (list || []).map(p => {
         if (!p.space) { changed = true; return { ...p, space: currentSpace } }
@@ -234,6 +272,78 @@ class ThemeShareService {
         return t
       })
       if (changed) this.saveSharedThemes()
+
+      // 若学习广场下暂无主题，初始化若干示例主题（仅用于样式演示）
+      const existing = (this.sharedThemes || []).filter(t => t.shareType === 'learning_square' && t.status === 'active')
+      if (!existing || existing.length === 0) {
+        const now = new Date().toISOString()
+        const seedThemes = [
+          {
+            id: 'seed-theme-1',
+            themeId: 'seed-theme-blue',
+            themeName: '清新蓝',
+            themeColors: { primary: '#1890ff', secondary: '#36cfc9' },
+            shareType: 'learning_square',
+            sharedBy: '系统示例',
+            sharedAt: now,
+            title: '清新蓝 · UI主题',
+            description: '适合教学系统的清爽蓝色系主题，提升可读性。',
+            tags: ['主题', '清新', '蓝色'],
+            space: currentSpace,
+            isPublic: true,
+            likes: 8,
+            downloads: 24,
+            views: 120,
+            category: 'theme',
+            difficulty: 'beginner',
+            status: 'active'
+          },
+          {
+            id: 'seed-theme-2',
+            themeId: 'seed-theme-sunset',
+            themeName: '暮光橙',
+            themeColors: { primary: '#fa541c', secondary: '#fadb14' },
+            shareType: 'learning_square',
+            sharedBy: '系统示例',
+            sharedAt: now,
+            title: '暮光橙 · 活力主题',
+            description: '暖色调配色，适合活动页和课堂互动场景。',
+            tags: ['主题', '暖色', '活力'],
+            space: currentSpace,
+            isPublic: true,
+            likes: 5,
+            downloads: 18,
+            views: 96,
+            category: 'theme',
+            difficulty: 'beginner',
+            status: 'active'
+          },
+          {
+            id: 'seed-theme-3',
+            themeId: 'seed-theme-violet',
+            themeName: '知性紫',
+            themeColors: { primary: '#722ed1', secondary: '#eb2f96' },
+            shareType: 'learning_square',
+            sharedBy: '系统示例',
+            sharedAt: now,
+            title: '知性紫 · 精致主题',
+            description: '高雅知性的紫色系主题，突出重要信息与层次。',
+            tags: ['主题', '紫色', '精致'],
+            space: currentSpace,
+            isPublic: true,
+            likes: 3,
+            downloads: 12,
+            views: 72,
+            category: 'theme',
+            difficulty: 'beginner',
+            status: 'active'
+          }
+        ]
+
+        // 合并并保存
+        this.sharedThemes = [...(this.sharedThemes || []), ...seedThemes]
+        this.saveSharedThemes()
+      }
     } catch {}
     return this.sharedThemes.filter(theme => theme.shareType === 'learning_square' && theme.status === 'active');
   }

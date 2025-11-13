@@ -22,28 +22,49 @@ import {
   List, 
   Typography, 
   Divider,
-  message
+  Slider,
+  message,
+  Popover
 } from 'antd';
 import { 
   VideoCameraOutlined, 
   AudioOutlined, 
   ShareAltOutlined, 
+  MenuOutlined, 
   MessageOutlined, 
   SettingOutlined, 
   UserOutlined, 
   CalendarOutlined, 
   ClockCircleOutlined, 
+  InfoCircleOutlined,
   TeamOutlined, 
   PlayCircleOutlined, 
   PauseCircleOutlined, 
-  StopOutlined
+  StopOutlined,
+  SearchOutlined,
+  DownOutlined,
+  LikeOutlined,
+  PushpinOutlined,
+  SafetyOutlined,
+  MoreOutlined,
+  TranslationOutlined,
+  PhoneOutlined,
+  LockOutlined,
+  CloseOutlined,
+  FullscreenOutlined
 } from '@ant-design/icons';
+import { UploadOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import './MeetingCenter.css';
 
 const MeetingCenter = () => {
   const [form] = Form.useForm();
   const [activeTab, setActiveTab] = useState('meetings');
+  const [startMeetingOpen, setStartMeetingOpen] = useState(false);
+  const [meetingTitle, setMeetingTitle] = useState('张洪磊的视频会议');
+  const [inMeetingOpen, setInMeetingOpen] = useState(false);
+  const [historySelected, setHistorySelected] = useState(null);
+  const [participantsExpanded, setParticipantsExpanded] = useState(false);
   const [meetings, setMeetings] = useState([
     {
       id: 1,
@@ -1114,23 +1135,331 @@ const MeetingCenter = () => {
 
   return (
     <div className="meeting-center">
-      <Card className="meeting-header-card">
-        <Row justify="space-between" align="middle">
-          <Col>
+      <div className="meeting-layout">
+        <div className="left-panel">
+          <div className="left-header">
+            <div className="left-title">视频会议</div>
             <Space>
-              <VideoCameraOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
-              <Title level={2} style={{ margin: 0 }}>会议中心</Title>
+              <Button type="text" icon={<SearchOutlined />} />
+              <Button type="text" icon={<SettingOutlined />} />
             </Space>
-          </Col>
-        </Row>
-      </Card>
+          </div>
+          <div className="tile-grid">
+            {[
+              { key: 'start', label: '发起会议', icon: <VideoCameraOutlined />, color: '#6C8EF2' },
+              { key: 'join', label: '加入会议', icon: <UserOutlined />, color: '#58B2A3' },
+              { key: 'notes', label: '妙记', icon: <SettingOutlined />, color: '#6C8EF2' },
+              { key: 'summary', label: '智能纪要', icon: <MessageOutlined />, color: '#A0B2FF' }
+            ].map(t => (
+              <button
+                key={t.key}
+                className="tile-item"
+                onClick={() => {
+                  if (t.key === 'start') setStartMeetingOpen(true);
+                }}
+              >
+                <div className="tile-icon" style={{ background: t.color }}>
+                  {t.icon}
+                </div>
+                <div className="tile-text">{t.label}</div>
+              </button>
+            ))}
+          </div>
+          <div className="quota-card">
+            <div className="quota-header">
+              <span className="quota-title">本月智能会议剩余用量</span>
+              <Button type="link" size="small">扩容</Button>
+            </div>
+            <div className="quota-item">
+              <span>智能纪要</span>
+              <Tag color="red">已用尽</Tag>
+            </div>
+            <div className="quota-subheader">
+              <span>语音转文字</span>
+              <span>300 / 300 分钟</span>
+            </div>
+            <Progress percent={100} showInfo={false} />
+          </div>
+        </div>
+        <div className="main-panel">
+          <Card className="banner">
+            <div className="banner-content">
+              <div className="banner-left">
+                <div className="banner-icon"><MenuOutlined /></div>
+                <div className="banner-text">
+                  <div className="banner-title">智能生成纪要，快速沉淀关键信息</div>
+                  <div className="banner-subtitle">全新：上传与复盘功能，支持上传文件生成智能纪要，提炼要点，待办与关键结论</div>
+                </div>
+              </div>
+              <div className="banner-actions">
+                <Button type="primary" shape="round" icon={<UploadOutlined />}>立即上传</Button>
+                <Button type="primary" shape="round" icon={<AudioOutlined />}>录音</Button>
+              </div>
+            </div>
+          </Card>
+          <Card className="section-card" title="即将开始" extra={<Button type="link">在日历中查看全部</Button>}>
+            <List
+              dataSource={[
+                { id: 1, title: '早会', date: '11月17日', time: '08:45 - 09:00', idText: 'ID: 924 071 781' },
+                { id: 2, title: '早会', date: '11月17日', time: '08:45 - 09:00', idText: 'ID: 924 071 781' },
+                { id: 3, title: '早会', date: '11月18日', time: '08:45 - 09:00', idText: 'ID: 924 071 781' }
+              ]}
+              renderItem={m => (
+                <List.Item>
+                  <div className="upcoming-item">
+                    <div className="list-icon"><VideoCameraOutlined /></div>
+                    <div className="upcoming-content">
+                      <div className="upcoming-title">{m.title}</div>
+                      <div className="upcoming-meta">
+                        <span>{m.date} {m.time}</span>
+                        <span>{m.idText}</span>
+                      </div>
+                    </div>
+                  </div>
+                </List.Item>
+              )}
+            />
+          </Card>
+          <Card className="section-card" title="历史记录">
+            {(() => {
+              const historyData = [
+                { id: 'h1', type: 'video', title: '111', time: '今天 16:18' },
+                { id: 'h2', type: 'phone', title: '秦松', time: '6月11日 15:55', danger: true },
+                { id: 'h2b', type: 'phone', title: '金林峰', time: '6月10日 10:58' },
+                { id: 'h3', type: 'video', title: '6.0产品的视频会议', time: '2024年9月3日 16:27',
+                  dateText: '2024年9月3日（周二）', rangeText: '15:44 - 16:02', durationText: '18分29秒',
+                  meetingId: '935 177 719',
+                  participants: ['守','宝','张','李','王'],
+                  participantsFull: ['盈守宝','张洪磊','李明','王芳','赵强','陈伟','刘洁'],
+                  recording: { title: '6.0产品的视频会议', owner: '盈守宝' },
+                  events: [
+                    { t: '16:02', label: '离开会议' },
+                    { t: '15:45', label: '加入会议' }
+                  ]
+                },
+                { id: 'h4', type: 'video', title: '333', time: '2月6日 16:51' },
+                { id: 'h6', type: 'video', title: '666', time: '2月6日 16:17', links: ['回放', '会议课'] }
+              ];
+              return (
+                <List
+                  dataSource={historyData}
+                  renderItem={item => (
+                    <List.Item onClick={() => setHistorySelected(item)}>
+                      <div className={`history-item${historySelected?.id === item.id ? ' selected' : ''}`}>
+                        <div className="history-icon">
+                          {item.type === 'phone' ? <AudioOutlined /> : <VideoCameraOutlined />}
+                        </div>
+                        <div className="history-content">
+                          <div className={`history-title${item.danger ? ' danger' : ''}`}>{item.title}</div>
+                          <div className="history-time">{item.time}</div>
+                          {Array.isArray(item.links) && item.links.length > 0 && (
+                            <div className="history-links">
+                              {item.links.map((l, idx) => (
+                                <a key={idx} className="history-link">{l}</a>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </List.Item>
+                  )}
+                />
+              );
+            })()}
+          </Card>
+        </div>
+      </div>
 
-      <Tabs 
-        activeKey={activeTab} 
-        onChange={setActiveTab}
-        items={tabItems}
-        size="large"
-      />
+      {historySelected && historySelected.type === 'video' && (
+        <div className="record-detail-panel">
+          <div className="record-detail-header">
+            <div className="record-detail-title">{historySelected.title}</div>
+            <Button type="text" icon={<CloseOutlined />} onClick={() => setHistorySelected(null)} />
+          </div>
+          <div className="record-detail-body">
+            <div className="history-detail-card">
+              <div className="detail-row">
+                <ClockCircleOutlined className="detail-icon" />
+                <span className="detail-text">{historySelected.dateText}  {historySelected.rangeText}  |  {historySelected.durationText}</span>
+              </div>
+              <div className="detail-row">
+                <InfoCircleOutlined className="detail-icon" />
+                <span className="detail-text">会议 ID：{historySelected.meetingId}</span>
+              </div>
+              <Popover
+                overlayClassName="participants-popover"
+                placement="bottomLeft"
+                open={participantsExpanded}
+                content={(
+                  <div className="pp-list">
+                    <div className="pp-item">
+                      <span className="pp-chip">守宝</span>
+                      <span className="pp-name">盈守宝</span>
+                      <span className="pp-role">发起人</span>
+                    </div>
+                    {(historySelected.participantsFull || historySelected.participants || []).slice(1).map((name, idx) => (
+                      <div key={idx} className="pp-item">
+                        <Avatar size={28} style={{ background: '#e6f0ff', color: '#1f2937' }}>{name[0]}</Avatar>
+                        <span className="pp-name">{name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              >
+                <div className="detail-row participants-row" onClick={() => setParticipantsExpanded(v => !v)}>
+                  <TeamOutlined className="detail-icon" />
+                  <div className="avatar-list">
+                    {(historySelected.participants || []).map((p, idx) => (
+                      <Avatar key={idx} size={28}>{p}</Avatar>
+                    ))}
+                  </div>
+                </div>
+              </Popover>
+            </div>
+            <div className="recording-header">录制文件（妙记）</div>
+            <div className="recording-item">
+              <div className="recording-thumb">
+                <div className="recording-lock"><LockOutlined /></div>
+                <div className="recording-watermark">w</div>
+              </div>
+              <div className="recording-info">
+                <div className="recording-title">{historySelected.recording?.title}</div>
+                <div className="recording-sub">所有者：{historySelected.recording?.owner}</div>
+              </div>
+            </div>
+            <div className="timeline-date">{historySelected.dateText}</div>
+            <div className="timeline-list">
+              {(historySelected.events || []).map((ev, idx) => (
+                <div key={idx} className="timeline-row">
+                  <div className="timeline-time">{ev.t}</div>
+                  <div className="timeline-label">{ev.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Modal
+        open={startMeetingOpen}
+        onCancel={() => setStartMeetingOpen(false)}
+        footer={null}
+        width={880}
+        className="start-meeting-modal"
+      >
+        <div className="start-meeting-title">
+          <Input
+            className="meeting-title-input"
+            value={meetingTitle}
+            onChange={(e) => setMeetingTitle(e.target.value)}
+            bordered={false}
+            spellCheck={false}
+            size="large"
+          />
+        </div>
+        <div className="preview-area">
+          <button className="preview-settings"><SettingOutlined /></button>
+          <div
+            className="avatar-circle"
+            style={{
+              backgroundImage:
+                'url(https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=600&auto=format&fit=crop)'
+            }}
+          />
+        </div>
+        <div className="controls-bar">
+          <div className="controls-left">
+            <Button icon={<AudioOutlined style={{ color: '#ff4d4f' }} />}>麦克风 <DownOutlined /></Button>
+            <Button icon={<VideoCameraOutlined style={{ color: '#ff4d4f' }} />}>摄像头 <DownOutlined /></Button>
+          </div>
+          <div className="controls-volume">
+            <AudioOutlined />
+            <Slider style={{ width: 220 }} />
+            <DownOutlined />
+          </div>
+          <div className="controls-right">
+            <Button
+              type="primary"
+              size="large"
+              shape="round"
+              onClick={() => { setStartMeetingOpen(false); setInMeetingOpen(true); }}
+            >
+              开始会议
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        open={inMeetingOpen}
+        onCancel={() => setInMeetingOpen(false)}
+        footer={null}
+        width={'95vw'}
+        className="in-meeting-modal"
+      >
+        <div className="meeting-topbar">
+          <div className="topbar-left">
+            <span className="meeting-name">{meetingTitle}</span>
+            <span className="meeting-time">00:17（60 分钟）</span>
+            <span className="signal">▮▮▮</span>
+          </div>
+          <div className="topbar-right">田 常用</div>
+        </div>
+        <div className="meeting-main">
+          <div className="ai-card">
+            <div className="ai-card-actions">
+              <Button className="ai-action-btn" icon={<FullscreenOutlined />} />
+              <Button className="ai-action-btn" icon={<MoreOutlined />} />
+            </div>
+            <div className="ai-mind">
+              <div className="ai-center-line"></div>
+              <div className="branch primary">会议主题一</div>
+              <div className="branch light"></div>
+              <div className="branch light"></div>
+              <div className="branch secondary">会议主题二</div>
+              <div className="branch light"></div>
+              <div className="branch light"></div>
+            </div>
+            <div className="ai-card-label">AI 视图</div>
+          </div>
+          <div className="preview-card">
+            <div
+              className="avatar-octagon"
+              style={{
+                backgroundImage:
+                  'url(https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=600&auto=format&fit=crop)'
+              }}
+            />
+            <div className="preview-name"><AudioOutlined style={{ color: '#ff4d4f' }} /> 张洪磊（我）</div>
+          </div>
+        </div>
+        <div className="meeting-toolbar">
+          <div className="toolbar-group left-group">
+            <Button className="toolbar-btn" icon={<LikeOutlined />} />
+            <Button className="toolbar-btn">OK</Button>
+            <Button className="toolbar-btn">+1</Button>
+            <Button className="toolbar-btn">@</Button>
+            <Button className="toolbar-btn" icon={<PushpinOutlined />} />
+          </div>
+          <div className="toolbar-group center-group">
+            <Button className="toolbar-btn" icon={<AudioOutlined />}>麦克风 <DownOutlined /></Button>
+            <span className="toolbar-divider" />
+            <Button className="toolbar-btn" icon={<VideoCameraOutlined />}>摄像头 <DownOutlined /></Button>
+            <span className="toolbar-divider" />
+            <Button className="toolbar-btn" icon={<ShareAltOutlined />}>共享 <DownOutlined /></Button>
+            <span className="toolbar-divider" />
+            <Button className="toolbar-btn record-btn"><span className="record-dot" /> 录制 <DownOutlined /></Button>
+            <Button className="toolbar-btn" icon={<MessageOutlined />}>AI 总结</Button>
+            <Button className="hangup-btn" type="primary" danger shape="round" icon={<PhoneOutlined />} />
+          </div>
+          <div className="toolbar-group right-group">
+            <Button className="toolbar-btn" icon={<TeamOutlined />}>1 <DownOutlined /></Button>
+            <Button className="toolbar-btn" icon={<SafetyOutlined />}>安全</Button>
+            <Button className="toolbar-btn" icon={<TranslationOutlined />}>字幕</Button>
+            <Button className="toolbar-btn" icon={<MoreOutlined />} />
+          </div>
+        </div>
+      </Modal>
 
       {/* 会议详情模态框 */}
       {showMeetingDetail && selectedMeeting && (
