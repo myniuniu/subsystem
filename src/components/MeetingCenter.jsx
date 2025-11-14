@@ -11,6 +11,7 @@ import {
   Select, 
   DatePicker, 
   Switch, 
+  Dropdown,
   Space, 
   Avatar, 
   Badge, 
@@ -65,6 +66,12 @@ const MeetingCenter = () => {
   const [startMeetingOpen, setStartMeetingOpen] = useState(false);
   const [meetingTitle, setMeetingTitle] = useState('张洪磊的视频会议');
   const [inMeetingOpen, setInMeetingOpen] = useState(false);
+  const [aiSummaryOn, setAiSummaryOn] = useState(false);
+  const [showAIView, setShowAIView] = useState(true);
+  const [showParticipantsPanel, setShowParticipantsPanel] = useState(false);
+  const [showCaptions, setShowCaptions] = useState(false);
+  const [currentCaption, setCurrentCaption] = useState('be bay.');
+  const [showCaptionsPanel, setShowCaptionsPanel] = useState(false);
   const [historySelected, setHistorySelected] = useState(null);
   const [participantsExpanded, setParticipantsExpanded] = useState(false);
   const [recordingOpen, setRecordingOpen] = useState(false);
@@ -1532,21 +1539,15 @@ const MeetingCenter = () => {
                             { time: '00:52:46', name: '罗文', color: '#ef4444', text: '好，大家有没有提写完的问号？' }
                           ].map((m, idx) => (
                             <div key={idx} className="transcript-item">
-                              <div className="transcript-time">{m.time}</div>
-                              <div className="transcript-body">
-                                <Avatar size={24} style={{ backgroundColor: m.color }}>{m.name[0]}</Avatar>
-                                <div className="transcript-text">
-                                  <span className="transcript-name">{m.name}：</span>
-                                  {m.text}
-                                  {idx === 0 && (
-                                    <span className="transcript-highlight">大家</span>
-                                  )}
-                                </div>
+                              <div className="trans-left">
+                                <Avatar size={32} style={{ backgroundColor: m.color }}>{m.name[0]}</Avatar>
                               </div>
-                              <div className="transcript-side">
-                                {idx % 3 === 0 && (
-                                  <div className="transcript-q">?</div>
-                                )}
+                              <div className="trans-content">
+                                <div className="trans-head">
+                                  <span className="trans-name">{m.name}</span>
+                                  <span className="trans-time">{m.time}</span>
+                                </div>
+                                <div className="trans-text">{m.text}</div>
                               </div>
                             </div>
                           ))}
@@ -1566,6 +1567,7 @@ const MeetingCenter = () => {
         onCancel={() => setStartMeetingOpen(false)}
         footer={null}
         width={880}
+        closable={false}
         className="start-meeting-modal"
       >
         <div className="start-meeting-title">
@@ -1616,6 +1618,7 @@ const MeetingCenter = () => {
         onCancel={() => setInMeetingOpen(false)}
         footer={null}
         width={'95vw'}
+        closable={false}
         className="in-meeting-modal"
       >
         <div className="meeting-topbar">
@@ -1626,7 +1629,8 @@ const MeetingCenter = () => {
           </div>
           <div className="topbar-right">田 常用</div>
         </div>
-        <div className="meeting-main">
+        <div className="meeting-main" style={{ gridTemplateColumns: (showParticipantsPanel || showCaptionsPanel) ? (showAIView ? '1fr 1fr 320px' : '1fr 320px') : (showAIView ? '1fr 1fr' : '1fr') }}>
+          {showAIView && (
           <div className="ai-card">
             <div className="ai-card-actions">
               <Button className="ai-action-btn" icon={<FullscreenOutlined />} />
@@ -1643,6 +1647,7 @@ const MeetingCenter = () => {
             </div>
             <div className="ai-card-label">AI 视图</div>
           </div>
+          )}
           <div className="preview-card">
             <div
               className="avatar-octagon"
@@ -1653,8 +1658,75 @@ const MeetingCenter = () => {
             />
             <div className="preview-name"><AudioOutlined style={{ color: '#ff4d4f' }} /> 张洪磊（我）</div>
           </div>
+          {showParticipantsPanel && (
+            <div className="participants-panel">
+              <div className="pp-header">
+                <div className="pp-title">参会人</div>
+                <Space>
+                  <Button type="text" icon={<UserOutlined />} />
+                  <Button type="text" icon={<MoreOutlined />} />
+                  <Button type="text" icon={<CloseOutlined />} onClick={() => setShowParticipantsPanel(false)} />
+                </Space>
+              </div>
+              <div className="pp-search">
+                <Input prefix={<SearchOutlined />} placeholder="搜索或呼叫" allowClear />
+                <Button>邀请</Button>
+              </div>
+              <div className="pp-tabs">
+                <Button type="link" className="active">全部 (1)</Button>
+                <Button type="link">建议参会 (0)</Button>
+              </div>
+              <div className="pp-list">
+                <div className="pp-item">
+                  <Avatar size={28} style={{ background: '#eef2ff', color: '#1f2937' }}>张</Avatar>
+                  <div className="pp-info">
+                    <div className="pp-name">张洪磊 <span className="pp-me">我</span></div>
+                    <div className="pp-role">主持人</div>
+                  </div>
+                  <Space className="pp-status">
+                    <AudioOutlined style={{ color: '#ff4d4f' }} />
+                    <VideoCameraOutlined style={{ color: '#ff4d4f' }} />
+                  </Space>
+                </div>
+              </div>
+              <div className="pp-actions">
+                <Button>全员静音</Button>
+                <Button>请求全员开麦</Button>
+              </div>
+            </div>
+          )}
+          {showCaptionsPanel && (
+            <div className="captions-panel">
+              <div className="cp-header">
+                <div className="cp-title">字幕</div>
+                <Space>
+                  <Button type="text" icon={<MoreOutlined />} />
+                  <Button type="text" icon={<CloseOutlined />} onClick={() => setShowCaptionsPanel(false)} />
+                </Space>
+              </div>
+              <div className="cp-search">
+                <Input prefix={<SearchOutlined />} placeholder="搜索" allowClear />
+              </div>
+              <div className="cp-list">
+                {[
+                  { time: '09:22:45', name: '张洪磊', text: '这个点在市办一个专家的这个部门，知道吗？然后这个是相的问题。' }
+                ].map((l, idx) => (
+                  <div key={idx} className="cp-item">
+                    <Avatar size={24} style={{ background: '#eef2ff', color: '#1f2937' }}>{l.name[0]}</Avatar>
+                    <div className="cp-content">
+                      <div className="cp-head">
+                        <span className="cp-name">{l.name}</span>
+                        <span className="cp-time">{l.time}</span>
+                      </div>
+                      <div className="cp-text">{l.text}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-        <div className="meeting-toolbar">
+        <div className="meeting-toolbar" style={{ right: (showParticipantsPanel || showCaptionsPanel) ? 336 : 16 }}>
           <div className="toolbar-group left-group">
             <Button className="toolbar-btn" icon={<LikeOutlined />} />
             <Button className="toolbar-btn">OK</Button>
@@ -1670,16 +1742,39 @@ const MeetingCenter = () => {
             <Button className="toolbar-btn" icon={<ShareAltOutlined />}>共享 <DownOutlined /></Button>
             <span className="toolbar-divider" />
             <Button className="toolbar-btn record-btn"><span className="record-dot" /> 录制 <DownOutlined /></Button>
-            <Button className="toolbar-btn" icon={<MessageOutlined />}>AI 总结</Button>
-            <Button className="hangup-btn" type="primary" danger shape="round" icon={<PhoneOutlined />} />
+            <div className="toolbar-toggle"><span>AI 总结</span><Switch size="small" checked={aiSummaryOn} onChange={setAiSummaryOn} /></div>
+            <Button className="hangup-btn" type="primary" danger shape="round" icon={<PhoneOutlined />} onClick={() => setInMeetingOpen(false)} />
           </div>
           <div className="toolbar-group right-group">
-            <Button className="toolbar-btn" icon={<TeamOutlined />}>1 <DownOutlined /></Button>
+            <Button className="toolbar-btn" icon={<TeamOutlined />} onClick={() => setShowParticipantsPanel(true)}>1 <DownOutlined /></Button>
             <Button className="toolbar-btn" icon={<SafetyOutlined />}>安全</Button>
-            <Button className="toolbar-btn" icon={<TranslationOutlined />}>字幕</Button>
-            <Button className="toolbar-btn" icon={<MoreOutlined />} />
+            <Button className="toolbar-btn" icon={<TranslationOutlined />} onClick={() => { setShowCaptions(true); setShowCaptionsPanel(false); }}>字幕</Button>
+            <Dropdown menu={{ items: [{ key: 'close-ai', label: '关闭AI视图' }], onClick: ({ key }) => { if (key === 'close-ai') setShowAIView(false); } }}>
+              <Button className="toolbar-btn" icon={<MoreOutlined />} />
+            </Dropdown>
           </div>
         </div>
+        {showCaptions && (
+          <div className="captions-overlay">
+            <div className="captions-header">
+              <div className="cap-left">
+                <Avatar size={24} style={{ background: '#1f2937', color: '#fff' }}>张</Avatar>
+                <span className="cap-name">张洪磊</span>
+              </div>
+              <div className="cap-actions">
+                <Tooltip title="查看完整字幕">
+                  <div className="cap-icon" onClick={() => { setShowCaptionsPanel(true); setShowParticipantsPanel(false); }}>
+                    CC
+                  </div>
+                </Tooltip>
+                <div className="cap-icon">a</div>
+                <Button type="text" icon={<MoreOutlined />} />
+                <Button type="text" icon={<CloseOutlined />} onClick={() => setShowCaptions(false)} />
+              </div>
+            </div>
+            <div className="captions-text">{currentCaption}</div>
+          </div>
+        )}
       </Modal>
 
       {/* 会议详情模态框 */}

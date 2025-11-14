@@ -1,7 +1,9 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Input, Button, Space, Modal, Tooltip } from 'antd';
-import { MessageSquare, Send, MoreVertical, Type, Smile, AtSign, Scissors, HelpCircle, Maximize2, FileText, Search, Video, UserPlus, Calendar, X, Mic, MicOff, VideoOff, Settings, Volume2, VolumeX, ChevronRight, Users, User, Layers, Folder, Pin, Megaphone } from 'lucide-react';
+import { Input, Button, Space, Modal, Tooltip, Slider, Avatar, Switch, Dropdown } from 'antd';
+import { MessageSquare, Send, MoreVertical, Type, Smile, AtSign, Scissors, HelpCircle, Maximize2, FileText, Search, Video, UserPlus, Calendar, X, Mic, MicOff, VideoOff, Volume2, VolumeX, ChevronRight, Users, User, Layers, Folder, Pin, Megaphone } from 'lucide-react';
+import { AudioOutlined, VideoCameraOutlined, DownOutlined, SettingOutlined, ShareAltOutlined, PhoneOutlined, MoreOutlined, FullscreenOutlined, TranslationOutlined, SafetyOutlined, TeamOutlined, UserOutlined, CloseOutlined, SearchOutlined, LikeOutlined, PushpinOutlined } from '@ant-design/icons';
 import './ChatWindow.css';
+import './MeetingCenter.css';
 import CalendarCenter from './CalendarCenter.jsx';
 
 const ORG_NAMES = [
@@ -34,13 +36,16 @@ const ChatWindow = ({
   const [replayItems, setReplayItems] = useState([]);
   const replayTimerRef = useRef(null);
 
-  // 会议弹窗相关状态
-  const [showMeetingModal, setShowMeetingModal] = useState(false);
+  // 会议弹窗相关状态（对齐 MeetingCenter 发起会议样式）
+  const [startMeetingOpen, setStartMeetingOpen] = useState(false);
+  const [inMeetingOpen, setInMeetingOpen] = useState(false);
+  const [aiSummaryOn, setAiSummaryOn] = useState(false);
+  const [showAIView, setShowAIView] = useState(true);
+  const [showParticipantsPanel, setShowParticipantsPanel] = useState(false);
+  const [showCaptions, setShowCaptions] = useState(false);
+  const [currentCaption, setCurrentCaption] = useState('be bay.');
+  const [showCaptionsPanel, setShowCaptionsPanel] = useState(false);
   const [meetingTitle, setMeetingTitle] = useState('新教师教学方法培训');
-  const [micEnabled, setMicEnabled] = useState(false);
-  const [cameraEnabled, setCameraEnabled] = useState(false);
-  const [speakerMuted, setSpeakerMuted] = useState(true);
-  const [speakerVolume, setSpeakerVolume] = useState(30);
   // 添加成员弹窗相关状态
   const [showAddMembersModal, setShowAddMembersModal] = useState(false);
   const [selectedAddMembers, setSelectedAddMembers] = useState([]);
@@ -197,7 +202,7 @@ const ChatWindow = ({
     window.dispatchEvent(new CustomEvent('conversationSearchOpen', { detail: { chatId: activeContact } }));
   };
   const handleStartVideoMeeting = () => {
-    setShowMeetingModal(true);
+    setStartMeetingOpen(true);
     window.dispatchEvent(new CustomEvent('startVideoMeeting', { detail: { chatId: activeContact } }));
   };
   const handleAddMember = () => {
@@ -746,77 +751,216 @@ const ChatWindow = ({
         </div>
       </Modal>
 
-      {/* 会议弹窗 */}
-      <Modal 
-        open={showMeetingModal}
-        onCancel={() => setShowMeetingModal(false)}
+      {/* 会议弹窗（对齐 MeetingCenter 的“发起会议”） */}
+      <Modal
+        open={startMeetingOpen}
+        onCancel={() => setStartMeetingOpen(false)}
         footer={null}
-        width={820}
-        className="meeting-modal"
+        width={880}
+        closable={false}
+        className="start-meeting-modal"
       >
-        <div className="meeting-title">
-          <Input 
+        <div className="start-meeting-title">
+          <Input
+            className="meeting-title-input"
             value={meetingTitle}
             onChange={(e) => setMeetingTitle(e.target.value)}
             bordered={false}
-            className="meeting-title-input"
+            spellCheck={false}
+            size="large"
           />
         </div>
-        <div className="meeting-preview">
-          <button className="preview-settings-btn" title="背景设置">
-            <Settings size={16} />
-          </button>
-          <div className="preview-avatar">
-            {currentContact?.avatar ? (
-              currentContact.avatar.startsWith('http') || currentContact.avatar.startsWith('/') ? (
-                <img src={currentContact.avatar} alt="avatar" />
-              ) : (
-                <div className="emoji-avatar-large">{currentContact.avatar}</div>
-              )
-            ) : (
-              <div className="initial-avatar-large">{(currentContact?.name || '群').charAt(0)}</div>
-            )}
+        <div className="preview-area">
+          <button className="preview-settings"><SettingOutlined /></button>
+          <div
+            className="avatar-circle"
+            style={{
+              backgroundImage: `url(${(currentContact?.avatar && (currentContact.avatar.startsWith('http') || currentContact.avatar.startsWith('/'))) ? currentContact.avatar : 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=600&auto=format&fit=crop'})`
+            }}
+          />
+        </div>
+        <div className="controls-bar">
+          <div className="controls-left">
+            <Button icon={<AudioOutlined style={{ color: '#ff4d4f' }} />}>麦克风 <DownOutlined /></Button>
+            <Button icon={<VideoCameraOutlined style={{ color: '#ff4d4f' }} />}>摄像头 <DownOutlined /></Button>
+          </div>
+          <div className="controls-volume">
+            <AudioOutlined />
+            <Slider style={{ width: 220 }} />
+            <DownOutlined />
+          </div>
+          <div className="controls-right">
+            <Button
+              type="primary"
+              size="large"
+              shape="round"
+              onClick={() => { setStartMeetingOpen(false); setInMeetingOpen(true); }}
+            >
+              开始会议
+            </Button>
           </div>
         </div>
-        <div className="meeting-controls">
-          <div className="device-controls">
-            <button 
-              className={`device-btn ${micEnabled ? '' : 'muted'}`} 
-              title={micEnabled ? '麦克风已开启' : '麦克风已关闭'}
-              onClick={() => setMicEnabled(v => !v)}
-            >
-              {micEnabled ? <Mic size={16} /> : <MicOff size={16} />}
-              <span className="device-label">麦克风</span>
-            </button>
-            <button 
-              className={`device-btn ${cameraEnabled ? '' : 'muted'}`} 
-              title={cameraEnabled ? '摄像头已开启' : '摄像头已关闭'}
-              onClick={() => setCameraEnabled(v => !v)}
-            >
-              {cameraEnabled ? <Video size={16} /> : <VideoOff size={16} />}
-              <span className="device-label">摄像头</span>
-            </button>
-            <div className="volume-control">
-              <button 
-                className={`device-btn ${speakerMuted ? 'muted' : ''}`} 
-                title={speakerMuted ? '扬声器已静音' : '扬声器'}
-                onClick={() => setSpeakerMuted(v => !v)}
-              >
-                {speakerMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-              </button>
-              <input 
-                type="range" 
-                min="0" 
-                max="100" 
-                value={speakerVolume} 
-                onChange={(e) => setSpeakerVolume(Number(e.target.value))}
-              />
+      </Modal>
+
+      <Modal
+        open={inMeetingOpen}
+        onCancel={() => setInMeetingOpen(false)}
+        footer={null}
+        width={'95vw'}
+        closable={false}
+        className="in-meeting-modal"
+      >
+        <div className="meeting-topbar">
+          <div className="topbar-left">
+            <span className="meeting-name">{meetingTitle}</span>
+            <span className="meeting-time">00:17（60 分钟）</span>
+            <span className="signal">▮▮▮</span>
+          </div>
+          <div className="topbar-right">田 常用</div>
+        </div>
+        <div className="meeting-main" style={{ gridTemplateColumns: (showParticipantsPanel || showCaptionsPanel) ? (showAIView ? '1fr 1fr 320px' : '1fr 320px') : (showAIView ? '1fr 1fr' : '1fr') }}>
+          {showAIView && (
+            <div className="ai-card">
+              <div className="ai-card-actions">
+                <Button className="ai-action-btn" icon={<FullscreenOutlined />} />
+                <Button className="ai-action-btn" icon={<MoreOutlined />} />
+              </div>
+              <div className="ai-mind">
+                <div className="ai-center-line"></div>
+                <div className="branch primary">会议主题一</div>
+                <div className="branch light"></div>
+                <div className="branch light"></div>
+                <div className="branch secondary">会议主题二</div>
+                <div className="branch light"></div>
+                <div className="branch light"></div>
+              </div>
+              <div className="ai-card-label">AI 视图</div>
             </div>
+          )}
+          <div className="preview-card">
+            <div
+              className="avatar-octagon"
+              style={{
+                backgroundImage: `url(${(currentContact?.avatar && (currentContact.avatar.startsWith('http') || currentContact.avatar.startsWith('/'))) ? currentContact.avatar : 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=600&auto=format&fit=crop'})`
+              }}
+            />
+            <div className="preview-name"><AudioOutlined style={{ color: '#ff4d4f' }} /> {(currentContact?.name || '我')}</div>
           </div>
-          <Button type="primary" size="large" className="start-meeting-btn" onClick={() => setShowMeetingModal(false)}>
-            开始会议
-          </Button>
+          {showParticipantsPanel && (
+            <div className="participants-panel">
+              <div className="pp-header">
+                <div className="pp-title">参会人</div>
+                <Space>
+                  <Button type="text" icon={<UserOutlined />} />
+                  <Button type="text" icon={<MoreOutlined />} />
+                  <Button type="text" icon={<CloseOutlined />} onClick={() => setShowParticipantsPanel(false)} />
+                </Space>
+              </div>
+              <div className="pp-search">
+                <Input prefix={<SearchOutlined />} placeholder="搜索或呼叫" allowClear />
+                <Button>邀请</Button>
+              </div>
+              <div className="pp-tabs">
+                <Button type="link" className="active">全部 (1)</Button>
+                <Button type="link">建议参会 (0)</Button>
+              </div>
+              <div className="pp-list">
+                <div className="pp-item">
+                  <Avatar size={28} style={{ background: '#eef2ff', color: '#1f2937' }}>张</Avatar>
+                  <div className="pp-info">
+                    <div className="pp-name">张洪磊 <span className="pp-me">我</span></div>
+                    <div className="pp-role">主持人</div>
+                  </div>
+                  <Space className="pp-status">
+                    <AudioOutlined style={{ color: '#ff4d4f' }} />
+                    <VideoCameraOutlined style={{ color: '#ff4d4f' }} />
+                  </Space>
+                </div>
+              </div>
+              <div className="pp-actions">
+                <Button>全员静音</Button>
+                <Button>请求全员开麦</Button>
+              </div>
+            </div>
+          )}
+          {showCaptionsPanel && (
+            <div className="captions-panel">
+              <div className="cp-header">
+                <div className="cp-title">字幕</div>
+                <Space>
+                  <Button type="text" icon={<MoreOutlined />} />
+                  <Button type="text" icon={<CloseOutlined />} onClick={() => setShowCaptionsPanel(false)} />
+                </Space>
+              </div>
+              <div className="cp-search">
+                <Input prefix={<SearchOutlined />} placeholder="搜索" allowClear />
+              </div>
+              <div className="cp-list">
+                {[{ time: '09:22:45', name: '张洪磊', text: '这个点在市办一个专家的这个部门，知道吗？然后这个是相的问题。' }].map((l, idx) => (
+                  <div key={idx} className="cp-item">
+                    <Avatar size={24} style={{ background: '#eef2ff', color: '#1f2937' }}>{l.name[0]}</Avatar>
+                    <div className="cp-content">
+                      <div className="cp-head">
+                        <span className="cp-name">{l.name}</span>
+                        <span className="cp-time">{l.time}</span>
+                      </div>
+                      <div className="cp-text">{l.text}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
+        <div className="meeting-toolbar" style={{ right: (showParticipantsPanel || showCaptionsPanel) ? 336 : 16 }}>
+          <div className="toolbar-group left-group">
+            <Button className="toolbar-btn" icon={<LikeOutlined />} />
+            <Button className="toolbar-btn">OK</Button>
+            <Button className="toolbar-btn">+1</Button>
+            <Button className="toolbar-btn">@</Button>
+            <Button className="toolbar-btn" icon={<PushpinOutlined />} />
+          </div>
+          <div className="toolbar-group center-group">
+            <Button className="toolbar-btn" icon={<AudioOutlined />}>麦克风 <DownOutlined /></Button>
+            <span className="toolbar-divider" />
+            <Button className="toolbar-btn" icon={<VideoCameraOutlined />}>摄像头 <DownOutlined /></Button>
+            <span className="toolbar-divider" />
+            <Button className="toolbar-btn" icon={<ShareAltOutlined />}>共享 <DownOutlined /></Button>
+            <span className="toolbar-divider" />
+            <Button className="toolbar-btn record-btn"><span className="record-dot" /> 录制 <DownOutlined /></Button>
+            <div className="toolbar-toggle"><span>AI 总结</span><Switch size="small" checked={aiSummaryOn} onChange={setAiSummaryOn} /></div>
+            <Button className="hangup-btn" type="primary" danger shape="round" icon={<PhoneOutlined />} onClick={() => setInMeetingOpen(false)} />
+          </div>
+          <div className="toolbar-group right-group">
+            <Button className="toolbar-btn" icon={<TeamOutlined />} onClick={() => setShowParticipantsPanel(true)}>1 <DownOutlined /></Button>
+            <Button className="toolbar-btn" icon={<SafetyOutlined />}>安全</Button>
+            <Button className="toolbar-btn" icon={<TranslationOutlined />} onClick={() => { setShowCaptions(true); setShowCaptionsPanel(false); }}>字幕</Button>
+            <Dropdown menu={{ items: [{ key: 'close-ai', label: '关闭AI视图' }], onClick: ({ key }) => { if (key === 'close-ai') setShowAIView(false); } }}>
+              <Button className="toolbar-btn" icon={<MoreOutlined />} />
+            </Dropdown>
+          </div>
+        </div>
+        {showCaptions && (
+          <div className="captions-overlay">
+            <div className="captions-header">
+              <div className="cap-left">
+                <Avatar size={24} style={{ background: '#1f2937', color: '#fff' }}>张</Avatar>
+                <span className="cap-name">张洪磊</span>
+              </div>
+              <div className="cap-actions">
+                <Tooltip title="查看完整字幕">
+                  <div className="cap-icon" onClick={() => { setShowCaptionsPanel(true); setShowParticipantsPanel(false); }}>
+                    CC
+                  </div>
+                </Tooltip>
+                <div className="cap-icon">a</div>
+                <Button type="text" icon={<MoreOutlined />} />
+                <Button type="text" icon={<CloseOutlined />} onClick={() => setShowCaptions(false)} />
+              </div>
+            </div>
+            <div className="captions-text">{currentCaption}</div>
+          </div>
+        )}
       </Modal>
       
       {/* 模板选择Modal */}

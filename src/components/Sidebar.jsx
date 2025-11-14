@@ -485,6 +485,14 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       color: '#52c41a',
       type: 'single'
     },
+    { 
+      id: 'meeting-center', 
+      icon: Video, 
+      label: '会议中心', 
+      shortLabel: '会议',
+      color: '#e74c3c',
+      type: 'single'
+    },
     
     { 
       id: 'learning-square', 
@@ -561,14 +569,7 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       ]
     },
     
-    { 
-      id: 'meeting-center', 
-      icon: Video, 
-      label: '会议中心', 
-      shortLabel: '会议',
-      color: '#e74c3c',
-      type: 'single'
-    },
+    
     
     { 
       id: 'my-certificates',
