@@ -203,7 +203,8 @@ const ScenarioSimulation = ({
               onChange={(v) => { aiPerspective = v; }}
               options={[
                 { value: 'first', label: '第一人称' },
-                { value: 'third', label: '第三人称' }
+                { value: 'third', label: '第三人称' },
+                { value: 'any', label: '不限' }
               ]}
               style={{ width: 180 }}
             />

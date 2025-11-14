@@ -311,6 +311,7 @@
                     <div class="p-6">
                         <div class="flex items-center mb-3">
                             <span class="bg-primary/10 text-primary text-xs font-medium px-2.5 py-0.5 rounded">初级</span>
+                            <span class="ml-2 bg-gray-100 text-gray-700 text-xs font-medium px-2.5 py-0.5 rounded">第一人称</span>
                             <span class="ml-auto text-sm text-gray-500"><i class="fa fa-clock-o mr-1"></i> 15分钟</span>
                         </div>
                         <h3 class="text-xl font-bold mb-2">学业压力过大</h3>
@@ -331,15 +332,12 @@
                 <!-- 场景卡片 2 -->
                 <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover scenario-card cursor-pointer" data-scenario="social-anxiety">
                     <div class="h-48 overflow-hidden">
-                        <div class="w-full h-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center transition-transform duration-500 hover:scale-110">
-                            <svg class="w-16 h-16 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
+                        <img src="/assets/场景模拟/社交焦虑/绘制社交焦虑障碍绘本 7.png" alt="社交焦虑障碍封面" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110" />
                     </div>
                     <div class="p-6">
                         <div class="flex items-center mb-3">
                             <span class="bg-primary/10 text-primary text-xs font-medium px-2.5 py-0.5 rounded">中级</span>
+                            <span class="ml-2 bg-gray-100 text-gray-700 text-xs font-medium px-2.5 py-0.5 rounded">第三人称</span>
                             <span class="ml-auto text-sm text-gray-500"><i class="fa fa-clock-o mr-1"></i> 20分钟</span>
                         </div>
                         <h3 class="text-xl font-bold mb-2">社交焦虑障碍</h3>
@@ -1135,7 +1133,7 @@
             document.body.appendChild(modal);
         })();
 
-        function openStoryboard(onComplete) {
+        function openStoryboard(scenarioId, onComplete) {
             const modal = document.getElementById('storybook-modal');
             const imgEl = document.getElementById('storybook-image');
             const capEl = document.getElementById('storybook-caption');
@@ -1148,12 +1146,23 @@
             const startGroup = document.getElementById('storybook-start-group');
             
             if (!modal || !imgEl || !capEl || !progressEl || !prevBtn || !nextBtn) return onComplete && onComplete();
-            const slides = [
+            const defaultSlides = [
                 { img: '/assets/场景模拟/辅导员与学生的交流1.png', text: '李明来到辅导员办公室，轻轻敲门后走进。' },
                 { img: '/assets/场景模拟/辅导员与学生的交流2.png', text: '李明表达最近的学业压力，辅导员认真倾听。' },
                 { img: '/assets/场景模拟/辅导员与学生的交流3.png', text: '辅导员给出建议与方法，氛围逐渐放松。' },
                 { img: '/assets/场景模拟/辅导员与学生的交流4.png', text: '李明心情好转，露出笑容，感谢辅导员的帮助。' }
             ];
+            const socialAnxietySlides = [
+                { img: '/assets/场景模拟/社交焦虑/绘制社交焦虑障碍绘本 1.png', text: '分镜 1：开学第一天，阳光明媚的大学校园里，其他新生三三两两兴奋地交谈着，小明独自拖着行李箱，低着头快步走向宿舍楼，周围的热闹仿佛与他无关。' },
+                { img: '/assets/场景模拟/社交焦虑/绘制社交焦虑障碍绘本 2.png', text: '分镜 2：宿舍内，小明坐在自己的书桌前，背对着宿舍门，室友们在一旁开心地讨论着社团活动，他却戴着耳机，眼神空洞地盯着电脑屏幕，手指无意识地敲击着桌面。' },
+                { img: '/assets/场景模拟/社交焦虑/绘制社交焦虑障碍绘本 3.png', text: '分镜 3：食堂里人声鼎沸，小明端着餐盘，在拥挤的人群中艰难地寻找空位，当有人看向他时，他立刻低下头，脸颊泛红，最终选择在角落的单人小桌坐下，快速地扒拉着饭菜。' },
+                { img: '/assets/场景模拟/社交焦虑/绘制社交焦虑障碍绘本 4.png', text: '分镜 4：上课铃响了，教室里坐满了学生，小明却在教学楼外徘徊，他紧紧攥着书包带，眉头紧锁，内心挣扎着不敢走进教室，害怕成为众人关注的焦点。' },
+                { img: '/assets/场景模拟/社交焦虑/绘制社交焦虑障碍绘本 5.png', text: '分镜 5：宿舍楼道里，小明遇到同班同学向他打招呼，他眼神躲闪，含糊地应了一声，便匆匆低下头快步走开，同学脸上露出困惑的表情。' },
+                { img: '/assets/场景模拟/社交焦虑/绘制社交焦虑障碍绘本6.png', text: '分镜 6：夜晚，小明躺在床上，辗转反侧难以入睡，脑海里不断浮现白天与人交往时的尴尬场景，他用被子蒙住头，小声地叹气。' },
+                { img: '/assets/场景模拟/社交焦虑/绘制社交焦虑障碍绘本 7.png', text: '分镜 7：辅导员李老师发现小明连续几天没去上课，来到宿舍找他，李老师坐在小明床边，温和地询问他的情况，小明低着头，双手放在膝盖上，小声地诉说着自己的困扰。' },
+                { img: '/assets/场景模拟/社交焦虑/绘制社交焦虑障碍绘本8.png', text: '分镜 8：李老师带着小明来到学校的心理咨询室，心理咨询师微笑着向小明伸出手，房间布置温馨舒适，墙上挂着一些励志的画作。' }
+            ];
+            const slides = scenarioId === 'social-anxiety' ? socialAnxietySlides : defaultSlides;
             let index = 0;
             let selectedMode = window.chatMode || 'voice';
             const render = () => {
@@ -1351,7 +1360,6 @@
                 dialogContainer.scrollTop = dialogContainer.scrollHeight;
             }
             function renderRound(index, scenario) {
-                // 手动问答模式：仅展示学生当轮消息
                 return new Promise(resolve => {
                     if (!scenario || !scenario.rounds || !scenario.rounds[index]) {
                         resolve();
@@ -1359,16 +1367,28 @@
                     }
                     const round = scenario.rounds[index];
                     const studentMsg = (round.messages || []).find(m => m.role === 'student');
-                    if (studentMsg) {
-                        renderBubble('student', studentMsg.text, scenario.participants);
-                    }
+                    const stem = studentMsg && studentMsg.text 
+                      ? `题目：当学生描述“${studentMsg.text}”时，你应该怎么做？请选择或作答。`
+                      : '题目：基于当前场景，你应该怎么做？请选择或作答。';
+                    const dialogContainer = document.getElementById('dialog-container');
+                    const promptHtml = `
+                        <div class="message-bubble system">
+                            <div class="message-content">${stem}</div>
+                            <div class="message-time">${new Date().toLocaleString()}</div>
+                        </div>
+                    `;
+                    dialogContainer.insertAdjacentHTML('beforeend', promptHtml);
+                    dialogContainer.scrollTop = dialogContainer.scrollHeight;
                     resolve();
                 });
             }
 
             // 交互模式：在每轮中循环展示三种模式
-            function getModeForRound(index) {
-                const schedule = ['select_only', 'select_and_input', 'input_only'];
+            function getModeForRound(index, scenario) {
+                const round = scenario && scenario.rounds && scenario.rounds[index];
+                const t = round && round.questionType;
+                if (t === 'single' || t === 'multi' || t === 'qa') return t;
+                const schedule = ['single', 'multi', 'qa'];
                 return schedule[index % schedule.length];
             }
             function setInputEnabled(enabled) {
@@ -1376,7 +1396,7 @@
                 const sendEl = document.getElementById('custom-send-btn');
                 if (inputEl) {
                     inputEl.disabled = !enabled;
-                    inputEl.placeholder = enabled ? '请输入你的回复...' : '本轮为“仅选项”，不能输入';
+                    inputEl.placeholder = enabled ? '请用第三人称描述你的处理步骤（问答题）' : '本轮为“仅选项”，不能输入';
                 }
                 if (sendEl) {
                     sendEl.disabled = !enabled;
@@ -1439,14 +1459,19 @@
                 const choicesContainer = document.getElementById('choices-container');
                 if (!choicesContainer) return;
                 const total = scenario && scenario.rounds ? scenario.rounds.length : 0;
-                const mode = getModeForRound(roundIndex);
+                const mode = getModeForRound(roundIndex, scenario);
                 const options = buildOptionsForRound(scenario, roundIndex);
+                const round = scenario && scenario.rounds && scenario.rounds[roundIndex];
+                const studentMsg = round ? (round.messages || []).find(m => m.role === 'student') : null;
+                const stem = studentMsg && studentMsg.text 
+                  ? `当学生描述“${studentMsg.text}”时，你应该怎么做？`
+                  : '基于当前场景，你应该怎么做？';
                 let optionsHtml = '';
-                if (mode !== 'input_only') {
+                if (mode !== 'qa') {
                     optionsHtml = `
                         <div class="space-y-2">
                             ${options.map(opt => `
-                                <button class="choice-btn w-full text-left bg-white border border-gray-200 rounded-lg px-4 py-2 hover:bg-primary/5 hover:border-primary transition-colors" data-option-key="${opt.key}" data-option-text="${opt.text.replace(/"/g,'&quot;')}">
+                                <button class="choice-btn w-full text-left bg-white border border-gray-200 rounded-lg px-4 py-2 hover:bg-primary/5 hover:border-primary transition-colors" data-option-key="${opt.key}" data-option-text="${opt.text.replace(/"/g,'&quot;')}" data-selected="false">
                                     <p>${opt.text}</p>
                                 </button>
                             `).join('')}
@@ -1456,23 +1481,24 @@
 
                 choicesContainer.innerHTML = `
                     <div class="flex items-center justify-between mb-2">
-                        <h4 class="font-medium text-gray-700">你会如何回应？</h4>
+                        <h4 class="font-medium text-gray-700">${stem}</h4>
                     </div>
+                    ${mode !== 'qa' ? `<div class="text-sm text-gray-600 mb-2">${mode === 'single' ? '单选题' : '多选题'}：</div>` : ''}
                     ${optionsHtml}
-                    <div class="text-xs text-gray-500 mt-2">当前模式：${mode === 'select_only' ? '仅选项' : mode === 'select_and_input' ? '选项+可输入' : '仅输入'}</div>
+                    ${mode === 'multi' ? '<div class="mt-3"><button id="multi-submit-btn" class="px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 disabled:opacity-50" disabled>提交选择</button></div>' : ''}
+                    <div class="text-xs text-gray-500 mt-2">当前模式：${mode === 'single' ? '单选题' : mode === 'multi' ? '多选题' : '问答题'}</div>
                 `;
 
                 // 输入框状态
-                setInputEnabled(mode !== 'select_only');
+                setInputEnabled(mode === 'qa');
 
-                // 绑定选项点击
-                const optionBtns = choicesContainer.querySelectorAll('[data-option-key]');
+                // 绑定选项与提交逻辑
+                if (mode === 'single') {
+                    const optionBtns = choicesContainer.querySelectorAll('[data-option-key]');
                     optionBtns.forEach(btn => {
                         btn.addEventListener('click', () => {
                             const text = btn.getAttribute('data-option-text') || '';
-                            const key = btn.getAttribute('data-option-key') || '';
                             if (text) {
-                                // 直接以辅导员身份发送该文本
                                 const dialogContainer = document.getElementById('dialog-container');
                                 const counselorHtml = `
                                     <div class="message-bubble sent group">
@@ -1486,13 +1512,53 @@
                                 `;
                                 dialogContainer.insertAdjacentHTML('beforeend', counselorHtml);
                                 dialogContainer.scrollTop = dialogContainer.scrollHeight;
-                                // 一问一答：不插入本轮额外“学生跟进”，直接进入下一轮
-                                setTimeout(() => {
-                                    playNextOnce();
-                                }, 700);
+                                setTimeout(() => { playNextOnce(); }, 700);
                             }
                         });
                     });
+                }
+                if (mode === 'multi') {
+                    const optionBtns = Array.from(choicesContainer.querySelectorAll('[data-option-key]'));
+                    const submitBtn = choicesContainer.querySelector('#multi-submit-btn');
+                    const updateSubmitState = () => {
+                        const anySelected = optionBtns.some(b => b.getAttribute('data-selected') === 'true');
+                        if (submitBtn) submitBtn.disabled = !anySelected;
+                    };
+                    optionBtns.forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const selected = btn.getAttribute('data-selected') === 'true';
+                            btn.setAttribute('data-selected', selected ? 'false' : 'true');
+                            btn.classList.toggle('border-primary', !selected);
+                            btn.classList.toggle('bg-primary/5', !selected);
+                            updateSubmitState();
+                        });
+                    });
+                    if (submitBtn) {
+                        submitBtn.addEventListener('click', () => {
+                            const texts = optionBtns
+                                .filter(b => b.getAttribute('data-selected') === 'true')
+                                .map(b => b.getAttribute('data-option-text') || '')
+                                .filter(Boolean);
+                            if (texts.length > 0) {
+                                const dialogContainer = document.getElementById('dialog-container');
+                                const combined = texts.join('；');
+                                const counselorHtml = `
+                                    <div class="message-bubble sent group">
+                                        <div class="message-sender">
+                                            <span class="message-avatar" style="background:#2ecc71;">张</span>
+                                            <span class="message-author">张老师</span>
+                                        </div>
+                                        <div class="message-content">${combined}</div>
+                                        <div class="message-time">${new Date().toLocaleString()}</div>
+                                    </div>
+                                `;
+                                dialogContainer.insertAdjacentHTML('beforeend', counselorHtml);
+                                dialogContainer.scrollTop = dialogContainer.scrollHeight;
+                                setTimeout(() => { playNextOnce(); }, 700);
+                            }
+                        });
+                    }
+                }
 
                 // 已去除“下一轮”按钮与绑定逻辑
             }
@@ -1780,7 +1846,7 @@
             scenarioCards.forEach(card => {
                 card.addEventListener('click', function() {
                     const scenario = this.getAttribute('data-scenario');
-                    openStoryboard(() => {
+                    openStoryboard(scenario, () => {
                         const scenarioTitle = document.getElementById('current-scenario-title');
                         switch(scenario) {
                             case 'academic-stress':
@@ -1814,41 +1880,39 @@
                 });
             });
 
-            // 卡片内“开始”按钮：仅展示图示内容，然后选择模式
+            // 卡片内“开始”按钮：直接选择模式并进入训练（去除图示）
             const cardStartButtons = document.querySelectorAll('.scenario-card .flex.items-center button');
             cardStartButtons.forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     e.stopPropagation();
                     const scenario = this.closest('.scenario-card').getAttribute('data-scenario');
-                    openIllustration(() => {
-                        openModeSelect(() => {
-                            const scenarioTitle = document.getElementById('current-scenario-title');
-                            switch(scenario) {
-                                case 'academic-stress':
-                                    scenarioTitle.textContent = '学业压力过大';
-                                    break;
-                                case 'social-anxiety':
-                                    scenarioTitle.textContent = '社交焦虑障碍';
-                                    break;
-                                case 'depression':
-                                    scenarioTitle.textContent = '抑郁倾向识别';
-                                    break;
-                                case 'family-issues':
-                                    scenarioTitle.textContent = '家庭关系问题';
-                                    break;
-                                case 'identity-crisis':
-                                    scenarioTitle.textContent = '自我认同危机';
-                                    break;
-                                case 'addiction':
-                                    scenarioTitle.textContent = '网络成瘾问题';
-                                    break;
-                            }
-                            currentScenarioTitle = scenarioTitle.textContent || '';
-                            showScreen(gameScreen);
-                            adjustChatPanelHeight();
-                            resetToScenario(scenario);
-                            applyChatModeUI();
-                        });
+                    openModeSelect(() => {
+                        const scenarioTitle = document.getElementById('current-scenario-title');
+                        switch(scenario) {
+                            case 'academic-stress':
+                                scenarioTitle.textContent = '学业压力过大';
+                                break;
+                            case 'social-anxiety':
+                                scenarioTitle.textContent = '社交焦虑障碍';
+                                break;
+                            case 'depression':
+                                scenarioTitle.textContent = '抑郁倾向识别';
+                                break;
+                            case 'family-issues':
+                                scenarioTitle.textContent = '家庭关系问题';
+                                break;
+                            case 'identity-crisis':
+                                scenarioTitle.textContent = '自我认同危机';
+                                break;
+                            case 'addiction':
+                                scenarioTitle.textContent = '网络成瘾问题';
+                                break;
+                        }
+                        currentScenarioTitle = scenarioTitle.textContent || '';
+                        showScreen(gameScreen);
+                        adjustChatPanelHeight();
+                        resetToScenario(scenario);
+                        applyChatModeUI();
                     });
                 });
             });
