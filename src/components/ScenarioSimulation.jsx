@@ -153,6 +153,7 @@ const ScenarioSimulation = ({
   // AI创建场景处理函数
   const handleAICreateScenario = () => {
     let aiScenarioDescription = '';
+    let aiPerspective = 'first';
     Modal.confirm({
       title: 'AI智能创建场景',
       width: 600,
@@ -195,6 +196,21 @@ const ScenarioSimulation = ({
 
           <div style={{ marginTop: '16px' }}>
             <Text style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '8px' }}>
+              情境角色视角
+            </Text>
+            <Select
+              value={aiPerspective}
+              onChange={(v) => { aiPerspective = v; }}
+              options={[
+                { value: 'first', label: '第一人称' },
+                { value: 'third', label: '第三人称' }
+              ]}
+              style={{ width: 180 }}
+            />
+          </div>
+
+          <div style={{ marginTop: '16px' }}>
+            <Text style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '8px' }}>
               场景说明（最多1000字）
             </Text>
             <Input.TextArea
@@ -231,6 +247,7 @@ const ScenarioSimulation = ({
           progress: 0,
           description: 'AI正在分析您的学习资料并智能生成个性化场景模拟...',
           scenarioDescription: (aiScenarioDescription || '').trim(),
+          perspective: aiPerspective,
           isAIGenerated: true,
           materialCount: totalMaterials
         };
@@ -273,7 +290,8 @@ const ScenarioSimulation = ({
                 source: 'AI智能助手',
                 time: '刚刚',
                 type: 'scenario',
-                materialCount: totalMaterials
+                materialCount: totalMaterials,
+                perspective: aiPerspective
               };
               
               setOperationRecords(prev => ({

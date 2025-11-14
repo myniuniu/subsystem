@@ -71,6 +71,29 @@ function makePhone(i) {
   return `1${String(3 + (i % 6)).padStart(2, '0')}${String(5678 + i).padStart(8, '0')}`
 }
 
+// 默认人员标签目录（只读展示与筛选）
+const defaultTagCatalog = [
+  '核心成员',
+  '负责人',
+  '新员工',
+  '试用期',
+  '远程',
+  '兼职',
+  '实习',
+  '外包',
+  '已认证'
+]
+
+function assignDefaultTags(index) {
+  const tags = []
+  const first = defaultTagCatalog[index % defaultTagCatalog.length]
+  tags.push(first)
+  if (index % 5 === 0) tags.push('核心成员')
+  if (index % 7 === 0) tags.push('负责人')
+  if (index % 3 === 0) tags.push('远程')
+  return Array.from(new Set(tags))
+}
+
 const allMembers = Array.from({ length: 100 }, (_, i) => {
   const name = names[i % names.length]
   const deptKey = deptKeys[i % deptKeys.length]
@@ -87,7 +110,8 @@ const allMembers = Array.from({ length: 100 }, (_, i) => {
     status: '在职',
     phone: makePhone(i),
     departmentKey: deptKey,
-    department: deptNameMap[deptKey]
+    department: deptNameMap[deptKey],
+    tags: assignDefaultTags(i)
   }
 })
 
@@ -98,6 +122,7 @@ const ContactsDirectory = () => {
   const [activeTab, setActiveTab] = useState('members') // members | departments | offboarded
   const [statusFilter, setStatusFilter] = useState('all')
   const [deptFilter, setDeptFilter] = useState('all')
+  const [tagFilter, setTagFilter] = useState('all')
   const [showCardKey, setShowCardKey] = useState(null)
 
   const [aiFriends, setAiFriends] = useState(() => {
@@ -151,10 +176,31 @@ const ContactsDirectory = () => {
     return [...seed, ...mapped]
   })
 
+  // 外部联系人（与 AI 好友类似的只读列表）
+  const [externalContacts, setExternalContacts] = useState(() => {
+    const seed = [
+      { key: 'ext-ruan', name: '阮涛', status: '外部', phone: '', departmentKey: 'external-contacts', department: '外部联系人', avatar: '', company: '北京科创云', role: '技术对接', source: '外部联系', sourceTitle: '公司主页', sourceLink: 'https://example.com' },
+      { key: 'ext-zhou', name: '周琳', status: '外部', phone: '', departmentKey: 'external-contacts', department: '外部联系人', avatar: '', company: '上海时代教育', role: '商务合作', source: '外部联系', sourceTitle: '公司主页', sourceLink: 'https://example.com' },
+      { key: 'ext-liu', name: '刘杰', status: '外部', phone: '', departmentKey: 'external-contacts', department: '外部联系人', avatar: '', company: '广州数研所', role: '技术支持', source: '外部联系', sourceTitle: '公司主页', sourceLink: 'https://example.com' },
+      { key: 'ext-wang', name: '王琪', status: '外部', phone: '', departmentKey: 'external-contacts', department: '外部联系人', avatar: '', company: '成都智学堂', role: '产品对接', source: '外部联系', sourceTitle: '公司主页', sourceLink: 'https://example.com' }
+    ]
+    return seed
+  })
+
+  // 将外部联系人姓名同步到 localStorage，便于消息模块区分标识
+  React.useEffect(() => {
+    try {
+      const names = (externalContacts || []).map(c => c.name).filter(Boolean)
+      localStorage.setItem('external-contact-names', JSON.stringify(names))
+    } catch {}
+  }, [externalContacts])
+
   const filteredMembers = useMemo(() => {
     let base
     if (activeCategory === 'ai-friends') {
       base = aiFriends
+    } else if (activeCategory === 'external-contacts') {
+      base = externalContacts
     } else {
       base = selectedDeptKeys.includes('company-root')
         ? allMembers
@@ -186,6 +232,10 @@ const ContactsDirectory = () => {
       )
     }
 
+    if (tagFilter !== 'all') {
+      base = base.filter(m => Array.isArray(m.tags) && m.tags.includes(tagFilter))
+    }
+
     if (activeTab === 'offboarded') return []
     return base
   }, [search, selectedDeptKeys, statusFilter, deptFilter, activeTab])
@@ -195,7 +245,9 @@ const ContactsDirectory = () => {
       title: '姓名',
       dataIndex: 'name',
       key: 'name',
+      width: 220,
       ellipsis: true,
+      onCell: () => ({ style: { paddingLeft: 12 } }),
       render: (text, record) => (
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
           {record?.avatar ? (
@@ -270,6 +322,7 @@ const ContactsDirectory = () => {
       title: '账号状态',
       dataIndex: 'status',
       key: 'status',
+      width: 90,
       render: (s) => <Tag color="blue">{s}</Tag>
     },
     {
@@ -282,8 +335,23 @@ const ContactsDirectory = () => {
       title: '部门',
       dataIndex: 'department',
       key: 'department',
+      width: 220,
       ellipsis: true,
       render: (d) => <Text>{d}</Text>
+    },
+    {
+      title: '标签',
+      dataIndex: 'tags',
+      key: 'tags',
+      width: 260,
+      ellipsis: true,
+      render: (tags) => (
+        <Space size={4} wrap>
+          {(Array.isArray(tags) ? tags : []).map(t => (
+            <Tag key={t} color="geekblue">{t}</Tag>
+          ))}
+        </Space>
+      )
     }
   ]
 
@@ -292,8 +360,9 @@ const ContactsDirectory = () => {
       title: '姓名',
       dataIndex: 'name',
       key: 'name',
-      width: 180,
+      width: 220,
       ellipsis: true,
+      onCell: () => ({ style: { paddingLeft: 12 } }),
       render: (text, record) => (
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
           {record?.avatar ? (
@@ -413,6 +482,19 @@ const ContactsDirectory = () => {
             <span style={{ fontSize: 18 }}>🤖</span>
             <span style={{ fontSize: 14 }}>AI好友</span>
           </div>
+          <div
+            onClick={() => { setActiveCategory('external-contacts'); setSelectedDeptKeys([]); setActiveTab('members'); }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '8px 10px', borderRadius: 8,
+              cursor: 'pointer',
+              marginTop: 6,
+              background: activeCategory === 'external-contacts' ? 'rgba(0,0,0,0.06)' : 'transparent'
+            }}
+          >
+            <span style={{ fontSize: 18 }}>🤝</span>
+            <span style={{ fontSize: 14 }}>外部联系人</span>
+          </div>
         </div>
         <div className="org-tree-wrapper">
           <Tree
@@ -425,7 +507,7 @@ const ContactsDirectory = () => {
         </div>
       </Sider>
       <Content className="org-content">
-        {activeCategory === 'ai-friends' ? (
+        {(activeCategory === 'ai-friends' || activeCategory === 'external-contacts') ? (
           <div className="org-table-card">
             <Table
               size="middle"
@@ -486,6 +568,14 @@ const ContactsDirectory = () => {
                   { value: 'tech', label: '技术部' },
                   { value: 'product', label: '产品部' },
                   { value: 'ai', label: 'AI好友' }
+                ]}
+              />
+              <Select
+                value={tagFilter}
+                onChange={setTagFilter}
+                options={[
+                  { value: 'all', label: '标签：全部' },
+                  ...defaultTagCatalog.map(t => ({ value: t, label: t }))
                 ]}
               />
             </div>

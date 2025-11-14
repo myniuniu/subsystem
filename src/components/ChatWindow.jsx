@@ -104,6 +104,16 @@ const ChatWindow = ({
       { name: '班主任智能体', avatar: '', motto: '', isAI: true }
     ]
   ), []);
+
+  // 读取外部联系人姓名集，用于在@建议项中显示“外部”标识
+  const externalNamesSet = useMemo(() => {
+    try {
+      const raw = localStorage.getItem('external-contact-names');
+      const arr = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(arr)) return new Set(arr);
+    } catch {}
+    return new Set();
+  }, []);
   const mentionCandidates = useMemo(() => {
     const kwRaw = (mentionKeyword || '').toLowerCase();
     const kw = kwRaw.replace(/[^\w\u4e00-\u9fa5]/g, '');
@@ -491,23 +501,43 @@ const ChatWindow = ({
                   key={message.id}
                   className={`message-bubble ${message.senderId === 'me' ? 'sent' : 'received'} ${isGroupChat ? 'group' : ''}`}
                 >
-                  {isGroupChat && (
-                    <div className="message-sender">
-                      {isSupervisorExpert ? (
-                        <img src="/assets/督学专家.png" alt="督学专家" style={{ width: 24, height: 24, borderRadius: '50%', boxShadow: '0 1px 3px rgba(0,0,0,0.12)' }} />
-                      ) : (
-                        <span className="message-avatar" style={{ background: avatarBg }}>
-                          {(displaySenderName || '').charAt(0)}
-                        </span>
-                      )}
-                      <span className="message-author">{displaySenderName}</span>
+                  <div className="message-header">
+                    <div className="header-main">
+                      {(() => {
+                        if (isGroupChat) {
+                          return isSupervisorExpert ? (
+                            <img src="/assets/督学专家.png" alt="督学专家" style={{ width: 24, height: 24, borderRadius: '50%', boxShadow: '0 1px 3px rgba(0,0,0,0.12)' }} />
+                          ) : (
+                            <span className="message-avatar" style={{ background: avatarBg }}>
+                              {(displaySenderName || '').charAt(0)}
+                            </span>
+                          );
+                        }
+                        // 单聊：根据发送方显示对应头像
+                        if (message.senderId === 'me') {
+                          return <img className="message-avatar-img" src="/assets/头像.png" alt="我" />;
+                        }
+                        if (currentContact?.avatar && (currentContact.avatar.startsWith('http') || currentContact.avatar.startsWith('/'))) {
+                          return <img className="message-avatar-img" src={currentContact.avatar} alt="avatar" />;
+                        }
+                        return (
+                          <span className="message-avatar" style={{ background: avatarBg }}>
+                            {(displaySenderName || '').charAt(0)}
+                          </span>
+                        );
+                      })()}
+                      <span className="header-name">{displaySenderName}</span>
+                      <span className="header-time">{message.time}</span>
                     </div>
-                  )}
+                  </div>
                   <div className={`message-content ${typeof message.content === 'string' && !message.content.includes('\n') && message.content.trim().length <= 28 ? 'single-line' : ''}`}>
                     {message.content}
                   </div>
-                  <div className="message-time">
-                    {message.time}
+                  <div className="bubble-actions">
+                    <button className="message-action" title="点赞"><LikeOutlined /></button>
+                    <button className="message-action" title="评论"><MessageSquare size={14} /></button>
+                    <button className="message-action" title="分享"><ShareAltOutlined /></button>
+                    <button className="message-action" title="更多"><MoreOutlined /></button>
                   </div>
                 </div>
               );
@@ -574,8 +604,24 @@ const ChatWindow = ({
                       <span style={{ fontSize: 12 }}>{(item.name || '').slice(0,1)}</span>
                     )}
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: 13, color: '#333' }}>{item.name}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                    <span style={{ fontSize: 13, color: '#333', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {item.name}
+                      {(() => {
+                        const isAIContact = !!item.isAI || /智能体|知识问答/i.test(String(item.name || ''));
+                        const isExternalContact = externalNamesSet.has(String(item.name || '')) || item.status === '外部' || item.department === '外部联系人';
+                        return (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            {isAIContact && (
+                              <span style={{ fontSize: 11, color: '#6C6CF4', background: 'rgba(108,108,244,0.12)', border: '1px solid rgba(108,108,244,0.35)', padding: '0 6px', borderRadius: 10, lineHeight: '18px' }}>AI</span>
+                            )}
+                            {isExternalContact && (
+                              <span style={{ fontSize: 11, color: '#64748b', background: 'rgba(100,116,139,0.12)', border: '1px solid rgba(100,116,139,0.35)', padding: '0 6px', borderRadius: 10, lineHeight: '18px' }}>外部</span>
+                            )}
+                          </span>
+                        );
+                      })()}
+                    </span>
                     {!!item.motto && <span style={{ fontSize: 12, color: '#999' }}>{item.motto}</span>}
                   </div>
                 </button>

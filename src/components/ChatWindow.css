@@ -305,6 +305,35 @@
   gap: 6px;
 }
 
+.bubble-actions {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.95);
+  border: 1px solid #e6e8eb;
+  border-radius: 12px;
+  padding: 4px 6px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 2;
+}
+
+/* 左侧气泡：图标显示在右侧 */
+.message-bubble.received .bubble-actions { right: -40px; left: auto; }
+
+/* 右侧气泡：图标显示在左侧 */
+.message-bubble.sent .bubble-actions { left: -40px; right: auto; }
+
+.message-bubble:hover .bubble-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .message-bubble.sent {
   align-self: flex-end;
   animation: messageSlideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -350,6 +379,25 @@
   box-sizing: border-box;
   width: fit-content;
   max-width: 90%;
+}
+
+/* 单聊：头像与内容横向排列 */
+.single-message-row {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.message-avatar-img {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+
+.message-avatar-img.me {
+  margin-left: 4px;
 }
 
 /* 短消息强制单行显示 */
@@ -406,16 +454,8 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-.message-bubble .message-time {
-  font-size: 11px;
-  color: #95a5a6;
-  margin-top: 4px;
-  text-align: right;
-}
-
-.message-bubble.received .message-time {
-  text-align: left;
-}
+/* 悬停显示的操作与时间 */
+/* 移除旧的 message-meta 行，改用 message-header */
 
 /* 消息输入区域 */
 .chat-input {
@@ -2061,3 +2101,44 @@
 .discussion-modal .chat-panel { height: calc(70vh + 15px); overflow: hidden; }
 .discussion-modal .chat-main { overflow: hidden; }
 .discussion-modal .chat-messages { overflow-y: auto; }
+.message-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+
+.header-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #58616b;
+}
+
+.header-name { font-weight: 600; color: #2c3e50; }
+.header-time { font-size: 12px; color: #95a5a6; }
+
+.message-bubble.sent .message-header { justify-content: flex-end; }
+.message-bubble.sent .header-main { flex-direction: row-reverse; }
+.message-bubble.sent .header-time { margin-right: 4px; }
+
+.message-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.message-bubble:hover .message-actions { opacity: 1; }
+.message-action { background: transparent; border: none; padding: 2px; color: #7f8c8d; cursor: pointer; }
+.message-action:hover { color: #34495e; }
+.message-bubble.received .message-content {
+  /* 内容与名称左对齐（不与头像对齐） */
+  margin-left: 32px; /* 24px 头像 + 8px 间距 */
+}
+
+.message-bubble.sent .message-content {
+  /* 发送方与名称右对齐（不与右侧头像对齐） */
+  margin-right: 32px;
+}
