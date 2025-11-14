@@ -1081,7 +1081,7 @@
 /* 主内容区样式 */
 .notes-content {
   padding: 24px 24px 0; /* 去掉底部内边距，消除滚动条下方空白 */
-  background: #f5f7fa;
+  background: #ffffff;
   height: 100vh; /* 改为100vh，与整体容器保持一致 */
   overflow-y: auto; /* 允许纵向滚动 */
   overflow-x: hidden; /* 隐藏横向滚动条 */

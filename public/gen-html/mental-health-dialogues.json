@@ -6,7 +6,7 @@
     {
       "id": "academic-stress",
       "title": "学业压力过大",
-      "participants": { "student": "李同学", "counselor": "张老师" },
+      "participants": { "student": "李明", "counselor": "张老师" },
       "rounds": [
         {"round":1,"messages":[{"role":"student","text":"老师，我最近压力特别大，复习越多越焦虑，晚上也睡不好。"},{"role":"counselor","text":"我听到了你的焦虑与疲惫。我们先一起梳理压力来源，好吗？"}],
          "options":[
@@ -113,7 +113,7 @@
     {
       "id": "social-anxiety",
       "title": "社交焦虑障碍",
-      "participants": { "student": "王同学", "counselor": "张老师" },
+      "participants": { "student": "张强", "counselor": "张老师" },
       "rounds": [
         {"round":1,"messages":[{"role":"student","text":"我在课堂上不敢发言，感觉大家都在盯着我。"},{"role":"counselor","text":"你感到被关注与紧张。我们先从可控的小目标开始练习表达。"}]},
         {"round":2,"messages":[{"role":"student","text":"一想到发言就心跳加速，脸会红。"},{"role":"counselor","text":"这是社交情境常见的生理反应。我们可以用“呼吸—关注当下”的方法降低激活。"}]},

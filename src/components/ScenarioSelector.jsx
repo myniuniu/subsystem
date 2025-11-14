@@ -38,7 +38,7 @@ const ScenarioSelector = ({ onSelectScenario, completedScenarios = [] }) => {
       duration: '20-25分钟',
       skills: ['心理评估', '认知重构', '行为干预'],
       studentProfile: {
-        name: '小王',
+        name: '张强',
         grade: '大一',
         major: '心理学',
         background: '性格内向，害怕在人前表现，有社交回避倾向'

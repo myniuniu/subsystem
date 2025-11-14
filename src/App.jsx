@@ -112,7 +112,10 @@ function App() {
         setCurrentView('my-evaluation')
       }
       if (event.data && event.data.type === 'ADD_FRIEND') {
-        setCurrentView('message-center')
+        const isSilent = !!(event.data.silent || event.data.noNavigate)
+        if (!isSilent) {
+          setCurrentView('message-center')
+        }
         const contact = event.data.contact || {
           id: 'student_li_ming',
           name: '李明',
