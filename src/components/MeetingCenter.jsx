@@ -77,84 +77,68 @@ const MeetingCenter = () => {
   const [recordingOpen, setRecordingOpen] = useState(false);
   const [meetings, setMeetings] = useState([
     {
-      id: 1,
+      id: 101,
       title: '数学教研组周例会',
       type: '教研会议',
-      organizer: '张主任',
-      participants: ['李老师', '王老师', '陈老师', '刘老师'],
-      startTime: '2024-01-20 14:00',
-      endTime: '2024-01-20 15:30',
+      organizer: '教研处',
+      participants: ['张老师','李老师','王老师','陈老师','刘老师'],
+      startTime: '2025-11-16 09:30',
+      endTime: '2025-11-16 11:00',
       status: '进行中',
-      agenda: '讨论期末考试安排和下学期教学计划',
-      meetingRoom: '会议室A',
-      isOnline: true,
-      recordingEnabled: true,
-      attendanceCount: 8,
-      totalInvited: 10
-    },
-    {
-      id: 2,
-      title: '新课程标准研讨会',
-      type: '学术研讨',
-      organizer: '王校长',
-      participants: ['全体教师'],
-      startTime: '2024-01-22 09:00',
-      endTime: '2024-01-22 11:00',
-      status: '即将开始',
-      agenda: '学习新课程标准，讨论教学改革方向',
-      meetingRoom: '多功能厅',
-      isOnline: false,
-      recordingEnabled: true,
-      attendanceCount: 0,
-      totalInvited: 45
-    },
-    {
-      id: 3,
-      title: '班主任工作交流会',
-      type: '工作交流',
-      organizer: '德育处',
-      participants: ['各班班主任'],
-      startTime: '2024-01-18 16:00',
-      endTime: '2024-01-18 17:00',
-      status: '已结束',
-      agenda: '分享班级管理经验，讨论学生问题',
-      meetingRoom: '会议室B',
+      agenda: '期末复习策略与课堂教学改进',
+      meetingRoom: '在线会议室',
       isOnline: true,
       recordingEnabled: true,
       attendanceCount: 12,
       totalInvited: 15
     },
     {
-      id: 4,
-      title: '语文教研组月度总结',
-      type: '教研会议',
-      organizer: '赵主任',
-      participants: ['语文组全体教师'],
-      startTime: '2024-01-25 15:00',
-      endTime: '2024-01-25 16:30',
-      status: '即将开始',
-      agenda: '总结本月教学工作，制定下月计划',
-      meetingRoom: '会议室C',
-      isOnline: false,
-      recordingEnabled: true,
-      attendanceCount: 0,
-      totalInvited: 12
-    },
-    {
-      id: 5,
-      title: '信息技术培训会',
+      id: 102,
+      title: '信息技术应用培训',
       type: '培训会议',
       organizer: '信息中心',
       participants: ['全体教师'],
-      startTime: '2024-01-26 09:00',
-      endTime: '2024-01-26 11:30',
+      startTime: '2025-11-17 14:00',
+      endTime: '2025-11-17 15:30',
       status: '即将开始',
-      agenda: '智慧教室设备使用培训',
-      meetingRoom: '计算机教室',
-      isOnline: true,
+      agenda: '智慧教室设备与在线平台操作',
+      meetingRoom: '多功能厅',
+      isOnline: false,
       recordingEnabled: true,
       attendanceCount: 0,
-      totalInvited: 50
+      totalInvited: 60
+    },
+    {
+      id: 103,
+      title: '班主任工作协调会（音频）',
+      type: '工作交流',
+      organizer: '德育处',
+      participants: ['各班班主任'],
+      startTime: '2025-11-14 16:00',
+      endTime: '2025-11-14 17:00',
+      status: '已结束',
+      agenda: '学生管理、家校沟通与心理辅导',
+      meetingRoom: '在线会议室',
+      isOnline: true,
+      recordingEnabled: true,
+      attendanceCount: 24,
+      totalInvited: 30
+    },
+    {
+      id: 104,
+      title: '新课标实施研讨',
+      type: '学术研讨',
+      organizer: '教务处',
+      participants: ['学科负责人','骨干教师'],
+      startTime: '2025-11-20 09:00',
+      endTime: '2025-11-20 11:30',
+      status: '即将开始',
+      agenda: '新课程标准导入与课堂案例分享',
+      meetingRoom: '会议室A',
+      isOnline: false,
+      recordingEnabled: true,
+      attendanceCount: 0,
+      totalInvited: 25
     }
   ]);
 
@@ -288,30 +272,43 @@ const MeetingCenter = () => {
 
   const [meetingRecords, setMeetingRecords] = useState([
     {
-      id: 1,
-      meetingId: 3,
-      title: '班主任工作交流会',
-      date: '2024-01-18',
+      id: 201,
+      meetingId: 103,
+      title: '班主任工作协调会（音频）',
+      date: '2025-11-14',
       duration: '60分钟',
-      recordingUrl: '/recordings/meeting_3.mp4',
-      transcriptUrl: '/transcripts/meeting_3.txt',
-      summary: '讨论了班级管理的有效方法，分享了处理学生问题的经验',
-      keyPoints: ['建立良好师生关系', '家校沟通重要性', '个性化教育方法'],
-      participants: 12,
-      fileSize: '245MB'
+      recordingUrl: '/recordings/meeting_103.m4a',
+      transcriptUrl: '/transcripts/meeting_103.txt',
+      summary: '交流班级管理策略与家校沟通方法，提出心理辅导注意事项与跟进计划。',
+      keyPoints: ['班级规则共识与执行','重点学生个案跟进','家校沟通渠道优化'],
+      participants: 24,
+      fileSize: '128MB'
     },
     {
-      id: 2,
-      meetingId: 1,
+      id: 202,
+      meetingId: 101,
       title: '数学教研组周例会',
-      date: '2024-01-13',
+      date: '2025-11-09',
       duration: '90分钟',
-      recordingUrl: '/recordings/meeting_1.mp4',
-      transcriptUrl: '/transcripts/meeting_1.txt',
-      summary: '制定了期末复习计划，讨论了教学进度安排',
-      keyPoints: ['期末复习重点', '作业布置策略', '学困生帮扶措施'],
-      participants: 8,
-      fileSize: '312MB'
+      recordingUrl: '/recordings/meeting_101.mp4',
+      transcriptUrl: '/transcripts/meeting_101.txt',
+      summary: '确定期末复习重点，优化课堂练习与作业设计。',
+      keyPoints: ['核心知识点清单','分层作业布置','学困生辅导计划'],
+      participants: 12,
+      fileSize: '320MB'
+    },
+    {
+      id: 203,
+      meetingId: 102,
+      title: '信息技术应用培训',
+      date: '2025-11-01',
+      duration: '75分钟',
+      recordingUrl: '/recordings/meeting_102.mp4',
+      transcriptUrl: '/transcripts/meeting_102.txt',
+      summary: '演示智慧教室设备使用与在线教学平台操作流程。',
+      keyPoints: ['设备连接与调试','平台功能与权限','课堂互动与数据统计'],
+      participants: 58,
+      fileSize: '280MB'
     }
   ]);
 
@@ -1210,9 +1207,9 @@ const MeetingCenter = () => {
           <Card className="section-card" title="即将开始" extra={<Button type="link">在日历中查看全部</Button>}>
             <List
               dataSource={[
-                { id: 1, title: '早会', date: '11月17日', time: '08:45 - 09:00', idText: 'ID: 924 071 781' },
-                { id: 2, title: '早会', date: '11月17日', time: '08:45 - 09:00', idText: 'ID: 924 071 781' },
-                { id: 3, title: '早会', date: '11月18日', time: '08:45 - 09:00', idText: 'ID: 924 071 781' }
+                { id: 1, title: '信息技术应用培训', date: '11月17日', time: '14:00 - 15:30', idText: 'ID: 730 111 222' },
+                { id: 2, title: '新课标实施研讨', date: '11月20日', time: '09:00 - 11:30', idText: 'ID: 905 876 543' },
+                { id: 3, title: '教研组晨会（音频）', date: '11月18日', time: '08:30 - 09:00', idText: 'ID: 801 234 567' }
               ]}
               renderItem={m => (
                 <List.Item>
@@ -1233,9 +1230,6 @@ const MeetingCenter = () => {
           <Card className="section-card" title="历史记录">
             {(() => {
               const historyData = [
-                { id: 'h1', type: 'video', title: '111', time: '今天 16:18' },
-                { id: 'h2', type: 'phone', title: '秦松', time: '6月11日 15:55', danger: true },
-                { id: 'h2b', type: 'phone', title: '金林峰', time: '6月10日 10:58' },
                 { id: 'h3', type: 'video', title: '6.0产品的视频会议', time: '2024年9月3日 16:27',
                   dateText: '2024年9月3日（周二）', rangeText: '15:44 - 16:02', durationText: '18分29秒',
                   meetingId: '935 177 719',
@@ -1250,8 +1244,48 @@ const MeetingCenter = () => {
                     { t: '15:45', label: '加入会议' }
                   ]
                 },
-                { id: 'h4', type: 'video', title: '333', time: '2月6日 16:51' },
-                { id: 'h6', type: 'video', title: '666', time: '2月6日 16:17', links: ['回放', '会议课'] }
+                { id: 'h4', type: 'phone', title: '班主任工作答疑（音频）', time: '2025年11月14日 17:30',
+                  dateText: '2025年11月14日（周五）', rangeText: '17:30 - 18:10', durationText: '40分00秒',
+                  meetingId: '801 234 567',
+                  participants: ['班','主','任','李','王'],
+                  participantsFull: ['德育处','一中班主任群','李明','王芳','赵强'],
+                  recording: { title: '班主任工作答疑（音频）', owner: '德育处' },
+                  ownerName: '德育处',
+                  createdText: '2025年11月14日 下午5:28',
+                  summaryTitle: '班主任工作问答与跟进事项',
+                  events: [
+                    { t: '18:10', label: '结束答疑' },
+                    { t: '17:30', label: '开始答疑' }
+                  ]
+                },
+                { id: 'h5', type: 'video', title: '信息技术应用培训（视频）', time: '2025年11月01日 15:00',
+                  dateText: '2025年11月1日（周六）', rangeText: '15:00 - 16:15', durationText: '1时15分',
+                  meetingId: '730 111 222',
+                  participants: ['信','息','中','心'],
+                  participantsFull: ['信息中心','张洪磊','技术支持团队'],
+                  recording: { title: '信息技术应用培训（视频）', owner: '信息中心' },
+                  ownerName: '信息中心',
+                  createdText: '2025年11月01日 下午3:00',
+                  summaryTitle: '智慧教室设备与平台使用要点',
+                  events: [
+                    { t: '16:15', label: '结束培训' },
+                    { t: '15:00', label: '开始培训' }
+                  ]
+                },
+                { id: 'h6', type: 'phone', title: '教研组晨会（音频）', time: '2025年11月18日 08:30',
+                  dateText: '2025年11月18日（周二）', rangeText: '08:30 - 09:00', durationText: '30分00秒',
+                  meetingId: '900 555 321',
+                  participants: ['教','研','组'],
+                  participantsFull: ['教研处','数学组','语文组','英语组'],
+                  recording: { title: '教研组晨会（音频）', owner: '教研处' },
+                  ownerName: '教研处',
+                  createdText: '2025年11月18日 上午8:00',
+                  summaryTitle: '本周教学安排与复习要点',
+                  events: [
+                    { t: '09:00', label: '结束晨会' },
+                    { t: '08:30', label: '开始晨会' }
+                  ]
+                }
               ];
               return (
                 <List

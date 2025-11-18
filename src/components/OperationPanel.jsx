@@ -311,6 +311,14 @@ if (typeof document !== 'undefined') {
 
   // 根据选择的类型创建笔记并进入编辑器
   const openNoteTemplateModal = async (noteSubType) => {
+    // 文档：直接生成记录，不弹模板库
+    if (noteSubType === 'document') {
+      setNoteCreationTargetSubType('document');
+      setNoteTypeDropdownVisible(false);
+      createNoteFromTemplate(null);
+      return;
+    }
+    // 白板：打开模板库弹窗
     setNoteCreationTargetSubType(noteSubType);
     setTemplateCategory('recommend');
     setNoteTypeDropdownVisible(false);
@@ -332,12 +340,12 @@ if (typeof document !== 'undefined') {
       title,
       source: template?.name ? `模板：${template.name}` : '手动创建',
       time: new Date().toLocaleString('zh-CN'),
-      type: isWhiteboard ? 'whiteboard' : 'note',
+      type: isWhiteboard ? 'whiteboard' : 'document',
       subType: noteCreationTargetSubType || 'document',
       content: isWhiteboard ? '' : (template?.description ? `<p>使用模板：${template.description}</p>` : '')
     };
     const newRecords = { ...operationRecords };
-    const bucketKey = isWhiteboard ? 'whiteboard' : 'note';
+    const bucketKey = isWhiteboard ? 'whiteboard' : 'document';
     if (!Array.isArray(newRecords[bucketKey])) newRecords[bucketKey] = [];
     newRecords[bucketKey].unshift(newNote);
     setOperationRecords(newRecords);
@@ -574,7 +582,7 @@ if (typeof document !== 'undefined') {
           });
         }
       },
-      ...(record.type === 'note' && record.subType === 'document' ? [{
+      ...((record.type === 'document' || (record.type === 'note' && record.subType === 'document')) ? [{
         key: (Array.isArray(record.tags) && record.tags.includes('标注')) ? 'unmarkAgentAnnotation' : 'markAgentAnnotation',
         label: (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -621,7 +629,7 @@ if (typeof document !== 'undefined') {
     ];
 
     // 笔记类型添加标记为研修成果功能
-    if (record.type === 'note') {
+    if (record.type === 'note' || record.type === 'document') {
       return [
         {
           key: 'view',
@@ -649,8 +657,7 @@ if (typeof document !== 'undefined') {
             onMoreAction && onMoreAction(MORE_MENU_ACTIONS.OPEN_IN_NEW_WINDOW, record);
           }
         },
-        // 文档型笔记支持转换为来源
-        ...(record?.subType === 'document' ? [
+        ...(record?.subType === 'document' || record.type === 'document' ? [
           {
             key: 'convertToSource',
             label: (
@@ -1489,6 +1496,7 @@ if (typeof document !== 'undefined') {
                     'webcode': '💻',
                     'scenario': '🎭',
                     'note': '📝',
+                    'document': '📝',
                     'question': '❓',
                     'learning-plan': '📅',
                     'grading': '✅',
@@ -1540,23 +1548,24 @@ if (typeof document !== 'undefined') {
                     >
                       {(() => {
                         // 左上角显示工具名称（简短标签）
-                        const typeLabelMap = {
-                          'audio': '音',
-                          'video': '视',
-                          'mindmap': '脑',
-                          'report': '报',
-                          'ppt': 'P',
-                          'webcode': '码',
-                          'scenario': '戏',
-                          'note': '记',
-                          'question': '题',
-                          'learning-plan': '学',
-                          'grading': '评',
-                          'knowledge-graph': '图',
-                          'training-plan': '培',
-                          'training-dashboard': '训',
-                          'classroom-evaluation': '课'
-                        };
+                          const typeLabelMap = {
+                            'audio': '音',
+                            'video': '视',
+                            'mindmap': '脑',
+                            'report': '报',
+                            'ppt': 'P',
+                            'webcode': '码',
+                            'scenario': '戏',
+                            'note': '记',
+                            'document': '文',
+                            'question': '题',
+                            'learning-plan': '学',
+                            'grading': '评',
+                            'knowledge-graph': '图',
+                            'training-plan': '培',
+                            'training-dashboard': '训',
+                            'classroom-evaluation': '课'
+                          };
                         const label = typeLabelMap[record.type] || '工';
                         return (
                           <>
@@ -1744,6 +1753,7 @@ if (typeof document !== 'undefined') {
                 case 'webcode': return '💻';
                 case 'scenario': return '场';
                 case 'note': return '笔';
+                case 'document': return '笔';
                 case 'question': return '题';
                 case 'learning-plan': return '计';
                 case 'grading': return '阅';
@@ -1815,9 +1825,9 @@ if (typeof document !== 'undefined') {
                           if (record.type === 'whiteboard' || (record.type === 'note' && record.subType === 'whiteboard')) {
                             typeLabel = '白板';
                             typeKey = 'whiteboard';
-                          } else if (record.type === 'note' && record.subType === 'document') {
+                          } else if (record.type === 'document' || (record.type === 'note' && record.subType === 'document')) {
                             typeLabel = '文档';
-                            typeKey = 'note_document';
+                            typeKey = 'document';
                           } else {
                           const map = {
                             audio: '音频',
@@ -1848,7 +1858,7 @@ if (typeof document !== 'undefined') {
                           if (!typeLabel) return null;
                           const colorMap = {
                             whiteboard: 'geekblue',
-                            note_document: 'blue',
+                            document: 'blue',
                             audio: 'cyan',
                             video: 'green',
                             mindmap: 'magenta',
@@ -1888,11 +1898,12 @@ if (typeof document !== 'undefined') {
                           // 生成方式标签：对白板、文档、培训方案、培训报表显示（AI / 手工）
                           const isDoc = (record.type === 'note' && record.subType === 'document');
                           const isWhiteboard = (record.type === 'whiteboard' || (record.type === 'note' && record.subType === 'whiteboard'));
+                          const isDocument = (record.type === 'document');
                           const isTrainingPlan = (record.type === 'training-plan');
                           const isTrainingDashboard = (record.type === 'training-dashboard');
                           const isSiteAnalysis = (record.type === 'site-analysis');
                           const isSupervision = (record.type === 'supervision-execution' || record.type === 'supervision-task' || record.type === 'supervision-report');
-                          if (!isDoc && !isWhiteboard && !isTrainingPlan && !isTrainingDashboard && !isSiteAnalysis && !isSupervision) return null;
+                          if (!(isDoc || isDocument || isWhiteboard || isTrainingPlan || isTrainingDashboard || isSiteAnalysis || isSupervision)) return null;
                           const genLabel = (record.isAIGenerated || isSiteAnalysis) ? 'AI' : '手工';
                           const genColor = record.isAIGenerated ? 'processing' : 'default';
                           return (

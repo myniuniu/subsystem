@@ -365,6 +365,7 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
     const defaultRecords = {
       // 将白板分组置于最前，确保白板记录在列表首位
       whiteboard: [],
+      document: [],
       audio: [],
       video: [],
       mindmap: [],

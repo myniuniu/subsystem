@@ -1186,9 +1186,9 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         return;
       }
       
-      if (record.type === 'note') {
+      if (record.type === 'note' || record.type === 'document') {
         // 特例：EPBL教学设计文档，切换到全屏文档视图，加载富文本HTML模板
-        const isEpblDesignDoc = (record.subType === 'document' && String(record.title || '').includes('EPBL教学设计'));
+        const isEpblDesignDoc = ((record.subType === 'document' || record.type === 'document') && String(record.title || '').includes('EPBL教学设计'));
         if (isEpblDesignDoc) {
           state.setSelectedMaterial({
             id: record.id,
@@ -1200,7 +1200,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
           message.success('已在全屏区域打开：EPBL教学设计');
           return;
         }
-        if (suppressRightPanelOnClick) return;
+        // 文档/笔记类型：始终打开右侧富文本编辑器
         state.setRightPanelEditingNote(record);
         const initialContent = record.content || '<p>请在此处编写您的笔记内容...</p>';
         const contentWithLinks = convertTimeToLinks(initialContent);
@@ -1598,7 +1598,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
           };
 
           // 根据记录类型添加到对应的资料数组
-          if (record.type === 'report' || record.type === 'mindmap' || record.type === 'training-plan' || (record.type === 'note' && record.subType === 'document')) {
+          if (record.type === 'report' || record.type === 'mindmap' || record.type === 'training-plan' || record.type === 'document' || (record.type === 'note' && record.subType === 'document')) {
             state.setAddedTexts(prev => [newMaterial, ...prev]);
           } else if (record.type === 'video' || record.type === 'audio') {
             state.setCourseVideos(prev => [{
@@ -1615,7 +1615,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         case MORE_MENU_ACTIONS.OPEN_IN_NEW_WINDOW:
           try {
             // 文档类型记录：在新窗口打开 Lexical Playground
-            if (record?.type === 'note' && record?.subType === 'document') {
+            if ((record?.type === 'note' && record?.subType === 'document') || record?.type === 'document') {
               if (typeof window !== 'undefined') {
                 window.open('https://playground.lexical.dev/', '_blank', 'noopener,noreferrer');
                 message.success('已在新窗口打开 Lexical Playground');
