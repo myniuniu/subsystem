@@ -426,6 +426,7 @@ const NotesList = ({
             needsStatus: needsStatus
           });
         }
+        const plainContent = String(note.content || '').replace(/<[^>]*>/g, '');
         return (
           <Col xs={24} sm={12} lg={8} xl={6} key={note.id}>
             <Card
@@ -597,7 +598,15 @@ const NotesList = ({
               
                <Paragraph 
                  className="note-content" 
-                 ellipsis={{ rows: 3 }}
+                 ellipsis={{ 
+                   rows: 3, 
+                   expandable: true, 
+                   symbol: (
+                     <Tooltip title={<div style={{ maxWidth: 520, whiteSpace: 'pre-wrap' }}>{plainContent}</div>}>
+                       更多
+                     </Tooltip>
+                   )
+                 }}
                  type="secondary"
                >
                  {note.content}

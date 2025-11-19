@@ -16,7 +16,7 @@ const MODULES = [
   { key: 'ai-tool-house', label: '工具屋' },
   { key: 'theme-template-center', label: '智能体' },
   { key: 'resource-annotation', label: '资源标注' },
-  { key: 'student-annotation', label: '学员标注' },
+  { key: 'student-annotation', label: '人员标注' },
   { key: 'simulation-system', label: '仿真' },
   { key: 'meeting-center', label: '会议' },
   { key: 'download-center', label: '下载' },

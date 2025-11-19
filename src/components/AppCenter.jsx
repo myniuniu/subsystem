@@ -400,8 +400,8 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
     },
     {
       id: 'student-annotation-app',
-      name: '学员标注',
-      description: '面向学员的标注与批注工作台',
+      name: '人员标注',
+      description: '面向人员的标注与批注工作台',
       icon: 'FileTextOutlined',
       category: 'annotation',
       tags: ['标注', '管理'],
@@ -413,7 +413,7 @@ const AppCenter = ({ onAddToMenu, onRemoveFromMenu }) => {
       developer: '标注中心',
       featured: false,
       menuId: 'student-annotation',
-      menuLabel: '学员标注',
+      menuLabel: '人员标注',
       menuColor: '#722ed1'
     },
     {

@@ -544,7 +544,7 @@ const DraggableOperationCard = ({
               </Form.Item>
               <Form.Item 
                 label={
-                  <Tooltip title="在学员标注模块维护" placement="top">
+                  <Tooltip title="在人员标注模块维护" placement="top">
                     <span>培训人员圈选 <QuestionCircleOutlined style={{ color: '#8c8c8c', fontSize: '12px' }} /></span>
                   </Tooltip>
                 }

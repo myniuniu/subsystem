@@ -2020,7 +2020,7 @@ return smartNote;
       <div style={{ flex: 5, margin: '16px', background: '#fff', borderRadius: '8px', display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 200px)' }}>
           <div style={{ padding: '20px', borderBottom: '1px solid #f0f0f0', flexShrink: 0 }}>
             <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
-              💬 督学专家
+              💬 标注专家
             </Title>
           </div>
           
@@ -2031,7 +2031,7 @@ return smartNote;
             {messages.length === 0 ? (
               <div style={{ textAlign: 'center', color: '#999' }}>
                 <RobotOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
-                <div>开始咨询督学专家</div>
+                <div>开始咨询标注专家</div>
                 <div style={{ fontSize: '12px', marginTop: '8px' }}>您可以询问关于资料的任何问题</div>
               </div>
             ) : (

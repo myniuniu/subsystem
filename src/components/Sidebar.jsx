@@ -544,8 +544,8 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
     { 
        id: 'student-annotation', 
        icon: UserCheck, 
-       label: '学员标注', 
-       shortLabel: '学员标注',
+       label: '人员标注', 
+       shortLabel: '人员标注',
        color: '#722ed1',
        type: 'single',
        removable: true

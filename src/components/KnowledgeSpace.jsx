@@ -76,8 +76,8 @@ const KnowledgeSpace = () => {
       <div className="page-header">
         <Space align="center">
           <Title level={4} style={{ margin: 0 }}>知识库</Title>
-          <Tag color="#f5f5f5" className="header-tag">仓库</Tag>
-          <Tag color="#e6fffb" className="current-badge">当前空间：{currentSpace}</Tag>
+          <Tag className="header-tag">仓库</Tag>
+          <Tag className="current-badge">当前空间：{currentSpace}</Tag>
         </Space>
         <Space>
           <Tooltip title="新建知识库">
