@@ -624,7 +624,7 @@
 
         <!-- 反馈结果界面 -->
         <section id="feedback-screen" class="container mx-auto px-4 py-10 hidden">
-            <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="max-w-5xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
                 <div class="bg-gradient-to-r from-primary to-secondary p-6 text-white text-center">
                     <h2 class="text-2xl font-bold mb-2">场景训练完成</h2>
                     <p class="opacity-90">以下是你的表现评估和专业反馈</p>
@@ -690,20 +690,33 @@
                         <p class="text-gray-700 text-sm leading-relaxed" id="feedback-text">
                             你的表现总体优秀，特别是在共情学生情绪和危机评估方面做得很好。在资源提供方面可以进一步提升，建议熟悉学校现有的心理健康支持资源，以便更精准地为学生提供帮助。记住，作为辅导员，你的角色是提供支持和引导，而非解决学生的所有问题。当学生的情况超出你的专业范围时，及时转介是明智之举。
                         </p>
+                        <div class="mt-4">
+                            <h5 class="font-semibold text-gray-800 mb-2">本轮对话话术分析</h5>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-white border border-gray-200 rounded-lg p-3">
+                                    <div class="text-sm font-semibold text-red-600 mb-2">需要改进的话术</div>
+                                    <ul id="feedback-utterance-issues" class="list-disc pl-5 text-sm text-gray-700 space-y-1"></ul>
+                                </div>
+                                <div class="bg-white border border-gray-200 rounded-lg p-3">
+                                    <div class="text-sm font-semibold text-green-600 mb-2">做得好的话术</div>
+                                    <ul id="feedback-utterance-strengths" class="list-disc pl-5 text-sm text-gray-700 space-y-1"></ul>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- 下一步 -->
                     <div class="flex flex-col sm:flex-row gap-4">
-                        <button id="another-scenario-btn" class="flex-1 bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg shadow hover:shadow-md transition-all duration-300 flex items-center justify-center">
+                        <button id="another-scenario-btn" class="flex-1 bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg shadow hover:shadow-md transition-all duration-300 flex items-center justify-center whitespace-nowrap min-w-[180px]">
                             <i class="fa fa-refresh mr-2"></i> 尝试其他场景
                         </button>
-                        <button id="review-resources-btn" class="flex-1 bg-white border-2 border-primary text-primary hover:bg-primary/5 font-medium py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center">
+                        <button id="review-resources-btn" class="flex-1 bg-white border-2 border-primary text-primary hover:bg-primary/5 font-medium py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center whitespace-nowrap min-w-[180px]">
                             <i class="fa fa-book mr-2"></i> 查看学习资源
                         </button>
-                        <button id="retry-on-report-btn" class="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center">
+                        <button id="retry-on-report-btn" class="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center whitespace-nowrap min-w-[180px]">
                             <i class="fa fa-undo mr-2"></i> 再试一次
                         </button>
-                        <button id="add-friend-btn" class="flex-1 bg-white border-2 border-green-600 text-green-600 hover:bg-green-50 font-medium py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center">
+                        <button id="add-friend-btn" class="flex-1 bg-white border-2 border-green-600 text-green-600 hover:bg-green-50 font-medium py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center whitespace-nowrap min-w-[180px]">
                             <i class="fa fa-user-plus mr-2"></i> 添加为好友
                         </button>
                     </div>
@@ -1313,6 +1326,10 @@
             let autoPlayTimeoutId = null;
             // 会话最大轮次（达到后自动结束并生成反馈）
             const MAX_ROUNDS = 5;
+            let dialogueTrace = [];
+            function logUtterance(role, text, meta) {
+                try { dialogueTrace.push({ role: role, text: String(text || '').trim(), time: Date.now(), meta: meta || {} }); } catch (e) {}
+            }
 
             async function loadDialoguesData() {
                 if (dialoguesData) return dialoguesData;
@@ -1389,6 +1406,7 @@
                         `;
                         dialogContainer.insertAdjacentHTML('beforeend', studentBubble);
                         dialogContainer.scrollTop = dialogContainer.scrollHeight;
+                        logUtterance('student', studentMsg.text, { origin: 'round' });
                     }
                     const stem = studentMsg && studentMsg.text 
                       ? `题目：当学生描述“${studentMsg.text}”时，你应该怎么做？请选择或作答。`
@@ -1483,6 +1501,7 @@
                 `;
                 dialogContainer.insertAdjacentHTML('beforeend', studentHtml);
                 dialogContainer.scrollTop = dialogContainer.scrollHeight;
+                logUtterance('student', text, { origin: 'followup' });
                 maybeShowStudentFriendRequest();
             }
             function updateControlsForRound(scenario, roundIndex) {
@@ -1528,72 +1547,74 @@
                 setInputEnabled(mode === 'qa');
 
                 // 绑定选项与提交逻辑
-                if (mode === 'single') {
-                    const optionBtns = choicesContainer.querySelectorAll('[data-option-key]');
-                    optionBtns.forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            const text = btn.getAttribute('data-option-text') || '';
-                            if (text) {
-                                const dialogContainer = document.getElementById('dialog-container');
-                                const counselorHtml = `
-                                    <div class="message-bubble sent group">
-                                <div class="message-sender">
-                                    <span class="message-avatar" style="background:#2ecc71;">张</span>
-                                    <span class="message-author">张老师</span>
-                                    <span class="message-time" style="margin-left:8px;">${new Date().toLocaleString()}</span>
-                                </div>
-                                <div class="message-content">${text}</div>
-                            </div>
-                        `;
-                                dialogContainer.insertAdjacentHTML('beforeend', counselorHtml);
-                                dialogContainer.scrollTop = dialogContainer.scrollHeight;
-                                setTimeout(() => { playNextOnce(); }, 700);
-                            }
-                        });
-                    });
-                }
-                if (mode === 'multi') {
-                    const optionBtns = Array.from(choicesContainer.querySelectorAll('[data-option-key]'));
-                    const submitBtn = choicesContainer.querySelector('#multi-submit-btn');
-                    const updateSubmitState = () => {
-                        const anySelected = optionBtns.some(b => b.getAttribute('data-selected') === 'true');
-                        if (submitBtn) submitBtn.disabled = !anySelected;
-                    };
-                    optionBtns.forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            const selected = btn.getAttribute('data-selected') === 'true';
-                            btn.setAttribute('data-selected', selected ? 'false' : 'true');
-                            btn.classList.toggle('border-primary', !selected);
-                            btn.classList.toggle('bg-primary/5', !selected);
-                            updateSubmitState();
-                        });
-                    });
-                    if (submitBtn) {
-                        submitBtn.addEventListener('click', () => {
-                            const texts = optionBtns
-                                .filter(b => b.getAttribute('data-selected') === 'true')
-                                .map(b => b.getAttribute('data-option-text') || '')
-                                .filter(Boolean);
-                            if (texts.length > 0) {
-                                const dialogContainer = document.getElementById('dialog-container');
-                                const combined = texts.join('；');
-                                const counselorHtml = `
-                                    <div class="message-bubble sent group">
+                        if (mode === 'single') {
+                            const optionBtns = choicesContainer.querySelectorAll('[data-option-key]');
+                            optionBtns.forEach(btn => {
+                                btn.addEventListener('click', () => {
+                                    const text = btn.getAttribute('data-option-text') || '';
+                                    if (text) {
+                                        const dialogContainer = document.getElementById('dialog-container');
+                                        const counselorHtml = `
+                                            <div class="message-bubble sent group">
                                         <div class="message-sender">
                                             <span class="message-avatar" style="background:#2ecc71;">张</span>
                                             <span class="message-author">张老师</span>
                                             <span class="message-time" style="margin-left:8px;">${new Date().toLocaleString()}</span>
                                         </div>
-                                        <div class="message-content">${combined}</div>
+                                        <div class="message-content">${text}</div>
                                     </div>
                                 `;
-                                dialogContainer.insertAdjacentHTML('beforeend', counselorHtml);
-                                dialogContainer.scrollTop = dialogContainer.scrollHeight;
-                                setTimeout(() => { playNextOnce(); }, 700);
+                                        dialogContainer.insertAdjacentHTML('beforeend', counselorHtml);
+                                        dialogContainer.scrollTop = dialogContainer.scrollHeight;
+                                        logUtterance('counselor', text, { origin: 'single' });
+                                        setTimeout(() => { playNextOnce(); }, 700);
+                                    }
+                                });
+                            });
+                        }
+                        if (mode === 'multi') {
+                            const optionBtns = Array.from(choicesContainer.querySelectorAll('[data-option-key]'));
+                            const submitBtn = choicesContainer.querySelector('#multi-submit-btn');
+                            const updateSubmitState = () => {
+                                const anySelected = optionBtns.some(b => b.getAttribute('data-selected') === 'true');
+                                if (submitBtn) submitBtn.disabled = !anySelected;
+                            };
+                            optionBtns.forEach(btn => {
+                                btn.addEventListener('click', () => {
+                                    const selected = btn.getAttribute('data-selected') === 'true';
+                                    btn.setAttribute('data-selected', selected ? 'false' : 'true');
+                                    btn.classList.toggle('border-primary', !selected);
+                                    btn.classList.toggle('bg-primary/5', !selected);
+                                    updateSubmitState();
+                                });
+                            });
+                            if (submitBtn) {
+                                submitBtn.addEventListener('click', () => {
+                                    const texts = optionBtns
+                                        .filter(b => b.getAttribute('data-selected') === 'true')
+                                        .map(b => b.getAttribute('data-option-text') || '')
+                                        .filter(Boolean);
+                                    if (texts.length > 0) {
+                                        const dialogContainer = document.getElementById('dialog-container');
+                                        const combined = texts.join('；');
+                                        const counselorHtml = `
+                                            <div class="message-bubble sent group">
+                                                <div class="message-sender">
+                                                    <span class="message-avatar" style="background:#2ecc71;">张</span>
+                                                    <span class="message-author">张老师</span>
+                                                    <span class="message-time" style="margin-left:8px;">${new Date().toLocaleString()}</span>
+                                                </div>
+                                                <div class="message-content">${combined}</div>
+                                            </div>
+                                        `;
+                                        dialogContainer.insertAdjacentHTML('beforeend', counselorHtml);
+                                        dialogContainer.scrollTop = dialogContainer.scrollHeight;
+                                        logUtterance('counselor', combined, { origin: 'multi' });
+                                        setTimeout(() => { playNextOnce(); }, 700);
+                                    }
+                                });
                             }
-                        });
-                    }
-                }
+                        }
 
                 // 已去除“下一轮”按钮与绑定逻辑
             }
@@ -1605,6 +1626,7 @@
                 currentRoundIndex = 0;
                 roundHasResponded = false;
                 clearAutoPlay();
+                dialogueTrace = [];
                 const dialogContainer = document.getElementById('dialog-container');
                 dialogContainer.innerHTML = '';
                 // 初始化展示第1轮，避免空白
@@ -1653,6 +1675,48 @@
                 };
                 step();
             }
+            function updateUtteranceFeedback() {
+                const issuesEl = document.getElementById('feedback-utterance-issues');
+                const strengthsEl = document.getElementById('feedback-utterance-strengths');
+                if (!issuesEl || !strengthsEl) return;
+                const rules = [
+                    { type: 'issue', match: /别担心，大家考试前都会紧张/, reason: '过度安慰，可能最小化情绪' },
+                    { type: 'issue', match: /你应该调整一下学习方法/, reason: '以建议为主导，缺少共情与探询' },
+                    { type: 'strength', match: /我能看出你现在确实很焦虑/, reason: '精准情绪识别与共情' },
+                    { type: 'strength', match: /我们可以一起想办法/, reason: '合作式语言，增强支持感' },
+                    { type: 'strength', match: /如果你愿意，可以预约学校心理咨询/, reason: '资源链接与支持' }
+                ];
+                const issues = [];
+                const strengths = [];
+                for (let i = 0; i < dialogueTrace.length; i++) {
+                    const u = dialogueTrace[i];
+                    if (u.role !== 'counselor') continue;
+                    for (let j = 0; j < rules.length; j++) {
+                        const r = rules[j];
+                        if (r.match && r.match.test(u.text)) {
+                            if (r.type === 'issue') issues.push({ text: u.text, reason: r.reason });
+                            else strengths.push({ text: u.text, reason: r.reason });
+                        }
+                    }
+                }
+                function renderList(el, list, emptyText) {
+                    el.innerHTML = '';
+                    if (list.length === 0) {
+                        const li = document.createElement('li');
+                        li.textContent = emptyText;
+                        el.appendChild(li);
+                        return;
+                    }
+                    for (let k = 0; k < list.length; k++) {
+                        const item = list[k];
+                        const li = document.createElement('li');
+                        li.textContent = item.text + ' —— ' + item.reason;
+                        el.appendChild(li);
+                    }
+                }
+                renderList(issuesEl, issues, '本轮没有检测到明显问题话术');
+                renderList(strengthsEl, strengths, '本轮没有检测到明显优秀话术');
+            }
             function finishAndFeedback() {
                 // 清除计时器
                 if (timerInterval) {
@@ -1684,6 +1748,7 @@
                 appendFeedbackCard(score, feedbackRating.textContent);
                 // 保存一次训练的完整历史记录（用于回放）
                 addTrainingHistoryRecord(score, feedbackRating.textContent);
+                updateUtteranceFeedback();
             }
             // 获取所有屏幕元素
             const homeScreen = document.getElementById('home-screen');
@@ -2404,6 +2469,7 @@
                 const btn = document.getElementById('view-feedback-card-btn');
                 if (btn) {
                     btn.addEventListener('click', function() {
+                        updateUtteranceFeedback();
                         showScreen(feedbackScreen);
                     });
                 }
@@ -2560,6 +2626,7 @@
                 
                 dialogContainer.insertAdjacentHTML('beforeend', counselorHtml);
                 dialogContainer.scrollTop = dialogContainer.scrollHeight;
+                logUtterance('counselor', counselorResponse, { origin: 'choice' });
                 
                 // 显示最终学生回应
                 setTimeout(function() {
@@ -2583,6 +2650,7 @@
                     
                     dialogContainer.insertAdjacentHTML('beforeend', studentHtml);
                     dialogContainer.scrollTop = dialogContainer.scrollHeight;
+                    logUtterance('student', studentResponse, { origin: 'final' });
                     maybeShowStudentFriendRequest();
                     
                     // 显示结束信息并切换到反馈页面
@@ -2650,6 +2718,7 @@
                 `;
                 dialogContainer.insertAdjacentHTML('beforeend', counselorHtml);
                 dialogContainer.scrollTop = dialogContainer.scrollHeight;
+                logUtterance('counselor', text, { origin: 'custom' });
                 // 标记当前轮已回复
                 roundHasResponded = true;
                 if (customInput) customInput.value = '';
