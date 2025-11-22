@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>组织培训学习 · 资料管理</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <div class="sp-root">
+    <header class="sp-header">
+      <div class="sp-title">组织培训学习 · 资料管理</div>
+      <div class="sp-actions">
+        <button id="expandAll" class="sp-btn">全部展开</button>
+        <button id="collapseAll" class="sp-btn">全部折叠</button>
+      </div>
+    </header>
+
+    <section class="sp-pinned" id="pinnedProjects"></section>
+
+    <section class="sp-phases" id="phases"></section>
+
+    <section class="sp-detail" id="detail" style="display:none">
+      <div class="sp-detail-head">
+        <button id="backToList" class="sp-btn">返回</button>
+        <div id="detailTitle" class="sp-detail-title"></div>
+      </div>
+      <div class="sp-detail-body">
+        <div class="sp-video-wrap">
+          <video id="detailVideo" class="sp-video" controls preload="metadata"></video>
+        </div>
+        <div class="sp-article" id="detailArticle"></div>
+      </div>
+    </section>
+  </div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>

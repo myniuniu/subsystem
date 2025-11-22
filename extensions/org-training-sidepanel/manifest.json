@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "组织培训侧边栏",
+  "version": "1.0.0",
+  "description": "显示组织培训学习分类下的资料管理内容",
+  "side_panel": { "default_path": "sidepanel.html", "open_panel_on_action_click": true },
+  "permissions": ["sidePanel", "tabs"],
+  "background": { "service_worker": "background.js" },
+  "action": {
+    "default_title": "组织培训侧边栏",
+    "default_icon": { "128": "icon128.png" }
+  },
+  "icons": { "128": "icon128.png" },
+  "host_permissions": ["<all_urls>"]
+}

@@ -1425,6 +1425,33 @@ const { TextArea } = Input;
     }
   };
 
+  useEffect(() => {
+    const parse = () => {
+      try {
+        const h = String(window.location.hash || '');
+        let vid = '';
+        const m = h.match(/videoId=([A-Za-z0-9_\-]+)/);
+        if (m && m[1]) vid = m[1];
+        if (!vid) {
+          const qs = new URLSearchParams(String(window.location.search || ''));
+          vid = qs.get('videoId') || qs.get('openVideoId') || '';
+        }
+        if (vid) {
+          const list = Array.isArray(courseVideos) ? courseVideos : [];
+          const v = list.find(x => String(x.id) === String(vid));
+          if (v) {
+            try { scrollToVideoCard(vid); } catch {}
+            try { if (typeof onPlayVideo === 'function') onPlayVideo(v); } catch {}
+          }
+        }
+      } catch {}
+    };
+    parse();
+    const onHash = () => parse();
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, [courseVideos]);
+
   const computeGroupSummary = (videos) => {
     let totalSeconds = 0;
     let watchedSeconds = 0;
