@@ -46,6 +46,7 @@ import ProgressTestPage from './components/ProgressTestPage'
 import ThemeTemplateCenter from './components/ThemeTemplateCenter'
 import AIExperience from './components/AIExperience'
 import PWAInstallButton from './components/PWAInstallButton'
+import Welcome from './components/Welcome'
 import ModelRegistry from './components/ModelRegistry'
 import TagManagement from './components/TagManagement'
 import TrainingDashboardViewer from './components/OperationPanel/TrainingDashboardViewer'
@@ -65,7 +66,24 @@ import { generateTrainingProductDevelopmentData } from './data/trainingProductDe
 const { Sider, Content } = Layout
 
 function App() {
-  const [currentView, setCurrentView] = useState('smart-notes') // 默认进入果仁空间
+  const getInitialView = () => {
+    try {
+      const hash = (typeof window !== 'undefined' && window.location.hash) ? window.location.hash.slice(1) : ''
+      const params = (typeof window !== 'undefined') ? new URLSearchParams(window.location.search) : null
+      const paramStart = params ? params.get('start') : null
+      const isStandalone = (typeof window !== 'undefined') && (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true)
+      if (paramStart) return paramStart
+      if (hash) return hash
+      if (isStandalone) {
+        try {
+          const seen = localStorage.getItem('pwa_seen_welcome')
+          return seen ? 'smart-notes' : 'welcome'
+        } catch {}
+      }
+    } catch {}
+    return 'smart-notes'
+  }
+  const [currentView, setCurrentView] = useState(getInitialView()) // 根据环境决定默认视图
   const [messages, setMessages] = useState([])
   // 协作与素材库（用于 epbl-canvas 快捷路径）
   const [shareModalVisible, setShareModalVisible] = useState(false)
@@ -391,7 +409,7 @@ function App() {
   return (
     <Layout className="app" style={{ height: '100vh', background: currentView === 'admin-center' ? '#f5f7fa' : undefined }}>
       <Layout style={{ height: '100vh' }}>
-        {currentView !== 'admin-center' && (
+        {(currentView !== 'admin-center' && currentView !== 'welcome') && (
           <Sider 
             width="auto"
             style={{
@@ -430,7 +448,9 @@ function App() {
               flexDirection: 'column'
             }}
           >
-            {(currentView === 'chat' || currentView === 'ai-assistant') ? (
+            {currentView === 'welcome' ? (
+              <Welcome onEnter={() => { try { localStorage.setItem('pwa_seen_welcome', '1') } catch {}; handleViewChange('smart-notes') }} />
+            ) : (currentView === 'chat' || currentView === 'ai-assistant') ? (
               <UnifiedAICenter />
             ) : currentView === 'assessment-center' ? (
               <AssessmentCenter />

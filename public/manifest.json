@@ -2,7 +2,7 @@
   "name": "果仁-沉浸式AI学习空间",
   "short_name": "果仁AI",
   "description": "沉浸式AI学习空间，提供智能笔记、培训管理等功能",
-  "start_url": "/",
+  "start_url": "/?start=welcome",
   "display": "standalone",
   "background_color": "#f7f8fa",
   "theme_color": "#f7f8fa",
