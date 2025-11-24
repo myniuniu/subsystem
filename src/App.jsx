@@ -85,7 +85,7 @@ function App() {
   const forceWCO = (typeof window !== 'undefined') && new URLSearchParams(window.location.search).get('wco') === 'force'
   const handleHashChange = () => {
     const hash = (typeof window !== 'undefined' && window.location.hash) ? window.location.hash.slice(1) : ''
-    setCurrentView(hash || 'smart-notes')
+    setCurrentView(prev => (hash ? hash : prev))
   }
   
   // 页面状态管理
@@ -97,7 +97,9 @@ function App() {
   
   // 调试信息与哈希监听
   useEffect(() => {
-    handleHashChange()
+    if (typeof window !== 'undefined' && window.location.hash) {
+      handleHashChange()
+    }
     window.addEventListener('hashchange', handleHashChange)
     return () => {
       window.removeEventListener('hashchange', handleHashChange)
