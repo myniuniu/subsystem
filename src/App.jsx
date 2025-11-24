@@ -327,6 +327,37 @@ function App() {
   // 计算实际的下载中任务数量
   const downloadingCount = downloads.filter(d => d.status === 'downloading').length
 
+  useEffect(() => {
+    const value = 4
+    try {
+      if (typeof navigator.setAppBadge === 'function') {
+        navigator.setAppBadge(value)
+      }
+      if (navigator.serviceWorker) {
+        navigator.serviceWorker.ready.then((reg) => {
+          (reg && reg.active) && reg.active.postMessage({ type: 'SET_BADGE', value })
+        }).catch(() => {})
+      }
+      if (typeof navigator.setAppBadge !== 'function') {
+        const title = document.title || ''
+        const tag = title.includes('(') ? title.replace(/\([^)]*\)\s*/, '') : title
+        document.title = `(${value}) ${tag}`
+      }
+    } catch {}
+    return () => {
+      try {
+        if (typeof navigator.clearAppBadge === 'function') {
+          navigator.clearAppBadge()
+        }
+        if (navigator.serviceWorker) {
+          navigator.serviceWorker.ready.then((reg) => {
+            (reg && reg.active) && reg.active.postMessage({ type: 'CLEAR_BADGE' })
+          }).catch(() => {})
+        }
+      } catch {}
+    }
+  }, [])
+
   const handleViewChange = (view, data = null) => {
     console.log('View change requested:', view, data)
     
@@ -393,7 +424,7 @@ function App() {
 
   return (
     <Layout className="app" style={{ height: '100vh', background: '#fff', paddingTop: forceWCO ? 40 : 'env(titlebar-area-height, 0px)' }}>
-      <WindowControlsOverlay />
+      {currentView !== 'welcome' && <WindowControlsOverlay />}
       <Layout style={{ height: '100vh' }}>
         {(currentView !== 'admin-center' && currentView !== 'welcome') && (
           <Sider 

@@ -21,7 +21,7 @@ self.addEventListener('install', (event) => {
           try {
             const resp = await fetch(url, { cache: 'no-cache' });
             if (resp && resp.ok) await cache.put(url, resp);
-          } catch {}
+          } catch { }
         })
       );
       await self.skipWaiting();
@@ -45,22 +45,22 @@ self.addEventListener('activate', (event) => {
 // 拦截网络请求
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-      const cached = await caches.match(event.request);
-      if (cached) return cached;
-      try {
-        const netResp = await fetch(event.request);
-        if (netResp && netResp.ok && netResp.type === 'basic') {
-          const cache = await caches.open(CACHE_NAME);
-        if (netResp && netResp.ok && netResp.type === 'basic') {
-          const cache = await caches.open(CACHE_NAME);
-          cache.put(event.request, netResp.clone());
-          const offline = await caches.match('/');
-          if (offline) return offline;
-        }
-        return new Response('', { status: 503 });
+  event.respondWith((async () => {
+    const cached = await caches.match(event.request);
+    if (cached) return cached;
+    try {
+      const netResp = await fetch(event.request);
+      if (netResp && netResp.ok && netResp.type === 'basic') {
+        const cache = await caches.open(CACHE_NAME);
+        await cache.put(event.request, netResp.clone());
       }
-    })()
-  );
+      return netResp;
+    } catch (e) {
+      const offline = await caches.match('/');
+      if (offline) return offline;
+      return new Response('', { status: 503 });
+    }
+  })());
 });
 
 // 处理推送通知
@@ -97,3 +97,17 @@ self.addEventListener('sync', (event) => {
 function doBackgroundSync() {
   return Promise.resolve();
 }
+
+// 处理来自页面的消息，用于设置/清除应用徽标
+self.addEventListener('message', (event) => {
+  const data = event?.data || {};
+  try {
+    const canSet = self?.registration && typeof self.registration.setAppBadge === 'function';
+    const canClear = self?.registration && typeof self.registration.clearAppBadge === 'function';
+    if (data.type === 'SET_BADGE') {
+      if (canSet) self.registration.setAppBadge(Number(data.value || 0)).catch(() => { });
+    } else if (data.type === 'CLEAR_BADGE') {
+      if (canClear) self.registration.clearAppBadge().catch(() => { });
+    }
+  } catch { }
+});
