@@ -392,7 +392,7 @@ function App() {
   }
 
   return (
-    <Layout className="app" style={{ height: '100vh', background: currentView === 'admin-center' ? '#f5f7fa' : undefined, paddingTop: forceWCO ? 40 : 'env(titlebar-area-height, 0px)' }}>
+    <Layout className="app" style={{ height: '100vh', background: '#fff', paddingTop: forceWCO ? 40 : 'env(titlebar-area-height, 0px)' }}>
       <WindowControlsOverlay />
       <Layout style={{ height: '100vh' }}>
         {(currentView !== 'admin-center' && currentView !== 'welcome') && (
@@ -419,16 +419,15 @@ function App() {
           </Sider>
         )}
         
-        <Layout style={{ height: '100%' }}>
+        <Layout style={{ height: '100%', background: '#fff' }}>
           <Content 
             style={{
-              margin: '0', // 移除margin，让内容区域完全填满
+              margin: '0',
               padding: '0',
-              background: currentView === 'admin-center' ? 'transparent' : 'var(--theme-cardBackground)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '0', // 移除圆角，让内容区域完全贴合
-              boxShadow: 'none', // 移除阴影
-              height: '100%', // 改为100%，完全填满父容器
+              background: '#fff',
+              borderRadius: '0',
+              boxShadow: 'none',
+              height: '100%',
               display: 'flex',
               flexDirection: 'column'
             }}
@@ -560,7 +559,7 @@ function App() {
             ) : currentView === 'admin-center' ? (
               <AdminCenter />
             ) : currentView === 'epbl-canvas' ? (
-              <div style={{ flex: 1, background: '#f0f2f5', margin: '0', borderRadius: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+              <div style={{ flex: 1, background: '#fff', margin: '0', borderRadius: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', position: 'relative' }}>
                 {/* 悬浮画布工具栏（与 NoteEditPage 中一致） */}
                 <EpblFloatingToolbar />
                 {/* 右上角：协作 / 素材库 */}

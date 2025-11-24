@@ -195,7 +195,7 @@ const OrganizationLearning = ({ onBack }) => {
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: '#f0f2f5',
+      background: '#fff',
       padding: '16px'
     }}>
       {/* 配课工作台主体 - 移除标题栏，扩大主体区域 */}

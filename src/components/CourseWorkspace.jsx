@@ -1358,7 +1358,7 @@ const CourseWorkspace = ({ trainingNeed, onBack, onSave, hideHeader = false }) =
   );
 
   return (
-    <Layout style={{ height: hideHeader ? '100%' : '100vh', background: '#f0f2f5' }}>
+    <Layout style={{ height: hideHeader ? '100%' : '100vh', background: '#fff' }}>
       {/* 头部工具栏 - 根据hideHeader属性决定是否显示 */}
       {!hideHeader && (
         <div style={{ 
