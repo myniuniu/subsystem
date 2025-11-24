@@ -4,6 +4,7 @@
   "description": "沉浸式AI学习空间，提供智能笔记、培训管理等功能",
   "start_url": "/?start=welcome",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
   "background_color": "#f7f8fa",
   "theme_color": "#f7f8fa",
   "orientation": "portrait-primary",

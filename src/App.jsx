@@ -46,8 +46,8 @@ import ProgressTestPage from './components/ProgressTestPage'
 import ThemeTemplateCenter from './components/ThemeTemplateCenter'
 import AIExperience from './components/AIExperience'
 import PWAInstallButton from './components/PWAInstallButton'
+import WindowControlsOverlay from './components/WindowControlsOverlay'
 import Welcome from './components/Welcome'
-import ModelRegistry from './components/ModelRegistry'
 import TagManagement from './components/TagManagement'
 import TrainingDashboardViewer from './components/OperationPanel/TrainingDashboardViewer'
 import ModelTrainingTemplate from './components/ModelTrainingTemplate'
@@ -70,24 +70,23 @@ function App() {
     try {
       const hash = (typeof window !== 'undefined' && window.location.hash) ? window.location.hash.slice(1) : ''
       const params = (typeof window !== 'undefined') ? new URLSearchParams(window.location.search) : null
-      const paramStart = params ? params.get('start') : null
-      const isStandalone = (typeof window !== 'undefined') && (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true)
-      if (paramStart) return paramStart
+      const start = params ? params.get('start') : null
       if (hash) return hash
-      if (isStandalone) {
-        try {
-          const seen = localStorage.getItem('pwa_seen_welcome')
-          return seen ? 'smart-notes' : 'welcome'
-        } catch {}
-      }
-    } catch {}
-    return 'smart-notes'
+      if (start === 'welcome') return 'welcome'
+      return 'smart-notes'
+    } catch {
+      return 'smart-notes'
+    }
   }
-  const [currentView, setCurrentView] = useState(getInitialView()) // 根据环境决定默认视图
+  const [currentView, setCurrentView] = useState(getInitialView())
   const [messages, setMessages] = useState([])
-  // 协作与素材库（用于 epbl-canvas 快捷路径）
   const [shareModalVisible, setShareModalVisible] = useState(false)
   const [assetsDrawerVisible, setAssetsDrawerVisible] = useState(false)
+  const forceWCO = (typeof window !== 'undefined') && new URLSearchParams(window.location.search).get('wco') === 'force'
+  const handleHashChange = () => {
+    const hash = (typeof window !== 'undefined' && window.location.hash) ? window.location.hash.slice(1) : ''
+    setCurrentView(hash || 'smart-notes')
+  }
   
   // 页面状态管理
   const [pageState, setPageState] = useState({
@@ -96,30 +95,14 @@ function App() {
     editorMode: 'create' // 'create', 'edit', 'view'
   })
   
-  // 调试信息
+  // 调试信息与哈希监听
   useEffect(() => {
-    console.log('Current view changed to:', currentView)
-  }, [currentView])
-  
-  // 监听URL哈希变化
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.slice(1); // 去掉 # 号
-      if (hash) {
-        setCurrentView(hash);
-      }
-    };
-    
-    // 初始化时检查哈希
-    handleHashChange();
-    
-    // 监听哈希变化
-    window.addEventListener('hashchange', handleHashChange);
-    
+    handleHashChange()
+    window.addEventListener('hashchange', handleHashChange)
     return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-    };
-  }, []);
+      window.removeEventListener('hashchange', handleHashChange)
+    }
+  }, [])
   
   // 监听来自iframe的postMessage事件
   useEffect(() => {
@@ -407,7 +390,8 @@ function App() {
   }
 
   return (
-    <Layout className="app" style={{ height: '100vh', background: currentView === 'admin-center' ? '#f5f7fa' : undefined }}>
+    <Layout className="app" style={{ height: '100vh', background: currentView === 'admin-center' ? '#f5f7fa' : undefined, paddingTop: forceWCO ? 40 : 'env(titlebar-area-height, 0px)' }}>
+      <WindowControlsOverlay />
       <Layout style={{ height: '100vh' }}>
         {(currentView !== 'admin-center' && currentView !== 'welcome') && (
           <Sider 
@@ -419,7 +403,6 @@ function App() {
               borderRight: '1px solid rgba(255, 255, 255, 0.2)',
               height: '100%',
               overflow: 'auto',
-              flex: '0 0 auto'
             }}
             theme="light"
           >

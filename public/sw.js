@@ -45,19 +45,15 @@ self.addEventListener('activate', (event) => {
 // 拦截网络请求
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-  event.respondWith(
-    (async () => {
       const cached = await caches.match(event.request);
       if (cached) return cached;
       try {
         const netResp = await fetch(event.request);
         if (netResp && netResp.ok && netResp.type === 'basic') {
           const cache = await caches.open(CACHE_NAME);
+        if (netResp && netResp.ok && netResp.type === 'basic') {
+          const cache = await caches.open(CACHE_NAME);
           cache.put(event.request, netResp.clone());
-        }
-        return netResp;
-      } catch {
-        if (event.request.destination === 'document') {
           const offline = await caches.match('/');
           if (offline) return offline;
         }
