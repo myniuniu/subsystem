@@ -469,6 +469,26 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
     }
   };
 
+  // 监听来自窗口控件覆盖（WCO）的播放导航事件
+  useEffect(() => {
+    const handler = (e) => {
+      try {
+        const payload = e && e.detail ? e.detail : {};
+        const material = {
+          id: payload.id || `wco_${Date.now()}`,
+          title: payload.title || '教学基本规范（课堂纪律与仪表）',
+          type: 'video',
+          url: payload.url || VIDEO_OVERVIEW_URL
+        };
+        materialHandlers.onPlayVideo(material);
+      } catch (err) {
+        // no-op
+      }
+    };
+    window.addEventListener('openNoteEditPlayback', handler);
+    return () => window.removeEventListener('openNoteEditPlayback', handler);
+  }, []);
+
   // 监听聊天工具打开/关闭以动态加宽/恢复
   useEffect(() => {
     const openSearch = () => setIsChatSplit(true);

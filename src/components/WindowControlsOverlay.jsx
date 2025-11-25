@@ -138,7 +138,7 @@ export default function WindowControlsOverlay() {
   const noDrag = { WebkitAppRegion: 'no-drag' }
   const iconBtn = { ...noDrag, fontSize: 16, color: '#666' }
   const pill = { ...noDrag, position: 'relative', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', padding: '6px 12px 8px 12px', display: 'flex', alignItems: 'center', gap: 8, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)' }
-  const centerTitle = { display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }
+  const centerTitle = { display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2, cursor: 'pointer' }
   const centerMain = { fontSize: 15, fontWeight: 600, color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center' }
   const centerSub = { fontSize: 12, color: '#999', whiteSpace: 'nowrap', textAlign: 'center' }
   const progressTrack = {
@@ -216,7 +216,27 @@ export default function WindowControlsOverlay() {
           </div>
         </div>
         <div style={{ ...pill, minWidth: 480, justifyContent: 'center' }} onMouseDown={(e) => { e.stopPropagation() }} onClick={togglePlay}>
-          <div style={centerTitle}>
+          <div
+            style={centerTitle}
+            onClick={(e) => {
+              e.stopPropagation();
+              try {
+                if (typeof window !== 'undefined') {
+                  window.location.hash = 'note-edit-page';
+                  setTimeout(() => {
+                    try {
+                      const detail = {
+                        id: 'wco-q1',
+                        title: '教学基本规范（课堂纪律与仪表）',
+                        url: '/assets/demo1.mp4'
+                      };
+                      window.dispatchEvent(new CustomEvent('openNoteEditPlayback', { detail }));
+                    } catch {}
+                  }, 0);
+                }
+              } catch {}
+            }}
+          >
             <span style={centerMain}>教学基本规范（课堂纪律与仪表）</span>
             <span style={centerSub}>张老师 · 2025年11月11日</span>
           </div>

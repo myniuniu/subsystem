@@ -207,8 +207,8 @@ const VideoPlayer = ({
     // 允许的资源：本地 assets 路径或直接 mp4 文件
     const isPlayableAsset = (u) => {
       if (typeof u !== 'string' || !u) return false;
-      // 允许 '/assets/xxx.mp4' 或以 '.mp4' 结尾的直链
-      return u.startsWith('/assets/') || /\.mp4(\?.*)?$/i.test(u);
+    // 允许 '/assets/xxx.mp4' 或 'http(s)://...mp4' 直链
+      return u.startsWith('/assets/') || /^https?:\/\/.*\.mp4(\?.*)?$/i.test(u);
     };
 
     // 候选来源：videoUrl → url → src
