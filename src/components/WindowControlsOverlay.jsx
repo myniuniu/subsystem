@@ -24,6 +24,7 @@ export default function WindowControlsOverlay() {
   const [currentTime, setCurrentTime] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [volume, setVolume] = useState(60)
+  const [videoInitialized, setVideoInitialized] = useState(false)
   const [openQueue, setOpenQueue] = useState(false)
   const [hoverPreview, setHoverPreview] = useState(false)
   const [floatOpen, setFloatOpen] = useState(false)
@@ -113,7 +114,6 @@ export default function WindowControlsOverlay() {
   useEffect(() => {
     const v = videoRef.current
     if (!v) return
-    v.src = '/assets/demo1.mp4'
     const onLoaded = () => setDuration(v.duration || 0)
     const onTime = () => {
       const t = v.currentTime || 0
@@ -127,8 +127,15 @@ export default function WindowControlsOverlay() {
     v.addEventListener('play', onPlay)
     v.addEventListener('pause', onPause)
     v.addEventListener('ended', onEnded)
-    v.load()
+    const t = setTimeout(() => {
+      try {
+        v.src = '/assets/demo12.mp4'
+        v.load()
+        setVideoInitialized(true)
+      } catch { }
+    }, 600)
     return () => {
+      clearTimeout(t)
       v.removeEventListener('loadedmetadata', onLoaded)
       v.removeEventListener('timeupdate', onTime)
       v.removeEventListener('play', onPlay)
@@ -199,7 +206,13 @@ export default function WindowControlsOverlay() {
     if (!v) return
     message.info('正在尝试播放', 0.8)
     try { v.muted = true } catch { void 0 }
-    try { if (v.readyState < 2) v.load() } catch { void 0 }
+    if (!videoInitialized || v.readyState < 2 || !v.src) {
+      try {
+        v.src = v.src || '/assets/demo12.mp4'
+        v.load()
+        setVideoInitialized(true)
+      } catch { }
+    }
     if (v.paused) {
       try {
         const p = v.play()
