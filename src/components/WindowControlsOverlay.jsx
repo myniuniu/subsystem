@@ -1,8 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Button, Drawer, Space, Typography, Tag, Slider } from 'antd'
-import { MenuOutlined, StarOutlined, StarFilled, UnorderedListOutlined, SoundOutlined, CaretRightFilled, PauseOutlined } from '@ant-design/icons'
-
-const { Text } = Typography
+import { Button, Drawer, Space, Slider, message, Tooltip, Popover } from 'antd'
+import { MenuOutlined, UnorderedListOutlined, SoundOutlined, CaretRightFilled, PauseOutlined, CloseOutlined, AppstoreOutlined, ExportOutlined } from '@ant-design/icons'
 
 export default function WindowControlsOverlay() {
   const supports = typeof navigator !== 'undefined' && 'windowControlsOverlay' in navigator
@@ -20,17 +18,22 @@ export default function WindowControlsOverlay() {
     { id: 'c6', title: '第六章 事故案例分析' }
   ], [])
   const [idx, setIdx] = useState(0)
-  const favKey = 'wco:fav:safe-production'
-  const [fav, setFav] = useState(() => {
-    try { return localStorage.getItem(favKey) === '1' } catch { return false }
-  })
+  
   const videoRef = useRef(null)
-  const [progress, setProgress] = useState(0)
   const [duration, setDuration] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [volume, setVolume] = useState(60)
   const [openQueue, setOpenQueue] = useState(false)
+  const [hoverPreview, setHoverPreview] = useState(false)
+  const [floatOpen, setFloatOpen] = useState(false)
+  const [floatPos, setFloatPos] = useState({ x: 20, y: 80 })
+  const [floatSize, setFloatSize] = useState({ w: 480, h: 270 })
+  const [floatHover, setFloatHover] = useState(false)
+  
+  const draggingRef = useRef(false)
+  const dragOffsetRef = useRef({ x: 0, y: 0 })
+  const resizingRef = useRef(false)
   const queue = useMemo(() => [
     { id: 'q1', title: '教学基本规范（课堂纪律与仪表）', lecturer: '张老师', duration: 7 * 60 + 22 },
     { id: 'q2', title: '备课方法与案例设计', lecturer: '李老师', duration: 12 * 60 + 35 },
@@ -49,9 +52,7 @@ export default function WindowControlsOverlay() {
       try {
         const v = api.visible
         setVisible(!!v)
-      } catch {
-        setVisible(false)
-      }
+      } catch { setVisible(false) }
     }
     const onGeometry = (e) => {
       try { setRect(e.titlebarAreaRect || null) } catch { setRect(null) }
@@ -60,15 +61,54 @@ export default function WindowControlsOverlay() {
     update()
     api.addEventListener('geometrychange', onGeometry)
     return () => {
-      try { api.removeEventListener('geometrychange', onGeometry) } catch {}
+      try { api.removeEventListener('geometrychange', onGeometry) } catch { void 0 }
     }
   }, [supports])
 
   useEffect(() => {
-    try {
-      setThemeColor('#fff')
-    } catch {}
+    try { setThemeColor('#fff') } catch { void 0 }
   }, [])
+
+  
+
+  const startDrag = (e) => {
+    e.preventDefault(); e.stopPropagation()
+    draggingRef.current = true
+    const ox = e.clientX - floatPos.x
+    const oy = e.clientY - floatPos.y
+    dragOffsetRef.current = { x: ox, y: oy }
+    document.addEventListener('mousemove', onDrag)
+    document.addEventListener('mouseup', endDrag)
+  }
+  const onDrag = (e) => {
+    if (!draggingRef.current) return
+    const ox = dragOffsetRef.current.x
+    const oy = dragOffsetRef.current.y
+    setFloatPos({ x: e.clientX - ox, y: e.clientY - oy })
+  }
+  const endDrag = () => {
+    draggingRef.current = false
+    document.removeEventListener('mousemove', onDrag)
+    document.removeEventListener('mouseup', endDrag)
+  }
+
+  const startResize = (e) => {
+    e.preventDefault(); e.stopPropagation()
+    resizingRef.current = true
+    document.addEventListener('mousemove', onResize)
+    document.addEventListener('mouseup', endResize)
+  }
+  const onResize = (e) => {
+    if (!resizingRef.current) return
+    const nw = Math.max(240, e.clientX - floatPos.x)
+    const nh = Math.max(135, e.clientY - floatPos.y)
+    setFloatSize({ w: nw, h: nh })
+  }
+  const endResize = () => {
+    resizingRef.current = false
+    document.removeEventListener('mousemove', onResize)
+    document.removeEventListener('mouseup', endResize)
+  }
 
   useEffect(() => {
     const v = videoRef.current
@@ -76,10 +116,8 @@ export default function WindowControlsOverlay() {
     v.src = '/assets/demo1.mp4'
     const onLoaded = () => setDuration(v.duration || 0)
     const onTime = () => {
-      const d = v.duration || 0
       const t = v.currentTime || 0
       setCurrentTime(t)
-      setProgress(d ? Math.min(100, Math.max(0, (t / d) * 100)) : 0)
     }
     const onPlay = () => setPlaying(true)
     const onPause = () => setPlaying(false)
@@ -105,13 +143,9 @@ export default function WindowControlsOverlay() {
     v.volume = volume / 100
   }, [volume])
 
-  useEffect(() => {
-    try { localStorage.setItem(favKey, fav ? '1' : '0') } catch {}
-  }, [fav])
+  
 
-  const current = chapters[idx]
-  const prev = () => setIdx((p) => (p > 0 ? p - 1 : p))
-  const next = () => setIdx((p) => (p < chapters.length - 1 ? p + 1 : p))
+  
 
   if (!visible && !force) return null
 
@@ -141,20 +175,7 @@ export default function WindowControlsOverlay() {
   const centerTitle = { display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2, cursor: 'pointer' }
   const centerMain = { fontSize: 15, fontWeight: 600, color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center' }
   const centerSub = { fontSize: 12, color: '#999', whiteSpace: 'nowrap', textAlign: 'center' }
-  const progressTrack = {
-    position: 'absolute',
-    left: 10,
-    right: 10,
-    bottom: 6,
-    height: 8,
-    background: '#e9edf3',
-    border: '1px solid #dde3ea',
-    borderRadius: 10,
-    boxShadow: 'inset 0 -1px 0 rgba(255,255,255,0.9), 0 1px 2px rgba(0,0,0,0.04)',
-    overflow: 'hidden'
-  }
-  const progressFill = { height: '100%', width: `${progress}%`, background: '#c2c8d0' }
-  const progressRow = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginTop: 4, fontSize: 12, color: '#999' }
+  
   const fmt = (sec) => {
     const s = Math.max(0, Math.floor(sec))
     const h = Math.floor(s / 3600)
@@ -172,23 +193,22 @@ export default function WindowControlsOverlay() {
     const nt = Math.max(0, Math.min(dur, ct + delta))
     v.currentTime = nt
     setCurrentTime(nt)
-    setProgress(dur ? (nt / dur) * 100 : 0)
   }
   const togglePlay = () => {
     const v = videoRef.current
     if (!v) return
-    try { if (v.readyState < 2) v.load() } catch {}
+    message.info('正在尝试播放', 0.8)
+    try { v.muted = true } catch { void 0 }
+    try { if (v.readyState < 2) v.load() } catch { void 0 }
     if (v.paused) {
       try {
         const p = v.play()
         if (p && typeof p.then === 'function') {
-          p.then(() => setPlaying(true)).catch(() => setPlaying(false))
+          p.then(() => setPlaying(true)).catch(() => { setPlaying(false); message.warning('播放失败，请重试') })
         } else {
           setPlaying(true)
         }
-      } catch {
-        setPlaying(false)
-      }
+      } catch { setPlaying(false) }
     } else {
       v.pause()
       setPlaying(false)
@@ -231,10 +251,10 @@ export default function WindowControlsOverlay() {
                         url: '/assets/demo1.mp4'
                       };
                       window.dispatchEvent(new CustomEvent('openNoteEditPlayback', { detail }));
-                    } catch {}
+                    } catch { void 0 }
                   }, 0);
                 }
-              } catch {}
+              } catch { void 0 }
             }}
           >
             <span style={centerMain}>教学基本规范（课堂纪律与仪表）</span>
@@ -248,7 +268,7 @@ export default function WindowControlsOverlay() {
                 max={Math.max(0, Math.floor(duration))}
                 step={1}
                 value={Math.floor(currentTime)}
-                onChange={(v) => { setCurrentTime(v); const vid = videoRef.current; if (vid) { vid.currentTime = v; } setProgress(duration ? (v / duration) * 100 : 0) }}
+                onChange={(v) => { setCurrentTime(v); const vid = videoRef.current; if (vid) { vid.currentTime = v; } }}
                 tooltip={{ open: false }}
                 railStyle={{ height: 8, backgroundColor: '#e9edf3' }}
                 trackStyle={{ height: 8, backgroundColor: '#c2c8d0' }}
@@ -260,6 +280,59 @@ export default function WindowControlsOverlay() {
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div
+            style={{
+              ...noDrag,
+              width: 96,
+              height: 54,
+              borderRadius: 8,
+              overflow: 'hidden',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              border: '1px solid #e5e7eb',
+              cursor: 'pointer',
+              background: '#000',
+              zIndex: 1002,
+              position: 'relative'
+            }}
+            onMouseDown={(e) => { e.stopPropagation() }}
+            onMouseEnter={() => setHoverPreview(true)}
+            onMouseLeave={() => setHoverPreview(false)}
+            onClick={togglePlay}
+            onPointerDown={(e) => { e.stopPropagation() }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePlay() } }}
+            tabIndex={0}
+            title={playing ? '暂停' : '播放'}
+          >
+            <video
+              ref={videoRef}
+              preload="auto"
+              playsInline
+              muted
+              style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }}
+            />
+            {hoverPreview && (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: '50%',
+                  top: '50%',
+                  transform: 'translate(-50%, -50%)'
+                }}
+              >
+                <Tooltip title="悬浮预览">
+                  <Button
+                    size="small"
+                    shape="circle"
+                    type="default"
+                    style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid #e5e7eb' }}
+                    onClick={(e) => { e.stopPropagation(); setFloatOpen(true) }}
+                  >
+                    <ExportOutlined />
+                  </Button>
+                </Tooltip>
+              </div>
+            )}
+          </div>
           <SoundOutlined style={iconBtn} />
           <div style={{ ...noDrag, width: 160 }}>
             <Slider size="small" value={volume} onChange={(v) => { setVolume(v); const vid = videoRef.current; if (vid) vid.volume = v/100 }} tooltip={{ open: false }} />
@@ -267,6 +340,97 @@ export default function WindowControlsOverlay() {
           <SoundOutlined rotate={180} style={iconBtn} />
         </div>
       </div>
+
+      {floatOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            left: floatPos.x,
+            top: floatPos.y,
+            width: floatSize.w,
+            height: floatSize.h,
+            background: '#000',
+            border: '1px solid #e5e7eb',
+            borderRadius: 8,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+            zIndex: 3000,
+            display: 'flex',
+            flexDirection: 'column',
+            WebkitAppRegion: 'no-drag'
+          }}
+          onMouseEnter={() => setFloatHover(true)}
+          onMouseLeave={() => setFloatHover(false)}
+        >
+          <div style={{ flex: 1, position: 'relative', background: '#000' }}>
+            <video
+              src={videoRef.current ? videoRef.current.src : '/assets/demo1.mp4'}
+              controls
+              playsInline
+              style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000' }}
+            />
+            <div
+              style={{ position: 'absolute', left: 8, top: 8, width: 'calc(100% - 140px)', height: 28, cursor: 'move', background: 'rgba(255,255,255,0.6)', borderRadius: 6 }}
+              onMouseDown={startDrag}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                right: 8,
+                top: 8,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                opacity: floatHover ? 1 : 0,
+                transition: 'opacity 160ms ease',
+                pointerEvents: floatHover ? 'auto' : 'none'
+              }}
+            >
+              <Space>
+                <Popover
+                  trigger="click"
+                  placement="bottomRight"
+                  overlayStyle={{ pointerEvents: 'auto' }}
+                  content={(
+                    <Space>
+                      <Button size="small" onClick={(e) => { e.stopPropagation(); setFloatSize({ w: 320, h: 180 }) }}>320×180</Button>
+                      <Button size="small" onClick={(e) => { e.stopPropagation(); setFloatSize({ w: 480, h: 270 }) }}>480×270</Button>
+                      <Button size="small" onClick={(e) => { e.stopPropagation(); setFloatSize({ w: 640, h: 360 }) }}>640×360</Button>
+                    </Space>
+                  )}
+                >
+                  <Tooltip title="窗口大小">
+                    <Button
+                      size="small"
+                      shape="circle"
+                      type="default"
+                      style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid #e5e7eb' }}
+                      onClick={(e) => { e.stopPropagation() }}
+                    >
+                      <AppstoreOutlined />
+                    </Button>
+                  </Tooltip>
+                </Popover>
+                <Tooltip title="关闭">
+                  <Button
+                    size="small"
+                    shape="circle"
+                    type="default"
+                    danger
+                    style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid #e5e7eb' }}
+                    onClick={(e) => { e.stopPropagation(); setFloatOpen(false) }}
+                  >
+                    <CloseOutlined />
+                  </Button>
+                </Tooltip>
+              </Space>
+            </div>
+            <div
+              style={{ position: 'absolute', right: 6, bottom: 6, width: 14, height: 14, borderRight: '2px solid #999', borderBottom: '2px solid #999', cursor: 'nwse-resize' }}
+              onMouseDown={startResize}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Right cluster */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'absolute', right: 14 }}>
@@ -338,7 +502,7 @@ export default function WindowControlsOverlay() {
           ))}
         </div>
       </Drawer>
-      <video ref={videoRef} style={{ display: 'none' }} preload="metadata" playsInline />
+      
     </div>
   )
 }
