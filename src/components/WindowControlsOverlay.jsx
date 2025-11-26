@@ -25,6 +25,7 @@ export default function WindowControlsOverlay() {
   const [playing, setPlaying] = useState(false)
   const [volume, setVolume] = useState(60)
   const [videoInitialized, setVideoInitialized] = useState(false)
+  const rafIdRef = useRef(null)
   const [openQueue, setOpenQueue] = useState(false)
   const [hoverPreview, setHoverPreview] = useState(false)
   const [floatOpen, setFloatOpen] = useState(false)
@@ -132,7 +133,7 @@ export default function WindowControlsOverlay() {
         v.src = '/assets/demo12.mp4'
         v.load()
         setVideoInitialized(true)
-      } catch { }
+      } catch { void 0 }
     }, 600)
     return () => {
       clearTimeout(t)
@@ -142,6 +143,42 @@ export default function WindowControlsOverlay() {
       v.removeEventListener('pause', onPause)
       v.removeEventListener('ended', onEnded)
     }
+  }, [])
+
+  useEffect(() => {
+    const v = videoRef.current
+    if (!v) return
+    if (playing) {
+      const tick = () => {
+        try {
+          setCurrentTime(v.currentTime || 0)
+          const d = v.duration || 0
+          if (d && d !== duration) setDuration(d)
+        } catch { void 0 }
+        rafIdRef.current = requestAnimationFrame(tick)
+      }
+      rafIdRef.current = requestAnimationFrame(tick)
+      return () => {
+        if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current)
+        rafIdRef.current = null
+      }
+    } else {
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current)
+      rafIdRef.current = null
+    }
+  }, [playing])
+
+  useEffect(() => {
+    const v = videoRef.current
+    if (!v) return
+    const id = setInterval(() => {
+      try {
+        setCurrentTime(v.currentTime || 0)
+        const d = v.duration || 0
+        if (d && d !== duration) setDuration(d)
+      } catch { void 0 }
+    }, 500)
+    return () => clearInterval(id)
   }, [])
 
   useEffect(() => {
@@ -211,7 +248,7 @@ export default function WindowControlsOverlay() {
         v.src = v.src || '/assets/demo12.mp4'
         v.load()
         setVideoInitialized(true)
-      } catch { }
+      } catch { void 0 }
     }
     if (v.paused) {
       try {
