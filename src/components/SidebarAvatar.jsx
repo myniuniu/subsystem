@@ -28,7 +28,7 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [loginMoreModalVisible, setLoginMoreModalVisible] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(true); // 模拟登录状态
-  const [userInfo, setUserInfo] = useState({
+  const [userInfo] = useState({
     name: '张老师',
     email: 'zhang.teacher@edu.cn',
     avatar: null
@@ -58,7 +58,7 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
       const freq = freqRaw ? JSON.parse(freqRaw) : {};
       freq[text] = (freq[text] || 0) + 1;
       localStorage.setItem(FREQ_KEY, JSON.stringify(freq));
-    } catch {}
+    } catch { void 0 }
   };
 
   const triggerGlobalSearch = (q) => {
@@ -100,7 +100,7 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
         const tags = Array.isArray(n.tags) ? n.tags.join(' ').toLowerCase() : '';
         return t.includes(term) || c.includes(term) || tags.includes(term);
       }).slice(0, 8);
-    } catch {}
+    } catch { void 0 }
     // 联系人与群组
     const term = query.toLowerCase();
     const contacts = searchSuggestions.filter(s => s.type === 'user' && s.name.toLowerCase().includes(term)).slice(0, 8);
@@ -295,16 +295,18 @@ const SidebarAvatar = ({ onThemeChange, isCollapsed }) => {
       onClick: async () => {
         const hide = message.loading('正在清理站点数据...', 0);
         try {
+          try { navigator?.serviceWorker?.controller?.postMessage({ type: 'CLEAR_CACHE' }); } catch { void 0 }
           const result = await runSiteDataCleanup({
             clearCaches: true,
             unregisterSW: true,
             clearLocalStorage: true,
-            clearIndexedDB: true
+            clearIndexedDB: true,
+            clearSessionStorage: true
           });
           hide();
           // 结果提示（简要）
-          const cache = result.steps.cache || {}; const sw = result.steps.sw || {}; const ls = result.steps.ls || {}; const idb = result.steps.idb || {};
-          message.success(`完成：Cache(${cache.removed ?? 0}/${cache.total ?? 0})、SW(${sw.count ?? 0})、localStorage(${ls.count ?? 0})、IndexedDB(${idb.success ?? 0}/${idb.total ?? 0})`);
+          const cache = result.steps.cache || {}; const sw = result.steps.sw || {}; const ls = result.steps.ls || {}; const ss = result.steps.ss || {}; const idb = result.steps.idb || {};
+          message.success(`完成：Cache(${cache.removed ?? 0}/${cache.total ?? 0})、SW(${sw.count ?? 0})、localStorage(${ls.count ?? 0})、sessionStorage(${ss.count ?? 0})、IndexedDB(${idb.success ?? 0}/${idb.total ?? 0})`);
           if (idb.message) message.warning(idb.message);
         } catch (e) {
           hide();

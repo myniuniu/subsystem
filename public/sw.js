@@ -118,6 +118,8 @@ self.addEventListener('message', (event) => {
       if (canSet) self.registration.setAppBadge(Number(data.value || 0)).catch(() => { });
     } else if (data.type === 'CLEAR_BADGE') {
       if (canClear) self.registration.clearAppBadge().catch(() => { });
+    } else if (data.type === 'CLEAR_CACHE') {
+      caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).catch(() => { });
     }
   } catch { }
 });

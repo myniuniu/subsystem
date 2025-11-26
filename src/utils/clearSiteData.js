@@ -54,6 +54,19 @@ function clearLocalStorage() {
   }
 }
 
+/**
+ * 清空 sessionStorage
+ */
+function clearSessionStorage() {
+  try {
+    const before = sessionStorage.length;
+    sessionStorage.clear();
+    return { count: before };
+  } catch (e) {
+    return { count: 0, error: e };
+  }
+}
+
 function deleteDB(name) {
   return new Promise((resolve) => {
     try {
@@ -104,12 +117,14 @@ export async function runSiteDataCleanup({
   clearCaches: doCaches = true,
   unregisterSW: doSW = true,
   clearLocalStorage: doLS = true,
-  clearIndexedDB: doIDB = true
+  clearIndexedDB: doIDB = true,
+  clearSessionStorage: doSS = true
 } = {}) {
   const result = { steps: {} };
   if (doCaches) result.steps.cache = await clearCaches();
   if (doSW) result.steps.sw = await unregisterSW();
   if (doLS) result.steps.ls = clearLocalStorage();
+  if (doSS) result.steps.ss = clearSessionStorage();
   if (doIDB) result.steps.idb = await clearIndexedDB();
   return result;
 }
