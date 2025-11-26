@@ -45,6 +45,16 @@ self.addEventListener('activate', (event) => {
 // 拦截网络请求
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  // 对媒体资源直接走网络，不拦截缓存（避免视频加载异常）
+  const dest = event.request.destination;
+  if (dest === 'video' || dest === 'audio' || dest === 'image' || dest === 'media') {
+    event.respondWith(fetch(event.request).catch(async () => {
+      const offline = await caches.match('/');
+      return offline || new Response('', { status: 503 });
+    }));
+    return;
+  }
+
   event.respondWith((async () => {
     const cached = await caches.match(event.request);
     if (cached) return cached;
