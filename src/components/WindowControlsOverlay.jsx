@@ -512,6 +512,9 @@ export default function WindowControlsOverlay() {
                 muted={floatOpen ? false : true}
                 style={{ width: '100%', height: '100%', objectFit: floatOpen ? 'contain' : 'cover', pointerEvents: 'none', background: floatOpen ? '#000' : '#fff' }}
               />
+              {!floatOpen && !playing && (
+                <img src="/assets/果仁-头像.png" alt="logo" style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+              )}
               {!floatOpen && hoverPreview && (
                 <div
                   style={{
