@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Button, Drawer, Space, Slider, message, Tooltip, Popover } from 'antd'
-import { MenuOutlined, UnorderedListOutlined, SoundOutlined, CaretRightFilled, PauseOutlined, CloseOutlined, AppstoreOutlined, ExportOutlined, BarChartOutlined, PlayCircleOutlined, CloudUploadOutlined, PlusOutlined, DownOutlined, UpOutlined, CheckCircleOutlined } from '@ant-design/icons'
+import { Button, Drawer, Space, Slider, message, Tooltip, Popover, Tag } from 'antd'
+import { MenuOutlined, UnorderedListOutlined, SoundOutlined, CaretRightFilled, PauseOutlined, CloseOutlined, AppstoreOutlined, ExportOutlined, BarChartOutlined, PlayCircleOutlined, CloudUploadOutlined, PlusOutlined, DownOutlined, UpOutlined, CheckCircleOutlined, PushpinOutlined, VideoCameraOutlined, ClockCircleOutlined } from '@ant-design/icons'
+import dayjs from 'dayjs'
 
 export default function WindowControlsOverlay() {
   const supports = typeof navigator !== 'undefined' && 'windowControlsOverlay' in navigator
@@ -35,11 +36,13 @@ export default function WindowControlsOverlay() {
   const [floatHover, setFloatHover] = useState(false)
 
   const [uploads, setUploads] = useState([
-    { id: 'u1', name: '安全生产宣传片.mp4', size: 820 * 1024 * 1024, uploaded: 240 * 1024 * 1024, status: 'uploading', speedMBps: 4.2 },
-    { id: 'u2', name: '课堂互动示例.mov', size: 1560 * 1024 * 1024, uploaded: 0, status: 'paused', speedMBps: 3.1 }
+    { id: 'u1', name: '安全生产宣传片.mp4', size: 820 * 1024 * 1024, uploaded: 240 * 1024 * 1024, status: 'uploading', speedMBps: 4.2, startedAt: Date.now() - Math.floor((240 / 4.2) * 1000) },
+    { id: 'u2', name: '课堂互动示例.mov', size: 1560 * 1024 * 1024, uploaded: 0, status: 'paused', speedMBps: 3.1, startedAt: Date.now() }
   ])
   const fileInputRef = useRef(null)
   const [openUploadsPanel, setOpenUploadsPanel] = useState(false)
+  const [openPinnedPanel, setOpenPinnedPanel] = useState(false)
+  const [openLivePanel, setOpenLivePanel] = useState(false)
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -72,7 +75,8 @@ export default function WindowControlsOverlay() {
         size: f.size || (800 * 1024 * 1024),
         uploaded: 0,
         status: 'uploading',
-        speedMBps: 3 + Math.random() * 3
+        speedMBps: 3 + Math.random() * 3,
+        startedAt: Date.now()
       }))
       setUploads(prev => [...prev, ...items])
       try { e.target.value = '' } catch { void 0 }
@@ -82,14 +86,19 @@ export default function WindowControlsOverlay() {
     if (viewMode === 'upload') {
       setUploads(prev => {
         if (prev.length >= 3) return prev
-        const extra = Array.from({ length: 3 - prev.length }).map((_, i) => ({
-          id: `seed_${Date.now()}_${i}`,
-          name: i % 2 === 0 ? `教学案例_${i + 1}.mp4` : `课堂回放_${i + 1}.mov`,
-          size: (600 + Math.floor(Math.random() * 1200)) * 1024 * 1024,
-          uploaded: Math.floor(Math.random() * 60) * 1024 * 1024,
-          status: 'uploading',
-          speedMBps: 2.5 + Math.random() * 3.5
-        }))
+        const extra = Array.from({ length: 3 - prev.length }).map((_, i) => {
+          const speed = 2.5 + Math.random() * 3.5
+          const uploaded = Math.floor(Math.random() * 60) * 1024 * 1024
+          return {
+            id: `seed_${Date.now()}_${i}`,
+            name: i % 2 === 0 ? `教学案例_${i + 1}.mp4` : `课堂回放_${i + 1}.mov`,
+            size: (600 + Math.floor(Math.random() * 1200)) * 1024 * 1024,
+            uploaded,
+            status: 'uploading',
+            speedMBps: speed,
+            startedAt: Date.now() - Math.floor((uploaded / (speed * 1024 * 1024)) * 1000)
+          }
+        })
         return [...prev, ...extra]
       })
     }
@@ -104,6 +113,21 @@ export default function WindowControlsOverlay() {
     const s = sec % 60
     return m > 0 ? `${m}分${s}秒` : `${s}秒`
   }
+  const elapsedText = (u) => {
+    try {
+      let sec
+      if (u.startedAt) {
+        sec = Math.max(0, Math.floor((Date.now() - u.startedAt) / 1000))
+      } else if ((u.uploaded || 0) > 0 && (u.speedMBps || 0) > 0) {
+        sec = Math.floor((u.uploaded / (u.speedMBps * 1024 * 1024)))
+      } else {
+        sec = 0
+      }
+      const m = Math.floor(sec / 60)
+      const s = sec % 60
+      return m > 0 ? `${m}分${s}秒` : `${s}秒`
+    } catch { return '0秒' }
+  }
   
   const draggingRef = useRef(false)
   const dragOffsetRef = useRef({ x: 0, y: 0 })
@@ -114,6 +138,22 @@ export default function WindowControlsOverlay() {
     { id: 'q3', title: '教学互动技巧与提问艺术', lecturer: '王老师', duration: 9 * 60 + 18 },
     { id: 'q4', title: '信息化教学工具入门', lecturer: '陈老师', duration: 15 * 60 + 40 },
     { id: 'q5', title: '课堂评价与反馈', lecturer: '刘老师', duration: 10 * 60 + 5 }
+  ], [])
+
+  const pinnedNotes = useMemo(() => [
+    { id: 'p1', title: 'SmartNotes · 教学互动设计', updatedAt: '2025-11-20', tag: '教学法' },
+    { id: 'p2', title: 'SmartNotes · 安全生产规范梳理', updatedAt: '2025-11-18', tag: '规范' },
+    { id: 'p3', title: 'SmartNotes · 课堂提问技巧', updatedAt: '2025-11-12', tag: '互动' },
+    { id: 'p4', title: 'SmartNotes · 课后反馈整理', updatedAt: '2025-10-29', tag: '反馈' }
+  ], [])
+
+  const liveNow = useMemo(() => [
+    { id: 'l_now_1', title: '实时教学方法研讨', instructor: '李老师', liveUrl: '/assets/2.mp4', startedAt: '15:00' },
+    { id: 'l_now_2', title: '在线课堂互动技巧', instructor: '王老师', liveUrl: '/assets/2.mp4', startedAt: '15:15' }
+  ], [])
+  const liveSoon = useMemo(() => [
+    { id: 'l_soon_1', title: '数字化教学实践分享', instructor: '陈老师', startTime: '16:00' },
+    { id: 'l_soon_2', title: '备课方法与案例设计直播', instructor: '张老师', startTime: '16:30' }
   ], [])
 
   useEffect(() => {
@@ -286,7 +326,8 @@ export default function WindowControlsOverlay() {
   }
 
   const noDrag = { WebkitAppRegion: 'no-drag' }
-  const iconBtn = { ...noDrag, fontSize: 16, color: '#666' }
+  const iconBtn = { ...noDrag, fontSize: 16, color: '#666', padding: 6, borderRadius: 8, transition: 'all .2s ease' }
+  const activeIconBtn = { ...iconBtn, color: '#1677ff', backgroundColor: 'rgba(22,119,255,0.12)' }
   const pill = { ...noDrag, position: 'relative', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', padding: '6px 12px 8px 12px', display: 'flex', alignItems: 'center', gap: 8, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)' }
   const centerTitle = { display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2, cursor: 'pointer' }
   const centerMain = { fontSize: 15, fontWeight: 600, color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center' }
@@ -493,43 +534,106 @@ export default function WindowControlsOverlay() {
         </div>
       )}
 
+      {viewMode === 'pinned' && (
+        <div style={{ width: '100%', marginTop: 20, display: 'flex', alignItems: 'center', gap: 30, justifyContent: 'center' }}>
+          <div style={{ ...pill, minWidth: 520, justifyContent: 'space-between', paddingTop: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8, width: '100%' }} onMouseEnter={() => setOpenPinnedPanel(true)}>
+              {pinnedNotes.slice(0, 1).map(n => (
+                <div key={n.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+                  onMouseDown={(e) => { e.stopPropagation() }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    try {
+                      if (typeof window !== 'undefined') {
+                        window.location.hash = 'note-edit-page';
+                        const detail = { id: n.id, title: n.title };
+                        setTimeout(() => { try { window.dispatchEvent(new CustomEvent('openNoteEditPlayback', { detail })) } catch { void 0 } }, 0);
+                      }
+                    } catch { void 0 }
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                    <PushpinOutlined style={{ color: '#fa8c16' }} />
+                    <div style={{ fontSize: 13, color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.title}</div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 12, color: '#999' }}>{n.tag}</span>
+                    <span style={{ fontSize: 12, color: '#666' }}>{n.updatedAt}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {viewMode === 'live' && (
+        <div style={{ width: '100%', marginTop: 20, display: 'flex', alignItems: 'center', gap: 30, justifyContent: 'center' }}>
+          <div style={{ ...pill, minWidth: 620, justifyContent: 'space-between', paddingTop: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }} onMouseEnter={() => setOpenLivePanel(true)}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
+                {liveNow.slice(0, 1).map(l => (
+                  <div key={l.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '6px 8px', borderRadius: 8, transition: 'background 160ms ease' }}
+                    onMouseDown={(e) => { e.stopPropagation() }}
+                    onClick={(e) => { e.stopPropagation(); try { window.location.hash = 'meeting-center' } catch {} }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fafc' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                      <VideoCameraOutlined style={{ color: '#f5222d' }} />
+                      <Tag color={'red'} style={{ marginLeft: 0, borderRadius: 12, lineHeight: '18px', height: 22 }}>直播中</Tag>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: '#1f2937', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.title}</div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontSize: 12, color: '#999' }}>{l.instructor}</span>
+                      <span style={{ fontSize: 12, color: '#666' }}>{(() => {
+                        try {
+                          const [h, m] = String(l.startedAt || '').split(':')
+                          const started = dayjs().hour(parseInt(h || '0')).minute(parseInt(m || '0')).second(0)
+                          const now = dayjs()
+                          const diff = Math.max(0, now.diff(started, 'minute'))
+                          return `已开播 ${diff} 分钟`
+                        } catch { return '直播中' }
+                      })()}</span>
+                      <Button size="small" type="primary" style={{ borderRadius: 14, background: 'linear-gradient(90deg,#ff4d4f,#f5222d)' }} onClick={(e) => { e.stopPropagation(); try { window.location.hash = 'meeting-center' } catch {} }}>进入直播</Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {viewMode === 'upload' && (
         <div style={{ width: '100%', marginTop: 22, display: 'flex', alignItems: 'center', gap: 30, justifyContent: 'center' }}>
           <div style={{ ...pill, minWidth: 640, justifyContent: 'space-between', paddingTop: 8, paddingBottom: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', paddingBottom: 6 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <PlayCircleOutlined style={{ color: '#1677ff' }} />
-                  <span style={{ fontSize: 12, color: '#666' }}>{uploads.filter(u => u.status === 'uploading').length}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <PlayCircleOutlined style={{ color: '#1677ff' }} />
+                    <span style={{ fontSize: 12, color: '#666' }}>{uploads.filter(u => u.status === 'uploading').length}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <PauseOutlined style={{ color: '#fa8c16' }} />
+                    <span style={{ fontSize: 12, color: '#666' }}>{uploads.filter(u => u.status === 'paused').length}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                    <span style={{ fontSize: 12, color: '#666' }}>{uploads.filter(u => u.status === 'done').length}</span>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <PauseOutlined style={{ color: '#fa8c16' }} />
-                  <span style={{ fontSize: 12, color: '#666' }}>{uploads.filter(u => u.status === 'paused').length}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <CheckCircleOutlined style={{ color: '#52c41a' }} />
-                  <span style={{ fontSize: 12, color: '#666' }}>{uploads.filter(u => u.status === 'done').length}</span>
-                </div>
-                <span style={{ fontSize: 12, color: '#666' }}>{Math.round(((uploads.reduce((a, u) => a + (u.uploaded || 0), 0)) / Math.max(1, uploads.reduce((a, u) => a + (u.size || 0), 0))) * 100)}%</span>
-                <div style={{ position: 'relative', width: 160, height: 6, backgroundColor: '#e9edf3', border: '1px solid #dde3ea', borderRadius: 10, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${Math.round(((uploads.reduce((a, u) => a + (u.uploaded || 0), 0)) / Math.max(1, uploads.reduce((a, u) => a + (u.size || 0), 0))) * 100)}%`, background: '#69b1ff' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 12, color: '#666' }}>{Math.round(((uploads.reduce((a, u) => a + (u.uploaded || 0), 0)) / Math.max(1, uploads.reduce((a, u) => a + (u.size || 0), 0))) * 100)}%</span>
+                  <div style={{ position: 'relative', width: 160, height: 6, backgroundColor: '#e9edf3', border: '1px solid #dde3ea', borderRadius: 10, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${Math.round(((uploads.reduce((a, u) => a + (u.uploaded || 0), 0)) / Math.max(1, uploads.reduce((a, u) => a + (u.size || 0), 0))) * 100)}%`, background: '#69b1ff' }} />
+                  </div>
                 </div>
               </div>
-              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
-                {uploads.length > 2 && (
-                  openUploadsPanel ? (
-                    <Tooltip title="收起">
-                      <Button size="small" shape="circle" type="default" onClick={() => setOpenUploadsPanel(false)}><UpOutlined /></Button>
-                    </Tooltip>
-                  ) : (
-                    <Tooltip title="展开更多">
-                      <Button size="small" shape="circle" type="default" onClick={() => setOpenUploadsPanel(true)}><DownOutlined /></Button>
-                    </Tooltip>
-                  )
-                )}
-              </div>
+              <div style={{ marginLeft: 'auto' }} />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, width: '100%', marginTop: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, width: '100%', marginTop: 8 }} onMouseEnter={() => { if (uploads.length > 1) setOpenUploadsPanel(true) }}>
               {(((uploads.find(u => u.status === 'uploading')) ? [uploads.find(u => u.status === 'uploading')] : uploads.slice(0, 1))).map(u => (
                 <div key={u.id} style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
@@ -565,11 +669,14 @@ export default function WindowControlsOverlay() {
                     </div>
                   </div>
                   <div style={{ ...noDrag, width: '100%' }}>
-                    <div style={{ position: 'relative', height: 8, backgroundColor: '#e9edf3', border: '1px solid #dde3ea', borderRadius: 10, overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${pct(u.uploaded, u.size)}%`, background: u.status === 'done' ? '#52c41a' : '#69b1ff' }} />
-                    </div>
+                  <div style={{ position: 'relative', height: 8, backgroundColor: '#e9edf3', border: '1px solid #dde3ea', borderRadius: 10, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${pct(u.uploaded, u.size)}%`, background: u.status === 'done' ? '#52c41a' : '#69b1ff' }} />
                   </div>
-                  
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 12, color: '#666' }}>用时 {elapsedText(u)}</span>
+                  <span style={{ fontSize: 12, color: '#666' }}>剩余 {etaText(u.uploaded, u.size)}</span>
+                </div>
                 </div>
               ))}
             </div>
@@ -670,13 +777,19 @@ export default function WindowControlsOverlay() {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'absolute', right: 14 }}>
         <Tooltip title="媒体控制">
-          <PlayCircleOutlined style={iconBtn} onClick={() => setViewMode('media')} />
+          <PlayCircleOutlined style={viewMode === 'media' ? activeIconBtn : iconBtn} onClick={() => setViewMode('media')} />
         </Tooltip>
         <Tooltip title="学习进度">
-          <BarChartOutlined style={iconBtn} onClick={() => setViewMode('progress')} />
+          <BarChartOutlined style={viewMode === 'progress' ? activeIconBtn : iconBtn} onClick={() => setViewMode('progress')} />
+        </Tooltip>
+        <Tooltip title="直播提醒">
+          <VideoCameraOutlined style={viewMode === 'live' ? activeIconBtn : iconBtn} onClick={() => setViewMode('live')} />
+        </Tooltip>
+        <Tooltip title="置顶主题">
+          <PushpinOutlined style={viewMode === 'pinned' ? activeIconBtn : iconBtn} onClick={() => setViewMode('pinned')} />
         </Tooltip>
         <Tooltip title="资料上传">
-          <CloudUploadOutlined style={iconBtn} onClick={() => setViewMode('upload')} />
+          <CloudUploadOutlined style={viewMode === 'upload' ? activeIconBtn : iconBtn} onClick={() => setViewMode('upload')} />
         </Tooltip>
       </div>
 
@@ -718,6 +831,117 @@ export default function WindowControlsOverlay() {
       </Drawer>
       <Drawer
         placement="top"
+        open={openPinnedPanel}
+        onClose={() => setOpenPinnedPanel(false)}
+        height={360}
+        mask
+        maskClosable
+        keyboard
+        destroyOnClose
+        getContainer={() => document.body}
+        style={{ zIndex: 2000 }}
+        styles={{ header: { WebkitAppRegion: 'no-drag' }, body: { WebkitAppRegion: 'no-drag', padding: 12, display: 'flex', justifyContent: 'center' } }}
+        title={<div style={{ width: '100%', textAlign: 'center' }}>置顶主题</div>}
+        extra={<Button size="small" type="text" onClick={() => setOpenPinnedPanel(false)}>关闭</Button>}
+      >
+        <div style={{ width: 640, maxWidth: '100%' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
+            {pinnedNotes.map(n => (
+              <div key={n.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+                onMouseDown={(e) => { e.stopPropagation() }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  try {
+                    if (typeof window !== 'undefined') {
+                      window.location.hash = 'note-edit-page';
+                      const detail = { id: n.id, title: n.title };
+                      setTimeout(() => { try { window.dispatchEvent(new CustomEvent('openNoteEditPlayback', { detail })) } catch { void 0 } }, 0);
+                    }
+                  } catch { void 0 }
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                  <PushpinOutlined style={{ color: '#fa8c16' }} />
+                  <div style={{ fontSize: 13, color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.title}</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 12, color: '#999' }}>{n.tag}</span>
+                  <span style={{ fontSize: 12, color: '#666' }}>{n.updatedAt}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Drawer>
+      <Drawer
+        placement="top"
+        open={openLivePanel}
+        onClose={() => setOpenLivePanel(false)}
+        height={420}
+        mask
+        maskClosable
+        keyboard
+        destroyOnClose
+        getContainer={() => document.body}
+        style={{ zIndex: 2000 }}
+        styles={{ header: { WebkitAppRegion: 'no-drag' }, body: { WebkitAppRegion: 'no-drag', padding: 12, display: 'flex', justifyContent: 'center' } }}
+        title={<div style={{ width: '100%', textAlign: 'center' }}>直播提醒与入口</div>}
+        extra={<Button size="small" type="text" onClick={() => setOpenLivePanel(false)}>关闭</Button>}
+      >
+        <div style={{ width: 680, maxWidth: '100%' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
+            {[...liveNow, ...liveSoon].map(l => (
+              <div key={l.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 10, border: '1px solid #eef2f7', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
+                onMouseDown={(e) => { e.stopPropagation() }}
+                onClick={(e) => { e.stopPropagation(); try { window.location.hash = 'meeting-center' } catch {} }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                  {('startTime' in l) ? (
+                    <ClockCircleOutlined style={{ color: '#fa8c16' }} />
+                  ) : (
+                    <VideoCameraOutlined style={{ color: '#f5222d' }} />
+                  )}
+                  <Tag color={('startTime' in l) ? 'orange' : 'red'} style={{ borderRadius: 12, lineHeight: '18px', height: 22 }}>
+                    {('startTime' in l) ? '即将直播' : '直播中'}
+                  </Tag>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#1f2937', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.title}</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ fontSize: 12, color: '#999' }}>{l.instructor}</span>
+                  {('startTime' in l) ? (
+                    <span style={{ fontSize: 12, color: '#666' }}>{(() => {
+                      try {
+                        const [h, m] = String(l.startTime || '').split(':')
+                        const target = dayjs().hour(parseInt(h || '0')).minute(parseInt(m || '0')).second(0)
+                        const now = dayjs()
+                        const diff = Math.max(0, target.diff(now, 'minute'))
+                        return `距开始 ${diff} 分钟`
+                      } catch { return `${l.startTime} 开播` }
+                    })()}</span>
+                  ) : (
+                    <span style={{ fontSize: 12, color: '#666' }}>{(() => {
+                      try {
+                        const [h, m] = String(l.startedAt || '').split(':')
+                        const started = dayjs().hour(parseInt(h || '0')).minute(parseInt(m || '0')).second(0)
+                        const now = dayjs()
+                        const diff = Math.max(0, now.diff(started, 'minute'))
+                        return `已开播 ${diff} 分钟`
+                      } catch { return '直播中' }
+                    })()}</span>
+                  )}
+                  {('startTime' in l) ? (
+                    <Button size="small" type="default" style={{ borderRadius: 14 }} onClick={(e) => { e.stopPropagation(); try { window.location.hash = 'meeting-center' } catch {} }}>查看详情</Button>
+                  ) : (
+                    <Button size="small" type="primary" style={{ borderRadius: 14, background: 'linear-gradient(90deg,#ff4d4f,#f5222d)' }} onClick={(e) => { e.stopPropagation(); try { window.location.hash = 'meeting-center' } catch {} }}>进入直播</Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Drawer>
+      <Drawer
+        placement="top"
         open={openUploadsPanel}
         onClose={() => setOpenUploadsPanel(false)}
         height={420}
@@ -732,7 +956,7 @@ export default function WindowControlsOverlay() {
         extra={<Button size="small" type="text" onClick={() => setOpenUploadsPanel(false)}>关闭</Button>}
       >
         <div style={{ width: 640, maxWidth: '100%' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 14 }}>
             <input ref={fileInputRef} type="file" accept="video/*" multiple style={{ display: 'none' }} onChange={onAddFiles} />
             <Tooltip title="添加文件">
               <Button size="small" shape="circle" type="default" onClick={onAddFilesClick}><PlusOutlined /></Button>
@@ -747,13 +971,12 @@ export default function WindowControlsOverlay() {
               <Button size="small" shape="circle" danger type="default" onClick={cancelAll}><CloseOutlined /></Button>
             </Tooltip>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, marginTop: 6 }}>
             {uploads.map(u => (
               <div key={u.id} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                    <CloudUploadOutlined style={{ color: '#69b1ff' }} />
-                    <div style={{ fontSize: 13, color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.name}</div>
+                  <div style={{ fontSize: 13, color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.name}</div>
                     <span style={{ fontSize: 12, padding: '2px 6px', borderRadius: 10, background: u.status === 'done' ? '#f6ffed' : (u.status === 'paused' ? '#fff7e6' : '#e6f4ff'), color: u.status === 'done' ? '#52c41a' : (u.status === 'paused' ? '#fa8c16' : '#1677ff') }}>
                       {u.status === 'done' ? '已完成' : (u.status === 'paused' ? '已暂停' : '上传中')}
                     </span>
@@ -775,7 +998,10 @@ export default function WindowControlsOverlay() {
                     <div style={{ height: '100%', width: `${pct(u.uploaded, u.size)}%`, background: u.status === 'done' ? '#52c41a' : '#69b1ff' }} />
                   </div>
                 </div>
-                
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 12, color: '#666' }}>用时 {elapsedText(u)}</span>
+                  <span style={{ fontSize: 12, color: '#666' }}>剩余 {etaText(u.uploaded, u.size)}</span>
+                </div>
               </div>
             ))}
           </div>
