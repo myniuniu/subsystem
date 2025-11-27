@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Button, Drawer, Space, Slider, message, Tooltip, Popover } from 'antd'
-import { MenuOutlined, UnorderedListOutlined, SoundOutlined, CaretRightFilled, PauseOutlined, CloseOutlined, AppstoreOutlined, ExportOutlined } from '@ant-design/icons'
+import { MenuOutlined, UnorderedListOutlined, SoundOutlined, CaretRightFilled, PauseOutlined, CloseOutlined, AppstoreOutlined, ExportOutlined, BarChartOutlined, PlayCircleOutlined, CloudUploadOutlined, PlusOutlined, DownOutlined, UpOutlined, CheckCircleOutlined } from '@ant-design/icons'
 
 export default function WindowControlsOverlay() {
   const supports = typeof navigator !== 'undefined' && 'windowControlsOverlay' in navigator
@@ -27,11 +27,83 @@ export default function WindowControlsOverlay() {
   const [videoInitialized, setVideoInitialized] = useState(false)
   const rafIdRef = useRef(null)
   const [openQueue, setOpenQueue] = useState(false)
+  const [viewMode, setViewMode] = useState('media')
   const [hoverPreview, setHoverPreview] = useState(false)
   const [floatOpen, setFloatOpen] = useState(false)
   const [floatPos, setFloatPos] = useState({ x: 20, y: 80 })
   const [floatSize, setFloatSize] = useState({ w: 480, h: 270 })
   const [floatHover, setFloatHover] = useState(false)
+
+  const [uploads, setUploads] = useState([
+    { id: 'u1', name: '安全生产宣传片.mp4', size: 820 * 1024 * 1024, uploaded: 240 * 1024 * 1024, status: 'uploading', speedMBps: 4.2 },
+    { id: 'u2', name: '课堂互动示例.mov', size: 1560 * 1024 * 1024, uploaded: 0, status: 'paused', speedMBps: 3.1 }
+  ])
+  const fileInputRef = useRef(null)
+  const [openUploadsPanel, setOpenUploadsPanel] = useState(false)
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setUploads(prev => prev.map(u => {
+        if (u.status !== 'uploading') return u
+        const jitter = (Math.random() * 0.8 - 0.4)
+        const sp = Math.max(1, (u.speedMBps || 4) + jitter) * 1024 * 1024
+        const nu = Math.min(u.size, u.uploaded + sp)
+        const done = nu >= u.size
+        return { ...u, uploaded: nu, status: done ? 'done' : 'uploading' }
+      }))
+    }, 900)
+    return () => clearInterval(id)
+  }, [])
+
+  const pauseUpload = (id) => setUploads(prev => prev.map(u => (u.id === id ? { ...u, status: 'paused' } : u)))
+  const resumeUpload = (id) => setUploads(prev => prev.map(u => (u.id === id ? { ...u, status: 'uploading' } : u)))
+  const cancelUpload = (id) => setUploads(prev => prev.filter(u => u.id !== id))
+  const pauseAll = () => setUploads(prev => prev.map(u => (u.status !== 'done' ? { ...u, status: 'paused' } : u)))
+  const resumeAll = () => setUploads(prev => prev.map(u => (u.status !== 'done' ? { ...u, status: 'uploading' } : u)))
+  const cancelAll = () => setUploads(prev => prev.filter(u => u.status === 'done'))
+  const onAddFilesClick = () => { try { fileInputRef.current?.click() } catch { void 0 } }
+  const onAddFiles = (e) => {
+    try {
+      const files = Array.from(e.target.files || [])
+      if (!files.length) return
+      const items = files.filter(f => f && typeof f.size === 'number').map((f, i) => ({
+        id: `f_${Date.now()}_${i}`,
+        name: f.name || `未命名_${i}`,
+        size: f.size || (800 * 1024 * 1024),
+        uploaded: 0,
+        status: 'uploading',
+        speedMBps: 3 + Math.random() * 3
+      }))
+      setUploads(prev => [...prev, ...items])
+      try { e.target.value = '' } catch { void 0 }
+    } catch { void 0 }
+  }
+  useEffect(() => {
+    if (viewMode === 'upload') {
+      setUploads(prev => {
+        if (prev.length >= 3) return prev
+        const extra = Array.from({ length: 3 - prev.length }).map((_, i) => ({
+          id: `seed_${Date.now()}_${i}`,
+          name: i % 2 === 0 ? `教学案例_${i + 1}.mp4` : `课堂回放_${i + 1}.mov`,
+          size: (600 + Math.floor(Math.random() * 1200)) * 1024 * 1024,
+          uploaded: Math.floor(Math.random() * 60) * 1024 * 1024,
+          status: 'uploading',
+          speedMBps: 2.5 + Math.random() * 3.5
+        }))
+        return [...prev, ...extra]
+      })
+    }
+  }, [viewMode])
+
+  const pct = (uploaded, size) => Math.round((uploaded / size) * 100)
+  const etaText = (uploaded, size) => {
+    const remain = Math.max(0, size - uploaded)
+    const sp = 4 * 1024 * 1024
+    const sec = Math.ceil(remain / sp)
+    const m = Math.floor(sec / 60)
+    const s = sec % 60
+    return m > 0 ? `${m}分${s}秒` : `${s}秒`
+  }
   
   const draggingRef = useRef(false)
   const dragOffsetRef = useRef({ x: 0, y: 0 })
@@ -271,125 +343,239 @@ export default function WindowControlsOverlay() {
 
   return (
     <div style={containerStyle}>
-      <div style={{ width: '100%', marginTop: 12, display: 'flex', alignItems: 'center', gap: 30, justifyContent: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={circleBtn} onMouseDown={(e) => { e.stopPropagation() }} onClick={() => seek(-15)}>
-            <span style={circleArrowLeft}>↶</span>
-            <span>15</span>
-          </div>
-          <div style={playBtn} onMouseDown={(e) => { e.stopPropagation() }} onClick={togglePlay}>
-            {playing ? <PauseOutlined /> : <CaretRightFilled />}
-          </div>
-          <div style={circleBtn} onMouseDown={(e) => { e.stopPropagation() }} onClick={() => seek(30)}>
-            <span style={circleArrowRight}>↷</span>
-            <span>30</span>
-          </div>
-        </div>
-        <div style={{ ...pill, minWidth: 480, justifyContent: 'center' }} onMouseDown={(e) => { e.stopPropagation() }} onClick={togglePlay}>
-          <div
-            style={centerTitle}
-            onClick={(e) => {
-              e.stopPropagation();
-              try {
-                if (typeof window !== 'undefined') {
-                  window.location.hash = 'note-edit-page';
-                  setTimeout(() => {
-                    try {
-                      const detail = {
-                        id: 'wco-q1',
-                        title: '教学基本规范（课堂纪律与仪表）',
-                        url: '/assets/demo1.mp4'
-                      };
-                      window.dispatchEvent(new CustomEvent('openNoteEditPlayback', { detail }));
-                    } catch { void 0 }
-                  }, 0);
-                }
-              } catch { void 0 }
-            }}
-          >
-            <span style={centerMain}>教学基本规范（课堂纪律与仪表）</span>
-            <span style={centerSub}>张老师 · 2025年11月11日</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%' }}>
-            <span style={{ color: '#9aa0a6', fontSize: 12 }}>{fmt(currentTime)}</span>
-            <div style={{ ...noDrag, flex: 1 }}>
-              <Slider
-                min={0}
-                max={Math.max(0, Math.floor(duration))}
-                step={1}
-                value={Math.floor(currentTime)}
-                onChange={(v) => { setCurrentTime(v); const vid = videoRef.current; if (vid) { vid.currentTime = v; } }}
-                tooltip={{ open: false }}
-                railStyle={{ height: 8, backgroundColor: '#e9edf3' }}
-                trackStyle={{ height: 8, backgroundColor: '#c2c8d0' }}
-                handleStyle={{ width: 12, height: 12, borderRadius: 12, borderColor: '#69b1ff', backgroundColor: '#fff' }}
-                style={{ margin: 0 }}
-              />
+      {viewMode === 'media' && (
+        <div style={{ width: '100%', marginTop: 12, display: 'flex', alignItems: 'center', gap: 30, justifyContent: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={circleBtn} onMouseDown={(e) => { e.stopPropagation() }} onClick={() => seek(-15)}>
+              <span style={circleArrowLeft}>↶</span>
+              <span>15</span>
             </div>
-            <span style={{ color: '#9aa0a6', fontSize: 12 }}>{fmt(duration)}</span>
+            <div style={playBtn} onMouseDown={(e) => { e.stopPropagation() }} onClick={togglePlay}>
+              {playing ? <PauseOutlined /> : <CaretRightFilled />}
+            </div>
+            <div style={circleBtn} onMouseDown={(e) => { e.stopPropagation() }} onClick={() => seek(30)}>
+              <span style={circleArrowRight}>↷</span>
+              <span>30</span>
+            </div>
           </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div
-            style={{
-              ...noDrag,
-              width: 96,
-              height: 54,
-              borderRadius: 8,
-              overflow: 'hidden',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-              border: '1px solid #e5e7eb',
-              cursor: 'pointer',
-              background: '#000',
-              zIndex: 1002,
-              position: 'relative'
-            }}
-            onMouseDown={(e) => { e.stopPropagation() }}
-            onMouseEnter={() => setHoverPreview(true)}
-            onMouseLeave={() => setHoverPreview(false)}
-            onClick={togglePlay}
-            onPointerDown={(e) => { e.stopPropagation() }}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePlay() } }}
-            tabIndex={0}
-            title={playing ? '暂停' : '播放'}
-          >
-            <video
-              ref={videoRef}
-              preload="auto"
-              playsInline
-              muted
-              style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }}
-            />
-            {hoverPreview && (
-              <div
-                style={{
-                  position: 'absolute',
-                  left: '50%',
-                  top: '50%',
-                  transform: 'translate(-50%, -50%)'
-                }}
-              >
-                <Tooltip title="悬浮预览">
-                  <Button
-                    size="small"
-                    shape="circle"
-                    type="default"
-                    style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid #e5e7eb' }}
-                    onClick={(e) => { e.stopPropagation(); setFloatOpen(true) }}
-                  >
-                    <ExportOutlined />
-                  </Button>
-                </Tooltip>
+          <div style={{ ...pill, minWidth: 480, justifyContent: 'center' }} onMouseDown={(e) => { e.stopPropagation() }} onClick={togglePlay}>
+            <div
+              style={centerTitle}
+              onClick={(e) => {
+                e.stopPropagation();
+                try {
+                  if (typeof window !== 'undefined') {
+                    window.location.hash = 'note-edit-page';
+                    setTimeout(() => {
+                      try {
+                        const detail = {
+                          id: 'wco-q1',
+                          title: '教学基本规范（课堂纪律与仪表）',
+                          url: '/assets/demo1.mp4'
+                        };
+                        window.dispatchEvent(new CustomEvent('openNoteEditPlayback', { detail }));
+                      } catch { void 0 }
+                    }, 0);
+                  }
+                } catch { void 0 }
+              }}
+            >
+              <span style={centerMain}>教学基本规范（课堂纪律与仪表）</span>
+              <span style={centerSub}>张老师 · 2025年11月11日</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%' }}>
+              <span style={{ color: '#9aa0a6', fontSize: 12 }}>{fmt(currentTime)}</span>
+              <div style={{ ...noDrag, flex: 1 }}>
+                <Slider
+                  min={0}
+                  max={Math.max(0, Math.floor(duration))}
+                  step={1}
+                  value={Math.floor(currentTime)}
+                  onChange={(v) => { setCurrentTime(v); const vid = videoRef.current; if (vid) { vid.currentTime = v; } }}
+                  tooltip={{ open: false }}
+                  railStyle={{ height: 8, backgroundColor: '#e9edf3' }}
+                  trackStyle={{ height: 8, backgroundColor: '#c2c8d0' }}
+                  handleStyle={{ width: 12, height: 12, borderRadius: 12, borderColor: '#69b1ff', backgroundColor: '#fff' }}
+                  style={{ margin: 0 }}
+                />
               </div>
-            )}
+              <span style={{ color: '#9aa0a6', fontSize: 12 }}>{fmt(duration)}</span>
+            </div>
           </div>
-          <SoundOutlined style={iconBtn} />
-          <div style={{ ...noDrag, width: 160 }}>
-            <Slider size="small" value={volume} onChange={(v) => { setVolume(v); const vid = videoRef.current; if (vid) vid.volume = v/100 }} tooltip={{ open: false }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div
+              style={{
+                ...noDrag,
+                width: 96,
+                height: 54,
+                borderRadius: 8,
+                overflow: 'hidden',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                border: '1px solid #e5e7eb',
+                cursor: 'pointer',
+                background: '#000',
+                zIndex: 1002,
+                position: 'relative'
+              }}
+              onMouseDown={(e) => { e.stopPropagation() }}
+              onMouseEnter={() => setHoverPreview(true)}
+              onMouseLeave={() => setHoverPreview(false)}
+              onClick={togglePlay}
+              onPointerDown={(e) => { e.stopPropagation() }}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePlay() } }}
+              tabIndex={0}
+              title={playing ? '暂停' : '播放'}
+            >
+              <video
+                ref={videoRef}
+                preload="auto"
+                playsInline
+                muted
+                style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }}
+              />
+              {hoverPreview && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: '50%',
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)'
+                  }}
+                >
+                  <Tooltip title="悬浮预览">
+                    <Button
+                      size="small"
+                      shape="circle"
+                      type="default"
+                      style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid #e5e7eb' }}
+                      onClick={(e) => { e.stopPropagation(); setFloatOpen(true) }}
+                    >
+                      <ExportOutlined />
+                    </Button>
+                  </Tooltip>
+                </div>
+              )}
+            </div>
+            <SoundOutlined style={iconBtn} />
+            <div style={{ ...noDrag, width: 160 }}>
+              <Slider size="small" value={volume} onChange={(v) => { setVolume(v); const vid = videoRef.current; if (vid) vid.volume = v/100 }} tooltip={{ open: false }} />
+            </div>
+            <SoundOutlined rotate={180} style={iconBtn} />
+            <UnorderedListOutlined style={iconBtn} onClick={() => setOpenQueue(v => !v)} />
           </div>
-          <SoundOutlined rotate={180} style={iconBtn} />
         </div>
-      </div>
+      )}
+      {viewMode === 'progress' && (
+        <div style={{ width: '100%', marginTop: 26, display: 'flex', alignItems: 'center', gap: 30, justifyContent: 'center' }}>
+          <div style={{ ...pill, minWidth: 520, justifyContent: 'space-between', paddingTop: 14 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4, width: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%' }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: '#333' }}>学习进度</span>
+                <span style={{ fontSize: 12, color: '#999' }}>{chapters[idx].title}</span>
+                <span style={{ marginLeft: 'auto', fontSize: 12, color: '#666' }}>{Math.round((Math.max(0, Math.min(1, (duration ? (currentTime / duration) : 0)))) * 100)}%</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%' }}>
+                <span style={{ color: '#9aa0a6', fontSize: 12 }}>{fmt(currentTime)}</span>
+                <div style={{ ...noDrag, flex: 1 }}>
+                  <div style={{ position: 'relative', height: 8, backgroundColor: '#e9edf3', border: '1px solid #dde3ea', borderRadius: 10, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${duration ? (currentTime / duration) * 100 : 0}%`, background: '#69b1ff' }} />
+                  </div>
+                </div>
+                <span style={{ color: '#9aa0a6', fontSize: 12 }}>{fmt(duration)}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%' }}>
+                <span style={{ fontSize: 12, color: '#666' }}>今日学习时长：{fmt(currentTime)}</span>
+                <span style={{ fontSize: 12, color: '#666' }}>预计剩余：{fmt(Math.max(0, duration - currentTime))}</span>
+                <span style={{ fontSize: 12, color: '#666' }}>章节：{idx + 1}/{chapters.length}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {viewMode === 'upload' && (
+        <div style={{ width: '100%', marginTop: 22, display: 'flex', alignItems: 'center', gap: 30, justifyContent: 'center' }}>
+          <div style={{ ...pill, minWidth: 640, justifyContent: 'space-between', paddingTop: 8, paddingBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', paddingBottom: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <PlayCircleOutlined style={{ color: '#1677ff' }} />
+                  <span style={{ fontSize: 12, color: '#666' }}>{uploads.filter(u => u.status === 'uploading').length}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <PauseOutlined style={{ color: '#fa8c16' }} />
+                  <span style={{ fontSize: 12, color: '#666' }}>{uploads.filter(u => u.status === 'paused').length}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                  <span style={{ fontSize: 12, color: '#666' }}>{uploads.filter(u => u.status === 'done').length}</span>
+                </div>
+                <span style={{ fontSize: 12, color: '#666' }}>{Math.round(((uploads.reduce((a, u) => a + (u.uploaded || 0), 0)) / Math.max(1, uploads.reduce((a, u) => a + (u.size || 0), 0))) * 100)}%</span>
+                <div style={{ position: 'relative', width: 160, height: 6, backgroundColor: '#e9edf3', border: '1px solid #dde3ea', borderRadius: 10, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${Math.round(((uploads.reduce((a, u) => a + (u.uploaded || 0), 0)) / Math.max(1, uploads.reduce((a, u) => a + (u.size || 0), 0))) * 100)}%`, background: '#69b1ff' }} />
+                </div>
+              </div>
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
+                {uploads.length > 2 && (
+                  openUploadsPanel ? (
+                    <Tooltip title="收起">
+                      <Button size="small" shape="circle" type="default" onClick={() => setOpenUploadsPanel(false)}><UpOutlined /></Button>
+                    </Tooltip>
+                  ) : (
+                    <Tooltip title="展开更多">
+                      <Button size="small" shape="circle" type="default" onClick={() => setOpenUploadsPanel(true)}><DownOutlined /></Button>
+                    </Tooltip>
+                  )
+                )}
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, width: '100%', marginTop: 8 }}>
+              {(((uploads.find(u => u.status === 'uploading')) ? [uploads.find(u => u.status === 'uploading')] : uploads.slice(0, 1))).map(u => (
+                <div key={u.id} style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                      <CloudUploadOutlined style={{ color: '#69b1ff' }} />
+                      <div style={{ fontSize: 13, color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.name}</div>
+                      <span style={{ fontSize: 12, padding: '2px 6px', borderRadius: 10, background: u.status === 'done' ? '#f6ffed' : (u.status === 'paused' ? '#fff7e6' : '#e6f4ff'), color: u.status === 'done' ? '#52c41a' : (u.status === 'paused' ? '#fa8c16' : '#1677ff') }}>
+                        {u.status === 'done' ? '已完成' : (u.status === 'paused' ? '已暂停' : '上传中')}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {u.status === 'uploading' && (
+                        <Tooltip title="暂停">
+                          <Button size="small" shape="circle" type="default" onClick={() => pauseUpload(u.id)}>
+                            <PauseOutlined />
+                          </Button>
+                        </Tooltip>
+                      )}
+                      {u.status === 'paused' && (
+                        <Tooltip title="继续">
+                          <Button size="small" shape="circle" type="default" onClick={() => resumeUpload(u.id)}>
+                            <CaretRightFilled />
+                          </Button>
+                        </Tooltip>
+                      )}
+                      {u.status !== 'done' && (
+                        <Tooltip title="取消">
+                          <Button size="small" shape="circle" danger type="default" onClick={() => cancelUpload(u.id)}>
+                            <CloseOutlined />
+                          </Button>
+                        </Tooltip>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ ...noDrag, width: '100%' }}>
+                    <div style={{ position: 'relative', height: 8, backgroundColor: '#e9edf3', border: '1px solid #dde3ea', borderRadius: 10, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${pct(u.uploaded, u.size)}%`, background: u.status === 'done' ? '#52c41a' : '#69b1ff' }} />
+                    </div>
+                  </div>
+                  
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {floatOpen && (
         <div
@@ -482,9 +668,16 @@ export default function WindowControlsOverlay() {
         </div>
       )}
 
-      {/* Right cluster */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'absolute', right: 14 }}>
-        <UnorderedListOutlined style={iconBtn} onClick={() => setOpenQueue(v => !v)} />
+        <Tooltip title="媒体控制">
+          <PlayCircleOutlined style={iconBtn} onClick={() => setViewMode('media')} />
+        </Tooltip>
+        <Tooltip title="学习进度">
+          <BarChartOutlined style={iconBtn} onClick={() => setViewMode('progress')} />
+        </Tooltip>
+        <Tooltip title="资料上传">
+          <CloudUploadOutlined style={iconBtn} onClick={() => setViewMode('upload')} />
+        </Tooltip>
       </div>
 
       <Drawer
@@ -521,6 +714,71 @@ export default function WindowControlsOverlay() {
               {c.title}
             </Button>
           ))}
+        </div>
+      </Drawer>
+      <Drawer
+        placement="top"
+        open={openUploadsPanel}
+        onClose={() => setOpenUploadsPanel(false)}
+        height={420}
+        mask
+        maskClosable
+        keyboard
+        destroyOnClose
+        getContainer={() => document.body}
+        style={{ zIndex: 2000 }}
+        styles={{ header: { WebkitAppRegion: 'no-drag' }, body: { WebkitAppRegion: 'no-drag', padding: 12, display: 'flex', justifyContent: 'center' } }}
+        title={<div style={{ width: '100%', textAlign: 'center' }}>上传队列</div>}
+        extra={<Button size="small" type="text" onClick={() => setOpenUploadsPanel(false)}>关闭</Button>}
+      >
+        <div style={{ width: 640, maxWidth: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingBottom: 8 }}>
+            <input ref={fileInputRef} type="file" accept="video/*" multiple style={{ display: 'none' }} onChange={onAddFiles} />
+            <Tooltip title="添加文件">
+              <Button size="small" shape="circle" type="default" onClick={onAddFilesClick}><PlusOutlined /></Button>
+            </Tooltip>
+            <Tooltip title="暂停全部">
+              <Button size="small" shape="circle" type="default" onClick={pauseAll}><PauseOutlined /></Button>
+            </Tooltip>
+            <Tooltip title="继续全部">
+              <Button size="small" shape="circle" type="default" onClick={resumeAll}><CaretRightFilled /></Button>
+            </Tooltip>
+            <Tooltip title="取消未完成">
+              <Button size="small" shape="circle" danger type="default" onClick={cancelAll}><CloseOutlined /></Button>
+            </Tooltip>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12 }}>
+            {uploads.map(u => (
+              <div key={u.id} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                    <CloudUploadOutlined style={{ color: '#69b1ff' }} />
+                    <div style={{ fontSize: 13, color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.name}</div>
+                    <span style={{ fontSize: 12, padding: '2px 6px', borderRadius: 10, background: u.status === 'done' ? '#f6ffed' : (u.status === 'paused' ? '#fff7e6' : '#e6f4ff'), color: u.status === 'done' ? '#52c41a' : (u.status === 'paused' ? '#fa8c16' : '#1677ff') }}>
+                      {u.status === 'done' ? '已完成' : (u.status === 'paused' ? '已暂停' : '上传中')}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {u.status === 'uploading' && (
+                      <Tooltip title="暂停"><Button size="small" shape="circle" type="default" onClick={() => pauseUpload(u.id)}><PauseOutlined /></Button></Tooltip>
+                    )}
+                    {u.status === 'paused' && (
+                      <Tooltip title="继续"><Button size="small" shape="circle" type="default" onClick={() => resumeUpload(u.id)}><CaretRightFilled /></Button></Tooltip>
+                    )}
+                    {u.status !== 'done' && (
+                      <Tooltip title="取消"><Button size="small" shape="circle" danger type="default" onClick={() => cancelUpload(u.id)}><CloseOutlined /></Button></Tooltip>
+                    )}
+                  </div>
+                </div>
+                <div style={{ ...noDrag, width: '100%' }}>
+                  <div style={{ position: 'relative', height: 8, backgroundColor: '#e9edf3', border: '1px solid #dde3ea', borderRadius: 10, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${pct(u.uploaded, u.size)}%`, background: u.status === 'done' ? '#52c41a' : '#69b1ff' }} />
+                  </div>
+                </div>
+                
+              </div>
+            ))}
+          </div>
         </div>
       </Drawer>
       <Drawer
