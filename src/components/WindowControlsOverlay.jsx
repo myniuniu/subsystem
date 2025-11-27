@@ -490,15 +490,15 @@ export default function WindowControlsOverlay() {
                 boxShadow: floatOpen ? '0 8px 24px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.08)',
                 border: '1px solid #e5e7eb',
                 cursor: 'pointer',
-                background: '#000',
+                background: floatOpen ? '#000' : '#fff',
                 zIndex: 3000,
                 position: floatOpen ? 'fixed' : 'relative',
                 left: floatOpen ? floatPos.x : undefined,
                 top: floatOpen ? floatPos.y : undefined
               }}
               onMouseDown={(e) => { e.stopPropagation() }}
-              onMouseEnter={() => setHoverPreview(true)}
-              onMouseLeave={() => setHoverPreview(false)}
+              onMouseEnter={() => { if (floatOpen) setFloatHover(true); else setHoverPreview(true) }}
+              onMouseLeave={() => { if (floatOpen) setFloatHover(false); else setHoverPreview(false) }}
               onClick={togglePlay}
               onPointerDown={(e) => { e.stopPropagation() }}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePlay() } }}
@@ -510,7 +510,7 @@ export default function WindowControlsOverlay() {
                 preload="auto"
                 playsInline
                 muted={floatOpen ? false : true}
-                style={{ width: '100%', height: '100%', objectFit: floatOpen ? 'contain' : 'cover', pointerEvents: 'none', background: '#000' }}
+                style={{ width: '100%', height: '100%', objectFit: floatOpen ? 'contain' : 'cover', pointerEvents: 'none', background: floatOpen ? '#000' : '#fff' }}
               />
               {!floatOpen && hoverPreview && (
                 <div
@@ -545,9 +545,9 @@ export default function WindowControlsOverlay() {
                       display: 'flex',
                       alignItems: 'center',
                       gap: 6,
-                      opacity: 1,
+                      opacity: floatHover ? 1 : 0,
                       transition: 'opacity 160ms ease',
-                      pointerEvents: 'auto'
+                      pointerEvents: floatHover ? 'auto' : 'none'
                     }}
                   >
                     <Space>
@@ -578,7 +578,7 @@ export default function WindowControlsOverlay() {
                   </div>
                   <div style={{ position: 'absolute', right: 6, bottom: 6, width: 14, height: 14, borderRight: '2px solid #999', borderBottom: '2px solid #999', cursor: 'nwse-resize' }} onMouseDown={startResize} />
                   <div
-                    style={{ position: 'absolute', left: 8, right: 8, bottom: 8, background: 'rgba(255,255,255,0.92)', border: '1px solid #e5e7eb', borderRadius: 8, padding: '6px 8px', display: 'flex', alignItems: 'center', gap: 8 }}
+                    style={{ position: 'absolute', left: 8, right: 8, bottom: 8, background: 'rgba(255,255,255,0.92)', border: '1px solid #e5e7eb', borderRadius: 8, padding: '6px 8px', display: 'flex', alignItems: 'center', gap: 8, opacity: floatHover ? 1 : 0, pointerEvents: floatHover ? 'auto' : 'none', transition: 'opacity 160ms ease' }}
                     onMouseDown={(e) => e.stopPropagation()}
                     onClick={(e) => e.stopPropagation()}
                   >
