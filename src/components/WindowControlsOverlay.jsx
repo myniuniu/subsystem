@@ -575,7 +575,7 @@ export default function WindowControlsOverlay() {
                 {liveNow.slice(0, 1).map(l => (
                   <div key={l.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '6px 8px', borderRadius: 8, transition: 'background 160ms ease' }}
                     onMouseDown={(e) => { e.stopPropagation() }}
-                    onClick={(e) => { e.stopPropagation(); try { window.location.hash = 'meeting-center' } catch {} }}
+                    onClick={(e) => { e.stopPropagation(); try { window.location.hash = 'meeting-center' } catch { void 0 } }}
                     onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fafc' }}
                     onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
                   >
@@ -595,7 +595,7 @@ export default function WindowControlsOverlay() {
                           return `已开播 ${diff} 分钟`
                         } catch { return '直播中' }
                       })()}</span>
-                      <Button size="small" type="primary" style={{ borderRadius: 14, background: 'linear-gradient(90deg,#ff4d4f,#f5222d)' }} onClick={(e) => { e.stopPropagation(); try { window.location.hash = 'meeting-center' } catch {} }}>进入直播</Button>
+                      <Button size="small" type="primary" style={{ borderRadius: 14, background: 'linear-gradient(90deg,#ff4d4f,#f5222d)' }} onClick={(e) => { e.stopPropagation(); try { window.location.hash = 'meeting-center' } catch { void 0 } }}>进入直播</Button>
                     </div>
                   </div>
                 ))}
@@ -893,7 +893,7 @@ export default function WindowControlsOverlay() {
             {[...liveNow, ...liveSoon].map(l => (
               <div key={l.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 10, border: '1px solid #eef2f7', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
                 onMouseDown={(e) => { e.stopPropagation() }}
-                onClick={(e) => { e.stopPropagation(); try { window.location.hash = 'meeting-center' } catch {} }}
+                onClick={(e) => { e.stopPropagation(); try { window.location.hash = 'meeting-center' } catch { void 0 } }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
                   {('startTime' in l) ? (
@@ -930,9 +930,9 @@ export default function WindowControlsOverlay() {
                     })()}</span>
                   )}
                   {('startTime' in l) ? (
-                    <Button size="small" type="default" style={{ borderRadius: 14 }} onClick={(e) => { e.stopPropagation(); try { window.location.hash = 'meeting-center' } catch {} }}>查看详情</Button>
+                    <Button size="small" type="default" style={{ borderRadius: 14 }} onClick={(e) => { e.stopPropagation(); try { window.location.hash = 'meeting-center' } catch { void 0 } }}>查看详情</Button>
                   ) : (
-                    <Button size="small" type="primary" style={{ borderRadius: 14, background: 'linear-gradient(90deg,#ff4d4f,#f5222d)' }} onClick={(e) => { e.stopPropagation(); try { window.location.hash = 'meeting-center' } catch {} }}>进入直播</Button>
+                    <Button size="small" type="primary" style={{ borderRadius: 14, background: 'linear-gradient(90deg,#ff4d4f,#f5222d)' }} onClick={(e) => { e.stopPropagation(); try { window.location.hash = 'meeting-center' } catch { void 0 } }}>进入直播</Button>
                   )}
                 </div>
               </div>
