@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Button, Drawer, Space, Slider, message, Tooltip, Popover, Tag } from 'antd'
-import { MenuOutlined, UnorderedListOutlined, SoundOutlined, CaretRightFilled, PauseOutlined, CloseOutlined, AppstoreOutlined, ExportOutlined, BarChartOutlined, PlayCircleOutlined, CloudUploadOutlined, PlusOutlined, DownOutlined, UpOutlined, CheckCircleOutlined, PushpinOutlined, VideoCameraOutlined, ClockCircleOutlined } from '@ant-design/icons'
+import { MenuOutlined, UnorderedListOutlined, SoundOutlined, CaretRightFilled, PauseOutlined, CloseOutlined, AppstoreOutlined, ExportOutlined, BarChartOutlined, PlayCircleOutlined, CloudUploadOutlined, PlusOutlined, CheckCircleOutlined, PushpinOutlined, VideoCameraOutlined, ClockCircleOutlined, RobotOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 
 export default function WindowControlsOverlay() {
@@ -34,6 +34,7 @@ export default function WindowControlsOverlay() {
   const [floatPos, setFloatPos] = useState({ x: 20, y: 80 })
   const [floatSize, setFloatSize] = useState({ w: 480, h: 270 })
   const [floatHover, setFloatHover] = useState(false)
+  const [openAIToolsPanel, setOpenAIToolsPanel] = useState(false)
 
   const [uploads, setUploads] = useState([
     { id: 'u1', name: '安全生产宣传片.mp4', size: 820 * 1024 * 1024, uploaded: 240 * 1024 * 1024, status: 'uploading', speedMBps: 4.2, startedAt: Date.now() - Math.floor((240 / 4.2) * 1000) },
@@ -43,6 +44,39 @@ export default function WindowControlsOverlay() {
   const [openUploadsPanel, setOpenUploadsPanel] = useState(false)
   const [openPinnedPanel, setOpenPinnedPanel] = useState(false)
   const [openLivePanel, setOpenLivePanel] = useState(false)
+  const [aiTasks, setAiTasks] = useState([
+    { id: 'ai_plan', name: '学习计划', tool: '学习计划', status: 'running', progress: 35, ratePerSec: 1.2, startedAt: Date.now() - 45_000 },
+    { id: 'ai_audio', name: '音频播客', tool: '音频播客', status: 'queued', progress: 0, ratePerSec: 1.0, startedAt: null },
+    { id: 'ai_video', name: '视频概览', tool: '视频概览', status: 'running', progress: 62, ratePerSec: 1.6, startedAt: Date.now() - 60_000 },
+    { id: 'ai_mindmap', name: '思维导图', tool: '思维导图', status: 'paused', progress: 20, ratePerSec: 0, startedAt: Date.now() - 120_000 },
+    { id: 'ai_report', name: '报告', tool: '报告', status: 'done', progress: 100, ratePerSec: 0, startedAt: Date.now() - 5 * 60_000 },
+    { id: 'ai_scene', name: '场景模拟', tool: '场景模拟', status: 'queued', progress: 0, ratePerSec: 1.2, startedAt: null }
+  ])
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setAiTasks(prev => prev.map(t => {
+        if (t.status !== 'running') return t
+        const np = Math.min(100, t.progress + t.ratePerSec * (0.8 + Math.random() * 0.4))
+        return { ...t, progress: np, status: np >= 100 ? 'done' : 'running' }
+      }))
+    }, 1000)
+    return () => clearInterval(id)
+  }, [])
+
+  const pauseTask = (id) => setAiTasks(prev => prev.map(t => (t.id === id ? { ...t, status: 'paused' } : t)))
+  const resumeTask = (id) => setAiTasks(prev => prev.map(t => (t.id === id ? { ...t, status: 'running', startedAt: t.startedAt || Date.now() } : t)))
+  const cancelTask = (id) => setAiTasks(prev => prev.filter(t => t.id !== id))
+
+  const aiSummary = useMemo(() => {
+    const running = aiTasks.filter(t => t.status === 'running').length
+    const queued = aiTasks.filter(t => t.status === 'queued').length
+    const paused = aiTasks.filter(t => t.status === 'paused').length
+    const done = aiTasks.filter(t => t.status === 'done').length
+    const total = aiTasks.length
+    const overall = Math.round((aiTasks.reduce((a, t) => a + (t.progress || 0), 0) / Math.max(1, aiTasks.length)))
+    return { running, queued, paused, done, total, overall }
+  }, [aiTasks])
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -146,6 +180,8 @@ export default function WindowControlsOverlay() {
     { id: 'p3', title: 'SmartNotes · 课堂提问技巧', updatedAt: '2025-11-12', tag: '互动' },
     { id: 'p4', title: 'SmartNotes · 课后反馈整理', updatedAt: '2025-10-29', tag: '反馈' }
   ], [])
+
+  
 
   const liveNow = useMemo(() => [
     { id: 'l_now_1', title: '实时教学方法研讨', instructor: '李老师', liveUrl: '/assets/2.mp4', startedAt: '15:00' },
@@ -447,16 +483,18 @@ export default function WindowControlsOverlay() {
             <div
               style={{
                 ...noDrag,
-                width: 96,
-                height: 54,
+                width: floatOpen ? floatSize.w : 96,
+                height: floatOpen ? floatSize.h : 54,
                 borderRadius: 8,
                 overflow: 'hidden',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                boxShadow: floatOpen ? '0 8px 24px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.08)',
                 border: '1px solid #e5e7eb',
                 cursor: 'pointer',
                 background: '#000',
-                zIndex: 1002,
-                position: 'relative'
+                zIndex: 3000,
+                position: floatOpen ? 'fixed' : 'relative',
+                left: floatOpen ? floatPos.x : undefined,
+                top: floatOpen ? floatPos.y : undefined
               }}
               onMouseDown={(e) => { e.stopPropagation() }}
               onMouseEnter={() => setHoverPreview(true)}
@@ -471,10 +509,10 @@ export default function WindowControlsOverlay() {
                 ref={videoRef}
                 preload="auto"
                 playsInline
-                muted
-                style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }}
+                muted={floatOpen ? false : true}
+                style={{ width: '100%', height: '100%', objectFit: floatOpen ? 'contain' : 'cover', pointerEvents: 'none', background: '#000' }}
               />
-              {hoverPreview && (
+              {!floatOpen && hoverPreview && (
                 <div
                   style={{
                     position: 'absolute',
@@ -495,6 +533,77 @@ export default function WindowControlsOverlay() {
                     </Button>
                   </Tooltip>
                 </div>
+              )}
+              {floatOpen && (
+                <>
+                  <div style={{ position: 'absolute', left: 8, top: 8, width: 'calc(100% - 140px)', height: 28, cursor: 'move', background: 'rgba(255,255,255,0.6)', borderRadius: 6 }} onMouseDown={startDrag} />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      right: 8,
+                      top: 8,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      opacity: 1,
+                      transition: 'opacity 160ms ease',
+                      pointerEvents: 'auto'
+                    }}
+                  >
+                    <Space>
+                      <Popover
+                        trigger="click"
+                        placement="bottomRight"
+                        overlayStyle={{ pointerEvents: 'auto' }}
+                        content={(
+                          <Space>
+                            <Button size="small" onClick={(e) => { e.stopPropagation(); setFloatSize({ w: 320, h: 180 }) }}>320×180</Button>
+                            <Button size="small" onClick={(e) => { e.stopPropagation(); setFloatSize({ w: 480, h: 270 }) }}>480×270</Button>
+                            <Button size="small" onClick={(e) => { e.stopPropagation(); setFloatSize({ w: 640, h: 360 }) }}>640×360</Button>
+                          </Space>
+                        )}
+                      >
+                        <Tooltip title="窗口大小">
+                          <Button size="small" shape="circle" type="default" style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid #e5e7eb' }} onClick={(e) => { e.stopPropagation() }}>
+                            <AppstoreOutlined />
+                          </Button>
+                        </Tooltip>
+                      </Popover>
+                      <Tooltip title="关闭">
+                        <Button size="small" shape="circle" type="default" danger style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid #e5e7eb' }} onClick={(e) => { e.stopPropagation(); setFloatOpen(false) }}>
+                          <CloseOutlined />
+                        </Button>
+                      </Tooltip>
+                    </Space>
+                  </div>
+                  <div style={{ position: 'absolute', right: 6, bottom: 6, width: 14, height: 14, borderRight: '2px solid #999', borderBottom: '2px solid #999', cursor: 'nwse-resize' }} onMouseDown={startResize} />
+                  <div
+                    style={{ position: 'absolute', left: 8, right: 8, bottom: 8, background: 'rgba(255,255,255,0.92)', border: '1px solid #e5e7eb', borderRadius: 8, padding: '6px 8px', display: 'flex', alignItems: 'center', gap: 8 }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Button size="small" shape="circle" type="default" onClick={(e) => { e.stopPropagation(); togglePlay() }}>
+                      {playing ? <PauseOutlined /> : <CaretRightFilled />}
+                    </Button>
+                    <span style={{ color: '#9aa0a6', fontSize: 12 }}>{fmt(currentTime)}</span>
+                    <div style={{ ...noDrag, flex: 1 }}>
+                      <Slider
+                        min={0}
+                        max={Math.max(0, Math.floor(duration))}
+                        step={1}
+                        value={Math.floor(currentTime)}
+                        onChange={(v) => { const vid = videoRef.current; if (vid) { vid.currentTime = v; } setCurrentTime(v) }}
+                        tooltip={{ open: false }}
+                      />
+                    </div>
+                    <span style={{ color: '#9aa0a6', fontSize: 12 }}>{fmt(duration)}</span>
+                    <SoundOutlined style={iconBtn} />
+                    <div style={{ ...noDrag, width: 120 }}>
+                      <Slider size="small" value={volume} onChange={(v) => { setVolume(v); const vid = videoRef.current; if (vid) vid.volume = v/100 }} tooltip={{ open: false }} />
+                    </div>
+                    <SoundOutlined rotate={180} style={iconBtn} />
+                  </div>
+                </>
               )}
             </div>
             <SoundOutlined style={iconBtn} />
@@ -684,96 +793,70 @@ export default function WindowControlsOverlay() {
         </div>
       )}
 
-      {floatOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            left: floatPos.x,
-            top: floatPos.y,
-            width: floatSize.w,
-            height: floatSize.h,
-            background: '#000',
-            border: '1px solid #e5e7eb',
-            borderRadius: 8,
-            boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-            zIndex: 3000,
-            display: 'flex',
-            flexDirection: 'column',
-            WebkitAppRegion: 'no-drag'
-          }}
-          onMouseEnter={() => setFloatHover(true)}
-          onMouseLeave={() => setFloatHover(false)}
-        >
-          <div style={{ flex: 1, position: 'relative', background: '#000' }}>
-            <video
-              src={videoRef.current ? videoRef.current.src : '/assets/demo1.mp4'}
-              controls
-              playsInline
-              style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000' }}
-            />
-            <div
-              style={{ position: 'absolute', left: 8, top: 8, width: 'calc(100% - 140px)', height: 28, cursor: 'move', background: 'rgba(255,255,255,0.6)', borderRadius: 6 }}
-              onMouseDown={startDrag}
-            />
-            <div
-              style={{
-                position: 'absolute',
-                right: 8,
-                top: 8,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                opacity: floatHover ? 1 : 0,
-                transition: 'opacity 160ms ease',
-                pointerEvents: floatHover ? 'auto' : 'none'
-              }}
-            >
-              <Space>
-                <Popover
-                  trigger="click"
-                  placement="bottomRight"
-                  overlayStyle={{ pointerEvents: 'auto' }}
-                  content={(
-                    <Space>
-                      <Button size="small" onClick={(e) => { e.stopPropagation(); setFloatSize({ w: 320, h: 180 }) }}>320×180</Button>
-                      <Button size="small" onClick={(e) => { e.stopPropagation(); setFloatSize({ w: 480, h: 270 }) }}>480×270</Button>
-                      <Button size="small" onClick={(e) => { e.stopPropagation(); setFloatSize({ w: 640, h: 360 }) }}>640×360</Button>
-                    </Space>
-                  )}
-                >
-                  <Tooltip title="窗口大小">
-                    <Button
-                      size="small"
-                      shape="circle"
-                      type="default"
-                      style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid #e5e7eb' }}
-                      onClick={(e) => { e.stopPropagation() }}
-                    >
-                      <AppstoreOutlined />
-                    </Button>
-                  </Tooltip>
-                </Popover>
-                <Tooltip title="关闭">
-                  <Button
-                    size="small"
-                    shape="circle"
-                    type="default"
-                    danger
-                    style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid #e5e7eb' }}
-                    onClick={(e) => { e.stopPropagation(); setFloatOpen(false) }}
-                  >
-                    <CloseOutlined />
-                  </Button>
-                </Tooltip>
-              </Space>
+      {viewMode === 'ai-tools' && (
+        <div style={{ width: '100%', marginTop: 22, display: 'flex', alignItems: 'center', gap: 30, justifyContent: 'center' }}>
+          <div style={{ ...pill, minWidth: 700, justifyContent: 'space-between', paddingTop: 12, paddingBottom: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'stretch', gap: 12, width: '100%' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: 280, paddingTop: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <PlayCircleOutlined style={{ color: '#1677ff' }} />
+                    <span style={{ fontSize: 13, color: '#333' }}>{aiSummary.running}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <PauseOutlined style={{ color: '#fa8c16' }} />
+                    <span style={{ fontSize: 13, color: '#333' }}>{aiSummary.paused}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                    <span style={{ fontSize: 13, color: '#333' }}>{aiSummary.done}</span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 12, color: '#666', minWidth: 38, textAlign: 'right' }}>{aiSummary.overall}%</span>
+                  <div style={{ flex: 1, position: 'relative', height: 6, backgroundColor: '#e9edf3', border: '1px solid #dde3ea', borderRadius: 10, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${aiSummary.overall}%`, background: '#69b1ff' }} />
+                  </div>
+                </div>
+              </div>
+              <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr', gap: 12, width: '100%' }} onMouseEnter={() => setOpenAIToolsPanel(true)}>
+                {(((aiTasks.find(t => t.status === 'running')) ? [aiTasks.find(t => t.status === 'running')] : aiTasks.slice(0, 1))).map(t => (
+                  <div key={t.id} style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                      <RobotOutlined style={{ color: '#69b1ff' }} />
+                      <div style={{ fontSize: 13, color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.name}</div>
+                      <span style={{ fontSize: 12, padding: '2px 6px', borderRadius: 10, background: t.status === 'done' ? '#f6ffed' : (t.status === 'paused' ? '#fff7e6' : (t.status === 'queued' ? '#fffbe6' : '#e6f4ff')), color: t.status === 'done' ? '#52c41a' : (t.status === 'paused' ? '#fa8c16' : (t.status === 'queued' ? '#d46b08' : '#1677ff') ) }}>
+                        {t.status === 'done' ? '生成完成' : (t.status === 'paused' ? '已暂停' : (t.status === 'queued' ? '排队中' : '生成中'))}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 12, color: '#666' }}>进度 {Math.round(t.progress)}%</span>
+                      {t.status === 'running' && (
+                        <Tooltip title="暂停"><Button size="small" shape="circle" type="default" onClick={() => pauseTask(t.id)}><PauseOutlined /></Button></Tooltip>
+                      )}
+                      {(t.status === 'paused' || t.status === 'queued') && (
+                        <Tooltip title="继续"><Button size="small" shape="circle" type="default" onClick={() => resumeTask(t.id)}><CaretRightFilled /></Button></Tooltip>
+                      )}
+                      {t.status !== 'done' && (
+                        <Tooltip title="取消"><Button size="small" shape="circle" danger type="default" onClick={() => cancelTask(t.id)}><CloseOutlined /></Button></Tooltip>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ ...noDrag, width: '100%' }}>
+                    <div style={{ position: 'relative', height: 8, backgroundColor: '#e9edf3', border: '1px solid #dde3ea', borderRadius: 10, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${Math.round(t.progress)}%`, background: t.status === 'done' ? '#52c41a' : '#69b1ff' }} />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div
-              style={{ position: 'absolute', right: 6, bottom: 6, width: 14, height: 14, borderRight: '2px solid #999', borderBottom: '2px solid #999', cursor: 'nwse-resize' }}
-              onMouseDown={startResize}
-            />
+            </div>
           </div>
         </div>
       )}
+
+      {false && floatOpen && (<div />)}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'absolute', right: 14 }}>
         <Tooltip title="媒体控制">
@@ -790,6 +873,9 @@ export default function WindowControlsOverlay() {
         </Tooltip>
         <Tooltip title="资料上传">
           <CloudUploadOutlined style={viewMode === 'upload' ? activeIconBtn : iconBtn} onClick={() => setViewMode('upload')} />
+        </Tooltip>
+        <Tooltip title="智能工具">
+          <RobotOutlined style={viewMode === 'ai-tools' ? activeIconBtn : iconBtn} onClick={() => setViewMode('ai-tools')} />
         </Tooltip>
       </div>
 
@@ -1004,6 +1090,67 @@ export default function WindowControlsOverlay() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </Drawer>
+      <Drawer
+        placement="top"
+        open={openAIToolsPanel}
+        onClose={() => setOpenAIToolsPanel(false)}
+        height={420}
+        mask
+        maskClosable
+        keyboard
+        destroyOnClose
+        getContainer={() => document.body}
+        style={{ zIndex: 2000 }}
+        styles={{ header: { WebkitAppRegion: 'no-drag' }, body: { WebkitAppRegion: 'no-drag', padding: 12, display: 'flex', justifyContent: 'center' } }}
+        title={<div style={{ width: '100%', textAlign: 'center' }}>智能工具 · 生成进度</div>}
+        extra={<Button size="small" type="text" onClick={() => setOpenAIToolsPanel(false)}>关闭</Button>}
+      >
+        <div style={{ width: 680, maxWidth: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 14 }}>
+            <Tag color="blue">运行中 {aiSummary.running}</Tag>
+            <Tag color="orange">排队/暂停 {aiSummary.queued}</Tag>
+            <Tag color="green">已完成 {aiSummary.done}</Tag>
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 12, color: '#666' }}>整体进度</span>
+              <div style={{ position: 'relative', width: 160, height: 6, backgroundColor: '#e9edf3', border: '1px solid #dde3ea', borderRadius: 10, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${aiSummary.overall}%`, background: '#69b1ff' }} />
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12 }}>
+            {aiTasks.map(t => (
+              <div key={t.id} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                    <RobotOutlined style={{ color: '#69b1ff' }} />
+                    <div style={{ fontSize: 13, color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.name}</div>
+                    <span style={{ fontSize: 12, padding: '2px 6px', borderRadius: 10, background: t.status === 'done' ? '#f6ffed' : (t.status === 'paused' ? '#fff7e6' : (t.status === 'queued' ? '#fffbe6' : '#e6f4ff')), color: t.status === 'done' ? '#52c41a' : (t.status === 'paused' ? '#fa8c16' : (t.status === 'queued' ? '#d46b08' : '#1677ff')) }}>
+                      {t.status === 'done' ? '生成完成' : (t.status === 'paused' ? '已暂停' : (t.status === 'queued' ? '排队中' : '生成中'))}
+                    </span>
+                  </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 12, color: '#666' }}>进度 {Math.round(t.progress)}%</span>
+                  {t.status === 'running' && (
+                    <Tooltip title="暂停"><Button size="small" shape="circle" type="default" onClick={() => pauseTask(t.id)}><PauseOutlined /></Button></Tooltip>
+                  )}
+                  {(t.status === 'paused' || t.status === 'queued') && (
+                    <Tooltip title="继续"><Button size="small" shape="circle" type="default" onClick={() => resumeTask(t.id)}><CaretRightFilled /></Button></Tooltip>
+                  )}
+                  {t.status !== 'done' && (
+                    <Tooltip title="取消"><Button size="small" shape="circle" danger type="default" onClick={() => cancelTask(t.id)}><CloseOutlined /></Button></Tooltip>
+                  )}
+                </div>
+              </div>
+              <div style={{ ...noDrag, width: '100%' }}>
+                <div style={{ position: 'relative', height: 8, backgroundColor: '#e9edf3', border: '1px solid #dde3ea', borderRadius: 10, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${Math.round(t.progress)}%`, background: t.status === 'done' ? '#52c41a' : '#69b1ff' }} />
+                </div>
+              </div>
+            </div>
+          ))}
           </div>
         </div>
       </Drawer>
