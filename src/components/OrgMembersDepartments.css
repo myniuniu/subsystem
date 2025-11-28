@@ -1,7 +1,6 @@
 .org-layout {
   height: calc(100vh - 0px);
-  /* 与 SmartNotes 一致的浅灰背景 */
-  background: #f5f7fa;
+  background: #fff;
 }
 
 .org-sider {
@@ -31,7 +30,7 @@
 }
 
 .org-content {
-  padding: 6px 8px;
+  padding: 14px 8px 8px 8px;
   /* 让内容区域尽可能占满，避免内部卡片居中产生左右空白 */
   width: 100%;
   /* 与左侧菜单栏一致高度，并用于内部垂直布局 */

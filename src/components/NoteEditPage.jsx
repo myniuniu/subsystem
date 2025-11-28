@@ -803,7 +803,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         state.setSelectedMaterials(prev => [...prev, videoId]);
       }
       
-      message.success(`正在播放视频：${material.title}`);
+      
     },
     onViewMaterial: (material, type) => {
       console.log('🎯 NoteEditPage onViewMaterial 被调用', { 
@@ -1935,7 +1935,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
       <div style={{ 
         display: 'flex', 
         height: '100%', 
-        background: '#f5f5f5',
+        background: '#fff',
         transition: 'height 0.3s ease',
         overflow: 'hidden'
       }}>
