@@ -7,6 +7,15 @@ export default function WindowControlsOverlay() {
   const supports = typeof navigator !== 'undefined' && 'windowControlsOverlay' in navigator
   const force = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('wco') === 'force'
   const [visible, setVisible] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(() => {
+    try {
+      const byElement = typeof document !== 'undefined' && !!document.fullscreenElement
+      const byDisplayMode = typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: fullscreen)').matches
+      return !!(byElement || byDisplayMode)
+    } catch {
+      return false
+    }
+  })
   const [rect, setRect] = useState(null)
   const [openCatalog, setOpenCatalog] = useState(false)
   const [themeColor, setThemeColor] = useState('#f7f8fa')
@@ -35,6 +44,9 @@ export default function WindowControlsOverlay() {
   const [floatSize, setFloatSize] = useState({ w: 480, h: 270 })
   const [floatHover, setFloatHover] = useState(false)
   const [openAIToolsPanel, setOpenAIToolsPanel] = useState(false)
+  const iconsRef = useRef(null)
+  const [iconsWidth, setIconsWidth] = useState(0)
+  const [hoverMedia, setHoverMedia] = useState(false)
 
   const [uploads, setUploads] = useState([
     { id: 'u1', name: '安全生产宣传片.mp4', size: 820 * 1024 * 1024, uploaded: 240 * 1024 * 1024, status: 'uploading', speedMBps: 4.2, startedAt: Date.now() - Math.floor((240 / 4.2) * 1000) },
@@ -216,8 +228,33 @@ export default function WindowControlsOverlay() {
   }, [supports])
 
   useEffect(() => {
+    const updateFS = () => {
+      try {
+        const byElement = typeof document !== 'undefined' && !!document.fullscreenElement
+        const byDisplayMode = typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: fullscreen)').matches
+        setIsFullscreen(!!(byElement || byDisplayMode))
+      } catch { setIsFullscreen(false) }
+    }
+    try { document.addEventListener('fullscreenchange', updateFS) } catch { void 0 }
+    let mq
+    try {
+      mq = window.matchMedia('(display-mode: fullscreen)')
+      if (mq && typeof mq.addEventListener === 'function') mq.addEventListener('change', updateFS)
+    } catch { mq = null }
+    updateFS()
+    return () => {
+      try { document.removeEventListener('fullscreenchange', updateFS) } catch { void 0 }
+      try { if (mq && typeof mq.removeEventListener === 'function') mq.removeEventListener('change', updateFS) } catch { void 0 }
+    }
+  }, [])
+
+  useEffect(() => {
     try { setThemeColor('#fff') } catch { void 0 }
   }, [])
+
+  useEffect(() => {
+    try { setHoverPreview(false) } catch { void 0 }
+  }, [floatOpen])
 
   
 
@@ -339,9 +376,27 @@ export default function WindowControlsOverlay() {
 
   
 
-  if (!visible && !force) return null
+  if (!visible && !force && !isFullscreen) return null
 
-  const containerStyle = {
+  const containerStyle = isFullscreen ? {
+    position: 'fixed',
+    left: 0,
+    top: 0,
+    width: '100%',
+    height: 46,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingLeft: 14,
+    paddingRight: 14,
+    zIndex: 2000,
+    background: themeColor,
+    backgroundImage: undefined,
+    backdropFilter: 'none',
+    borderBottom: 'none',
+    WebkitAppRegion: 'no-drag'
+  } : {
     position: 'fixed',
     left: rect ? `${rect.x}px` : 'env(titlebar-area-x, 0px)',
     top: rect ? `${rect.y}px` : 'env(titlebar-area-y, 0px)',
@@ -390,7 +445,6 @@ export default function WindowControlsOverlay() {
   const togglePlay = () => {
     const v = videoRef.current
     if (!v) return
-    message.info('正在尝试播放', 0.8)
     try { v.muted = true } catch { void 0 }
     if (!videoInitialized || v.readyState < 2 || !v.src) {
       try {
@@ -413,16 +467,21 @@ export default function WindowControlsOverlay() {
       setPlaying(false)
     }
   }
-  const circleBtn = { ...noDrag, width: 30, height: 30, borderRadius: 15, border: '2px solid #888', color: '#666', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, position: 'relative', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', cursor: 'pointer', userSelect: 'none' }
-  const circleArrowLeft = { position: 'absolute', top: 2, left: 6, fontSize: 12, color: '#666' }
-  const circleArrowRight = { position: 'absolute', top: 2, right: 6, fontSize: 12, color: '#666' }
-  const playBtn = { ...noDrag, width: 30, height: 30, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f0f0', color: '#666', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', cursor: 'pointer', userSelect: 'none' }
+  const circleBtn = { ...noDrag, width: 32, height: 32, borderRadius: 16, border: '1.5px solid #909399', color: '#666', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, position: 'relative', background: 'transparent', boxShadow: 'none', cursor: 'pointer', userSelect: 'none' }
+  const circleArrowLeft = { position: 'absolute', top: -6, left: 3, fontSize: 14, color: '#666' }
+  const circleArrowRight = { position: 'absolute', top: -6, right: 3, fontSize: 14, color: '#666' }
+  const playBtn = { ...noDrag, width: 34, height: 34, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', color: '#666', boxShadow: 'none', cursor: 'pointer', userSelect: 'none', fontSize: 22 }
+  const isNarrow = rect ? rect.width < 640 : false
+  const pillWidth = rect ? Math.max(240, Math.min(480, rect.width - 420)) : 'min(60vw, 480px)'
+  const titleMaxWidth = typeof pillWidth === 'number' ? Math.max(180, pillWidth - 120) : 360
+  const mainFS = isNarrow ? 13 : 14
+  const subFS = isNarrow ? 10 : 11
 
   return (
     <div style={containerStyle}>
       {viewMode === 'media' && (
         <div style={{ width: '100%', marginTop: 12, display: 'flex', alignItems: 'center', gap: 30, justifyContent: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
             <div style={circleBtn} onMouseDown={(e) => { e.stopPropagation() }} onClick={() => seek(-15)}>
               <span style={circleArrowLeft}>↶</span>
               <span>15</span>
@@ -435,7 +494,13 @@ export default function WindowControlsOverlay() {
               <span>30</span>
             </div>
           </div>
-          <div style={{ ...pill, minWidth: 480, justifyContent: 'center' }} onMouseDown={(e) => { e.stopPropagation() }} onClick={togglePlay}>
+          <div
+            style={{ ...pill, width: pillWidth, justifyContent: 'center', position: 'relative' }}
+            onMouseDown={(e) => { e.stopPropagation() }}
+            onClick={togglePlay}
+            onMouseEnter={() => setHoverMedia(true)}
+            onMouseLeave={() => setHoverMedia(false)}
+          >
             <div
               style={centerTitle}
               onClick={(e) => {
@@ -457,27 +522,28 @@ export default function WindowControlsOverlay() {
                 } catch { void 0 }
               }}
             >
-              <span style={centerMain}>教学基本规范（课堂纪律与仪表）</span>
-              <span style={centerSub}>张老师 · 2025年11月11日</span>
+              <span style={{ ...centerMain, fontSize: mainFS, maxWidth: titleMaxWidth }}>教学基本规范（课堂纪律与仪表）</span>
+              <span style={{ ...centerSub, fontSize: subFS, maxWidth: titleMaxWidth }}>张老师 · 2025年11月11日</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%' }}>
-              <span style={{ color: '#9aa0a6', fontSize: 12 }}>{fmt(currentTime)}</span>
-              <div style={{ ...noDrag, flex: 1 }}>
-                <Slider
-                  min={0}
-                  max={Math.max(0, Math.floor(duration))}
-                  step={1}
-                  value={Math.floor(currentTime)}
-                  onChange={(v) => { setCurrentTime(v); const vid = videoRef.current; if (vid) { vid.currentTime = v; } }}
-                  tooltip={{ open: false }}
-                  railStyle={{ height: 8, backgroundColor: '#e9edf3' }}
-                  trackStyle={{ height: 8, backgroundColor: '#c2c8d0' }}
-                  handleStyle={{ width: 12, height: 12, borderRadius: 12, borderColor: '#69b1ff', backgroundColor: '#fff' }}
-                  style={{ margin: 0 }}
-                />
-              </div>
-              <span style={{ color: '#9aa0a6', fontSize: 12 }}>{fmt(duration)}</span>
+            <div
+              onMouseDown={(e) => { e.stopPropagation() }}
+              style={{ position: 'absolute', left: 12, right: 12, bottom: -6, opacity: hoverMedia ? 1 : 0, transition: 'opacity .16s ease', pointerEvents: hoverMedia ? 'auto' : 'none' }}
+            >
+              <Slider
+                min={0}
+                max={Math.max(0, Math.floor(duration))}
+                step={1}
+                value={Math.floor(currentTime)}
+                onChange={(v) => { setCurrentTime(v); const vid = videoRef.current; if (vid) { vid.currentTime = v; } }}
+                tooltip={{ open: false }}
+                railStyle={{ height: 2, backgroundColor: '#e5e7eb' }}
+                trackStyle={{ height: 2, backgroundColor: '#c2c8d0' }}
+                handleStyle={{ width: 8, height: 8, borderRadius: 8, borderColor: '#c2c8d0', backgroundColor: '#fff', boxShadow: 'none' }}
+                style={{ margin: 0 }}
+              />
             </div>
+            <span style={{ position: 'absolute', left: 12, bottom: 10, fontSize: 12, color: '#9aa0a6', opacity: hoverMedia ? 1 : 0, transition: 'opacity .16s ease' }}>{fmt(currentTime)}</span>
+            <span style={{ position: 'absolute', right: 12, bottom: 10, fontSize: 12, color: '#9aa0a6', opacity: hoverMedia ? 1 : 0, transition: 'opacity .16s ease' }}>{fmt(duration)}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div
@@ -601,7 +667,7 @@ export default function WindowControlsOverlay() {
                     </div>
                     <span style={{ color: '#9aa0a6', fontSize: 12 }}>{fmt(duration)}</span>
                     <SoundOutlined style={iconBtn} />
-                    <div style={{ ...noDrag, width: 120 }}>
+                    <div style={{ ...noDrag, width: 96 }}>
                       <Slider size="small" value={volume} onChange={(v) => { setVolume(v); const vid = videoRef.current; if (vid) vid.volume = v/100 }} tooltip={{ open: false }} />
                     </div>
                     <SoundOutlined rotate={180} style={iconBtn} />
@@ -610,11 +676,18 @@ export default function WindowControlsOverlay() {
               )}
             </div>
             <SoundOutlined style={iconBtn} />
-            <div style={{ ...noDrag, width: 160 }}>
+            <div style={{ ...noDrag, width: 96 }}>
               <Slider size="small" value={volume} onChange={(v) => { setVolume(v); const vid = videoRef.current; if (vid) vid.volume = v/100 }} tooltip={{ open: false }} />
             </div>
             <SoundOutlined rotate={180} style={iconBtn} />
-            <UnorderedListOutlined style={iconBtn} onClick={() => setOpenQueue(v => !v)} />
+            <UnorderedListOutlined
+              style={{ ...iconBtn, color: '#666', background: 'transparent', outline: 'none', boxShadow: 'none' }}
+              onMouseDown={(e) => { e.preventDefault(); e.stopPropagation() }}
+              onClick={(e) => { e.preventDefault(); setOpenQueue(v => !v) }}
+              onFocus={(e) => { try { e.target.blur() } catch { void 0 } }}
+              tabIndex={-1}
+              role="presentation"
+            />
           </div>
         </div>
       )}
