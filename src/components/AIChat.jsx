@@ -6,7 +6,10 @@ import {
   message,
   Card,
   Avatar,
-  Input
+  Input,
+  Modal,
+  Popover,
+  Checkbox
 } from 'antd';
 import {
   SaveOutlined,
@@ -14,10 +17,14 @@ import {
   FileTextOutlined,
   RobotOutlined,
   UserOutlined,
-  MessageOutlined
+  MessageOutlined,
+  SlidersOutlined,
+  MoreOutlined,
+  VideoCameraOutlined,
+  AudioOutlined,
+  BranchesOutlined
 } from '@ant-design/icons';
 import { COMMON_QUESTIONS, CATEGORY_COMMON_QUESTIONS } from '../constants/noteEditConstants';
-import { generateSummaryContent } from '../utils/noteEditUtils';
 import './UnifiedAICenter.css';
 import notesService from '../services/notesService';
 import ChatActionButtons from './ChatActionButtons';
@@ -74,6 +81,17 @@ const AIChat = ({ state, handlers, selectedCategory, unreadMessageCount = null, 
   const dragOffsetRef = useRef({ x: 0, y: 0 });
   const chatContainerRef = useRef(null);
   const bottomAreaRef = useRef(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showMorePopover, setShowMorePopover] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [roleMode, setRoleMode] = useState('default');
+  const [responseLength, setResponseLength] = useState('default');
+  const [modelProvider, setModelProvider] = useState('deepseek');
+  const summaryInjectedRef = useRef(false);
+  const [compactMode, setCompactMode] = useState(false);
+  const [autoScrollLatest, setAutoScrollLatest] = useState(true);
+  const [showSourcesLine, setShowSourcesLine] = useState(true);
+  const messagesContainerRef = useRef(null);
 // 使用 public 目录下的静态资源路径，便于生产环境直接访问
 const gifUrl = '/assets/动态.gif';
   const GIF_SIZE = 220; // 动图更大
@@ -110,6 +128,52 @@ const gifUrl = '/assets/动态.gif';
     };
   }, [dragging, dragPos]);
 
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('chat_mode_config');
+      if (raw) {
+        const cfg = JSON.parse(raw);
+        setRoleMode(cfg.roleMode || 'default');
+        setResponseLength(cfg.responseLength || 'default');
+        setModelProvider(cfg.modelProvider || 'deepseek');
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try {
+      const cfg = { roleMode, responseLength, modelProvider };
+      localStorage.setItem('chat_mode_config', JSON.stringify(cfg));
+    } catch {}
+  }, [roleMode, responseLength, modelProvider]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('chat_mode_config');
+      if (raw) {
+        const cfg = JSON.parse(raw);
+        setCompactMode(!!cfg.compactMode);
+        setAutoScrollLatest(cfg.autoScrollLatest !== false);
+        setShowSourcesLine(cfg.showSourcesLine !== false);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try {
+      const cfg = { compactMode, autoScrollLatest, showSourcesLine };
+      localStorage.setItem('chat_mode_config', JSON.stringify(cfg));
+    } catch {}
+  }, [compactMode, autoScrollLatest, showSourcesLine]);
+
+  useEffect(() => {
+    if (!autoScrollLatest) return;
+    try {
+      const el = messagesContainerRef.current;
+      if (el) el.scrollTop = el.scrollHeight;
+    } catch {}
+  }, [messages]);
+
   // 初始定位：右下角（推荐问题上方）
   useEffect(() => {
     if (currentCategory !== 'organizational_training') return;
@@ -127,6 +191,15 @@ const gifUrl = '/assets/动态.gif';
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, [currentCategory]);
+
+  useEffect(() => {
+    if (currentCategory !== 'organizational_training') return;
+    if (summaryInjectedRef.current) return;
+    summaryInjectedRef.current = true;
+    const trainingSummary = '本次“新教师教学方法培训”聚焦以学为中心的课堂设计与互动实施，覆盖课堂组织、提问技巧、作业设计与评价、信息技术应用等模块。采用直播讲授、录播微课、在线研讨与作业实践的混合式形式，强调同伴互评与案例反思；结业以过程表现与任务成果为主，帮助新教师快速建立可落地的课堂方法。课程按周设置学习任务与交流时段，提供教案模板与观察表，建议将所学迁移至近期课堂并记录改进点。';
+    const msg = { id: Date.now() + 99, type: 'assistant', kind: 'summary', content: trainingSummary, timestamp: new Date().toISOString() };
+    setMessages(prev => [msg, ...prev]);
+  }, [currentCategory, setMessages]);
 
   // 发送消息
   const handleSendMessage = async () => {
@@ -315,7 +388,7 @@ const gifUrl = '/assets/动态.gif';
       flex: 5, 
       margin: '16px', 
       background: '#fff', 
-      borderRadius: '8px', 
+      borderRadius: '0px', 
       display: 'flex', 
       flexDirection: 'column',
       transition: 'flex 0.3s ease',
@@ -340,74 +413,43 @@ const gifUrl = '/assets/动态.gif';
         />
       )}
       {/* 中部区域不再显示聊天气泡（统一由右下角整体承载） */}
-      <div style={{ padding: '20px', borderBottom: '1px solid #f0f0f0' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {categoryIcon && !iconError ? (
-            <img src={categoryIcon} alt="AI助手" onError={() => setIconError(true)} style={{ width: 28, height: 28, borderRadius: '50%' }} />
-          ) : (
-            <span style={{ fontSize: '16px' }}>💬</span>
-          )}
-          <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
-            {aiTitleLabel}
-          </Title>
+      <div style={{ padding: '16px', borderBottom: '1px solid #f0f0f0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {categoryIcon && !iconError ? (
+              <img src={categoryIcon} alt="AI助手" onError={() => setIconError(true)} style={{ width: 28, height: 28, borderRadius: '50%' }} />
+            ) : (
+              <span style={{ fontSize: '16px' }}>💬</span>
+            )}
+            <Title level={4} style={{ margin: 0, color: '#1f1f1f' }}>
+              {aiTitleLabel}
+            </Title>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Button type="text" icon={<SlidersOutlined />} style={{ color: '#4b5563' }} onClick={() => setShowSettingsModal(true)} />
+            <Popover
+              open={showMorePopover}
+              onOpenChange={(v) => setShowMorePopover(v)}
+              trigger="click"
+              placement="bottomRight"
+              overlayStyle={{ pointerEvents: 'auto' }}
+              content={(
+                <div onClick={() => { setShowMorePopover(false); setShowDeleteModal(true) }} style={{ padding: '12px 14px', width: 260, cursor: 'pointer' }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginBottom: 6 }}>删除聊天记录</div>
+                  <div style={{ fontSize: 12, color: '#6b7280' }}>聊天记录仅对你可见。</div>
+                </div>
+              )}
+            >
+              <Button type="text" icon={<MoreOutlined />} style={{ color: '#4b5563' }} />
+            </Popover>
+          </div>
         </div>
       </div>
       
-      {/* 摘要区域 */}
-      <div style={{ padding: '20px', borderBottom: '1px solid #f0f0f0', backgroundColor: '#fafafa' }}>
-        <div style={{ marginBottom: '12px' }}>
-          <Text strong style={{ color: '#1890ff' }}>📋 针对所有来源的摘要</Text>
-        </div>
-        <Card size="small" style={{ marginBottom: '16px', backgroundColor: '#fff' }}>
-           <Paragraph style={{ margin: 0, fontSize: '14px', lineHeight: '1.6' }}>
-             {generateSummaryContent(uploadedFiles, links, addedTexts, courseVideos, organizationalCourses)}
-           </Paragraph>
-         </Card>
-        
-        {/* 快捷操作按钮 */}
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          <Button 
-            size="small" 
-            icon={<FileTextOutlined />}
-            onClick={() => {
-              const newNote = {
-                id: Date.now(),
-                title: '摘要笔记',
-                source: '智能摘要',
-                time: '刚刚',
-                type: 'report'
-              };
-              setOperationRecords(prev => ({
-                ...prev,
-                report: [newNote, ...prev.report]
-              }));
-              message.success('摘要已保存为笔记');
-            }}
-            style={{ borderRadius: '16px' }}
-          >
-            保存笔记
-          </Button>
-          <Button 
-            size="small" 
-            icon={<span>音频</span>}
-            onClick={() => handleOperationClick('audio')}
-            style={{ borderRadius: '16px' }}
-          >
-            音频概览
-          </Button>
-          <Button 
-            size="small" 
-            icon={<span>导图</span>}
-            onClick={() => handleOperationClick('mindmap')}
-            style={{ borderRadius: '16px' }}
-          >
-            思维导图
-          </Button>
-        </div>
-      </div>
+      
       
       {/* 消息列表（统一为 AI智能中心样式结构）*/}
-      <div className="messages-container" style={{ flex: 1, paddingBottom: '140px', minHeight: 0 }}>
+      <div ref={messagesContainerRef} className="messages-container" style={{ flex: 1, paddingBottom: '140px', minHeight: 0 }}>
         <div className="messages-list">
         {messages.map((msg, index) => {
           // 查找对应的用户问题
@@ -416,74 +458,91 @@ const gifUrl = '/assets/动态.gif';
           
           return (
             <div key={msg.id} className={`message-item ${msg.type === 'user' ? 'user' : 'ai'}`}>
-              {msg.type !== 'user' && (
-                currentCategory === 'supervision' ? (
-                  <Avatar src="/assets/督学专家.png" style={{ backgroundColor: '#fff' }} />
-                ) : (
-                  <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#667eea' }} />
-                )
-              )}
-              <div className="message-text">
-                {msg.content}
-                {Array.isArray(msg.recommendations) && msg.recommendations.length > 0 && (
-                  <div style={{ marginTop: 14, display: 'grid', gap: 12 }}>
-                    {msg.recommendations.map((rec, ri) => (
-                      <div key={`rec-${ri}`} style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 12, alignItems: 'start' }}>
-                        <div
-                          onClick={() => openVideoFromRecommendation(rec)}
-                          style={{
-                            width: '100%',
-                            aspectRatio: '4 / 3',
-                            background: '#f1f5f9',
-                            border: '1px solid #e5e7eb',
-                            borderRadius: 8,
-                            overflow: 'hidden',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer'
-                          }}
-                          title="点击播放视频"
-                        >
-                          <img src={rec.thumbSrc} alt={rec.thumbAlt || '课程缩略图'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        </div>
-                        <div>
-                          <div style={{ fontWeight: 600, color: '#1f2937', marginBottom: 6 }}>{rec.title}</div>
-                          {Array.isArray(rec.bullets) && (
-                            <ul style={{ margin: 0, paddingLeft: 18, color: '#334155', lineHeight: 1.7 }}>
-                              {rec.bullets.map((b, bi) => (
-                                <li key={`b-${ri}-${bi}`}>{b}</li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+              {msg.kind === 'summary' ? (
+                <div style={{ width: '100%' }}>
+                  <div style={{ padding: '0', maxWidth: 860, margin: '0 auto' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                      <Title level={5} style={{ margin: 0, fontWeight: 600, color: '#111827' }}>{state?.note?.title || '新教师教学方法培训'}</Title>
+                       </div>
+                    {showSourcesLine && (
+                      <Text style={{ color: '#6b7280', fontSize: 14, display: 'block', marginBottom: 16 }}>{`${uploadedFiles.length + addedTexts.length + courseVideos.length + links.length + (Array.isArray(organizationalCourses) ? organizationalCourses.length : 0)} 个来源`}</Text>
+                    )}
+                    <Paragraph style={{ margin: 0, fontSize: 15, lineHeight: 1.8, color: '#374151' }}>
+                      {msg.content}
+                    </Paragraph>
+                    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 18 }}>
+                      <Button size="middle" style={{ borderRadius: 24, height: 40 }} icon={<SaveOutlined />} onClick={() => handleSaveToNote(msg.content, correspondingUserMessage?.content)}>保存到笔记</Button>
+                      <Button size="middle" style={{ borderRadius: 24, height: 40 }} icon={<VideoCameraOutlined />} onClick={() => handleOperationClick('video')}>视频概览</Button>
+                      <Button size="middle" style={{ borderRadius: 24, height: 40 }} icon={<AudioOutlined />} onClick={() => handleOperationClick('audio')}>音频概览</Button>
+                      <Button size="middle" style={{ borderRadius: 24, height: 40 }} icon={<BranchesOutlined />} onClick={() => handleOperationClick('mindmap')}>思维导图</Button>
+                    </div>
                   </div>
-                )}
-              </div>
-              {msg.type === 'user' && (
-                <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#52c41a' }} />
-              )}
-              {msg.type !== 'user' && (
-                <div className="message-actions">
-                  <Button
-                    size="small"
-                    type="text"
-                    icon={<SaveOutlined />}
-                    onClick={() => handleSaveToNote(msg.content, correspondingUserMessage?.content)}
-                    style={{ fontSize: '12px', color: '#6b7280' }}
-                  >
-                    保存到笔记
-                  </Button>
                 </div>
+              ) : (
+                <>
+                  
+                  <div className="message-text" style={compactMode ? { padding: '8px 12px' } : undefined}>
+                    {msg.content}
+                    {Array.isArray(msg.recommendations) && msg.recommendations.length > 0 && (
+                      <div style={{ marginTop: 14, display: 'grid', gap: 12 }}>
+                        {msg.recommendations.map((rec, ri) => (
+                          <div key={`rec-${ri}`} style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 12, alignItems: 'start' }}>
+                            <div
+                              onClick={() => openVideoFromRecommendation(rec)}
+                              style={{
+                                width: '100%',
+                                aspectRatio: '4 / 3',
+                                background: '#f1f5f9',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: 8,
+                                overflow: 'hidden',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer'
+                              }}
+                              title="点击播放视频"
+                            >
+                              <img src={rec.thumbSrc} alt={rec.thumbAlt || '课程缩略图'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 600, color: '#1f2937', marginBottom: 6 }}>{rec.title}</div>
+                              {Array.isArray(rec.bullets) && (
+                                <ul style={{ margin: 0, paddingLeft: 18, color: '#334155', lineHeight: 1.7 }}>
+                                  {rec.bullets.map((b, bi) => (
+                                    <li key={`b-${ri}-${bi}`}>{b}</li>
+                                  ))}
+                                </ul>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                  )}
+                </div>
+                {msg.type === 'user' && (
+                  <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#52c41a' }} />
+                )}
+                  {msg.type !== 'user' && (
+                    <div className="message-actions">
+                      <Button
+                        size="small"
+                        type="text"
+                        icon={<SaveOutlined />}
+                        onClick={() => handleSaveToNote(msg.content, correspondingUserMessage?.content)}
+                        style={{ fontSize: '12px', color: '#6b7280' }}
+                      >
+                        保存到笔记
+                      </Button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           );
         })}
         {isLoading && (
           <div className="message-item ai">
-            <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#667eea' }} />
             <div className="message-text">
               <div className="typing-indicator"><span></span><span></span><span></span></div>
             </div>
@@ -553,9 +612,8 @@ const gifUrl = '/assets/动态.gif';
             <Input.TextArea
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              placeholder={selectedMaterials.length > 0 ? `基于已选择的 ${selectedMaterials.length} 个资料，请输入您的问题...` : "请先选择资料后再输入问题..."}
+              placeholder={selectedMaterials.length > 0 ? `基于已选择的 ${selectedMaterials.length} 个资料，请输入您的问题...` : "请输入您的问题..."}
               autoSize={{ minRows: 1, maxRows: 3 }}
-              disabled={selectedMaterials.length === 0}
               onPressEnter={(e) => {
                 if (!e.shiftKey) {
                   e.preventDefault();
@@ -566,7 +624,7 @@ const gifUrl = '/assets/动态.gif';
             />
             <ChatActionButtons 
               onSend={handleSendMessage}
-              disabledSend={!inputMessage.trim() || selectedMaterials.length === 0}
+              disabledSend={!inputMessage.trim()}
               loading={isLoading}
               setInputMessage={setInputMessage}
             />
@@ -580,6 +638,54 @@ const gifUrl = '/assets/动态.gif';
           videoData={videoData || { title: '推荐视频', url: '/assets/demo1.mp4' }}
         />
       )}
+      <Modal
+        open={showDeleteModal}
+        title={null}
+        centered
+        closable
+        maskClosable={false}
+        onCancel={() => setShowDeleteModal(false)}
+        footer={[
+          <Button key="cancel" onClick={() => setShowDeleteModal(false)}>取消</Button>,
+          <Button key="delete" type="primary" onClick={() => { setMessages([]); setShowDeleteModal(false); message.success('聊天记录已删除'); }}>删除</Button>
+        ]}
+      >
+        <div style={{ fontSize: 16, fontWeight: 600, color: '#111827', marginBottom: 12 }}>删除此笔记的聊天记录</div>
+        <div style={{ fontSize: 14, color: '#6b7280' }}>你将删除此笔记的全部聊天记录，该操作不可撤销。</div>
+      </Modal>
+      <Modal
+        open={showSettingsModal}
+        title={null}
+        centered
+        closable
+        maskClosable={true}
+        onCancel={() => setShowSettingsModal(false)}
+        footer={[
+          <Button key="save" type="primary" onClick={() => setShowSettingsModal(false)}>保存</Button>
+        ]}
+      >
+        <div style={{ fontSize: 18, fontWeight: 600, color: '#111827', marginBottom: 6 }}>配置对话</div>
+        <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 16 }}>可以根据不同目标定制笔记助手：做研究、帮助学习、展示多视角，或采用特定语气与风格。</div>
+        <div style={{ marginBottom: 12, fontSize: 13, color: '#374151' }}>选择对话目标/风格/角色</div>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+          <Button type={roleMode === 'default' ? 'primary' : 'default'} onClick={() => setRoleMode('default')}>默认</Button>
+          <Button type={roleMode === 'learning' ? 'primary' : 'default'} onClick={() => setRoleMode('learning')}>学习指导</Button>
+          <Button type={roleMode === 'custom' ? 'primary' : 'default'} onClick={() => setRoleMode('custom')}>自定义</Button>
+        </div>
+        <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 16 }}>适合通用研究与头脑风暴任务。</div>
+        <div style={{ marginBottom: 12, fontSize: 13, color: '#374151' }}>选择回复长度</div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button type={responseLength === 'default' ? 'primary' : 'default'} onClick={() => setResponseLength('default')}>默认</Button>
+          <Button type={responseLength === 'longer' ? 'primary' : 'default'} onClick={() => setResponseLength('longer')}>更长</Button>
+          <Button type={responseLength === 'shorter' ? 'primary' : 'default'} onClick={() => setResponseLength('shorter')}>更短</Button>
+        </div>
+        <div style={{ marginTop: 16, marginBottom: 12, fontSize: 13, color: '#374151' }}>选择模型</div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button type={modelProvider === 'deepseek' ? 'primary' : 'default'} onClick={() => setModelProvider('deepseek')}>DeepSeek</Button>
+          <Button type={modelProvider === 'doubao' ? 'primary' : 'default'} onClick={() => setModelProvider('doubao')}>豆包</Button>
+          <Button type={modelProvider === 'qwen' ? 'primary' : 'default'} onClick={() => setModelProvider('qwen')}>阿里千问</Button>
+        </div>
+      </Modal>
     </div>
   );
 };

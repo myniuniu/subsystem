@@ -1273,7 +1273,7 @@ if (typeof document !== 'undefined') {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: isCollapsed ? '52px' : 'auto', transition: 'width 0.3s ease' }}>
       <DndProvider backend={HTML5Backend}>
         <div style={{ 
-          padding: isCollapsed ? '2px 0' : '16px', 
+          padding: isCollapsed ? '2px 0' : '24px 16px 12px 16px', 
           paddingBottom: isCollapsed ? '2px' : '12px',
           display: 'flex',
           flexDirection: 'column'

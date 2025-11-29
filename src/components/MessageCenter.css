@@ -32,6 +32,7 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  padding-bottom: 0;
 }
 
 /* 仅在消息模块中增大会话列表宽度（+30%） */
@@ -40,7 +41,7 @@
 /* 拖拽分栏布局 */
 .message-center .mc-left { flex: 0 0 auto; height: 100%; display: flex; }
 .message-center .mc-right { flex: 1 1 auto; min-width: 0; height: 100%; }
-.message-center .mc-resizer { width: 6px; cursor: col-resize; background: linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent); }
+.message-center .mc-resizer { width: 1px; cursor: col-resize; background: rgba(0,0,0,0.06); }
 .message-center.resizing { user-select: none; }
 
 /* 让话题页的加号在消息模块中固定悬浮在右下角，不随滚动 */
@@ -61,7 +62,7 @@
 /* NoteEditPage 对话弹窗中的分栏与拖拽条样式 */
 .discussion-modal .mc-left { flex: 0 0 auto; height: 100%; display: flex; }
 .discussion-modal .mc-right { flex: 1 1 auto; min-width: 0; height: 100%; }
-.discussion-modal .mc-resizer { width: 6px; cursor: col-resize; background: linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent); }
+.discussion-modal .mc-resizer { width: 1px; cursor: col-resize; background: rgba(0,0,0,0.06); }
 .discussion-modal.resizing { user-select: none; }
 
 /* 解决弹窗底部遮挡：将输入框上移并为内容预留空间 */
@@ -72,4 +73,16 @@
   background: transparent !important; 
   box-shadow: none !important; 
   border-top: none !important;
+}
+
+.message-center .chat-input { bottom: 8px; }
+html.is-pwa .message-center .chat-input { bottom: calc(48px + env(safe-area-inset-bottom, 0px)); }
+html.is-wco .message-center .chat-input { bottom: calc(48px + env(safe-area-inset-bottom, 0px)); }
+
+@media (display-mode: standalone) {
+  .message-center .chat-input { bottom: calc(48px + env(safe-area-inset-bottom, 0px)); }
+}
+
+@media (display-mode: fullscreen) {
+  .message-center .chat-input { bottom: calc(48px + env(safe-area-inset-bottom, 0px)); }
 }

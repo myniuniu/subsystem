@@ -218,9 +218,10 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(8px);
+  background: #ffffff;
+  backdrop-filter: none;
   border-radius: 12px;
+  border: 1px solid #f0f0f0;
   height: 100%;
   min-height: 100%;
   display: flex;
@@ -228,7 +229,22 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  box-shadow: none;
+}
+
+.messages-container::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.messages-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+.messages-container::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+}
+.messages-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.18);
 }
 
 .messages-list {

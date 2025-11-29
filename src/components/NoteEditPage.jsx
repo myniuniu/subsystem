@@ -2448,7 +2448,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               <div style={{ 
                 flex: 4, 
                 background: '#fff', 
-                margin: '4px 0 0 4px', 
+                margin: '2px 0 0 2px', 
                 borderRadius: '8px', 
                 overflow: 'hidden', 
                 display: 'flex', 
@@ -2468,7 +2468,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               <div style={{ 
                 flex: 4.6, 
                 background: '#fff', 
-                margin: '4px 0 0 4px', 
+                margin: '2px 0 0 2px', 
                 borderRadius: '8px', 
                 overflow: 'hidden', 
                 display: 'flex', 
@@ -2499,7 +2499,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               <div style={{ 
                 flex: 4, 
                 background: '#fff', 
-                margin: '8px 0 0 8px', 
+                margin: '2px 0 0 2px', 
                 borderRadius: '8px', 
                 overflow: 'hidden', 
                 display: 'flex', 
@@ -2528,7 +2528,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                     ? 3.5
                     : 5)),
               transition: 'flex 0.3s ease',
-              margin: '4px 4px 0 4px'
+              margin: '2px 2px 0 2px'
             }}>
               {state.rightPanelView === RIGHT_PANEL_VIEWS.COURSE_SELECTION_VIEWER ? (
                 <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -2624,7 +2624,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 return baseRatio;
               })(), 
               background: '#fff', 
-              margin: '4px 4px 0 0', 
+              margin: '2px 2px 0 0', 
               borderRadius: '8px', 
               overflow: 'hidden', 
               display: 'flex', 
@@ -3178,7 +3178,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
          className="discussion-modal"
          bodyStyle={{ height: 'calc(70vh + 15px)', overflowY: 'hidden', padding: 0, display: 'flex' }}
        >
-         <div className={`mc-left ${isResizing ? 'resizing' : ''}`} style={{ width: leftWidth, borderRight: '1px solid #eef2f7', background: '#fff' }}>
+        <div className={`mc-left ${isResizing ? 'resizing' : ''}`} style={{ width: leftWidth, borderRight: 'none', background: '#fff' }}>
            <ContactList
              contacts={modalContacts}
              activeContact={activeModalContact}

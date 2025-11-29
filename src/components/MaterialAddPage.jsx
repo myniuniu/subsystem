@@ -27,7 +27,8 @@ import {
     CloudOutlined,
     TeamOutlined,
     ShoppingOutlined,
-    BulbOutlined
+    BulbOutlined,
+    DatabaseOutlined
   } from '@ant-design/icons';
 import './MaterialAddPage.css';
 // import courseSelectionService from '../services/courseSelectionService';
@@ -66,6 +67,15 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
       message.info('已在新标签打开学习广场，请在广场中选择后返回继续。');
     } catch (e) {
       message.warning('无法打开学习广场，请检查路由或网络。');
+    }
+  };
+
+  const handleResourceLibraryClick = () => {
+    try {
+      window.open('/#resource-library', '_blank');
+      message.info('已在新标签打开资料库，请选择后返回继续。');
+    } catch (e) {
+      message.warning('无法打开资料库，请检查路由或网络。');
     }
   };
 
@@ -1581,17 +1591,14 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
         <div style={{ 
           backgroundColor: 'white',
           borderRadius: '8px',
-          padding: '40px',
-          marginBottom: '24px',
+          padding: '24px',
+          marginBottom: '16px',
           border: '1px solid #e8e8e8',
           overflowX: 'hidden',
           maxWidth: '100%'
         }}>
           {/* 上传区域 */}
-          <div style={{ 
-            textAlign: 'center',
-            marginBottom: '48px'
-          }}>
+          <div className="upload-area">
             <Upload.Dragger
               name="file"
               multiple
@@ -1602,14 +1609,14 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
             >
               <div>
                 <UploadOutlined style={{ 
-                  fontSize: '48px', 
+                  fontSize: '36px', 
                   color: '#4285f4',
-                  marginBottom: '16px'
+                  marginBottom: '12px'
                 }} />
-                <div style={{ marginBottom: '8px' }}>
-                  <Text strong style={{ fontSize: '16px' }}>上传文档</Text>
+                <div style={{ marginBottom: '6px' }}>
+                  <Text strong style={{ fontSize: '15px' }}>上传文档</Text>
                 </div>
-                <Text type="secondary">
+                <Text type="secondary" style={{ fontSize: '13px' }}>
                   拖放文档文件到此处，或点击上传
                 </Text>
               </div>
@@ -1617,7 +1624,7 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
             
             <Text type="secondary" style={{ 
               fontSize: '12px',
-              marginTop: '12px',
+              marginTop: '8px',
               display: 'block'
             }}>
               支持的文档类型：PDF, txt, Markdown 等格式（例如 .md3）
@@ -1631,16 +1638,16 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
             <Card 
               hoverable
               className="material-card"
-              bodyStyle={{ padding: '40px 24px' }}
+              bodyStyle={{ padding: '24px 16px' }}
               onClick={handleKnowledgeGraphClick}
             >
               <ApartmentOutlined style={{ 
-                fontSize: '40px', 
+                fontSize: '32px', 
                 color: '#52c41a',
-                marginBottom: '20px'
+                marginBottom: '12px'
               }} />
               <div style={{ marginBottom: '12px' }}>
-                <Text strong style={{ fontSize: '16px' }}>知识图谱</Text>
+                <Text strong style={{ fontSize: '15px' }}>知识图谱</Text>
               </div>
               <Button 
                 type="primary"
@@ -1651,12 +1658,50 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                   borderColor: '#52c41a',
                   borderRadius: '16px',
                   fontSize: '12px',
-                  height: '28px',
-                  paddingLeft: '12px',
-                  paddingRight: '12px'
+                  height: '26px',
+                  paddingLeft: '10px',
+                  paddingRight: '10px'
                 }}
               >
                 选择图谱
+              </Button>
+            </Card>
+
+            {/* 资料库 */}
+            <Card 
+              hoverable
+              style={{ 
+                textAlign: 'center',
+                border: '1px solid #e8e8e8',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+              bodyStyle={{ padding: '24px 16px' }}
+              onClick={handleResourceLibraryClick}
+            >
+              <DatabaseOutlined style={{ 
+                fontSize: '32px', 
+                color: '#13c2c2',
+                marginBottom: '12px'
+              }} />
+              <div style={{ marginBottom: '12px' }}>
+                <Text strong style={{ fontSize: '15px' }}>资料库</Text>
+              </div>
+              <Button 
+                type="primary"
+                size="small"
+                onClick={handleResourceLibraryClick}
+                style={{
+                  backgroundColor: '#13c2c2',
+                  borderColor: '#13c2c2',
+                  borderRadius: '16px',
+                  fontSize: '12px',
+                  height: '26px',
+                  paddingLeft: '10px',
+                  paddingRight: '10px'
+                }}
+              >
+                进入资料库
               </Button>
             </Card>
 
@@ -1669,16 +1714,16 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                 borderRadius: '8px',
                 cursor: 'pointer'
               }}
-              bodyStyle={{ padding: '40px 24px' }}
+              bodyStyle={{ padding: '24px 16px' }}
               onClick={handleCapabilityModelClick}
             >
               <NodeIndexOutlined style={{ 
-                fontSize: '40px', 
+                fontSize: '32px', 
                 color: '#fa8c16',
-                marginBottom: '20px'
+                marginBottom: '12px'
               }} />
               <div style={{ marginBottom: '12px' }}>
-                <Text strong style={{ fontSize: '16px' }}>能力模型</Text>
+                <Text strong style={{ fontSize: '15px' }}>能力模型</Text>
               </div>
               <Button 
                 type="primary"
@@ -1689,9 +1734,9 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                   borderColor: '#fa8c16',
                   borderRadius: '16px',
                   fontSize: '12px',
-                  height: '28px',
-                  paddingLeft: '12px',
-                  paddingRight: '12px'
+                  height: '26px',
+                  paddingLeft: '10px',
+                  paddingRight: '10px'
                 }}
               >
                 选择模型
@@ -1707,16 +1752,16 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                 borderRadius: '8px',
                 cursor: 'pointer'
               }}
-              bodyStyle={{ padding: '40px 24px' }}
+              bodyStyle={{ padding: '24px 16px' }}
               onClick={handleMicroMajorClick}
             >
               <GoogleOutlined style={{ 
-                fontSize: '40px', 
+                fontSize: '32px', 
                 color: '#1890ff',
-                marginBottom: '20px'
+                marginBottom: '12px'
               }} />
               <div style={{ marginBottom: '12px' }}>
-                <Text strong style={{ fontSize: '16px' }}>微专业</Text>
+                <Text strong style={{ fontSize: '15px' }}>微专业</Text>
               </div>
               <Button 
                 type="primary"
@@ -1727,9 +1772,9 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                   borderColor: '#1890ff',
                   borderRadius: '16px',
                   fontSize: '12px',
-                  height: '28px',
-                  paddingLeft: '12px',
-                  paddingRight: '12px'
+                  height: '26px',
+                  paddingLeft: '10px',
+                  paddingRight: '10px'
                 }}
               >
                 选择专业
@@ -1745,16 +1790,16 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                 borderRadius: '8px',
                 cursor: 'pointer'
               }}
-              bodyStyle={{ padding: '40px 24px' }}
+              bodyStyle={{ padding: '24px 16px' }}
               onClick={handleMyCourseClick}
             >
               <BookOutlined style={{ 
-                fontSize: '40px', 
+                fontSize: '32px', 
                 color: '#722ed1',
-                marginBottom: '20px'
+                marginBottom: '12px'
               }} />
               <div style={{ marginBottom: '12px' }}>
-                <Text strong style={{ fontSize: '16px' }}>培训项目</Text>
+                <Text strong style={{ fontSize: '15px' }}>培训项目</Text>
               </div>
               <Button 
                 type="primary"
@@ -1765,9 +1810,9 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                   borderColor: '#722ed1',
                   borderRadius: '16px',
                   fontSize: '12px',
-                  height: '28px',
-                  paddingLeft: '12px',
-                  paddingRight: '12px'
+                  height: '26px',
+                  paddingLeft: '10px',
+                  paddingRight: '10px'
                 }}
               >
                 选择课程
@@ -1784,16 +1829,16 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                 borderRadius: '8px',
                 cursor: 'pointer'
               }}
-              bodyStyle={{ padding: '40px 24px' }}
+              bodyStyle={{ padding: '24px 16px' }}
               onClick={handleTrainingProductClick}
             >
               <ShoppingOutlined style={{ 
-                fontSize: '40px', 
+                fontSize: '32px', 
                 color: '#52c41a',
-                marginBottom: '20px'
+                marginBottom: '12px'
               }} />
               <div style={{ marginBottom: '12px' }}>
-                <Text strong style={{ fontSize: '16px' }}>培训产品</Text>
+                <Text strong style={{ fontSize: '15px' }}>培训产品</Text>
               </div>
               <Button 
                 type="primary"
@@ -1804,9 +1849,9 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                   borderColor: '#52c41a',
                   borderRadius: '16px',
                   fontSize: '12px',
-                  height: '28px',
-                  paddingLeft: '12px',
-                  paddingRight: '12px'
+                  height: '26px',
+                  paddingLeft: '10px',
+                  paddingRight: '10px'
                 }}
               >
                 选择产品
@@ -1822,16 +1867,16 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                 borderRadius: '8px',
                 cursor: 'pointer'
               }}
-              bodyStyle={{ padding: '40px 24px' }}
+              bodyStyle={{ padding: '24px 16px' }}
               onClick={handleCourseVideoClick}
             >
               <PlayCircleOutlined style={{ 
-                fontSize: '40px', 
+                fontSize: '32px', 
                 color: '#eb2f96',
-                marginBottom: '20px'
+                marginBottom: '12px'
               }} />
               <div style={{ marginBottom: '12px' }}>
-                <Text strong style={{ fontSize: '16px' }}>课程视频</Text>
+                <Text strong style={{ fontSize: '15px' }}>课程视频</Text>
               </div>
               <Button 
                 type="primary"
@@ -1842,9 +1887,9 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                   borderColor: '#eb2f96',
                   borderRadius: '16px',
                   fontSize: '12px',
-                  height: '28px',
-                  paddingLeft: '12px',
-                  paddingRight: '12px'
+                  height: '26px',
+                  paddingLeft: '10px',
+                  paddingRight: '10px'
                 }}
               >
                 选择视频
@@ -1860,16 +1905,16 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                 borderRadius: '8px',
                 cursor: 'pointer'
               }}
-              bodyStyle={{ padding: '40px 24px' }}
+              bodyStyle={{ padding: '24px 16px' }}
               onClick={handleCloudDiskClick}
             >
               <CloudOutlined style={{ 
-                fontSize: '40px', 
+                fontSize: '32px', 
                 color: '#52c41a',
-                marginBottom: '20px'
+                marginBottom: '12px'
               }} />
               <div style={{ marginBottom: '12px' }}>
-                <Text strong style={{ fontSize: '16px' }}>云盘</Text>
+                <Text strong style={{ fontSize: '15px' }}>云盘</Text>
               </div>
               <Button 
                 type="primary"
@@ -1880,9 +1925,9 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                   borderColor: '#52c41a',
                   borderRadius: '16px',
                   fontSize: '12px',
-                  height: '28px',
-                  paddingLeft: '12px',
-                  paddingRight: '12px'
+                  height: '26px',
+                  paddingLeft: '10px',
+                  paddingRight: '10px'
                 }}
               >
                 选择文件
@@ -1898,16 +1943,16 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                 borderRadius: '8px',
                 cursor: 'pointer'
               }}
-              bodyStyle={{ padding: '40px 24px' }}
+              bodyStyle={{ padding: '24px 16px' }}
               onClick={handleExerciseClick}
             >
               <BookOutlined style={{ 
-                fontSize: '40px', 
+                fontSize: '32px', 
                 color: '#faad14',
-                marginBottom: '20px'
+                marginBottom: '12px'
               }} />
               <div style={{ marginBottom: '12px' }}>
-                <Text strong style={{ fontSize: '16px' }}>考试/练习</Text>
+                <Text strong style={{ fontSize: '15px' }}>考试/练习</Text>
               </div>
               <Button 
                 type="primary"
@@ -1918,9 +1963,9 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                   borderColor: '#faad14',
                   borderRadius: '16px',
                   fontSize: '12px',
-                  height: '28px',
-                  paddingLeft: '12px',
-                  paddingRight: '12px'
+                  height: '26px',
+                  paddingLeft: '10px',
+                  paddingRight: '10px'
                 }}
               >
                 选择考试/练习
@@ -1936,16 +1981,16 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                 borderRadius: '8px',
                 cursor: 'pointer'
               }}
-              bodyStyle={{ padding: '40px 24px' }}
+              bodyStyle={{ padding: '24px 16px' }}
               onClick={handleLiveCourseClick}
             >
               <PlayCircleOutlined style={{ 
-                fontSize: '40px', 
+                fontSize: '32px', 
                 color: '#fa541c',
-                marginBottom: '20px'
+                marginBottom: '12px'
               }} />
               <div style={{ marginBottom: '12px' }}>
-                <Text strong style={{ fontSize: '16px' }}>直播课</Text>
+                <Text strong style={{ fontSize: '15px' }}>直播课</Text>
               </div>
               <Button 
                 type="primary"
@@ -1956,9 +2001,9 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                   borderColor: '#fa541c',
                   borderRadius: '16px',
                   fontSize: '12px',
-                  height: '28px',
-                  paddingLeft: '12px',
-                  paddingRight: '12px'
+                  height: '26px',
+                  paddingLeft: '10px',
+                  paddingRight: '10px'
                 }}
               >
                 选择直播课
@@ -1974,16 +2019,16 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                 borderRadius: '8px',
                 cursor: 'pointer'
               }}
-              bodyStyle={{ padding: '40px 24px' }}
+              bodyStyle={{ padding: '24px 16px' }}
               onClick={handleKnowledgeSquareClick}
             >
               <BulbOutlined style={{ 
-                fontSize: '40px', 
+                fontSize: '32px', 
                 color: '#722ed1',
-                marginBottom: '20px'
+                marginBottom: '12px'
               }} />
               <div style={{ marginBottom: '12px' }}>
-                <Text strong style={{ fontSize: '16px' }}>知识广场</Text>
+                <Text strong style={{ fontSize: '15px' }}>知识广场</Text>
               </div>
               <Button 
                 type="primary"
@@ -1994,9 +2039,9 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                   borderColor: '#722ed1',
                   borderRadius: '16px',
                   fontSize: '12px',
-                  height: '28px',
-                  paddingLeft: '12px',
-                  paddingRight: '12px'
+                  height: '26px',
+                  paddingLeft: '10px',
+                  paddingRight: '10px'
                 }}
               >
                 进入知识广场
@@ -2012,15 +2057,15 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                 borderRadius: '8px',
                 cursor: 'pointer'
               }}
-              bodyStyle={{ padding: '40px 24px' }}
+              bodyStyle={{ padding: '24px 16px' }}
             >
               <LinkOutlined style={{ 
-                fontSize: '40px', 
+                fontSize: '32px', 
                 color: '#4285f4',
-                marginBottom: '20px'
+                marginBottom: '12px'
               }} />
               <div style={{ marginBottom: '12px' }}>
-                <Text strong style={{ fontSize: '16px' }}>链接</Text>
+                <Text strong style={{ fontSize: '15px' }}>链接</Text>
               </div>
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
                 <Button 
@@ -2077,16 +2122,16 @@ const MaterialAddPage = ({ visible, onClose, onCapabilityModelAdded, onKnowledge
                 borderRadius: '8px',
                 cursor: 'pointer'
               }}
-              bodyStyle={{ padding: '40px 24px' }}
+              bodyStyle={{ padding: '24px 16px' }}
               onClick={handleTextClick}
             >
               <FileTextOutlined style={{ 
-                fontSize: '40px', 
+                fontSize: '32px', 
                 color: '#4285f4',
-                marginBottom: '20px'
+                marginBottom: '12px'
               }} />
               <div style={{ marginBottom: '12px' }}>
-                <Text strong style={{ fontSize: '16px' }}>粘贴文字</Text>
+                <Text strong style={{ fontSize: '15px' }}>粘贴文字</Text>
               </div>
               <div>
                 <Button 

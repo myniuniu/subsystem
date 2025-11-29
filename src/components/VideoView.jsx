@@ -13,7 +13,7 @@ import {
 } from '@ant-design/icons';
 import { formatTime, convertTimeToLinks } from '../utils/noteEditUtils';
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
 const VideoView = ({ state, handlers, isWidescreen = false }) => {
   const {
@@ -440,8 +440,9 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
         <div style={{ 
           padding: '16px 20px', 
           borderBottom: '1px solid #f0f0f0',
-          background: 'linear-gradient(135deg, #1890ff 0%, #40a9ff 100%)',
-          color: 'white'
+          background: '#fff',
+          color: '#1f1f1f',
+          marginTop: 28
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -449,22 +450,17 @@ const VideoView = ({ state, handlers, isWidescreen = false }) => {
                 type="text" 
                 icon={<ArrowLeftOutlined />} 
                 onClick={onBackToMaterials}
-                style={{ color: 'white', padding: '4px 8px' }}
+                style={{ color: '#4b5563', padding: '4px 8px' }}
                 size="small"
               />
               <div>
-                <Text style={{ color: 'white', fontSize: '16px', fontWeight: 'bold' }}>
+                <Title level={4} style={{ margin: 0, color: '#1f1f1f' }}>
                   {selectedMaterial?.title || '视频标题'}
-                </Text>
-                {selectedMaterial?.instructor && (
-                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', marginTop: '2px' }}>
-                    📚 讲师：{selectedMaterial.instructor}
-                  </div>
-                )}
+                </Title>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>
+              <div style={{ fontSize: '12px', color: '#666' }}>
                 {selectedMaterial?.duration && `时长：${selectedMaterial.duration}`}
               </div>
             </div>

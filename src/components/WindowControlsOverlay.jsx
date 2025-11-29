@@ -5,7 +5,9 @@ import dayjs from 'dayjs'
 
 export default function WindowControlsOverlay() {
   const supports = typeof navigator !== 'undefined' && 'windowControlsOverlay' in navigator
-  const force = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('wco') === 'force'
+  const force = (typeof window !== 'undefined' && (
+    new URLSearchParams(window.location.search).get('wco') === 'force'
+  ))
   const [visible, setVisible] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(() => {
     try {
@@ -383,7 +385,7 @@ export default function WindowControlsOverlay() {
     left: 0,
     top: 0,
     width: '100%',
-    height: 46,
+    height: 40,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -401,7 +403,7 @@ export default function WindowControlsOverlay() {
     left: rect ? `${rect.x}px` : 'env(titlebar-area-x, 0px)',
     top: rect ? `${rect.y}px` : 'env(titlebar-area-y, 0px)',
     width: rect ? `${rect.width}px` : 'env(titlebar-area-width, 100%)',
-    height: rect ? `${Math.max(rect.height || 0, 40)}px` : 'env(titlebar-area-height, 40px)',
+    height: rect ? `${Math.max(rect.height || 0, 34)}px` : 'env(titlebar-area-height, 34px)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -413,13 +415,13 @@ export default function WindowControlsOverlay() {
     backgroundImage: undefined,
     backdropFilter: 'none',
     borderBottom: 'none',
-    WebkitAppRegion: 'drag'
+    WebkitAppRegion: openQueue ? 'no-drag' : 'drag'
   }
 
   const noDrag = { WebkitAppRegion: 'no-drag' }
   const iconBtn = { ...noDrag, fontSize: 16, color: '#666', padding: 6, borderRadius: 8, transition: 'all .2s ease' }
   const activeIconBtn = { ...iconBtn, color: '#1677ff', backgroundColor: 'rgba(22,119,255,0.12)' }
-  const pill = { ...noDrag, position: 'relative', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', padding: '6px 12px 8px 12px', display: 'flex', alignItems: 'center', gap: 8, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)' }
+  const pill = { ...noDrag, position: 'relative', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', padding: '4px 10px 6px 10px', display: 'flex', alignItems: 'center', gap: 8, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)' }
   const centerTitle = { display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2, cursor: 'pointer' }
   const centerMain = { fontSize: 15, fontWeight: 600, color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center' }
   const centerSub = { fontSize: 12, color: '#999', whiteSpace: 'nowrap', textAlign: 'center' }
@@ -467,20 +469,20 @@ export default function WindowControlsOverlay() {
       setPlaying(false)
     }
   }
-  const circleBtn = { ...noDrag, width: 32, height: 32, borderRadius: 16, border: '1.5px solid #909399', color: '#666', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, position: 'relative', background: 'transparent', boxShadow: 'none', cursor: 'pointer', userSelect: 'none' }
+  const circleBtn = { ...noDrag, width: 28, height: 28, borderRadius: 14, border: '1.5px solid #909399', color: '#666', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, position: 'relative', background: 'transparent', boxShadow: 'none', cursor: 'pointer', userSelect: 'none' }
   const circleArrowLeft = { position: 'absolute', top: -6, left: 3, fontSize: 14, color: '#666' }
   const circleArrowRight = { position: 'absolute', top: -6, right: 3, fontSize: 14, color: '#666' }
-  const playBtn = { ...noDrag, width: 34, height: 34, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', color: '#666', boxShadow: 'none', cursor: 'pointer', userSelect: 'none', fontSize: 22 }
+  const playBtn = { ...noDrag, width: 30, height: 30, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', color: '#666', boxShadow: 'none', cursor: 'pointer', userSelect: 'none', fontSize: 20 }
   const isNarrow = rect ? rect.width < 640 : false
-  const pillWidth = rect ? Math.max(240, Math.min(480, rect.width - 420)) : 'min(60vw, 480px)'
-  const titleMaxWidth = typeof pillWidth === 'number' ? Math.max(180, pillWidth - 120) : 360
+  const pillWidth = rect ? Math.max(220, Math.min(360, rect.width - 520)) : 'min(50vw, 360px)'
+  const titleMaxWidth = typeof pillWidth === 'number' ? Math.max(160, pillWidth - 120) : 280
   const mainFS = isNarrow ? 13 : 14
   const subFS = isNarrow ? 10 : 11
 
   return (
     <div style={containerStyle}>
       {viewMode === 'media' && (
-        <div style={{ width: '100%', marginTop: 12, display: 'flex', alignItems: 'center', gap: 30, justifyContent: 'center' }}>
+        <div style={{ width: '100%', marginTop: 6, display: 'flex', alignItems: 'center', gap: 24, justifyContent: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
             <div style={circleBtn} onMouseDown={(e) => { e.stopPropagation() }} onClick={() => seek(-15)}>
               <span style={circleArrowLeft}>↶</span>
@@ -549,8 +551,8 @@ export default function WindowControlsOverlay() {
             <div
               style={{
                 ...noDrag,
-                width: floatOpen ? floatSize.w : 96,
-                height: floatOpen ? floatSize.h : 54,
+                width: floatOpen ? floatSize.w : 88,
+                height: floatOpen ? floatSize.h : 50,
                 borderRadius: 8,
                 overflow: 'hidden',
                 boxShadow: floatOpen ? '0 8px 24px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.08)',
@@ -605,7 +607,7 @@ export default function WindowControlsOverlay() {
               )}
               {floatOpen && (
                 <>
-                  <div style={{ position: 'absolute', left: 8, top: 8, width: 'calc(100% - 140px)', height: 28, cursor: 'move', background: 'rgba(255,255,255,0.6)', borderRadius: 6 }} onMouseDown={startDrag} />
+                  <div style={{ position: 'absolute', left: 8, top: 8, width: 'calc(100% - 140px)', height: 28, cursor: 'move', background: 'transparent', borderRadius: 6 }} onMouseDown={startDrag} />
                   <div
                     style={{
                       position: 'absolute',
@@ -692,27 +694,29 @@ export default function WindowControlsOverlay() {
         </div>
       )}
       {viewMode === 'progress' && (
-        <div style={{ width: '100%', marginTop: 26, display: 'flex', alignItems: 'center', gap: 30, justifyContent: 'center' }}>
-          <div style={{ ...pill, minWidth: 520, justifyContent: 'space-between', paddingTop: 14 }}>
+        <div style={{ width: '100%', marginTop: 10, display: 'flex', alignItems: 'center', gap: 20, justifyContent: 'center' }}>
+          <div style={{ ...pill, minWidth: 520, justifyContent: 'space-between', paddingTop: 8 }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4, width: '100%' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%' }}>
                 <span style={{ fontSize: 14, fontWeight: 600, color: '#333' }}>学习进度</span>
                 <span style={{ fontSize: 12, color: '#999' }}>{chapters[idx].title}</span>
                 <span style={{ marginLeft: 'auto', fontSize: 12, color: '#666' }}>{Math.round((Math.max(0, Math.min(1, (duration ? (currentTime / duration) : 0)))) * 100)}%</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%' }}>
-                <span style={{ color: '#9aa0a6', fontSize: 12 }}>{fmt(currentTime)}</span>
-                <div style={{ ...noDrag, flex: 1 }}>
-                  <div style={{ position: 'relative', height: 8, backgroundColor: '#e9edf3', border: '1px solid #dde3ea', borderRadius: 10, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${duration ? (currentTime / duration) * 100 : 0}%`, background: '#69b1ff' }} />
-                  </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, width: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ fontSize: 12, color: '#666' }}>今日学习时长：{fmt(currentTime)}</span>
+                  <span style={{ fontSize: 12, color: '#666' }}>预计剩余：{fmt(Math.max(0, duration - currentTime))}</span>
+                  <span style={{ fontSize: 12, color: '#666' }}>章节：{idx + 1}/{chapters.length}</span>
                 </div>
-                <span style={{ color: '#9aa0a6', fontSize: 12 }}>{fmt(duration)}</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%' }}>
-                <span style={{ fontSize: 12, color: '#666' }}>今日学习时长：{fmt(currentTime)}</span>
-                <span style={{ fontSize: 12, color: '#666' }}>预计剩余：{fmt(Math.max(0, duration - currentTime))}</span>
-                <span style={{ fontSize: 12, color: '#666' }}>章节：{idx + 1}/{chapters.length}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%' }}>
+                  <span style={{ color: '#9aa0a6', fontSize: 12 }}>{fmt(currentTime)}</span>
+                  <div style={{ ...noDrag, flex: 1 }}>
+                    <div style={{ position: 'relative', height: 6, backgroundColor: '#e9edf3', border: '1px solid #dde3ea', borderRadius: 10, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${duration ? (currentTime / duration) * 100 : 0}%`, background: '#69b1ff' }} />
+                    </div>
+                  </div>
+                  <span style={{ color: '#9aa0a6', fontSize: 12 }}>{fmt(duration)}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -720,8 +724,8 @@ export default function WindowControlsOverlay() {
       )}
 
       {viewMode === 'pinned' && (
-        <div style={{ width: '100%', marginTop: 20, display: 'flex', alignItems: 'center', gap: 30, justifyContent: 'center' }}>
-          <div style={{ ...pill, minWidth: 520, justifyContent: 'space-between', paddingTop: 10 }}>
+        <div style={{ width: '100%', marginTop: 10, display: 'flex', alignItems: 'center', gap: 22, justifyContent: 'center' }}>
+          <div style={{ ...pill, minWidth: 520, justifyContent: 'space-between', paddingTop: 6 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8, width: '100%' }} onMouseEnter={() => setOpenPinnedPanel(true)}>
               {pinnedNotes.slice(0, 1).map(n => (
                 <div key={n.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
@@ -753,8 +757,8 @@ export default function WindowControlsOverlay() {
       )}
 
       {viewMode === 'live' && (
-        <div style={{ width: '100%', marginTop: 20, display: 'flex', alignItems: 'center', gap: 30, justifyContent: 'center' }}>
-          <div style={{ ...pill, minWidth: 620, justifyContent: 'space-between', paddingTop: 10 }}>
+        <div style={{ width: '100%', marginTop: 10, display: 'flex', alignItems: 'center', gap: 22, justifyContent: 'center' }}>
+          <div style={{ ...pill, minWidth: 620, justifyContent: 'space-between', paddingTop: 6 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }} onMouseEnter={() => setOpenLivePanel(true)}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
                 {liveNow.slice(0, 1).map(l => (
@@ -791,8 +795,8 @@ export default function WindowControlsOverlay() {
       )}
 
       {viewMode === 'upload' && (
-        <div style={{ width: '100%', marginTop: 22, display: 'flex', alignItems: 'center', gap: 30, justifyContent: 'center' }}>
-          <div style={{ ...pill, minWidth: 640, justifyContent: 'space-between', paddingTop: 8, paddingBottom: 12 }}>
+        <div style={{ width: '100%', marginTop: 12, display: 'flex', alignItems: 'center', gap: 22, justifyContent: 'center' }}>
+          <div style={{ ...pill, minWidth: 640, justifyContent: 'space-between', paddingTop: 6, paddingBottom: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', paddingBottom: 6 }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -858,10 +862,7 @@ export default function WindowControlsOverlay() {
                     <div style={{ height: '100%', width: `${pct(u.uploaded, u.size)}%`, background: u.status === 'done' ? '#52c41a' : '#69b1ff' }} />
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 12, color: '#666' }}>用时 {elapsedText(u)}</span>
-                  <span style={{ fontSize: 12, color: '#666' }}>剩余 {etaText(u.uploaded, u.size)}</span>
-                </div>
+                <div style={{ display: 'none' }} />
                 </div>
               ))}
             </div>
@@ -870,8 +871,8 @@ export default function WindowControlsOverlay() {
       )}
 
       {viewMode === 'ai-tools' && (
-        <div style={{ width: '100%', marginTop: 22, display: 'flex', alignItems: 'center', gap: 30, justifyContent: 'center' }}>
-          <div style={{ ...pill, minWidth: 700, justifyContent: 'space-between', paddingTop: 12, paddingBottom: 14 }}>
+        <div style={{ width: '100%', marginTop: 12, display: 'flex', alignItems: 'center', gap: 22, justifyContent: 'center' }}>
+          <div style={{ ...pill, minWidth: 700, justifyContent: 'space-between', paddingTop: 8, paddingBottom: 10 }}>
             <div style={{ display: 'flex', alignItems: 'stretch', gap: 12, width: '100%' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: 280, paddingTop: 6 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -1242,8 +1243,9 @@ export default function WindowControlsOverlay() {
         destroyOnClose
         keyboard
         getContainer={() => document.body}
-        style={{ zIndex: 2000 }}
+        style={{ zIndex: 2000, WebkitAppRegion: 'no-drag' }}
         styles={{ header: { WebkitAppRegion: 'no-drag' }, body: { WebkitAppRegion: 'no-drag' } }}
+        closeIcon={<CloseOutlined style={{ WebkitAppRegion: 'no-drag', fontSize: 16 }} />}
         title={<div style={{ width: '100%', textAlign: 'left' }}>待播清单</div>}
         extra={<Button type="text" onClick={() => setOpenQueue(false)}>关闭</Button>}
       >

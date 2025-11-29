@@ -82,7 +82,39 @@ function App() {
   const [messages, setMessages] = useState([])
   const [shareModalVisible, setShareModalVisible] = useState(false)
   const [assetsDrawerVisible, setAssetsDrawerVisible] = useState(false)
-  const forceWCO = (typeof window !== 'undefined') && new URLSearchParams(window.location.search).get('wco') === 'force'
+  const forceWCO = (typeof window !== 'undefined') && (
+    new URLSearchParams(window.location.search).get('wco') === 'force' ||
+    (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches) ||
+    (typeof window.navigator !== 'undefined' && window.navigator.standalone === true)
+  )
+  useEffect(() => {
+    try {
+      const isStandalone = (typeof window !== 'undefined') && (
+        (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches) ||
+        (typeof window.navigator !== 'undefined' && window.navigator.standalone === true)
+      )
+      try {
+        const el = document.documentElement
+        if (el) {
+          if (isStandalone) el.classList.add('is-pwa')
+          else el.classList.remove('is-pwa')
+          const isWco = (typeof window !== 'undefined') && (typeof window.matchMedia === 'function') && window.matchMedia('(display-mode: window-controls-overlay)').matches
+          if (isWco) el.classList.add('is-wco')
+          else el.classList.remove('is-wco')
+        }
+      } catch {}
+      const handled = typeof localStorage !== 'undefined' && localStorage.getItem('pwa_first_launch_handled') === '1'
+      if (isStandalone && !handled) {
+        try { localStorage.setItem('pwa_first_launch_handled', '1') } catch {}
+        const params = (typeof window !== 'undefined') ? new URLSearchParams(window.location.search) : null
+        const start = params ? params.get('start') : null
+        if (!start) {
+          setCurrentView('welcome')
+          try { window.history.replaceState(null, '', '/?start=welcome') } catch {}
+        }
+      }
+    } catch {}
+  }, [])
   const handleHashChange = () => {
     const hash = (typeof window !== 'undefined' && window.location.hash) ? window.location.hash.slice(1) : ''
     setCurrentView(prev => (hash ? hash : prev))
@@ -357,6 +389,21 @@ function App() {
       } catch {}
     }
   }, [])
+  useEffect(() => {
+    try {
+      if (navigator.serviceWorker) {
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          try {
+            const value = 4
+            if (typeof navigator.setAppBadge === 'function') navigator.setAppBadge(value)
+            navigator.serviceWorker.ready.then((reg) => {
+              (reg && reg.active) && reg.active.postMessage({ type: 'SET_BADGE', value })
+            }).catch(() => {})
+          } catch {}
+        })
+      }
+    } catch {}
+  }, [])
 
   const handleViewChange = (view, data = null) => {
     console.log('View change requested:', view, data)
@@ -423,7 +470,7 @@ function App() {
   }
 
   return (
-    <Layout className="app" style={{ height: '100vh', background: '#fff', paddingTop: forceWCO ? 40 : 'env(titlebar-area-height, 0px)' }}>
+    <Layout className="app" style={{ height: '100vh', background: '#fff', paddingTop: 'env(titlebar-area-height, 0px)' }}>
       {currentView !== 'welcome' && <WindowControlsOverlay />}
       <Layout style={{ height: '100vh' }}>
         {(currentView !== 'admin-center' && currentView !== 'welcome') && (

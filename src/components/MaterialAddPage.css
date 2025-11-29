@@ -25,7 +25,7 @@
 .material-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
+  gap: 12px;
   max-width: 100%;
   overflow: visible;
 }
@@ -41,14 +41,14 @@
 }
 
 .material-card .ant-card-body {
-  padding: 40px 24px;
+  padding: 24px 16px;
   overflow: visible;
 }
 
 /* 上传区域样式 */
 .upload-area {
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: 24px;
   overflow: visible;
 }
 
@@ -56,7 +56,7 @@
   background-color: #fafafa !important;
   border: 2px dashed #d9d9d9 !important;
   border-radius: 8px !important;
-  padding: 60px 20px !important;
+  padding: 36px 18px !important;
   overflow: visible;
 }
 
@@ -64,14 +64,14 @@
 .progress-area {
   background-color: white;
   border-radius: 8px;
-  padding: 20px 24px;
+  padding: 16px 18px;
   border: 1px solid #e8e8e8;
   display: flex;
   align-items: center;
   justify-content: space-between;
   overflow: visible;
   max-width: 100%;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 /* 响应式设计 */
