@@ -46,9 +46,15 @@ export default function WindowControlsOverlay() {
   const [floatSize, setFloatSize] = useState({ w: 480, h: 270 })
   const [floatHover, setFloatHover] = useState(false)
   const [openAIToolsPanel, setOpenAIToolsPanel] = useState(false)
+  const [liveFloatOpen, setLiveFloatOpen] = useState(false)
+  const [liveFloatPos, setLiveFloatPos] = useState({ x: 40, y: 140 })
+  const [liveFloatSize, setLiveFloatSize] = useState({ w: 560, h: 340 })
+  const [liveFloatHover, setLiveFloatHover] = useState(false)
   const iconsRef = useRef(null)
   const [iconsWidth, setIconsWidth] = useState(0)
   const [hoverMedia, setHoverMedia] = useState(false)
+  const livePillRef = useRef(null)
+  const liveOverlayRef = useRef(null)
 
   const [uploads, setUploads] = useState([
     { id: 'u1', name: '安全生产宣传片.mp4', size: 820 * 1024 * 1024, uploaded: 240 * 1024 * 1024, status: 'uploading', speedMBps: 4.2, startedAt: Date.now() - Math.floor((240 / 4.2) * 1000) },
@@ -180,6 +186,28 @@ export default function WindowControlsOverlay() {
   const draggingRef = useRef(false)
   const dragOffsetRef = useRef({ x: 0, y: 0 })
   const resizingRef = useRef(false)
+  const liveDraggingRef = useRef(false)
+  const liveDragOffsetRef = useRef({ x: 0, y: 0 })
+  const liveResizingRef = useRef(false)
+
+  const updateLiveFloatPos = () => {
+    try {
+      const el = livePillRef.current
+      if (!el) return
+      const r = el.getBoundingClientRect()
+      const left = Math.round(r.left)
+      const top = Math.round(r.bottom)
+      setLiveFloatPos({ x: left, y: top + 4 })
+      setLiveFloatSize(s => ({ ...s, w: Math.round(r.width) }))
+    } catch {}
+  }
+  useEffect(() => {
+    if (!liveFloatOpen) return
+    const onResize = () => updateLiveFloatPos()
+    window.addEventListener('resize', onResize)
+    updateLiveFloatPos()
+    return () => window.removeEventListener('resize', onResize)
+  }, [liveFloatOpen])
   const queue = useMemo(() => [
     { id: 'q1', title: '教学基本规范（课堂纪律与仪表）', lecturer: '张老师', duration: 7 * 60 + 22 },
     { id: 'q2', title: '备课方法与案例设计', lecturer: '李老师', duration: 12 * 60 + 35 },
@@ -299,6 +327,44 @@ export default function WindowControlsOverlay() {
     document.removeEventListener('mouseup', endResize)
   }
 
+  const startLiveDrag = (e) => {
+    e.preventDefault(); e.stopPropagation()
+    liveDraggingRef.current = true
+    const ox = e.clientX - liveFloatPos.x
+    const oy = e.clientY - liveFloatPos.y
+    liveDragOffsetRef.current = { x: ox, y: oy }
+    document.addEventListener('mousemove', onLiveDrag)
+    document.addEventListener('mouseup', endLiveDrag)
+  }
+  const onLiveDrag = (e) => {
+    if (!liveDraggingRef.current) return
+    const ox = liveDragOffsetRef.current.x
+    const oy = liveDragOffsetRef.current.y
+    setLiveFloatPos({ x: e.clientX - ox, y: e.clientY - oy })
+  }
+  const endLiveDrag = () => {
+    liveDraggingRef.current = false
+    document.removeEventListener('mousemove', onLiveDrag)
+    document.removeEventListener('mouseup', endLiveDrag)
+  }
+  const startLiveResize = (e) => {
+    e.preventDefault(); e.stopPropagation()
+    liveResizingRef.current = true
+    document.addEventListener('mousemove', onLiveResize)
+    document.addEventListener('mouseup', endLiveResize)
+  }
+  const onLiveResize = (e) => {
+    if (!liveResizingRef.current) return
+    const nw = Math.max(360, e.clientX - liveFloatPos.x)
+    const nh = Math.max(200, e.clientY - liveFloatPos.y)
+    setLiveFloatSize({ w: nw, h: nh })
+  }
+  const endLiveResize = () => {
+    liveResizingRef.current = false
+    document.removeEventListener('mousemove', onLiveResize)
+    document.removeEventListener('mouseup', endLiveResize)
+  }
+
   useEffect(() => {
     const v = videoRef.current
     if (!v) return
@@ -385,7 +451,7 @@ export default function WindowControlsOverlay() {
     left: 0,
     top: 0,
     width: '100%',
-    height: 40,
+    height: 52,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -403,7 +469,7 @@ export default function WindowControlsOverlay() {
     left: rect ? `${rect.x}px` : 'env(titlebar-area-x, 0px)',
     top: rect ? `${rect.y}px` : 'env(titlebar-area-y, 0px)',
     width: rect ? `${rect.width}px` : 'env(titlebar-area-width, 100%)',
-    height: rect ? `${Math.max(rect.height || 0, 34)}px` : 'env(titlebar-area-height, 34px)',
+    height: rect ? `${Math.max(rect.height || 0, 48)}px` : 'env(titlebar-area-height, 48px)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -421,7 +487,7 @@ export default function WindowControlsOverlay() {
   const noDrag = { WebkitAppRegion: 'no-drag' }
   const iconBtn = { ...noDrag, fontSize: 16, color: '#666', padding: 6, borderRadius: 8, transition: 'all .2s ease' }
   const activeIconBtn = { ...iconBtn, color: '#1677ff', backgroundColor: 'rgba(22,119,255,0.12)' }
-  const pill = { ...noDrag, position: 'relative', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', padding: '4px 10px 6px 10px', display: 'flex', alignItems: 'center', gap: 8, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)' }
+  const pill = { ...noDrag, position: 'relative', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 8, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)' }
   const centerTitle = { display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2, cursor: 'pointer' }
   const centerMain = { fontSize: 15, fontWeight: 600, color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center' }
   const centerSub = { fontSize: 12, color: '#999', whiteSpace: 'nowrap', textAlign: 'center' }
@@ -482,7 +548,7 @@ export default function WindowControlsOverlay() {
   return (
     <div style={containerStyle}>
       {viewMode === 'media' && (
-        <div style={{ width: '100%', marginTop: 6, display: 'flex', alignItems: 'center', gap: 24, justifyContent: 'center' }}>
+        <div style={{ width: '100%', marginTop: 8, display: 'flex', alignItems: 'center', gap: 24, justifyContent: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
             <div style={circleBtn} onMouseDown={(e) => { e.stopPropagation() }} onClick={() => seek(-15)}>
               <span style={circleArrowLeft}>↶</span>
@@ -496,57 +562,86 @@ export default function WindowControlsOverlay() {
               <span>30</span>
             </div>
           </div>
-          <div
-            style={{ ...pill, width: pillWidth, justifyContent: 'center', position: 'relative' }}
-            onMouseDown={(e) => { e.stopPropagation() }}
-            onClick={togglePlay}
-            onMouseEnter={() => setHoverMedia(true)}
-            onMouseLeave={() => setHoverMedia(false)}
-          >
-            <div
-              style={centerTitle}
-              onClick={(e) => {
-                e.stopPropagation();
-                try {
-                  if (typeof window !== 'undefined') {
-                    window.location.hash = 'note-edit-page';
-                    setTimeout(() => {
+          {(() => {
+            const assessmentRequiredHours = 2.0;
+            const assessmentRequiredMinutes = Math.round(assessmentRequiredHours * 60);
+            const watchedMinutes = Math.floor(Math.max(0, currentTime) / 60);
+            const assessPct = Math.min(100, Math.round(((currentTime || 0) / (assessmentRequiredHours * 3600)) * 100));
+            const popContent = (
+              <div style={{ minWidth: 320 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#333' }}>考核观看进度</span>
+                  <Tag color="#1677ff">{assessPct}%</Tag>
+                </div>
+                <div style={{ marginTop: 8 }}>
+                  <div style={{ position: 'relative', height: 6, backgroundColor: '#e9edf3', border: '1px solid #dde3ea', borderRadius: 10, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${assessPct}%`, background: '#69b1ff' }} />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 8 }}>
+                  <span style={{ fontSize: 12, color: '#666' }}>已观看：{watchedMinutes} 分钟</span>
+                  <span style={{ fontSize: 12, color: '#666', textAlign: 'right' }}>学时要求：{assessmentRequiredHours} 学时（{assessmentRequiredMinutes} 分钟）</span>
+                </div>
+                <div style={{ marginTop: 6 }}>
+                  <span style={{ fontSize: 12, color: '#9aa0a6' }}>模拟数据，仅用于预览</span>
+                </div>
+              </div>
+            )
+            return (
+              <Popover trigger="hover" placement="bottom" overlayStyle={{ pointerEvents: 'none' }} content={popContent}>
+                <div
+                  style={{ ...pill, width: pillWidth, justifyContent: 'center', position: 'relative' }}
+                  onMouseDown={(e) => { e.stopPropagation() }}
+                  onClick={togglePlay}
+                  onMouseEnter={() => setHoverMedia(true)}
+                  onMouseLeave={() => setHoverMedia(false)}
+                >
+                  <div
+                    style={centerTitle}
+                    onClick={(e) => {
+                      e.stopPropagation();
                       try {
-                        const detail = {
-                          id: 'wco-q1',
-                          title: '教学基本规范（课堂纪律与仪表）',
-                          url: '/assets/demo1.mp4'
-                        };
-                        window.dispatchEvent(new CustomEvent('openNoteEditPlayback', { detail }));
+                        if (typeof window !== 'undefined') {
+                          window.location.hash = 'note-edit-page';
+                          setTimeout(() => {
+                            try {
+                              const detail = {
+                                id: 'wco-q1',
+                                title: '教学基本规范（课堂纪律与仪表）',
+                                url: '/assets/demo1.mp4'
+                              };
+                              window.dispatchEvent(new CustomEvent('openNoteEditPlayback', { detail }));
+                            } catch { void 0 }
+                          }, 0);
+                        }
                       } catch { void 0 }
-                    }, 0);
-                  }
-                } catch { void 0 }
-              }}
-            >
-              <span style={{ ...centerMain, fontSize: mainFS, maxWidth: titleMaxWidth }}>教学基本规范（课堂纪律与仪表）</span>
-              <span style={{ ...centerSub, fontSize: subFS, maxWidth: titleMaxWidth }}>张老师 · 2025年11月11日</span>
-            </div>
-            <div
-              onMouseDown={(e) => { e.stopPropagation() }}
-              style={{ position: 'absolute', left: 12, right: 12, bottom: -6, opacity: hoverMedia ? 1 : 0, transition: 'opacity .16s ease', pointerEvents: hoverMedia ? 'auto' : 'none' }}
-            >
-              <Slider
-                min={0}
-                max={Math.max(0, Math.floor(duration))}
-                step={1}
-                value={Math.floor(currentTime)}
-                onChange={(v) => { setCurrentTime(v); const vid = videoRef.current; if (vid) { vid.currentTime = v; } }}
-                tooltip={{ open: false }}
-                railStyle={{ height: 2, backgroundColor: '#e5e7eb' }}
-                trackStyle={{ height: 2, backgroundColor: '#c2c8d0' }}
-                handleStyle={{ width: 8, height: 8, borderRadius: 8, borderColor: '#c2c8d0', backgroundColor: '#fff', boxShadow: 'none' }}
-                style={{ margin: 0 }}
-              />
-            </div>
-            <span style={{ position: 'absolute', left: 12, bottom: 10, fontSize: 12, color: '#9aa0a6', opacity: hoverMedia ? 1 : 0, transition: 'opacity .16s ease' }}>{fmt(currentTime)}</span>
-            <span style={{ position: 'absolute', right: 12, bottom: 10, fontSize: 12, color: '#9aa0a6', opacity: hoverMedia ? 1 : 0, transition: 'opacity .16s ease' }}>{fmt(duration)}</span>
-          </div>
+                    }}
+                  >
+                    <span style={{ ...centerMain, fontSize: mainFS, maxWidth: titleMaxWidth }}>教学基本规范（课堂纪律与仪表）</span>
+                  </div>
+                  <div
+                    onMouseDown={(e) => { e.stopPropagation() }}
+                    style={{ position: 'absolute', left: 12, right: 12, bottom: -6, opacity: hoverMedia ? 1 : 0, transition: 'opacity .16s ease', pointerEvents: hoverMedia ? 'auto' : 'none' }}
+                  >
+                    <Slider
+                      min={0}
+                      max={Math.max(0, Math.floor(duration))}
+                      step={1}
+                      value={Math.floor(currentTime)}
+                      onChange={(v) => { setCurrentTime(v); const vid = videoRef.current; if (vid) { vid.currentTime = v; } }}
+                      tooltip={{ open: false }}
+                      railStyle={{ height: 2, backgroundColor: '#e5e7eb' }}
+                      trackStyle={{ height: 2, backgroundColor: '#c2c8d0' }}
+                      handleStyle={{ width: 8, height: 8, borderRadius: 8, borderColor: '#c2c8d0', backgroundColor: '#fff', boxShadow: 'none' }}
+                      style={{ margin: 0 }}
+                    />
+                  </div>
+                  <span style={{ position: 'absolute', left: 12, bottom: 10, fontSize: 12, color: '#9aa0a6', opacity: hoverMedia ? 1 : 0, transition: 'opacity .16s ease' }}>{fmt(currentTime)}</span>
+                  <span style={{ position: 'absolute', right: 12, bottom: 10, fontSize: 12, color: '#9aa0a6', opacity: hoverMedia ? 1 : 0, transition: 'opacity .16s ease' }}>{fmt(duration)}</span>
+                </div>
+              </Popover>
+            )
+          })()}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div
               style={{
@@ -758,8 +853,8 @@ export default function WindowControlsOverlay() {
 
       {viewMode === 'live' && (
         <div style={{ width: '100%', marginTop: 10, display: 'flex', alignItems: 'center', gap: 22, justifyContent: 'center' }}>
-          <div style={{ ...pill, minWidth: 620, justifyContent: 'space-between', paddingTop: 6 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }} onMouseEnter={() => setOpenLivePanel(true)}>
+          <div style={{ ...pill, minWidth: 620, justifyContent: 'space-between', paddingTop: 6 }} ref={livePillRef} onMouseLeave={(e) => { const rt = e.relatedTarget; if (liveOverlayRef.current && rt && liveOverlayRef.current.contains(rt)) return; setLiveFloatOpen(false) }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }} onMouseEnter={() => { setLiveFloatOpen(true); updateLiveFloatPos() }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
                 {liveNow.slice(0, 1).map(l => (
                   <div key={l.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '6px 8px', borderRadius: 8, transition: 'background 160ms ease' }}
@@ -789,6 +884,121 @@ export default function WindowControlsOverlay() {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {liveFloatOpen && (
+        <div
+          ref={liveOverlayRef}
+          style={{
+            ...noDrag,
+            position: 'fixed',
+            left: liveFloatPos.x,
+            top: liveFloatPos.y,
+            width: liveFloatSize.w,
+            height: liveFloatSize.h,
+            borderRadius: 8,
+            overflow: 'hidden',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+            border: '1px solid #e5e7eb',
+            background: '#fff',
+            zIndex: 3000
+          }}
+          onMouseEnter={() => setLiveFloatHover(true)}
+          onMouseLeave={() => { setLiveFloatHover(false); setLiveFloatOpen(false) }}
+        >
+          <div style={{ position: 'absolute', left: 8, top: 8, width: 'calc(100% - 140px)', height: 28, cursor: 'move', background: 'transparent', borderRadius: 6 }} onMouseDown={startLiveDrag} />
+          <div
+            style={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              opacity: liveFloatHover ? 1 : 0,
+              transition: 'opacity 160ms ease',
+              pointerEvents: liveFloatHover ? 'auto' : 'none'
+            }}
+          >
+            <Space>
+              <Popover
+                trigger="click"
+                placement="bottomRight"
+                overlayStyle={{ pointerEvents: 'auto' }}
+                content={(
+                  <Space>
+                    <Button size="small" onClick={(e) => { e.stopPropagation(); setLiveFloatSize({ w: 420, h: 260 }) }}>420×260</Button>
+                    <Button size="small" onClick={(e) => { e.stopPropagation(); setLiveFloatSize({ w: 560, h: 340 }) }}>560×340</Button>
+                    <Button size="small" onClick={(e) => { e.stopPropagation(); setLiveFloatSize({ w: 700, h: 420 }) }}>700×420</Button>
+                  </Space>
+                )}
+              >
+                <Tooltip title="窗口大小">
+                  <Button size="small" shape="circle" type="default" style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid #e5e7eb' }}>
+                    <AppstoreOutlined />
+                  </Button>
+                </Tooltip>
+              </Popover>
+              <Tooltip title="关闭">
+                <Button size="small" shape="circle" type="default" danger style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid #e5e7eb' }} onClick={(e) => { e.stopPropagation(); setLiveFloatOpen(false) }}>
+                  <CloseOutlined />
+                </Button>
+              </Tooltip>
+            </Space>
+          </div>
+          <div style={{ position: 'absolute', right: 6, bottom: 6, width: 14, height: 14, borderRight: '2px solid #999', borderBottom: '2px solid #999', cursor: 'nwse-resize' }} onMouseDown={startLiveResize} />
+          <div style={{ position: 'absolute', left: 8, right: 8, top: 8, bottom: 8, overflow: 'auto', background: '#fff', borderRadius: 8, padding: '6px 8px', border: '1px solid #f2f4f7' }} onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
+              {[...liveNow, ...liveSoon].map(l => (
+                <div key={l.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 10, border: '1px solid #eef2f7', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
+                  onMouseDown={(e) => { e.stopPropagation() }}
+                  onClick={(e) => { e.stopPropagation(); try { window.location.hash = 'meeting-center' } catch { void 0 } }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                    {('startTime' in l) ? (
+                      <ClockCircleOutlined style={{ color: '#fa8c16' }} />
+                    ) : (
+                      <VideoCameraOutlined style={{ color: '#f5222d' }} />
+                    )}
+                    <Tag color={('startTime' in l) ? 'orange' : 'red'} style={{ borderRadius: 12, lineHeight: '18px', height: 22 }}>
+                      {('startTime' in l) ? '即将直播' : '直播中'}
+                    </Tag>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: '#1f2937', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.title}</div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ fontSize: 12, color: '#999' }}>{l.instructor}</span>
+                    {('startTime' in l) ? (
+                      <span style={{ fontSize: 12, color: '#666' }}>{(() => {
+                        try {
+                          const [h, m] = String(l.startTime || '').split(':')
+                          const target = dayjs().hour(parseInt(h || '0')).minute(parseInt(m || '0')).second(0)
+                          const now = dayjs()
+                          const diff = Math.max(0, target.diff(now, 'minute'))
+                          return `距开始 ${diff} 分钟`
+                        } catch { return `${l.startTime} 开播` }
+                      })()}</span>
+                    ) : (
+                      <span style={{ fontSize: 12, color: '#666' }}>{(() => {
+                        try {
+                          const [h, m] = String(l.startedAt || '').split(':')
+                          const started = dayjs().hour(parseInt(h || '0')).minute(parseInt(m || '0')).second(0)
+                          const now = dayjs()
+                          const diff = Math.max(0, now.diff(started, 'minute'))
+                          return `已开播 ${diff} 分钟`
+                        } catch { return '直播中' }
+                      })()}</span>
+                    )}
+                    {('startTime' in l) ? (
+                      <Button size="small" type="default" style={{ borderRadius: 14 }} onClick={(e) => { e.stopPropagation(); try { window.location.hash = 'meeting-center' } catch { void 0 } }}>查看详情</Button>
+                    ) : (
+                      <Button size="small" type="primary" style={{ borderRadius: 14, background: 'linear-gradient(90deg,#ff4d4f,#f5222d)' }} onClick={(e) => { e.stopPropagation(); try { window.location.hash = 'meeting-center' } catch { void 0 } }}>进入直播</Button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -1030,73 +1240,6 @@ export default function WindowControlsOverlay() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 12, color: '#999' }}>{n.tag}</span>
                   <span style={{ fontSize: 12, color: '#666' }}>{n.updatedAt}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </Drawer>
-      <Drawer
-        placement="top"
-        open={openLivePanel}
-        onClose={() => setOpenLivePanel(false)}
-        height={420}
-        mask
-        maskClosable
-        keyboard
-        destroyOnClose
-        getContainer={() => document.body}
-        style={{ zIndex: 2000 }}
-        styles={{ header: { WebkitAppRegion: 'no-drag' }, body: { WebkitAppRegion: 'no-drag', padding: 12, display: 'flex', justifyContent: 'center' } }}
-        title={<div style={{ width: '100%', textAlign: 'center' }}>直播提醒与入口</div>}
-        extra={<Button size="small" type="text" onClick={() => setOpenLivePanel(false)}>关闭</Button>}
-      >
-        <div style={{ width: 680, maxWidth: '100%' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
-            {[...liveNow, ...liveSoon].map(l => (
-              <div key={l.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 10, border: '1px solid #eef2f7', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
-                onMouseDown={(e) => { e.stopPropagation() }}
-                onClick={(e) => { e.stopPropagation(); try { window.location.hash = 'meeting-center' } catch { void 0 } }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                  {('startTime' in l) ? (
-                    <ClockCircleOutlined style={{ color: '#fa8c16' }} />
-                  ) : (
-                    <VideoCameraOutlined style={{ color: '#f5222d' }} />
-                  )}
-                  <Tag color={('startTime' in l) ? 'orange' : 'red'} style={{ borderRadius: 12, lineHeight: '18px', height: 22 }}>
-                    {('startTime' in l) ? '即将直播' : '直播中'}
-                  </Tag>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: '#1f2937', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.title}</div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ fontSize: 12, color: '#999' }}>{l.instructor}</span>
-                  {('startTime' in l) ? (
-                    <span style={{ fontSize: 12, color: '#666' }}>{(() => {
-                      try {
-                        const [h, m] = String(l.startTime || '').split(':')
-                        const target = dayjs().hour(parseInt(h || '0')).minute(parseInt(m || '0')).second(0)
-                        const now = dayjs()
-                        const diff = Math.max(0, target.diff(now, 'minute'))
-                        return `距开始 ${diff} 分钟`
-                      } catch { return `${l.startTime} 开播` }
-                    })()}</span>
-                  ) : (
-                    <span style={{ fontSize: 12, color: '#666' }}>{(() => {
-                      try {
-                        const [h, m] = String(l.startedAt || '').split(':')
-                        const started = dayjs().hour(parseInt(h || '0')).minute(parseInt(m || '0')).second(0)
-                        const now = dayjs()
-                        const diff = Math.max(0, now.diff(started, 'minute'))
-                        return `已开播 ${diff} 分钟`
-                      } catch { return '直播中' }
-                    })()}</span>
-                  )}
-                  {('startTime' in l) ? (
-                    <Button size="small" type="default" style={{ borderRadius: 14 }} onClick={(e) => { e.stopPropagation(); try { window.location.hash = 'meeting-center' } catch { void 0 } }}>查看详情</Button>
-                  ) : (
-                    <Button size="small" type="primary" style={{ borderRadius: 14, background: 'linear-gradient(90deg,#ff4d4f,#f5222d)' }} onClick={(e) => { e.stopPropagation(); try { window.location.hash = 'meeting-center' } catch { void 0 } }}>进入直播</Button>
-                  )}
                 </div>
               </div>
             ))}
