@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Typography, Card, Row, Col, Statistic, List, Tag } from 'antd';
+import { Button, Typography, Card, Row, Col, Statistic, List, Tag, Space } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { RIGHT_PANEL_VIEWS } from '../../constants/noteEditConstants';
 
@@ -27,70 +27,74 @@ const ClassroomBehaviorAnalysisViewer = ({ sourceInfo, setRightPanelView }) => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
-      <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ padding: '8px 12px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: 8 }}>
         <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => setRightPanelView(RIGHT_PANEL_VIEWS.OPERATIONS)}>
           返回
         </Button>
-        <Typography.Text style={{ fontWeight: 600 }}>课堂行为分析</Typography.Text>
-        <Typography.Text type="secondary" style={{ marginLeft: 'auto' }}>
+        <Typography.Text style={{ fontWeight: 600, fontSize: 14 }}>课堂行为分析</Typography.Text>
+        <Typography.Text type="secondary" style={{ marginLeft: 'auto', fontSize: 12 }}>
           {`基于 ${sourceInfo?.total || 1} 个数据源`}
         </Typography.Text>
       </div>
 
-      <div style={{ padding: 16, overflow: 'auto' }}>
-        <Row gutter={[16, 16]}>
+      <div style={{ padding: 12, overflow: 'auto' }}>
+        <Row gutter={[8, 8]}>
           <Col xs={24} md={6}>
-            <Card size="small">
-              <Statistic title="活跃度" value={metrics.activity} suffix="%" valueStyle={{ color: '#1d4ed8' }} />
+            <Card size="small" bodyStyle={{ padding: 8 }}>
+              <Statistic title="活跃度" value={metrics.activity} suffix="%" valueStyle={{ color: '#1d4ed8', fontSize: 18 }} />
             </Card>
           </Col>
           <Col xs={24} md={6}>
-            <Card size="small">
-              <Statistic title="参与度" value={metrics.participation} suffix="%" valueStyle={{ color: '#0369a1' }} />
+            <Card size="small" bodyStyle={{ padding: 8 }}>
+              <Statistic title="参与度" value={metrics.participation} suffix="%" valueStyle={{ color: '#0369a1', fontSize: 18 }} />
             </Card>
           </Col>
           <Col xs={24} md={6}>
-            <Card size="small">
-              <Statistic title="专注度" value={metrics.focus} suffix="%" valueStyle={{ color: '#2e7d32' }} />
+            <Card size="small" bodyStyle={{ padding: 8 }}>
+              <Statistic title="专注度" value={metrics.focus} suffix="%" valueStyle={{ color: '#2e7d32', fontSize: 18 }} />
             </Card>
           </Col>
           <Col xs={24} md={6}>
-            <Card size="small">
-              <Statistic title="纪律事件" value={metrics.disciplineEvents} valueStyle={{ color: '#d32f2f' }} />
+            <Card size="small" bodyStyle={{ padding: 8 }}>
+              <Statistic title="纪律事件" value={metrics.disciplineEvents} valueStyle={{ color: '#d32f2f', fontSize: 18 }} />
             </Card>
           </Col>
         </Row>
 
-        <Card size="small" style={{ marginTop: 16 }} title="课堂事件时间线">
+        <Card size="small" style={{ marginTop: 12 }} title="课堂事件时间线" bodyStyle={{ padding: 8 }}>
           <List
+            size="small"
+            split={false}
             itemLayout="horizontal"
             dataSource={events}
             renderItem={(item) => (
-              <List.Item>
+              <List.Item style={{ padding: '6px 8px' }}>
                 <List.Item.Meta
                   title={
-                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                      <Tag color="blue">{item.time}</Tag>
-                      <Typography.Text strong>{item.student}</Typography.Text>
-                      <Tag color="geekblue">{item.type}</Tag>
-                      {item.sentiment === 'positive' && <Tag color="green">积极</Tag>}
-                      {item.sentiment === 'neutral' && <Tag color="default">一般</Tag>}
-                      {item.sentiment === 'warning' && <Tag color="orange">提醒</Tag>}
-                    </div>
+                    <Space size={8} wrap>
+                      <Tag color="blue" style={{ fontSize: 12, padding: '0 6px', height: 20, lineHeight: '20px' }}>{item.time}</Tag>
+                      <Typography.Text strong style={{ fontSize: 13 }}>{item.student}</Typography.Text>
+                      <Tag color="geekblue" style={{ fontSize: 12, padding: '0 6px', height: 20, lineHeight: '20px' }}>{item.type}</Tag>
+                      {item.sentiment === 'positive' && <Tag color="green" style={{ fontSize: 12, padding: '0 6px', height: 20, lineHeight: '20px' }}>积极</Tag>}
+                      {item.sentiment === 'neutral' && <Tag color="default" style={{ fontSize: 12, padding: '0 6px', height: 20, lineHeight: '20px' }}>一般</Tag>}
+                      {item.sentiment === 'warning' && <Tag color="orange" style={{ fontSize: 12, padding: '0 6px', height: 20, lineHeight: '20px' }}>提醒</Tag>}
+                    </Space>
                   }
-                  description={item.note}
+                  description={<Typography.Text style={{ fontSize: 12, color: '#666' }}>{item.note}</Typography.Text>}
                 />
               </List.Item>
             )}
           />
         </Card>
 
-        <Card size="small" style={{ marginTop: 16 }} title="教学建议">
+        <Card size="small" style={{ marginTop: 12 }} title="教学建议" bodyStyle={{ padding: 8 }}>
           <List
+            size="small"
+            split={false}
             dataSource={summaryTips}
             renderItem={(text) => (
-              <List.Item>
-                <Typography.Text>{text}</Typography.Text>
+              <List.Item style={{ padding: '6px 8px' }}>
+                <Typography.Text style={{ fontSize: 12 }}>{text}</Typography.Text>
               </List.Item>
             )}
           />

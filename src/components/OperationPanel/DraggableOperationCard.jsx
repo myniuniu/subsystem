@@ -54,6 +54,273 @@ const DraggableOperationCard = ({
     { value: 'uiux-design', label: 'UI/UX设计微专业' },
     { value: 'cloud-computing', label: '云计算微专业' }
   ]), []);
+  const configFormFields = useMemo(() => {
+    if (card.key === 'e-pbl-planning') {
+      return (
+        <>
+          <Form.Item label="知识空间">
+            <Select
+              value={config.designSpace || 'current'}
+              onChange={(value) => setConfig({ ...config, designSpace: value })}
+              style={{ width: '100%' }}
+            >
+              <Select.Option value="current">当前知识空间</Select.Option>
+              <Select.Option value="my">我的知识空间</Select.Option>
+              <Select.Option value="org">组织知识空间</Select.Option>
+            </Select>
+          </Form.Item>
+          <Form.Item label="教学设计模版">
+            <Select
+              value={config.designTemplateId || null}
+              onChange={(val, opt) => setConfig({ ...config, designTemplateId: val, designTemplateLabel: opt?.label || opt?.children || null })}
+              placeholder="请选择教学设计模版"
+              style={{ width: '100%' }}
+              showSearch
+              optionFilterProp="children"
+            >
+              <Select.Option value="epbl-basic">EPBL 基础教学设计模版</Select.Option>
+              <Select.Option value="epbl-science">理科项目式教学设计模版</Select.Option>
+              <Select.Option value="epbl-arts">文科项目式教学设计模版</Select.Option>
+              <Select.Option value="epbl-custom">自定义教学设计模版</Select.Option>
+            </Select>
+          </Form.Item>
+          <Form.Item label="学科">
+            <Select
+              value={config.subject || null}
+              onChange={(value) => setConfig({ ...config, subject: value })}
+              style={{ width: '100%' }}
+            >
+              <Select.Option value="语文">语文</Select.Option>
+              <Select.Option value="数学">数学</Select.Option>
+              <Select.Option value="英语">英语</Select.Option>
+              <Select.Option value="物理">物理</Select.Option>
+              <Select.Option value="化学">化学</Select.Option>
+              <Select.Option value="生物">生物</Select.Option>
+              <Select.Option value="历史">历史</Select.Option>
+              <Select.Option value="地理">地理</Select.Option>
+              <Select.Option value="政治">政治</Select.Option>
+              <Select.Option value="信息技术">信息技术</Select.Option>
+            </Select>
+          </Form.Item>
+          <Form.Item label="学段">
+            <Select
+              value={config.phase || null}
+              onChange={(value) => setConfig({ ...config, phase: value })}
+              style={{ width: '100%' }}
+            >
+              <Select.Option value="小学">小学</Select.Option>
+              <Select.Option value="初中">初中</Select.Option>
+              <Select.Option value="高中">高中</Select.Option>
+              <Select.Option value="大学">大学</Select.Option>
+            </Select>
+          </Form.Item>
+        </>
+      );
+    } else if (card.key === 'learning-plan') {
+      return (
+        <>
+          <Form.Item label="每日学习时长">
+            <InputNumber
+              value={config.dailyStudyMinutes || 60}
+              onChange={(value) => setConfig({ ...config, dailyStudyMinutes: value })}
+              min={10}
+              max={240}
+              style={{ width: '100%' }}
+              addonAfter="分钟"
+            />
+          </Form.Item>
+          <Form.Item label="偏好学习时段">
+            <Select
+              mode="multiple"
+              value={config.preferredTimeSlots || []}
+              onChange={(value) => setConfig({ ...config, preferredTimeSlots: value })}
+              placeholder="请选择偏好时段"
+              style={{ width: '100%' }}
+              maxTagCount="responsive"
+            >
+              <Select.Option value="早晨">早晨</Select.Option>
+              <Select.Option value="下午">下午</Select.Option>
+              <Select.Option value="晚上">晚上</Select.Option>
+            </Select>
+          </Form.Item>
+          <Form.Item label="学习风格">
+            <Select
+              value={config.learningStyle || null}
+              onChange={(value) => setConfig({ ...config, learningStyle: value })}
+              style={{ width: '100%' }}
+            >
+              <Select.Option value="视频">视频</Select.Option>
+              <Select.Option value="阅读">阅读</Select.Option>
+              <Select.Option value="实践">实践</Select.Option>
+              <Select.Option value="讨论">讨论</Select.Option>
+            </Select>
+          </Form.Item>
+          <Form.Item label="休息间隔">
+            <InputNumber
+              value={config.breakInterval || 25}
+              onChange={(value) => setConfig({ ...config, breakInterval: value })}
+              min={5}
+              max={60}
+              style={{ width: '100%' }}
+              addonAfter="分钟"
+            />
+          </Form.Item>
+          <Form.Item label="周末学习">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text type="secondary">开启周末学习安排</Text>
+              <Switch
+                checked={config.weekendStudy || false}
+                onChange={(checked) => setConfig({ ...config, weekendStudy: checked })}
+              />
+            </div>
+          </Form.Item>
+        </>
+      );
+    }
+    return (
+      <>
+        <Form.Item label="培训难度">
+          <Select 
+            value={config.difficulty}
+            onChange={(value) => setConfig({...config, difficulty: value})}
+            style={{ width: '100%' }}
+          >
+            <Select.Option value="easy">初级 - 适合新手入门</Select.Option>
+            <Select.Option value="medium">中级 - 有一定基础</Select.Option>
+            <Select.Option value="hard">高级 - 深度专业培训</Select.Option>
+          </Select>
+        </Form.Item>
+        <Form.Item label="培训周期（周）">
+          <InputNumber 
+            value={config.duration}
+            onChange={(value) => setConfig({...config, duration: value})}
+            min={1}
+            max={52}
+            style={{ width: '100%' }}
+            addonAfter="周"
+          />
+        </Form.Item>
+        <Form.Item label="模块数量">
+          <InputNumber 
+            value={config.moduleCount}
+            onChange={(value) => setConfig({...config, moduleCount: value})}
+            min={1}
+            max={50}
+            style={{ width: '100%' }}
+            addonAfter="个模块"
+          />
+        </Form.Item>
+        <Form.Item label="考核评价">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text type="secondary">启用阶段性考核与评价</Text>
+            <Switch 
+              checked={config.assessmentEnabled}
+              onChange={(checked) => setConfig({...config, assessmentEnabled: checked})}
+            />
+          </div>
+        </Form.Item>
+        <Form.Item label="证书" style={{ gridColumn: '1 / -1' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text type="secondary">完成培训后颁发电子证书</Text>
+            <Switch 
+              checked={config.certificateEnabled}
+              onChange={(checked) => setConfig({...config, certificateEnabled: checked})}
+            />
+          </div>
+        </Form.Item>
+        <Form.Item 
+          label={
+            <Tooltip title="绑定知识图谱/能力模型/微专业，用于方案的体系化配置" placement="top">
+              <span>体系化培训 <QuestionCircleOutlined style={{ color: '#8c8c8c', fontSize: '12px' }} /></span>
+            </Tooltip>
+          }
+          style={{ gridColumn: '1 / -1' }}
+        >
+          <div style={{ display: 'flex', gap: 12 }}>
+            <Select
+              value={config.systemTrainingType}
+              onChange={(val) => setConfig({ ...config, systemTrainingType: val, systemTrainingRef: null, systemTrainingRefLabel: null })}
+              placeholder="选择体系类型"
+              style={{ width: 220 }}
+              options={systemTypeOptions}
+            />
+            <Select
+              value={config.systemTrainingRef}
+              onChange={(val, opt) => setConfig({ ...config, systemTrainingRef: val, systemTrainingRefLabel: opt?.label || opt?.children || null })}
+              placeholder="选择数据项"
+              style={{ flex: 1 }}
+              disabled={!config.systemTrainingType}
+              options={(function(){
+                if (config.systemTrainingType === 'knowledge_graph') return knowledgeNodeOptions;
+                if (config.systemTrainingType === 'capability_model') return capabilityNodeOptions;
+                if (config.systemTrainingType === 'micro_major') return microMajorOptions;
+                return [];
+              })()}
+              showSearch
+              optionFilterProp="children"
+              dropdownClassName="two-col-select-dropdown"
+              dropdownMatchSelectWidth
+            />
+          </div>
+        </Form.Item>
+        <Form.Item 
+          label={
+            <Tooltip title="在资源标注模块维护" placement="top">
+              <span>课程圈选 <QuestionCircleOutlined style={{ color: '#8c8c8c', fontSize: '12px' }} /></span>
+            </Tooltip>
+          }
+        >
+          <Select
+            mode="tags"
+            value={config.courseSelection}
+            onChange={(value) => setConfig({...config, courseSelection: value})}
+            placeholder="输入课程标签名称，按回车添加"
+            style={{ width: '100%' }}
+            maxTagCount="responsive"
+            tokenSeparators={[',', '，']}
+            suffixIcon={<PlusOutlined style={{ color: '#1890ff' }} />}
+          />
+        </Form.Item>
+        <Form.Item 
+          label={
+            <Tooltip title="在人员标注模块维护" placement="top">
+              <span>培训人员圈选 <QuestionCircleOutlined style={{ color: '#8c8c8c', fontSize: '12px' }} /></span>
+            </Tooltip>
+          }
+        >
+          <Select
+            mode="tags"
+            value={config.participantSelection}
+            onChange={(value) => setConfig({...config, participantSelection: value})}
+            placeholder="输入人员标签名称，按回车添加"
+            style={{ width: '100%' }}
+            maxTagCount="responsive"
+            tokenSeparators={[',', '，']}
+            suffixIcon={<PlusOutlined style={{ color: '#1890ff' }} />}
+          />
+        </Form.Item>
+        <Form.Item label="培训形式" style={{ gridColumn: '1 / -1' }}>
+          <Select
+            mode="multiple"
+            value={config.trainingFormats}
+            onChange={(value) => setConfig({...config, trainingFormats: value})}
+            placeholder="请选择培训形式（可多选）"
+            style={{ width: '100%' }}
+            maxTagCount="responsive"
+          >
+            <Select.Option value="live">📹 线上直播课程</Select.Option>
+            <Select.Option value="video">🎥 录播视频</Select.Option>
+            <Select.Option value="seminar">💬 在线研讨</Select.Option>
+            <Select.Option value="practice">✍️ 实践作业</Select.Option>
+            <Select.Option value="workshop">👥 工作坊</Select.Option>
+            <Select.Option value="case">📊 案例分析</Select.Option>
+            <Select.Option value="reading">📚 文献阅读</Select.Option>
+            <Select.Option value="offline">🏫 线下培训</Select.Option>
+          </Select>
+        </Form.Item>
+      </>
+    );
+  }, [card.key, config, knowledgeNodeOptions, capabilityNodeOptions, microMajorOptions, systemTypeOptions]);
   
   // 处理需要确认/配置的卡片点击（培训方案、培训报表、E-PBL教学设计）
   const handleCardClickWithConfirm = () => {
@@ -266,8 +533,8 @@ const DraggableOperationCard = ({
           {/* 状态覆盖层 */}
           {renderStatusOverlay()}
           
-          {/* 培训方案/培训报表/E-PBL教学设计 配置按钮 - 一直显示，透明背景 */}
-          {(card.key === 'training-plan' || card.key === 'training-dashboard' || card.key === 'e-pbl-planning') && !isEditMode && hasSourceData && (
+          {/* 培训方案/培训报表/E-PBL教学设计/学习计划 配置按钮 - 一直显示，透明背景 */}
+          {(card.key === 'training-plan' || card.key === 'training-dashboard' || card.key === 'e-pbl-planning' || card.key === 'learning-plan') && !isEditMode && hasSourceData && (
             <Button
               type="text"
               size="small"
@@ -339,12 +606,12 @@ const DraggableOperationCard = ({
         </div>
       </Tooltip>
       
-      {/* 培训方案/培训报表/E-PBL教学设计 配置窗口 */}
+      {/* 培训方案/培训报表/E-PBL教学设计/学习计划 配置窗口 */}
       <Modal
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <SettingOutlined style={{ color: '#1890ff' }} />
-            <span>{card.key === 'training-dashboard' ? '培训报表配置' : (card.key === 'e-pbl-planning' ? 'E-PBL教学设计配置' : '培训方案配置')}</span>
+            <span>{card.key === 'training-dashboard' ? '培训报表配置' : (card.key === 'e-pbl-planning' ? 'E-PBL教学设计配置' : (card.key === 'learning-plan' ? '学习计划配置' : '培训方案配置'))}</span>
           </div>
         }
         open={isConfigModalVisible}
@@ -353,13 +620,16 @@ const DraggableOperationCard = ({
           if (config.description && config.description.length > 2000) {
             Modal.warning({
               title: '字数超出限制',
-              content: `${card.key === 'training-dashboard' ? '报表补充说明' : '方案补充说明'}不能超过2000字，当前${config.description.length}字`,
+              content: `${card.key === 'training-dashboard' ? '报表补充说明' : (card.key === 'learning-plan' ? '学习计划补充说明' : '方案补充说明')}不能超过2000字，当前${config.description.length}字`,
             });
             return;
           }
           // 保存配置逻辑
-          const key = card.key === 'training-dashboard' ? 'training_dashboard_config' : (card.key === 'e-pbl-planning' ? 'epbl_planning_config' : 'training_plan_config');
+          const key = card.key === 'training-dashboard' ? 'training_dashboard_config' : (card.key === 'e-pbl-planning' ? 'epbl_planning_config' : (card.key === 'learning-plan' ? 'learning_plan_config' : 'training_plan_config'));
           localStorage.setItem(key, JSON.stringify(config));
+          if (card.key === 'learning-plan') {
+            if (onClick) onClick();
+          }
           setIsConfigModalVisible(false);
         }}
         onCancel={() => setIsConfigModalVisible(false)}
@@ -370,232 +640,21 @@ const DraggableOperationCard = ({
       >
         <Form layout="vertical" style={{ marginTop: '20px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
-          {card.key === 'e-pbl-planning' ? (
-            <>
-              {/* 教学设计模版选择（网盘/知识空间） */}
-              <Form.Item label="知识空间">
-                <Select
-                  value={config.designSpace || 'current'}
-                  onChange={(value) => setConfig({ ...config, designSpace: value })}
-                  style={{ width: '100%' }}
-                >
-                  <Select.Option value="current">当前知识空间</Select.Option>
-                  <Select.Option value="my">我的知识空间</Select.Option>
-                  <Select.Option value="org">组织知识空间</Select.Option>
-                </Select>
-              </Form.Item>
-              <Form.Item label="教学设计模版">
-                <Select
-                  value={config.designTemplateId || null}
-                  onChange={(val, opt) => setConfig({ ...config, designTemplateId: val, designTemplateLabel: opt?.label || opt?.children || null })}
-                  placeholder="请选择教学设计模版"
-                  style={{ width: '100%' }}
-                  showSearch
-                  optionFilterProp="children"
-                >
-                  <Select.Option value="epbl-basic">EPBL 基础教学设计模版</Select.Option>
-                  <Select.Option value="epbl-science">理科项目式教学设计模版</Select.Option>
-                  <Select.Option value="epbl-arts">文科项目式教学设计模版</Select.Option>
-                  <Select.Option value="epbl-custom">自定义教学设计模版</Select.Option>
-                </Select>
-              </Form.Item>
-              {/* 学科与学段 */}
-              <Form.Item label="学科">
-                <Select
-                  value={config.subject || null}
-                  onChange={(value) => setConfig({ ...config, subject: value })}
-                  style={{ width: '100%' }}
-                >
-                  <Select.Option value="语文">语文</Select.Option>
-                  <Select.Option value="数学">数学</Select.Option>
-                  <Select.Option value="英语">英语</Select.Option>
-                  <Select.Option value="物理">物理</Select.Option>
-                  <Select.Option value="化学">化学</Select.Option>
-                  <Select.Option value="生物">生物</Select.Option>
-                  <Select.Option value="历史">历史</Select.Option>
-                  <Select.Option value="地理">地理</Select.Option>
-                  <Select.Option value="政治">政治</Select.Option>
-                  <Select.Option value="信息技术">信息技术</Select.Option>
-                </Select>
-              </Form.Item>
-              <Form.Item label="学段">
-                <Select
-                  value={config.phase || null}
-                  onChange={(value) => setConfig({ ...config, phase: value })}
-                  style={{ width: '100%' }}
-                >
-                  <Select.Option value="小学">小学</Select.Option>
-                  <Select.Option value="初中">初中</Select.Option>
-                  <Select.Option value="高中">高中</Select.Option>
-                  <Select.Option value="大学">大学</Select.Option>
-                </Select>
-              </Form.Item>
-            </>
-          ) : (
-            <>
-              {/* 第一行：培训难度 + 培训周期 */}
-              <Form.Item label="培训难度">
-                <Select 
-                  value={config.difficulty}
-                  onChange={(value) => setConfig({...config, difficulty: value})}
-                  style={{ width: '100%' }}
-                >
-                  <Select.Option value="easy">初级 - 适合新手入门</Select.Option>
-                  <Select.Option value="medium">中级 - 有一定基础</Select.Option>
-                  <Select.Option value="hard">高级 - 深度专业培训</Select.Option>
-                </Select>
-              </Form.Item>
-              {/* 第一行右侧：培训周期 */}
-              <Form.Item label="培训周期（周）">
-                <InputNumber 
-                  value={config.duration}
-                  onChange={(value) => setConfig({...config, duration: value})}
-                  min={1}
-                  max={52}
-                  style={{ width: '100%' }}
-                  addonAfter="周"
-                />
-              </Form.Item>
-              {/* 第二行：模块数量 + 考核评价 */}
-              <Form.Item label="模块数量">
-                <InputNumber 
-                  value={config.moduleCount}
-                  onChange={(value) => setConfig({...config, moduleCount: value})}
-                  min={1}
-                  max={50}
-                  style={{ width: '100%' }}
-                  addonAfter="个模块"
-                />
-              </Form.Item>
-              {/* 第二行右侧：考核评价 */}
-              <Form.Item label="考核评价">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Text type="secondary">启用阶段性考核与评价</Text>
-                  <Switch 
-                    checked={config.assessmentEnabled}
-                    onChange={(checked) => setConfig({...config, assessmentEnabled: checked})}
-                  />
-                </div>
-              </Form.Item>
-              {/* 第三行：证书 + 体系化培训 */}
-              <Form.Item label="证书" style={{ gridColumn: '1 / -1' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Text type="secondary">完成培训后颁发电子证书</Text>
-                  <Switch 
-                    checked={config.certificateEnabled}
-                    onChange={(checked) => setConfig({...config, certificateEnabled: checked})}
-                  />
-                </div>
-              </Form.Item>
-              {/* 体系化培训：类型 + 数据项（紧跟证书，跨两列） */}
-              <Form.Item 
-                label={
-                  <Tooltip title="绑定知识图谱/能力模型/微专业，用于方案的体系化配置" placement="top">
-                    <span>体系化培训 <QuestionCircleOutlined style={{ color: '#8c8c8c', fontSize: '12px' }} /></span>
-                  </Tooltip>
-                }
-                style={{ gridColumn: '1 / -1' }}
-              >
-                <div style={{ display: 'flex', gap: 12 }}>
-                  <Select
-                    value={config.systemTrainingType}
-                    onChange={(val) => setConfig({ ...config, systemTrainingType: val, systemTrainingRef: null, systemTrainingRefLabel: null })}
-                    placeholder="选择体系类型"
-                    style={{ width: 220 }}
-                    options={systemTypeOptions}
-                  />
-                  <Select
-                    value={config.systemTrainingRef}
-                    onChange={(val, opt) => setConfig({ ...config, systemTrainingRef: val, systemTrainingRefLabel: opt?.label || opt?.children || null })}
-                    placeholder="选择数据项"
-                    style={{ flex: 1 }}
-                    disabled={!config.systemTrainingType}
-                    options={(function(){
-                      if (config.systemTrainingType === 'knowledge_graph') return knowledgeNodeOptions;
-                      if (config.systemTrainingType === 'capability_model') return capabilityNodeOptions;
-                      if (config.systemTrainingType === 'micro_major') return microMajorOptions;
-                      return [];
-                    })()}
-                    showSearch
-                    optionFilterProp="children"
-                    dropdownClassName="two-col-select-dropdown"
-                    dropdownMatchSelectWidth
-                  />
-                </div>
-              </Form.Item>
-              {/* 第四行：课程圈选 + 培训人员圈选 */}
-              <Form.Item 
-                label={
-                  <Tooltip title="在资源标注模块维护" placement="top">
-                    <span>课程圈选 <QuestionCircleOutlined style={{ color: '#8c8c8c', fontSize: '12px' }} /></span>
-                  </Tooltip>
-                }
-              >
-                <Select
-                  mode="tags"
-                  value={config.courseSelection}
-                  onChange={(value) => setConfig({...config, courseSelection: value})}
-                  placeholder="输入课程标签名称，按回车添加"
-                  style={{ width: '100%' }}
-                  maxTagCount="responsive"
-                  tokenSeparators={[',', '，']}
-                  suffixIcon={<PlusOutlined style={{ color: '#1890ff' }} />}
-                />
-              </Form.Item>
-              <Form.Item 
-                label={
-                  <Tooltip title="在人员标注模块维护" placement="top">
-                    <span>培训人员圈选 <QuestionCircleOutlined style={{ color: '#8c8c8c', fontSize: '12px' }} /></span>
-                  </Tooltip>
-                }
-              >
-                <Select
-                  mode="tags"
-                  value={config.participantSelection}
-                  onChange={(value) => setConfig({...config, participantSelection: value})}
-                  placeholder="输入人员标签名称，按回车添加"
-                  style={{ width: '100%' }}
-                  maxTagCount="responsive"
-                  tokenSeparators={[',', '，']}
-                  suffixIcon={<PlusOutlined style={{ color: '#1890ff' }} />}
-                />
-              </Form.Item>
-              {/* 培训形式：单独占一行（跨两列） */}
-              <Form.Item label="培训形式" style={{ gridColumn: '1 / -1' }}>
-                <Select
-                  mode="multiple"
-                  value={config.trainingFormats}
-                  onChange={(value) => setConfig({...config, trainingFormats: value})}
-                  placeholder="请选择培训形式（可多选）"
-                  style={{ width: '100%' }}
-                  maxTagCount="responsive"
-                >
-                  <Select.Option value="live">📹 线上直播课程</Select.Option>
-                  <Select.Option value="video">🎥 录播视频</Select.Option>
-                  <Select.Option value="seminar">💬 在线研讨</Select.Option>
-                  <Select.Option value="practice">✍️ 实践作业</Select.Option>
-                  <Select.Option value="workshop">👥 工作坊</Select.Option>
-                  <Select.Option value="case">📊 案例分析</Select.Option>
-                  <Select.Option value="reading">📚 文献阅读</Select.Option>
-                  <Select.Option value="offline">🏫 线下培训</Select.Option>
-                </Select>
-              </Form.Item>
-            </>
-          )}
+            {configFormFields}
           </div>
-          {/* 方案补充说明:独立在外,不受两列布局影响 */}
+          
           <Form.Item 
-            label={card.key === 'e-pbl-planning' ? '方案补充说明' : '方案补充说明'}
+            label={card.key === 'e-pbl-planning' ? '方案补充说明' : (card.key === 'learning-plan' ? '学习计划补充说明' : '方案补充说明')}
             help={
               <Text type="secondary" style={{ fontSize: '12px' }}>
-                {card.key === 'e-pbl-planning' ? '补充教学设计的要点、注意事项等信息' : '详细描述培训方案的背景、目标、适用对象等信息'}
+                {card.key === 'e-pbl-planning' ? '补充教学设计的要点、注意事项等信息' : (card.key === 'learning-plan' ? '补充学习要求与偏好，用于生成更贴合的计划' : '详细描述培训方案的背景、目标、适用对象等信息')}
               </Text>
             }
           >
             <Input.TextArea
               value={config.description}
               onChange={(e) => setConfig({...config, description: e.target.value})}
-              placeholder={card.key === 'e-pbl-planning' ? '请输入教学设计补充说明（选填，2000字以内）' : '请输入培训方案的补充说明，如培训背景、目标、适用对象、预期效果等（选填，2000字以内）'}
+              placeholder={card.key === 'e-pbl-planning' ? '请输入教学设计补充说明（选填，2000字以内）' : (card.key === 'learning-plan' ? '请输入学习计划补充说明（选填，2000字以内）' : '请输入培训方案的补充说明，如培训背景、目标、适用对象、预期效果等（选填，2000字以内）')}
               autoSize={{ minRows: 4, maxRows: 8 }}
               maxLength={2000}
               showCount

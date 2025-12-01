@@ -194,11 +194,19 @@ const gifUrl = '/assets/动态.gif';
 
   useEffect(() => {
     if (currentCategory !== 'organizational_training') return;
-    if (summaryInjectedRef.current) return;
-    summaryInjectedRef.current = true;
+    const FLAG_KEY = 'organizational_training_summary_injected';
+    try {
+      const already = localStorage.getItem(FLAG_KEY) === '1';
+      if (already || summaryInjectedRef.current) return;
+      summaryInjectedRef.current = true;
+      localStorage.setItem(FLAG_KEY, '1');
+    } catch {}
     const trainingSummary = '本次“新教师教学方法培训”聚焦以学为中心的课堂设计与互动实施，覆盖课堂组织、提问技巧、作业设计与评价、信息技术应用等模块。采用直播讲授、录播微课、在线研讨与作业实践的混合式形式，强调同伴互评与案例反思；结业以过程表现与任务成果为主，帮助新教师快速建立可落地的课堂方法。课程按周设置学习任务与交流时段，提供教案模板与观察表，建议将所学迁移至近期课堂并记录改进点。';
     const msg = { id: Date.now() + 99, type: 'assistant', kind: 'summary', content: trainingSummary, timestamp: new Date().toISOString() };
-    setMessages(prev => [msg, ...prev]);
+    setMessages(prev => {
+      const hasSummary = Array.isArray(prev) && prev.some(m => m?.type === 'assistant' && m?.kind === 'summary');
+      return hasSummary ? prev : [msg, ...prev];
+    });
   }, [currentCategory, setMessages]);
 
   // 发送消息

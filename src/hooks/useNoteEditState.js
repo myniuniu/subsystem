@@ -293,7 +293,26 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   );
 
   // 问答区域相关状态
-  const [messages, setMessages] = useState(note?.messages || []);
+  const getChatStoreKey = () => {
+    const idPart = note?.id ? `note_${note.id}` : null;
+    const cat = (selectedCategory || note?.category || 'default');
+    return `ai_chat_messages_${idPart ? idPart : `cat_${cat}`}`;
+  };
+  const [messages, setMessages] = useState(() => {
+    try {
+      const raw = localStorage.getItem(getChatStoreKey());
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) return arr;
+      }
+    } catch (e) { void e; }
+    return note?.messages || [];
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(getChatStoreKey(), JSON.stringify(messages));
+    } catch (e) { void e; }
+  }, [messages, note?.id, selectedCategory, note?.category]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 

@@ -106,6 +106,8 @@ export const VIEW_MODES = {
   TRAINING_DASHBOARD_FULLSCREEN: 'training_dashboard_fullscreen',
   EPBL_FLOWCHART_FULLSCREEN: 'epbl_flowchart_fullscreen',
   TRAINING_PLAN_THREE_COLUMN: 'training_plan_three_column',
+  LEARNING_PLAN_FULLSCREEN: 'learning_plan_fullscreen',
+  CLASSROOM_BEHAVIOR_ANALYSIS_FULLSCREEN: 'classroom_behavior_analysis_fullscreen',
   // 研修成果详情（左侧面板内联显示）
   ACHIEVEMENT_DETAIL: 'achievement_detail',
   // 研修成果评阅（三栏布局显示）

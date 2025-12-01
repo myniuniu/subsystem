@@ -42,6 +42,7 @@ import VideoPlayer from './VideoPlayer';
 import LivePlayer from './LivePlayer';
 import Supervision from './Supervision.jsx';
 import CapabilityMindMap from './CapabilityMindMap.jsx';
+import ClassroomBehaviorAnalysisViewer from './OperationPanel/ClassroomBehaviorAnalysisViewer';
 import KnowledgeGraphMindMap from './KnowledgeGraphMindMap.jsx';
 
 // 导入场景仿真组件
@@ -56,6 +57,7 @@ import ThemeSelectModal from './ThemeSelectModal';
 import TrainingPlanViewer from './OperationPanel/TrainingPlanViewer';
 import TrainingDashboardViewer from './OperationPanel/TrainingDashboardViewer';
 import OnDemandResourceLibrary from './OperationPanel/OnDemandResourceLibrary';
+import LearningPlanViewer from './OperationPanel/LearningPlanViewer';
 import SimpleTrainingPlanDetailView from './SimpleTrainingPlanDetailView';
 import notesService from '../services/notesService';
 import ExamForm from './ExamForm.jsx';
@@ -1367,8 +1369,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         console.log('学习计划记录点击，record.content存在:', !!record.content);
         console.log('record.metadata存在:', !!record.metadata);
         
-        if (suppressRightPanelOnClick) return;
-        // 设置学习计划查看状态并在右侧面板显示
+        // 设置学习计划查看状态
         state.setRightPanelLearningPlanRecord(record);
         
         if (record.content) {
@@ -1385,9 +1386,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
           state.setRightPanelLearningPlanContent(defaultContent);
         }
         
-        // 切换到学习计划查看视图
-        state.setRightPanelView(RIGHT_PANEL_VIEWS.LEARNING_PLAN_VIEWER);
-        console.log('在右侧面板显示学习计划内容:', record.title);
+        setCurrentView(VIEW_MODES.LEARNING_PLAN_FULLSCREEN);
+        console.log('切换到学习计划全屏模式:', record.title);
         return;
       }
       
@@ -1508,13 +1508,11 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         return;
       }
       
-      // 新增：课堂行为分析记录点击，右侧打开行为分析查看器
+      // 新增：课堂行为分析记录点击，全屏显示行为分析
       if (record.type === 'classroom-behavior-analysis') {
-        console.log('课堂行为分析记录点击，record.content存在:', !!record.content);
-        
-        // 课堂行为分析基于来源信息展示，无需设置额外右侧状态
-        state.setRightPanelView(RIGHT_PANEL_VIEWS.CLASSROOM_BEHAVIOR_ANALYSIS_VIEWER);
-        message.success('在右侧显示课堂行为分析');
+        setCurrentRecord(record);
+        setCurrentView(VIEW_MODES.CLASSROOM_BEHAVIOR_ANALYSIS_FULLSCREEN);
+        message.success('已打开课堂行为分析全屏视图');
         return;
       }
       
@@ -2053,6 +2051,43 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
             state={state}
             setCurrentView={setCurrentView}
           />
+        ) : currentView === VIEW_MODES.CLASSROOM_BEHAVIOR_ANALYSIS_FULLSCREEN ? (
+          <div style={{ 
+            flex: 1, 
+            background: '#f0f2f5', 
+            margin: '16px', 
+            borderRadius: '12px', 
+            overflow: 'hidden', 
+            display: 'flex', 
+            flexDirection: 'column',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            position: 'relative'
+          }}>
+            <Button 
+              type="default"
+              shape="circle"
+              size="small"
+              icon={<ArrowLeftOutlined />}
+              onClick={() => setCurrentView(VIEW_MODES.MATERIALS)}
+              style={{ position: 'absolute', top: 16, left: 16, zIndex: 1000 }}
+            />
+            <div style={{ flex: 1, background: '#fff' }}>
+              {(() => {
+                const totalSources = (Array.isArray(state.uploadedFiles) ? state.uploadedFiles.length : 0)
+                  + (Array.isArray(state.addedTexts) ? state.addedTexts.length : 0)
+                  + (Array.isArray(state.courseVideos) ? state.courseVideos.length : 0)
+                  + (Array.isArray(state.links) ? state.links.length : 0);
+                const sourceInfo = { total: totalSources };
+                const setRightPanelView = () => setCurrentView(VIEW_MODES.MATERIALS);
+                return (
+                  <ClassroomBehaviorAnalysisViewer 
+                    sourceInfo={sourceInfo}
+                    setRightPanelView={setRightPanelView}
+                  />
+                );
+              })()}
+            </div>
+          </div>
         ) : currentView === VIEW_MODES.TRAINING_DASHBOARD_FULLSCREEN ? (
           /* 培训报表全屏模式：占据全部三栏区域 */
           <div style={{ 
@@ -2409,6 +2444,35 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               />
             </div>
           </div>
+        ) : currentView === VIEW_MODES.LEARNING_PLAN_FULLSCREEN ? (
+          <div style={{ 
+            flex: 1, 
+            background: '#f0f2f5', 
+            margin: '16px', 
+            borderRadius: '12px', 
+            overflow: 'hidden', 
+            display: 'flex', 
+            flexDirection: 'column',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            position: 'relative'
+          }}>
+            <div style={{ 
+              flex: 1, 
+              background: '#fff',
+              borderRadius: '12px',
+              overflow: 'hidden'
+            }}>
+              <LearningPlanViewer 
+                rightPanelLearningPlanRecord={state.rightPanelLearningPlanRecord}
+                rightPanelLearningPlanContent={state.rightPanelLearningPlanContent}
+                setRightPanelView={state.setRightPanelView}
+                setRightPanelLearningPlanRecord={state.setRightPanelLearningPlanRecord}
+                setRightPlanelLearningPlanContent={state.setRightPanelLearningPlanContent}
+                isFullscreen={true}
+                setCurrentView={state.setCurrentView}
+              />
+            </div>
+          </div>
         ) : currentView === VIEW_MODES.ACHIEVEMENT_DETAIL_THREE_COLUMN ? (
           /* 研修成果评阅三栏模式：占据三栏区域 */
           <AchievementDetailThreeColumn state={state} />
@@ -2449,7 +2513,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               <div style={{ 
                 flex: 4, 
                 background: '#fff', 
-                margin: '2px 0 0 2px', 
+                margin: '0 1px 0 0', 
                 borderRadius: '8px', 
                 overflow: 'hidden', 
                 display: 'flex', 
@@ -2469,7 +2533,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               <div style={{ 
                 flex: 4.6, 
                 background: '#fff', 
-                margin: '2px 0 0 2px', 
+                margin: '0 1px 0 0', 
                 borderRadius: '8px', 
                 overflow: 'hidden', 
                 display: 'flex', 
@@ -2500,7 +2564,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               <div style={{ 
                 flex: 4, 
                 background: '#fff', 
-                margin: '2px 0 0 2px', 
+                margin: '0 1px 0 0', 
                 borderRadius: '8px', 
                 overflow: 'hidden', 
                 display: 'flex', 
@@ -2529,7 +2593,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                     ? 3.6
                     : 5.0)),
               transition: 'flex 0.3s ease',
-              margin: '2px 2px 0 2px'
+              margin: '0 1px 0 1px'
             }}>
               {state.rightPanelView === RIGHT_PANEL_VIEWS.COURSE_SELECTION_VIEWER ? (
                 <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -2626,7 +2690,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 return baseRatio;
               })(), 
               background: '#fff', 
-              margin: '2px 2px 0 0', 
+              margin: '0 0 0 1px', 
               borderRadius: '8px', 
               overflow: 'hidden', 
               display: 'flex', 

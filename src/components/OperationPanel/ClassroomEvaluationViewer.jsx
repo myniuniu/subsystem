@@ -134,7 +134,7 @@ const ClassroomEvaluationViewer = ({
             size="small"
             icon={<ArrowLeftOutlined />}
             onClick={() => {
-              setRightPanelView(RIGHT_PANEL_VIEWS.OPERATION_PANEL);
+              setRightPanelView(RIGHT_PANEL_VIEWS.OPERATIONS);
               setRightPanelNoteRecord(null);
               setRightPanelNoteContent('');
             }}

@@ -276,7 +276,22 @@ export const useOperationHandlers = ({
         }
       });
     } else if (card.key === 'learning-plan') {
-      // 直接生成学习计划记录，不弹出配置窗口
+      const cfg = (() => {
+        try { return JSON.parse(localStorage.getItem('learning_plan_config') || '{}'); } catch { return {}; }
+      })();
+      const minutes = Number(cfg.dailyStudyMinutes) > 0 ? Number(cfg.dailyStudyMinutes) : 60;
+      const weekend = !!cfg.weekendStudy;
+      const daysPerWeek = weekend ? 7 : 5;
+      const weeklyHours = Math.round(((minutes * daysPerWeek) / 60) * 10) / 10;
+      const style = cfg.learningStyle || '阅读';
+      const slots = Array.isArray(cfg.preferredTimeSlots) ? cfg.preferredTimeSlots : [];
+      const habits = [
+        `每日学习${minutes}分钟`,
+        `偏好时段：${slots.length ? slots.join('、') : '未设置'}`,
+        `学习风格：${style}`,
+        `休息间隔：${Number(cfg.breakInterval) > 0 ? cfg.breakInterval : 25}分钟`,
+        `周末学习：${weekend ? '是' : '否'}`
+      ];
       const learningPlanRecord = {
         id: `learning_plan_${Date.now()}`,
         type: OPERATION_TYPES.LEARNING_PLAN,
@@ -292,7 +307,19 @@ export const useOperationHandlers = ({
         </div>`,
         planData: {
           startDate: new Date().toLocaleDateString('zh-CN'),
-          endDate: new Date(Date.now() + 84 * 24 * 60 * 60 * 1000).toLocaleDateString('zh-CN')
+          endDate: new Date(Date.now() + 84 * 24 * 60 * 60 * 1000).toLocaleDateString('zh-CN'),
+          analysis: {
+            duration: 12,
+            weeklyHours
+          },
+          plan: {
+            phases: [
+              { name: '基础阶段', content: '核心概念与入门知识', duration: '第1-4周', tasks: [style === '视频' ? '观看课程视频' : (style === '实践' ? '动手实践练习' : (style === '讨论' ? '参与学习讨论' : '阅读学习材料'))] },
+              { name: '巩固阶段', content: '练习与应用，巩固所学', duration: '第5-8周', tasks: ['阶段总结与测验', '错题回顾与复盘'] },
+              { name: '提升阶段', content: '深化理解，扩展应用', duration: '第9-12周', tasks: ['项目实践', '成果展示'] }
+            ]
+          },
+          habits
         }
       };
       addRecordWithGenerating(OPERATION_TYPES.LEARNING_PLAN, learningPlanRecord, {

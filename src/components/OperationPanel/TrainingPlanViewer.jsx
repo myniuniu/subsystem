@@ -66,7 +66,7 @@ import {
   useSortable
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { buildPlanSummary, publishPlanSummary } from '../../utils/trainingPlanSummary';
+import { buildPlanSummary, publishPlanSummary, getLatestPlanSummary } from '../../utils/trainingPlanSummary';
 
 const { Text, Title } = Typography;
 const { TabPane } = Tabs;
@@ -1276,19 +1276,12 @@ const TrainingPlanViewer = ({
     }
   }, [plan?.phases]);
 
-  // 发布方案摘要：供其他模块（如培训报表）消费
   useEffect(() => {
     try {
       const summary = buildPlanSummary(plan || {});
-      publishPlanSummary(summary);
-    } catch (e) {}
-  }, [plan]);
-
-  // 发布方案摘要：用于报表模块消费（模块学习情况）
-  useEffect(() => {
-    try {
-      const summary = buildPlanSummary(plan || {});
-      publishPlanSummary(summary);
+      const latest = getLatestPlanSummary();
+      const changed = JSON.stringify(latest) !== JSON.stringify(summary);
+      if (changed) publishPlanSummary(summary);
     } catch (e) {}
   }, [plan]);
 

@@ -36,7 +36,8 @@ import dayjs from 'dayjs';
 import { 
   RIGHT_PANEL_VIEWS,
   MORE_MENU_ACTIONS,
-  OPERATION_CARDS
+  OPERATION_CARDS,
+  OPERATION_TYPES
 } from '../constants/noteEditConstants';
 import { getCategoryKey, getAiIconForCategory } from '../constants/categoryMeta';
 import { getOperationIcon } from '../utils/noteEditUtils';
@@ -253,6 +254,73 @@ if (typeof document !== 'undefined') {
       state.setOperationPanelCollapsed(isCollapsed);
     }
   }, [isCollapsed, state]);
+
+  useEffect(() => {
+    const DEFAULT_ID = 'default-learning-plan-record';
+    const list = Array.isArray(operationRecords?.[OPERATION_TYPES.LEARNING_PLAN]) ? operationRecords[OPERATION_TYPES.LEARNING_PLAN] : [];
+    const exists = list.some(r => r.id === DEFAULT_ID);
+    if (!exists) {
+      const defaultPlanData = {
+        analysis: { duration: 4, weeklyHours: 6 },
+        overview: {
+          title: '新教师入职线上培训具体方案',
+          audience: '新入职教师',
+          goal: '熟悉学校规章、掌握教学基本功、提升课堂与信息化应用能力，完成入职适应。',
+          cycle: '4周（每周2次直播+平时点播）',
+          formats: ['直播', '点播', '作业/测验', '经验交流'],
+          assessment: ['学习时长达标', '作业提交审核', '阶段测验通过', '交流参与度'],
+          timeSlots: ['晚间 19:30-21:00', '上午 09:30-10:30', '上午 11:00-12:00']
+        },
+        plan: {
+          phases: [
+            { 
+              name: '入职导学', phase: '阶段1', duration: '1周', content: '校情校规与平台使用', 
+              tasks: ['学校制度与流程', '平台账号与资源导览'], milestone: '完成导学与平台熟悉',
+              formats: ['直播导学', '平台点播教程'],
+              assessment: ['导学测验', '平台功能操作演示'],
+              deliverables: ['导学测验通过', '平台账号设置完成']
+            },
+            { 
+              name: '教学规范', phase: '阶段2', duration: '1周', content: '备课与课堂规范', 
+              tasks: ['备课流程与教案撰写', '课堂组织与规范'], milestone: '规范教学流程',
+              formats: ['备课工作坊', '课堂规范直播'],
+              assessment: ['提交教案样稿', '课堂规范在线测验'],
+              deliverables: ['标准教案样稿', '课堂规范清单']
+            },
+            { 
+              name: '课堂管理', phase: '阶段3', duration: '1周', content: '课堂互动与管理', 
+              tasks: ['互动策略', '常见问题处理'], milestone: '提升课堂管理能力',
+              formats: ['互动策略分享', '班级管理案例研讨'],
+              assessment: ['互动设计作业', '案例分析打分'],
+              deliverables: ['互动活动设计稿', '管理案例分析报告']
+            },
+            { 
+              name: '信息化应用与教研发展', phase: '阶段4', duration: '1周', content: '信息化工具与教研', 
+              tasks: ['工具应用实践', '加入教研与成长路径'], milestone: '形成持续成长路径',
+              formats: ['工具实操直播', '教研经验交流'],
+              assessment: ['工具应用作品提交', '教研参与情况'],
+              deliverables: ['信息化应用作品链接', '教研参与记录']
+            }
+          ]
+        },
+        habits: ['晚上', '周末学习']
+      };
+      const record = {
+        id: DEFAULT_ID,
+        title: '智能学习计划',
+        source: '系统初始化',
+        time: new Date().toLocaleString('zh-CN'),
+        type: OPERATION_TYPES.LEARNING_PLAN,
+        planData: defaultPlanData
+      };
+      setOperationRecords(prev => {
+        const updated = { ...prev };
+        const prevList = Array.isArray(updated[OPERATION_TYPES.LEARNING_PLAN]) ? updated[OPERATION_TYPES.LEARNING_PLAN] : [];
+        updated[OPERATION_TYPES.LEARNING_PLAN] = [record, ...prevList.filter(r => r.id !== DEFAULT_ID)];
+        return updated;
+      });
+    }
+  }, []);
   
   const {
     questionConfigVisible,
