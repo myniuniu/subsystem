@@ -3073,7 +3073,7 @@ const { TextArea } = Input;
                                     const collapsed = collapsedGroups.has(group.courseId);
                                     return (
                                       <div style={{ margin: '4px 0' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => toggleGroup(group.courseId)}>
                                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }} onClick={() => toggleGroup(group.courseId)}>
                                             {collapsed ? (
                                               <RightOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleGroup(group.courseId)} />
@@ -3084,7 +3084,7 @@ const { TextArea } = Input;
                                               {group.courseTitle}
                                             </Text>
                                           </div>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} onClick={(e) => e.stopPropagation()}>
                                             {videoViewMode === 'flat' && (
                                               <Tooltip title={hierarchyOpenCourses.has(group.courseId) ? '隐藏层级' : '显示层级'}>
                                                 <NodeIndexOutlined style={{ fontSize: 14, color: '#1890ff', cursor: 'pointer' }} onClick={() => toggleHierarchy(group.courseId)} />
@@ -3254,22 +3254,36 @@ const { TextArea } = Input;
                                           }}
                                           onRow={(record) => ({
                                             onClick: () => {
-                                              if (record.type === 'video' && record.videoId) {
-                                                const videoObj = (group && Array.isArray(group.videos))
-                                                  ? group.videos.find(v => v.id === record.videoId)
-                                                  : null;
-                                                if (videoObj) {
-                                                  onPlayVideo(videoObj);
-                                                } else {
-                                                  scrollToVideoCard(record.videoId);
+                                              if (record.type === 'video') {
+                                                let videoObj = null;
+                                                const vid = record.videoId;
+                                                // 先在当前课程分组中查找
+                                                if (vid && group && Array.isArray(group.videos)) {
+                                                  videoObj = group.videos.find(v => v.id === vid) || null;
                                                 }
+                                                // 回退：在全局课程视频列表中查找
+                                                if (!videoObj && Array.isArray(courseVideos)) {
+                                                  videoObj = courseVideos.find(v => (v.id === vid) || (String(v.title || '') === String(record.title || '')));
+                                                }
+                                                // 最终回退：构造统一 demo1.mp4 的播放对象
+                                                if (!videoObj) {
+                                                  videoObj = {
+                                                    id: vid || `demo_${Date.now()}`,
+                                                    title: record.title || '课程视频',
+                                                    url: '/assets/demo1.mp4',
+                                                    videoUrl: '/assets/demo1.mp4',
+                                                    type: 'video',
+                                                    instructor: record.instructor
+                                                  };
+                                                }
+                                                onPlayVideo(videoObj);
                                               }
                                             }
                                           })}
-                                        />
-                                      </div>
-                                    );
-                                  })()}
+                                      />
+                                    </div>
+                                  );
+                                })()}
                                   {!collapsedGroups.has(group.courseId) && videoViewMode === 'flat' && group.videos.map(video => (
                                     <Tooltip title={getVideoHierarchyPath(group.courseId, video)} placement="top" key={`phase-${phase.id}-video-${video.id}`}>
                                       <Card 
@@ -4492,7 +4506,7 @@ const { TextArea } = Input;
                         const collapsed = collapsedGroups.has(group.courseId);
                         return (
                           <div style={{ margin: '4px 0' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => toggleGroup(group.courseId)}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }} onClick={() => toggleGroup(group.courseId)}>
                                 {collapsed ? (
                                   <RightOutlined style={{ fontSize: 12, color: '#999' }} onClick={() => toggleGroup(group.courseId)} />
@@ -4503,7 +4517,7 @@ const { TextArea } = Input;
                                   {group.courseTitle}
                                 </Text>
                               </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} onClick={(e) => e.stopPropagation()}>
                                 {videoViewMode === 'flat' && (
                                   <Tooltip title={hierarchyOpenCourses.has(group.courseId) ? '隐藏层级' : '显示层级'}>
                                     <NodeIndexOutlined style={{ fontSize: 14, color: '#1890ff', cursor: 'pointer' }} onClick={() => toggleHierarchy(group.courseId)} />
@@ -4618,12 +4632,12 @@ const { TextArea } = Input;
                               const durationMin = Math.floor((record.duration || 0) / 60);
                               const subtitle = `讲师：${record.instructor || '未知讲师'} • 进度 ${percent}%${Number.isFinite(durationMin) && durationMin > 0 ? ` • 时长 ${durationMin}分钟` : ''}`;
                               left = (
-                                <div className="mm-title" style={{ marginLeft: `${depth * 16}px`, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                                  {switcher}
-                                  <span className="mm-icon">{icon}</span>
-                                  <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
-                                    {name}
-                                    <Text type="secondary" style={{ fontSize: 10 }}>
+                                          <div className="mm-title" style={{ marginLeft: `${depth * 16}px`, display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer' }}>
+                                            {switcher}
+                                            <span className="mm-icon">{icon}</span>
+                                            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+                                              {name}
+                                              <Text type="secondary" style={{ fontSize: 10 }}>
                                       {subtitle}
                                     </Text>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>

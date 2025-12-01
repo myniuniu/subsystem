@@ -202,22 +202,8 @@ const VideoPlayer = ({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // 获取视频源URL
-  const getVideoUrl = (videoData) => {
-    // 允许的资源：本地 assets 路径或直接 mp4 文件
-    const isPlayableAsset = (u) => {
-      if (typeof u !== 'string' || !u) return false;
-    // 允许 '/assets/xxx.mp4' 或 'http(s)://...mp4' 直链
-      return u.startsWith('/assets/') || /^https?:\/\/.*\.mp4(\?.*)?$/i.test(u);
-    };
-
-    // 候选来源：videoUrl → url → src
-    const candidates = [videoData?.videoUrl, videoData?.url, videoData?.src];
-    const picked = candidates.find(isPlayableAsset);
-    
-    // 找到可播放资源则使用；否则回退到 demo1.mp4
-    return picked || '/assets/demo1.mp4';
-  };
+  // 获取视频源URL（统一使用 demo1.mp4）
+  const getVideoUrl = () => '/assets/demo1.mp4';
 
   // 关闭播放器时保存进度
   const handleClose = () => {
@@ -506,7 +492,7 @@ ${annotationText}
           <video
             ref={videoRef}
             className="video-element"
-            src={getVideoUrl(videoData)}
+            src={getVideoUrl()}
             crossOrigin="anonymous"
             onLoadStart={handleLoadStart}
             onLoadedMetadata={handleLoadedMetadata}
@@ -524,6 +510,7 @@ ${annotationText}
             onClick={togglePlay}
             style={{ 
               display: videoLoading || videoError ? 'none' : 'block',
+              cursor: 'pointer',
               ...(isWidescreenMode ? {
                 width: '100%',
                 height: '100vh',
@@ -767,7 +754,7 @@ ${annotationText}
           <video
             ref={videoRef}
             className="video-element"
-            src={getVideoUrl(videoData)}
+            src={getVideoUrl()}
             crossOrigin="anonymous"
             onLoadStart={handleLoadStart}
             onLoadedMetadata={handleLoadedMetadata}
@@ -783,7 +770,7 @@ ${annotationText}
               }
             }}
             onClick={togglePlay}
-            style={{ display: videoLoading || videoError ? 'none' : 'block' }}
+            style={{ display: videoLoading || videoError ? 'none' : 'block', cursor: 'pointer' }}
           />
           
           {/* 加载状态 */}

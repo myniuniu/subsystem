@@ -270,6 +270,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
   // 对话框宽度随分栏动态调整
   const [isChatSplit, setIsChatSplit] = useState(false);
   const modalWidth = isChatSplit ? '85%' : '60%';
+  const [isInnerOverlayOpen, setInnerOverlayOpen] = useState(false);
 
   // 督学分类：默认生成一条“现场分析报告”操作记录
   useEffect(() => {
@@ -2521,12 +2522,12 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
             <div style={{
               // 右侧为视频播放器时，中区缩小；为选课视图时，中区扩大30%
               flex: (state.rightPanelView === RIGHT_PANEL_VIEWS.VIDEO_PLAYER)
-                ? 3.5
+                ? 3.6
                 : (state.rightPanelView === RIGHT_PANEL_VIEWS.COURSE_SELECTION_VIEWER
-                  ? 5.8
+                  ? 5.5
                   : ((state.rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR || state.rightPanelView === RIGHT_PANEL_VIEWS.QUESTION_VIEWER || state.rightPanelView === RIGHT_PANEL_VIEWS.GRADING_VIEWER)
-                    ? 3.5
-                    : 5)),
+                    ? 3.6
+                    : 5.0)),
               transition: 'flex 0.3s ease',
               margin: '2px 2px 0 2px'
             }}>
@@ -2601,6 +2602,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
               )}
             </div>
 
+            
             {/* 右侧操作区域 */}
             <div style={{ 
               flex: (() => {
@@ -2608,18 +2610,18 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 if (operationPanelCollapsed) {
                   return 0.23; // 收起时占用很小的宽度（容器宽度52px）
                 }
-                const baseRatio = currentView === VIEW_MODES.VIDEO ? 3 : (state.viewMode === VIEW_MODES.MAP ? 3 : 2.5);
+                const baseRatio = currentView === VIEW_MODES.VIDEO ? 2.8 : (state.viewMode === VIEW_MODES.MAP ? 2.6 : 2.4);
                 // 当右侧为视频播放器时，仅将中间减少的30%（1.5）加给右侧，左侧保持不变
                 if (state.rightPanelView === RIGHT_PANEL_VIEWS.VIDEO_PLAYER || state.rightPanelView === RIGHT_PANEL_VIEWS.LIVE_PLAYER) {
-                  return baseRatio + 1.5;
+                  return baseRatio + 1.2;
                 }
                 // 笔记编辑、试题查看或阅卷报告查看状态时，保持原有增加宽度的逻辑
                 if (state.rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR || state.rightPanelView === RIGHT_PANEL_VIEWS.QUESTION_VIEWER || state.rightPanelView === RIGHT_PANEL_VIEWS.GRADING_VIEWER) {
-                  return baseRatio * 1.5;
+                  return baseRatio * 1.35;
                 }
                 // 选课视图：右区加宽（相对基础宽度增加约10%）
                 if (state.rightPanelView === RIGHT_PANEL_VIEWS.COURSE_SELECTION_VIEWER) {
-                  return baseRatio * 1.1;
+                  return baseRatio * 1.05;
                 }
                 return baseRatio;
               })(), 
@@ -3177,6 +3179,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
          title={null}
          className="discussion-modal"
          bodyStyle={{ height: 'calc(70vh + 15px)', overflowY: 'hidden', padding: 0, display: 'flex' }}
+         closable={!isInnerOverlayOpen}
        >
         <div className={`mc-left ${isResizing ? 'resizing' : ''}`} style={{ width: leftWidth, borderRight: 'none', background: '#fff' }}>
            <ContactList
@@ -3197,27 +3200,28 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                openTopicId={typeof activeModalContact === 'string' && activeModalContact.startsWith('topic_post_') ? Number(activeModalContact.replace('topic_post_', '')) : null}
              />
            ) : (
-             <ChatWindow
-               activeContact={activeModalContact}
-               contacts={modalContacts}
-               messages={getModalMessages()}
-               newMessage={newChatMessage}
-               onMessageChange={setNewChatMessage}
-               onSendMessage={() => {
-                 if (!newChatMessage.trim()) return;
-                 const newMsg = {
-                   id: Date.now(),
-                   senderId: 'me',
-                   senderName: '我',
-                   content: newChatMessage,
-                   time: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
-                   type: 'text'
-                 };
-                 setDialogueMessages(prev => [...prev, newMsg]);
-                 setNewChatMessage('');
-                 message.success('消息发送成功');
-               }}
-             />
+            <ChatWindow
+              activeContact={activeModalContact}
+              contacts={modalContacts}
+              messages={getModalMessages()}
+              newMessage={newChatMessage}
+              onMessageChange={setNewChatMessage}
+              onSendMessage={() => {
+                if (!newChatMessage.trim()) return;
+                const newMsg = {
+                  id: Date.now(),
+                  senderId: 'me',
+                  senderName: '我',
+                  content: newChatMessage,
+                  time: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+                  type: 'text'
+                };
+                setDialogueMessages(prev => [...prev, newMsg]);
+                setNewChatMessage('');
+                message.success('消息发送成功');
+              }}
+              onOverlayChange={setInnerOverlayOpen}
+            />
            )}
          </div>
        </Modal>

@@ -22,7 +22,13 @@ import {
   RightOutlined,
   ColumnWidthOutlined,
   MenuUnfoldOutlined,
-  CloseCircleOutlined
+  CloseCircleOutlined,
+  PlayCircleOutlined,
+  PauseCircleOutlined,
+  StepBackwardOutlined,
+  StepForwardOutlined,
+  ShareAltOutlined,
+  DownloadOutlined
 } from '@ant-design/icons';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -233,6 +239,13 @@ if (typeof document !== 'undefined') {
   
   // 收起/展开状态
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [openAudioRecordId, setOpenAudioRecordId] = useState(null);
+  const audioRefs = React.useRef({});
+  const [videoPlaying, setVideoPlaying] = useState(false);
+  const [videoDuration, setVideoDuration] = useState(0);
+  const [videoCurrent, setVideoCurrent] = useState(0);
+  const [videoSpeed, setVideoSpeed] = useState(1);
+  const videoRef = React.useRef(null);
   
   // 通知父组件收起状态变化
   useEffect(() => {
@@ -1198,46 +1211,100 @@ if (typeof document !== 'undefined') {
     );
   }
 
-  // 视频播放器视图（嵌入式）
   if (rightPanelView === RIGHT_PANEL_VIEWS.VIDEO_PLAYER) {
+    const src = selectedMaterial?.url || '/assets/支持下一代教育者.mp4';
+    const togglePlay = () => {
+      const v = videoRef.current;
+      if (!v) return;
+      if (v.paused) {
+        v.play().catch(() => {});
+        setVideoPlaying(true);
+      } else {
+        v.pause();
+        setVideoPlaying(false);
+      }
+    };
+    const format = (s) => {
+      const ms = Math.max(0, Math.floor(s || 0));
+      const mm = String(Math.floor(ms / 60)).padStart(2, '0');
+      const ss = String(ms % 60).padStart(2, '0');
+      return `${mm}:${ss}`;
+    };
+    const seekBy = (delta) => {
+      const v = videoRef.current;
+      if (!v) return;
+      v.currentTime = Math.max(0, Math.min(v.duration || 0, v.currentTime + delta));
+    };
+    const cycleSpeed = () => {
+      const arr = [0.75, 1, 1.25, 1.5];
+      const idx = (arr.indexOf(videoSpeed) + 1) % arr.length;
+      const v = videoRef.current;
+      if (v) v.playbackRate = arr[idx];
+      setVideoSpeed(arr[idx]);
+    };
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
-        <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => setRightPanelView(RIGHT_PANEL_VIEWS.OPERATIONS)}>
-            返回
-          </Button>
-          <Typography.Text style={{ fontWeight: 600 }}>
-            {selectedMaterial?.title || '视频播放器'}
-          </Typography.Text>
+        <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => setRightPanelView(RIGHT_PANEL_VIEWS.OPERATIONS)}>
+              返回
+            </Button>
+            <Typography.Text style={{ fontWeight: 600 }}>
+              {selectedMaterial?.title || '视频概览'}
+            </Typography.Text>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Button type="text" icon={<ShareAltOutlined />} />
+            <Button type="text" icon={<DownloadOutlined />} onClick={() => {
+              try {
+                const a = document.createElement('a');
+                a.href = src;
+                a.download = selectedMaterial?.title || 'video.mp4';
+                a.click();
+              } catch {}
+            }} />
+          </div>
         </div>
-        <div style={{ flex: 1, minHeight: 400, display: 'flex', flexDirection: 'column' }}>
-          <VideoPlayer
-            embedded
-            style={{ height: '100%' }}
-            videoData={selectedMaterial}
-            isWidescreenMode={isWidescreenMode}
-            onToggleWidescreen={() => setIsWidescreenMode && setIsWidescreenMode(!isWidescreenMode)}
-            onTimeUpdate={handlers?.onVideoTimeUpdate}
-            currentEditorState={{
-              isEditing: rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR || (showNoteEditor && editingNote),
-              noteTitle: rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR
-                ? rightPanelEditingNote?.title || '当前笔记'
-                : editingNote?.title || '当前笔记',
-              onContentUpdate: (content) => {
-                if (rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR && rightPanelEditingNote) {
-                  setRightPanelNoteContent(prev => (prev || '') + content);
-                } else if (showNoteEditor && editingNote) {
-                  setNoteEditorContent(prev => (prev || '') + content);
-                }
-              }
-            }}
-            onNoteCreated={(operationRecord) => {
-              setOperationRecords(prev => ({
-                ...prev,
-                note: [operationRecord, ...(prev.note || [])]
-              }));
-            }}
-          />
+        <div style={{ flex: 1, minHeight: 400, display: 'flex', flexDirection: 'column', padding: 16 }}>
+          <div style={{ flex: 1, background: '#fff', border: '1px solid #f0f0f0', borderRadius: 12, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <video
+              ref={videoRef}
+              src={src}
+              style={{ width: '100%', maxHeight: 420, display: 'block', background: '#000' }}
+              onLoadedMetadata={(e) => setVideoDuration(e.currentTarget.duration || 0)}
+              onTimeUpdate={(e) => setVideoCurrent(e.currentTarget.currentTime || 0)}
+              playsInline
+            />
+          </div>
+          <div style={{ marginTop: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12, color: '#666' }}>
+              <span>{format(videoCurrent)}</span>
+              <span>{format(videoDuration)}</span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={Math.max(1, videoDuration)}
+              step={0.1}
+              value={videoCurrent}
+              onChange={(e) => { const v = videoRef.current; if (v) v.currentTime = Number(e.target.value); }}
+              style={{ width: '100%' }}
+            />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, marginTop: 8 }}>
+              <Button type="text" onClick={cycleSpeed}>{`${videoSpeed}x`}</Button>
+              <Button type="text" icon={<StepBackwardOutlined />} onClick={() => seekBy(-10)} />
+              <Button type="primary" shape="circle" icon={videoPlaying ? <PauseCircleOutlined /> : <PlayCircleOutlined />} onClick={togglePlay} />
+              <Button type="text" icon={<StepForwardOutlined />} onClick={() => seekBy(10)} />
+              <Button type="text" icon={<ColumnWidthOutlined />} onClick={() => {
+                const el = videoRef.current;
+                if (el && el.requestFullscreen) el.requestFullscreen().catch(() => {});
+              }} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
+            <Button type="text">不错的视频</Button>
+            <Button type="text">视频质量差</Button>
+          </div>
         </div>
       </div>
     );
@@ -2065,6 +2132,47 @@ if (typeof document !== 'undefined') {
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    {record.type === 'video' && (
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<PlayCircleOutlined style={{ color: '#1890ff' }} />}
+                        style={{ padding: '2px 4px', height: 'auto', minWidth: 'auto' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          try {
+                            const videoData = {
+                              id: record.id,
+                              title: record.title,
+                              url: record.url || '/assets/支持下一代教育者.mp4'
+                            };
+                            setRightPanelView && setRightPanelView(RIGHT_PANEL_VIEWS.VIDEO_PLAYER);
+                            state?.setSelectedMaterial && state.setSelectedMaterial(videoData);
+                          } catch {}
+                        }}
+                        title="播放视频"
+                      />
+                    )}
+                    {record.type === 'audio' && (
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<PlayCircleOutlined style={{ color: '#1890ff' }} />}
+                        style={{ padding: '2px 4px', height: 'auto', minWidth: 'auto' }}
+                        onClick={(e) => { e.stopPropagation(); setOpenAudioRecordId(prev => prev === record.id ? null : record.id); }}
+                        title="播放"
+                      />
+                    )}
+                    {record.type === 'audio' && openAudioRecordId === record.id && (
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<UpOutlined />}
+                        style={{ padding: '2px 4px', height: 'auto', minWidth: 'auto' }}
+                        onClick={(e) => { e.stopPropagation(); try { audioRefs.current[record.id]?.pause(); } catch (err) {} setOpenAudioRecordId(null); }}
+                        title="隐藏播放器"
+                      />
+                    )}
                     <Dropdown
                       menu={{ items: getMoreMenuItems(record) }}
                       trigger={['click']}
@@ -2085,6 +2193,16 @@ if (typeof document !== 'undefined') {
                     </Dropdown>
                   </div>
                 </div>
+                {record.type === 'audio' && openAudioRecordId === record.id && (
+                  <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #f0f0f0' }}>
+                    <audio
+                      src={record.url || '/assets/新教师如何突围新手村_AI成第三导师.m4a'}
+                      controls
+                      style={{ width: '100%' }}
+                      ref={(el) => { if (el) { audioRefs.current[record.id] = el; } }}
+                    />
+                  </div>
+                )}
               </Card>
             );
           })}

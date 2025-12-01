@@ -213,6 +213,32 @@
   margin-bottom: 2px;
 }
 
+.group-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f5f7fb;
+  color: #7f8c8d;
+  border: 1px solid #e6e8ec;
+  border-radius: 16px;
+  padding: 2px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.group-count-icon { display: inline-flex; align-items: center; justify-content: center; }
+.group-count-text { line-height: 16px; }
+
+/* 成员抽屉 */
+.members-drawer .ant-drawer-body { padding: 12px; }
+.members-search { margin-bottom: 12px; }
+.members-list { display: flex; flex-direction: column; gap: 10px; }
+.member-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; }
+.member-item:hover { background: #f8fafc; }
+.member-info { display: flex; flex-direction: column; }
+.member-name { font-weight: 600; color: #2c3e50; }
+.member-role { background: #e6f0ff; color: #2b6def; font-size: 12px; padding: 0 6px; border-radius: 12px; margin-left: 6px; }
+.member-desc { font-size: 12px; color: #8a94a6; }
+
 .contact-motto { font-size: 14px; color: #8a94a6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 56ch; }
 
 .contact-status {
@@ -2142,3 +2168,4 @@
   /* 发送方与名称右对齐（不与右侧头像对齐） */
   margin-right: 32px;
 }
+.members-drawer .ant-drawer-content-wrapper { box-shadow: -8px 0 24px rgba(0,0,0,0.12); }

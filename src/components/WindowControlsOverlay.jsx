@@ -3,11 +3,12 @@ import { Button, Drawer, Space, Slider, message, Tooltip, Popover, Tag } from 'a
 import { MenuOutlined, UnorderedListOutlined, SoundOutlined, CaretRightFilled, PauseOutlined, CloseOutlined, AppstoreOutlined, ExportOutlined, BarChartOutlined, PlayCircleOutlined, CloudUploadOutlined, PlusOutlined, CheckCircleOutlined, PushpinOutlined, VideoCameraOutlined, ClockCircleOutlined, RobotOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 
-export default function WindowControlsOverlay() {
+export default function WindowControlsOverlay({ forceVisible = false, themeColorOverride }) {
   const supports = typeof navigator !== 'undefined' && 'windowControlsOverlay' in navigator
-  const force = (typeof window !== 'undefined' && (
+  const forceParam = (typeof window !== 'undefined' && (
     new URLSearchParams(window.location.search).get('wco') === 'force'
   ))
+  const force = !!(forceVisible || forceParam)
   const [visible, setVisible] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(() => {
     try {
@@ -21,6 +22,7 @@ export default function WindowControlsOverlay() {
   const [rect, setRect] = useState(null)
   const [openCatalog, setOpenCatalog] = useState(false)
   const [themeColor, setThemeColor] = useState('#f7f8fa')
+  const bgColor = themeColorOverride || themeColor
   const chapters = useMemo(() => [
     { id: 'c1', title: '第一章 法律法规' },
     { id: 'c2', title: '第二章 安全生产责任制' },
@@ -55,6 +57,8 @@ export default function WindowControlsOverlay() {
   const [hoverMedia, setHoverMedia] = useState(false)
   const livePillRef = useRef(null)
   const liveOverlayRef = useRef(null)
+  const mediaHoverRef = useRef(null)
+  const mediaPillRef = useRef(null)
 
   const [uploads, setUploads] = useState([
     { id: 'u1', name: '安全生产宣传片.mp4', size: 820 * 1024 * 1024, uploaded: 240 * 1024 * 1024, status: 'uploading', speedMBps: 4.2, startedAt: Date.now() - Math.floor((240 / 4.2) * 1000) },
@@ -459,7 +463,7 @@ export default function WindowControlsOverlay() {
     paddingLeft: 14,
     paddingRight: 14,
     zIndex: 2000,
-    background: themeColor,
+    background: bgColor,
     backgroundImage: undefined,
     backdropFilter: 'none',
     borderBottom: 'none',
@@ -477,7 +481,7 @@ export default function WindowControlsOverlay() {
     paddingLeft: 14,
     paddingRight: 14,
     zIndex: 1000,
-    background: themeColor,
+    background: bgColor,
     backgroundImage: undefined,
     backdropFilter: 'none',
     borderBottom: 'none',
@@ -588,13 +592,21 @@ export default function WindowControlsOverlay() {
               </div>
             )
             return (
-              <Popover trigger="hover" placement="bottom" overlayStyle={{ pointerEvents: 'none' }} content={popContent}>
+              <Popover trigger="hover" placement="bottom" overlayStyle={{ pointerEvents: 'auto' }} content={popContent}>
                 <div
                   style={{ ...pill, width: pillWidth, justifyContent: 'center', position: 'relative' }}
                   onMouseDown={(e) => { e.stopPropagation() }}
                   onClick={togglePlay}
                   onMouseEnter={() => setHoverMedia(true)}
-                  onMouseLeave={() => setHoverMedia(false)}
+                  onMouseLeave={(e) => {
+                    const rt = e.relatedTarget;
+                    if (!rt) { setHoverMedia(false); return }
+                    const inHoverLayer = mediaHoverRef.current && mediaHoverRef.current.contains(rt)
+                    const inPopover = typeof rt.closest === 'function' && !!rt.closest('.ant-popover')
+                    if (inHoverLayer || inPopover) return
+                    setHoverMedia(false)
+                  }}
+                  ref={mediaPillRef}
                 >
                   <div
                     style={centerTitle}
@@ -622,6 +634,15 @@ export default function WindowControlsOverlay() {
                   <div
                     onMouseDown={(e) => { e.stopPropagation() }}
                     style={{ position: 'absolute', left: 12, right: 12, bottom: -6, opacity: hoverMedia ? 1 : 0, transition: 'opacity .16s ease', pointerEvents: hoverMedia ? 'auto' : 'none' }}
+                    ref={mediaHoverRef}
+                    onMouseLeave={(e) => {
+                      const rt = e.relatedTarget;
+                      if (!rt) { setHoverMedia(false); return }
+                      const inPill = mediaPillRef && mediaPillRef.current && mediaPillRef.current.contains(rt)
+                      const inPopover = typeof rt.closest === 'function' && !!rt.closest('.ant-popover')
+                      if (inPill || inPopover) return
+                      setHoverMedia(false)
+                    }}
                   >
                     <Slider
                       min={0}

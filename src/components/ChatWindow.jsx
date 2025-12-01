@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Input, Button, Space, Modal, Tooltip, Slider, Avatar, Switch, Dropdown } from 'antd';
+import { Input, Button, Space, Modal, Tooltip, Slider, Avatar, Switch, Dropdown, Drawer } from 'antd';
 import { MessageSquare, Send, MoreVertical, Type, Smile, AtSign, Scissors, HelpCircle, Maximize2, FileText, Search, Video, UserPlus, Calendar, X, Mic, MicOff, VideoOff, Volume2, VolumeX, ChevronRight, Users, User, Layers, Folder, Pin, Megaphone } from 'lucide-react';
 import { AudioOutlined, VideoCameraOutlined, DownOutlined, SettingOutlined, ShareAltOutlined, PhoneOutlined, MoreOutlined, FullscreenOutlined, TranslationOutlined, SafetyOutlined, TeamOutlined, UserOutlined, CloseOutlined, SearchOutlined, LikeOutlined, PushpinOutlined } from '@ant-design/icons';
 import './ChatWindow.css';
@@ -22,7 +22,8 @@ const ChatWindow = ({
   onMessageChange,
   onSendMessage,
   onKeyPress,
-  onSimulateMe
+  onSimulateMe,
+  onOverlayChange
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchTab, setSearchTab] = useState('消息');
@@ -46,6 +47,7 @@ const ChatWindow = ({
   const [currentCaption, setCurrentCaption] = useState('be bay.');
   const [showCaptionsPanel, setShowCaptionsPanel] = useState(false);
   const [meetingTitle, setMeetingTitle] = useState('新教师教学方法培训');
+  const [showMembersDrawer, setShowMembersDrawer] = useState(false);
   // 添加成员弹窗相关状态
   const [showAddMembersModal, setShowAddMembersModal] = useState(false);
   const [selectedAddMembers, setSelectedAddMembers] = useState([]);
@@ -53,6 +55,29 @@ const ChatWindow = ({
   const currentContact = contacts.find(c => c.id === activeContact);
   const isGroupHeader = currentContact?.type === 'group' || currentContact?.type === 'topic';
   const [groupHeaderTab, setGroupHeaderTab] = useState('消息');
+  const groupMemberCount = (isGroupHeader || currentContact?.id === 'org_training_new_teacher_discuss' || currentContact?.id === 'new_teacher_training') ? 5 : null;
+  const simulatedMembers = useMemo(() => (
+    [
+      { name: '陈安', role: '群主', color: '#7c3aed' },
+      { name: '李雪', role: '成员', color: '#34c759' },
+      { name: '王明', role: '成员', color: '#4C8DF8' },
+      { name: '赵丽', role: '成员', color: '#FF9F0A' },
+      { name: '孙浩', role: '成员', color: '#AF52DE' }
+    ]
+  ), []);
+  const [memberSearch, setMemberSearch] = useState('');
+  const filteredMembersForDrawer = useMemo(() => {
+    const q = memberSearch.trim();
+    if (!q) return simulatedMembers;
+    return simulatedMembers.filter(m => m.name.includes(q));
+  }, [memberSearch, simulatedMembers]);
+
+  useEffect(() => {
+    const open = !!(showMembersDrawer || showSearchPanel || showCalendarPanel);
+    if (typeof onOverlayChange === 'function') {
+      onOverlayChange(open);
+    }
+  }, [showMembersDrawer, showSearchPanel, showCalendarPanel, onOverlayChange]);
   // @提及：面板与关键词
   const [mentionVisible, setMentionVisible] = useState(false);
   const [mentionKeyword, setMentionKeyword] = useState('');
@@ -263,8 +288,9 @@ const ChatWindow = ({
     return () => document.removeEventListener('click', onDocClick, true);
   }, [showContactCard]);
 
+  const chatRootRef = useRef(null);
   return (
-    <div className={`chat-panel ${showSearchPanel ? 'split' : ''} ${showCalendarPanel ? 'calendar-split' : ''}`}>
+    <div ref={chatRootRef} className={`chat-panel ${showSearchPanel ? 'split' : ''} ${showCalendarPanel ? 'calendar-split' : ''}`}>
       {/* 左侧聊天主内容 */}
       <div className="chat-main">
         {/* 聊天头部 */}
@@ -364,6 +390,12 @@ const ChatWindow = ({
             <div className="contact-details">
               <div className="contact-title">
                 <span className="contact-name">{currentContact.name}</span>
+                {groupMemberCount && (
+                  <span className="group-count-badge" onClick={() => setShowMembersDrawer(true)}>
+                    <span className="group-count-icon"><span className="gc-people">👥</span></span>
+                    <span className="group-count-text">{groupMemberCount}</span>
+                  </span>
+                )}
                 <span className="contact-motto">{currentContact?.motto || '路虽远，行则将至；事虽难，做则必成。'}</span>
               </div>
               {isGroupHeader ? (
@@ -1008,7 +1040,33 @@ const ChatWindow = ({
           </div>
         )}
       </Modal>
-      
+
+      <Drawer
+        open={showMembersDrawer}
+        title="群成员"
+        placement="right"
+        width={360}
+        onClose={() => { setShowMembersDrawer(false); setMemberSearch(''); }}
+        className="members-drawer"
+        getContainer={() => chatRootRef.current}
+        mask={false}
+      >
+        <div className="members-search">
+          <Input value={memberSearch} onChange={e => setMemberSearch(e.target.value)} prefix={<SearchOutlined />} placeholder="搜索群成员" allowClear />
+        </div>
+        <div className="members-list">
+          {filteredMembersForDrawer.map((m, idx) => (
+            <div key={idx} className="member-item">
+              <Avatar size={32} style={{ background: m.color, color: '#fff' }}>{m.name[0]}</Avatar>
+              <div className="member-info">
+                <div className="member-name">{m.name} {m.role === '群主' ? <span className="member-role">群主</span> : null}</div>
+                <div className="member-desc">积极参与，乐于分享</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Drawer>
+
       {/* 模板选择Modal */}
       <Modal
         open={showTemplateModal}

@@ -34,3 +34,10 @@
 .clickable-card, .clickable-card * {
   cursor: pointer !important;
 }
+.mm-row.mm-video {
+  cursor: pointer;
+}
+.mm-row.mm-video .mm-title,
+.mm-row.mm-video .mm-name {
+  cursor: pointer;
+}

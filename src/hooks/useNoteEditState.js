@@ -487,6 +487,67 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
     });
   }, [selectedCategory, note?.category]);
 
+  // 组织培训分类：新增一条音频播客生成记录（首次进入时注入）
+  useEffect(() => {
+    const isOrgTraining = (
+      selectedCategory === 'organizational_training' ||
+      note?.category === 'organizational_training' ||
+      note?.courseType === 'organizational_training' ||
+      note?.source === '组织培训' ||
+      (Array.isArray(note?.tags) && note.tags.includes('组织培训'))
+    );
+    if (!isOrgTraining) return;
+    setOperationRecords(prev => {
+      const next = { ...prev };
+      const audios = Array.isArray(prev.audio) ? [...prev.audio] : [];
+      const title = '新教师如何突围新手村人工智能成为第三导师';
+      const hasPodcast = audios.some(r => String(r.title || '') === title);
+      if (!hasPodcast) {
+        audios.unshift({
+          id: `audio_podcast_${Date.now()}`,
+          type: 'audio',
+          title,
+          source: 'AI生成音频播客',
+          time: new Date().toLocaleString('zh-CN'),
+          url: '/assets/新教师如何突围新手村_AI成第三导师.m4a',
+          isAIGenerated: true
+        });
+      }
+      next.audio = audios;
+      return next;
+    });
+  }, [selectedCategory, note?.category]);
+
+  useEffect(() => {
+    const isOrgTraining = (
+      selectedCategory === 'organizational_training' ||
+      note?.category === 'organizational_training' ||
+      note?.courseType === 'organizational_training' ||
+      note?.source === '组织培训' ||
+      (Array.isArray(note?.tags) && note.tags.includes('组织培训'))
+    );
+    if (!isOrgTraining) return;
+    setOperationRecords(prev => {
+      const next = { ...prev };
+      const videos = Array.isArray(prev.video) ? [...prev.video] : [];
+      const title = '支持下一代教育者';
+      const hasVideo = videos.some(r => String(r.title || '') === title);
+      if (!hasVideo) {
+        videos.unshift({
+          id: `video_overview_${Date.now()}`,
+          type: 'video',
+          title,
+          source: '视频概览',
+          time: new Date().toLocaleString('zh-CN'),
+          url: '/assets/支持下一代教育者.mp4',
+          isAIGenerated: true
+        });
+      }
+      next.video = videos;
+      return next;
+    });
+  }, [selectedCategory, note?.category]);
+
   // 培训需求管理：规范培训方案操作记录的标题与来源，并补充“学段2”
   useEffect(() => {
     const isNeedsMgmt = (selectedCategory === 'training_needs_management' || note?.category === 'training_needs_management');

@@ -119,6 +119,17 @@ function App() {
     const hash = (typeof window !== 'undefined' && window.location.hash) ? window.location.hash.slice(1) : ''
     setCurrentView(prev => (hash ? hash : prev))
   }
+
+  useEffect(() => {
+    try {
+      const color = currentView === 'welcome' 
+        ? 'linear-gradient(135deg, #b3c6ff 0%, #4f7dff 100%)' 
+        : '#fff'
+      if (document && document.body && document.body.style) {
+        document.body.style.setProperty('--app-bg', color)
+      }
+    } catch {}
+  }, [currentView])
   
   // 页面状态管理
   const [pageState, setPageState] = useState({
@@ -470,9 +481,12 @@ function App() {
   }
 
   return (
-    <Layout className="app" style={{ height: '100vh', background: '#fff', paddingTop: 'env(titlebar-area-height, 0px)' }}>
+    <Layout className="app" style={{ height: '100vh', background: 'var(--app-bg)', paddingTop: 'env(titlebar-area-height, 0px)' }}>
+      {currentView === 'welcome' && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 'env(titlebar-area-height, 48px)', background: '#fff', zIndex: 1000, borderBottom: '1px solid #eef0f4' }} />
+      )}
       {currentView !== 'welcome' && <WindowControlsOverlay />}
-      <Layout style={{ height: '100vh' }}>
+        <Layout style={{ height: '100%' }}>
         {(currentView !== 'admin-center' && currentView !== 'welcome') && (
           <Sider 
             width="auto"
@@ -502,7 +516,7 @@ function App() {
             style={{
               margin: '0',
               padding: '0',
-              background: '#fff',
+              background: 'var(--app-bg)',
               borderRadius: '0',
               boxShadow: 'none',
               height: '100%',
