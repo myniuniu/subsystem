@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
-import { Card, Button, Tooltip, Typography, Modal, Form, Switch, Select, InputNumber, Input, Tag } from 'antd';
-import { DeleteOutlined, SettingOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import React, { useState, useMemo, useRef } from 'react';
+import { Card, Button, Tooltip, Typography, Modal, Form, Switch, Select, InputNumber, Input, Segmented } from 'antd';
+import { DeleteOutlined, SettingOutlined, PlusOutlined, QuestionCircleOutlined, FileTextOutlined, EditOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useDrag, useDrop } from 'react-dnd';
 import { generateKnowledgeNodes } from '../../data/knowledgeGraphData';
 import { generateCapabilityNodes } from '../../data/capabilityMapData';
@@ -23,6 +23,10 @@ const DraggableOperationCard = ({
 }) => {
   // 培训方案配置窗口状态
   const [isConfigModalVisible, setIsConfigModalVisible] = useState(false);
+  const [reportSuggestions, setReportSuggestions] = useState(null);
+  const reportTimerRef = useRef(null);
+  const [reportEditItem, setReportEditItem] = useState(null);
+  const [reportDescription, setReportDescription] = useState('');
   const [config, setConfig] = useState({
     difficulty: 'medium',
     duration: 12,
@@ -38,8 +42,6 @@ const DraggableOperationCard = ({
     systemTrainingRefLabel: null // 选中的数据项名称
   });
   
-  // 卡片悬浮状态
-  const [isHovered, setIsHovered] = useState(false);
 
   // 体系化培训选项
   const systemTypeOptions = [
@@ -173,6 +175,60 @@ const DraggableOperationCard = ({
                 onChange={(checked) => setConfig({ ...config, weekendStudy: checked })}
               />
             </div>
+          </Form.Item>
+        </>
+      );
+    } else if (card.key === 'memory-cards') {
+      return (
+        <>
+          <Form.Item label="卡片数量">
+            <Segmented
+              value={config.cardsAmount || 'standard'}
+              onChange={(val) => setConfig({ ...config, cardsAmount: val })}
+              options={[
+                { label: '较少', value: 'few' },
+                { label: '标准（默认）', value: 'standard' },
+                { label: '更多的', value: 'more' }
+              ]}
+            />
+          </Form.Item>
+          <Form.Item label="难度等级">
+            <Segmented
+              value={config.cardsDifficulty || 'medium'}
+              onChange={(val) => setConfig({ ...config, cardsDifficulty: val })}
+              options={[
+                { label: '简单的', value: 'easy' },
+                { label: '中等（默认）', value: 'medium' },
+                { label: '难的', value: 'hard' }
+              ]}
+            />
+          </Form.Item>
+        </>
+      );
+    } else if (card.key === 'quiz') {
+      return (
+        <>
+          <Form.Item label="问题数量">
+            <Segmented
+              value={config.quizAmount || 'standard'}
+              onChange={(val) => setConfig({ ...config, quizAmount: val })}
+              options={[
+                { label: '较少', value: 'few' },
+                { label: '标准（默认）', value: 'standard' },
+                { label: '更多的', value: 'more' }
+              ]}
+            />
+          </Form.Item>
+          <Form.Item label="难度等级">
+            <Segmented
+              value={config.quizDifficulty || 'medium'}
+              onChange={(val) => setConfig({ ...config, quizDifficulty: val })}
+              options={[
+                { label: '简单的', value: 'easy' },
+                { label: '中等（默认）', value: 'medium' },
+                { label: '难的', value: 'hard' }
+              ]}
+            />
           </Form.Item>
         </>
       );
@@ -340,6 +396,21 @@ const DraggableOperationCard = ({
       });
       return;
     }
+    if (card.key === 'report') {
+      setIsConfigModalVisible(true);
+      setReportSuggestions(null);
+      if (reportTimerRef.current) clearTimeout(reportTimerRef.current);
+      reportTimerRef.current = setTimeout(() => {
+        setReportSuggestions([
+          { t: '培训概览报告', d: '汇总“新教师教学方法培训”的核心目标、实施进度与关键结论。' },
+          { t: '执行简报', d: '以要点形式呈现培训成效、问题清单、下一步行动建议。' },
+          { t: '学习指南摘要', d: '面向新教师的学习要点、推荐练习与课堂应用清单。' },
+          { t: '博客文章草稿', d: '将培训洞见整理为通俗易懂的文章，便于传播。' }
+        ]);
+        setReportEditItem(null);
+      }, 2000);
+      return;
+    }
     // 其他工具直接执行 onClick
     if (onClick) onClick();
   };
@@ -472,6 +543,11 @@ const DraggableOperationCard = ({
             animation: ripple 3s ease-out;
             pointer-events: none;
           }
+
+          @keyframes skeletonShimmer {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(160%); }
+          }
         `}
       </style>
       
@@ -489,8 +565,7 @@ const DraggableOperationCard = ({
             opacity: isDragging ? 0.5 : (disabled ? 0.55 : ((hasSourceData || isEditMode) ? 1 : 0.6)),
             cursor: (isLoading || disabled) ? 'not-allowed' : (isEditMode ? 'move' : (hasSourceData ? 'pointer' : 'not-allowed'))
           }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+          
         >
           {/* 加载状态的光圈效果 */}
           {showLoadingRipple && (
@@ -533,8 +608,8 @@ const DraggableOperationCard = ({
           {/* 状态覆盖层 */}
           {renderStatusOverlay()}
           
-          {/* 培训方案/培训报表/E-PBL教学设计/学习计划 配置按钮 - 一直显示，透明背景 */}
-          {(card.key === 'training-plan' || card.key === 'training-dashboard' || card.key === 'e-pbl-planning' || card.key === 'learning-plan') && !isEditMode && hasSourceData && (
+          {/* 培训方案/培训报表/E-PBL教学设计/学习计划/记忆卡片/测验 配置按钮 - 一直显示，透明背景（报告不显示配置按钮） */}
+          {(card.key === 'training-plan' || card.key === 'training-dashboard' || card.key === 'e-pbl-planning' || card.key === 'learning-plan' || card.key === 'memory-cards' || card.key === 'quiz') && !isEditMode && hasSourceData && (
             <Button
               type="text"
               size="small"
@@ -542,6 +617,18 @@ const DraggableOperationCard = ({
               onClick={(e) => {
                 e.stopPropagation();
                 setIsConfigModalVisible(true);
+                if (card.key === 'report') {
+                  setReportSuggestions(null);
+                  if (reportTimerRef.current) clearTimeout(reportTimerRef.current);
+                  reportTimerRef.current = setTimeout(() => {
+                    setReportSuggestions([
+                      { t: '培训概览报告', d: '汇总“新教师教学方法培训”的核心目标、实施进度与关键结论。' },
+                      { t: '执行简报', d: '以要点形式呈现培训成效、问题清单、下一步行动建议。' },
+                      { t: '学习指南摘要', d: '面向新教师的学习要点、推荐练习与课堂应用清单。' },
+                      { t: '博客文章草稿', d: '将培训洞见整理为通俗易懂的文章，便于传播。' }
+                    ]);
+                  }, 2000);
+                }
               }}
               style={{
                 position: 'absolute',
@@ -606,16 +693,44 @@ const DraggableOperationCard = ({
         </div>
       </Tooltip>
       
-      {/* 培训方案/培训报表/E-PBL教学设计/学习计划 配置窗口 */}
+      {/* 培训方案/培训报表/E-PBL教学设计/学习计划/记忆卡片/测验/报告 配置窗口 */}
       <Modal
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <SettingOutlined style={{ color: '#1890ff' }} />
-            <span>{card.key === 'training-dashboard' ? '培训报表配置' : (card.key === 'e-pbl-planning' ? 'E-PBL教学设计配置' : (card.key === 'learning-plan' ? '学习计划配置' : '培训方案配置'))}</span>
+            {card.key === 'report' ? (
+              <>
+                {reportEditItem && (
+                  <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => setReportEditItem(null)} />
+                )}
+                <FileTextOutlined style={{ color: '#b08800' }} />
+                <span>创建报告</span>
+              </>
+            ) : (
+              <>
+                <SettingOutlined style={{ color: '#1890ff' }} />
+                <span>{card.key === 'training-dashboard' ? '培训报表配置' : (card.key === 'e-pbl-planning' ? 'E-PBL教学设计配置' : (card.key === 'learning-plan' ? '学习计划配置' : (card.key === 'memory-cards' ? '自定义记忆卡' : (card.key === 'quiz' ? '自定义测验' : '培训方案配置'))))}</span>
+              </>
+            )}
           </div>
         }
         open={isConfigModalVisible}
         onOk={() => {
+          if (card.key === 'report') {
+            setIsConfigModalVisible(false);
+            return;
+          }
+          if (card.key === 'memory-cards') {
+            localStorage.setItem('memory_cards_config', JSON.stringify(config));
+            if (onClick) onClick();
+            setIsConfigModalVisible(false);
+            return;
+          }
+          if (card.key === 'quiz') {
+            localStorage.setItem('quiz_config', JSON.stringify(config));
+            if (onClick) onClick();
+            setIsConfigModalVisible(false);
+            return;
+          }
           // 验证字数限制
           if (config.description && config.description.length > 2000) {
             Modal.warning({
@@ -632,39 +747,172 @@ const DraggableOperationCard = ({
           }
           setIsConfigModalVisible(false);
         }}
-        onCancel={() => setIsConfigModalVisible(false)}
-        width={700}
-        okText="保存配置"
+        onCancel={() => {
+          setIsConfigModalVisible(false);
+          if (reportTimerRef.current) clearTimeout(reportTimerRef.current);
+          setReportEditItem(null);
+        }}
+        width={760}
+        okText={'保存配置'}
         cancelText="取消"
         bodyStyle={{ maxHeight: '70vh', overflowY: 'auto' }}
+        footer={(card.key === 'memory-cards' || card.key === 'quiz' || card.key === 'report') ? null : undefined}
       >
-        <Form layout="vertical" style={{ marginTop: '20px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
-            {configFormFields}
+        {card.key !== 'report' && (
+          <>
+            <Form layout="vertical" style={{ marginTop: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
+                {configFormFields}
+              </div>
+              
+              <Form.Item 
+                label={card.key === 'e-pbl-planning' ? '方案补充说明' : (card.key === 'learning-plan' ? '学习计划补充说明' : ((card.key === 'memory-cards' || card.key === 'quiz') ? '主题应该是什么？' : '方案补充说明'))}
+                help={
+                  <Text type="secondary" style={{ fontSize: '12px' }}>
+                    {card.key === 'e-pbl-planning' ? '补充教学设计的要点、注意事项等信息' : (card.key === 'learning-plan' ? '补充学习要求与偏好，用于生成更贴合的计划' : ((card.key === 'memory-cards' || card.key === 'quiz') ? '建议将主题聚焦且来源明确，内容精炼，便于生成' : '详细描述培训方案的背景、目标、适用对象等信息'))}
+                  </Text>
+                }
+              >
+                <Input.TextArea
+                  value={config.description}
+                  onChange={(e) => setConfig({...config, description: e.target.value})}
+                  placeholder={card.key === 'e-pbl-planning' ? '请输入教学设计补充说明（选填，2000字以内）' : (card.key === 'learning-plan' ? '请输入学习计划补充说明（选填，2000字以内）' : ((card.key === 'memory-cards' || card.key === 'quiz') ? '输入主题或参考提示，如“牛顿第二定律”' : '请输入培训方案的补充说明，如培训背景、目标、适用对象、预期效果等（选填，2000字以内）'))}
+                  autoSize={{ minRows: 4, maxRows: 8 }}
+                  maxLength={2000}
+                  showCount
+                  style={{
+                    fontSize: '14px',
+                    lineHeight: '1.6'
+                  }}
+                />
+              </Form.Item>
+              {(card.key === 'memory-cards' || card.key === 'quiz') && (
+                <div style={{ border: '1px solid #bae7ff', borderRadius: 8, padding: 12, background: '#e6f7ff', color: '#1d39c4' }}>
+                  可以尝试以下方法：• 测验内容必须限定于特定来源（例如“关于意大利的文章”）。• 测验应关注关键概念以便评估掌握。• 可提供主题提示，如“牛顿第二定律”，便于精准生成。
+                </div>
+              )}
+            </Form>
+            {(card.key === 'memory-cards' || card.key === 'quiz') && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
+                <Button onClick={() => setIsConfigModalVisible(false)} style={{ marginRight: 8 }}>取消</Button>
+                <Button type="primary" onClick={() => {
+                  if (card.key === 'memory-cards') {
+                    localStorage.setItem('memory_cards_config', JSON.stringify(config));
+                  } else if (card.key === 'quiz') {
+                    localStorage.setItem('quiz_config', JSON.stringify(config));
+                  }
+                  if (onClick) onClick();
+                  setIsConfigModalVisible(false);
+                }}>确定</Button>
+              </div>
+            )}
+          </>
+        )}
+        {card.key === 'report' && !reportEditItem && (
+          <div style={{ padding: '4px 0 16px 0' }}>
+            <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 8 }}>格式</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+              {[
+                { t: '创建你自己的', d: '通过指定结构、风格、语气等，打造您专属的报道风格。' },
+                { t: '简报文件', d: '信息来源概览，重点介绍关键见解和引语。' },
+                { t: '学习指南', d: '简答题测验、建议的作文题和关键词术语表' },
+                { t: '博客文章', d: '这篇文章将富有洞见的观点提炼成一篇通俗易懂的文章。' }
+              ].map((item, idx) => (
+                <div
+                  key={`fmt-${idx}`}
+                  style={{ background: '#f2efdf', borderRadius: 16, padding: '14px 14px', minHeight: 104, position: 'relative', cursor: 'pointer' }}
+                  onClick={() => { if (onClick) onClick(); setIsConfigModalVisible(false); }}
+                >
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<EditOutlined />}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setReportEditItem(item);
+                      const desc = (function(){
+                        if (item.t.includes('创建')) return '自定义结构与风格，打造专属报道，明确章节与语气，并生成“新教师教学方法培训”的定制报告草稿。';
+                        if (item.t.includes('简报')) return '生成执行简报，以要点列出培训成效、存在问题与下一步行动建议，便于校内会议汇报。';
+                        if (item.t.includes('学习指南')) return '整理学习指南摘要，包含新教师需掌握的课堂组织、教学设计与评价要点，附建议练习与课堂应用清单。';
+                        return '草拟博客文章，将“新教师教学方法培训”的洞见提炼为通俗易懂的段落，适合对外传播。';
+                      })();
+                      setReportDescription(desc);
+                    }}
+                    style={{ position: 'absolute', top: 10, right: 10 }}
+                  />
+                  <div style={{ fontSize: 16, fontWeight: 700, color: '#111827', marginBottom: 6 }}>{item.t}</div>
+                  <div style={{ fontSize: 12, color: '#4b5563', lineHeight: 1.6 }}>{item.d}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 16, marginBottom: 8 }}>
+              <span style={{ fontSize: 16 }}>✦</span>
+              <span style={{ fontSize: 13, color: '#6b7280' }}>{reportSuggestions ? '建议格式' : '正在加载建议......'}</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+              {(reportSuggestions ? reportSuggestions : [0,1,2,3]).map((item, i) => (
+                reportSuggestions ? (
+                  <div
+                    key={`sug-${i}`}
+                    style={{ background: '#f2efdf', borderRadius: 16, minHeight: 100, padding: '12px 14px', position: 'relative', cursor: 'pointer' }}
+                    onClick={() => { if (onClick) onClick(); setIsConfigModalVisible(false); }}
+                  >
+                    <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginBottom: 6 }}>{item.t}</div>
+                    <div style={{ fontSize: 12, color: '#4b5563', lineHeight: 1.6 }}>{item.d}</div>
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<EditOutlined />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setReportEditItem(item);
+                        const desc = (function(){
+                          if (item.t.includes('概览')) return '撰写一份“新教师教学方法培训”的概览报告，概述培训目标、进度、实施策略与关键结论，面向校内分享。';
+                          if (item.t.includes('简报')) return '生成执行简报，以要点列出培训成效、存在问题与下一步行动建议，便于校内会议汇报。';
+                          if (item.t.includes('学习指南')) return '整理学习指南摘要，包含新教师需掌握的课堂组织、教学设计与评价要点，附建议练习与课堂应用清单。';
+                          return '草拟博客文章，将“新教师教学方法培训”的洞见提炼为通俗易懂的段落，适合对外传播。';
+                        })();
+                        setReportDescription(desc);
+                      }}
+                      style={{ position: 'absolute', top: 8, right: 8 }}
+                    />
+                  </div>
+                ) : (
+                  <div key={`sug-${i}`} style={{
+                    background: 'linear-gradient(90deg, rgba(242,239,223,1) 0%, rgba(235,232,214,1) 50%, rgba(242,239,223,1) 100%)',
+                    borderRadius: 16,
+                    height: 100,
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: '-60%',
+                      width: '60%',
+                      height: '100%',
+                      background: 'linear-gradient(90deg, rgba(242,239,223,0) 0%, rgba(255,255,255,0.5) 50%, rgba(242,239,223,0) 100%)',
+                      animation: 'skeletonShimmer 1.6s infinite'
+                    }} />
+                  </div>
+                )
+              ))}
+            </div>
           </div>
-          
-          <Form.Item 
-            label={card.key === 'e-pbl-planning' ? '方案补充说明' : (card.key === 'learning-plan' ? '学习计划补充说明' : '方案补充说明')}
-            help={
-              <Text type="secondary" style={{ fontSize: '12px' }}>
-                {card.key === 'e-pbl-planning' ? '补充教学设计的要点、注意事项等信息' : (card.key === 'learning-plan' ? '补充学习要求与偏好，用于生成更贴合的计划' : '详细描述培训方案的背景、目标、适用对象等信息')}
-              </Text>
-            }
-          >
-            <Input.TextArea
-              value={config.description}
-              onChange={(e) => setConfig({...config, description: e.target.value})}
-              placeholder={card.key === 'e-pbl-planning' ? '请输入教学设计补充说明（选填，2000字以内）' : (card.key === 'learning-plan' ? '请输入学习计划补充说明（选填，2000字以内）' : '请输入培训方案的补充说明，如培训背景、目标、适用对象、预期效果等（选填，2000字以内）')}
-              autoSize={{ minRows: 4, maxRows: 8 }}
-              maxLength={2000}
-              showCount
-              style={{
-                fontSize: '14px',
-                lineHeight: '1.6'
-              }}
-            />
-          </Form.Item>
-        </Form>
+        )}
+        {card.key === 'report' && reportEditItem && (
+          <div style={{ padding: '4px 0 16px 0' }}>
+            <div style={{ background: '#f2efdf', borderRadius: 12, padding: '12px 14px', marginBottom: 16 }}>
+              <div style={{ fontSize: 14, fontWeight: 700 }}>{reportEditItem.t}</div>
+              <div style={{ fontSize: 12, color: '#4b5563', marginTop: 4 }}>{reportEditItem.d}</div>
+            </div>
+            <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>描述你要生成的报告</div>
+            <Input.TextArea value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} autoSize={{ minRows: 4, maxRows: 8 }} style={{ width: '100%' }} />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+              <Button type="primary" onClick={() => { if (onClick) onClick(); setReportEditItem(null); setIsConfigModalVisible(false); }}>生成</Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </>
   );

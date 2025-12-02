@@ -1,5 +1,5 @@
 import { message, Modal } from 'antd';
-import { OPERATION_TYPES, RIGHT_PANEL_VIEWS } from '../constants/noteEditConstants';
+import { OPERATION_TYPES } from '../constants/noteEditConstants';
 
 // 操作处理逻辑Hook
 export const useOperationHandlers = ({
@@ -31,6 +31,23 @@ export const useOperationHandlers = ({
   onRecordClick,
   onMoreAction
 }) => {
+  void setRightPanelView;
+  void setRightPanelQuestionRecord;
+  void setRightPanelQuestionContent;
+  void setRightPanelLearningPlanRecord;
+  void setRightPanelLearningPlanContent;
+  void setRightPanelGradingRecord;
+  void setRightPanelGradingContent;
+  void setRightPanelTrainingReportRecord;
+  void setRightPanelTrainingReportContent;
+  void setQuestionConfigVisible;
+  void setClassroomEvaluationVisible;
+  void setLearningPlanModalVisible;
+  void setReportSelectionVisible;
+  void onOperationClick;
+  void onAddTool;
+  void onRecordClick;
+  void onMoreAction;
   
   // 通用函数：添加记录并模拟生成过程
   const addRecordWithGenerating = (recordType, record, callbacks = {}) => {
@@ -77,7 +94,7 @@ export const useOperationHandlers = ({
       (addedTexts || []).forEach(t => refs.push({ type: 'text', id: t.id, title: t.title || t.name || String(t.id) }));
       (courseVideos || []).forEach(v => refs.push({ type: 'video', id: v.id, title: v.title || v.name || String(v.id) }));
       (links || []).forEach(l => refs.push({ type: 'link', id: l.id, title: l.title || l.url || String(l.id) }));
-    } catch (e) {}
+    } catch (e) { void e; }
     return refs;
   };
 
@@ -194,7 +211,7 @@ export const useOperationHandlers = ({
       onComplete: () => {
         message.success(`培训报表已生成：${selectedTitle}`);
         // 全屏显示培训报表
-        try { window.dispatchEvent(new Event('openTrainingDashboardFullscreen')); } catch {}
+      try { window.dispatchEvent(new Event('openTrainingDashboardFullscreen')); } catch (e) { void e; }
       }
     });
   };
@@ -351,6 +368,66 @@ export const useOperationHandlers = ({
     } else if (card.key === 'grading') {
       // 阅卷工具处理
       handleGradingToolAction();
+    } else if (card.key === OPERATION_TYPES.MEMORY_CARDS) {
+      // 记忆卡片：根据配置与来源生成卡片集
+      const mcCfg = (() => { try { return JSON.parse(localStorage.getItem('memory_cards_config') || '{}'); } catch { return {}; } })();
+      const amount = mcCfg.cardsAmount || 'standard';
+      const difficulty = mcCfg.cardsDifficulty || 'medium';
+      const theme = mcCfg.description || '';
+      const count = amount === 'few' ? 8 : amount === 'more' ? 20 : 12;
+      const cardsRecord = {
+        id: `memory_cards_${Date.now()}`,
+        type: OPERATION_TYPES.MEMORY_CARDS,
+        title: '记忆卡片',
+        source: sourceInfo?.details || '基于当前数据源',
+        time: new Date().toLocaleString('zh-CN'),
+        isAIGenerated: true,
+        sourceRefs: getSourceRefs(),
+        content: `<div style="padding: 20px; text-align: center;">
+          <h3>🧠 记忆卡片</h3>
+          <p style="color: #666;">${theme ? `主题：${theme}｜` : ''}基于${sourceInfo?.total || 1}个数据源提取的重点知识卡片</p>
+          <p style="color: #999; font-size: 14px;">${sourceInfo?.details || '数据源分析'} • ${new Date().toLocaleString('zh-CN')}</p>
+        </div>`,
+        cardsMeta: { count, difficulty, theme },
+        cardsData: Array.from({ length: count }).map((_, i) => ({ q: `知识点${i+1}`, a: difficulty === 'easy' ? '简要解释' : difficulty === 'hard' ? '深入要点与注意事项' : '关键概念与示例' }))
+      };
+      addRecordWithGenerating(OPERATION_TYPES.MEMORY_CARDS, cardsRecord, {
+        onComplete: () => {
+          message.success('记忆卡片生成成功，记录已添加。点击查看详情');
+        }
+      });
+    } else if (card.key === OPERATION_TYPES.QUIZ) {
+      // 测验：生成练习测验记录（读取自定义配置）
+      const qCfg = (() => { try { return JSON.parse(localStorage.getItem('quiz_config') || '{}'); } catch { return {}; } })();
+      const amount = qCfg.quizAmount || 'standard';
+      const difficulty = qCfg.quizDifficulty || 'medium';
+      const theme = qCfg.description || '';
+      const total = amount === 'few' ? 8 : amount === 'more' ? 20 : 12;
+      const quizRecord = {
+        id: `quiz_${Date.now()}`,
+        type: OPERATION_TYPES.QUIZ,
+        title: '测验',
+        source: sourceInfo?.details || '基于当前数据源',
+        time: new Date().toLocaleString('zh-CN'),
+        isAIGenerated: true,
+        sourceRefs: getSourceRefs(),
+        content: `<div style="padding: 20px; text-align: center;">
+          <h3>❓ 测验</h3>
+          <p style="color: #666;">${theme ? `主题：${theme}｜` : ''}基于${sourceInfo?.total || 1}个数据源自动生成的练习测验</p>
+          <p style="color: #999; font-size: 14px;">${sourceInfo?.details || '数据源分析'} • ${new Date().toLocaleString('zh-CN')}</p>
+        </div>`,
+        quizData: {
+          total,
+          types: ['单选','多选','判断'],
+          difficulty,
+          estimatedMinutes: difficulty === 'easy' ? 10 : difficulty === 'hard' ? 20 : 15
+        }
+      };
+      addRecordWithGenerating(OPERATION_TYPES.QUIZ, quizRecord, {
+        onComplete: () => {
+          message.success('测验生成成功，记录已添加。点击查看详情');
+        }
+      });
     } else if (card.key === OPERATION_TYPES.CLASSROOM_EVALUATION) {
       // 直接生成课堂评价记录，不弹出配置窗口
       const evaluationRecord = {
@@ -419,7 +496,23 @@ export const useOperationHandlers = ({
         time: new Date().toLocaleString('zh-CN'),
         isAIGenerated: true,
         sourceRefs: refs,
-        content: `<div style=\"padding: 16px; font-family: system-ui;\">\n          <h3>📋 现场分析报告${target ? `（督导对象：${target}）` : ''}</h3>\n          <p style=\"color:#374151\">依据 ${count} 项取证数据（文件/文本/链接/视频），对校园安全相关检查项进行聚类与要点提取，形成问题与整改建议。</p>\n          <h4>重点问题</h4>\n          <ul>\n            <li>消防设施台账记录不完整（建议：补齐巡检记录，明确责任人）。</li>\n            <li>食堂留样标签缺少日期（建议：按规范粘贴并留存48小时）。</li>\n            <li>门卫登记缺少访客佩证照片（建议：完善入校流程与留痕）。</li>\n          </ul>\n          <h4>整改建议</h4>\n          <ol>\n            <li>制定每周巡检清单并张贴，检查人签名留档。</li>\n            <li>按批次记录留样标签：时间/责任人/批次。</li>\n            <li>完善访客登记字段：证件号、进出时间、随行照片。</li>\n          </ol>\n          <div style=\"margin-top:8px;color:#6b7280;font-size:12px\">自动生成 · 现场分析</div>\n        </div>`
+        content: `<div style="padding: 16px; font-family: system-ui;">
+          <h3>📋 现场分析报告${target ? `（督导对象：${target}）` : ''}</h3>
+          <p style="color:#374151">依据 ${count} 项取证数据（文件/文本/链接/视频），对校园安全相关检查项进行聚类与要点提取，形成问题与整改建议。</p>
+          <h4>重点问题</h4>
+          <ul>
+            <li>消防设施台账记录不完整（建议：补齐巡检记录，明确责任人）。</li>
+            <li>食堂留样标签缺少日期（建议：按规范粘贴并留存48小时）。</li>
+            <li>门卫登记缺少访客佩证照片（建议：完善入校流程与留痕）。</li>
+          </ul>
+          <h4>整改建议</h4>
+          <ol>
+            <li>制定每周巡检清单并张贴，检查人签名留档。</li>
+            <li>按批次记录留样标签：时间/责任人/批次。</li>
+            <li>完善访客登记字段：证件号、进出时间、随行照片。</li>
+          </ol>
+          <div style="margin-top:8px;color:#6b7280;font-size:12px">自动生成 · 现场分析</div>
+        </div>`
       };
       addRecordWithGenerating(OPERATION_TYPES.SITE_ANALYSIS, siteRecord, {
         onComplete: () => {

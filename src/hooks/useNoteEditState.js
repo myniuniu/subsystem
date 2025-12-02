@@ -548,6 +548,35 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
     if (!isOrgTraining) return;
     setOperationRecords(prev => {
       const next = { ...prev };
+      // 初始化：记忆卡片
+      const memArr = Array.isArray(prev['memory-cards']) ? [...prev['memory-cards']] : [];
+      const hasMemDefault = memArr.some(r => String(r.title || '') === '记忆卡片');
+      if (!hasMemDefault) {
+        memArr.unshift({
+          id: `memory_cards_${Date.now()}`,
+          type: 'memory-cards',
+          title: '记忆卡片',
+          source: '基于当前数据源',
+          time: new Date().toLocaleString('zh-CN'),
+          isAIGenerated: true
+        });
+      }
+      next['memory-cards'] = memArr;
+
+      // 初始化：测验
+      const quizArr = Array.isArray(prev['quiz']) ? [...prev['quiz']] : [];
+      const hasQuizDefault = quizArr.some(r => String(r.title || '') === '测验');
+      if (!hasQuizDefault) {
+        quizArr.unshift({
+          id: `quiz_${Date.now()}`,
+          type: 'quiz',
+          title: '测验',
+          source: '基于当前数据源',
+          time: new Date().toLocaleString('zh-CN'),
+          isAIGenerated: true
+        });
+      }
+      next['quiz'] = quizArr;
       const videos = Array.isArray(prev.video) ? [...prev.video] : [];
       const title = '支持下一代教育者';
       const hasVideo = videos.some(r => String(r.title || '') === title);
@@ -721,6 +750,10 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   // 试题查看状态
   const [rightPanelQuestionRecord, setRightPanelQuestionRecord] = useState(null);
   const [rightPanelQuestionContent, setRightPanelQuestionContent] = useState('');
+  const [rightPanelMemoryCardsRecord, setRightPanelMemoryCardsRecord] = useState(null);
+  const [rightPanelMemoryCardsContent, setRightPanelMemoryCardsContent] = useState('');
+  const [rightPanelQuizRecord, setRightPanelQuizRecord] = useState(null);
+  const [rightPanelQuizContent, setRightPanelQuizContent] = useState('');
   
   // 学习计划查看状态
   const [rightPanelLearningPlanRecord, setRightPanelLearningPlanRecord] = useState(null);
@@ -996,6 +1029,14 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
     setRightPanelQuestionRecord,
     rightPanelQuestionContent,
     setRightPanelQuestionContent,
+    rightPanelMemoryCardsRecord,
+    setRightPanelMemoryCardsRecord,
+    rightPanelMemoryCardsContent,
+    setRightPanelMemoryCardsContent,
+    rightPanelQuizRecord,
+    setRightPanelQuizRecord,
+    rightPanelQuizContent,
+    setRightPanelQuizContent,
     
     // 学习计划查看状态
     rightPanelLearningPlanRecord,

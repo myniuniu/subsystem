@@ -26,7 +26,9 @@ export const OPERATION_TYPES = {
   TRAINING_DASHBOARD: 'training-dashboard',
   CLASSROOM_BEHAVIOR_ANALYSIS: 'classroom-behavior-analysis',
   SITE_ANALYSIS: 'site-analysis',
-  SUPERVISION_REPORT: 'supervision-report'
+  SUPERVISION_REPORT: 'supervision-report',
+  MEMORY_CARDS: 'memory-cards',
+  QUIZ: 'quiz'
 };
 
 // 操作按钮标题映射
@@ -51,6 +53,8 @@ export const OPERATION_TITLES = {
   [OPERATION_TYPES.CLASSROOM_BEHAVIOR_ANALYSIS]: '课堂行为分析'
   , [OPERATION_TYPES.SITE_ANALYSIS]: '现场分析'
   , [OPERATION_TYPES.SUPERVISION_REPORT]: '督学报告'
+  , [OPERATION_TYPES.MEMORY_CARDS]: '记忆卡片'
+  , [OPERATION_TYPES.QUIZ]: '测验'
 };
 
 // 材料类型图标映射
@@ -81,6 +85,8 @@ export const MATERIAL_ICONS = {
   [OPERATION_TYPES.TRAINING_DASHBOARD]: '报',
   [OPERATION_TYPES.CLASSROOM_BEHAVIOR_ANALYSIS]: '行'
   , [OPERATION_TYPES.SUPERVISION_REPORT]: '报'
+  , [OPERATION_TYPES.MEMORY_CARDS]: '卡'
+  , [OPERATION_TYPES.QUIZ]: '测'
 };
 
 // 网站类型常量
@@ -146,7 +152,9 @@ export const RIGHT_PANEL_VIEWS = {
   LIVE_PLAYER: 'live_player',
   EXAM_FORM_VIEWER: 'exam_form_viewer',
   // 新增：课程选择视图（占用中间 + 右侧）
-  COURSE_SELECTION_VIEWER: 'course_selection_viewer'
+  COURSE_SELECTION_VIEWER: 'course_selection_viewer',
+  MEMORY_CARD_VIEWER: 'memory_card_viewer',
+  QUIZ_VIEWER: 'quiz_viewer'
 };
 
 // 直播状态常量
@@ -616,6 +624,21 @@ export const OPERATION_CARDS = [
     icon: '报',
     gradient: 'linear-gradient(135deg, #f5f7ff 0%, #e6ebff 100%)',
     color: '#2f54eb'
+  },
+  // 新增：组织培训专用 - 记忆卡片 / 测验
+  {
+    key: OPERATION_TYPES.MEMORY_CARDS,
+    title: '记忆卡片',
+    icon: '卡',
+    gradient: 'linear-gradient(135deg, #fff1f0 0%, #ffd6d5 100%)',
+    color: '#a8071a'
+  },
+  {
+    key: OPERATION_TYPES.QUIZ,
+    title: '测验',
+    icon: '测',
+    gradient: 'linear-gradient(135deg, #e6f7ff 0%, #c9ebff 100%)',
+    color: '#096dd9'
   },
   // 新增：E-PBL策划卡片
   {

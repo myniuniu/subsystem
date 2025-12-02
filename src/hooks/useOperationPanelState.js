@@ -54,10 +54,12 @@ export const useOperationPanelState = (noteCategory = null) => {
       return supervisionCards;
     }
 
-    // 组织培训分类：仅默认显示指定的六个工具
+    // 组织培训分类：仅默认显示指定的工具（含新增：记忆卡片、测验）
     if (category === 'organizational_training') {
       const allowedKeys = [
         'learning-plan',
+        'memory-cards',
+        'quiz',
         'audio',
         'video',
         'mindmap',
@@ -183,10 +185,12 @@ export const useOperationPanelState = (noteCategory = null) => {
       return evalCards;
     }
 
-    // 如果是组织培训分类，默认仅显示六个工具并保持固定顺序
+    // 如果是组织培训分类，保持固定顺序（含新增：记忆卡片、测验）
     if (category === 'organizational_training') {
       const orderedKeys = [
         'learning-plan',
+        'memory-cards',
+        'quiz',
         'audio',
         'video',
         'mindmap',

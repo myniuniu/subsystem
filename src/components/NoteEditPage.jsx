@@ -1336,6 +1336,48 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
       }
 
       // 其他记录类型的处理逻辑
+      if (record.type === 'memory-cards') {
+        const buildExercises = () => {
+          const q = [];
+          q.push({ id: `qa_${Date.now()}_1`, type: '问答题', question: '概述新教师教学方法培训的核心目标。', answer: '帮助新教师掌握课堂组织、教学设计与评价等关键方法。' });
+          q.push({ id: `fb_${Date.now()}_2`, type: '填空题', question: '教学目标需同时关注知识、________、情感态度与价值观。', answer: '能力' });
+          q.push({ id: `qa_${Date.now()}_3`, type: '问答题', question: '说明新教师常见课堂管理难点及应对策略。', answer: '难点包括注意力维持、规则建立与差异管理；策略为明确规则、强化正向反馈、分层任务。' });
+          q.push({ id: `fb_${Date.now()}_4`, type: '填空题', question: '教学设计三要素通常为目标、内容与________。', answer: '评价' });
+          q.push({ id: `qa_${Date.now()}_5`, type: '问答题', question: '描述一次“新教师教学方法培训”的有效研修活动流程。', answer: '导入与目标说明→示范课观摩→分组研讨→微格演练→反馈与改进→行动计划。' });
+          q.push({ id: `fb_${Date.now()}_6`, type: '填空题', question: '提问技巧中，等待时间建议不少于________秒。', answer: '3' });
+          q.push({ id: `qa_${Date.now()}_7`, type: '问答题', question: '如何在培训后促进新教师的迁移应用？', answer: '提供课堂任务清单、同伴互助、督导跟进与实践反思模板。' });
+          q.push({ id: `fb_${Date.now()}_8`, type: '填空题', question: '分层教学中，任务应具有________与支持差异化的资源。', answer: '梯度' });
+          q.push({ id: `qa_${Date.now()}_9`, type: '问答题', question: '简述“以学为中心”的课堂组织要点。', answer: '明确学习目标、设置真实任务、促进互动合作、及时反馈与评价。' });
+          q.push({ id: `fb_${Date.now()}_10`, type: '填空题', question: '形成性评价强调在教学过程中收集证据并用于________教学。', answer: '改进' });
+          return q;
+        };
+        const exercises = buildExercises();
+        state.setRightPanelMemoryCardsRecord({ ...record, exercises });
+        state.setRightPanelView(RIGHT_PANEL_VIEWS.MEMORY_CARD_VIEWER);
+        return;
+      }
+
+      if (record.type === 'quiz') {
+        const buildQuiz = () => {
+          const list = [];
+          list.push({ stem: '根据对某省中学新进教师的调查，他们认为个人在下列哪个方面的能力最为不足？', options: ['教学反思与教研基础', '教学的组织与实施能力', '教学活动设计能力', '班级管理与育德体验'], answer: 1, explain: '调查结果的图里显示，超过一半的教师认为组织与实施能力存在不足，是所有选项中比例最高的。', hint: '请回想调查研究中，哪一项教学相关的实践能力被超过半数的教师选为自己的短板。' });
+          list.push({ stem: '在设计培训教学目标时，哪项表述更为合理？', options: ['完成知识点讲解', '提升课堂互动与反馈质量', '布置作业并批改', '统一教学进度'], answer: 1, explain: '目标应关注学习者的行为与结果，如互动与反馈质量的提升。', hint: '关注学习者行为改变与课堂质量提升，而不仅是完成讲解或任务。' });
+          list.push({ stem: '新教师培训中，促使学习迁移的有效做法是？', options: ['仅观看示范课', '提供实践清单并同伴互助', '增加讲座数量', '减少作业量'], answer: 1, explain: '提供实践清单、同伴互助与督导跟进更能促进迁移应用。', hint: '思考哪些安排能让教师把培训内容带到真实课堂中去。' });
+          list.push({ stem: '课堂管理策略中，最有助于维持注意力的是？', options: ['随机点名', '明确课堂规则与强化正反馈', '延长讲授时间', '减少互动'], answer: 1, explain: '明确规则与正向反馈能更稳定地维持注意力。', hint: '考虑能稳定课堂秩序并鼓励学生参与的做法。' });
+          list.push({ stem: '分层教学设计更强调？', options: ['统一难度', '任务梯度与差异化支持', '仅按成绩分组', '减少评价'], answer: 1, explain: '分层教学强调任务梯度与提供差异化资源支持。', hint: '关注任务的难度梯度与资源支持是否能照顾差异。' });
+          list.push({ stem: '有效提问的等待时间建议不少于？', options: ['1秒', '3秒', '10秒', '无需等待'], answer: 1, explain: '等待不少于3秒有助于学生思考与全员参与。', hint: '想想通常建议的“等待时间”长度，能否让学生有思考空间。' });
+          list.push({ stem: '形成性评价的核心是？', options: ['期末评分', '过程证据用于改进教学', '只看作业分数', '统一考试'], answer: 1, explain: '在教学过程中收集证据并用于改进教学是核心。', hint: '关键词是“过程”“证据”“用于改进”。' });
+          list.push({ stem: '“以学为中心”的课堂组织要点不包括？', options: ['明确学习目标', '设置真实任务', '促进互动合作', '减少反馈环节'], answer: 3, explain: '以学为中心强调及时反馈而不是减少反馈。', hint: '想想“以学为中心”是否需要更多反馈而不是更少。' });
+          list.push({ stem: '新教师培训研修流程中，哪一步更有助于技能定型？', options: ['示范课观摩', '微格演练与反馈改进', '集中讲座', '资料阅读'], answer: 1, explain: '微格演练结合反馈更有助于技能形成与定型。', hint: '考虑哪一步让教师亲自实践并获得针对性反馈。' });
+          list.push({ stem: '教学设计三要素通常为？', options: ['教材、教师、学生', '目标、内容与评价', '方法、过程、结果', '时间、地点、对象'], answer: 1, explain: '教学设计强调目标、内容与评价的一致性。', hint: '从“教学设计”常见表述中挑选与目标、内容、评价相关的组合。' });
+          return list;
+        };
+        const questions = buildQuiz();
+        state.setRightPanelQuizRecord({ ...record, questions });
+        state.setRightPanelView(RIGHT_PANEL_VIEWS.QUIZ_VIEWER);
+        return;
+      }
+
       if (record.type === 'question') {
         console.log('试题记录点击，record.content存在:', !!record.content);
         console.log('record.content类型:', typeof record.content);
@@ -2589,8 +2631,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 ? 3.6
                 : (state.rightPanelView === RIGHT_PANEL_VIEWS.COURSE_SELECTION_VIEWER
                   ? 5.5
-                  : ((state.rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR || state.rightPanelView === RIGHT_PANEL_VIEWS.QUESTION_VIEWER || state.rightPanelView === RIGHT_PANEL_VIEWS.GRADING_VIEWER)
-                    ? 3.6
+                  : ((state.rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR || state.rightPanelView === RIGHT_PANEL_VIEWS.QUESTION_VIEWER || state.rightPanelView === RIGHT_PANEL_VIEWS.GRADING_VIEWER || state.rightPanelView === RIGHT_PANEL_VIEWS.MEMORY_CARD_VIEWER || state.rightPanelView === RIGHT_PANEL_VIEWS.QUIZ_VIEWER)
+                    ? 5.0
                     : 5.0)),
               transition: 'flex 0.3s ease',
               margin: '0 1px 0 1px'
@@ -2682,6 +2724,9 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 // 笔记编辑、试题查看或阅卷报告查看状态时，保持原有增加宽度的逻辑
                 if (state.rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR || state.rightPanelView === RIGHT_PANEL_VIEWS.QUESTION_VIEWER || state.rightPanelView === RIGHT_PANEL_VIEWS.GRADING_VIEWER) {
                   return baseRatio * 1.35;
+                }
+                if (state.rightPanelView === RIGHT_PANEL_VIEWS.MEMORY_CARD_VIEWER || state.rightPanelView === RIGHT_PANEL_VIEWS.QUIZ_VIEWER) {
+                  return 5.0;
                 }
                 // 选课视图：右区加宽（相对基础宽度增加约10%）
                 if (state.rightPanelView === RIGHT_PANEL_VIEWS.COURSE_SELECTION_VIEWER) {

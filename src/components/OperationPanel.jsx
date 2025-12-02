@@ -57,6 +57,8 @@ import ClassroomEvaluationViewer from './OperationPanel/ClassroomEvaluationViewe
 import ClassroomBehaviorAnalysisViewer from './OperationPanel/ClassroomBehaviorAnalysisViewer';
 import TrainingPlanViewer from './OperationPanel/TrainingPlanViewer';
 import TrainingReportViewer from './OperationPanel/TrainingReportViewer';
+import MemoryCardViewer from './OperationPanel/MemoryCardViewer';
+import QuizViewer from './OperationPanel/QuizViewer';
 import VideoPlayer from './VideoPlayer';
 import LivePlayer from './LivePlayer';
 import TrainingDashboardViewer from './OperationPanel/TrainingDashboardViewer';
@@ -146,6 +148,10 @@ if (typeof document !== 'undefined') {
     setRightPanelQuestionRecord,
     rightPanelQuestionContent,
     setRightPanelQuestionContent,
+    rightPanelMemoryCardsRecord,
+    setRightPanelMemoryCardsRecord,
+    rightPanelQuizRecord,
+    setRightPanelQuizRecord,
     rightPanelLearningPlanRecord,
     setRightPanelLearningPlanRecord,
     rightPanelLearningPlanContent,
@@ -256,6 +262,7 @@ if (typeof document !== 'undefined') {
   }, [isCollapsed, state]);
 
   useEffect(() => {
+    if (categoryKey !== 'organizational_training') return;
     const DEFAULT_ID = 'default-learning-plan-record';
     const list = Array.isArray(operationRecords?.[OPERATION_TYPES.LEARNING_PLAN]) ? operationRecords[OPERATION_TYPES.LEARNING_PLAN] : [];
     const exists = list.some(r => r.id === DEFAULT_ID);
@@ -320,7 +327,7 @@ if (typeof document !== 'undefined') {
         return updated;
       });
     }
-  }, []);
+  }, [categoryKey]);
   
   const {
     questionConfigVisible,
@@ -1052,6 +1059,26 @@ if (typeof document !== 'undefined') {
     );
   }
 
+  if (rightPanelView === RIGHT_PANEL_VIEWS.MEMORY_CARD_VIEWER) {
+    return (
+      <MemoryCardViewer
+        rightPanelMemoryCardsRecord={rightPanelMemoryCardsRecord}
+        setRightPanelMemoryCardsRecord={setRightPanelMemoryCardsRecord}
+        setRightPanelView={setRightPanelView}
+      />
+    );
+  }
+
+  if (rightPanelView === RIGHT_PANEL_VIEWS.QUIZ_VIEWER) {
+    return (
+      <QuizViewer
+        rightPanelQuizRecord={rightPanelQuizRecord}
+        setRightPanelQuizRecord={setRightPanelQuizRecord}
+        setRightPanelView={setRightPanelView}
+      />
+    );
+  }
+
   if (rightPanelView === RIGHT_PANEL_VIEWS.GRADING_VIEWER) {
     return (
       <GradingViewer 
@@ -1608,7 +1635,11 @@ if (typeof document !== 'undefined') {
               </Tooltip>
               
               {/* 操作记录列表（最多显示8个） */}
-              {operationRecords && Object.values(operationRecords).flat().slice(0, 8).map(record => {                
+              {operationRecords && Object.values(operationRecords)
+                .flat()
+                .filter(r => categoryKey === 'organizational_training' || r.type !== 'learning-plan')
+                .slice(0, 8)
+                .map(record => {                
                 const getIcon = (type, isGenerating) => {
                   // 如果正在生成，显示旋转图标
                   if (isGenerating) {
@@ -1622,28 +1653,30 @@ if (typeof document !== 'undefined') {
                     );
                   }
                   
-                  const iconMap = {
-                    'audio': '🎧',
-                    'video': '🎥',
-                    'mindmap': '🧠',
-                    'report': '📊',
-                    'ppt': '📊',
-                    'webcode': '💻',
-                    'scenario': '🎭',
-                    'note': '📝',
-                    'document': '📝',
-                    'question': '❓',
-                    'learning-plan': '📅',
-                    'grading': '✅',
-                    'knowledge-graph': '🕸️',
-                    'training-plan': '🎯',
-                    'training-dashboard': '📈',
-                    'classroom-evaluation': '📊',
-                    'site-analysis': '🔍',
-                    'supervision-execution': '🛡️',
-                    'supervision-task': '🗂️',
-                    'supervision-report': '📄'
-                  };
+                const iconMap = {
+                  'audio': '🎧',
+                  'video': '🎥',
+                  'mindmap': '🧠',
+                  'report': '📊',
+                  'ppt': '📊',
+                  'webcode': '💻',
+                  'scenario': '🎭',
+                  'note': '📝',
+                  'document': '📝',
+                  'question': '❓',
+                  'memory-cards': '🧠',
+                  'quiz': '❓',
+                  'learning-plan': '📅',
+                  'grading': '✅',
+                  'knowledge-graph': '🕸️',
+                  'training-plan': '🎯',
+                  'training-dashboard': '📈',
+                  'classroom-evaluation': '📊',
+                  'site-analysis': '🔍',
+                  'supervision-execution': '🛡️',
+                  'supervision-task': '🗂️',
+                  'supervision-report': '📄'
+                };
                   return iconMap[type] || '📄';
                 };
                 
@@ -1694,6 +1727,8 @@ if (typeof document !== 'undefined') {
                             'note': '记',
                             'document': '文',
                             'question': '题',
+                            'memory-cards': '卡',
+                            'quiz': '测',
                             'learning-plan': '学',
                             'grading': '评',
                             'knowledge-graph': '图',
@@ -1864,7 +1899,10 @@ if (typeof document !== 'undefined') {
         </div>
         
         <div style={{ flex: 1, overflowY: 'auto' }}>
-          {Object.values(operationRecords).flat().map(record => {
+          {Object.values(operationRecords)
+            .flat()
+            .filter(r => categoryKey === 'organizational_training' || r.type !== 'learning-plan')
+            .map(record => {
             const getIcon = (type, isGenerating) => {
               // 如果正在生成，显示旋转图标
               if (isGenerating) {
@@ -1890,6 +1928,8 @@ if (typeof document !== 'undefined') {
                 case 'note': return '笔';
                 case 'document': return '笔';
                 case 'question': return '题';
+                case 'memory-cards': return '卡';
+                case 'quiz': return '测';
                 case 'learning-plan': return '计';
                 case 'grading': return '阅';
                 case 'knowledge-graph': return '知';
