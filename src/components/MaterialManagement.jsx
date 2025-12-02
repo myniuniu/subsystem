@@ -30,6 +30,7 @@ import KnowledgeGraphMindMap from './KnowledgeGraphMindMap.jsx';
     ArrowLeftOutlined,
     UploadOutlined,
     FileTextOutlined,
+    FilePdfOutlined,
     LinkOutlined,
     PlusOutlined,
     DeleteOutlined,
@@ -38,6 +39,7 @@ import KnowledgeGraphMindMap from './KnowledgeGraphMindMap.jsx';
     PaperClipOutlined,
     EyeOutlined,
     PlayCircleOutlined,
+    VideoCameraOutlined,
     ClockCircleOutlined,
     RobotOutlined,
     NodeIndexOutlined,
@@ -47,7 +49,9 @@ import KnowledgeGraphMindMap from './KnowledgeGraphMindMap.jsx';
     AppstoreOutlined,
     ExclamationCircleOutlined,
     CheckCircleOutlined,
-    CloseCircleOutlined
+    CloseCircleOutlined,
+    MenuUnfoldOutlined,
+    ColumnWidthOutlined
   } from '@ant-design/icons';
 import { Grid, Map as MapIcon } from 'lucide-react';
 import { VIEW_MODES, RIGHT_PANEL_VIEWS, EXAM_VIEW_MODES } from '../constants/noteEditConstants';
@@ -67,7 +71,7 @@ const { Title, Text } = Typography;
 const { TextArea } = Input;
   const { Option } = Select;
 
-  const MaterialManagement = ({ state, handlers, onBack, mode, note }) => {
+  const MaterialManagement = ({ state, handlers, onBack, mode, note, leftPanelCollapsed = false, setLeftPanelCollapsed = null }) => {
   const {
     uploadedFiles,
     setUploadedFiles,
@@ -2035,6 +2039,178 @@ const { TextArea } = Input;
     }
   };
 
+  if (leftPanelCollapsed) {
+    return (
+      <div style={{ 
+        flex: 0.23,
+        width: '52px',
+        background: '#fff',
+        margin: '16px 0 16px 16px',
+        borderRadius: '8px',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        <div style={{ padding: 6, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+          <Tooltip title="展开" placement="right">
+            <Button
+              type="text"
+              size="small"
+              icon={<MenuUnfoldOutlined />}
+              onClick={() => setLeftPanelCollapsed && setLeftPanelCollapsed(false)}
+              style={{ fontSize: '12px', height: '28px', width: '28px', borderRadius: '6px', background: '#f5f5f5' }}
+            />
+          </Tooltip>
+          <Tooltip title="添加来源" placement="right">
+            <Button
+              type="text"
+              size="small"
+              icon={<PlusOutlined />}
+              onClick={() => setShowMaterialAddModal && setShowMaterialAddModal(true)}
+              style={{ fontSize: '12px', height: '28px', width: '28px', borderRadius: '6px', background: '#f5f5f5' }}
+            />
+          </Tooltip>
+          <div style={{ width: '100%', height: 1, background: '#f0f0f0', margin: '4px 0' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, width: '100%', overflowY: 'auto' }}>
+            {(() => {
+              const docs = [];
+              const media = [];
+              try {
+                (Array.isArray(uploadedFiles) ? uploadedFiles : []).forEach(f => {
+                  const name = String(f.name || '').toLowerCase();
+                  const isPdf = name.endsWith('.pdf');
+                  docs.push({ key: `file-${f.id}`, title: f.name, kind: isPdf ? 'pdf' : 'file' });
+                });
+                (Array.isArray(links) ? links : []).forEach(l => {
+                  const url = String(l.url || '').toLowerCase();
+                  const isPdf = (l.type === 'pdf') || url.endsWith('.pdf');
+                  if (isPdf) docs.push({ key: `link-${l.id}`, title: l.title || l.url, kind: 'pdf' });
+                });
+                (Array.isArray(courseVideos) ? courseVideos : []).forEach(v => {
+                  media.push({ key: `video-${v.id}`, title: v.title || '课程视频', kind: 'video' });
+                });
+                (Array.isArray(liveStreams) ? liveStreams : []).forEach(s => {
+                  media.push({ key: `live-${s.id}`, title: s.title || '直播课程', kind: 'video' });
+                });
+              } catch { void 0; }
+              const renderItem = (it) => (
+                <Tooltip key={it.key} title={it.title} placement="right">
+                  <div
+                    onClick={() => {
+                      try {
+                        if (setLeftPanelCollapsed) setLeftPanelCollapsed(false);
+                        if (it.kind === 'video') {
+                          try {
+                            if (String(it.key).startsWith('video-')) {
+                              const vid = String(it.key).substring('video-'.length);
+                              const vObj = (Array.isArray(courseVideos) ? courseVideos : []).find(v => String(v.id) === String(vid));
+                              if (vObj) {
+                                if (handlers && typeof handlers.onPlayVideo === 'function') {
+                                  handlers.onPlayVideo(vObj);
+                                } else {
+                                  state.setSelectedMaterial && state.setSelectedMaterial(vObj);
+                                  state.setVideoStartTime && state.setVideoStartTime(0);
+                                  state.setCurrentView && state.setCurrentView(VIEW_MODES.VIDEO);
+                                }
+                                return;
+                              }
+                            } else if (String(it.key).startsWith('live-')) {
+                              const lid = String(it.key).substring('live-'.length);
+                              const sObj = (Array.isArray(liveStreams) ? liveStreams : []).find(s => String(s.id) === String(lid));
+                              if (sObj) {
+                                const statusNow = getLiveStreamStatus(sObj);
+                                if (statusNow === 'live') {
+                                  const fixedVideo = {
+                                    id: `live-${sObj.id}`,
+                                    title: sObj.title,
+                                    url: sObj.url || sObj.replayUrl || '/assets/demo1.mp4',
+                                    videoUrl: sObj.url || sObj.replayUrl || '/assets/demo1.mp4',
+                                    type: 'live',
+                                    liveDate: sObj.liveDate,
+                                    instructor: sObj.instructor,
+                                    audience: sObj.audience,
+                                    progress: 0,
+                                    courseId: 'live-demo',
+                                    courseTitle: '直播演示'
+                                  };
+                                  if (handlers && typeof handlers.onPlayVideo === 'function') {
+                                    handlers.onPlayVideo(fixedVideo);
+                                  } else {
+                                    state.setSelectedMaterial && state.setSelectedMaterial(fixedVideo);
+                                    state.setVideoStartTime && state.setVideoStartTime(0);
+                                    state.setCurrentView && state.setCurrentView(VIEW_MODES.VIDEO);
+                                  }
+                                  return;
+                                } else {
+                                  const replay = {
+                                    id: `replay-${sObj.id}`,
+                                    title: sObj.title + ' 回放',
+                                    type: 'live_replay',
+                                    liveDate: sObj.liveDate,
+                                    url: sObj.replayUrl || sObj.url,
+                                    videoUrl: sObj.replayUrl || sObj.url,
+                                    instructor: sObj.instructor,
+                                    audience: sObj.audience
+                                  };
+                                  if (handlers && typeof handlers.onPlayVideo === 'function') {
+                                    handlers.onPlayVideo(replay);
+                                  } else {
+                                    state.setSelectedMaterial && state.setSelectedMaterial(replay);
+                                    state.setVideoStartTime && state.setVideoStartTime(0);
+                                    state.setCurrentView && state.setCurrentView(VIEW_MODES.VIDEO);
+                                  }
+                                  return;
+                                }
+                              }
+                            }
+                          } catch { void 0; }
+                        }
+                        setTimeout(() => {
+                          try {
+                            const el = document.querySelector(`[data-collapsed-target='${it.key}']`);
+                            if (el && typeof el.scrollIntoView === 'function') el.scrollIntoView({ block: 'nearest' });
+                          } catch { void 0; }
+                        }, 200);
+                      } catch { void 0; }
+                    }}
+                    style={{ 
+                      width: 28, 
+                      height: 28, 
+                      borderRadius: 6, 
+                      background: it.kind === 'video' ? '#e6f4ff' : (it.kind === 'pdf' ? '#fff1f0' : '#fafafa'), 
+                      border: '1px solid #f0f0f0',
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {it.kind === 'video' ? (
+                      <VideoCameraOutlined style={{ color: '#1677ff' }} />
+                    ) : (
+                      <FilePdfOutlined style={{ color: '#ff4d4f' }} />
+                    )}
+                  </div>
+                </Tooltip>
+              );
+              return (
+                <>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }}>
+                    {docs.slice(0, 50).map(renderItem)}
+                  </div>
+                  <div style={{ width: '100%', height: 1, background: '#f0f0f0', margin: '6px 0' }} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }}>
+                    {media.slice(0, 50).map(renderItem)}
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ 
       flex: (currentView === 'video' || currentView === VIEW_MODES.TRAINING_PLAN_THREE_COLUMN) ? 4 : (viewMode === 'map' ? 4 : 2.5), 
@@ -2082,6 +2258,15 @@ const { TextArea } = Input;
                 返回
               </Button>
             )}
+            <Tooltip title={'收起'}>
+              <Button
+                type="text"
+                size="small"
+                icon={<ColumnWidthOutlined />}
+                onClick={() => setLeftPanelCollapsed && setLeftPanelCollapsed(true)}
+                style={{ fontSize: '12px', height: '28px', width: '28px', borderRadius: '6px', background: '#f5f5f5' }}
+              />
+            </Tooltip>
           </div>
         </div>
         

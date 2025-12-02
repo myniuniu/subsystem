@@ -16,9 +16,10 @@ import {
   Avatar,
   Space,
   Tabs,
-  Drawer
+  Drawer,
+  Tooltip
 } from 'antd';
-import { ArrowLeftOutlined, DownloadOutlined, MessageOutlined, VideoCameraOutlined, AudioOutlined, AudioMutedOutlined, StopOutlined, ShareAltOutlined, TeamOutlined, BookOutlined, LinkOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, DownloadOutlined, MessageOutlined, VideoCameraOutlined, AudioOutlined, AudioMutedOutlined, StopOutlined, ShareAltOutlined, TeamOutlined, BookOutlined, LinkOutlined, PlayCircleOutlined, MenuUnfoldOutlined, ColumnWidthOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { getNewTeacherTrainingMessages } from '../data/trainingDiscussionMessages';
 
@@ -392,6 +393,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
   
   // 操作面板收起状态
   const [operationPanelCollapsed, setOperationPanelCollapsed] = useState(false);
+  const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
   // E-PBL 流程图选中节点（用于触发左右分区显示）
   const [epblSelectedNode, setEpblSelectedNode] = useState(null);
   // 全局抑制：点击元素不要显示右侧（包含流程图节点）
@@ -425,6 +427,42 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
     return () => window.removeEventListener('openCourseSelection', openHandler);
   }, []);
   const [selectedSourceForLink, setSelectedSourceForLink] = useState(null);
+
+  const renderLeftCollapsedBar = () => (
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      paddingTop: 4 
+    }}>
+      <Tooltip title="展开" placement="right">
+        <Button
+          type="text"
+          size="small"
+          icon={<MenuUnfoldOutlined />}
+          onClick={() => setLeftPanelCollapsed(false)}
+          style={{
+            fontSize: '12px',
+            height: '28px',
+            width: '28px',
+            borderRadius: '6px',
+            background: '#f5f5f5'
+          }}
+        />
+      </Tooltip>
+      <div style={{ 
+        width: 34, 
+        height: 34, 
+        background: 'linear-gradient(135deg, #e8f7ff 0%, #cce7ff 100%)', 
+        borderRadius: 8, 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        fontSize: 16, 
+        marginTop: 6 
+      }}>📁</div>
+    </div>
+  );
 
   // 构建可选择来源列表（来自 MaterialManagement 的各类材料）
   const buildSourceOptions = () => {
@@ -2561,6 +2599,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 onBack={onBack}
                 mode={mode}
                 note={note}
+                leftPanelCollapsed={leftPanelCollapsed}
+                setLeftPanelCollapsed={setLeftPanelCollapsed}
               />
             ) : currentView === VIEW_MODES.ACHIEVEMENT_DETAIL ? (
               /* 研修成果详情三栏模式：占据左侧区域，内联展示 */
@@ -2568,7 +2608,8 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
             ) : currentView === VIEW_MODES.LEARNING_PLAN_THREE_COLUMN ? (
               /* 学习计划日历三栏模式：占据左侧区域 */
               <div style={{ 
-                flex: 4, 
+                flex: leftPanelCollapsed ? 0.23 : 4, 
+                width: leftPanelCollapsed ? '52px' : 'auto',
                 background: '#fff', 
                 margin: '0 1px 0 0', 
                 borderRadius: '8px', 
@@ -2577,18 +2618,37 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 flexDirection: 'column',
                 transition: 'flex 0.3s ease'
               }}>
-                <LearningPlanCalendar 
-                  planData={state.rightPanelLearningPlanRecord}
-                  plan={state.rightPanelLearningPlanRecord?.metadata || {}}
-                  habits={['morning', 'evening']}
-                  selectedDate={dayjs()}
-                  onDateChange={(date) => console.log('日期变更:', date)}
-                />
+                {leftPanelCollapsed ? (
+                  renderLeftCollapsedBar()
+                ) : (
+                  <>
+                    <div style={{ padding: '8px 12px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fafafa' }}>
+                      <div />
+                      <Tooltip title={leftPanelCollapsed ? '展开' : '收起'}>
+                        <Button
+                          type="text"
+                          size="small"
+                          icon={leftPanelCollapsed ? <MenuUnfoldOutlined /> : <ColumnWidthOutlined />}
+                          onClick={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
+                          style={{ fontSize: '12px', height: '28px', width: '28px', borderRadius: '6px', background: '#f5f5f5' }}
+                        />
+                      </Tooltip>
+                    </div>
+                    <LearningPlanCalendar 
+                      planData={state.rightPanelLearningPlanRecord}
+                      plan={state.rightPanelLearningPlanRecord?.metadata || {}}
+                      habits={['morning', 'evening']}
+                      selectedDate={dayjs()}
+                      onDateChange={(date) => console.log('日期变更:', date)}
+                    />
+                  </>
+                )}
               </div>
             ) : currentView === VIEW_MODES.TRAINING_PLAN_THREE_COLUMN ? (
               /* 培训方案三栏模式：占据左侧区域 */
               <div style={{ 
-                flex: 4.6, 
+                flex: leftPanelCollapsed ? 0.23 : 4.6, 
+                width: leftPanelCollapsed ? '52px' : 'auto',
                 background: '#fff', 
                 margin: '0 1px 0 0', 
                 borderRadius: '8px', 
@@ -2597,29 +2657,45 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 flexDirection: 'column',
                 transition: 'flex 0.3s ease'
               }}>
-                <div style={{ padding: '8px 12px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', background: '#fafafa' }}>
-                  <Button 
-                    size="small"
-                    icon={<ArrowLeftOutlined />} 
-                    onClick={() => setCurrentView(VIEW_MODES.MATERIALS)}
-                  >
-                    返回
-                  </Button>
-                </div>
-                <TrainingPlanViewer 
-                  rightPanelTrainingPlanRecord={state.leftPanelTrainingPlanRecord}
-                  rightPanelTrainingPlanContent={state.leftPanelTrainingPlanContent}
-                  setRightPanelView={state.setRightPanelView}
-                  setRightPanelTrainingPlanRecord={state.setLeftPanelTrainingPlanRecord}
-                  setRightPanelTrainingPlanContent={state.setLeftPanelTrainingPlanContent}
-                  isFullscreen={true}
-                  setCurrentView={setCurrentView}
-                  hideButtons={true}
-                />
+                {leftPanelCollapsed ? (
+                  renderLeftCollapsedBar()
+                ) : (
+                  <>
+                    <div style={{ padding: '8px 12px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fafafa' }}>
+                      <Button 
+                        size="small"
+                        icon={<ArrowLeftOutlined />} 
+                        onClick={() => setCurrentView(VIEW_MODES.MATERIALS)}
+                      >
+                        返回
+                      </Button>
+                      <Tooltip title={leftPanelCollapsed ? '展开' : '收起'}>
+                        <Button
+                          type="text"
+                          size="small"
+                          icon={leftPanelCollapsed ? <MenuUnfoldOutlined /> : <ColumnWidthOutlined />}
+                          onClick={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
+                          style={{ fontSize: '12px', height: '28px', width: '28px', borderRadius: '6px', background: '#f5f5f5' }}
+                        />
+                      </Tooltip>
+                    </div>
+                    <TrainingPlanViewer 
+                      rightPanelTrainingPlanRecord={state.leftPanelTrainingPlanRecord}
+                      rightPanelTrainingPlanContent={state.leftPanelTrainingPlanContent}
+                      setRightPanelView={state.setRightPanelView}
+                      setRightPanelTrainingPlanRecord={state.setLeftPanelTrainingPlanRecord}
+                      setRightPanelTrainingPlanContent={state.setLeftPanelTrainingPlanContent}
+                      isFullscreen={true}
+                      setCurrentView={setCurrentView}
+                      hideButtons={true}
+                    />
+                  </>
+                )}
               </div>
             ) : (
               <div style={{ 
-                flex: 4, 
+                flex: leftPanelCollapsed ? 0.23 : 4, 
+                width: leftPanelCollapsed ? '52px' : 'auto',
                 background: '#fff', 
                 margin: '0 1px 0 0', 
                 borderRadius: '8px', 
@@ -2628,13 +2704,32 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 flexDirection: 'column',
                 transition: 'flex 0.3s ease'
               }}>
-                {currentView === VIEW_MODES.DOCUMENT ? (
-                  <DocumentView state={state} onBack={() => setCurrentView(VIEW_MODES.MATERIALS)} />
+                {leftPanelCollapsed ? (
+                  renderLeftCollapsedBar()
                 ) : (
-                  <VideoView 
-                    state={state}
-                    handlers={videoHandlers}
-                  />
+                  <>
+                    {currentView !== VIEW_MODES.VIDEO && (
+                      <div style={{ padding: '8px 12px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', background: '#fafafa' }}>
+                        <Tooltip title={leftPanelCollapsed ? '展开' : '收起'}>
+                          <Button
+                            type="text"
+                            size="small"
+                            icon={leftPanelCollapsed ? <MenuUnfoldOutlined /> : <ColumnWidthOutlined />}
+                            onClick={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
+                            style={{ fontSize: '12px', height: '28px', width: '28px', borderRadius: '6px', background: '#f5f5f5' }}
+                          />
+                        </Tooltip>
+                      </div>
+                    )}
+                    {currentView === VIEW_MODES.DOCUMENT ? (
+                      <DocumentView state={state} onBack={() => setCurrentView(VIEW_MODES.MATERIALS)} />
+                    ) : (
+                      <VideoView 
+                        state={state}
+                        handlers={videoHandlers}
+                      />
+                    )}
+                  </>
                 )}
               </div>
             )}
