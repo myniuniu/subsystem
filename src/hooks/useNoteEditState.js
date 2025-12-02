@@ -754,6 +754,8 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
   const [rightPanelMemoryCardsContent, setRightPanelMemoryCardsContent] = useState('');
   const [rightPanelQuizRecord, setRightPanelQuizRecord] = useState(null);
   const [rightPanelQuizContent, setRightPanelQuizContent] = useState('');
+  const [rightPanelReportRecord, setRightPanelReportRecord] = useState(null);
+  const [rightPanelReportContent, setRightPanelReportContent] = useState('');
   
   // 学习计划查看状态
   const [rightPanelLearningPlanRecord, setRightPanelLearningPlanRecord] = useState(null);
@@ -1037,6 +1039,10 @@ export const useNoteEditState = (note, mode, selectedTemplate = null, selectedCa
     setRightPanelQuizRecord,
     rightPanelQuizContent,
     setRightPanelQuizContent,
+    rightPanelReportRecord,
+    setRightPanelReportRecord,
+    rightPanelReportContent,
+    setRightPanelReportContent,
     
     // 学习计划查看状态
     rightPanelLearningPlanRecord,

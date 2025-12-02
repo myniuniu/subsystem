@@ -59,6 +59,7 @@ import TrainingPlanViewer from './OperationPanel/TrainingPlanViewer';
 import TrainingReportViewer from './OperationPanel/TrainingReportViewer';
 import MemoryCardViewer from './OperationPanel/MemoryCardViewer';
 import QuizViewer from './OperationPanel/QuizViewer';
+import ReportViewer from './OperationPanel/ReportViewer';
 import VideoPlayer from './VideoPlayer';
 import LivePlayer from './LivePlayer';
 import TrainingDashboardViewer from './OperationPanel/TrainingDashboardViewer';
@@ -160,6 +161,10 @@ if (typeof document !== 'undefined') {
     setRightPanelGradingRecord,
     rightPanelGradingContent,
     setRightPanelGradingContent,
+    rightPanelReportRecord,
+    setRightPanelReportRecord,
+    rightPanelReportContent,
+    setRightPanelReportContent,
     rightPanelTrainingPlanRecord,
     setRightPanelTrainingPlanRecord,
     rightPanelTrainingPlanContent,
@@ -1075,6 +1080,18 @@ if (typeof document !== 'undefined') {
         rightPanelQuizRecord={rightPanelQuizRecord}
         setRightPanelQuizRecord={setRightPanelQuizRecord}
         setRightPanelView={setRightPanelView}
+      />
+    );
+  }
+
+  if (rightPanelView === RIGHT_PANEL_VIEWS.REPORT_VIEWER) {
+    return (
+      <ReportViewer
+        rightPanelReportRecord={rightPanelReportRecord}
+        rightPanelReportContent={rightPanelReportContent}
+        setRightPanelView={setRightPanelView}
+        setRightPanelReportRecord={setRightPanelReportRecord}
+        setRightPanelReportContent={setRightPanelReportContent}
       />
     );
   }

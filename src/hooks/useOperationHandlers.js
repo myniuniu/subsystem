@@ -345,20 +345,22 @@ export const useOperationHandlers = ({
         }
       });
     } else if (card.key === 'report') {
-      // 直接生成报告记录，不弹出格式选择窗口
+      const titleText = '新教师正在“裸泳”：调查揭示的5个残酷现实与破局之道';
       const reportRecord = {
         id: `report_${Date.now()}`,
         type: OPERATION_TYPES.REPORT,
-        title: '智能报告',
+        title: titleText,
         source: sourceInfo?.details || '基于当前数据源',
         time: new Date().toLocaleString('zh-CN'),
         isAIGenerated: true,
         sourceRefs: getSourceRefs(),
         content: `<div style="padding: 20px; text-align: center;">
-          <h3>📄 智能报告</h3>
+          <h3>📄 ${titleText}</h3>
           <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的报告</p>
           <p style="color: #999; font-size: 14px;">${sourceInfo?.details || '数据源分析'} • ${new Date().toLocaleString('zh-CN')}</p>
-        </div>`
+        </div>`,
+        subType: 'study-guide',
+        topic: '新教师教学方法培训'
       };
       addRecordWithGenerating(OPERATION_TYPES.REPORT, reportRecord, {
         onComplete: () => {

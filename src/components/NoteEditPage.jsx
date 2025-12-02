@@ -1357,6 +1357,21 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         return;
       }
 
+      if (record.type === 'report') {
+        const topic = '新教师教学方法培训';
+        const content = {
+          metadata: {
+            title: `${topic}报告`,
+            generatedAt: new Date().toLocaleString('zh-CN'),
+            source: record.source || '基于当前数据源'
+          }
+        };
+        state.setRightPanelReportRecord({ ...record, topic, subType: 'study-guide' });
+        state.setRightPanelReportContent(content);
+        state.setRightPanelView(RIGHT_PANEL_VIEWS.REPORT_VIEWER);
+        return;
+      }
+
       if (record.type === 'quiz') {
         const buildQuiz = () => {
           const list = [];
@@ -2725,7 +2740,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
                 if (state.rightPanelView === RIGHT_PANEL_VIEWS.NOTE_EDITOR || state.rightPanelView === RIGHT_PANEL_VIEWS.QUESTION_VIEWER || state.rightPanelView === RIGHT_PANEL_VIEWS.GRADING_VIEWER) {
                   return baseRatio * 1.35;
                 }
-                if (state.rightPanelView === RIGHT_PANEL_VIEWS.MEMORY_CARD_VIEWER || state.rightPanelView === RIGHT_PANEL_VIEWS.QUIZ_VIEWER) {
+                if (state.rightPanelView === RIGHT_PANEL_VIEWS.MEMORY_CARD_VIEWER || state.rightPanelView === RIGHT_PANEL_VIEWS.QUIZ_VIEWER || state.rightPanelView === RIGHT_PANEL_VIEWS.REPORT_VIEWER) {
                   return 5.0;
                 }
                 // 选课视图：右区加宽（相对基础宽度增加约10%）

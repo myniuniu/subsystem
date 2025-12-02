@@ -154,7 +154,8 @@ export const RIGHT_PANEL_VIEWS = {
   // 新增：课程选择视图（占用中间 + 右侧）
   COURSE_SELECTION_VIEWER: 'course_selection_viewer',
   MEMORY_CARD_VIEWER: 'memory_card_viewer',
-  QUIZ_VIEWER: 'quiz_viewer'
+  QUIZ_VIEWER: 'quiz_viewer',
+  REPORT_VIEWER: 'report_viewer'
 };
 
 // 直播状态常量
