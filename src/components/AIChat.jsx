@@ -74,6 +74,14 @@ const AIChat = ({ state, handlers, selectedCategory, unreadMessageCount = null, 
   const categoryIcon = getAiIconForCategory(currentCategory);
   const questionsToShow = (CATEGORY_COMMON_QUESTIONS[currentCategory] || CATEGORY_COMMON_QUESTIONS.default);
   const badgeCount = typeof unreadMessageCount === 'number' ? unreadMessageCount : 0;
+  const defaultSummaryTitle =
+    currentCategory === 'training_needs_management'
+      ? '教师心理健康教育培训'
+      : currentCategory === 'e_pbl'
+        ? '为什么有些人喝了咖啡反而更困?'
+        : currentCategory === 'teaching_research_office'
+          ? '小学体育游戏化教学模式研究?'
+          : '新教师教学方法培训';
 
   // 组织培训分类下显示可拖动的动态图叠层
   const [dragPos, setDragPos] = useState({ x: 40, y: 80 });
@@ -197,12 +205,63 @@ const gifUrl = '/assets/动态.gif';
     const FLAG_KEY = 'organizational_training_summary_injected';
     try {
       const already = localStorage.getItem(FLAG_KEY) === '1';
-      if (already || summaryInjectedRef.current) return;
+      if (already) return;
       summaryInjectedRef.current = true;
       localStorage.setItem(FLAG_KEY, '1');
     } catch {}
     const trainingSummary = '本次“新教师教学方法培训”聚焦以学为中心的课堂设计与互动实施，覆盖课堂组织、提问技巧、作业设计与评价、信息技术应用等模块。采用直播讲授、录播微课、在线研讨与作业实践的混合式形式，强调同伴互评与案例反思；结业以过程表现与任务成果为主，帮助新教师快速建立可落地的课堂方法。课程按周设置学习任务与交流时段，提供教案模板与观察表，建议将所学迁移至近期课堂并记录改进点。';
     const msg = { id: Date.now() + 99, type: 'assistant', kind: 'summary', content: trainingSummary, timestamp: new Date().toISOString() };
+    setMessages(prev => {
+      const hasSummary = Array.isArray(prev) && prev.some(m => m?.type === 'assistant' && m?.kind === 'summary');
+      return hasSummary ? prev : [msg, ...prev];
+    });
+  }, [currentCategory, setMessages]);
+
+  useEffect(() => {
+    if (currentCategory !== 'training_needs_management') return;
+    const FLAG_KEY = 'training_needs_management_summary_injected';
+    try {
+      const already = localStorage.getItem(FLAG_KEY) === '1';
+      if (already) return;
+      summaryInjectedRef.current = true;
+      localStorage.setItem(FLAG_KEY, '1');
+    } catch {}
+    const mhSummary = '本次“教师心理健康教育培训”聚焦压力识别、自我调适与校园危机预防，覆盖常见心理问题筛查、班级支持策略、家校协同沟通与规范化转介流程等模块。采用讲授+案例研讨+情景演练+作业实践的混合方式，提供量表与流程卡，帮助教师提升识别、干预与转介能力。';
+    const msg = { id: Date.now() + 199, type: 'assistant', kind: 'summary', content: mhSummary, timestamp: new Date().toISOString() };
+    setMessages(prev => {
+      const hasSummary = Array.isArray(prev) && prev.some(m => m?.type === 'assistant' && m?.kind === 'summary');
+      return hasSummary ? prev : [msg, ...prev];
+    });
+  }, [currentCategory, setMessages]);
+
+  useEffect(() => {
+    if (currentCategory !== 'e_pbl') return;
+    const FLAG_KEY = 'e_pbl_summary_injected';
+    try {
+      const already = localStorage.getItem(FLAG_KEY) === '1';
+      if (already) return;
+      summaryInjectedRef.current = true;
+      localStorage.setItem(FLAG_KEY, '1');
+    } catch {}
+    const epblSummary = '有些人喝咖啡反而更困，常见原因是睡眠债未清、CYP1A2代谢慢导致起效滞后、剂量过低或过高产生反冲疲劳、摄入时间接近昼夜节律低谷、空腹引发血糖波动、脱水与焦虑耗竭。咖啡因阻断腺苷受体短暂提神，但腺苷累积与回撤效应会使困意更强。建议上午适量摄入（100–200mg）、避免晚间与空腹，补水配合短暂小憩，优先修复睡眠质量。';
+    const msg = { id: Date.now() + 299, type: 'assistant', kind: 'summary', content: epblSummary, timestamp: new Date().toISOString() };
+    setMessages(prev => {
+      const hasSummary = Array.isArray(prev) && prev.some(m => m?.type === 'assistant' && m?.kind === 'summary');
+      return hasSummary ? prev : [msg, ...prev];
+    });
+  }, [currentCategory, setMessages]);
+
+  useEffect(() => {
+    if (currentCategory !== 'teaching_research_office') return;
+    const FLAG_KEY = 'teaching_research_office_summary_injected';
+    try {
+      const already = localStorage.getItem(FLAG_KEY) === '1';
+      if (already) return;
+      summaryInjectedRef.current = true;
+      localStorage.setItem(FLAG_KEY, '1');
+    } catch {}
+    const trSummary = '小学体育游戏化教学模式强调“目标-游戏机制-评价”协同，通过规则、积分与合作任务提升参与度与技能掌握。设计分为热身导入、核心技能挑战、团队协作与反思巩固四环节，兼顾安全与差异化分层。以过程表现与学习证据评价学习成效，鼓励跨学科融入与家校协同，促进习惯养成与积极情绪。';
+    const msg = { id: Date.now() + 399, type: 'assistant', kind: 'summary', content: trSummary, timestamp: new Date().toISOString() };
     setMessages(prev => {
       const hasSummary = Array.isArray(prev) && prev.some(m => m?.type === 'assistant' && m?.kind === 'summary');
       return hasSummary ? prev : [msg, ...prev];
@@ -470,7 +529,7 @@ const gifUrl = '/assets/动态.gif';
                 <div style={{ width: '100%' }}>
                   <div style={{ padding: '0', maxWidth: 860, margin: '0 auto' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                      <Title level={5} style={{ margin: 0, fontWeight: 600, color: '#111827' }}>{state?.note?.title || '新教师教学方法培训'}</Title>
+                      <Title level={5} style={{ margin: 0, fontWeight: 600, color: '#111827' }}>{state?.note?.title || defaultSummaryTitle}</Title>
                        </div>
                     {showSourcesLine && (
                       <Text style={{ color: '#6b7280', fontSize: 14, display: 'block', marginBottom: 16 }}>{`${uploadedFiles.length + addedTexts.length + courseVideos.length + links.length + (Array.isArray(organizationalCourses) ? organizationalCourses.length : 0)} 个来源`}</Text>
