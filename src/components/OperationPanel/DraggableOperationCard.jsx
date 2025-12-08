@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { Card, Button, Tooltip, Typography, Modal, Form, Switch, Select, InputNumber, Input, Segmented } from 'antd';
+import { Card, Button, Tooltip, Typography, Modal, Form, Switch, Select, InputNumber, Input, Segmented, Divider, Space } from 'antd';
 import { DeleteOutlined, SettingOutlined, PlusOutlined, QuestionCircleOutlined, FileTextOutlined, EditOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useDrag, useDrop } from 'react-dnd';
 import { generateKnowledgeNodes } from '../../data/knowledgeGraphData';
@@ -33,13 +33,57 @@ const DraggableOperationCard = ({
     moduleCount: 12,
     assessmentEnabled: true,
     certificateEnabled: false,
-    description: '', // 方案补充说明
-    trainingFormats: [], // 培训形式（多选）
-    courseSelection: [], // 课程圈选
-    participantSelection: [], // 培训人员圈选
-    systemTrainingType: null, // 体系化培训类型
-    systemTrainingRef: null, // 选中的数据项 ID
-    systemTrainingRefLabel: null // 选中的数据项名称
+    description: '',
+    trainingFormats: [],
+    courseSelection: [],
+    participantSelection: [],
+    systemTrainingType: null,
+    systemTrainingRef: null,
+    systemTrainingRefLabel: null,
+    report: {
+      metadata: {
+        title: '培训需求与管理系统整体培训报告',
+        reportType: '综合培训报告',
+        generatedAt: new Date().toLocaleString(),
+        reportPeriod: '2024年第一季度',
+        version: '1.0'
+      },
+      summary: {
+        totalTrainingPrograms: 12,
+        totalParticipants: 156,
+        completionRate: 87.5,
+        satisfactionRate: 92.3,
+        totalTrainingHours: 480,
+        averageScore: 85.6
+      },
+      trainingNeeds: {
+        identified: 25,
+        addressed: 22,
+        pending: 3,
+        categories: [
+          { name: '教学方法提升', count: 8, priority: '高' },
+          { name: '技术应用培训', count: 6, priority: '中' },
+          { name: '管理能力培训', count: 5, priority: '高' }
+        ]
+      },
+      trainingPrograms: [
+        { id: 1, name: '现代教学方法与技能提升', participants: 25, duration: '6周', status: '已完成', completionRate: 96, satisfaction: 94.5, startDate: '2024-01-15', endDate: '2024-02-26' },
+        { id: 2, name: '数字化教学工具应用', participants: 20, duration: '4周', status: '进行中', completionRate: 75, satisfaction: 89.2, startDate: '2024-02-01', endDate: '2024-02-29' }
+      ],
+      effectiveness: {
+        knowledgeImprovement: 88.5,
+        skillEnhancement: 85.2,
+        attitudinalChange: 90.1,
+        behavioralChange: 82.7,
+        overallEffectiveness: 86.6
+      },
+      feedback: {
+        positive: ['培训内容实用性强'],
+        improvements: ['希望增加更多实践操作环节']
+      },
+      recommendations: ['建立培训效果跟踪评估机制']
+    },
+    reportVisibleSections: { overview: true, programs: true, effectiveness: true, recommendations: true }
   });
   
 
@@ -377,6 +421,49 @@ const DraggableOperationCard = ({
       </>
     );
   }, [card.key, config, knowledgeNodeOptions, capabilityNodeOptions, microMajorOptions, systemTypeOptions]);
+
+  const addNeedCategory = () => {
+    setConfig(prev => ({
+      ...prev,
+      report: {
+        ...prev.report,
+        trainingNeeds: {
+          ...prev.report.trainingNeeds,
+          categories: [...(prev.report.trainingNeeds.categories || []), { name: '新类别', count: 0, priority: '中' }]
+        }
+      }
+    }));
+  };
+  const removeNeedCategory = (idx) => {
+    setConfig(prev => ({
+      ...prev,
+      report: {
+        ...prev.report,
+        trainingNeeds: {
+          ...prev.report.trainingNeeds,
+          categories: prev.report.trainingNeeds.categories.filter((_, i) => i !== idx)
+        }
+      }
+    }));
+  };
+  const addProgram = () => {
+    setConfig(prev => ({
+      ...prev,
+      report: {
+        ...prev.report,
+        trainingPrograms: [...(prev.report.trainingPrograms || []), { id: Date.now(), name: '新培训项目', participants: 0, duration: '4周', status: '未开始', completionRate: 0, satisfaction: 0, startDate: '', endDate: '' }]
+      }
+    }));
+  };
+  const removeProgram = (id) => {
+    setConfig(prev => ({
+      ...prev,
+      report: {
+        ...prev.report,
+        trainingPrograms: prev.report.trainingPrograms.filter(p => p.id !== id)
+      }
+    }));
+  };
   
   // 处理需要确认/配置的卡片点击（培训方案、培训报表、E-PBL教学设计）
   const handleCardClickWithConfirm = () => {
@@ -608,8 +695,8 @@ const DraggableOperationCard = ({
           {/* 状态覆盖层 */}
           {renderStatusOverlay()}
           
-          {/* 培训方案/培训报表/E-PBL教学设计/学习计划/记忆卡片/测验 配置按钮 - 一直显示，透明背景（报告不显示配置按钮） */}
-          {(card.key === 'training-plan' || card.key === 'training-dashboard' || card.key === 'e-pbl-planning' || card.key === 'learning-plan' || card.key === 'memory-cards' || card.key === 'quiz') && !isEditMode && hasSourceData && (
+          {/* 培训方案/E-PBL教学设计/学习计划/记忆卡片/测验 配置按钮（不在培训报表卡片显示） */}
+          {(card.key === 'training-plan' || card.key === 'e-pbl-planning' || card.key === 'learning-plan' || card.key === 'memory-cards' || card.key === 'quiz') && !isEditMode && hasSourceData && (
             <Button
               type="text"
               size="small"
@@ -758,7 +845,7 @@ const DraggableOperationCard = ({
         bodyStyle={{ maxHeight: '70vh', overflowY: 'auto' }}
         footer={(card.key === 'memory-cards' || card.key === 'quiz' || card.key === 'report') ? null : undefined}
       >
-        {card.key !== 'report' && (
+        {card.key !== 'report' && card.key !== 'training-dashboard' && (
           <>
             <Form layout="vertical" style={{ marginTop: '20px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
@@ -807,6 +894,132 @@ const DraggableOperationCard = ({
               </div>
             )}
           </>
+        )}
+        {card.key === 'training-dashboard' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <Form layout="vertical" style={{ marginTop: 20 }}>
+              <Card size="small" title="基础信息">
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <Input style={{ flex: 1 }} value={config.report.metadata.title} placeholder="报告标题" onChange={(e) => setConfig(prev => ({ ...prev, report: { ...prev.report, metadata: { ...prev.report.metadata, title: e.target.value } } }))} />
+                  <Select style={{ width: 200 }} value={config.report.metadata.reportType} onChange={(val) => setConfig(prev => ({ ...prev, report: { ...prev.report, metadata: { ...prev.report.metadata, reportType: val } } }))} options={[{ label: '综合培训报告', value: '综合培训报告' }, { label: '专题培训报告', value: '专题培训报告' }, { label: '阶段性报告', value: '阶段性报告' }]} />
+                  <Input style={{ width: 200 }} value={config.report.metadata.reportPeriod} placeholder="报告周期" onChange={(e) => setConfig(prev => ({ ...prev, report: { ...prev.report, metadata: { ...prev.report.metadata, reportPeriod: e.target.value } } }))} />
+                </div>
+                <Divider />
+                <Space wrap>
+                  <InputNumber min={0} value={config.report.summary.totalTrainingPrograms} addonBefore="培训项目" addonAfter="个" onChange={(val) => setConfig(prev => ({ ...prev, report: { ...prev.report, summary: { ...prev.report.summary, totalTrainingPrograms: Number(val || 0) } } }))} />
+                  <InputNumber min={0} value={config.report.summary.totalParticipants} addonBefore="参训人员" addonAfter="人" onChange={(val) => setConfig(prev => ({ ...prev, report: { ...prev.report, summary: { ...prev.report.summary, totalParticipants: Number(val || 0) } } }))} />
+                  <InputNumber min={0} max={100} value={config.report.summary.completionRate} addonBefore="完成率" addonAfter="%" onChange={(val) => setConfig(prev => ({ ...prev, report: { ...prev.report, summary: { ...prev.report.summary, completionRate: Number(val || 0) } } }))} />
+                  <InputNumber min={0} max={100} value={config.report.summary.satisfactionRate} addonBefore="满意度" addonAfter="%" onChange={(val) => setConfig(prev => ({ ...prev, report: { ...prev.report, summary: { ...prev.report.summary, satisfactionRate: Number(val || 0) } } }))} />
+                  <InputNumber min={0} value={config.report.summary.totalTrainingHours} addonBefore="总学时" addonAfter="小时" onChange={(val) => setConfig(prev => ({ ...prev, report: { ...prev.report, summary: { ...prev.report.summary, totalTrainingHours: Number(val || 0) } } }))} />
+                  <InputNumber min={0} max={100} value={config.report.summary.averageScore} addonBefore="平均成绩" onChange={(val) => setConfig(prev => ({ ...prev, report: { ...prev.report, summary: { ...prev.report.summary, averageScore: Number(val || 0) } } }))} />
+                </Space>
+              </Card>
+              <Card size="small" title="培训需求" style={{ marginTop: 12 }}>
+                <Space wrap>
+                  <InputNumber min={0} value={config.report.trainingNeeds.identified} addonBefore="已识别" onChange={(val) => setConfig(prev => ({ ...prev, report: { ...prev.report, trainingNeeds: { ...prev.report.trainingNeeds, identified: Number(val || 0) } } }))} />
+                  <InputNumber min={0} value={config.report.trainingNeeds.addressed} addonBefore="已解决" onChange={(val) => setConfig(prev => ({ ...prev, report: { ...prev.report, trainingNeeds: { ...prev.report.trainingNeeds, addressed: Number(val || 0) } } }))} />
+                  <InputNumber min={0} value={config.report.trainingNeeds.pending} addonBefore="待处理" onChange={(val) => setConfig(prev => ({ ...prev, report: { ...prev.report, trainingNeeds: { ...prev.report.trainingNeeds, pending: Number(val || 0) } } }))} />
+                </Space>
+                <Divider />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px 140px auto', gap: 8, alignItems: 'center' }}>
+                  <div style={{ fontSize: 12, color: '#888' }}>类别名称</div>
+                  <div style={{ fontSize: 12, color: '#888' }}>数量</div>
+                  <div style={{ fontSize: 12, color: '#888' }}>优先级</div>
+                  <div />
+                  {(config.report.trainingNeeds.categories || []).map((cat, idx) => (
+                    <>
+                      <Input value={cat.name} onChange={(e) => setConfig(prev => ({ ...prev, report: { ...prev.report, trainingNeeds: { ...prev.report.trainingNeeds, categories: prev.report.trainingNeeds.categories.map((c, i) => i === idx ? { ...c, name: e.target.value } : c) } } }))} />
+                      <InputNumber min={0} value={cat.count} onChange={(val) => setConfig(prev => ({ ...prev, report: { ...prev.report, trainingNeeds: { ...prev.report.trainingNeeds, categories: prev.report.trainingNeeds.categories.map((c, i) => i === idx ? { ...c, count: Number(val || 0) } : c) } } }))} />
+                      <Select value={cat.priority} onChange={(val) => setConfig(prev => ({ ...prev, report: { ...prev.report, trainingNeeds: { ...prev.report.trainingNeeds, categories: prev.report.trainingNeeds.categories.map((c, i) => i === idx ? { ...c, priority: val } : c) } } }))} options={[{ label: '高', value: '高' }, { label: '中', value: '中' }, { label: '低', value: '低' }]} />
+                      <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeNeedCategory(idx)} />
+                    </>
+                  ))}
+                </div>
+                <div style={{ marginTop: 8 }}>
+                  <Button type="dashed" icon={<PlusOutlined />} onClick={addNeedCategory}>新增类别</Button>
+                </div>
+              </Card>
+              <Card size="small" title="培训项目" style={{ marginTop: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 100px 120px 120px 140px 140px auto', gap: 8, alignItems: 'center' }}>
+                  <div style={{ fontSize: 12, color: '#888' }}>项目名称</div>
+                  <div style={{ fontSize: 12, color: '#888' }}>人数</div>
+                  <div style={{ fontSize: 12, color: '#888' }}>完成率</div>
+                  <div style={{ fontSize: 12, color: '#888' }}>满意度</div>
+                  <div style={{ fontSize: 12, color: '#888' }}>周期</div>
+                  <div style={{ fontSize: 12, color: '#888' }}>开始</div>
+                  <div style={{ fontSize: 12, color: '#888' }}>结束</div>
+                  <div />
+                  {(config.report.trainingPrograms || []).map((p) => (
+                    <>
+                      <Input value={p.name} onChange={(e) => setConfig(prev => ({ ...prev, report: { ...prev.report, trainingPrograms: prev.report.trainingPrograms.map(x => x.id === p.id ? { ...x, name: e.target.value } : x) } }))} />
+                      <InputNumber min={0} value={p.participants} onChange={(val) => setConfig(prev => ({ ...prev, report: { ...prev.report, trainingPrograms: prev.report.trainingPrograms.map(x => x.id === p.id ? { ...x, participants: Number(val || 0) } : x) } }))} />
+                      <InputNumber min={0} max={100} value={p.completionRate} onChange={(val) => setConfig(prev => ({ ...prev, report: { ...prev.report, trainingPrograms: prev.report.trainingPrograms.map(x => x.id === p.id ? { ...x, completionRate: Number(val || 0) } : x) } }))} />
+                      <InputNumber min={0} max={100} value={p.satisfaction} onChange={(val) => setConfig(prev => ({ ...prev, report: { ...prev.report, trainingPrograms: prev.report.trainingPrograms.map(x => x.id === p.id ? { ...x, satisfaction: Number(val || 0) } : x) } }))} />
+                      <Input value={p.duration} onChange={(e) => setConfig(prev => ({ ...prev, report: { ...prev.report, trainingPrograms: prev.report.trainingPrograms.map(x => x.id === p.id ? { ...x, duration: e.target.value } : x) } }))} />
+                      <Input value={p.startDate} onChange={(e) => setConfig(prev => ({ ...prev, report: { ...prev.report, trainingPrograms: prev.report.trainingPrograms.map(x => x.id === p.id ? { ...x, startDate: e.target.value } : x) } }))} />
+                      <Input value={p.endDate} onChange={(e) => setConfig(prev => ({ ...prev, report: { ...prev.report, trainingPrograms: prev.report.trainingPrograms.map(x => x.id === p.id ? { ...x, endDate: e.target.value } : x) } }))} />
+                      <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeProgram(p.id)} />
+                    </>
+                  ))}
+                </div>
+                <div style={{ marginTop: 8 }}>
+                  <Button type="dashed" icon={<PlusOutlined />} onClick={addProgram}>新增项目</Button>
+                </div>
+              </Card>
+              <Card size="small" title="效果评估" style={{ marginTop: 12 }}>
+                <Space wrap>
+                  <InputNumber min={0} max={100} value={config.report.effectiveness.knowledgeImprovement} addonBefore="知识提升" onChange={(val) => setConfig(prev => ({ ...prev, report: { ...prev.report, effectiveness: { ...prev.report.effectiveness, knowledgeImprovement: Number(val || 0) } } }))} />
+                  <InputNumber min={0} max={100} value={config.report.effectiveness.skillEnhancement} addonBefore="技能增强" onChange={(val) => setConfig(prev => ({ ...prev, report: { ...prev.report, effectiveness: { ...prev.report.effectiveness, skillEnhancement: Number(val || 0) } } }))} />
+                  <InputNumber min={0} max={100} value={config.report.effectiveness.attitudinalChange} addonBefore="态度转变" onChange={(val) => setConfig(prev => ({ ...prev, report: { ...prev.report, effectiveness: { ...prev.report.effectiveness, attitudinalChange: Number(val || 0) } } }))} />
+                  <InputNumber min={0} max={100} value={config.report.effectiveness.behavioralChange} addonBefore="行为改变" onChange={(val) => setConfig(prev => ({ ...prev, report: { ...prev.report, effectiveness: { ...prev.report.effectiveness, behavioralChange: Number(val || 0) } } }))} />
+                  <InputNumber min={0} max={100} value={config.report.effectiveness.overallEffectiveness} addonBefore="整体效果" onChange={(val) => setConfig(prev => ({ ...prev, report: { ...prev.report, effectiveness: { ...prev.report.effectiveness, overallEffectiveness: Number(val || 0) } } }))} />
+                </Space>
+              </Card>
+              <Card size="small" title="反馈与建议" style={{ marginTop: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
+                  {(config.report.feedback.positive || []).map((t, idx) => (
+                    <Input key={`pp-${idx}`} value={t} onChange={(e) => setConfig(prev => ({ ...prev, report: { ...prev.report, feedback: { ...prev.report.feedback, positive: prev.report.feedback.positive.map((x, i) => i === idx ? e.target.value : x) } } }))} />
+                  ))}
+                  <Button type="dashed" icon={<PlusOutlined />} onClick={() => setConfig(prev => ({ ...prev, report: { ...prev.report, feedback: { ...prev.report.feedback, positive: [...prev.report.feedback.positive, ''] } } }))}>新增积极反馈</Button>
+                </div>
+                <Divider />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
+                  {(config.report.feedback.improvements || []).map((t, idx) => (
+                    <Input key={`im-${idx}`} value={t} onChange={(e) => setConfig(prev => ({ ...prev, report: { ...prev.report, feedback: { ...prev.report.feedback, improvements: prev.report.feedback.improvements.map((x, i) => i === idx ? e.target.value : x) } } }))} />
+                  ))}
+                  <Button type="dashed" icon={<PlusOutlined />} onClick={() => setConfig(prev => ({ ...prev, report: { ...prev.report, feedback: { ...prev.report.feedback, improvements: [...prev.report.feedback.improvements, ''] } } }))}>新增改进建议</Button>
+                </div>
+              </Card>
+              <Card size="small" title="改进建议" style={{ marginTop: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
+                  {(config.report.recommendations || []).map((t, idx) => (
+                    <Input key={`rc-${idx}`} value={t} onChange={(e) => setConfig(prev => ({ ...prev, report: { ...prev.report, recommendations: prev.report.recommendations.map((x, i) => i === idx ? e.target.value : x) } }))} />
+                  ))}
+                  <Button type="dashed" icon={<PlusOutlined />} onClick={() => setConfig(prev => ({ ...prev, report: { ...prev.report, recommendations: [...prev.report.recommendations, ''] } }))}>新增建议</Button>
+                </div>
+              </Card>
+              <Card size="small" title="显示内容" style={{ marginTop: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span>显示概览</span>
+                    <Switch checked={config.reportVisibleSections.overview} onChange={(checked) => setConfig(prev => ({ ...prev, reportVisibleSections: { ...prev.reportVisibleSections, overview: checked } }))} />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span>显示培训项目</span>
+                    <Switch checked={config.reportVisibleSections.programs} onChange={(checked) => setConfig(prev => ({ ...prev, reportVisibleSections: { ...prev.reportVisibleSections, programs: checked } }))} />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span>显示效果分析</span>
+                    <Switch checked={config.reportVisibleSections.effectiveness} onChange={(checked) => setConfig(prev => ({ ...prev, reportVisibleSections: { ...prev.reportVisibleSections, effectiveness: checked } }))} />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span>显示改进建议</span>
+                    <Switch checked={config.reportVisibleSections.recommendations} onChange={(checked) => setConfig(prev => ({ ...prev, reportVisibleSections: { ...prev.reportVisibleSections, recommendations: checked } }))} />
+                  </div>
+                </div>
+              </Card>
+            </Form>
+          </div>
         )}
         {card.key === 'report' && !reportEditItem && (
           <div style={{ padding: '4px 0 16px 0' }}>

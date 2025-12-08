@@ -15,39 +15,55 @@ import {
   Divider,
   Table,
   Alert,
-  Spin
+  Spin,
+  Modal,
+  Input,
+  Select,
+  InputNumber,
+  Checkbox
 } from 'antd';
 import { 
   ReloadOutlined, 
   DownloadOutlined, 
   FileTextOutlined,
   ArrowLeftOutlined,
-  BarChartOutlined,
   UserOutlined,
-  CalendarOutlined,
   CheckCircleOutlined,
   ExclamationCircleOutlined,
-  TrophyOutlined
+  TrophyOutlined,
+  PlusOutlined,
+  DeleteOutlined,
+  BookOutlined
 } from '@ant-design/icons';
 import { RIGHT_PANEL_VIEWS, VIEW_MODES } from '../../constants/noteEditConstants';
 
-const { Text, Title, Paragraph } = Typography;
+const { Text, Title } = Typography;
 const { TabPane } = Tabs;
 
 const TrainingReportViewer = ({
   rightPanelTrainingReportRecord,
   rightPanelTrainingReportContent,
   setRightPanelView,
-  setRightPanelTrainingReportRecord,
-  setRightPanelTrainingReportContent,
   isFullscreen = false,
   setCurrentView
 }) => {
   // 状态管理
-  const [generatedReports, setGeneratedReports] = useState([]);
   const [activeTab, setActiveTab] = useState('overview');
   const [isGenerating, setIsGenerating] = useState(false);
   const [reportData, setReportData] = useState(null);
+  const [settingsVisible, setSettingsVisible] = useState(false);
+  const [settingsDraft, setSettingsDraft] = useState(null);
+  const [visibleSections, setVisibleSections] = useState({
+    overview: true,
+    programs: true,
+    effectiveness: true,
+    recommendations: true
+  });
+  const priorityOptions = [
+    { label: '高', value: '高' },
+    { label: '中', value: '中' },
+    { label: '低', value: '低' }
+  ];
 
   // 初始化报告数据
   useEffect(() => {
@@ -207,6 +223,59 @@ const TrainingReportViewer = ({
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     message.success('报告导出成功！');
+  };
+
+  
+
+  const applySettings = () => {
+    if (!settingsDraft) return;
+    setReportData(settingsDraft);
+    setSettingsVisible(false);
+    message.success('已应用配置并更新报表');
+  };
+
+  const addTrainingNeedCategory = () => {
+    setSettingsDraft(prev => ({
+      ...prev,
+      trainingNeeds: {
+        ...prev.trainingNeeds,
+        categories: [...prev.trainingNeeds.categories, { name: '新类别', count: 0, priority: '中' }]
+      }
+    }));
+  };
+
+  const removeTrainingNeedCategory = (idx) => {
+    setSettingsDraft(prev => ({
+      ...prev,
+      trainingNeeds: {
+        ...prev.trainingNeeds,
+        categories: prev.trainingNeeds.categories.filter((_, i) => i !== idx)
+      }
+    }));
+  };
+
+  const addTrainingProgram = () => {
+    setSettingsDraft(prev => ({
+      ...prev,
+      trainingPrograms: [...prev.trainingPrograms, {
+        id: Date.now(),
+        name: '新培训项目',
+        participants: 0,
+        duration: '4周',
+        status: '未开始',
+        completionRate: 0,
+        satisfaction: 0,
+        startDate: '',
+        endDate: ''
+      }]
+    }));
+  };
+
+  const removeTrainingProgram = (id) => {
+    setSettingsDraft(prev => ({
+      ...prev,
+      trainingPrograms: prev.trainingPrograms.filter(p => p.id !== id)
+    }));
   };
 
   // 生成报告Markdown内容
@@ -637,20 +706,196 @@ ${data.recommendations.map(item => `- ${item}`).join('\n')}
       {/* 主要内容区域 */}
       <div style={{ flex: 1, padding: '16px', overflow: 'auto' }}>
         <Tabs activeKey={activeTab} onChange={setActiveTab}>
+          {visibleSections.overview && (
           <TabPane tab="概览" key="overview">
             {renderOverview()}
           </TabPane>
+          )}
+          {visibleSections.programs && (
           <TabPane tab="培训项目" key="programs">
             {renderTrainingPrograms()}
           </TabPane>
+          )}
+          {visibleSections.effectiveness && (
           <TabPane tab="效果分析" key="effectiveness">
             {renderEffectiveness()}
           </TabPane>
+          )}
+          {visibleSections.recommendations && (
           <TabPane tab="改进建议" key="recommendations">
             {renderRecommendations()}
           </TabPane>
+          )}
         </Tabs>
       </div>
+
+      <Modal
+        title="配置培训报表"
+        open={settingsVisible}
+        onCancel={() => setSettingsVisible(false)}
+        onOk={applySettings}
+        okText="应用"
+        cancelText="取消"
+        width={900}
+        bodyStyle={{ maxHeight: '70vh', overflowY: 'auto' }}
+      >
+        {settingsDraft && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <Card size="small" title="基础信息">
+              <Space style={{ width: '100%' }} align="start">
+                <Input
+                  style={{ flex: 1 }}
+                  value={settingsDraft.metadata.title}
+                  placeholder="报告标题"
+                  onChange={(e) => setSettingsDraft(prev => ({ ...prev, metadata: { ...prev.metadata, title: e.target.value } }))}
+                />
+                <Select
+                  style={{ width: 200 }}
+                  value={settingsDraft.metadata.reportType}
+                  onChange={(val) => setSettingsDraft(prev => ({ ...prev, metadata: { ...prev.metadata, reportType: val } }))}
+                  options={[
+                    { label: '综合培训报告', value: '综合培训报告' },
+                    { label: '专题培训报告', value: '专题培训报告' },
+                    { label: '阶段性报告', value: '阶段性报告' }
+                  ]}
+                />
+                <Input
+                  style={{ width: 200 }}
+                  value={settingsDraft.metadata.reportPeriod}
+                  placeholder="报告周期"
+                  onChange={(e) => setSettingsDraft(prev => ({ ...prev, metadata: { ...prev.metadata, reportPeriod: e.target.value } }))}
+                />
+              </Space>
+              <Divider />
+              <Space wrap>
+                <InputNumber min={0} value={settingsDraft.summary.totalTrainingPrograms} addonBefore="培训项目" addonAfter="个" onChange={(val) => setSettingsDraft(prev => ({ ...prev, summary: { ...prev.summary, totalTrainingPrograms: Number(val || 0) } }))} />
+                <InputNumber min={0} value={settingsDraft.summary.totalParticipants} addonBefore="参训人员" addonAfter="人" onChange={(val) => setSettingsDraft(prev => ({ ...prev, summary: { ...prev.summary, totalParticipants: Number(val || 0) } }))} />
+                <InputNumber min={0} max={100} value={settingsDraft.summary.completionRate} addonBefore="完成率" addonAfter="%" onChange={(val) => setSettingsDraft(prev => ({ ...prev, summary: { ...prev.summary, completionRate: Number(val || 0) } }))} />
+                <InputNumber min={0} max={100} value={settingsDraft.summary.satisfactionRate} addonBefore="满意度" addonAfter="%" onChange={(val) => setSettingsDraft(prev => ({ ...prev, summary: { ...prev.summary, satisfactionRate: Number(val || 0) } }))} />
+                <InputNumber min={0} value={settingsDraft.summary.totalTrainingHours} addonBefore="总学时" addonAfter="小时" onChange={(val) => setSettingsDraft(prev => ({ ...prev, summary: { ...prev.summary, totalTrainingHours: Number(val || 0) } }))} />
+                <InputNumber min={0} max={100} value={settingsDraft.summary.averageScore} addonBefore="平均成绩" onChange={(val) => setSettingsDraft(prev => ({ ...prev, summary: { ...prev.summary, averageScore: Number(val || 0) } }))} />
+              </Space>
+            </Card>
+
+            <Card size="small" title="培训需求">
+              <Space wrap>
+                <InputNumber min={0} value={settingsDraft.trainingNeeds.identified} addonBefore="已识别" onChange={(val) => setSettingsDraft(prev => ({ ...prev, trainingNeeds: { ...prev.trainingNeeds, identified: Number(val || 0) } }))} />
+                <InputNumber min={0} value={settingsDraft.trainingNeeds.addressed} addonBefore="已解决" onChange={(val) => setSettingsDraft(prev => ({ ...prev, trainingNeeds: { ...prev.trainingNeeds, addressed: Number(val || 0) } }))} />
+                <InputNumber min={0} value={settingsDraft.trainingNeeds.pending} addonBefore="待处理" onChange={(val) => setSettingsDraft(prev => ({ ...prev, trainingNeeds: { ...prev.trainingNeeds, pending: Number(val || 0) } }))} />
+              </Space>
+              <Divider />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px 140px auto', gap: 8, alignItems: 'center' }}>
+                <div style={{ fontSize: 12, color: '#888' }}>类别名称</div>
+                <div style={{ fontSize: 12, color: '#888' }}>数量</div>
+                <div style={{ fontSize: 12, color: '#888' }}>优先级</div>
+                <div />
+                {(settingsDraft.trainingNeeds.categories || []).map((cat, idx) => (
+                  <>
+                    <Input
+                      value={cat.name}
+                      onChange={(e) => setSettingsDraft(prev => ({
+                        ...prev,
+                        trainingNeeds: { ...prev.trainingNeeds, categories: prev.trainingNeeds.categories.map((c, i) => i === idx ? { ...c, name: e.target.value } : c) }
+                      }))}
+                    />
+                    <InputNumber min={0}
+                      value={cat.count}
+                      onChange={(val) => setSettingsDraft(prev => ({
+                        ...prev,
+                        trainingNeeds: { ...prev.trainingNeeds, categories: prev.trainingNeeds.categories.map((c, i) => i === idx ? { ...c, count: Number(val || 0) } : c) }
+                      }))}
+                    />
+                    <Select
+                      value={cat.priority}
+                      onChange={(val) => setSettingsDraft(prev => ({
+                        ...prev,
+                        trainingNeeds: { ...prev.trainingNeeds, categories: prev.trainingNeeds.categories.map((c, i) => i === idx ? { ...c, priority: val } : c) }
+                      }))}
+                      options={priorityOptions}
+                    />
+                    <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeTrainingNeedCategory(idx)} />
+                  </>
+                ))}
+              </div>
+              <div style={{ marginTop: 8 }}>
+                <Button type="dashed" icon={<PlusOutlined />} onClick={addTrainingNeedCategory}>新增类别</Button>
+              </div>
+            </Card>
+
+            <Card size="small" title="培训项目">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 100px 120px 120px 140px 140px auto', gap: 8, alignItems: 'center' }}>
+                <div style={{ fontSize: 12, color: '#888' }}>项目名称</div>
+                <div style={{ fontSize: 12, color: '#888' }}>人数</div>
+                <div style={{ fontSize: 12, color: '#888' }}>完成率</div>
+                <div style={{ fontSize: 12, color: '#888' }}>满意度</div>
+                <div style={{ fontSize: 12, color: '#888' }}>周期</div>
+                <div style={{ fontSize: 12, color: '#888' }}>开始</div>
+                <div style={{ fontSize: 12, color: '#888' }}>结束</div>
+                <div />
+                {(settingsDraft.trainingPrograms || []).map((p) => (
+                  <>
+                    <Input value={p.name} onChange={(e) => setSettingsDraft(prev => ({ ...prev, trainingPrograms: prev.trainingPrograms.map(x => x.id === p.id ? { ...x, name: e.target.value } : x) }))} />
+                    <InputNumber min={0} value={p.participants} onChange={(val) => setSettingsDraft(prev => ({ ...prev, trainingPrograms: prev.trainingPrograms.map(x => x.id === p.id ? { ...x, participants: Number(val || 0) } : x) }))} />
+                    <InputNumber min={0} max={100} value={p.completionRate} onChange={(val) => setSettingsDraft(prev => ({ ...prev, trainingPrograms: prev.trainingPrograms.map(x => x.id === p.id ? { ...x, completionRate: Number(val || 0) } : x) }))} />
+                    <InputNumber min={0} max={100} value={p.satisfaction} onChange={(val) => setSettingsDraft(prev => ({ ...prev, trainingPrograms: prev.trainingPrograms.map(x => x.id === p.id ? { ...x, satisfaction: Number(val || 0) } : x) }))} />
+                    <Input value={p.duration} onChange={(e) => setSettingsDraft(prev => ({ ...prev, trainingPrograms: prev.trainingPrograms.map(x => x.id === p.id ? { ...x, duration: e.target.value } : x) }))} />
+                    <Input value={p.startDate} onChange={(e) => setSettingsDraft(prev => ({ ...prev, trainingPrograms: prev.trainingPrograms.map(x => x.id === p.id ? { ...x, startDate: e.target.value } : x) }))} />
+                    <Input value={p.endDate} onChange={(e) => setSettingsDraft(prev => ({ ...prev, trainingPrograms: prev.trainingPrograms.map(x => x.id === p.id ? { ...x, endDate: e.target.value } : x) }))} />
+                    <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeTrainingProgram(p.id)} />
+                  </>
+                ))}
+              </div>
+              <div style={{ marginTop: 8 }}>
+                <Button type="dashed" icon={<PlusOutlined />} onClick={addTrainingProgram}>新增项目</Button>
+              </div>
+            </Card>
+
+            <Card size="small" title="效果评估">
+              <Space wrap>
+                <InputNumber min={0} max={100} value={settingsDraft.effectiveness.knowledgeImprovement} addonBefore="知识提升" onChange={(val) => setSettingsDraft(prev => ({ ...prev, effectiveness: { ...prev.effectiveness, knowledgeImprovement: Number(val || 0) } }))} />
+                <InputNumber min={0} max={100} value={settingsDraft.effectiveness.skillEnhancement} addonBefore="技能增强" onChange={(val) => setSettingsDraft(prev => ({ ...prev, effectiveness: { ...prev.effectiveness, skillEnhancement: Number(val || 0) } }))} />
+                <InputNumber min={0} max={100} value={settingsDraft.effectiveness.attitudinalChange} addonBefore="态度转变" onChange={(val) => setSettingsDraft(prev => ({ ...prev, effectiveness: { ...prev.effectiveness, attitudinalChange: Number(val || 0) } }))} />
+                <InputNumber min={0} max={100} value={settingsDraft.effectiveness.behavioralChange} addonBefore="行为改变" onChange={(val) => setSettingsDraft(prev => ({ ...prev, effectiveness: { ...prev.effectiveness, behavioralChange: Number(val || 0) } }))} />
+                <InputNumber min={0} max={100} value={settingsDraft.effectiveness.overallEffectiveness} addonBefore="整体效果" onChange={(val) => setSettingsDraft(prev => ({ ...prev, effectiveness: { ...prev.effectiveness, overallEffectiveness: Number(val || 0) } }))} />
+              </Space>
+            </Card>
+
+            <Card size="small" title="反馈与建议">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
+                {(settingsDraft.feedback.positive || []).map((t, idx) => (
+                  <Input key={`pp-${idx}`} value={t} onChange={(e) => setSettingsDraft(prev => ({ ...prev, feedback: { ...prev.feedback, positive: prev.feedback.positive.map((x, i) => i === idx ? e.target.value : x) } }))} />
+                ))}
+                <Button type="dashed" icon={<PlusOutlined />} onClick={() => setSettingsDraft(prev => ({ ...prev, feedback: { ...prev.feedback, positive: [...prev.feedback.positive, ''] } }))}>新增积极反馈</Button>
+              </div>
+              <Divider />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
+                {(settingsDraft.feedback.improvements || []).map((t, idx) => (
+                  <Input key={`im-${idx}`} value={t} onChange={(e) => setSettingsDraft(prev => ({ ...prev, feedback: { ...prev.feedback, improvements: prev.feedback.improvements.map((x, i) => i === idx ? e.target.value : x) } }))} />
+                ))}
+                <Button type="dashed" icon={<PlusOutlined />} onClick={() => setSettingsDraft(prev => ({ ...prev, feedback: { ...prev.feedback, improvements: [...prev.feedback.improvements, ''] } }))}>新增改进建议</Button>
+              </div>
+            </Card>
+
+            <Card size="small" title="改进建议">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
+                {(settingsDraft.recommendations || []).map((t, idx) => (
+                  <Input key={`rc-${idx}`} value={t} onChange={(e) => setSettingsDraft(prev => ({ ...prev, recommendations: prev.recommendations.map((x, i) => i === idx ? e.target.value : x) }))} />
+                ))}
+                <Button type="dashed" icon={<PlusOutlined />} onClick={() => setSettingsDraft(prev => ({ ...prev, recommendations: [...prev.recommendations, ''] }))}>新增建议</Button>
+              </div>
+            </Card>
+
+            <Card size="small" title="显示内容">
+              <Space direction="vertical">
+                <Checkbox checked={visibleSections.overview} onChange={(e) => setVisibleSections(prev => ({ ...prev, overview: e.target.checked }))}>显示概览</Checkbox>
+                <Checkbox checked={visibleSections.programs} onChange={(e) => setVisibleSections(prev => ({ ...prev, programs: e.target.checked }))}>显示培训项目</Checkbox>
+                <Checkbox checked={visibleSections.effectiveness} onChange={(e) => setVisibleSections(prev => ({ ...prev, effectiveness: e.target.checked }))}>显示效果分析</Checkbox>
+                <Checkbox checked={visibleSections.recommendations} onChange={(e) => setVisibleSections(prev => ({ ...prev, recommendations: e.target.checked }))}>显示改进建议</Checkbox>
+              </Space>
+            </Card>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
