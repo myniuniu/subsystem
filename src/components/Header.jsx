@@ -10,22 +10,9 @@ const { Title, Text } = Typography
 const Header = ({ onMenuClick, currentView }) => {
   const [currentTheme, setCurrentTheme] = useState('blue');
   const [isStandalone, setIsStandalone] = useState(false);
-
   useEffect(() => {
-    // 初始化主题
     const theme = initTheme();
     setCurrentTheme(theme);
-    // 检测 PWA 独立或全屏模式（含 iOS Safari 添加到主屏幕）
-    try {
-      const isDMStandalone = window.matchMedia && (
-        window.matchMedia('(display-mode: standalone)').matches ||
-        window.matchMedia('(display-mode: fullscreen)').matches
-      );
-      const isiOSStandalone = typeof window.navigator !== 'undefined' && window.navigator.standalone;
-      setIsStandalone(Boolean(isDMStandalone || isiOSStandalone));
-    } catch (e) {
-      setIsStandalone(false);
-    }
   }, []);
 
   const handleThemeChange = (theme, colors) => {

@@ -631,29 +631,51 @@ export const useOperationHandlers = ({
           message.success('督学报告已生成，记录已添加。点击查看详情');
         }
       });
-    } else if (card.key === OPERATION_TYPES.TRAINING_PLAN) {
-      // 直接生成培训方案记录，不弹出配置窗口
-      const trainingPlanRecord = {
-        id: `training_plan_${Date.now()}`,
-        type: OPERATION_TYPES.TRAINING_PLAN,
-        title: '培训方案',
-        source: sourceInfo?.details || '基于当前数据源',
-        time: new Date().toLocaleString('zh-CN'),
-        isAIGenerated: true,
-        sourceRefs: getSourceRefs(),
-        content: `<div style="padding: 20px; text-align: center;">
-          <h3>📋 培训方案</h3>
-          <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的培训方案</p>
-          <p style="color: #999; font-size: 14px;">${sourceInfo?.details || '数据源分析'} • ${new Date().toLocaleString('zh-CN')}</p>
-        </div>`,
-        trainingConfig: { auto: true }
-      };
-      addRecordWithGenerating(OPERATION_TYPES.TRAINING_PLAN, trainingPlanRecord, {
-        onComplete: () => {
-          message.success('培训方案生成成功，记录已添加。点击查看详情');
-        }
-      });
-    }
+  } else if (card.key === OPERATION_TYPES.TRAINING_PLAN) {
+    // 直接生成培训方案记录，不弹出配置窗口
+    const trainingPlanRecord = {
+      id: `training_plan_${Date.now()}`,
+      type: OPERATION_TYPES.TRAINING_PLAN,
+      title: '培训方案',
+      source: sourceInfo?.details || '基于当前数据源',
+      time: new Date().toLocaleString('zh-CN'),
+      isAIGenerated: true,
+      sourceRefs: getSourceRefs(),
+      content: `<div style="padding: 20px; text-align: center;">
+        <h3>📋 培训方案</h3>
+        <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的培训方案</p>
+        <p style="color: #999; font-size: 14px;">${sourceInfo?.details || '数据源分析'} • ${new Date().toLocaleString('zh-CN')}</p>
+      </div>`,
+      trainingConfig: { auto: true }
+    };
+    addRecordWithGenerating(OPERATION_TYPES.TRAINING_PLAN, trainingPlanRecord, {
+      onComplete: () => {
+        message.success('培训方案生成成功，记录已添加。点击查看详情');
+      }
+    });
+  } else if (card.key === OPERATION_TYPES.PERSONAL_LEARNING) {
+    // 自主选学：生成一条记录（与培训方案类似，但文案不同）
+    const personalLearningRecord = {
+      id: `personal_learning_${Date.now()}`,
+      type: OPERATION_TYPES.PERSONAL_LEARNING,
+      title: '自主选学',
+      source: sourceInfo?.details || '基于当前数据源',
+      time: new Date().toLocaleString('zh-CN'),
+      isAIGenerated: true,
+      sourceRefs: getSourceRefs(),
+      content: `<div style="padding: 20px; text-align: center;">
+        <h3>📋 自主选学</h3>
+        <p style="color: #666;">基于${sourceInfo?.total || 1}个数据源生成的自主学习方案</p>
+        <p style="color: #999; font-size: 14px;">${sourceInfo?.details || '数据源分析'} • ${new Date().toLocaleString('zh-CN')}</p>
+      </div>`,
+      personalConfig: { auto: true }
+    };
+    addRecordWithGenerating(OPERATION_TYPES.PERSONAL_LEARNING, personalLearningRecord, {
+      onComplete: () => {
+        message.success('自主选学生成成功，记录已添加。点击查看详情');
+      }
+    });
+  }
   };
 
   return {

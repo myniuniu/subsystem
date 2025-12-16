@@ -45,7 +45,6 @@ import LearningSquare from './components/LearningSquare'
 import ProgressTestPage from './components/ProgressTestPage'
 import ThemeTemplateCenter from './components/ThemeTemplateCenter'
 import AIExperience from './components/AIExperience'
-import PWAInstallButton from './components/PWAInstallButton'
 import WindowControlsOverlay from './components/WindowControlsOverlay'
 import Welcome from './components/Welcome'
 import TagManagement from './components/TagManagement'
@@ -82,39 +81,6 @@ function App() {
   const [messages, setMessages] = useState([])
   const [shareModalVisible, setShareModalVisible] = useState(false)
   const [assetsDrawerVisible, setAssetsDrawerVisible] = useState(false)
-  const forceWCO = (typeof window !== 'undefined') && (
-    new URLSearchParams(window.location.search).get('wco') === 'force' ||
-    (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches) ||
-    (typeof window.navigator !== 'undefined' && window.navigator.standalone === true)
-  )
-  useEffect(() => {
-    try {
-      const isStandalone = (typeof window !== 'undefined') && (
-        (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches) ||
-        (typeof window.navigator !== 'undefined' && window.navigator.standalone === true)
-      )
-      try {
-        const el = document.documentElement
-        if (el) {
-          if (isStandalone) el.classList.add('is-pwa')
-          else el.classList.remove('is-pwa')
-          const isWco = (typeof window !== 'undefined') && (typeof window.matchMedia === 'function') && window.matchMedia('(display-mode: window-controls-overlay)').matches
-          if (isWco) el.classList.add('is-wco')
-          else el.classList.remove('is-wco')
-        }
-      } catch {}
-      const handled = typeof localStorage !== 'undefined' && localStorage.getItem('pwa_first_launch_handled') === '1'
-      if (isStandalone && !handled) {
-        try { localStorage.setItem('pwa_first_launch_handled', '1') } catch {}
-        const params = (typeof window !== 'undefined') ? new URLSearchParams(window.location.search) : null
-        const start = params ? params.get('start') : null
-        if (!start) {
-          setCurrentView('welcome')
-          try { window.history.replaceState(null, '', '/?start=welcome') } catch {}
-        }
-      }
-    } catch {}
-  }, [])
   const handleHashChange = () => {
     const hash = (typeof window !== 'undefined' && window.location.hash) ? window.location.hash.slice(1) : ''
     setCurrentView(prev => (hash ? hash : prev))
@@ -137,6 +103,7 @@ function App() {
     selectedNeed: null,
     editorMode: 'create' // 'create', 'edit', 'view'
   })
+  
   
   // 调试信息与哈希监听
   useEffect(() => {
@@ -480,6 +447,7 @@ function App() {
     console.log('Adding AI tool to operation panel:', toolConfig)
   }
 
+
   return (
     <Layout className="app" style={{ height: '100vh', background: 'var(--app-bg)', paddingTop: 'env(titlebar-area-height, 0px)' }}>
       {currentView === 'welcome' && (
@@ -794,8 +762,6 @@ function App() {
         </Layout>
       </Layout>
       
-      {/* PWA安装按钮 */}
-      <PWAInstallButton />
     </Layout>
   )
 }

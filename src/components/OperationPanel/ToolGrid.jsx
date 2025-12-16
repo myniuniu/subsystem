@@ -10,6 +10,7 @@ const { Text } = Typography;
 const ToolGrid = ({
   visibleCards,
   isEditMode,
+  noteCategory,
   hasSourceData,
   sourceInfo,
   onCardClick,
@@ -67,6 +68,7 @@ const ToolGrid = ({
               onRemove={onRemoveCard}
               onClick={() => onCardClick(card)}
               isEditMode={isEditMode}
+              noteCategory={noteCategory}
               hasSourceData={cardHasSourceData}
               sourceInfo={sourceInfo}
               isLoading={isLoading}
@@ -124,6 +126,7 @@ const ToolGrid = ({
                       ),
                       children: OPERATION_CARDS
                         .filter(card => card.key !== 'addTool' && !visibleCards.some(vc => vc.key === card.key))
+                        .filter(card => !(noteCategory === 'personal' && card.key === 'training-plan'))
                         .filter(card => {
                           if (!moreMenuSearchTerm) return true;
                           const term = moreMenuSearchTerm.toLowerCase();
@@ -319,6 +322,7 @@ const ToolGrid = ({
                   ),
                   children: OPERATION_CARDS
                     .filter(card => card.key !== 'addTool' && !visibleCards.some(vc => vc.key === card.key))
+                    .filter(card => !(noteCategory === 'personal' && card.key === 'training-plan'))
                     .filter(card => {
                       if (!moreMenuSearchTerm) return true;
                       const term = moreMenuSearchTerm.toLowerCase();

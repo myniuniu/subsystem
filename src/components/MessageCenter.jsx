@@ -21,6 +21,24 @@ const MessageCenter = ({ contacts: propContacts }) => {
       online: true
     },
     {
+      id: 'guoren_study_companion',
+      name: '果仁学伴',
+      type: 'assistant',
+      avatar: '🥜',
+      lastMessage: '已为你初始化学习延展资料与记忆卡片',
+      lastTime: new Date().toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      unreadCount: 0,
+      online: true,
+      isAI: true,
+      description: '根据你的学习记录，推送延展学习资料、记忆卡片与自测'
+    },
+    {
       id: 'student_li_ming',
       name: '李明',
       type: 'user',
@@ -448,6 +466,78 @@ const MessageCenter = ({ contacts: propContacts }) => {
 
   // 消息历史数据
   const [messageHistory, setMessageHistory] = useState({
+    guoren_study_companion: [
+      {
+        id: 5001,
+        senderId: 'guoren_study_companion',
+        senderName: '果仁学伴',
+        content: '你好！已根据你参与“新教师教学方法培训”的学习记录，为你初始化延展学习内容与练习。',
+        time: new Date(Date.now() - 40 * 60 * 1000).toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        type: 'text'
+      },
+      {
+        id: 5002,
+        senderId: 'guoren_study_companion',
+        senderName: '果仁学伴',
+        content: [
+          '【知识点延展】',
+          '- 互动设计原则：推荐《课堂互动的五个层级》，含案例视频与分析稿',
+          '- 课堂观察维度：教师行为、学生参与、时间分配；含观察表模板与示例填写',
+          '- 反馈问卷设计：题项库与量表示例，附数据分析入门指南'
+        ].join('\n'),
+        time: new Date(Date.now() - 38 * 60 * 1000).toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        type: 'text'
+      },
+      {
+        id: 5003,
+        senderId: 'guoren_study_companion',
+        senderName: '果仁学伴',
+        content: [
+          '【记忆卡片】',
+          '- 互动设计关键术语（30张）',
+          '- 课堂管理策略速记（20张）',
+          '可按“间隔重复”计划自动安排复习提醒'
+        ].join('\n'),
+        time: new Date(Date.now() - 36 * 60 * 1000).toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        type: 'text'
+      },
+      {
+        id: 5004,
+        senderId: 'guoren_study_companion',
+        senderName: '果仁学伴',
+        content: [
+          '【自测题】',
+          '- 微课互动设计场景题与判断题（10题）',
+          '提交后生成逐题解析与改进建议'
+        ].join('\n'),
+        time: new Date(Date.now() - 34 * 60 * 1000).toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        type: 'text'
+      }
+    ],
     student_li_ming: [
       {
         id: 1,
@@ -827,6 +917,12 @@ const MessageCenter = ({ contacts: propContacts }) => {
         online: true,
         isSubscribed: true
       };
+      const idx = prev.findIndex(c => c.id === 'guoren_study_companion');
+      if (idx >= 0) {
+        const next = [...prev];
+        next.splice(idx + 1, 0, subscribedContact);
+        return next;
+      }
       return [subscribedContact, ...prev];
     });
   }, []);

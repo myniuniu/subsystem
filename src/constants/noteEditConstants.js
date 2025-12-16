@@ -9,6 +9,7 @@ export const OPERATION_TYPES = {
   WEBCODE: 'webcode',
   SCENARIO: 'scenario',
   TRAINING_PLAN: 'training-plan',
+  PERSONAL_LEARNING: 'personal-learning',
   SCHEDULE: 'schedule',
   PARTICIPANTS: 'participants',
   NOTE: 'note',
@@ -499,6 +500,13 @@ export const OPERATION_CARDS = [
     icon: '知',
     gradient: 'linear-gradient(135deg, #e8f4f8 0%, #d1ecf1 100%)',
     color: '#0369a1'
+  },
+  {
+    key: OPERATION_TYPES.PERSONAL_LEARNING,
+    title: '自主选学',
+    icon: '自',
+    gradient: 'linear-gradient(135deg, #eef7ff 0%, #d9ecff 100%)',
+    color: '#1677ff'
   },
   {
     key: OPERATION_TYPES.AUDIO,

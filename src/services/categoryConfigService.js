@@ -12,6 +12,8 @@ export const DEFAULT_SYSTEM_CATEGORY_CONFIG = {
     { key: 'group_management', title: '管理与培训', templateId: null, icon: 'FolderOpenOutlined', childrenValues: ['training_needs_management', 'training_product_development'], groups: [] }
   ],
   extraCategories: [
+    { value: 'personal', label: '自主选学', icon: 'UserOutlined', type: 'system', pinned: true, pinnedAt: '2025-01-03T00:00:00Z' },
+    { value: 'training_product_development', label: '培训产品研发', icon: 'ExperimentOutlined', type: 'system', pinned: true, pinnedAt: '2025-01-03T00:00:00Z' },
     { value: 'e_pbl', label: 'E-PBL', icon: 'BookOutlined', type: 'system', pinned: true },
     { value: 'teaching_research_office', label: '教研室', icon: 'BookOutlined', type: 'custom', pinned: true },
     { value: 'my_evaluation', label: '我的评阅', icon: 'FileTextOutlined', type: 'system', pinned: true, pinnedAt: '2025-01-01T00:00:00Z' },
@@ -78,6 +80,8 @@ export const getSystemCategoryConfig = () => {
     const extra = Array.isArray(baseConfig.extraCategories) ? baseConfig.extraCategories : [];
     const hasEPBL = extra.some(c => c.value === 'e_pbl');
     const hasMyEvaluation = extra.some(c => c.value === 'my_evaluation');
+    const hasTrainingProductDev = extra.some(c => c.value === 'training_product_development');
+    const hasPersonal = extra.some(c => c.value === 'personal');
     let nextExtra = extra;
     // 处理 e_pbl
     nextExtra = hasEPBL
@@ -87,6 +91,14 @@ export const getSystemCategoryConfig = () => {
     nextExtra = hasMyEvaluation
       ? nextExtra.map(c => c.value === 'my_evaluation' ? { ...c, pinned: true } : c)
       : [{ value: 'my_evaluation', label: '我的评阅', icon: 'FileTextOutlined', type: 'system', pinned: true }, ...nextExtra];
+    // 处理培训产品研发
+    nextExtra = hasTrainingProductDev
+      ? nextExtra.map(c => c.value === 'training_product_development' ? { ...c, pinned: true } : c)
+      : [{ value: 'training_product_development', label: '培训产品研发', icon: 'ExperimentOutlined', type: 'system', pinned: true }, ...nextExtra];
+    // 处理 自主选学（personal）
+    nextExtra = hasPersonal
+      ? nextExtra.map(c => c.value === 'personal' ? { ...c, pinned: true, label: c.label || '自主选学', icon: c.icon || 'UserOutlined' } : c)
+      : [{ value: 'personal', label: '自主选学', icon: 'UserOutlined', type: 'system', pinned: true }, ...nextExtra];
 
     const ensured = {
       groups: ensureGroups(baseConfig.groups || []),

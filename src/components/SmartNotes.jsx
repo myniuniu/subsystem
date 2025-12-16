@@ -240,7 +240,6 @@ const SmartNotes = ({ onViewChange }) => {
     { value: 'work', label: '工作主题', icon: 'FolderOpenOutlined', type: 'system' },
     { value: 'study', label: '学习主题', icon: 'BookOutlined', type: 'system' },
     { value: 'research', label: '研究主题', icon: 'ExperimentOutlined', type: 'system' },
-    { value: 'personal', label: '个人主题', icon: 'UserOutlined', type: 'system' },
     { value: 'ideas', label: '想法灵感', icon: 'BulbOutlined', type: 'system' },
     { value: 'meeting', label: '会议记录', icon: 'TeamOutlined', type: 'system' },
     { value: 'supervision', label: '督学', icon: 'FileTextOutlined', type: 'system' },
@@ -254,6 +253,7 @@ const SmartNotes = ({ onViewChange }) => {
     { value: 'homework_system', label: '课后作业', icon: 'FileTextOutlined', type: 'system' },
     { value: 'teaching_research_office', label: '教研室', icon: 'BookOutlined', type: 'system' },
     { value: 'training_needs_management', label: '培训需求管理', icon: 'FileTextOutlined', type: 'system' },
+    { value: 'personal', label: '自主选学', icon: 'UserOutlined', type: 'system' },
     { value: 'training_product_development', label: '培训产品研发', icon: 'ExperimentOutlined', type: 'system' },
     { value: 'knowledge_graph', label: '知识图谱', icon: 'NodeIndexOutlined', type: 'fixed' },
     { value: 'capability_model', label: '能力模型', icon: 'RadarChartOutlined', type: 'fixed' },
@@ -675,6 +675,23 @@ const SmartNotes = ({ onViewChange }) => {
           notesData = await notesService.getAllNotes();
         }
       } catch (e) {}
+      
+      // 在“自主选学”（原个人主题）分类中初始化默认置顶
+      try {
+        const personalNotes = Array.isArray(notesData) ? notesData.filter(n => (n?.category || '') === 'personal') : [];
+        const hasPinned = personalNotes.some(n => !!n.pinned);
+        if (!hasPinned && personalNotes.length > 0) {
+          const sorted = [...personalNotes].sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0));
+          const target = sorted[0];
+          const nowIso = new Date().toISOString();
+          // 仅置顶一条（该分类当前无置顶）
+          await notesService.updateNote(target.id, { pinned: true, pinnedAt: nowIso });
+          notesData = await notesService.getAllNotes();
+        }
+      } catch (e) {
+        console.warn('初始化“自主选学”分类置顶失败:', e);
+      }
+      
       setNotes(notesData);
       
     } catch (error) {

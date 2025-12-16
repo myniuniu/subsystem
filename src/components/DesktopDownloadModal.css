@@ -36,6 +36,24 @@
   color: #8c8c8c;
 }
 
+.open-installed-button {
+  background: linear-gradient(135deg, #13c2c2 0%, #08979c 100%) !important;
+  border: none !important;
+  border-radius: 20px !important;
+  box-shadow: 0 4px 12px rgba(19, 194, 194, 0.3) !important;
+  color: #fff !important;
+  font-weight: 500 !important;
+  height: 36px !important;
+  padding: 0 16px !important;
+  transition: all 0.3s ease !important;
+}
+
+.open-installed-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(19, 194, 194, 0.4) !important;
+  background: linear-gradient(135deg, #11b6b6 0%, #078a87 100%) !important;
+}
+
 .divider {
   width: 1px;
   background: #f0f0f0;

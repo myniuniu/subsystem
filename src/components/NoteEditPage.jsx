@@ -225,6 +225,17 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
     const now = new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
     return [
       {
+        id: 'guoren_study_companion',
+        name: '果仁学伴',
+        type: 'assistant',
+        avatar: '🥜',
+        lastMessage: '已为你初始化学习延展资料与记忆卡片',
+        lastTime: now,
+        unreadCount: 0,
+        online: true,
+        isAI: true
+      },
+      {
         id: 'new_teacher_training_dialogue',
         name: '新教师教学方法培训',
         type: 'group',
@@ -265,6 +276,12 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
           online: true,
           isSubscribed: true
         };
+        const idx = (prev || []).findIndex(c => c.id === 'guoren_study_companion');
+        if (idx >= 0) {
+          const next = [...(prev || [])];
+          next.splice(idx + 1, 0, subscribedContact);
+          return next;
+        }
         return [subscribedContact, ...(prev || [])];
       });
     } catch (e) {}
@@ -723,10 +740,21 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
       { id: 'dlg_003', senderId: '我', senderName: '我', content: '收到，今晚会先浏览课程主页和资源区。', time: fmt(new Date(base.getTime()+4*60*1000)), type: 'text' },
     ];
   });
+  const [companionMessages] = useState(() => {
+    const fmt = (d) => d.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    const base = new Date();
+    return [
+      { id: 'comp_001', senderId: '果仁学伴', senderName: '果仁学伴', content: '你好！已根据你参与“新教师教学方法培训”的学习记录，为你初始化延展学习内容与练习。', time: fmt(new Date(base.getTime()-40*60*1000)), type: 'text' },
+      { id: 'comp_002', senderId: '果仁学伴', senderName: '果仁学伴', content: '【知识点延展】\n- 互动设计原则：推荐《课堂互动的五个层级》，含案例视频与分析稿\n- 课堂观察维度：教师行为、学生参与、时间分配；含观察表模板与示例填写\n- 反馈问卷设计：题项库与量表示例，附数据分析入门指南', time: fmt(new Date(base.getTime()-38*60*1000)), type: 'text' },
+      { id: 'comp_003', senderId: '果仁学伴', senderName: '果仁学伴', content: '【记忆卡片】\n- 互动设计关键术语（30张）\n- 课堂管理策略速记（20张）\n可按“间隔重复”计划自动安排复习提醒', time: fmt(new Date(base.getTime()-36*60*1000)), type: 'text' },
+      { id: 'comp_004', senderId: '果仁学伴', senderName: '果仁学伴', content: '【自测题】\n- 微课互动设计场景题与判断题（10题）\n提交后生成逐题解析与改进建议', time: fmt(new Date(base.getTime()-34*60*1000)), type: 'text' }
+    ];
+  });
 
   // 根据当前会话获取消息（对话或话题）
   const getModalMessages = () => {
     if (activeModalContact === 'org_training_new_teacher_discuss') return getNewTeacherTrainingMessages();
+    if (activeModalContact === 'guoren_study_companion') return companionMessages;
     return dialogueMessages;
   };
 
@@ -1552,6 +1580,56 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         // 切换到培训方案全屏模式
         setCurrentView(VIEW_MODES.TRAINING_PLAN_FULLSCREEN);
         console.log('切换到培训方案全屏模式:', record.title);
+        return;
+      }
+      
+      if (record.type === 'personal-learning') {
+        console.log('自主选学记录点击，切换到全屏模式（同培训方案）');
+        // 与培训方案一致的查看流程：使用培训方案 Viewer 的全屏模式
+        state.setRightPanelTrainingPlanRecord(record);
+        
+        if (record.content) {
+          state.setRightPanelTrainingPlanContent(record.content);
+        } else {
+          // 默认内容同培训方案结构，便于后续修改扩展
+          const defaultContent = {
+            title: record.title,
+            overview: '本自主选学方案侧重课程自学与实践，支持按主题/课程定制学习路径。',
+            schedule: [
+              {
+                id: 1,
+                title: '课程视频学习',
+                duration: '2小时',
+                type: 'video',
+                description: '基于偏好课程主题进行视频学习，获取核心概念与方法',
+                videos: [
+                  { id: 'pl_v1', title: '课程导学', duration: '30分钟' },
+                  { id: 'pl_v2', title: '核心知识点', duration: '60分钟' },
+                  { id: 'pl_v3', title: '应用案例', duration: '30分钟' }
+                ]
+              },
+              {
+                id: 2,
+                title: '练习与巩固',
+                duration: '2小时',
+                type: 'practice',
+                description: '通过习题或小任务进行巩固，及时查漏补缺'
+              },
+              {
+                id: 3,
+                title: '阶段性自评',
+                duration: '30分钟',
+                type: 'assessment',
+                description: '基于里程碑目标进行自我评估与反思'
+              }
+            ],
+            totalDuration: '4小时30分'
+          };
+          state.setRightPanelTrainingPlanContent(defaultContent);
+        }
+        
+        setCurrentView(VIEW_MODES.TRAINING_PLAN_FULLSCREEN);
+        console.log('切换到自主选学全屏模式:', record.title);
         return;
       }
       

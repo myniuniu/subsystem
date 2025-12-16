@@ -1515,6 +1515,7 @@ if (typeof document !== 'undefined') {
               visibleCards={visibleCards}
               setVisibleCards={setVisibleCards}
               isEditMode={isEditMode}
+              noteCategory={noteCategory}
               hasSourceData={hasSourceData}
               sourceInfo={sourceInfo}
               showCardSelector={showCardSelector}
@@ -1951,6 +1952,7 @@ if (typeof document !== 'undefined') {
                 case 'grading': return '阅';
                 case 'knowledge-graph': return '知';
                 case 'training-plan': return '培';
+                case 'personal-learning': return '自';
                 default: return '📄';
               }
             };
@@ -2030,6 +2032,7 @@ if (typeof document !== 'undefined') {
                             webcode: '网页',
                             scenario: '场景',
                             'training-plan': '培训方案',
+                            'personal-learning': '自主选学',
                             'training-report': '培训报告',
                             'training-dashboard': '培训报表',
                             'learning-plan': '学习计划',

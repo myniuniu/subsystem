@@ -74,6 +74,26 @@ export const useOperationPanelState = (noteCategory = null) => {
       console.log('组织培训分类，返回的卡片:', ordered);
       return ordered;
     }
+
+    // 自主选学分类：显示指定的工具（不显示“培训方案”）
+    if (category === 'personal') {
+      const allowedKeys = [
+        'learning-plan',
+        'personal-learning',
+        'report',
+        'mindmap',
+        'scenario',
+        'audio',
+        'memory-cards',
+        'quiz'
+      ];
+      const filtered = OPERATION_CARDS.filter(card => allowedKeys.includes(card.key));
+      const ordered = allowedKeys
+        .map(key => filtered.find(ci => ci.key === key))
+        .filter(Boolean);
+      console.log('自主选学分类，返回的卡片:', ordered);
+      return ordered;
+    }
     
     // 如果是培训需求与管理分类，返回培训相关工具
     if (category === 'training_needs_management') {

@@ -15,6 +15,7 @@ const DraggableOperationCard = ({
   onRemove, 
   onClick, 
   isEditMode, 
+  noteCategory,
   hasSourceData, 
   sourceInfo,
   isLoading = false, // 新增加载状态
@@ -310,15 +311,17 @@ const DraggableOperationCard = ({
             addonAfter="个模块"
           />
         </Form.Item>
-        <Form.Item label="考核评价">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Text type="secondary">启用阶段性考核与评价</Text>
-            <Switch 
-              checked={config.assessmentEnabled}
-              onChange={(checked) => setConfig({...config, assessmentEnabled: checked})}
-            />
-          </div>
-        </Form.Item>
+        {noteCategory !== 'personal' && (
+          <Form.Item label="考核评价">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text type="secondary">启用阶段性考核与评价</Text>
+              <Switch 
+                checked={config.assessmentEnabled}
+                onChange={(checked) => setConfig({...config, assessmentEnabled: checked})}
+              />
+            </div>
+          </Form.Item>
+        )}
         <Form.Item label="证书" style={{ gridColumn: '1 / -1' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Text type="secondary">完成培训后颁发电子证书</Text>
@@ -381,24 +384,26 @@ const DraggableOperationCard = ({
             suffixIcon={<PlusOutlined style={{ color: '#1890ff' }} />}
           />
         </Form.Item>
-        <Form.Item 
-          label={
-            <Tooltip title="在人员标注模块维护" placement="top">
-              <span>培训人员圈选 <QuestionCircleOutlined style={{ color: '#8c8c8c', fontSize: '12px' }} /></span>
-            </Tooltip>
-          }
-        >
-          <Select
-            mode="tags"
-            value={config.participantSelection}
-            onChange={(value) => setConfig({...config, participantSelection: value})}
-            placeholder="输入人员标签名称，按回车添加"
-            style={{ width: '100%' }}
-            maxTagCount="responsive"
-            tokenSeparators={[',', '，']}
-            suffixIcon={<PlusOutlined style={{ color: '#1890ff' }} />}
-          />
-        </Form.Item>
+        {noteCategory !== 'personal' && (
+          <Form.Item 
+            label={
+              <Tooltip title="在人员标注模块维护" placement="top">
+                <span>培训人员圈选 <QuestionCircleOutlined style={{ color: '#8c8c8c', fontSize: '12px' }} /></span>
+              </Tooltip>
+            }
+          >
+            <Select
+              mode="tags"
+              value={config.participantSelection}
+              onChange={(value) => setConfig({...config, participantSelection: value})}
+              placeholder="输入人员标签名称，按回车添加"
+              style={{ width: '100%' }}
+              maxTagCount="responsive"
+              tokenSeparators={[',', '，']}
+              suffixIcon={<PlusOutlined style={{ color: '#1890ff' }} />}
+            />
+          </Form.Item>
+        )}
         <Form.Item label="培训形式" style={{ gridColumn: '1 / -1' }}>
           <Select
             mode="multiple"
@@ -467,10 +472,10 @@ const DraggableOperationCard = ({
   
   // 处理需要确认/配置的卡片点击（培训方案、培训报表、E-PBL教学设计）
   const handleCardClickWithConfirm = () => {
-    if (card.key === 'training-plan' || card.key === 'training-dashboard' || card.key === 'e-pbl-planning') {
+    if (card.key === 'training-plan' || card.key === 'training-dashboard' || card.key === 'e-pbl-planning' || card.key === 'personal-learning') {
       Modal.confirm({
-        title: card.key === 'training-dashboard' ? '培训报表生成确认' : (card.key === 'e-pbl-planning' ? 'E-PBL教学设计配置确认' : '培训方案配置确认'),
-        content: card.key === 'training-dashboard' ? '是否已完成报表生成参数配置？' : (card.key === 'e-pbl-planning' ? '是否已完成教学设计配置？' : '是否已完成培训方案配置？'),
+        title: card.key === 'training-dashboard' ? '培训报表生成确认' : (card.key === 'e-pbl-planning' ? 'E-PBL教学设计配置确认' : (card.key === 'personal-learning' ? '自主选学配置确认' : '培训方案配置确认')),
+        content: card.key === 'training-dashboard' ? '是否已完成报表生成参数配置？' : (card.key === 'e-pbl-planning' ? '是否已完成教学设计配置？' : (card.key === 'personal-learning' ? '是否已完成自主选学配置？' : '是否已完成培训方案配置？')),
         okText: '已配置，继续',
         cancelText: '去配置',
         icon: <SettingOutlined style={{ color: '#1890ff' }} />,
@@ -695,8 +700,8 @@ const DraggableOperationCard = ({
           {/* 状态覆盖层 */}
           {renderStatusOverlay()}
           
-          {/* 培训方案/E-PBL教学设计/学习计划/记忆卡片/测验 配置按钮（不在培训报表卡片显示） */}
-          {(card.key === 'training-plan' || card.key === 'e-pbl-planning' || card.key === 'learning-plan' || card.key === 'memory-cards' || card.key === 'quiz') && !isEditMode && hasSourceData && (
+          {/* 培训方案/自主选学/E-PBL教学设计/学习计划/记忆卡片/测验 配置按钮（不在培训报表卡片显示） */}
+          {(card.key === 'training-plan' || card.key === 'personal-learning' || card.key === 'e-pbl-planning' || card.key === 'learning-plan' || card.key === 'memory-cards' || card.key === 'quiz') && !isEditMode && hasSourceData && (
             <Button
               type="text"
               size="small"
@@ -795,7 +800,7 @@ const DraggableOperationCard = ({
             ) : (
               <>
                 <SettingOutlined style={{ color: '#1890ff' }} />
-                <span>{card.key === 'training-dashboard' ? '培训报表配置' : (card.key === 'e-pbl-planning' ? 'E-PBL教学设计配置' : (card.key === 'learning-plan' ? '学习计划配置' : (card.key === 'memory-cards' ? '自定义记忆卡' : (card.key === 'quiz' ? '自定义测验' : '培训方案配置'))))}</span>
+                <span>{card.key === 'training-dashboard' ? '培训报表配置' : (card.key === 'e-pbl-planning' ? 'E-PBL教学设计配置' : (card.key === 'learning-plan' ? '学习计划配置' : (card.key === 'memory-cards' ? '自定义记忆卡' : (card.key === 'quiz' ? '自定义测验' : (card.key === 'personal-learning' ? '自主选学配置' : '培训方案配置')))))}</span>
               </>
             )}
           </div>
@@ -827,7 +832,13 @@ const DraggableOperationCard = ({
             return;
           }
           // 保存配置逻辑
-          const key = card.key === 'training-dashboard' ? 'training_dashboard_config' : (card.key === 'e-pbl-planning' ? 'epbl_planning_config' : (card.key === 'learning-plan' ? 'learning_plan_config' : 'training_plan_config'));
+          const key = (
+            card.key === 'training-dashboard' ? 'training_dashboard_config' :
+            card.key === 'e-pbl-planning' ? 'epbl_planning_config' :
+            card.key === 'learning-plan' ? 'learning_plan_config' :
+            card.key === 'personal-learning' ? 'personal_learning_config' :
+            'training_plan_config'
+          );
           localStorage.setItem(key, JSON.stringify(config));
           if (card.key === 'learning-plan') {
             if (onClick) onClick();
@@ -852,23 +863,23 @@ const DraggableOperationCard = ({
                 {configFormFields}
               </div>
               
-              <Form.Item 
-                label={card.key === 'e-pbl-planning' ? '方案补充说明' : (card.key === 'learning-plan' ? '学习计划补充说明' : ((card.key === 'memory-cards' || card.key === 'quiz') ? '主题应该是什么？' : '方案补充说明'))}
-                help={
-                  <Text type="secondary" style={{ fontSize: '12px' }}>
-                    {card.key === 'e-pbl-planning' ? '补充教学设计的要点、注意事项等信息' : (card.key === 'learning-plan' ? '补充学习要求与偏好，用于生成更贴合的计划' : ((card.key === 'memory-cards' || card.key === 'quiz') ? '建议将主题聚焦且来源明确，内容精炼，便于生成' : '详细描述培训方案的背景、目标、适用对象等信息'))}
-                  </Text>
-                }
-              >
-                <Input.TextArea
-                  value={config.description}
-                  onChange={(e) => setConfig({...config, description: e.target.value})}
-                  placeholder={card.key === 'e-pbl-planning' ? '请输入教学设计补充说明（选填，2000字以内）' : (card.key === 'learning-plan' ? '请输入学习计划补充说明（选填，2000字以内）' : ((card.key === 'memory-cards' || card.key === 'quiz') ? '输入主题或参考提示，如“牛顿第二定律”' : '请输入培训方案的补充说明，如培训背景、目标、适用对象、预期效果等（选填，2000字以内）'))}
-                  autoSize={{ minRows: 4, maxRows: 8 }}
-                  maxLength={2000}
-                  showCount
-                  style={{
-                    fontSize: '14px',
+               <Form.Item 
+                 label={card.key === 'e-pbl-planning' ? '方案补充说明' : (card.key === 'learning-plan' ? '学习计划补充说明' : ((card.key === 'memory-cards' || card.key === 'quiz') ? '主题应该是什么？' : '方案补充说明'))}
+                 help={
+                   <Text type="secondary" style={{ fontSize: '12px' }}>
+                    {card.key === 'e-pbl-planning' ? '补充教学设计的要点、注意事项等信息' : (card.key === 'learning-plan' ? '补充学习要求与偏好，用于生成更贴合的计划' : (card.key === 'personal-learning' ? '请填写自主选学需求（以课程学习为主）：学习目标、偏好主题/课程、学习方式（视频/阅读/练习）、学习时段与节奏、当前基础与期待提升、评估方式或里程碑等' : ((card.key === 'memory-cards' || card.key === 'quiz') ? '建议将主题聚焦且来源明确，内容精炼，便于生成' : '详细描述培训方案的背景、目标、适用对象等信息')))}
+                    </Text>
+                  }
+                >
+                  <Input.TextArea
+                    value={config.description}
+                    onChange={(e) => setConfig({...config, description: e.target.value})}
+                    placeholder={card.key === 'e-pbl-planning' ? '请输入教学设计补充说明（选填，2000字以内）' : (card.key === 'learning-plan' ? '请输入学习计划补充说明（选填，2000字以内）' : (card.key === 'personal-learning' ? '请输入自主选学需求补充说明（选填，2000字以内）' : ((card.key === 'memory-cards' || card.key === 'quiz') ? '输入主题或参考提示，如“牛顿第二定律”' : '请输入培训方案的补充说明，如培训背景、目标、适用对象、预期效果等（选填，2000字以内）')))}
+                    autoSize={{ minRows: 4, maxRows: 8 }}
+                    maxLength={2000}
+                    showCount
+                    style={{
+                      fontSize: '14px',
                     lineHeight: '1.6'
                   }}
                 />
