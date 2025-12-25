@@ -1254,6 +1254,117 @@ const TrainingDashboardViewer = ({
                 </div>
               )
             },
+            {
+              key: 'analysis',
+              label: (
+                <span>
+                  <LineChartOutlined />
+                  数据分析
+                </span>
+              ),
+              children: (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16 }}>
+                  {(() => {
+                    const participants = dashboardData?.participantsList || [];
+                    const total = participants.length;
+                    const joined = participants.filter(p => p.joined).length;
+                    const active = participants.filter(p => p.active).length;
+                    const certified = participants.filter(p => p.certified).length;
+                    const avgScore = Number(dashboardData?.keyMetrics?.averageScore || 0);
+                    const avgHoursAll = Number(dashboardData?.keyMetrics?.totalHours || 0) / (total || 1);
+                    const rate = (n, d) => (d ? Math.round((n / d) * 100) : 0);
+                    const joinRate = rate(joined, total);
+                    const participationRate = rate(active, total);
+                    const certificationRate = rate(certified, active || total);
+                    const formats = (dashboardData?.modulesData || []).flatMap(m => 
+                      (m.formats || []).map(f => ({
+                        module: m.name,
+                        format: f.name,
+                        participants: Number(f.participants || 0),
+                        completionRate: Number(f.completionRate || 0),
+                        avgHours: Number(f.avgHours || 0),
+                        avgScore: Number(f.avgScore || 0),
+                        certified: Number(f.certified || 0)
+                      }))
+                    );
+                    const topFormats = formats.slice().sort((a, b) => b.avgScore - a.avgScore).slice(0, 3);
+                    const lowFormats = formats.slice().sort((a, b) => a.avgScore - b.avgScore).slice(0, 3);
+                    const narrative = [
+                      `本期共 ${total} 名学员参与，加入率 ${joinRate}% ，参与率 ${participationRate}% ，获证率 ${certificationRate}% 。总体平均成绩 ${avgScore} 分，平均学时约 ${Math.round(avgHoursAll * 10) / 10} 小时。`,
+                      `从学习形式看，表现较优的形式包括：${topFormats.map(f => `${f.format}（${f.avgScore}分）`).join('、')}；较弱的形式包括：${lowFormats.map(f => `${f.format}（${f.avgScore}分）`).join('、')}。`,
+                      `完成率与获证率在不同形式间存在差异，建议结合具体模块目标优化学习形式搭配与学时安排。`
+                    ];
+                    const suggestions = [
+                      { t: '提升参与率', d: `针对参与率 ${participationRate}% 的情况，建议通过班级动员、助教督学和设置必修节点提升参与度。` },
+                      { t: '优化弱项形式', d: `对低表现形式${lowFormats.map(f => f.format).join('、')}，增加示范案例与练习反馈，结合同伴互评提高学习效果。` },
+                      { t: '证书激励', d: `结合获证率 ${certificationRate}% ，设置阶段性达标激励（如微证书/勋章）提升学员完成与认证意愿。` },
+                      { t: '学时结构', d: `将平均学时控制在合理区间，建议高难度模块增加分散学习与短时高频练习，避免疲劳影响成绩。` }
+                    ];
+                    const hoursScoreData = formats.map(fs => ({ name: fs.format, hours: fs.avgHours, score: fs.avgScore }));
+                    const certRateFn = (p, c) => { const denom = Number(p || 0); const numer = Number(c || 0); return denom > 0 ? Math.round((numer / denom) * 100) : 0; };
+                    const completionCertData = formats.flatMap(fs => ([{ format: fs.format, metric: '完成率', value: fs.completionRate }, { format: fs.format, metric: '获证率', value: certRateFn(fs.participants, fs.certified) }]));
+                    const lineConfig = { data: hoursScoreData, xField: 'hours', yField: 'score', seriesField: 'name', color: ['#1d4ed8', '#22c55e', '#f59e0b', '#8b5cf6', '#ef4444'], point: { size: 4 }, smooth: true, xAxis: { title: { text: '平均学时' } }, yAxis: { title: { text: '平均成绩' } } };
+                    const barConfig = { data: completionCertData, xField: 'format', yField: 'value', seriesField: 'metric', isGroup: true, color: ['#3b82f6', '#10b981'], label: { position: 'middle' }, xAxis: { label: { autoHide: true, autoRotate: false } }, yAxis: { title: { text: '百分比' } } };
+                    const lowPerform = formats.slice().sort((a, b) => a.avgScore - b.avgScore).slice(0, 5);
+                    return (
+                      <>
+                        <Card title="分析总结" bodyStyle={{ padding: 12 }}>
+                          <div style={{ display: 'grid', gap: 8 }}>
+                            {narrative.map((p, i) => (<Text key={`nl-${i}`}>{p}</Text>))}
+                          </div>
+                        </Card>
+                        <Card title="智能建议" bodyStyle={{ padding: 12 }}>
+                          <List
+                            dataSource={suggestions}
+                            renderItem={(s) => (
+                              <List.Item>
+                                <Space direction="vertical" style={{ width: '100%' }}>
+                                  <Text strong>{s.t}</Text>
+                                  <Text type="secondary">{s.d}</Text>
+                                </Space>
+                              </List.Item>
+                            )}
+                          />
+                        </Card>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                          <Card title="平均学时 vs 平均成绩（按学习形式）" bodyStyle={{ padding: 12 }}>
+                            <Line {...lineConfig} />
+                          </Card>
+                          <Card title="完成率与获证率对比（按学习形式）" bodyStyle={{ padding: 12 }}>
+                            <Bar {...barConfig} />
+                          </Card>
+                          <Card title="低表现形式（按平均成绩）" bodyStyle={{ padding: 12 }} style={{ gridColumn: '1 / span 2' }}>
+                            <List
+                              dataSource={lowPerform}
+                              renderItem={(item, idx) => (
+                                <List.Item>
+                                  <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                                    <Space>
+                                      <Tag color={idx < 3 ? 'volcano' : 'geekblue'}>{idx + 1}</Tag>
+                                      <Text>{item.module}｜{item.format}</Text>
+                                    </Space>
+                                    <Space>
+                                      <Text type="secondary">平均学时</Text>
+                                      <Text strong>{item.avgHours}</Text>
+                                      <Text type="secondary">平均成绩</Text>
+                                      <Text strong>{item.avgScore}</Text>
+                                      <Text type="secondary">完成率</Text>
+                                      <Text strong>{item.completionRate}%</Text>
+                                      <Text type="secondary">获证率</Text>
+                                      <Text strong>{certRateFn(item.participants, item.certified)}%</Text>
+                                    </Space>
+                                  </Space>
+                                </List.Item>
+                              )}
+                            />
+                          </Card>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              )
+            }
           ]}
         />
       </div>

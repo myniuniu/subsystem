@@ -383,6 +383,63 @@ const { TextArea } = Input;
     setActiveModuleId('default');
   }, [note?.id, note?.category]);
 
+  // 主题工作坊：清空来源数据并注入预习资料（优秀跨学科教案、政策文件）
+  useEffect(() => {
+    const inWorkshop = (note?.category === 'theme_workshop');
+    if (!inWorkshop) return;
+    try {
+      const nowISO = new Date().toISOString();
+      const workshopLinks = [
+        { id: `tw_link_${Date.now()}_pdf1`, url: '/assets/优秀跨学科教学设计案例集.pdf', type: 'pdf', platform: '文档', title: '优秀跨学科教学设计案例集', addTime: nowISO },
+        { id: `tw_link_${Date.now()}_pdf2`, url: '/assets/中小学跨学科教学政策解读.pdf', type: 'pdf', platform: '文档', title: '中小学跨学科教学政策解读', addTime: nowISO },
+        { id: `tw_link_${Date.now()}_site1`, url: 'https://www.moe.gov.cn/jyb_xxgk/zcwj/', type: 'website', platform: '普通网站', title: '教育部政策文件：课程与教学', addTime: nowISO }
+      ];
+      const workshopTexts = [
+        { id: `tw_text_${Date.now()}_1`, title: '跨学科教学准备要点', content: '确定核心概念、设计综合任务、准备评价工具。', type: 'text', addTime: nowISO },
+        { id: `tw_text_${Date.now()}_2`, title: '政策合规注意事项', content: '遵循《中小学跨学科教学实施办法》的时长与资源规范。', type: 'text', addTime: nowISO }
+      ];
+      
+      setUploadedFiles([]);
+      setLinks(workshopLinks);
+      setAddedTexts(workshopTexts);
+      setCourseVideos([]);
+      setOrganizationalCourses([]);
+      if (typeof setLiveStreams === 'function') setLiveStreams([]);
+      if (typeof setSelectedCourses === 'function') setSelectedCourses([]);
+      setSelectedMaterials([]);
+      
+      try {
+        setModuleAssignments({
+          live: {},
+          videos: {},
+          exam: {},
+          links: workshopLinks.reduce((acc, l) => { acc[l.id] = 'default'; return acc; }, {}),
+          texts: workshopTexts.reduce((acc, t) => { acc[t.id] = 'default'; return acc; }, {}),
+          projects: {},
+          files: {}
+        });
+      } catch {}
+      setModules([
+        { id: 'default', title: '默认模块' },
+        { id: 'uncategorized', title: '未分类模块' }
+      ]);
+      setActiveModuleId('default');
+    } catch (e) {
+      // no-op
+    }
+  }, [note?.id, note?.category]);
+
+  useEffect(() => {
+    if (note?.category !== 'theme_workshop') return;
+    setModuleAssignments(prev => {
+      const next = { ...(prev || {}) };
+      next.links = { ...(prev?.links || {}) };
+      next.texts = { ...(prev?.texts || {}) };
+      (Array.isArray(links) ? links : []).forEach(l => { if (!next.links[l.id]) next.links[l.id] = 'default'; });
+      (Array.isArray(addedTexts) ? addedTexts : []).forEach(t => { if (!next.texts[t.id]) next.texts[t.id] = 'default'; });
+      return next;
+    });
+  }, [note?.category, links, addedTexts]);
   // 当链接变化时，确保归属到“默认模块”（避免首次初始化因异步未映射导致不显示）
   useEffect(() => {
     if (note?.category !== 'supervision') return;

@@ -42,7 +42,7 @@ export const getCategoryKey = (noteCategory, selectedCategory) => {
     if (!key) return null;
     const map = {
       '组织培训': 'organizational_training',
-      '培训需求管理': 'training_needs_management',
+      '培训项目管理': 'training_needs_management',
       '教学研究室': 'teaching_research_office',
       'E-PBL': 'e_pbl',
       '我的评阅': 'my_evaluation',

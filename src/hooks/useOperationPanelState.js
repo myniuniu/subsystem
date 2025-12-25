@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { message } from 'antd';
+// removed unused message import
 import dayjs from 'dayjs';
 import { OPERATION_CARDS, OPERATION_TYPES } from '../constants/noteEditConstants';
 
@@ -20,6 +20,35 @@ export const useOperationPanelState = (noteCategory = null) => {
       const result = card ? [card] : [];
       console.log('E-PBL分类，返回的卡片:', result);
       return result;
+    }
+
+    // 主题工作坊分类：清空其他智能工具，仅显示“工作坊方案 / 工作坊报表 / 工作坊报告”三项
+    if (category === 'theme_workshop') {
+      const workshopPlanCard = {
+        key: 'workshop-plan',
+        title: '工作坊方案',
+        icon: '坊',
+        gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+        color: '#1890ff',
+        isAITool: true
+      };
+      const workshopDashboardCard = {
+        key: 'workshop-dashboard',
+        title: '工作坊报表',
+        icon: '表',
+        gradient: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+        color: '#0369a1',
+        isAITool: true
+      };
+      const workshopReportCard = {
+        key: 'workshop-report',
+        title: '工作坊报告',
+        icon: '报',
+        gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+        color: '#722ed1',
+        isAITool: true
+      };
+      return [workshopPlanCard, workshopDashboardCard, workshopReportCard];
     }
 
     // 督学分类：显示“督学任务”“现场分析”“督学报告”
@@ -97,16 +126,84 @@ export const useOperationPanelState = (noteCategory = null) => {
     
     // 如果是培训需求与管理分类，返回培训相关工具
     if (category === 'training_needs_management') {
-      // 只显示指定的四个工具：培训方案、课表、培训报告、培训报表
-      const trainingCards = OPERATION_CARDS.filter(card => 
-        card.key === 'training-plan' || 
-        card.key === 'schedule' || 
-        card.key === 'training-report' ||
-        card.key === 'training-dashboard'
+      // 基础工具：培训方案、课表、培训报告、培训报表
+      const trainingCards = OPERATION_CARDS.filter(card =>
+        ['training-plan', 'schedule', 'training-report', 'training-dashboard', 'exam-paper'].includes(card.key)
       );
-      
-      console.log('培训需求管理分类，返回的卡片:', trainingCards);
-      return trainingCards;
+
+      // 默认注入三款AI工具：访谈提纲、需求调研报告、诊断报告
+      const aiToolsConfig = JSON.parse(localStorage.getItem('ai-tools-config') || '{}');
+      const addedAITools = JSON.parse(localStorage.getItem('added-ai-tools-to-panel') || '[]');
+      const ids = ['interview-outline', 'needs-research-report', 'diagnosis-report', 'questionnaire-design', 'diagnostic-assessment-plan'];
+      const defaults = {
+        'interview-outline': {
+          key: 'interview-outline',
+          title: '访谈提纲',
+          icon: '访',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        },
+        'needs-research-report': {
+          key: 'needs-research-report',
+          title: '需求调研报告',
+          icon: '调',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        },
+        'diagnosis-report': {
+          key: 'diagnosis-report',
+          title: '诊断报告',
+          icon: '诊',
+          gradient: 'linear-gradient(135deg, #fff0f6 0%, #ffd6e7 100%)',
+          color: '#c41d7f'
+        },
+        'questionnaire-design': {
+          key: 'questionnaire-design',
+          title: '调查问卷设计',
+          icon: '问',
+          gradient: 'linear-gradient(135deg, #f0f5ff 0%, #d6e4ff 100%)',
+          color: '#2f54eb'
+        },
+        'diagnostic-assessment-plan': {
+          key: 'diagnostic-assessment-plan',
+          title: '诊断（测评）方案',
+          icon: '测',
+          gradient: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
+          color: '#52c41a'
+        }
+      };
+      let changed = false;
+      ids.forEach(id => {
+        if (!addedAITools.includes(id)) {
+          addedAITools.push(id);
+          changed = true;
+        }
+        if (!aiToolsConfig[id]) {
+          aiToolsConfig[id] = defaults[id];
+          changed = true;
+        }
+      });
+      if (changed) {
+        localStorage.setItem('ai-tools-config', JSON.stringify(aiToolsConfig));
+        localStorage.setItem('added-ai-tools-to-panel', JSON.stringify(addedAITools));
+        console.log('培训需求管理：已默认注入访谈提纲/需求调研报告/诊断报告');
+      }
+
+      const aiCards = ids.map(id => {
+        const cfg = aiToolsConfig[id];
+        return cfg ? {
+          key: id,
+          title: cfg.title,
+          icon: cfg.icon,
+          gradient: cfg.gradient,
+          color: cfg.color,
+          isAITool: true
+        } : null;
+      }).filter(Boolean);
+
+      const result = [...aiCards, ...trainingCards];
+      console.log('培训需求管理分类，返回的卡片:', result);
+      return result;
     }
     
     // 如果是培训产品研发分类，显示课程研发工具和视频切片工具

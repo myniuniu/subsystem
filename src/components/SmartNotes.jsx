@@ -252,7 +252,7 @@ const SmartNotes = ({ onViewChange }) => {
     { value: 'e_pbl', label: 'E-PBL', icon: 'BookOutlined', type: 'system' },
     { value: 'homework_system', label: '课后作业', icon: 'FileTextOutlined', type: 'system' },
     { value: 'teaching_research_office', label: '教研室', icon: 'BookOutlined', type: 'system' },
-    { value: 'training_needs_management', label: '培训需求管理', icon: 'FileTextOutlined', type: 'system' },
+    { value: 'training_needs_management', label: '培训项目管理', icon: 'FileTextOutlined', type: 'system' },
     { value: 'personal', label: '自主选学', icon: 'UserOutlined', type: 'system' },
     { value: 'training_product_development', label: '培训产品研发', icon: 'ExperimentOutlined', type: 'system' },
     { value: 'knowledge_graph', label: '知识图谱', icon: 'NodeIndexOutlined', type: 'fixed' },
@@ -672,6 +672,25 @@ const SmartNotes = ({ onViewChange }) => {
           for (const n of toDelete) {
             try { await notesService.deleteNote(n.id); } catch (e) {}
           }
+          notesData = await notesService.getAllNotes();
+        }
+      } catch (e) {}
+      
+      try {
+        const existsThemeWorkshop = Array.isArray(notesData) && notesData.some(n => (
+          n?.category === 'theme_workshop' ||
+          (typeof n?.title === 'string' && n.title.trim() === '中小学跨学科教学设计与实施 教研工作坊')
+        ));
+        if (!existsThemeWorkshop) {
+          const content = '# 中小学跨学科教学设计与实施 教研工作坊\n\n## 主题简介\n- 聚焦跨学科教学设计与实施\n- 面向中小学教师的教研活动\n\n## 核心模块\n- 跨学科课程设计\n- 教学实施策略\n- 评估与反馈机制\n\n## 标签\n- 跨学科教学\n- 教学设计\n- 教研工作坊\n- 中小学教育';
+          await notesService.createNote({
+            title: '中小学跨学科教学设计与实施 教研工作坊',
+            content,
+            category: 'theme_workshop',
+            tags: ['跨学科教学', '教学设计', '教研工作坊', '中小学教育'],
+            source: '系统生成',
+            starred: true
+          });
           notesData = await notesService.getAllNotes();
         }
       } catch (e) {}

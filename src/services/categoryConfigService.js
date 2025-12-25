@@ -13,6 +13,7 @@ export const DEFAULT_SYSTEM_CATEGORY_CONFIG = {
   ],
   extraCategories: [
     { value: 'personal', label: '自主选学', icon: 'UserOutlined', type: 'system', pinned: true, pinnedAt: '2025-01-03T00:00:00Z' },
+    { value: 'theme_workshop', label: '主题工作坊管理', icon: 'BulbOutlined', type: 'system', pinned: true, pinnedAt: '2025-01-03T00:00:00Z' },
     { value: 'training_product_development', label: '培训产品研发', icon: 'ExperimentOutlined', type: 'system', pinned: true, pinnedAt: '2025-01-03T00:00:00Z' },
     { value: 'e_pbl', label: 'E-PBL', icon: 'BookOutlined', type: 'system', pinned: true },
     { value: 'teaching_research_office', label: '教研室', icon: 'BookOutlined', type: 'custom', pinned: true },
@@ -82,6 +83,7 @@ export const getSystemCategoryConfig = () => {
     const hasMyEvaluation = extra.some(c => c.value === 'my_evaluation');
     const hasTrainingProductDev = extra.some(c => c.value === 'training_product_development');
     const hasPersonal = extra.some(c => c.value === 'personal');
+    const hasThemeWorkshop = extra.some(c => c.value === 'theme_workshop');
     let nextExtra = extra;
     // 处理 e_pbl
     nextExtra = hasEPBL
@@ -99,6 +101,23 @@ export const getSystemCategoryConfig = () => {
     nextExtra = hasPersonal
       ? nextExtra.map(c => c.value === 'personal' ? { ...c, pinned: true, label: c.label || '自主选学', icon: c.icon || 'UserOutlined' } : c)
       : [{ value: 'personal', label: '自主选学', icon: 'UserOutlined', type: 'system', pinned: true }, ...nextExtra];
+    // 处理 主题工作坊，插入到“自主选学”与“培训产品研发”之间
+    if (hasThemeWorkshop) {
+      nextExtra = nextExtra.map(c => c.value === 'theme_workshop' ? { ...c, pinned: true, label: '主题工作坊管理', icon: c.icon || 'BulbOutlined', type: c.type || 'system' } : c);
+    } else {
+      const themeItem = { value: 'theme_workshop', label: '主题工作坊管理', icon: 'BulbOutlined', type: 'system', pinned: true };
+      const pIdx = nextExtra.findIndex(c => c.value === 'personal');
+      if (pIdx >= 0) {
+        nextExtra = [...nextExtra.slice(0, pIdx + 1), themeItem, ...nextExtra.slice(pIdx + 1)];
+      } else {
+        const tpdIdx = nextExtra.findIndex(c => c.value === 'training_product_development');
+        if (tpdIdx >= 0) {
+          nextExtra = [...nextExtra.slice(0, tpdIdx), themeItem, ...nextExtra.slice(tpdIdx)];
+        } else {
+          nextExtra = [themeItem, ...nextExtra];
+        }
+      }
+    }
 
     const ensured = {
       groups: ensureGroups(baseConfig.groups || []),

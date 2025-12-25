@@ -36,7 +36,8 @@ import {
   LeftOutlined,
   RightOutlined,
   AppstoreOutlined,
-  MenuOutlined
+  MenuOutlined,
+  RobotOutlined
 } from '@ant-design/icons';
 import { RIGHT_PANEL_VIEWS, VIEW_MODES } from '../../constants/noteEditConstants';
 import { generateComprehensiveTrainingPlan, generateTrainingPlanMarkdown } from '../../utils/trainingPlanGenerator';
@@ -750,6 +751,18 @@ const TrainingPlanViewer = ({
     } else {
       setRightPanelView(RIGHT_PANEL_VIEWS.OPERATIONS);
     }
+  };
+
+  const handleAIGenerate = () => {
+    try {
+      window.dispatchEvent(new CustomEvent('triggerAIGenerateForTrainingPlan', {
+        detail: {
+          planTitle: rightPanelTrainingPlanRecord?.title || plan?.title || '培训方案',
+          actions: ['配课', '预定直播会议', '试题生成']
+        }
+      }));
+    } catch {}
+    message.success('已触发AI配课、预定直播会议与试题生成');
   };
 
   // 分屏：右侧实施方案显示/隐藏

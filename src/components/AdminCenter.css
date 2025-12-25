@@ -1,0 +1,48 @@
+/* 应用管理区域填充父容器 */
+.app-tabs {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.app-tabs .ant-tabs-content-holder {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.app-tabs .ant-tabs-content {
+  height: 100%;
+}
+.app-tab-pane {
+  height: 100%;
+  overflow: auto;
+}
+
+/* 参考 SmartNotes 卡片样式的精简版本 */
+.app-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e8e8e8;
+  overflow: hidden;
+  height: 100%;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+}
+.app-card .ant-card-body {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.app-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+.app-card .ant-card-actions {
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+  margin-top: auto;
+}
+.app-card .ant-card-actions > li {
+  margin: 8px 0;
+}

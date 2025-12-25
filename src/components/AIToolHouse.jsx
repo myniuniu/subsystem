@@ -1496,6 +1496,161 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
         '数据导出功能'
       ],
       usage: '基于培训数据生成各类统计报表和可视化图表，帮助管理者全面了解培训情况和效果'
+    },
+    {
+      id: 'interview-outline',
+      name: '访谈提纲',
+      description: '用于需求访谈的结构化提纲生成，支持角色与主题定制',
+      category: AI_TOOL_CATEGORIES.ANALYSIS,
+      status: AI_TOOL_STATUS.ACTIVE,
+      author: '培训管理团队',
+      version: 'v1.0.0',
+      rating: 4.8,
+      downloads: 4320,
+      tags: ['访谈提纲', '需求访谈', '问题清单'],
+      icon: '访',
+      color: '#13c2c2',
+      featured: true,
+      applicableNoteCategories: ['training_needs_management'],
+      menuConfig: {
+        key: 'interview-outline',
+        title: '访谈提纲',
+        icon: '访',
+        gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+        color: '#13c2c2'
+      },
+      features: [
+        '按角色生成访谈问题',
+        '围绕主题的深度追问',
+        '自动结构化提纲',
+        '可导出与分享',
+        '常见陷阱提示'
+      ],
+      usage: '选择访谈角色与主题，系统生成结构化提纲并支持现场记录'
+    },
+    {
+      id: 'needs-research-report',
+      name: '需求调研报告',
+      description: '汇总访谈与问卷数据，自动生成需求调研报告与结论',
+      category: AI_TOOL_CATEGORIES.ANALYSIS,
+      status: AI_TOOL_STATUS.NEW,
+      author: '培训管理团队',
+      version: 'v1.0.0',
+      rating: 4.9,
+      downloads: 2860,
+      tags: ['需求调研', '问卷分析', '访谈整理', '报告生成'],
+      icon: '调',
+      color: '#fa8c16',
+      featured: true,
+      applicableNoteCategories: ['training_needs_management'],
+      menuConfig: {
+        key: 'needs-research-report',
+        title: '需求调研报告',
+        icon: '调',
+        gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+        color: '#fa8c16'
+      },
+      features: [
+        '访谈与问卷数据整合',
+        '关键需求识别',
+        '人群画像与分层',
+        '痛点与优先级排序',
+        '报告导出'
+      ],
+      usage: '导入调研数据或选择来源，系统生成结构化的需求调研报告'
+    },
+    {
+      id: 'diagnosis-report',
+      name: '诊断报告',
+      description: '基于调研结果进行问题诊断与改进建议输出',
+      category: AI_TOOL_CATEGORIES.ANALYSIS,
+      status: AI_TOOL_STATUS.ACTIVE,
+      author: '培训管理团队',
+      version: 'v1.0.0',
+      rating: 4.8,
+      downloads: 1980,
+      tags: ['诊断报告', '问题识别', '改进建议', '方案对照'],
+      icon: '诊',
+      color: '#c41d7f',
+      featured: true,
+      applicableNoteCategories: ['training_needs_management'],
+      menuConfig: {
+        key: 'diagnosis-report',
+        title: '诊断报告',
+        icon: '诊',
+        gradient: 'linear-gradient(135deg, #fff0f6 0%, #ffd6e7 100%)',
+        color: '#c41d7f'
+      },
+      features: [
+        '问题分层诊断',
+        '根因分析',
+        '对策矩阵',
+        '实施优先级建议',
+        '风险与监测指标'
+      ],
+      usage: '选择调研报告或原始数据，系统输出结构化诊断与改进路径'
+    },
+    {
+      id: 'questionnaire-design',
+      name: '调查问卷设计',
+      description: '根据调研主题生成问卷结构、题型与量表设计',
+      category: AI_TOOL_CATEGORIES.TEACHING,
+      status: AI_TOOL_STATUS.ACTIVE,
+      author: '培训管理团队',
+      version: 'v1.0.0',
+      rating: 4.7,
+      downloads: 3120,
+      tags: ['问卷设计', '量表', '题型', '调研模板'],
+      icon: '问',
+      color: '#2f54eb',
+      featured: true,
+      applicableNoteCategories: ['training_needs_management'],
+      menuConfig: {
+        key: 'questionnaire-design',
+        title: '调查问卷设计',
+        icon: '问',
+        gradient: 'linear-gradient(135deg, #f0f5ff 0%, #d6e4ff 100%)',
+        color: '#2f54eb'
+      },
+      features: [
+        '题型与维度建议',
+        '量表设计与校准',
+        '逻辑跳转与分支',
+        '问卷结构导出',
+        '模板复用'
+      ],
+      usage: '选择调研主题与目标人群，系统生成结构化问卷并可导出'
+    },
+    {
+      id: 'diagnostic-assessment-plan',
+      name: '诊断（测评）方案',
+      description: '围绕测评目标设计指标、工具与实施方案',
+      category: AI_TOOL_CATEGORIES.ANALYSIS,
+      status: AI_TOOL_STATUS.NEW,
+      author: '培训管理团队',
+      version: 'v1.0.0',
+      rating: 4.9,
+      downloads: 2050,
+      tags: ['测评方案', '指标体系', '工具选择', '实施计划'],
+      icon: '测',
+      color: '#52c41a',
+      featured: true,
+      applicableNoteCategories: ['training_needs_management'],
+      menuConfig: {
+        key: 'diagnostic-assessment-plan',
+        title: '诊断（测评）方案',
+        icon: '测',
+        gradient: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
+        color: '#52c41a'
+      },
+      features: [
+        '测评目标与指标体系',
+        '工具与方法选择',
+        '样本与流程设计',
+        '评分与报告规范',
+        '实施与风险控制'
+      ],
+      usage: '输入测评目标与对象，系统生成可执行的诊断测评方案'
     }
   ]
 
@@ -1527,7 +1682,7 @@ const AIToolHouse = ({ onAddToOperationPanel, noteCategory = null }) => {
     // 特殊处理：培训需求与管理分类下显示特定的工具
     if (category === 'training_needs_management') {
       const filtered = tools.filter(tool => 
-        ['training-plan', 'schedule', 'training-report', 'training-dashboard'].includes(tool.id)
+        ['training-plan', 'schedule', 'training-report', 'training-dashboard', 'interview-outline', 'needs-research-report', 'diagnosis-report', 'questionnaire-design', 'diagnostic-assessment-plan'].includes(tool.id)
       );
       console.log('getFilteredToolsByNoteCategory - 培训需求与管理分类，过滤后的工具:', filtered);
       return filtered;

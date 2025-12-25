@@ -216,6 +216,27 @@ export const useOperationHandlers = ({
     });
   };
 
+  // 处理工作坊报表工具
+  const handleWorkshopDashboardToolAction = () => {
+    const selectedTitle = '工作坊报表';
+    const dashboardRecord = {
+      id: `workshop_dashboard_${Date.now()}`,
+      type: OPERATION_TYPES.WORKSHOP_DASHBOARD,
+      title: selectedTitle,
+      source: sourceInfo?.details || '基于当前数据源',
+      time: new Date().toLocaleString('zh-CN'),
+      isAIGenerated: true,
+      sourceRefs: getSourceRefs(),
+      content: `<div style="padding: 12px; color:#666;">工作坊报表 - ${selectedTitle}</div>`
+    };
+    addRecordWithGenerating(OPERATION_TYPES.WORKSHOP_DASHBOARD, dashboardRecord, {
+      onComplete: () => {
+        message.success('工作坊报表已生成');
+        try { window.dispatchEvent(new Event('openTrainingDashboardFullscreen')); } catch (e) { void e; }
+      }
+    });
+  };
+
   // 处理培训报告工具
   const handleTrainingReportToolAction = () => {
     // 生成培训报告记录
@@ -251,13 +272,11 @@ export const useOperationHandlers = ({
 
   // 处理工具点击
   const handleToolClick = (card) => {
-    // 添加工具不需要数据源限制
     if (card.key === 'addTool') {
       return;
     }
-
-    // 检查来源数据
-    if (!hasSourceData) {
+    const bypassSourceCheck = (card.key === 'addTool' || card.key === 'workshop-plan');
+    if (!bypassSourceCheck && !hasSourceData) {
       Modal.warning({
         title: '需要添加数据源',
         content: '操作面板上的所有工具都需要基于来源数据作为依据。当前数据源状态：' + (sourceInfo?.details || '暂无数据源') + '。请先添加文件、文本、视频或链接资源，然后再使用工具。',
@@ -556,6 +575,60 @@ export const useOperationHandlers = ({
     } else if (card.key === 'training-dashboard') {
       // 培训报表工具处理：生成记录并全屏展示
       handleTrainingDashboardToolAction();
+    } else if (card.key === 'workshop-dashboard') {
+      handleWorkshopDashboardToolAction();
+    } else if (card.key === 'workshop-report') {
+      const titleText = '工作坊报告';
+      const reportRecord = {
+        id: `workshop_report_${Date.now()}`,
+        type: OPERATION_TYPES.WORKSHOP_REPORT,
+        title: titleText,
+        source: sourceInfo?.details || '基于当前数据源',
+        time: new Date().toLocaleString('zh-CN'),
+        isAIGenerated: true,
+        sourceRefs: getSourceRefs(),
+        content: {
+          metadata: {
+            title: titleText,
+            generatedAt: new Date().toLocaleString('zh-CN'),
+            source: sourceInfo?.details || '基于当前数据源'
+          },
+          summary: {
+            objective: '围绕主题工作坊，整理过程与成果，形成结构化总结与落地建议。',
+            audience: '教研团队与参训教师',
+            period: '1-2天工作坊',
+            methods: ['示范课观摩', '分组研讨', '微格演练', '同伴互评', '行动计划']
+          },
+          structure: [
+            { name: '开场与目标', details: ['主题说明', '分工与流程'] },
+            { name: '专题引导', details: ['案例展示', '关键概念梳理'] },
+            { name: '小组研讨', details: ['问题提出', '方案设计与展示'] },
+            { name: '演练与反馈', details: ['微格教学', '同行互评'] },
+            { name: '总结与行动', details: ['行动计划', '跟进机制'] }
+          ],
+          schedule: [
+            { phase: '上午', content: '示范课与专题引导', time: '09:00-11:30', mode: '观摩+讲解' },
+            { phase: '下午', content: '小组研讨与微格演练', time: '13:30-16:30', mode: '研讨+演练' }
+          ],
+          evaluation: [
+            '参与度与产出质量达标',
+            '方案设计与可实施性',
+            '同伴互评与反思记录',
+            '行动计划明确可执行'
+          ],
+          recommendations: [
+            '建立可持续的跟进式教研机制与复盘周期',
+            '在弱项主题增加示范案例与操练环节',
+            '引入证据采集与即时反馈工具保障有效性',
+            '与校本目标联动，明确迁移应用路径'
+          ]
+        }
+      };
+      addRecordWithGenerating(OPERATION_TYPES.WORKSHOP_REPORT, reportRecord, {
+        onComplete: () => {
+          message.success('工作坊报告已生成，点击操作记录查看详情');
+        }
+      });
     } else if (card.key === 'e-pbl-planning') {
       // E-PBL教学设计：生成文档型记录
       const designRecord = {
@@ -576,6 +649,40 @@ export const useOperationHandlers = ({
       addRecordWithGenerating('note', designRecord, {
         onComplete: () => {
           message.success('EPBL教学设计已生成，记录已添加。点击查看详情');
+        }
+      });
+    } else if (card.key === 'workshop-plan') {
+      // 工作坊方案：读取配置并生成培训方案类型的操作记录，便于全屏查看
+      const cfg = (() => {
+        try { return JSON.parse(localStorage.getItem('workshop_plan_config') || '{}'); } catch { return {}; }
+      })();
+      const params = cfg.generationParams || {};
+      const workshopTitle = '中小学跨学科教学设计与实施 教研工作坊';
+      const record = {
+        id: `workshop_plan_${Date.now()}`,
+        type: OPERATION_TYPES.TRAINING_PLAN,
+        title: workshopTitle,
+        source: sourceInfo?.details || '基于当前数据源',
+        time: new Date().toLocaleString('zh-CN'),
+        isAIGenerated: true,
+        sourceRefs: getSourceRefs(),
+        content: `<div style="padding: 16px; font-family: system-ui;">
+          <h3>👥 ${workshopTitle}</h3>
+          <p style="color:#666;">围绕主题工作坊生成个性化方案与活动安排</p>
+          <ul style="color:#666;">
+            <li>目标群体：${Array.isArray(cfg.audience) && cfg.audience.length ? cfg.audience.join('、') : '未设置'}</li>
+            <li>参与人数：${Number(cfg.participantCount || 0) || '未设置'}</li>
+            <li>场地/形式：${cfg.venue || '未设置'}</li>
+            <li>总时长：${typeof params.totalDurationHours === 'number' ? `${params.totalDurationHours}小时` : '未计算'}</li>
+          </ul>
+          <div style="margin-top:8px;color:#6b7280;font-size:12px">自动生成 · 工作坊方案</div>
+        </div>`,
+        workshopConfig: cfg,
+        trainingConfig: params
+      };
+      addRecordWithGenerating(OPERATION_TYPES.TRAINING_PLAN, record, {
+        onComplete: () => {
+          message.success('工作坊方案已生成，点击操作记录查看全屏方案');
         }
       });
     } else if (card.key === 'supervision-task') {
@@ -682,6 +789,7 @@ export const useOperationHandlers = ({
     handleToolClick,
     handleGradingToolAction,
     handleTrainingReportToolAction,
-    handleTrainingDashboardToolAction
+    handleTrainingDashboardToolAction,
+    handleWorkshopDashboardToolAction
   };
 };

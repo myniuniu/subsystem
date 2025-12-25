@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, Button, Card, Row, Col, Tag, Space, Progress, List } from 'antd';
-import { ArrowLeftOutlined, FileTextOutlined, CalendarOutlined, UserOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { Typography, Button, Card, Row, Col, Tag, Space, Progress, List, message } from 'antd';
+import { ArrowLeftOutlined, FileTextOutlined, CalendarOutlined, UserOutlined, CheckCircleOutlined, CopyOutlined, DownloadOutlined } from '@ant-design/icons';
 import { RIGHT_PANEL_VIEWS } from '../../constants/noteEditConstants';
 
 const { Text, Title, Paragraph } = Typography;
@@ -173,6 +173,41 @@ export default function ReportViewer({
   };
 
   const sourceCount = Array.isArray(rightPanelReportRecord?.sourceRefs) ? rightPanelReportRecord.sourceRefs.length : 0;
+  const suggestions = Array.isArray(reportData?.recommendations) && reportData.recommendations.length > 0 ? reportData.recommendations : [
+    '针对未参与学员发送个性化提醒，提升参与率',
+    '优化低表现学习形式的内容设计，增加互动环节',
+    '设置证书激励机制，提升获证率',
+    '调整学时分配，平衡理论与实践时长'
+  ];
+  const audience = reportData?.summary?.audience || '学员';
+  const periodText = reportData?.summary?.period || '4周';
+  const totalModules = (reportData?.structure || []).length;
+  const totalWeeks = (reportData?.schedule || []).length;
+  const recCount = (suggestions || []).length;
+  const summaryText = `本期工作坊面向${audience}开展，为期${periodText}，共安排${totalWeeks}阶段，覆盖${totalModules}个核心主题。当前提出${recCount}条建议，整体设计兼顾理论与实践，建议围绕参与度提升、内容优化与证书激励进一步强化落地。`;
+  const onCopySuggestions = async () => {
+    const text = (suggestions || []).map((s, i) => `${i + 1}. ${s}`).join('\n');
+    try {
+      await navigator.clipboard.writeText(text);
+      message.success('已复制智能建议');
+    } catch {
+      message.error('复制失败');
+    }
+  };
+  const onExportSuggestions = () => {
+    const title = reportData?.metadata?.title || '工作坊建议';
+    const content = `# ${title} - 智能建议\n\n${(suggestions || []).map((s, i) => `${i + 1}. ${s}`).join('\n')}\n\n导出时间：${new Date().toLocaleString('zh-CN')}`;
+    const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    message.success('已导出智能建议');
+  };
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#fff' }}>
@@ -312,7 +347,11 @@ export default function ReportViewer({
           </Card>
         )}
 
-        {reportData?.practiceList ? (
+        <Card title="自然语言分析总结" style={{ marginBottom: 12 }}>
+          <Paragraph style={{ margin: 0 }}>{summaryText}</Paragraph>
+        </Card>
+
+        {reportData?.practiceList && (
           <Card title="建议练习">
             <List
               dataSource={reportData?.practiceList || []}
@@ -326,18 +365,39 @@ export default function ReportViewer({
               )}
             />
           </Card>
-        ) : (
-          <Card title="行动建议">
-            <List
-              dataSource={reportData?.recommendations || []}
-              renderItem={(it) => (
-                <List.Item>
-                  <Text>{it}</Text>
-                </List.Item>
-              )}
-            />
-          </Card>
         )}
+
+        <Card
+          title="智能建议"
+          extra={
+            <Space>
+              <Button type="link" icon={<CopyOutlined />} onClick={onCopySuggestions}>复制建议</Button>
+              <Button type="link" icon={<DownloadOutlined />} onClick={onExportSuggestions}>导出建议</Button>
+            </Space>
+          }
+        >
+          <List
+            dataSource={suggestions}
+            renderItem={(it, index) => (
+              <List.Item>
+                <Space>
+                  <div style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: '50%',
+                    backgroundColor: '#1890ff',
+                    color: '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 12
+                  }}>{index + 1}</div>
+                  <Text>{it}</Text>
+                </Space>
+              </List.Item>
+            )}
+          />
+        </Card>
 
         {reportData?.classroomChecklist && (
           <Card title="课堂应用清单" style={{ marginTop: 12 }}>

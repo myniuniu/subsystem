@@ -1116,7 +1116,7 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         'schedule': '课表',
         'participants': '参训人员清单',
         'question': '试题',
-        'exam-paper': '试卷',
+        'exam-paper': '试卷设计',
         [OPERATION_TYPES.SITE_ANALYSIS]: '现场分析'
       };
 
@@ -1437,6 +1437,21 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         state.setRightPanelView(RIGHT_PANEL_VIEWS.REPORT_VIEWER);
         return;
       }
+      
+      if (record.type === 'workshop-report') {
+        const topic = record.title || '工作坊报告';
+        const content = {
+          metadata: {
+            title: topic,
+            generatedAt: new Date().toLocaleString('zh-CN'),
+            source: record.source || '基于当前数据源'
+          }
+        };
+        state.setRightPanelReportRecord({ ...record, topic });
+        state.setRightPanelReportContent(content);
+        state.setRightPanelView(RIGHT_PANEL_VIEWS.REPORT_VIEWER);
+        return;
+      }
 
       if (record.type === 'quiz') {
         const buildQuiz = () => {
@@ -1669,6 +1684,18 @@ const NoteEditPage = ({ onBack, onViewChange, note = null, mode = 'create', sele
         } catch (e) {
           console.error('打开培训报表失败:', e);
           message.error('打开培训报表失败，请稍后重试');
+        }
+        return;
+      }
+      
+      if (record.type === 'workshop-dashboard') {
+        try {
+          setCurrentRecord(record);
+          setCurrentView(VIEW_MODES.TRAINING_DASHBOARD_FULLSCREEN);
+          message.success(`已打开工作坊报表：${record.title}`);
+        } catch (e) {
+          console.error('打开工作坊报表失败:', e);
+          message.error('打开工作坊报表失败，请稍后重试');
         }
         return;
       }

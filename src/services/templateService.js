@@ -206,7 +206,7 @@ export const getAvailableNoteTemplates = async () => {
     { id: 'training-attendee-list', name: '参训人员清单', description: '人员、岗位、部门与联系方式', category: 'training_plan', useCount: 410000 },
     { id: 'training-effect-eval', name: '培训效果评估表', description: '满意度、学习成效与改进建议', category: 'training_plan', useCount: 330000 },
 
-    // 培训需求管理
+    // 培训项目管理
     { id: 'training-needs-survey', name: '培训需求调研问卷', description: '对象、现状、痛点与诉求', category: 'training_needs', useCount: 510000 },
     { id: 'training-needs-summary', name: '培训需求汇总表', description: '能力项、优先级与建议方案', category: 'training_needs', useCount: 430000 },
 
@@ -252,7 +252,7 @@ export const getNoteTemplateCategories = async () => {
       { key: 'meeting_teaching', label: '会议纪要' },
       { key: 'teacher_development_okr', label: '教师发展 OKR' },
       { key: 'training_plan', label: '培训方案与管理' },
-      { key: 'training_needs', label: '培训需求管理' },
+      { key: 'training_needs', label: '培训项目管理' },
       { key: 'class_management', label: '班级管理' },
       { key: 'home_school', label: '家校沟通' },
       { key: 'e_pbl', label: '课程融合（E-PBL）' },

@@ -91,6 +91,51 @@ export const createGetAvailableAITools = ({
         }
       },
       {
+        id: 'workshop-plan',
+        name: '工作坊方案',
+        description: '围绕主题工作坊生成个性化方案与活动安排',
+        icon: '坊',
+        color: '#1890ff',
+        applicableNoteCategories: ['theme_workshop'],
+        menuConfig: {
+          key: 'workshop-plan',
+          title: '工作坊方案',
+          icon: '坊',
+          gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+          color: '#1890ff'
+        }
+      },
+      {
+        id: 'workshop-dashboard',
+        name: '工作坊报表',
+        description: '汇总工作坊数据，生成可视化统计与管理报表',
+        icon: '表',
+        color: '#0369a1',
+        applicableNoteCategories: ['theme_workshop'],
+        menuConfig: {
+          key: 'workshop-dashboard',
+          title: '工作坊报表',
+          icon: '表',
+          gradient: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+          color: '#0369a1'
+        }
+      },
+      {
+        id: 'workshop-report',
+        name: '工作坊报告',
+        description: '整理工作坊成果与过程，生成结构化总结报告',
+        icon: '报',
+        color: '#722ed1',
+        applicableNoteCategories: ['theme_workshop'],
+        menuConfig: {
+          key: 'workshop-report',
+          title: '工作坊报告',
+          icon: '报',
+          gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+          color: '#722ed1'
+        }
+      },
+      {
         id: 'topic-paper-guidance',
         name: '课题论文指导',
         description: '论文选题、结构、方法与写作建议',
@@ -495,6 +540,81 @@ export const createGetAvailableAITools = ({
           icon: '报',
           gradient: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
           color: '#0369a1'
+        }
+      },
+      {
+        id: 'interview-outline',
+        name: '访谈提纲',
+        description: '生成结构化访谈问题清单，支持角色与主题定制',
+        icon: '访',
+        color: '#13c2c2',
+        applicableNoteCategories: ['training_needs_management'],
+        menuConfig: {
+          key: 'interview-outline',
+          title: '访谈提纲',
+          icon: '访',
+          gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+          color: '#13c2c2'
+        }
+      },
+      {
+        id: 'needs-research-report',
+        name: '需求调研报告',
+        description: '整合访谈与问卷数据，生成需求调研报告',
+        icon: '调',
+        color: '#fa8c16',
+        applicableNoteCategories: ['training_needs_management'],
+        menuConfig: {
+          key: 'needs-research-report',
+          title: '需求调研报告',
+          icon: '调',
+          gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+          color: '#fa8c16'
+        }
+      },
+      {
+        id: 'diagnosis-report',
+        name: '诊断报告',
+        description: '基于调研结果输出问题诊断与改进建议',
+        icon: '诊',
+        color: '#c41d7f',
+        applicableNoteCategories: ['training_needs_management'],
+        menuConfig: {
+          key: 'diagnosis-report',
+          title: '诊断报告',
+          icon: '诊',
+          gradient: 'linear-gradient(135deg, #fff0f6 0%, #ffd6e7 100%)',
+          color: '#c41d7f'
+        }
+      },
+      {
+        id: 'questionnaire-design',
+        name: '调查问卷设计',
+        description: '根据调研主题生成问卷结构、题型与量表设计',
+        icon: '问',
+        color: '#2f54eb',
+        applicableNoteCategories: ['training_needs_management'],
+        menuConfig: {
+          key: 'questionnaire-design',
+          title: '调查问卷设计',
+          icon: '问',
+          gradient: 'linear-gradient(135deg, #f0f5ff 0%, #d6e4ff 100%)',
+          color: '#2f54eb'
+        }
+      },
+      {
+        id: 'diagnostic-assessment-plan',
+        name: '诊断（测评）方案',
+        description: '围绕测评目标设计指标、工具与实施方案',
+        icon: '测',
+        color: '#52c41a',
+        applicableNoteCategories: ['training_needs_management'],
+        menuConfig: {
+          key: 'diagnostic-assessment-plan',
+          title: '诊断（测评）方案',
+          icon: '测',
+          gradient: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
+          color: '#52c41a'
         }
       },
       // 通用AI工具
@@ -1208,7 +1328,8 @@ export const createGetAvailableAITools = ({
       'homework_system',
       'learning_analytics',
       'educational_topics',
-      'supervision'
+      'supervision',
+      'theme_workshop'
     ]);
     if (noteCategory && knownCategories.has(noteCategory)) {
       availableTools = availableTools.filter(tool => {
@@ -1237,6 +1358,57 @@ export const createGetAvailableAITools = ({
             color: '#c41d7f'
           }
         }];
+      }
+    }
+    // 特殊处理：主题工作坊分类保留“工作坊方案 / 工作坊报表 / 工作坊报告”三项
+    if (noteCategory === 'theme_workshop') {
+      const workshopIds = new Set(['workshop-plan', 'workshop-dashboard', 'workshop-report']);
+      availableTools = availableTools.filter(tool => workshopIds.has(tool.id));
+      if (availableTools.length === 0) {
+        availableTools = [
+          {
+            id: 'workshop-plan',
+            name: '工作坊方案',
+            description: '围绕主题工作坊生成个性化方案与活动安排',
+            icon: '坊',
+            applicableNoteCategories: ['theme_workshop'],
+            menuConfig: {
+              key: 'workshop-plan',
+              title: '工作坊方案',
+              icon: '坊',
+              gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+              color: '#1890ff'
+            }
+          },
+          {
+            id: 'workshop-dashboard',
+            name: '工作坊报表',
+            description: '汇总工作坊数据，生成可视化统计与管理报表',
+            icon: '表',
+            applicableNoteCategories: ['theme_workshop'],
+            menuConfig: {
+              key: 'workshop-dashboard',
+              title: '工作坊报表',
+              icon: '表',
+              gradient: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+              color: '#0369a1'
+            }
+          },
+          {
+            id: 'workshop-report',
+            name: '工作坊报告',
+            description: '整理工作坊成果与过程，生成结构化总结报告',
+            icon: '报',
+            applicableNoteCategories: ['theme_workshop'],
+            menuConfig: {
+              key: 'workshop-report',
+              title: '工作坊报告',
+              icon: '报',
+              gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+              color: '#722ed1'
+            }
+          }
+        ];
       }
     }
 

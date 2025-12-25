@@ -245,7 +245,7 @@ if (typeof document !== 'undefined') {
     setGradingViewMode,
     selectedStudent,
     setSelectedStudent
-  } = useOperationPanelState(noteCategory);
+  } = useOperationPanelState(categoryKey || noteCategory);
   // AI工具版本：用于在收到事件时触发重渲染
   const [aiToolsVersion, setAiToolsVersion] = useState(0);
   
@@ -1752,6 +1752,7 @@ if (typeof document !== 'undefined') {
                             'knowledge-graph': '图',
                             'training-plan': '培',
                             'training-dashboard': '训',
+                            'workshop-dashboard': '表',
                             'classroom-evaluation': '课'
                           };
                         const label = typeLabelMap[record.type] || '工';
@@ -1808,7 +1809,7 @@ if (typeof document !== 'undefined') {
               { key: 'meeting_teaching', label: '会议纪要' },
               { key: 'teacher_development_okr', label: '教师发展 OKR' },
               { key: 'training_plan', label: '培训方案与管理' },
-              { key: 'training_needs', label: '培训需求管理' },
+              { key: 'training_needs', label: '培训项目管理' },
               { key: 'class_management', label: '班级管理' },
               { key: 'home_school', label: '家校沟通' },
               { key: 'e_pbl', label: '课程融合（E-PBL）' },
@@ -2028,6 +2029,7 @@ if (typeof document !== 'undefined') {
                             video: '视频',
                             mindmap: '思维导图',
                             report: '报告',
+                            'workshop-report': '工作坊报告',
                             ppt: 'PPT',
                             webcode: '网页',
                             scenario: '场景',
@@ -2035,6 +2037,7 @@ if (typeof document !== 'undefined') {
                             'personal-learning': '自主选学',
                             'training-report': '培训报告',
                             'training-dashboard': '培训报表',
+                            'workshop-dashboard': '工作坊报表',
                             'learning-plan': '学习计划',
                             grading: '阅卷',
                             'classroom-evaluation': '课堂评价',
@@ -2044,7 +2047,7 @@ if (typeof document !== 'undefined') {
                             'supervision-execution': '督学执行',
                             'supervision-task': '督学任务',
                             'supervision-report': '督学报告',
-                            'exam-paper': '试卷',
+                            'exam-paper': '试卷设计',
                             'smart-evaluation': '智能评阅'
                           };
                             typeLabel = map[record.type] || null;
@@ -2058,12 +2061,14 @@ if (typeof document !== 'undefined') {
                             video: 'green',
                             mindmap: 'magenta',
                             report: 'orange',
+                            'workshop-report': 'purple',
                             ppt: 'red',
                             webcode: 'blue',
                             scenario: 'purple',
                             'training-plan': 'geekblue',
                             'training-report': 'orange',
                             'training-dashboard': 'geekblue',
+                            'workshop-dashboard': 'geekblue',
                             'learning-plan': 'blue',
                             grading: 'pink',
                             'classroom-evaluation': 'green',

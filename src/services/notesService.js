@@ -15,6 +15,7 @@ const MIGRATION_FIX_ORG_CATEGORY_KEY = 'migration_fix_org_category_done';
 const MIGRATION_ADD_ORG_DEFAULT_NOT_STARTED_KEY = 'migration_add_org_default_not_started_v3';
 // 一次性迁移标记：为旧存储注入“我的评阅”默认主题
 const MIGRATION_ADD_MY_EVALUATION_DEFAULT_KEY = 'migration_add_my_evaluation_default_v1';
+const MIGRATION_ADD_THEME_WORKSHOP_DEFAULT_KEY = 'migration_add_theme_workshop_default_v1';
 
 // 默认分类
 const DEFAULT_CATEGORIES = [
@@ -1609,6 +1610,30 @@ class NotesService {
       }
     } catch (e) {
       console.error('清理默认课堂评价记录失败:', e);
+    }
+    try {
+      const migratedThemeWorkshop = localStorage.getItem(MIGRATION_ADD_THEME_WORKSHOP_DEFAULT_KEY);
+      if (!migratedThemeWorkshop) {
+        const notes = this.getAllNotes();
+        const existsTheme = Array.isArray(notes) && notes.some(n => (
+          n?.category === 'theme_workshop' ||
+          (typeof n?.title === 'string' && n.title.trim() === '中小学跨学科教学设计与实施 教研工作坊')
+        ));
+        if (!existsTheme) {
+          const content = '# 中小学跨学科教学设计与实施 教研工作坊\n\n## 主题简介\n- 聚焦跨学科教学设计与实施\n- 面向中小学教师的教研活动\n\n## 核心模块\n- 跨学科课程设计\n- 教学实施策略\n- 评估与反馈机制\n\n## 标签\n- 跨学科教学\n- 教学设计\n- 教研工作坊\n- 中小学教育';
+          this.createNote({
+            title: '中小学跨学科教学设计与实施 教研工作坊',
+            content,
+            category: 'theme_workshop',
+            tags: ['跨学科教学', '教学设计', '教研工作坊', '中小学教育'],
+            source: '系统生成',
+            starred: true
+          });
+        }
+        localStorage.setItem(MIGRATION_ADD_THEME_WORKSHOP_DEFAULT_KEY, 'true');
+      }
+    } catch (e) {
+      console.error('初始化新增“主题工作坊”默认主题失败:', e);
     }
   }
 

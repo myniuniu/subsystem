@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Button, Typography, Tabs, Card, Row, Col, Statistic, List, Tag, Empty, message } from 'antd';
-import { ArrowLeftOutlined, CalendarOutlined, FileTextOutlined, BookOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { Button, Typography, Tabs, Card, Row, Col, Statistic, List, Tag, Empty, message, Tooltip } from 'antd';
+import { ArrowLeftOutlined, CalendarOutlined, FileTextOutlined, BookOutlined, ClockCircleOutlined, RobotOutlined } from '@ant-design/icons';
 import { RIGHT_PANEL_VIEWS } from '../../constants/noteEditConstants';
 import LearningPlanCalendar from '../LearningPlanCalendar';
 import dayjs from 'dayjs';
@@ -107,6 +107,18 @@ const LearningPlanViewer = ({
       console.error('同步到日历失败:', error);
       message.error('同步到日历失败，请重试');
     }
+  };
+
+  const handleAIGenerate = () => {
+    try {
+      window.dispatchEvent(new CustomEvent('triggerAIGenerateForLearningPlan', {
+        detail: {
+          planTitle: planRecord?.title || '学习计划',
+          actions: ['配课', '预定直播会议', '试题生成']
+        }
+      }));
+    } catch {}
+    message.success('已触发AI配课、预定直播会议与试题生成');
   };
 
   
@@ -473,14 +485,25 @@ const LearningPlanViewer = ({
             const syncedPlans = JSON.parse(localStorage.getItem('synced-learning-plans') || '[]');
             const isSynced = planRecord && syncedPlans.includes(planRecord.id);
             return (
-              <Button
-                type="default"
-                icon={<CalendarOutlined />}
-                onClick={handleSyncToCalendar}
-                disabled={isSynced}
-              >
-                {isSynced ? '已同步到日历' : '同步到我的日历'}
-              </Button>
+              <>
+                <Button
+                  type="default"
+                  icon={<CalendarOutlined />}
+                  onClick={handleSyncToCalendar}
+                  disabled={isSynced}
+                >
+                  {isSynced ? '已同步到日历' : '同步到我的日历'}
+                </Button>
+                <Tooltip title="一键AI配课、预定直播会议以及试题生成">
+                  <Button
+                    type="default"
+                    icon={<RobotOutlined />}
+                    onClick={handleAIGenerate}
+                  >
+                    AI生成
+                  </Button>
+                </Tooltip>
+              </>
             );
           })()}
 

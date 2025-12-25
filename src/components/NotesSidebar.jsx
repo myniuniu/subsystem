@@ -917,11 +917,10 @@ const NotesSidebar = ({
                 })}
               </div>
           
-              {/* 培训需求管理（在组织培训下面） */}
               <div key="training_needs_management_wrapper">
                 {renderCategoryItem({
                   value: 'training_needs_management',
-                  label: '培训需求管理',
+                  label: '培训项目管理',
                   icon: 'FileTextOutlined',
                   type: 'system'
                 })}

@@ -812,7 +812,7 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
       schedule: '课表',
       participants: '参训人员清单',
       question: '试题',
-      'exam-paper': '试卷'
+      'exam-paper': '试卷设计'
     };
     
     if (!visibleTools.includes(toolType)) {
@@ -833,7 +833,7 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
       schedule: '课表',
       participants: '参训人员清单',
       question: '试题',
-      'exam-paper': '试卷'
+      'exam-paper': '试卷设计'
     };
     
     setVisibleTools(prev => prev.filter(tool => tool !== toolType));
@@ -853,7 +853,7 @@ const ResourceAnnotationPage = ({ onBack, onViewChange, selectedNeed, mode = 'cr
       schedule: '课表',
       participants: '参训人员清单',
       question: '试题',
-      'exam-paper': '试卷'
+      'exam-paper': '试卷设计'
     };
 
     // 计算所有资料的总数

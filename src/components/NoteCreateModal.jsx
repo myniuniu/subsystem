@@ -77,7 +77,7 @@ const NoteCreateModal = ({ visible, onCancel, onSave, notes = [], categories = [
     { value: 'ideas', label: '想法灵感', icon: '💡' },
     { value: 'meeting', label: '会议记录', icon: '🤝' },
     { value: 'organizational_training', label: '组织培训', icon: '🏢' },
-    { value: 'training_needs_management', label: '培训需求管理', icon: '📋' },
+    { value: 'training_needs_management', label: '培训项目管理', icon: '📋' },
     { value: 'knowledge_graph', label: '知识图谱', icon: '🕸️' },
     { value: 'capability_model', label: '能力模型', icon: '🎯' },
     { value: 'micro_major', label: '微专业', icon: '🎓' }

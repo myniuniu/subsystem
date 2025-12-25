@@ -34,11 +34,75 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
 
   // 参训人员状态管理
   const [participants, setParticipants] = useState([
-    { id: 1, name: '张三', department: '技术部', position: '前端工程师', email: 'zhangsan@company.com', status: '已确认' },
-    { id: 2, name: '李四', department: '产品部', position: '产品经理', email: 'lisi@company.com', status: '待确认' },
-    { id: 3, name: '王五', department: '设计部', position: 'UI设计师', email: 'wangwu@company.com', status: '已确认' }
+    { id: 1, name: '张三', department: '技术部', position: '前端工程师', email: 'zhangsan@company.com', status: '已确认', source: '人员指定' },
+    { id: 2, name: '李四', department: '产品部', position: '产品经理', email: 'lisi@company.com', status: '待确认', source: '报名' },
+    { id: 3, name: '王五', department: '设计部', position: 'UI设计师', email: 'wangwu@company.com', status: '已确认', source: '报名' }
   ]);
   const [participantModalVisible, setParticipantModalVisible] = useState(false);
+  const [enrollForm] = Form.useForm();
+  const [enrollmentSettings, setEnrollmentSettings] = useState({
+    approvalRequired: false,
+    capacity: 100,
+    allowSelfSignup: true,
+    notifyChannels: ['email'],
+    description: '',
+    overflowAllowed: false,
+    scope: 'all',
+    mode: 'self',
+    realnameRequired: false
+  });
+  const [syncProfile, setSyncProfile] = useState(false);
+  const [infoFields, setInfoFields] = useState([
+    { id: `f_${Date.now()}`, name: '王晶测试下拉框单选', desc: '-', required: false },
+    { id: `f_${Date.now() + 1}`, name: '完善范年', desc: '-', required: false }
+  ]);
+  const [editFieldModalVisible, setEditFieldModalVisible] = useState(false);
+  const [editingField, setEditingField] = useState(null);
+  const [editFieldForm] = Form.useForm();
+  const addInfoField = () => {
+    const id = `f_${Date.now() + Math.floor(Math.random() * 1000)}`;
+    setInfoFields(prev => [...prev, { id, name: '新字段', desc: '-', required: false }]);
+  };
+  const removeInfoField = (id) => {
+    setInfoFields(prev => prev.filter(f => f.id !== id));
+  };
+  const openEditField = (field) => {
+    setEditingField(field);
+    editFieldForm.setFieldsValue({ name: field.name, desc: field.desc, required: field.required });
+    setEditFieldModalVisible(true);
+  };
+  const saveEditField = () => {
+    const values = editFieldForm.getFieldsValue();
+    setInfoFields(prev => prev.map(f => f.id === editingField.id ? { ...f, name: values.name, desc: values.desc, required: values.required || false } : f));
+    setEditFieldModalVisible(false);
+    setEditingField(null);
+  };
+  const handleEnrollmentFinish = (values) => {
+    const next = {
+      approvalRequired: Boolean(values.approvalRequired),
+      capacity: Number(values.capacity || 0),
+      allowSelfSignup: Boolean(values.allowSelfSignup),
+      notifyChannels: values.notifyChannels || [],
+      description: values.description || '',
+      overflowAllowed: Boolean(values.overflowAllowed),
+      scope: values.scope || 'all',
+      mode: values.mode || 'self',
+      realnameRequired: Boolean(values.realnameRequired)
+    };
+    setEnrollmentSettings(next);
+    message.success('报名设置已保存');
+  };
+  const handleAIGenerateTabs = () => {
+    try {
+      window.dispatchEvent(new CustomEvent('triggerAIGenerateForTrainingPlan', {
+        detail: {
+          planTitle: plan?.overview?.title || '培训方案',
+          actions: ['配课', '预定直播会议', '试题生成']
+        }
+      }));
+    } catch {}
+    message.success('已触发AI配课、预定直播会议与试题生成');
+  };
 
   // 训练阶段定义：优先使用左侧方案的模块(plan.phases)，回退到 schedule
   const trainingPhases = useMemo(() => {
@@ -1092,6 +1156,14 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
       key: 'email',
     },
     {
+      title: '来源',
+      dataIndex: 'source',
+      key: 'source',
+      render: (text) => (
+        <Tag color={text === '报名' ? 'blue' : 'processing'}>{text || '未知'}</Tag>
+      ),
+    },
+    {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
@@ -1751,6 +1823,13 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
       ) : (
         <Tabs
           defaultActiveKey="modules"
+          tabBarExtraContent={
+            <Tooltip title="一键AI配课、预定直播会议以及试题生成">
+              <Button type="default" icon={<RobotOutlined />} onClick={handleAIGenerateTabs}>
+                AI生成
+              </Button>
+            </Tooltip>
+          }
           items={[
             {
                 key: 'modules',
@@ -2148,114 +2227,283 @@ const ImplementationPlan = ({ plan, externalTagSeeds = [], initialSelectedTags =
                       })()}
                     </Card>
                   </>
-                )
-              },
-              {
-              key: 'participants',
-              label: '参训人员',
-              children: (
-                <>
-                  <Row gutter={12} wrap={true} style={{ alignItems: 'stretch' }}>
-                    <Col span={7} style={{ display: 'flex' }}>
-                      <Card
-                        title={(
-                          <Space>
-                            <span>🔖</span>
-                            <span>标签筛选</span>
-                          </Space>
-                        )}
-                        style={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', minWidth: 280 }}
-                        bodyStyle={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                          <Input
-                            size="small"
-                            allowClear
-                            placeholder="筛选标签（可输入关键字）"
-                            value={tagQuery}
-                            onChange={(e) => setTagQuery(e.target.value)}
-                            style={{ width: 220 }}
-                          />
-                          <Space>
-                            <Button size="small" onClick={() => setSelectedTags([])}>清空选择</Button>
-                            <Button size="small" danger onClick={clearExcluded}>清空剔除</Button>
-                          </Space>
-                        </div>
-                        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', marginTop: 8, padding: '8px', background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 8 }}>
-                          <Space size={6} wrap>
-                            {filteredDisplayTags.length ? (
-                              CheckableTag ? (
-                                filteredDisplayTags.map((tag) => (
-                                  <CheckableTag
-                                    key={`tag-${tag}`}
-                                    checked={selectedTags.includes(tag)}
-                                    onChange={(checked) => {
-                                      setSelectedTags((prev) => {
-                                        if (checked) return [...prev, tag];
-                                        return prev.filter((t) => t !== tag);
-                                      });
-                                    }}
-                                  >
-                                    {tag}
-                                  </CheckableTag>
-                                ))
-                              ) : (
-                                filteredDisplayTags.map((tag) => (
-                                  <Tag
-                                    key={`tag-${tag}`}
-                                    color={selectedTags.includes(tag) ? 'processing' : 'default'}
-                                    onClick={() => toggleTag(tag)}
-                                    style={{ cursor: 'pointer' }}
-                                  >
-                                    {tag}
-                                  </Tag>
-                                ))
-                              )
-                            ) : (
-                              <Text type="secondary" style={{ fontSize: 12 }}>未找到匹配标签</Text>
-                            )}
-                          </Space>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 10px', background: '#f8f9fa', borderRadius: 8, border: '1px solid #eef2f7', marginTop: 10 }}>
-                          <Tag color="geekblue">已选 {selectedTags.length} 个标签</Tag>
-                          <Tag color="blue">命中 {matchedPersonnel.length} 人</Tag>
-                          <Tag color="red">已剔除 {excludedPersonnelIds.size} 人</Tag>
-                        </div>
-                      </Card>
-                    </Col>
-                    <Col span={17} style={{ display: 'flex' }}>
-                      <Card
-                        title={(
-                          <Space>
-                            <span>📋</span>
-                            <span>{(isSmallScreen || leftCollapsed) ? '人员列表' : '人员列表（匹配 + 参训）'}</span>
-                            <Tag color="blue">匹配 {matchedPersonnel.length} 人</Tag>
-                            <Tag color="green">参训 {participants.length} 人</Tag>
-                          </Space>
-                        )}
-                        style={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', marginLeft: 6 }}
-                        bodyStyle={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}
-                      >
-                        <div style={{ flex: 1, minHeight: 0 }}>
-                          <Table
-                            size="small"
-                            bordered={false}
-                            tableLayout="fixed"
-                            style={{ margin: 0 }}
-                            dataSource={combinedData}
-                            columns={combinedColumns}
-                            rowKey="key"
-                            pagination={false}
-                          />
-                        </div>
-                      </Card>
-                    </Col>
-                  </Row>
-                </>
               )
             },
-            ]}
-          />
+            {
+              key: 'attendees',
+              label: '参加人员',
+              children: (
+                <Tabs
+                  defaultActiveKey="assign"
+                  items={[
+                    {
+                      key: 'assign',
+                      label: '人员指定',
+                      children: (
+                        <>
+                          <Row gutter={12} wrap={true} style={{ alignItems: 'stretch' }}>
+                            <Col span={7} style={{ display: 'flex' }}>
+                              <Card
+                                title={(
+                                  <Space>
+                                    <span>🔖</span>
+                                    <span>标签筛选</span>
+                                  </Space>
+                                )}
+                                style={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', minWidth: 280 }}
+                                bodyStyle={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                                  <Input
+                                    size="small"
+                                    allowClear
+                                    placeholder="筛选标签（可输入关键字）"
+                                    value={tagQuery}
+                                    onChange={(e) => setTagQuery(e.target.value)}
+                                    style={{ width: 220 }}
+                                  />
+                                  <Space>
+                                    <Button size="small" onClick={() => setSelectedTags([])}>清空选择</Button>
+                                    <Button size="small" danger onClick={clearExcluded}>清空剔除</Button>
+                                  </Space>
+                                </div>
+                                <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', marginTop: 8, padding: '8px', background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 8 }}>
+                                  <Space size={6} wrap>
+                                    {filteredDisplayTags.length ? (
+                                      CheckableTag ? (
+                                        filteredDisplayTags.map((tag) => (
+                                          <CheckableTag
+                                            key={`tag-${tag}`}
+                                            checked={selectedTags.includes(tag)}
+                                            onChange={(checked) => {
+                                              setSelectedTags((prev) => {
+                                                if (checked) return [...prev, tag];
+                                                return prev.filter((t) => t !== tag);
+                                              });
+                                            }}
+                                          >
+                                            {tag}
+                                          </CheckableTag>
+                                        ))
+                                      ) : (
+                                        filteredDisplayTags.map((tag) => (
+                                          <Tag
+                                            key={`tag-${tag}`}
+                                            color={selectedTags.includes(tag) ? 'processing' : 'default'}
+                                            onClick={() => toggleTag(tag)}
+                                            style={{ cursor: 'pointer' }}
+                                          >
+                                            {tag}
+                                          </Tag>
+                                        ))
+                                      )
+                                    ) : (
+                                      <Text type="secondary" style={{ fontSize: 12 }}>未找到匹配标签</Text>
+                                    )}
+                                  </Space>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 10px', background: '#f8f9fa', borderRadius: 8, border: '1px solid #eef2f7', marginTop: 10 }}>
+                                  <Tag color="geekblue">已选 {selectedTags.length} 个标签</Tag>
+                                  <Tag color="blue">命中 {matchedPersonnel.length} 人</Tag>
+                                  <Tag color="red">已剔除 {excludedPersonnelIds.size} 人</Tag>
+                                </div>
+                              </Card>
+                            </Col>
+                            <Col span={17} style={{ display: 'flex' }}>
+                              <Card
+                                title={(
+                                  <Space>
+                                    <span>📋</span>
+                                    <span>{(isSmallScreen || leftCollapsed) ? '人员列表' : '人员列表（匹配 + 参训）'}</span>
+                                    <Tag color="blue">匹配 {matchedPersonnel.length} 人</Tag>
+                                    <Tag color="green">参训 {participants.length} 人</Tag>
+                                  </Space>
+                                )}
+                                style={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', marginLeft: 6 }}
+                                bodyStyle={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}
+                              >
+                                <div style={{ flex: 1, minHeight: 0 }}>
+                                  <Table
+                                    size="small"
+                                    bordered={false}
+                                    tableLayout="fixed"
+                                    style={{ margin: 0 }}
+                                    dataSource={combinedData}
+                                    columns={combinedColumns}
+                                    rowKey="key"
+                                    pagination={false}
+                                  />
+                                </div>
+                              </Card>
+                            </Col>
+                          </Row>
+                        </>
+                      )
+                    },
+                    {
+                      key: 'signup',
+                      label: '报名设置',
+                      children: (
+                        <>
+                          <Card title="报名配置" bodyStyle={{ padding: 12 }}>
+                            <Form
+                              form={enrollForm}
+                              layout="vertical"
+                              initialValues={{
+                                description: enrollmentSettings.description,
+                                mode: enrollmentSettings.mode,
+                                capacity: enrollmentSettings.capacity,
+                                overflowAllowed: enrollmentSettings.overflowAllowed,
+                                scope: enrollmentSettings.scope,
+                                approvalRequired: enrollmentSettings.approvalRequired,
+                                realnameRequired: enrollmentSettings.realnameRequired,
+                                allowSelfSignup: enrollmentSettings.allowSelfSignup
+                              }}
+                              onFinish={handleEnrollmentFinish}
+                            >
+                              <Form.Item
+                                name="description"
+                                label="报名说明"
+                                rules={[{ required: true, message: '请输入报名说明' }]}
+                              >
+                                <Input.TextArea rows={4} placeholder="请输入报名说明" />
+                              </Form.Item>
+
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                                <Button type="primary" size="small" onClick={addInfoField}>添加学员信息字段</Button>
+                                <Space>
+                                  <Switch checked={syncProfile} onChange={setSyncProfile} />
+                                  <span>是否同步更新学员信息</span>
+                                </Space>
+                              </div>
+
+                              <Table
+                                size="small"
+                                dataSource={infoFields.map(f => ({ key: f.id, ...f }))}
+                                columns={[
+                                  { title: '字段', dataIndex: 'name' },
+                                  { title: '填写说明', dataIndex: 'desc' },
+                                  {
+                                    title: '是否必填',
+                                    dataIndex: 'required',
+                                    render: (val, record) => (
+                                      <Switch
+                                        checked={val}
+                                        onChange={(checked) => {
+                                          setInfoFields(prev => prev.map(f => f.id === record.id ? { ...f, required: checked } : f));
+                                        }}
+                                      />
+                                    )
+                                  },
+                                  {
+                                    title: '操作',
+                                    key: 'action',
+                                    render: (_, record) => (
+                                      <Space size="small">
+                                        <Button type="link" size="small" onClick={() => openEditField(record)}>编辑</Button>
+                                        <Button type="link" size="small" danger onClick={() => removeInfoField(record.id)}>移除</Button>
+                                      </Space>
+                                    )
+                                  }
+                                ]}
+                                pagination={false}
+                              />
+
+                              <div style={{ marginTop: 8 }}>
+                                <Button size="small" onClick={addInfoField}>添加报名信息字段</Button>
+                              </div>
+
+                              <Divider />
+
+                              <Form.Item name="mode" label="报名模式">
+                                <Select
+                                  style={{ width: 220 }}
+                                  options={[
+                                    { value: 'self', label: '自主加入' },
+                                    { value: 'org', label: '按组织报名' }
+                                  ]}
+                                />
+                              </Form.Item>
+
+                              <Form.Item name="capacity" label="正式名额">
+                                <InputNumber min={0} style={{ width: 120 }} />
+                              </Form.Item>
+                              <div style={{ marginTop: -8, color: '#888' }}>0代表不限制</div>
+                              <Form.Item name="overflowAllowed" valuePropName="checked" style={{ marginTop: 8 }}>
+                                <Switch />
+                              </Form.Item>
+                              <div style={{ marginTop: -8, color: '#888' }}>名额满了后，仍允许继续报名</div>
+
+                              <Form.Item name="scope" label="报名范围" style={{ marginTop: 12 }}>
+                                <Select
+                                  style={{ width: 220 }}
+                                  options={[
+                                    { value: 'all', label: '全部学员' },
+                                    { value: 'dept', label: '按部门/学员' }
+                                  ]}
+                                />
+                              </Form.Item>
+
+                              <Form.Item name="approvalRequired" valuePropName="checked" label="审核设置">
+                                <Switch />
+                              </Form.Item>
+                              <div style={{ marginTop: -8, color: '#888' }}>开启后，需管理员审核通过后，学员才会成功加入</div>
+
+                              <Form.Item name="realnameRequired" valuePropName="checked" label="实名报名">
+                                <Switch />
+                              </Form.Item>
+                              <div style={{ marginTop: -8, color: '#888' }}>开启后，只有已经实名去认证的学员可以参与报名</div>
+
+                              <Space style={{ marginTop: 12 }}>
+                                <Button type="primary" htmlType="submit">保存</Button>
+                                <Button onClick={() => enrollForm.resetFields()}>重置</Button>
+                              </Space>
+                            </Form>
+                          </Card>
+
+                          <Modal
+                            open={editFieldModalVisible}
+                            title="编辑字段"
+                            onCancel={() => setEditFieldModalVisible(false)}
+                            onOk={saveEditField}
+                          >
+                            <Form form={editFieldForm} layout="vertical">
+                              <Form.Item name="name" label="字段名" rules={[{ required: true, message: '请输入字段名' }]}>
+                                <Input />
+                              </Form.Item>
+                              <Form.Item name="desc" label="填写说明">
+                                <Input />
+                              </Form.Item>
+                              <Form.Item name="required" label="是否必填" valuePropName="checked">
+                                <Switch />
+                              </Form.Item>
+                            </Form>
+                          </Modal>
+                        </>
+                      )
+                    },
+                    {
+                      key: 'list',
+                      label: '参加人员清单',
+                      children: (
+                        <Card bodyStyle={{ padding: 0 }} style={{ width: '100%' }}>
+                          <Table
+                            size="small"
+                            dataSource={participants.map(p => ({ ...p, key: `p-${p.id}` }))}
+                            columns={participantColumns}
+                            pagination={false}
+                            tableLayout="fixed"
+                            style={{ width: '100%', margin: 0 }}
+                          />
+                        </Card>
+                      )
+                    }
+                  ]}
+                />
+              )
+            },
+          ]}
+        />
       )}
 
       {/* 添加参训人员的Modal */}

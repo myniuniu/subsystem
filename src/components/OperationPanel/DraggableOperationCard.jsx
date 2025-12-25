@@ -41,6 +41,18 @@ const DraggableOperationCard = ({
     systemTrainingType: null,
     systemTrainingRef: null,
     systemTrainingRefLabel: null,
+    workshopTheme: '',
+    audience: [],
+    participantCount: 20,
+    venue: 'online',
+    sessionCount: 3,
+    sessionDurationMinutes: 90,
+    formats: ['workshop', 'seminar', 'practice'],
+    resources: [],
+    evaluation: ['questionnaire', 'artifact_review'],
+    timeSlots: ['上午 09:30-11:00', '下午 14:00-15:30', '晚间 19:00-20:30'],
+    facilitators: [],
+    deliverables: ['作品展示', '心得体会'],
     report: {
       metadata: {
         title: '培训需求与管理系统整体培训报告',
@@ -160,6 +172,147 @@ const DraggableOperationCard = ({
               <Select.Option value="高中">高中</Select.Option>
               <Select.Option value="大学">大学</Select.Option>
             </Select>
+          </Form.Item>
+        </>
+      );
+    } else if (card.key === 'workshop-plan') {
+      return (
+        <>
+          <Form.Item label="工作坊主题">
+            <Input
+              value={config.workshopTheme || ''}
+              onChange={(e) => setConfig({ ...config, workshopTheme: e.target.value })}
+              style={{ width: '100%' }}
+            />
+          </Form.Item>
+          <Form.Item label="目标群体">
+            <Select
+              mode="tags"
+              value={config.audience || []}
+              onChange={(value) => setConfig({ ...config, audience: value })}
+              placeholder="输入或选择目标群体标签"
+              style={{ width: '100%' }}
+              tokenSeparators={[',', '，']}
+              maxTagCount="responsive"
+            />
+          </Form.Item>
+          <Form.Item label="参与人数">
+            <InputNumber
+              value={config.participantCount || 20}
+              onChange={(value) => setConfig({ ...config, participantCount: value })}
+              min={5}
+              max={500}
+              style={{ width: '100%' }}
+            />
+          </Form.Item>
+          <Form.Item label="场地/形式">
+            <Select
+              value={config.venue || 'online'}
+              onChange={(value) => setConfig({ ...config, venue: value })}
+              style={{ width: '100%' }}
+              options={[
+                { label: '线上', value: 'online' },
+                { label: '线下', value: 'offline' },
+                { label: '混合', value: 'hybrid' }
+              ]}
+            />
+          </Form.Item>
+          <Form.Item label="场次数量">
+            <InputNumber
+              value={config.sessionCount || 3}
+              onChange={(value) => setConfig({ ...config, sessionCount: value })}
+              min={1}
+              max={20}
+              style={{ width: '100%' }}
+              addonAfter="场"
+            />
+          </Form.Item>
+          <Form.Item label="单场时长">
+            <InputNumber
+              value={config.sessionDurationMinutes || 90}
+              onChange={(value) => setConfig({ ...config, sessionDurationMinutes: value })}
+              min={30}
+              max={240}
+              style={{ width: '100%' }}
+              addonAfter="分钟"
+            />
+          </Form.Item>
+          <Form.Item label="活动形式" style={{ gridColumn: '1 / -1' }}>
+            <Select
+              mode="multiple"
+              value={config.formats || []}
+              onChange={(value) => setConfig({ ...config, formats: value })}
+              placeholder="请选择活动形式"
+              style={{ width: '100%' }}
+              maxTagCount="responsive"
+              options={[
+                { label: '工作坊', value: 'workshop' },
+                { label: '研讨', value: 'seminar' },
+                { label: '案例', value: 'case' },
+                { label: '分组协作', value: 'group' },
+                { label: '展示交流', value: 'showcase' },
+                { label: '实践操作', value: 'practice' }
+              ]}
+            />
+          </Form.Item>
+          <Form.Item label="资源偏好">
+            <Select
+              mode="tags"
+              value={config.resources || []}
+              onChange={(value) => setConfig({ ...config, resources: value })}
+              placeholder="输入资源标签"
+              style={{ width: '100%' }}
+              tokenSeparators={[',', '，']}
+              maxTagCount="responsive"
+            />
+          </Form.Item>
+          <Form.Item label="评估方式">
+            <Select
+              mode="multiple"
+              value={config.evaluation || []}
+              onChange={(value) => setConfig({ ...config, evaluation: value })}
+              style={{ width: '100%' }}
+              maxTagCount="responsive"
+              options={[
+                { label: '问卷', value: 'questionnaire' },
+                { label: '作品评审', value: 'artifact_review' },
+                { label: '签到', value: 'attendance' },
+                { label: '心得', value: 'reflection' }
+              ]}
+            />
+          </Form.Item>
+          <Form.Item label="时间段安排">
+            <Select
+              mode="tags"
+              value={config.timeSlots || []}
+              onChange={(value) => setConfig({ ...config, timeSlots: value })}
+              placeholder="输入或选择时段"
+              style={{ width: '100%' }}
+              tokenSeparators={[',', '，']}
+              maxTagCount="responsive"
+            />
+          </Form.Item>
+          <Form.Item label="主持人/导师">
+            <Select
+              mode="tags"
+              value={config.facilitators || []}
+              onChange={(value) => setConfig({ ...config, facilitators: value })}
+              placeholder="输入人员标签"
+              style={{ width: '100%' }}
+              tokenSeparators={[',', '，']}
+              maxTagCount="responsive"
+            />
+          </Form.Item>
+          <Form.Item label="产出物">
+            <Select
+              mode="tags"
+              value={config.deliverables || []}
+              onChange={(value) => setConfig({ ...config, deliverables: value })}
+              placeholder="输入产出物标签"
+              style={{ width: '100%' }}
+              tokenSeparators={[',', '，']}
+              maxTagCount="responsive"
+            />
           </Form.Item>
         </>
       );
@@ -472,10 +625,10 @@ const DraggableOperationCard = ({
   
   // 处理需要确认/配置的卡片点击（培训方案、培训报表、E-PBL教学设计）
   const handleCardClickWithConfirm = () => {
-    if (card.key === 'training-plan' || card.key === 'training-dashboard' || card.key === 'e-pbl-planning' || card.key === 'personal-learning') {
+    if (card.key === 'training-plan' || card.key === 'training-dashboard' || card.key === 'e-pbl-planning' || card.key === 'personal-learning' || card.key === 'workshop-plan') {
       Modal.confirm({
-        title: card.key === 'training-dashboard' ? '培训报表生成确认' : (card.key === 'e-pbl-planning' ? 'E-PBL教学设计配置确认' : (card.key === 'personal-learning' ? '自主选学配置确认' : '培训方案配置确认')),
-        content: card.key === 'training-dashboard' ? '是否已完成报表生成参数配置？' : (card.key === 'e-pbl-planning' ? '是否已完成教学设计配置？' : (card.key === 'personal-learning' ? '是否已完成自主选学配置？' : '是否已完成培训方案配置？')),
+        title: card.key === 'training-dashboard' ? '培训报表生成确认' : (card.key === 'e-pbl-planning' ? 'E-PBL教学设计配置确认' : (card.key === 'personal-learning' ? '自主选学配置确认' : (card.key === 'workshop-plan' ? '工作坊方案配置确认' : '培训方案配置确认'))),
+        content: card.key === 'training-dashboard' ? '是否已完成报表生成参数配置？' : (card.key === 'e-pbl-planning' ? '是否已完成教学设计配置？' : (card.key === 'personal-learning' ? '是否已完成自主选学配置？' : (card.key === 'workshop-plan' ? '是否已完成工作坊方案配置？' : '是否已完成培训方案配置？'))),
         okText: '已配置，继续',
         cancelText: '去配置',
         icon: <SettingOutlined style={{ color: '#1890ff' }} />,
@@ -700,8 +853,8 @@ const DraggableOperationCard = ({
           {/* 状态覆盖层 */}
           {renderStatusOverlay()}
           
-          {/* 培训方案/自主选学/E-PBL教学设计/学习计划/记忆卡片/测验 配置按钮（不在培训报表卡片显示） */}
-          {(card.key === 'training-plan' || card.key === 'personal-learning' || card.key === 'e-pbl-planning' || card.key === 'learning-plan' || card.key === 'memory-cards' || card.key === 'quiz') && !isEditMode && hasSourceData && (
+          {/* 培训方案/自主选学/E-PBL教学设计/学习计划/记忆卡片/测验/工作坊方案 配置按钮（不在培训报表卡片显示） */}
+          {(card.key === 'training-plan' || card.key === 'personal-learning' || card.key === 'e-pbl-planning' || card.key === 'learning-plan' || card.key === 'memory-cards' || card.key === 'quiz' || card.key === 'workshop-plan') && !isEditMode && hasSourceData && (
             <Button
               type="text"
               size="small"
@@ -800,7 +953,7 @@ const DraggableOperationCard = ({
             ) : (
               <>
                 <SettingOutlined style={{ color: '#1890ff' }} />
-                <span>{card.key === 'training-dashboard' ? '培训报表配置' : (card.key === 'e-pbl-planning' ? 'E-PBL教学设计配置' : (card.key === 'learning-plan' ? '学习计划配置' : (card.key === 'memory-cards' ? '自定义记忆卡' : (card.key === 'quiz' ? '自定义测验' : (card.key === 'personal-learning' ? '自主选学配置' : '培训方案配置')))))}</span>
+                <span>{card.key === 'training-dashboard' ? '培训报表配置' : (card.key === 'e-pbl-planning' ? 'E-PBL教学设计配置' : (card.key === 'learning-plan' ? '学习计划配置' : (card.key === 'memory-cards' ? '自定义记忆卡' : (card.key === 'quiz' ? '自定义测验' : (card.key === 'personal-learning' ? '自主选学配置' : (card.key === 'workshop-plan' ? '工作坊方案配置' : '培训方案配置'))))))}</span>
               </>
             )}
           </div>
@@ -837,9 +990,41 @@ const DraggableOperationCard = ({
             card.key === 'e-pbl-planning' ? 'epbl_planning_config' :
             card.key === 'learning-plan' ? 'learning_plan_config' :
             card.key === 'personal-learning' ? 'personal_learning_config' :
+            card.key === 'workshop-plan' ? 'workshop_plan_config' :
             'training_plan_config'
           );
-          localStorage.setItem(key, JSON.stringify(config));
+          if (card.key === 'workshop-plan') {
+            const sc = Number(config.sessionCount || 1);
+            const sd = Number(config.sessionDurationMinutes || 60);
+            const totalDurationHours = (sc * sd) / 60;
+            const schedule = Array.from({ length: sc }).map((_, i) => ({
+              index: i + 1,
+              durationMinutes: sd,
+              timeSlot: Array.isArray(config.timeSlots) && config.timeSlots.length > 0 ? config.timeSlots[i % config.timeSlots.length] : null,
+              format: Array.isArray(config.formats) && config.formats.length > 0 ? config.formats[i % config.formats.length] : null
+            }));
+            const modules = schedule.map(s => ({
+              name: `第${s.index}场`,
+              duration: `${s.durationMinutes}分钟`,
+              format: s.format
+            }));
+            const params = {
+              theme: config.workshopTheme || '',
+              audience: config.audience || [],
+              participantCount: Number(config.participantCount || 0),
+              venue: config.venue || 'online',
+              totalDurationHours,
+              schedule,
+              modules,
+              evaluation: config.evaluation || [],
+              facilitators: config.facilitators || [],
+              deliverables: config.deliverables || []
+            };
+            const payload = { ...config, generationParams: params };
+            localStorage.setItem(key, JSON.stringify(payload));
+          } else {
+            localStorage.setItem(key, JSON.stringify(config));
+          }
           if (card.key === 'learning-plan') {
             if (onClick) onClick();
           }
@@ -864,25 +1049,25 @@ const DraggableOperationCard = ({
               </div>
               
                <Form.Item 
-                 label={card.key === 'e-pbl-planning' ? '方案补充说明' : (card.key === 'learning-plan' ? '学习计划补充说明' : ((card.key === 'memory-cards' || card.key === 'quiz') ? '主题应该是什么？' : '方案补充说明'))}
-                 help={
-                   <Text type="secondary" style={{ fontSize: '12px' }}>
-                    {card.key === 'e-pbl-planning' ? '补充教学设计的要点、注意事项等信息' : (card.key === 'learning-plan' ? '补充学习要求与偏好，用于生成更贴合的计划' : (card.key === 'personal-learning' ? '请填写自主选学需求（以课程学习为主）：学习目标、偏好主题/课程、学习方式（视频/阅读/练习）、学习时段与节奏、当前基础与期待提升、评估方式或里程碑等' : ((card.key === 'memory-cards' || card.key === 'quiz') ? '建议将主题聚焦且来源明确，内容精炼，便于生成' : '详细描述培训方案的背景、目标、适用对象等信息')))}
-                    </Text>
-                  }
-                >
-                  <Input.TextArea
-                    value={config.description}
-                    onChange={(e) => setConfig({...config, description: e.target.value})}
-                    placeholder={card.key === 'e-pbl-planning' ? '请输入教学设计补充说明（选填，2000字以内）' : (card.key === 'learning-plan' ? '请输入学习计划补充说明（选填，2000字以内）' : (card.key === 'personal-learning' ? '请输入自主选学需求补充说明（选填，2000字以内）' : ((card.key === 'memory-cards' || card.key === 'quiz') ? '输入主题或参考提示，如“牛顿第二定律”' : '请输入培训方案的补充说明，如培训背景、目标、适用对象、预期效果等（选填，2000字以内）')))}
-                    autoSize={{ minRows: 4, maxRows: 8 }}
-                    maxLength={2000}
-                    showCount
-                    style={{
-                      fontSize: '14px',
-                    lineHeight: '1.6'
-                  }}
-                />
+                label={card.key === 'e-pbl-planning' ? '方案补充说明' : (card.key === 'learning-plan' ? '学习计划补充说明' : ((card.key === 'memory-cards' || card.key === 'quiz') ? '主题应该是什么？' : '方案补充说明'))}
+                help={
+                  <Text type="secondary" style={{ fontSize: '12px' }}>
+                    {card.key === 'e-pbl-planning' ? '补充教学设计的要点、注意事项等信息' : (card.key === 'learning-plan' ? '补充学习要求与偏好，用于生成更贴合的计划' : (card.key === 'personal-learning' ? '请填写自主选学需求（以课程学习为主）：学习目标、偏好主题/课程、学习方式（视频/阅读/练习）、学习时段与节奏、当前基础与期待提升、评估方式或里程碑等' : (card.key === 'workshop-plan' ? '请填写工作坊方案的个性化要求：目标群体、主题聚焦、活动形式（工作坊/研讨/案例）、时段与节奏、资源与案例偏好、评估方式等' : ((card.key === 'memory-cards' || card.key === 'quiz') ? '建议将主题聚焦且来源明确，内容精炼，便于生成' : '详细描述培训方案的背景、目标、适用对象等信息'))))}
+                  </Text>
+                }
+              >
+                <Input.TextArea
+                  value={config.description}
+                  onChange={(e) => setConfig({...config, description: e.target.value})}
+                  placeholder={card.key === 'e-pbl-planning' ? '请输入教学设计补充说明（选填，2000字以内）' : (card.key === 'learning-plan' ? '请输入学习计划补充说明（选填，2000字以内）' : (card.key === 'personal-learning' ? '请输入自主选学需求补充说明（选填，2000字以内）' : (card.key === 'workshop-plan' ? '请输入工作坊方案的个性化配置与补充说明（选填，2000字以内）' : ((card.key === 'memory-cards' || card.key === 'quiz') ? '输入主题或参考提示，如“牛顿第二定律”' : '请输入培训方案的补充说明，如培训背景、目标、适用对象、预期效果等（选填，2000字以内）'))))}
+                  autoSize={{ minRows: 4, maxRows: 8 }}
+                  maxLength={2000}
+                  showCount
+                  style={{
+                    fontSize: '14px',
+                  lineHeight: '1.6'
+                }}
+              />
               </Form.Item>
               {(card.key === 'memory-cards' || card.key === 'quiz') && (
                 <div style={{ border: '1px solid #bae7ff', borderRadius: 8, padding: 12, background: '#e6f7ff', color: '#1d39c4' }}>
