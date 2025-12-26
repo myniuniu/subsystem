@@ -80,7 +80,7 @@
 .menu-list {
   margin-top: -4px; /* 整体上移一些 */
   padding: 0 4px; /* 右侧内边距减小，降低滚动条存在感 */
-  max-height: calc(100vh - 80px);
+  max-height: calc(100% - 80px);
   overflow-y: auto;
   scrollbar-width: thin; /* Firefox 更细滚动条 */
   scrollbar-color: rgba(0, 0, 0, 0.1) transparent; /* Firefox 更透明 */
@@ -107,7 +107,7 @@
 .sidebar.collapsed .menu-list {
   padding: 0 2px; /* 收缩模式进一步减小右侧内边距 */
   margin-top: -13px; /* 再上移 3px */
-  max-height: calc(100vh - 80px);
+  max-height: calc(100% - 80px);
   overflow-y: auto;
   /* Firefox/旧版 Edge 隐藏滚动条（仍可滚动） */
   scrollbar-width: none;

@@ -52,7 +52,8 @@ import {
   GraduationCap,
   Settings,
   User,
-  Cloud
+  Cloud,
+  FlaskConical
 } from 'lucide-react'
 import SidebarAvatar from './SidebarAvatar'
 import './Sidebar.css'
@@ -424,14 +425,6 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
        type: 'single'
      },
     { 
-      id: 'message-center', 
-      icon: MessageSquare, 
-      label: '消息中心', 
-      shortLabel: '消息',
-      color: '#f39c12',
-      type: 'single'
-    },
-    { 
       id: 'ai-assistant', 
       icon: Bot, 
       label: 'AI智能中心', 
@@ -439,6 +432,22 @@ const Sidebar = ({ onViewChange, currentView, unreadMessageCount = 0, downloadin
       color: '#667eea',
       type: 'single',
       removable: true
+    },
+    { 
+      id: 'lab-center', 
+      icon: FlaskConical, 
+      label: '实验室', 
+      shortLabel: '实验室',
+      color: '#8b5cf6',
+      type: 'single'
+    },
+    { 
+      id: 'message-center', 
+      icon: MessageSquare, 
+      label: '消息中心', 
+      shortLabel: '消息',
+      color: '#f39c12',
+      type: 'single'
     },
     {
       id: 'knowledge-qa',

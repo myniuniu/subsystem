@@ -57,6 +57,7 @@ import KnowledgeQA from './components/KnowledgeQA'
 import EpblFlowchart from './components/EpblFlowchart';
 import EpblFloatingToolbar from './components/EpblFloatingToolbar';
 import { BookOutlined, LinkOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import LabCenter from './components/LabCenter'
 
 import './App.css'
 import notesService from './services/notesService'
@@ -525,6 +526,8 @@ function App() {
                 onAddToMenu={handleAddAppToMenu}
                 onRemoveFromMenu={handleRemoveAppFromMenu}
               />
+            ) : currentView === 'lab-center' ? (
+              <LabCenter onNavigate={setCurrentView} />
             ) : currentView === 'learning-analytics' ? (
               <LearningAnalytics />
             ) : currentView === 'homework-center' ? (
