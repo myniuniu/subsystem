@@ -16,6 +16,11 @@ const MIGRATION_ADD_ORG_DEFAULT_NOT_STARTED_KEY = 'migration_add_org_default_not
 // 一次性迁移标记：为旧存储注入“我的评阅”默认主题
 const MIGRATION_ADD_MY_EVALUATION_DEFAULT_KEY = 'migration_add_my_evaluation_default_v1';
 const MIGRATION_ADD_THEME_WORKSHOP_DEFAULT_KEY = 'migration_add_theme_workshop_default_v1';
+const MIGRATION_ADD_YOUTH_AIGC_DEFAULT_KEY = 'migration_add_youth_aigc_default_v1';
+const MIGRATION_ADD_TEACHER_AIGC_DEFAULT_KEY = 'migration_add_teacher_aigc_default_v1';
+// 我的课堂（老师课堂教学）相关迁移
+const MIGRATION_ADD_MY_CLASSROOM_DEFAULT_KEY = 'migration_add_my_classroom_default_v1';
+const MIGRATION_REPLACE_MY_CLASSROOM_KEY = 'migration_replace_my_classroom_v2';
 
 // 默认分类
 const DEFAULT_CATEGORIES = [
@@ -24,6 +29,7 @@ const DEFAULT_CATEGORIES = [
   { id: 'study', name: '学习主题', icon: 'BookOutlined', color: '#722ed1', type: 'system' },
   { id: 'personal', name: '个人主题', icon: 'UserOutlined', color: '#fa8c16', type: 'system' },
   { id: 'ideas', name: '想法灵感', icon: 'BulbOutlined', color: '#eb2f96', type: 'system' },
+  { id: 'my_classroom', name: '我的课堂', icon: 'ReadOutlined', color: '#1890ff', type: 'system' },
   { id: 'knowledge_graph', name: '知识图谱', icon: 'NodeIndexOutlined', color: '#13c2c2', type: 'fixed' },
   { id: 'capability_model', name: '能力模型', icon: 'RadarChartOutlined', color: '#f759ab', type: 'fixed' },
   { id: 'micro_major', name: '微专业', icon: 'ExperimentOutlined', color: '#597ef7', type: 'fixed' },
@@ -1434,6 +1440,73 @@ UI/UX设计微专业致力于培养具备用户体验设计思维和界面设计
       wordCount: 1050,
       readTime: 7
     }
+  ],
+  'my_classroom': [
+    {
+      id: 'mc-001',
+      title: '我的课堂：高一数学函数单元（2课时）',
+      content: `# 高一数学函数单元（2课时）
+
+## 教学目标
+- 掌握基本初等函数的性质
+- 能用函数思想分析简单问题
+
+## 课时安排
+1. 函数概念与表示（1课时）
+2. 函数性质与图像（1课时）
+
+## 课堂活动
+- 情境导入与概念建构
+- 图像分析与性质归纳
+- 分层练习与即时反馈
+
+## 作业
+- 课本练习与巩固题`,
+      category: 'my_classroom',
+      tags: ['我的课堂', '数学', '函数', '课时安排'],
+      starred: true
+    },
+    {
+      id: 'mc-002',
+      title: '我的课堂：初中语文阅读理解（1课时）',
+      content: `# 初中语文阅读理解（1课时）
+
+## 教学目标
+- 掌握中心论点与结构提取
+- 提升段意概括与细节定位能力
+
+## 课堂流程
+- 快速浏览与主题预测
+- 结构图示与关键信息标注
+- 题型训练与讲评
+
+## 评价
+- 课堂表现与任务单完成度`,
+      category: 'my_classroom',
+      tags: ['我的课堂', '语文', '阅读理解', '课堂练习'],
+      starred: false
+    },
+    {
+      id: 'mc-003',
+      title: '我的课堂：高中物理力学实验（3课时）',
+      content: `# 高中物理力学实验（3课时）
+
+## 教学目标
+- 掌握受力分析与实验数据处理
+- 建立模型并进行误差评估
+
+## 课时安排
+1. 实验设计与安全规范（1课时）
+2. 数据采集与图像处理（1课时）
+3. 结论讨论与误差分析（1课时）
+
+## 评价
+- 小组报告与口头汇报
+- 过程性评价与互评`,
+      category: 'my_classroom',
+      tags: ['我的课堂', '物理', '力学', '实验'],
+      starred: false
+    }
   ]
 };
 
@@ -1635,6 +1708,180 @@ class NotesService {
     } catch (e) {
       console.error('初始化新增“主题工作坊”默认主题失败:', e);
     }
+    try {
+      const migratedYouthAIGC = localStorage.getItem(MIGRATION_ADD_YOUTH_AIGC_DEFAULT_KEY);
+      if (!migratedYouthAIGC) {
+        const notes = this.getAllNotes();
+        const existsYouth = Array.isArray(notes) && notes.some(n => n?.category === 'youth_aigc_workshop');
+        if (!existsYouth) {
+          this.createNote({
+            title: '青少年AIGC：AI绘画主题模拟',
+            content: '# 青少年AIGC：AI绘画主题模拟\n\n## 主题简介\n- 面向青少年开展AI绘画创作练习\n- 通过风格选择与提示词构造，完成作品迭代与展示\n\n## 创作流程\n1. 选择创作风格（赛博朋克/水彩/漫画）\n2. 构造提示词（主体/场景/光影/色调/细节）\n3. 低步数草图 → 风格微调 → 构图优化 → 高分辨率\n4. 作品说明与同伴互评\n\n## 标签\n- AIGC\n- 青少年\n- AI绘画\n- 主题模拟',
+            category: 'youth_aigc_workshop',
+            tags: ['AIGC', '青少年', 'AI绘画', '主题模拟'],
+            source: '系统生成',
+            starred: true
+          });
+          this.createNote({
+            title: '青少年AIGC：AI音乐主题模拟',
+            content: '# 青少年AIGC：AI音乐主题模拟\n\n## 主题简介\n- 面向青少年开展AI音乐创作练习\n- 以曲风设定与结构设计为核心，完成旋律生成与混音\n\n## 创作流程\n1. 选择曲风（Lo-fi/流行/电子/轻摇滚）\n2. 结构模板：Intro → Verse → Chorus → Bridge → Outro\n3. 旋律生成：主题动机 → 变奏 → 和声走向\n4. 混音要点：节奏组平衡、空间混响、母带压限\n\n## 标签\n- AIGC\n- 青少年\n- AI音乐\n- 主题模拟',
+            category: 'youth_aigc_workshop',
+            tags: ['AIGC', '青少年', 'AI音乐', '主题模拟'],
+            source: '系统生成',
+            starred: true
+          });
+        }
+        localStorage.setItem(MIGRATION_ADD_YOUTH_AIGC_DEFAULT_KEY, 'true');
+      }
+    } catch (e) {
+      console.error('初始化新增“青少年AIGC创作工坊”默认主题失败:', e);
+    }
+    try {
+      const migratedTeacherAIGC = localStorage.getItem(MIGRATION_ADD_TEACHER_AIGC_DEFAULT_KEY);
+      if (!migratedTeacherAIGC) {
+        const notes = this.getAllNotes();
+        const existsTeacher = Array.isArray(notes) && notes.some(n => n?.category === 'teacher_aigc_workshop');
+        if (!existsTeacher) {
+          this.createNote({
+            title: '教师AIGC：AI课件与教案生成',
+            content: '# 教师AIGC：AI课件与教案生成\n\n## 主题简介\n- 面向教师的AIGC应用练习，聚焦课件与教案自动化生成\n- 支持教学目标解析、课时结构设计与素材建议\n\n## 创作流程\n1. 明确教学目标与重难点\n2. 课时结构：导入 → 新授 → 巩固 → 评价 → 拓展\n3. 生成课件大纲与页面草图\n4. 输出教案要点与课后作业建议\n\n## 标签\n- AIGC\n- 教师\n- 教案\n- 课件\n- 主题模拟',
+            category: 'teacher_aigc_workshop',
+            tags: ['AIGC', '教师', '教案', '课件', '主题模拟'],
+            source: '系统生成',
+            starred: true
+          });
+          this.createNote({
+            title: '教师AIGC：课堂练习与评估生成',
+            content: '# 教师AIGC：课堂练习与评估生成\n\n## 主题简介\n- 面向教师的AIGC应用练习，聚焦课堂练习题与评价量表生成\n- 支持题型设计、层次分布与过程性评价\n\n## 创作流程\n1. 指定学科与章节知识点\n2. 生成练习题（单选/多选/判断/简答）与分层建议\n3. 课堂评价量表：参与度/互动/目标达成/资源应用\n4. 导出练习与评价清单\n\n## 标签\n- AIGC\n- 教师\n- 课堂练习\n- 评价量表\n- 主题模拟',
+            category: 'teacher_aigc_workshop',
+            tags: ['AIGC', '教师', '课堂练习', '评价量表', '主题模拟'],
+            source: '系统生成',
+            starred: true
+          });
+        }
+        localStorage.setItem(MIGRATION_ADD_TEACHER_AIGC_DEFAULT_KEY, 'true');
+      }
+    } catch (e) {
+      console.error('初始化新增“教师AIGC创作工坊”默认主题失败:', e);
+    }
+    try {
+      const notes = this.getAllNotes();
+      const youthNotes = (notes || []).filter(n => n?.category === 'youth_aigc_workshop');
+      const hasYouthPainting = youthNotes.some(n => typeof n?.title === 'string' && n.title.includes('AI绘画主题模拟'));
+      const hasYouthMusic = youthNotes.some(n => typeof n?.title === 'string' && n.title.includes('AI音乐主题模拟'));
+      if (!hasYouthPainting) {
+        this.createNote({
+          title: '青少年AIGC：AI绘画主题模拟',
+          content: '# 青少年AIGC：AI绘画主题模拟\n\n## 主题简介\n- 面向青少年开展AI绘画创作练习\n- 通过风格选择与提示词构造，完成作品迭代与展示\n\n## 创作流程\n1. 选择创作风格（赛博朋克/水彩/漫画）\n2. 构造提示词（主体/场景/光影/色调/细节）\n3. 低步数草图 → 风格微调 → 构图优化 → 高分辨率\n4. 作品说明与同伴互评\n\n## 标签\n- AIGC\n- 青少年\n- AI绘画\n- 主题模拟',
+          category: 'youth_aigc_workshop',
+          tags: ['AIGC', '青少年', 'AI绘画', '主题模拟'],
+          source: '系统生成',
+          starred: true
+        });
+      }
+      if (!hasYouthMusic) {
+        this.createNote({
+          title: '青少年AIGC：AI音乐主题模拟',
+          content: '# 青少年AIGC：AI音乐主题模拟\n\n## 主题简介\n- 面向青少年开展AI音乐创作练习\n- 以曲风设定与结构设计为核心，完成旋律生成与混音\n\n## 创作流程\n1. 选择曲风（Lo-fi/流行/电子/轻摇滚）\n2. 结构模板：Intro → Verse → Chorus → Bridge → Outro\n3. 旋律生成：主题动机 → 变奏 → 和声走向\n4. 混音要点：节奏组平衡、空间混响、母带压限\n\n## 标签\n- AIGC\n- 青少年\n- AI音乐\n- 主题模拟',
+          category: 'youth_aigc_workshop',
+          tags: ['AIGC', '青少年', 'AI音乐', '主题模拟'],
+          source: '系统生成',
+          starred: true
+        });
+      }
+    } catch (e) {
+      console.error('保证“青少年AIGC创作工坊”默认主题存在失败:', e);
+    }
+    try {
+      const notes = this.getAllNotes();
+      const teacherNotes = (notes || []).filter(n => n?.category === 'teacher_aigc_workshop');
+      const hasTeacherCourseware = teacherNotes.some(n => typeof n?.title === 'string' && n.title.includes('AI课件与教案生成'));
+      const hasTeacherPractice = teacherNotes.some(n => typeof n?.title === 'string' && n.title.includes('课堂练习与评估生成'));
+      if (!hasTeacherCourseware) {
+        this.createNote({
+          title: '教师AIGC：AI课件与教案生成',
+          content: '# 教师AIGC：AI课件与教案生成\n\n## 主题简介\n- 面向教师的AIGC应用练习，聚焦课件与教案自动化生成\n- 支持教学目标解析、课时结构设计与素材建议\n\n## 创作流程\n1. 明确教学目标与重难点\n2. 课时结构：导入 → 新授 → 巩固 → 评价 → 拓展\n3. 生成课件大纲与页面草图\n4. 输出教案要点与课后作业建议\n\n## 标签\n- AIGC\n- 教师\n- 教案\n- 课件\n- 主题模拟',
+          category: 'teacher_aigc_workshop',
+          tags: ['AIGC', '教师', '教案', '课件', '主题模拟'],
+          source: '系统生成',
+          starred: true
+        });
+      }
+      if (!hasTeacherPractice) {
+        this.createNote({
+          title: '教师AIGC：课堂练习与评估生成',
+          content: '# 教师AIGC：课堂练习与评估生成\n\n## 主题简介\n- 面向教师的AIGC应用练习，聚焦课堂练习题与评价量表生成\n- 支持题型设计、层次分布与过程性评价\n\n## 创作流程\n1. 指定学科与章节知识点\n2. 生成练习题（单选/多选/判断/简答）与分层建议\n3. 课堂评价量表：参与度/互动/目标达成/资源应用\n4. 导出练习与评价清单\n\n## 标签\n- AIGC\n- 教师\n- 课堂练习\n- 评价量表\n- 主题模拟',
+          category: 'teacher_aigc_workshop',
+          tags: ['AIGC', '教师', '课堂练习', '评价量表', '主题模拟'],
+          source: '系统生成',
+          starred: true
+        });
+      }
+    } catch (e) {
+      console.error('保证“教师AIGC创作工坊”默认主题存在失败:', e);
+    }
+    try {
+      const migratedMyClassroom = localStorage.getItem(MIGRATION_ADD_MY_CLASSROOM_DEFAULT_KEY);
+      if (!migratedMyClassroom) {
+        const notes = this.getAllNotes();
+        const existsMyClassroom = Array.isArray(notes) && notes.some(n => n?.category === 'my_classroom');
+        if (!existsMyClassroom) {
+          this.createNote({
+            title: '我的课堂：高一数学函数单元（2课时）',
+            content: '# 高一数学函数单元（2课时）\n\n## 教学目标\n- 掌握基本初等函数的性质\n- 能用函数思想分析简单问题\n\n## 课时安排\n1. 函数概念与表示（1课时）\n2. 函数性质与图像（1课时）\n\n## 课堂活动\n- 情境导入与概念建构\n- 图像分析与性质归纳\n- 分层练习与即时反馈\n\n## 作业\n- 课本练习与巩固题',
+            category: 'my_classroom',
+            tags: ['我的课堂', '数学', '函数', '课时安排'],
+            starred: true
+          });
+          this.createNote({
+            title: '我的课堂：初中语文阅读理解（1课时）',
+            content: '# 初中语文阅读理解（1课时）\n\n## 教学目标\n- 掌握中心论点与结构提取\n- 提升段意概括与细节定位能力\n\n## 课堂流程\n- 快速浏览与主题预测\n- 结构图示与关键信息标注\n- 题型训练与讲评\n\n## 评价\n- 课堂表现与任务单完成度',
+            category: 'my_classroom',
+            tags: ['我的课堂', '语文', '阅读理解', '课堂练习'],
+            starred: false
+          });
+          this.createNote({
+            title: '我的课堂：高中物理力学实验（3课时）',
+            content: '# 高中物理力学实验（3课时）\n\n## 教学目标\n- 掌握受力分析与实验数据处理\n- 建立模型并进行误差评估\n\n## 课时安排\n1. 实验设计与安全规范（1课时）\n2. 数据采集与图像处理（1课时）\n3. 结论讨论与误差分析（1课时）\n\n## 评价\n- 小组报告与口头汇报\n- 过程性评价与互评',
+            category: 'my_classroom',
+            tags: ['我的课堂', '物理', '力学', '实验'],
+            starred: false
+          });
+        }
+        localStorage.setItem(MIGRATION_ADD_MY_CLASSROOM_DEFAULT_KEY, 'true');
+      }
+    } catch (e) {
+      console.error('初始化新增“我的课堂”默认主题失败:', e);
+    }
+    // 替换“我的课堂”为单一新主题：扣叮能力提升课程（完整版） — 创意实验室 （小学完整版）
+    try {
+      const migratedReplace = localStorage.getItem(MIGRATION_REPLACE_MY_CLASSROOM_KEY);
+      if (!migratedReplace) {
+        const notes = this.getAllNotes() || [];
+        const remain = notes.filter(n => n?.category !== 'my_classroom');
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(remain));
+        this.createNote({
+          title: '扣叮能力提升课程（完整版） — 创意实验室 （小学完整版）',
+          content: '# 扣叮能力提升课程（完整版） — 创意实验室 （小学完整版）\n\n此主题用于承载小学创意实验室课程的分目录资源（教案、课件、视频、素材）。进入右侧“素材管理”面板查看分目录与资源。',
+          category: 'my_classroom',
+          tags: ['我的课堂', '创意实验室', '小学', '扣叮能力提升课程'],
+          starred: true,
+          source: '系统生成'
+        });
+        localStorage.setItem(MIGRATION_REPLACE_MY_CLASSROOM_KEY, 'true');
+      }
+    } catch (e) {
+      console.error('替换“我的课堂”主题失败:', e);
+    }
+    try {
+      const all = this.getAllNotes() || [];
+      const list = all.filter(n => n?.category === 'my_classroom');
+      const target = '扣叮能力提升课程（完整版） — 创意实验室 （小学完整版）';
+      const valid = list.length === 1 && String(list[0]?.title || '').trim() === target;
+      if (!valid) {
+        this.replaceMyClassroomWithKd();
+      }
+    } catch (e) { console.warn('my_classroom enforcement failed', e); }
   }
 
   // 加载固定分类的模拟数据
@@ -1653,6 +1900,27 @@ class NotesService {
   // 生成唯一ID
   generateId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  }
+
+  // 强制替换“我的课堂”为指定单一新主题
+  replaceMyClassroomWithKd() {
+    try {
+      const notes = this.getAllNotes() || [];
+      const remain = notes.filter(n => n?.category !== 'my_classroom');
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(remain));
+      this.createNote({
+        title: '扣叮能力提升课程（完整版） — 创意实验室 （小学完整版）',
+        content: '# 扣叮能力提升课程（完整版） — 创意实验室 （小学完整版）\n\n此主题用于承载小学创意实验室课程的分目录资源（教案、课件、视频、素材）。进入右侧“素材管理”面板查看分目录与资源。',
+        category: 'my_classroom',
+        tags: ['我的课堂', '创意实验室', '小学', '扣叮能力提升课程'],
+        starred: true,
+        source: '系统生成'
+      });
+      localStorage.setItem(MIGRATION_REPLACE_MY_CLASSROOM_KEY, 'true');
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   // 获取所有笔记
@@ -2251,9 +2519,11 @@ class NotesService {
             new Date(a.updatedAt) - new Date(b.updatedAt) : 
             new Date(b.updatedAt) - new Date(a.updatedAt);
         case 'wordCount':
-          const aWords = this.getWordCount(a.content);
-          const bWords = this.getWordCount(b.content);
-          return criteria.sortOrder === 'asc' ? aWords - bWords : bWords - aWords;
+          {
+            const aWords = this.getWordCount(a.content);
+            const bWords = this.getWordCount(b.content);
+            return criteria.sortOrder === 'asc' ? aWords - bWords : bWords - aWords;
+          }
         default:
           return new Date(b.updatedAt) - new Date(a.updatedAt);
       }
@@ -2733,7 +3003,7 @@ ${course.participants && course.participants.length > 0 ? `## 参与人员\n\n${
       for (let i = 0; i < videoCount; i++) {
         videos.push({
           id: `${course.id}_video_${i + 1}`,
-          title: `第${i + 1}讲 - ${this.getVideoTitle(course.title, i, videoCount)}`,
+          title: `第${i + 1}讲 - ${this.getVideoTitle(course.title, i)}`,
           url: `https://example.com/course/${course.id}/video/${i + 1}`,
           duration: avgDuration + Math.floor(Math.random() * 300 - 150), // 加上一些随机性
           progress: 0,
@@ -2768,7 +3038,7 @@ ${course.participants && course.participants.length > 0 ? `## 参与人员\n\n${
    * @param {number} total - 总视频数
    * @returns {string} 视频标题
    */
-  getVideoTitle(courseTitle, index, total) {
+  getVideoTitle(courseTitle, index) {
     const titles = {
       'Python': ['基础语法', '数据结构', '函数与模块', '实战项目'],
       '机器学习': ['算法原理', '数据预处理', '模型训练', '效果评估'],

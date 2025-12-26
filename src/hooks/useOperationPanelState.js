@@ -51,6 +51,74 @@ export const useOperationPanelState = (noteCategory = null) => {
       return [workshopPlanCard, workshopDashboardCard, workshopReportCard];
     }
 
+    if (category === 'youth_aigc_workshop') {
+      const aiWriting = {
+        key: 'ai-writing',
+        title: 'AI写作',
+        icon: '写',
+        gradient: 'linear-gradient(135deg, #f0f5ff 0%, #d6e4ff 100%)',
+        color: '#2f54eb',
+        isAITool: true
+      };
+      const aiPainting = {
+        key: 'ai-painting',
+        title: 'AI绘画',
+        icon: '画',
+        gradient: 'linear-gradient(135deg, #fff0f6 0%, #ffd6e7 100%)',
+        color: '#c41d7f',
+        isAITool: true
+      };
+      const aiVideo = {
+        key: 'ai-video',
+        title: 'AI视频',
+        icon: '影',
+        gradient: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+        color: '#13c2c2',
+        isAITool: true
+      };
+      const aiModeling = {
+        key: 'ai-modeling',
+        title: 'AI建模',
+        icon: '模',
+        gradient: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+        color: '#722ed1',
+        isAITool: true
+      };
+      const aiMusic = {
+        key: 'ai-music',
+        title: 'AI音乐',
+        icon: '乐',
+        gradient: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+        color: '#1890ff',
+        isAITool: true
+      };
+      const aiCoding = {
+        key: 'ai-coding',
+        title: 'AI编程',
+        icon: '码',
+        gradient: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
+        color: '#389e0d',
+        isAITool: true
+      };
+      const caseSimulation = {
+        key: 'case-simulation',
+        title: '案例仿真',
+        icon: '案',
+        gradient: 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
+        color: '#fa8c16',
+        isAITool: true
+      };
+      const aiPlusSubject = {
+        key: 'ai-plus-subject',
+        title: 'AI+学科',
+        icon: '科',
+        gradient: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
+        color: '#2e7d32',
+        isAITool: true
+      };
+      return [aiWriting, aiPainting, aiVideo, aiModeling, aiMusic, aiCoding, caseSimulation, aiPlusSubject];
+    }
+
     // 督学分类：显示“督学任务”“现场分析”“督学报告”
     if (category === 'supervision') {
       const siteAnalysisCard = OPERATION_CARDS.find(c => c.key === 'site-analysis') || {

@@ -16,9 +16,12 @@ export const DEFAULT_SYSTEM_CATEGORY_CONFIG = {
     { value: 'theme_workshop', label: '主题工作坊管理', icon: 'BulbOutlined', type: 'system', pinned: true, pinnedAt: '2025-01-03T00:00:00Z' },
     { value: 'training_product_development', label: '培训产品研发', icon: 'ExperimentOutlined', type: 'system', pinned: true, pinnedAt: '2025-01-03T00:00:00Z' },
     { value: 'e_pbl', label: 'E-PBL', icon: 'BookOutlined', type: 'system', pinned: true },
+    { value: 'my_classroom', label: '我的课堂', icon: 'ReadOutlined', type: 'system', pinned: true },
     { value: 'teaching_research_office', label: '教研室', icon: 'BookOutlined', type: 'custom', pinned: true },
     { value: 'my_evaluation', label: '我的评阅', icon: 'FileTextOutlined', type: 'system', pinned: true, pinnedAt: '2025-01-01T00:00:00Z' },
-    { value: 'supervision', label: '督学', icon: 'FileTextOutlined', type: 'system', pinned: true, pinnedAt: '2025-01-02T00:00:00Z' }
+    { value: 'supervision', label: '督学', icon: 'FileTextOutlined', type: 'system', pinned: true, pinnedAt: '2025-01-02T00:00:00Z' },
+    { value: 'youth_aigc_workshop', label: '青少年AIGC创作工坊', icon: 'HighlightOutlined', type: 'system', pinned: true, pinnedAt: '2025-01-04T00:00:00Z' },
+    { value: 'teacher_aigc_workshop', label: '教师AIGC创作工坊', icon: 'HighlightOutlined', type: 'system', pinned: true, pinnedAt: '2025-01-05T00:00:00Z' }
   ]
 };
 
@@ -84,6 +87,7 @@ export const getSystemCategoryConfig = () => {
     const hasTrainingProductDev = extra.some(c => c.value === 'training_product_development');
     const hasPersonal = extra.some(c => c.value === 'personal');
     const hasThemeWorkshop = extra.some(c => c.value === 'theme_workshop');
+    const hasMyClassroom = extra.some(c => c.value === 'my_classroom');
     let nextExtra = extra;
     // 处理 e_pbl
     nextExtra = hasEPBL
@@ -118,6 +122,11 @@ export const getSystemCategoryConfig = () => {
         }
       }
     }
+
+    // 处理 我的课堂
+    nextExtra = hasMyClassroom
+      ? nextExtra.map(c => c.value === 'my_classroom' ? { ...c, pinned: true, label: c.label || '我的课堂', icon: c.icon || 'ReadOutlined', type: c.type || 'system' } : c)
+      : [{ value: 'my_classroom', label: '我的课堂', icon: 'ReadOutlined', type: 'system', pinned: true }, ...nextExtra];
 
     const ensured = {
       groups: ensureGroups(baseConfig.groups || []),

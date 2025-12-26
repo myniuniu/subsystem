@@ -33,6 +33,14 @@ export const CATEGORY_META = {
   my_evaluation: {
     aiTitle: '评阅助手',
     aiIcon: evaluationAssistantIcon
+  },
+  youth_aigc_workshop: {
+    aiTitle: '创作助手',
+    aiIcon: trainingAssistantIcon
+  },
+  teacher_aigc_workshop: {
+    aiTitle: '创作助手',
+    aiIcon: trainingAssistantIcon
   }
 };
 
@@ -47,6 +55,8 @@ export const getCategoryKey = (noteCategory, selectedCategory) => {
       'E-PBL': 'e_pbl',
       '我的评阅': 'my_evaluation',
       '学习广场': 'learning_square',
+      '青少年AIGC创作工坊': 'youth_aigc_workshop',
+      '教师AIGC创作工坊': 'teacher_aigc_workshop',
       // 系统固定分类中文 -> 稳定 key
       '工作主题': 'work',
       '学习主题': 'study',

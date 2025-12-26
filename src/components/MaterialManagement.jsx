@@ -430,6 +430,193 @@ const { TextArea } = Input;
   }, [note?.id, note?.category]);
 
   useEffect(() => {
+    if (note?.category !== 'youth_aigc_workshop') return;
+    try {
+      const nowISO = new Date().toISOString();
+      const linksSeed = [
+        { id: `youth_link_${Date.now()}_1`, url: '/assets/青少年AI绘画提示词入门.pdf', type: 'pdf', platform: '文档', title: '青少年AI绘画提示词入门', addTime: nowISO },
+        { id: `youth_link_${Date.now()}_2`, url: '/assets/AI音乐创作基础教程.pdf', type: 'pdf', platform: '文档', title: 'AI音乐创作基础教程', addTime: nowISO },
+        { id: `youth_link_${Date.now()}_3`, url: 'https://stable-diffusion-art.com/prompts-guide', type: 'website', platform: '普通网站', title: 'AI绘画提示词指南', addTime: nowISO }
+      ];
+      const textsSeed = [
+        { id: `youth_text_${Date.now()}_1`, title: 'AI绘画风格选择要点', content: '主题、场景、光影、色调、细节五要素搭配。', type: 'text', addTime: nowISO },
+        { id: `youth_text_${Date.now()}_2`, title: 'AI音乐结构设计模板', content: 'Intro → Verse → Chorus → Bridge → Outro。', type: 'text', addTime: nowISO }
+      ];
+      const filesSeed = [
+        { id: `youth_file_${Date.now()}_1`, name: 'AI绘画提示词模板.docx', size: 320 * 1024, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', isPaper: false, uploadTime: nowISO, content: '文件内容预览...' },
+        { id: `youth_file_${Date.now()}_2`, name: 'AI音乐风格参考表.pdf', size: 480 * 1024, type: 'application/pdf', isPaper: false, uploadTime: nowISO, content: '文件内容预览...' }
+      ];
+      setUploadedFiles(filesSeed);
+      setLinks(linksSeed);
+      setAddedTexts(textsSeed);
+      setCourseVideos([]);
+      setOrganizationalCourses([]);
+      if (typeof setLiveStreams === 'function') setLiveStreams([]);
+      if (typeof setSelectedCourses === 'function') setSelectedCourses([]);
+      setSelectedMaterials([]);
+      setModuleAssignments({
+        live: {},
+        videos: {},
+        exam: {},
+        links: linksSeed.reduce((acc, l) => { acc[l.id] = 'default'; return acc; }, {}),
+        texts: textsSeed.reduce((acc, t) => { acc[t.id] = 'default'; return acc; }, {}),
+        projects: {},
+        files: filesSeed.reduce((acc, f) => { acc[f.id] = 'default'; return acc; }, {})
+      });
+      setModules([
+        { id: 'default', title: '默认模块' },
+        { id: 'uncategorized', title: '未分类模块' }
+      ]);
+      setActiveModuleId('default');
+    } catch {}
+  }, [note?.id, note?.category]);
+
+  useEffect(() => {
+    if (note?.category !== 'teacher_aigc_workshop') return;
+    try {
+      const nowISO = new Date().toISOString();
+      const linksSeed = [
+        { id: `teacher_link_${Date.now()}_1`, url: '/assets/教案自动生成方法指南.pdf', type: 'pdf', platform: '文档', title: '教案自动生成方法指南', addTime: nowISO },
+        { id: `teacher_link_${Date.now()}_2`, url: '/assets/课堂练习与评价量表示例.pdf', type: 'pdf', platform: '文档', title: '课堂练习与评价量表示例', addTime: nowISO },
+        { id: `teacher_link_${Date.now()}_3`, url: 'https://www.moe.gov.cn/jyb_xxgk/zcwj/', type: 'website', platform: '普通网站', title: '教师教学评价办法', addTime: nowISO }
+      ];
+      const textsSeed = [
+        { id: `teacher_text_${Date.now()}_1`, title: '教学目标解析清单', content: '明确目标、重难点与评价指标。', type: 'text', addTime: nowISO },
+        { id: `teacher_text_${Date.now()}_2`, title: '课时结构设计模板', content: '导入→新授→巩固→评价→拓展。', type: 'text', addTime: nowISO }
+      ];
+      const filesSeed = [
+        { id: `teacher_file_${Date.now()}_1`, name: '教案模板（通用版）.docx', size: 420 * 1024, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', isPaper: false, uploadTime: nowISO, content: '文件内容预览...' },
+        { id: `teacher_file_${Date.now()}_2`, name: '练习题模板（分层版）.docx', size: 360 * 1024, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', isPaper: false, uploadTime: nowISO, content: '文件内容预览...' },
+        { id: `teacher_file_${Date.now()}_3`, name: '课堂评价量表.xlsx', size: 300 * 1024, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', isPaper: false, uploadTime: nowISO, content: '文件内容预览...' }
+      ];
+      setUploadedFiles(filesSeed);
+      setLinks(linksSeed);
+      setAddedTexts(textsSeed);
+      setCourseVideos([]);
+      setOrganizationalCourses([]);
+      if (typeof setLiveStreams === 'function') setLiveStreams([]);
+      if (typeof setSelectedCourses === 'function') setSelectedCourses([]);
+      setSelectedMaterials([]);
+      setModuleAssignments({
+        live: {},
+        videos: {},
+        exam: {},
+        links: linksSeed.reduce((acc, l) => { acc[l.id] = 'default'; return acc; }, {}),
+        texts: textsSeed.reduce((acc, t) => { acc[t.id] = 'default'; return acc; }, {}),
+        projects: {},
+        files: filesSeed.reduce((acc, f) => { acc[f.id] = 'default'; return acc; }, {})
+      });
+      setModules([
+        { id: 'default', title: '默认模块' },
+        { id: 'uncategorized', title: '未分类模块' }
+      ]);
+      setActiveModuleId('default');
+    } catch {}
+  }, [note?.id, note?.category]);
+
+  useEffect(() => {
+    if (note?.category !== 'my_classroom') return;
+    try {
+      const nowISO = new Date().toISOString();
+      const subModules = [
+        { id: 'kd_01', title: '01成语动画' },
+        { id: 'kd_02', title: '02植保无人机' },
+        { id: 'kd_03', title: '03海底历险记' },
+        { id: 'kd_04', title: '04航天英雄' },
+        { id: 'kd_05', title: '05停车入位' },
+        { id: 'kd_06', title: '06自动驾驶' },
+        { id: 'kd_07', title: '07智能时钟' },
+        { id: 'kd_08', title: '08细胞分裂' },
+        { id: 'kd_09', title: '09水果忍者' },
+        { id: 'kd_10', title: '10海洋保卫者' },
+        { id: 'kd_11', title: '11Coding创意编程（小学组）' },
+        { id: 'kd_12', title: '12创意作品创作指南（小学）' }
+      ];
+      const filesSeed = [];
+      const videosSeed = [];
+      const fileAssignments = {};
+      const videoAssignments = {};
+      subModules.forEach((m, idx) => {
+        const docId = `kd_doc_${Date.now()}_${idx}`;
+        filesSeed.push({
+          id: docId,
+          name: `${m.title}-教案.docx`,
+          size: 320 * 1024,
+          type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          isPaper: false,
+          uploadTime: nowISO,
+          content: '示例教案内容预览'
+        });
+        fileAssignments[docId] = m.id;
+        const pptId = `kd_ppt_${Date.now()}_${idx}`;
+        filesSeed.push({
+          id: pptId,
+          name: `${m.title}-课件.pptx`,
+          size: 640 * 1024,
+          type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+          isPaper: false,
+          uploadTime: nowISO,
+          content: '示例课件内容预览'
+        });
+        fileAssignments[pptId] = m.id;
+        const resId = `kd_res_${Date.now()}_${idx}`;
+        filesSeed.push({
+          id: resId,
+          name: `${m.title}-素材预览.png`,
+          size: 180 * 1024,
+          type: 'image/png',
+          isPaper: false,
+          uploadTime: nowISO,
+          content: '示例素材图片预览'
+        });
+        fileAssignments[resId] = m.id;
+        const vidId = `kd_vid_${Date.now()}_${idx}`;
+        videosSeed.push({
+          id: vidId,
+          title: `${m.title}-教学视频`,
+          url: `/assets/videos/${m.id}.mp4`,
+          addTime: nowISO,
+          videoInfo: { type: 'single_video', duration: 300, progress: 0 }
+        });
+        videoAssignments[vidId] = m.id;
+      });
+      setUploadedFiles(filesSeed);
+      setLinks([]);
+      setAddedTexts([]);
+      setCourseVideos(videosSeed);
+      setOrganizationalCourses([]);
+      if (typeof setLiveStreams === 'function') setLiveStreams([]);
+      if (typeof setSelectedCourses === 'function') setSelectedCourses([]);
+      setSelectedMaterials([]);
+      setModuleAssignments({
+        live: {},
+        videos: videoAssignments,
+        exam: {},
+        links: {},
+        texts: {},
+        projects: {},
+        files: fileAssignments
+      });
+      setModules([...subModules]);
+      setActiveModuleId(subModules[0].id);
+    } catch {}
+  }, [note?.id, note?.category]);
+
+  useEffect(() => {
+    if (note?.category !== 'youth_aigc_workshop' && note?.category !== 'teacher_aigc_workshop') return;
+    setModuleAssignments(prev => {
+      const next = { ...(prev || {}) };
+      next.links = { ...(prev?.links || {}) };
+      next.texts = { ...(prev?.texts || {}) };
+      next.files = { ...(prev?.files || {}) };
+      (Array.isArray(links) ? links : []).forEach(l => { if (!next.links[l.id]) next.links[l.id] = 'default'; });
+      (Array.isArray(addedTexts) ? addedTexts : []).forEach(t => { if (!next.texts[t.id]) next.texts[t.id] = 'default'; });
+      (Array.isArray(uploadedFiles) ? uploadedFiles : []).forEach(f => { if (!next.files[f.id]) next.files[f.id] = 'default'; });
+      return next;
+    });
+  }, [note?.category, links, addedTexts, uploadedFiles]);
+
+  useEffect(() => {
     if (note?.category !== 'theme_workshop') return;
     setModuleAssignments(prev => {
       const next = { ...(prev || {}) };
@@ -662,6 +849,86 @@ const { TextArea } = Input;
       });
     }
   }, [note?.id, note?.title, note?.category, note?.courseType, note?.source, note?.tags]);
+
+  // 我的课堂：按图示目录注入模块与资源（教案/课件/视频/素材）
+  useEffect(() => {
+    if (note?.category !== 'my_classroom') return;
+    const isTarget = /扣叮能力提升课程（完整版） — 创意实验室 （小学完整版）/.test(String(note?.title || ''));
+    if (!isTarget) return;
+    try {
+      setUploadedFiles([]);
+      setCourseVideos([]);
+      setLinks([]);
+      setAddedTexts([]);
+      setOrganizationalCourses([]);
+      if (typeof setLiveStreams === 'function') setLiveStreams([]);
+      setModuleAssignments({ live: {}, videos: {}, exam: {}, links: {}, texts: {}, projects: {}, files: {} });
+      const nowISO = new Date().toISOString();
+      const dirs = [
+        { id: 'dir_01_idiom_animation', title: '01 成语动画' },
+        { id: 'dir_02_agri_drone', title: '02 植保无人机' },
+        { id: 'dir_03_sea_adventure', title: '03 海底历险记' },
+        { id: 'dir_04_space_hero', title: '04 航天英雄' },
+        { id: 'dir_05_parking', title: '05 停车入位' },
+        { id: 'dir_06_autonomous_driving', title: '06 自动驾驶' },
+        { id: 'dir_07_smart_clock', title: '07 智能时钟' },
+        { id: 'dir_08_cell_division', title: '08 细胞分裂' },
+        { id: 'dir_09_fruit_ninja', title: '09 水果忍者' },
+        { id: 'dir_10_ocean_guardians', title: '10 海洋保卫者' },
+        { id: 'dir_11_coding_primary', title: '11 Coding创意编程（小学组）' },
+        { id: 'dir_12_creative_guide_primary', title: '12 创意作品创作指南（小学）' }
+      ];
+      setModules([...dirs]);
+      setActiveModuleId(dirs[0].id);
+      // 生成各目录下的四类资源：教案(docx)、课件(pptx)、视频(mp4)、素材(zip)
+      const files = [];
+      const videos = [];
+      const assign = { live: {}, videos: {}, exam: {}, links: {}, texts: {}, projects: {}, files: {} };
+      dirs.forEach((d, idx) => {
+        const planId = `mc_plan_${Date.now()}_${idx}`;
+        const coursewareId = `mc_ppt_${Date.now()}_${idx}`;
+        const materialId = `mc_asset_${Date.now()}_${idx}`;
+        const videoId = `mc_video_${Date.now()}_${idx}`;
+        files.push(
+          { id: planId, name: `${d.title}-教案.docx`, size: 300 * 1024, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', isPaper: false, uploadTime: nowISO, content: '文件内容预览...' },
+          { id: coursewareId, name: `${d.title}-课件.pptx`, size: 1200 * 1024, type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', isPaper: false, uploadTime: nowISO, content: '文件内容预览...' },
+          { id: materialId, name: `${d.title}-素材.png`, size: 1024 * 1024, type: 'image/png', isPaper: false, uploadTime: nowISO, content: '文件内容预览...' }
+        );
+        videos.push(
+          { id: videoId, title: `${d.title}-教学视频`, url: `/assets/videos/${videoId}.mp4`, type: 'record', duration: 8 + idx, instructor: '课程团队', progress: 0 }
+        );
+        assign.files[planId] = d.id;
+        assign.files[coursewareId] = d.id;
+        assign.files[materialId] = d.id;
+        assign.videos[videoId] = d.id;
+      });
+      setUploadedFiles(prev => {
+        const existing = Array.isArray(prev) ? prev : [];
+        const names = new Set(existing.map(f => f.name));
+        const toAdd = files.filter(f => !names.has(f.name));
+        return [...existing, ...toAdd];
+      });
+      setCourseVideos(prev => {
+        const existing = Array.isArray(prev) ? prev : [];
+        const titles = new Set(existing.map(v => v.title));
+        const toAdd = videos.filter(v => !titles.has(v.title));
+        return [...existing, ...toAdd];
+      });
+      setModuleAssignments(prev => {
+        const base = prev || {};
+        const next = {
+          live: base.live || {},
+          videos: { ...(base.videos || {}), ...assign.videos },
+          exam: base.exam || {},
+          links: base.links || {},
+          texts: base.texts || {},
+          projects: base.projects || {},
+          files: { ...(base.files || {}), ...assign.files }
+        };
+        return next;
+      });
+    } catch {}
+  }, [note?.id, note?.title, note?.category]);
 
   const {
     onPlayVideo,
@@ -1267,7 +1534,7 @@ const { TextArea } = Input;
   const [collapsedSections, setCollapsedSections] = useState({
     videos: true,
     live: true,
-    examFiles: true,
+    examFiles: false,
     files: true,
     links: true,
     texts: true,
@@ -2640,42 +2907,25 @@ const { TextArea } = Input;
               {!isOrgTrainingView && (
                 <div style={{ marginBottom: 16 }}>
                   {modules.map(mod => {
+                    if (note?.category === 'my_classroom' && (mod.title === '默认模块' || mod.title === '未分类模块')) return null;
                     const modLive = (!isTrainingNeedsManagement && Array.isArray(liveStreams) ? liveStreams : []).filter(s => moduleAssignments.live[s.id] === mod.id);
                     const modVideos = (Array.isArray(courseVideos) ? courseVideos : []).filter(v => moduleAssignments.videos[v.id] === mod.id);
                     const modExams = (Array.isArray(examFiles) ? examFiles : []).filter(f => moduleAssignments.exam[f.id] === mod.id);
                     const modLinks = (Array.isArray(links) ? links : []).filter(l => moduleAssignments.links[l.id] === mod.id);
                     const modTexts = (Array.isArray(addedTexts) ? addedTexts : []).filter(t => moduleAssignments.texts[t.id] === mod.id);
                     const modProjects = (Array.isArray(trainingProjects) ? trainingProjects : []).filter(p => moduleAssignments.projects[p.id] === mod.id);
+                    const modFiles = (Array.isArray(nonExamFiles) ? nonExamFiles : []).filter(f => (moduleAssignments.files || {})[f.id] === mod.id);
                     const isMyEvaluation = note?.category === 'my_evaluation';
                     
                     // 分别统计考试评阅和研修成果评阅的数量
                     const examReviewTexts = modTexts.filter(t => /在线测试|考试|试卷|测验|考核/.test(((t.title || '') + (t.content || ''))));
                     const trainingReviewTexts = modTexts.filter(t => !/在线测试|考试|试卷|测验|考核/.test(((t.title || '') + (t.content || ''))));
                     
-                    const tagSpecs = [
-                      { key: 'live', present: modLive.length > 0, label: '直播课程', color: 'cyan' },
-                      { key: 'videos', present: modVideos.length > 0, label: '课程视频', color: 'geekblue' },
-  { key: 'exam', present: modExams.length > 0, label: '考试', color: 'purple' },
-                      { key: 'links', present: modLinks.length > 0, label: '阅读材料', color: 'blue' },
-                      // 在"我的评阅"分类下，分别显示两种评阅类型
-                      ...(isMyEvaluation ? [
-                        { key: 'trainingReview', present: trainingReviewTexts.length > 0, label: '情景模拟评阅', color: 'gold' },
-                        { key: 'examReview', present: examReviewTexts.length > 0, label: '考试评阅', color: 'purple' }
-                      ] : [
-                        { key: 'texts', present: modTexts.length > 0, label: (note?.category === 'supervision' ? '督导执行' : '文本'), color: 'gold' }
-                      ]),
-                      { key: 'projects', present: modProjects.length > 0, label: (isTrainingNeedsManagement ? '培训项目数据' : '培训项目资料'), color: 'green' }
-                    ];
                     return (
                       <div key={`module-card-${mod.id}`} style={{ marginBottom: 14, border: '1px solid #e8e8e8', borderLeft: '2px solid #91d5ff', borderRadius: 8, background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 8px 6px 8px' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6, flex: 1 }}>
                             <Text strong style={{ fontSize: 13 }}>{mod.title}</Text>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                              {tagSpecs.filter(t => t.present).map(t => (
-                                <Tag color={t.color} key={`mod-${mod.id}-tag-${t.key}`}>{t.label}</Tag>
-                              ))}
-                            </div>
                           </div>
                         </div>
                         <div style={{ padding: '4px 8px 8px 8px' }}>
@@ -2748,15 +2998,58 @@ const { TextArea } = Input;
                                   </Card>
                                   );
                                 })}
-                              </div>
-                            </div>
-                          )}
+                          </div>
+                        </div>
+                      )}
 
-                          {/* 模块内 - 阅读材料（链接） */}
-                          {modLinks.length > 0 && (
-                            <div style={{ marginBottom: 10 }}>
-                              <Text strong style={{ fontSize: 12, color: '#666' }}>📘 阅读材料 ({modLinks.length})</Text>
-                              <div style={{ marginTop: 6 }}>
+                      {modVideos.length > 0 && (
+                        <div style={{ marginBottom: 10 }}>
+                          <Text strong style={{ fontSize: 12, color: '#666' }}>📹 课程视频 ({modVideos.length})</Text>
+                          <div style={{ marginTop: 6 }}>
+                            {modVideos.map(video => (
+                              <Card
+                                className="clickable-card"
+                                key={`mod-${mod.id}-video-${video.id}`}
+                                size="small"
+                                style={{ marginBottom: 8, border: '1px solid #e8e8e8', position: 'relative' }}
+                                bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}
+                                onClick={() => {
+                                  try {
+                                    if (handlers && typeof handlers.onPlayVideo === 'function') {
+                                      handlers.onPlayVideo(video);
+                                    } else {
+                                      state.setSelectedMaterial && state.setSelectedMaterial(video);
+                                      state.setVideoStartTime && state.setVideoStartTime(0);
+                                      state.setCurrentView && state.setCurrentView(VIEW_MODES.VIDEO);
+                                    }
+                                  } catch {}
+                                }}
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                                    <PlayCircleOutlined style={{ color: '#1890ff', marginRight: 8, fontSize: 16 }} />
+                                    <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{video.title}</Text>
+                                    {video.addTime && (
+                                      <Text type="secondary" style={{ fontSize: 10, marginLeft: 8 }}>{video.addTime}</Text>
+                                    )}
+                                  </div>
+                                  <Checkbox
+                                    checked={selectedMaterials.includes(`video-${video.id}`)}
+                                    onChange={(e) => handleSelectMaterial(`video-${video.id}`, e.target.checked)}
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                </div>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 模块内 - 阅读材料（链接） */}
+                      {modLinks.length > 0 && (
+                        <div style={{ marginBottom: 10 }}>
+                          <Text strong style={{ fontSize: 12, color: '#666' }}>📘 阅读材料 ({modLinks.length})</Text>
+                          <div style={{ marginTop: 6 }}>
                                 {modLinks.map(link => (
                                   <Card className="clickable-card" key={`mod-${mod.id}-link-${link.id}`} size="small" style={{ marginBottom: 8, border: '1px solid #e8e8e8' }} bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}
                                     onClick={() => {
@@ -2814,6 +3107,67 @@ const { TextArea } = Input;
                               </div>
                             </div>
                           )}
+
+                          {(() => {
+                            const isMyClassroom = note?.category === 'my_classroom';
+                            const lessonPlans = modFiles.filter(f => String(f.type || '').includes('officedocument.wordprocessingml.document') || String(f.name || '').toLowerCase().endsWith('.docx'));
+                            const coursewares = modFiles.filter(f => String(f.type || '').includes('officedocument.presentationml.presentation') || String(f.name || '').toLowerCase().endsWith('.pptx'));
+                            const materialsFiles = modFiles.filter(f => !lessonPlans.includes(f) && !coursewares.includes(f));
+                            const renderFileList = (files) => (
+                              <div style={{ marginTop: 6 }}>
+                                {files.map(file => (
+                                  <Card
+                                    className="clickable-card"
+                                    key={`mod-${mod.id}-regular-file-${file.id}`} 
+                                    size="small"
+                                    style={{ marginBottom: 8, border: '1px solid #e8e8e8', position: 'relative' }}
+                                    bodyStyle={{ padding: '8px 12px', cursor: 'pointer' }}
+                                    onClick={() => { try { if (handlers?.onViewMaterial) handlers.onViewMaterial(file, 'file'); } catch {} }}
+                                  >
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                                        <FileTextOutlined style={{ color: '#1890ff', marginRight: 8, fontSize: 16 }} />
+                                        <Text strong ellipsis style={{ fontSize: 12, display: 'block' }}>{getFileDisplayName(file.name)}</Text>
+                                        <Text type="secondary" style={{ fontSize: 10, marginLeft: 8 }}>{file.uploadTime}</Text>
+                                      </div>
+                                      <Checkbox
+                                        checked={selectedMaterials.includes(`file-${file.id}`)}
+                                        onChange={(e) => handleSelectMaterial(`file-${file.id}`, e.target.checked)}
+                                      />
+                                    </div>
+                                  </Card>
+                                ))}
+                              </div>
+                            );
+                            return (
+                              <>
+                                {isMyClassroom && lessonPlans.length > 0 && (
+                                  <div style={{ marginBottom: 10 }}>
+                                    <Text strong style={{ fontSize: 12, color: '#666' }}>📄 教案 ({lessonPlans.length})</Text>
+                                    {renderFileList(lessonPlans)}
+                                  </div>
+                                )}
+                                {isMyClassroom && coursewares.length > 0 && (
+                                  <div style={{ marginBottom: 10 }}>
+                                    <Text strong style={{ fontSize: 12, color: '#666' }}>📑 课件 ({coursewares.length})</Text>
+                                    {renderFileList(coursewares)}
+                                  </div>
+                                )}
+                                {isMyClassroom && materialsFiles.length > 0 && (
+                                  <div style={{ marginBottom: 10 }}>
+                                    <Text strong style={{ fontSize: 12, color: '#666' }}>🧩 素材 ({materialsFiles.length})</Text>
+                                    {renderFileList(materialsFiles)}
+                                  </div>
+                                )}
+                                {!isMyClassroom && modFiles.length > 0 && (
+                                  <div style={{ marginBottom: 10 }}>
+                                    <Text strong style={{ fontSize: 12, color: '#666' }}>📁 文件 ({modFiles.length})</Text>
+                                    {renderFileList(modFiles)}
+                                  </div>
+                                )}
+                              </>
+                            );
+                          })()}
 
                           {/* 模块内 - 情景模拟评阅 */}
                           {isMyEvaluation && trainingReviewTexts.length > 0 && (

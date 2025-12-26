@@ -247,6 +247,7 @@ const SmartNotes = ({ onViewChange }) => {
     { value: 'educational_topics', label: '教育课题', icon: 'FileTextOutlined', type: 'system' },
     { value: 'classroom_integration', label: '课堂融合', icon: 'NodeIndexOutlined', type: 'system' },
     { value: 'learning_square', label: '学习广场', icon: 'BookOutlined', type: 'system' },
+    { value: 'my_classroom', label: '我的课堂', icon: 'ReadOutlined', type: 'system' },
     { value: 'teaching_design', label: '教学设计', icon: 'BulbOutlined', type: 'system' },
     { value: 'my_evaluation', label: '我的评阅', icon: 'FileTextOutlined', type: 'system' },
     { value: 'e_pbl', label: 'E-PBL', icon: 'BookOutlined', type: 'system' },
@@ -324,6 +325,15 @@ const SmartNotes = ({ onViewChange }) => {
 
       // 加载笔记
       let notesData = await notesService.getAllNotes();
+
+      try {
+        const myClassroomNotes = Array.isArray(notesData) ? notesData.filter(n => n.category === 'my_classroom') : [];
+        const expected = myClassroomNotes.some(n => String(n.title || '').includes('扣叮能力提升课程'));
+        if (!expected || myClassroomNotes.length !== 1) {
+          notesService.replaceMyClassroomWithKd();
+          notesData = await notesService.getAllNotes();
+        }
+      } catch {}
 
       // 初始化 E-PBL 分类说明主题（一次性）
       try {
@@ -797,6 +807,10 @@ const SmartNotes = ({ onViewChange }) => {
         );
       }
     }
+    if (selectedCategory === 'my_classroom') {
+      const targetTitle = '扣叮能力提升课程（完整版） — 创意实验室 （小学完整版）';
+      filtered = filtered.filter(note => String(note.title || '').trim() === targetTitle);
+    }
     
     // 按搜索词过滤
     if (searchTerm) {
@@ -821,6 +835,22 @@ const SmartNotes = ({ onViewChange }) => {
     }
     setFilteredNotes(filtered);
   }, [notes, selectedCategory, searchTerm]);
+
+  useEffect(() => {
+    if (selectedCategory === 'my_classroom') {
+      try {
+        const notesData = notesService.getAllNotes();
+        const myList = Array.isArray(notesData) ? notesData.filter(n => n.category === 'my_classroom') : [];
+        const ok = myList.length === 1 && String((myList[0] || {}).title || '').includes('扣叮能力提升课程');
+        if (!ok) {
+          notesService.replaceMyClassroomWithKd();
+          const refreshed = notesService.getAllNotes();
+          setNotes(refreshed);
+          setFilteredNotes(refreshed.filter(n => n.category === 'my_classroom'));
+        }
+      } catch {}
+    }
+  }, [selectedCategory]);
 
   // 获取分类信息
   const getCategoryInfo = (categoryValue) => {

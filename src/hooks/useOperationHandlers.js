@@ -275,7 +275,7 @@ export const useOperationHandlers = ({
     if (card.key === 'addTool') {
       return;
     }
-    const bypassSourceCheck = (card.key === 'addTool' || card.key === 'workshop-plan');
+    const bypassSourceCheck = (card.key === 'addTool' || card.key === 'workshop-plan' || card.key === 'youth-aigc-painting' || card.key === 'youth-aigc-music');
     if (!bypassSourceCheck && !hasSourceData) {
       Modal.warning({
         title: '需要添加数据源',
@@ -289,6 +289,62 @@ export const useOperationHandlers = ({
     // 如果有来源数据，正常执行工具操作
     if (card.key === 'scenario') {
       onScenarioClick();
+    } else if (card.key === 'ai-plus-subject') {
+      onScenarioClick();
+    } else if (card.key === 'case-simulation') {
+      onScenarioClick();
+    } else if (card.key === 'youth-aigc-painting') {
+      const record = {
+        id: `aigc_painting_${Date.now()}`,
+        type: OPERATION_TYPES.SCENARIO,
+        title: 'AI绘画主题模拟',
+        source: sourceInfo?.details || '模拟创作场景',
+        time: new Date().toLocaleString('zh-CN'),
+        isAIGenerated: true,
+        sourceRefs: getSourceRefs(),
+        content: `<div style="padding: 16px; font-family: system-ui;">
+          <h3>🎨 AI绘画主题模拟</h3>
+          <p style="color:#666;">围绕青少年创作开展主题模拟：风格选择、提示词构造、作品迭代、展示与评议。</p>
+          <ul style="color:#666;">
+            <li>创作风格：赛博朋克 / 水彩 / 手绘漫画</li>
+            <li>提示词要素：主体、场景、光影、色调、细节</li>
+            <li>迭代策略：低步数草图 → 风格微调 → 构图优化 → 高分辨率</li>
+            <li>展示形式：作品墙、创作说明、同伴互评</li>
+          </ul>
+          <div style="margin-top:8px;color:#6b7280;font-size:12px">自动生成 · 主题模拟</div>
+        </div>`
+      };
+      addRecordWithGenerating(OPERATION_TYPES.SCENARIO, record, {
+        onComplete: () => {
+          message.success('AI绘画主题模拟记录已生成，点击操作记录查看详情');
+        }
+      });
+    } else if (card.key === 'youth-aigc-music') {
+      const record = {
+        id: `aigc_music_${Date.now()}`,
+        type: OPERATION_TYPES.SCENARIO,
+        title: 'AI音乐主题模拟',
+        source: sourceInfo?.details || '模拟创作场景',
+        time: new Date().toLocaleString('zh-CN'),
+        isAIGenerated: true,
+        sourceRefs: getSourceRefs(),
+        content: `<div style="padding: 16px; font-family: system-ui;">
+          <h3>🎵 AI音乐主题模拟</h3>
+          <p style="color:#666;">围绕青少年AI音乐创作开展主题模拟：曲风设定、结构设计、旋律生成、混音与发布。</p>
+          <ul style="color:#666;">
+            <li>曲风选择：Lo-fi / 流行 / 电子 / 轻摇滚</li>
+            <li>结构模板：Intro → Verse → Chorus → Bridge → Outro</li>
+            <li>旋律生成：主题动机 → 变奏 → 和声走向</li>
+            <li>混音要点：节奏组平衡、空间混响、母带压限</li>
+          </ul>
+          <div style="margin-top:8px;color:#6b7280;font-size:12px">自动生成 · 主题模拟</div>
+        </div>`
+      };
+      addRecordWithGenerating(OPERATION_TYPES.SCENARIO, record, {
+        onComplete: () => {
+          message.success('AI音乐主题模拟记录已生成，点击操作记录查看详情');
+        }
+      });
     } else if (card.key === 'question') {
       // 直接生成试题记录，不弹出配置窗口
       const questionRecord = {

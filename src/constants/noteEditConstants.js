@@ -456,6 +456,10 @@ export const CATEGORY_COMMON_QUESTIONS = {
     { key: 'sv_evidence', text: '督导取证材料如何规范整理留痕？', message: '督导取证材料如何规范整理（照片、台账、整改单）并留痕？' },
     { key: 'sv_followup', text: '整改跟踪与复查要怎么做？', message: '整改跟踪与复查要怎么做（责任人、完成时限、复查记录）？' }
   ],
+  youth_aigc_workshop: [
+    { key: 'aigc_painting_practice', text: '如何为青少年设计AI绘画练习？', message: '如何为青少年设计安全且有趣的AI绘画练习？' },
+    { key: 'aigc_music_workflow', text: 'AI音乐创作课堂怎么组织？', message: 'AI音乐创作的课堂活动流程怎么组织更高效？' }
+  ],
   default: COMMON_QUESTIONS
 };
 
