@@ -88,6 +88,10 @@ export const getSystemCategoryConfig = () => {
     const hasPersonal = extra.some(c => c.value === 'personal');
     const hasThemeWorkshop = extra.some(c => c.value === 'theme_workshop');
     const hasMyClassroom = extra.some(c => c.value === 'my_classroom');
+    const hasTeachingResearchOffice = extra.some(c => c.value === 'teaching_research_office');
+    const hasSupervision = extra.some(c => c.value === 'supervision');
+    const hasYouthAIGC = extra.some(c => c.value === 'youth_aigc_workshop');
+    const hasTeacherAIGC = extra.some(c => c.value === 'teacher_aigc_workshop');
     let nextExtra = extra;
     // 处理 e_pbl
     nextExtra = hasEPBL
@@ -127,6 +131,18 @@ export const getSystemCategoryConfig = () => {
     nextExtra = hasMyClassroom
       ? nextExtra.map(c => c.value === 'my_classroom' ? { ...c, pinned: true, label: c.label || '我的课堂', icon: c.icon || 'ReadOutlined', type: c.type || 'system' } : c)
       : [{ value: 'my_classroom', label: '我的课堂', icon: 'ReadOutlined', type: 'system', pinned: true }, ...nextExtra];
+    nextExtra = hasTeachingResearchOffice
+      ? nextExtra.map(c => c.value === 'teaching_research_office' ? { ...c, pinned: true, label: c.label || '教研室', icon: c.icon || 'BookOutlined', type: c.type || 'system' } : c)
+      : [{ value: 'teaching_research_office', label: '教研室', icon: 'BookOutlined', type: 'system', pinned: true }, ...nextExtra];
+    nextExtra = hasSupervision
+      ? nextExtra.map(c => c.value === 'supervision' ? { ...c, pinned: true, label: c.label || '督学', icon: c.icon || 'FileTextOutlined', type: c.type || 'system' } : c)
+      : [{ value: 'supervision', label: '督学', icon: 'FileTextOutlined', type: 'system', pinned: true }, ...nextExtra];
+    nextExtra = hasYouthAIGC
+      ? nextExtra.map(c => c.value === 'youth_aigc_workshop' ? { ...c, pinned: true, label: c.label || '青少年AIGC创作工坊', icon: c.icon || 'HighlightOutlined', type: c.type || 'system' } : c)
+      : [{ value: 'youth_aigc_workshop', label: '青少年AIGC创作工坊', icon: 'HighlightOutlined', type: 'system', pinned: true }, ...nextExtra];
+    nextExtra = hasTeacherAIGC
+      ? nextExtra.map(c => c.value === 'teacher_aigc_workshop' ? { ...c, pinned: true, label: c.label || '教师AIGC创作工坊', icon: c.icon || 'HighlightOutlined', type: c.type || 'system' } : c)
+      : [{ value: 'teacher_aigc_workshop', label: '教师AIGC创作工坊', icon: 'HighlightOutlined', type: 'system', pinned: true }, ...nextExtra];
 
     const ensured = {
       groups: ensureGroups(baseConfig.groups || []),
