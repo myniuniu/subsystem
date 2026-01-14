@@ -339,9 +339,9 @@ class MockDataGenerator {
         updatedAt: new Date('2024-01-20'),
         // 模拟学习时间信息 - 进行中的培训，结束时间为12月31日
         learningSchedule: {
-          startTime: '9/25 09:00',
+          startTime: '1/1 09:00',
           endTime: '12/31 17:00',
-          duration: '98天'
+          duration: '365天'
         }
       },
       // 已按需求移除第二条：班级管理实务（org_002）
@@ -392,9 +392,9 @@ class MockDataGenerator {
         updatedAt: new Date('2024-01-25'),
         // 模拟学习时间信息 - 已结束的培训
         learningSchedule: {
-          startTime: '9/15 09:30',
-          endTime: '9/22 16:30',
-          duration: '7天'
+          startTime: '1/1 09:00',
+          endTime: '1/3 17:00',
+          duration: '3天'
         }
       },
       {

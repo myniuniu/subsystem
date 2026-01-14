@@ -47,6 +47,7 @@ import ThemeTemplateCenter from './components/ThemeTemplateCenter'
 import AIExperience from './components/AIExperience'
 import WindowControlsOverlay from './components/WindowControlsOverlay'
 import Welcome from './components/Welcome'
+import Login from './components/Login'
 import TagManagement from './components/TagManagement'
 import TrainingDashboardViewer from './components/OperationPanel/TrainingDashboardViewer'
 import ModelTrainingTemplate from './components/ModelTrainingTemplate'
@@ -456,7 +457,7 @@ function App() {
       )}
       {currentView !== 'welcome' && <WindowControlsOverlay />}
         <Layout style={{ height: '100%' }}>
-        {(currentView !== 'admin-center' && currentView !== 'welcome') && (
+        {(currentView !== 'admin-center' && currentView !== 'welcome' && currentView !== 'login') && (
           <Sider 
             width="auto"
             style={{
@@ -495,6 +496,8 @@ function App() {
           >
             {currentView === 'welcome' ? (
               <Welcome onEnter={() => { try { localStorage.setItem('pwa_seen_welcome', '1') } catch {}; handleViewChange('smart-notes') }} />
+            ) : currentView === 'login' ? (
+              <Login onSuccess={() => setCurrentView('smart-notes')} />
             ) : (currentView === 'chat' || currentView === 'ai-assistant') ? (
               <UnifiedAICenter />
             ) : currentView === 'assessment-center' ? (

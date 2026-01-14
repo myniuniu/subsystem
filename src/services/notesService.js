@@ -21,6 +21,7 @@ const MIGRATION_ADD_TEACHER_AIGC_DEFAULT_KEY = 'migration_add_teacher_aigc_defau
 // 我的课堂（老师课堂教学）相关迁移
 const MIGRATION_ADD_MY_CLASSROOM_DEFAULT_KEY = 'migration_add_my_classroom_default_v1';
 const MIGRATION_REPLACE_MY_CLASSROOM_KEY = 'migration_replace_my_classroom_v2';
+const MIGRATION_SET_ORG_SCHEDULE_KEY = 'migration_set_org_schedule_v2026_01';
 
 // 默认分类
 const DEFAULT_CATEGORIES = [
@@ -1632,6 +1633,54 @@ class NotesService {
     } catch (e) {
       console.error('初始化新增未开始组织培训主题失败:', e);
     }
+    try {
+      const migratedOrgSchedule = localStorage.getItem(MIGRATION_SET_ORG_SCHEDULE_KEY);
+      if (!migratedOrgSchedule) {
+        const notes = this.getAllNotes() || [];
+        let changed = false;
+        const updated = notes.map(n => {
+          const title = typeof n?.title === 'string' ? n.title : '';
+          const isOrgTraining = (
+            n?.courseType === 'organizational_training' ||
+            n?.source === '组织培训' ||
+            (Array.isArray(n?.tags) && n.tags.includes('组织培训')) ||
+            (title.includes('【组织培训】'))
+          );
+          if (isOrgTraining) {
+            if (title.includes('新教师教学方法培训') || title.includes('新教师教学方法')) {
+              const prev = n.learningSchedule || {};
+              const next = {
+                startTime: '1/1 09:00',
+                endTime: prev.endTime || '12/31 17:00',
+                duration: prev.duration || '365天'
+              };
+              if (!prev.startTime || prev.startTime !== next.startTime || prev.endTime !== next.endTime || prev.duration !== next.duration) {
+                changed = true;
+                return { ...n, learningSchedule: next, updatedAt: new Date().toISOString() };
+              }
+            } else if (title.includes('教育技术应用实践')) {
+              const next = {
+                startTime: '1/1 09:00',
+                endTime: '1/3 17:00',
+                duration: '3天'
+              };
+              const prev = n.learningSchedule || {};
+              if (!prev.startTime || prev.startTime !== next.startTime || prev.endTime !== next.endTime || prev.duration !== next.duration) {
+                changed = true;
+                return { ...n, learningSchedule: next, updatedAt: new Date().toISOString() };
+              }
+            }
+          }
+          return n;
+        });
+        if (changed) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        }
+        localStorage.setItem(MIGRATION_SET_ORG_SCHEDULE_KEY, 'true');
+      }
+    } catch (e) {
+      console.error('设置组织培训主题学习时间失败:', e);
+    }
     // 一次性迁移：为旧存储注入“我的评阅”默认主题（新教师入职线上培训）
     try {
       const migrated4 = localStorage.getItem(MIGRATION_ADD_MY_EVALUATION_DEFAULT_KEY);
@@ -1962,21 +2011,32 @@ class NotesService {
       // 为组织培训笔记生成默认学习时间
       let defaultLearningSchedule = null;
       if (isOrganizationalTraining && !noteData.learningSchedule) {
-        // 生成随机的学习时间
-        const startHour = 9 + Math.floor(Math.random() * 8); // 9-16点开始
-        const duration = 2 + Math.floor(Math.random() * 6); // 2-7小时持续时间
-        const endHour = Math.min(startHour + duration, 18); // 最晚18点结束
-        
-        // 随机选择未来7天内的日期
-        const today = new Date();
-        const futureDate = new Date(today.getTime() + Math.floor(Math.random() * 7) * 24 * 60 * 60 * 1000);
-        const dateStr = `${futureDate.getMonth() + 1}/${futureDate.getDate()}`;
-        
-        defaultLearningSchedule = {
-          startTime: `${dateStr} ${startHour.toString().padStart(2, '0')}:00`,
-          endTime: `${dateStr} ${endHour.toString().padStart(2, '0')}:00`,
-          duration: `${endHour - startHour}小时`
-        };
+        const title = noteData.title || '';
+        if (title.includes('新教师教学方法培训') || title.includes('新教师教学方法')) {
+          defaultLearningSchedule = {
+            startTime: '1/1 09:00',
+            endTime: '12/31 17:00',
+            duration: '365天'
+          };
+        } else if (title.includes('教育技术应用实践')) {
+          defaultLearningSchedule = {
+            startTime: '1/1 09:00',
+            endTime: '1/3 17:00',
+            duration: '3天'
+          };
+        } else {
+          const startHour = 9 + Math.floor(Math.random() * 8);
+          const d = 2 + Math.floor(Math.random() * 6);
+          const endHour = Math.min(startHour + d, 18);
+          const today = new Date();
+          const futureDate = new Date(today.getTime() + Math.floor(Math.random() * 7) * 24 * 60 * 60 * 1000);
+          const dateStr = `${futureDate.getMonth() + 1}/${futureDate.getDate()}`;
+          defaultLearningSchedule = {
+            startTime: `${dateStr} ${startHour.toString().padStart(2, '0')}:00`,
+            endTime: `${dateStr} ${endHour.toString().padStart(2, '0')}:00`,
+            duration: `${endHour - startHour}小时`
+          };
+        }
       }
       
       const newNote = {

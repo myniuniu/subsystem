@@ -57,9 +57,11 @@ const UserAvatar = ({ onThemeChange }) => {
   };
 
   const handleLogin = () => {
-    // 模拟登录逻辑
-    message.info('跳转到登录页面...');
-    // 这里可以添加实际的登录逻辑
+    try {
+      window.location.hash = 'login';
+      window.dispatchEvent(new Event('hashchange'));
+    } catch {}
+    message.info('正在打开登录页面...');
   };
 
   const handleLogout = () => {
